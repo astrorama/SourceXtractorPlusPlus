@@ -9,7 +9,7 @@
 #include <boost/test/test_tools.hpp>
 #include "ElementsKernel/Exception.h"
 // class under test
-#include "ExampleModule/ExampleClass.h"
+#include "ModelFitting/ExampleClass.h"
 
 namespace ecl = Euclid;
 using namespace std;
