@@ -5,7 +5,7 @@
  *     Author: Pierre Dubath
  */
 
-#include "ExampleModule/ExampleClass.h"
+#include "ModelFitting/ExampleClass.h"
 #include "ElementsKernel/Logging.h"
 #include "ElementsKernel/Exception.h"
 

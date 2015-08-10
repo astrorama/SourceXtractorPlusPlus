@@ -7,7 +7,7 @@
 
 #include "ElementsKernel/ProgramHeaders.h"  // for including all Program/related headers
 
-#include "ExampleModule/ExampleClass.h"
+#include "ModelFitting/ExampleClass.h"
 
 namespace Euclid {
 

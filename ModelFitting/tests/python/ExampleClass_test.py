@@ -1,5 +1,5 @@
 import unittest
-from ExampleModule.ExamplePythonModule import ExampleClass  # for ExampleClass
+from ModelFitting.ExamplePythonModule import ExampleClass  # for ExampleClass
 
 
 class TestCase(unittest.TestCase):
