@@ -19,6 +19,7 @@
 
 namespace ModelFitting {
 
+template<typename ... Pars>
 class DependentParameterWatcher;
 
 /**
@@ -83,7 +84,7 @@ private:
     /// store the input parameter value into the dependent parameter value array
     values[index] = first.getValue();
     ///
-    std::unique_ptr<DependentParameterWatcher> dpw_ptr(new DependentParameterWatcher(values[index], *this));
+    std::unique_ptr<DependentParameterWatcher<Parameters...>> dpw_ptr(new DependentParameterWatcher<Parameters...>(values[index], *this));
     first.addWatcher(std::move(dpw_ptr));
     inputParameterLoop<I, Rest...>(values, rest...);
   }
@@ -93,7 +94,7 @@ private:
     /// index of the input parameter value
     int index = I - 1;
     values[index] = last.getValue();
-    std::unique_ptr<DependentParameterWatcher> dpw_ptr(new DependentParameterWatcher(values[index], *this));
+    std::unique_ptr<DependentParameterWatcher<Parameters...>> dpw_ptr(new DependentParameterWatcher<Parameters...>(values[index], *this));
     last.addWatcher(std::move(dpw_ptr));
     //DependentParameterWatcher dpw {values[index], *this};
   }
@@ -119,6 +120,7 @@ private:
    *
    *
    */
+  template<typename ... Pars>
   class DependentParameterWatcher: public ParameterWatcher {
 
   public:
@@ -131,7 +133,7 @@ private:
   private:
 
     //DependentParameterWatcher() {}
-    DependentParameterWatcher(double& value, const DependentParameter<Parameters...>& parent) :
+    DependentParameterWatcher(double& value, const DependentParameter<Pars...>& parent) :
     m_value(value), m_parent(parent) {
     }
 
@@ -153,9 +155,9 @@ private:
 
     double& m_value {};
 
-    const DependentParameter<Parameters...>& m_parent;
+    const DependentParameter<Pars...>& m_parent;
 
-    friend class DependentParameter<Parameters...>;
+    friend class DependentParameter<Pars...>;
 
   };
 
