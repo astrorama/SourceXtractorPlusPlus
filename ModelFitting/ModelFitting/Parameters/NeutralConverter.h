@@ -37,7 +37,7 @@ public:
    *    The value of the parameter in engine coordinate
    *
    */
-  double worldToEngine(const double world_value) const {
+  double worldToEngine(const double world_value) const override {
     return world_value;
   }
 
@@ -50,7 +50,7 @@ public:
    * @return world_value
    *
    */
-  double engineToWorld(const double engine_value) const {
+  double engineToWorld(const double engine_value) const override {
     return engine_value;
   }
 

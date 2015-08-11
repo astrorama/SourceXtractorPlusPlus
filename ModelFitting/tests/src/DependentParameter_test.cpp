@@ -19,10 +19,10 @@ BOOST_AUTO_TEST_CASE(getInputValue_test) {
   ManualParameter param1 {4.0};
   ManualParameter param2 {2.0};
 
-  auto dep = createDependentParameter(
-        [](const array<double, 2>& arr){return arr[0]+arr[1];},
-        param1, param2
-  );
+//  auto dep = createDependentParameter(
+//        [](const array<double, 2>& arr){return arr[0]+arr[1];},
+//        param1, param2
+//  );
 //
 //  auto values = dep.getInputParameterValues();
 //

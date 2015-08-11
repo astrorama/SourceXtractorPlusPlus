@@ -38,10 +38,10 @@ public:
     return m_engine_value;
   }
 
-  void updateEngineValue(double engine_value)
+  void setEngineValue(double engine_value)
       {
         m_engine_value = engine_value;
-        this->updateValueAndNotifyWatcher(m_converter->engineToWorld(engine_value));
+        this->setValue(m_converter->engineToWorld(engine_value));
       }
 
   /**

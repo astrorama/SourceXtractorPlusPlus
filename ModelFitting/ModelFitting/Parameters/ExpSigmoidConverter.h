@@ -25,8 +25,6 @@ class ExpSigmoidConverter: public CoordinateConverter {
 
 public:
 
-  ExpSigmoidConverter() = delete;
-
   ExpSigmoidConverter(const double min_value, const double max_value) :
       m_min_value(min_value), m_max_value(max_value) {
     if (m_min_value > m_max_value) {
@@ -49,7 +47,7 @@ public:
    *    The value of the parameter in engine coordinate
    *
    */
-  double worldToEngine(const double world_value) const {
+  double worldToEngine(const double world_value) const override {
     if (world_value < m_min_value || world_value > m_max_value) {
       throw Elements::Exception()
           << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
@@ -66,7 +64,7 @@ public:
    * @return world_value
    *
    */
-  double engineToWorld(const double engine_value) const {
+  double engineToWorld(const double engine_value) const override {
     return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
   }
 
@@ -79,10 +77,10 @@ public:
 private:
 
   /// minimum model value in world coordinates
-  const double m_min_value { 10e-10 };
+  const double m_min_value;
 
   /// maximum model value in world coordinates
-  const double m_max_value { 0.0 };
+  const double m_max_value;
 
 };
 
