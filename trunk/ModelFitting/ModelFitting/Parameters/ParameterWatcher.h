@@ -37,7 +37,7 @@ public:
     *    The updated value of the parameter
     *
     */
-   virtual void updatedValue(double new_value);
+   virtual void updatedValue(double new_value) = 0;
 
   /**
    * @brief Destructor
