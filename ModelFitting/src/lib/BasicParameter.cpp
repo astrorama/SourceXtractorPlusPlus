@@ -1,28 +1,27 @@
-///**
-// * @file BasicParameter.cpp
-// *
-// * Created on: July 28, 2015
-// *     Author: Pierre Dubath
-// */
-//
-//#include "ElementsKernel/Logging.h"
-//#include "ElementsKernel/Exception.h"
-//#include "ModelFitting/Parameters/BasicParameter.h"
-//
-//namespace ModelFitting {
-//
-//using namespace std;
-//
-//void BasicParameter::updateValueAndNotifyWatcher(const double new_value) {
-//  m_value = new_value;
-//  // Notify the watchers with the new value
-//  for (auto& watcher_ptr : m_watcher_ptr_vector) {
-//    watcher_ptr->updatedValue(new_value);
-//  }
-//}
-//
-//void BasicParameter::addWatcher(std::unique_ptr<ParameterWatcher> watcher_ptr) {
-//  m_watcher_ptr_vector.push_back( move(watcher_ptr) );
-//}
-//
-//}// namespace ModelFitting
+/**
+ * @file BasicParameter.cpp
+ *
+ * Created on: August 12, 2015
+ *     Author: Pierre Dubath
+ */
+
+#include "ModelFitting/Parameters/BasicParameter.h"
+
+namespace ModelFitting {
+
+using namespace std;
+
+BasicParameter::~BasicParameter() = default;
+
+void BasicParameter::setValue(const double new_value) {
+  m_value = new_value;
+  for (auto& observer : m_observer_list) {
+    observer(m_value);
+  }
+}
+
+void BasicParameter::addObserver(ParameterObserver observer) {
+  m_observer_list.emplace_back(std::move(observer));
+}
+
+}// namespace ModelFitting

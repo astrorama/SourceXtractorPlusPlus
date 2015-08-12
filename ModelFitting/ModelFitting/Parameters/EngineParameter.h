@@ -8,9 +8,8 @@
 #ifndef ENGINE_PARAMETER_H_
 #define ENGINE_PARAMETER_H_
 
-#include <string>
-#include <vector>
 #include <memory>
+
 #include "ModelFitting/Parameters/BasicParameter.h"
 #include "ModelFitting/Parameters/CoordinateConverter.h"
 
@@ -42,11 +41,7 @@ public:
     return m_engine_value;
   }
 
-  void setEngineValue(const double engine_value)
-      {
-        m_engine_value = engine_value;
-        BasicParameter::setValue(m_converter->engineToWorld(engine_value));
-      }
+  void setEngineValue(const double engine_value);
 
 protected:
   /*

@@ -8,9 +8,6 @@
 #ifndef NEUTRAL_CONVERTER_H_
 #define NEUTRAL_CONVERTER_H_
 
-#include<string>
-#include<vector>
-#include<memory>
 #include "ModelFitting/Parameters/CoordinateConverter.h"
 
 
@@ -37,9 +34,7 @@ public:
    *    The value of the parameter in engine coordinate
    *
    */
-  double worldToEngine(const double world_value) const override {
-    return world_value;
-  }
+  double worldToEngine(const double world_value) const override;
 
   /**
    * @brief
@@ -50,15 +45,11 @@ public:
    * @return world_value
    *
    */
-  double engineToWorld(const double engine_value) const override {
-    return engine_value;
-  }
-
+  double engineToWorld(const double engine_value) const override;
   /**
    * @brief Destructor
    */
-  virtual ~NeutralConverter() {
-  }
+  virtual ~NeutralConverter();
 
 };
 
