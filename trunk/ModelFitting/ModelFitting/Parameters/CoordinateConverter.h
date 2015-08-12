@@ -8,10 +8,6 @@
 #ifndef COORDINATE_CONVERTER_H_
 #define COORDINATE_CONVERTER_H_
 
-#include<string>
-#include<vector>
-#include<memory>
-
 namespace ModelFitting {
 
 /**

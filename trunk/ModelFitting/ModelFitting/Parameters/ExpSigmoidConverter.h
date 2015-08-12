@@ -8,9 +8,7 @@
 #ifndef EXP_SIGMOID_CONVERTER_H_
 #define EXP_SIGMOID_CONVERTER_H_
 
-#include<string>
-#include<memory>
-#include<math.h>
+#include "ElementsKernel/Exception.h"
 #include "ModelFitting/Parameters/CoordinateConverter.h"
 
 namespace ModelFitting {
@@ -47,13 +45,7 @@ public:
    *    The value of the parameter in engine coordinate
    *
    */
-  double worldToEngine(const double world_value) const override {
-    if (world_value < m_min_value || world_value > m_max_value) {
-      throw Elements::Exception()
-          << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
-    }
-    return log(world_value / m_min_value) / log((m_max_value / world_value));
-  }
+  double worldToEngine(const double world_value) const override;
 
   /**
    * @brief
@@ -64,15 +56,12 @@ public:
    * @return world_value
    *
    */
-  double engineToWorld(const double engine_value) const override {
-    return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
-  }
+  double engineToWorld(const double engine_value) const override;
 
   /**
    * @brief Destructor
    */
-  virtual ~ExpSigmoidConverter() {
-  }
+  virtual ~ExpSigmoidConverter();
 
 private:
 
