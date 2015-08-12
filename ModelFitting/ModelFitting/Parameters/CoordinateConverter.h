@@ -48,8 +48,7 @@ public:
   /**
    * @brief
    *    Engine to world coordinate converter
-   * @details
-   *    ...
+   *
    * @param engine_value
    *    The value of the parameter in engine coordinate
    *

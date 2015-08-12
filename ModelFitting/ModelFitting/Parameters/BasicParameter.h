@@ -21,8 +21,7 @@ namespace ModelFitting {
  *    Base class that any parameter class must implement (and extend).
  *    It includes the parameter value and a list of observers, which
  *    are being notified of any value change. The observers can be any
- *    functions which are called with new value when it is being
- *    changed.
+ *    function which are being called with new value when it changes.
  */
 class BasicParameter {
 
@@ -63,8 +62,8 @@ protected:
   BasicParameter& operator=(BasicParameter&&) = default;
 
   /*
-   * @brief Setter which also notify the observers, by calling
-   * them with the new value.
+   * @brief Setter for the new value, which also notify the
+   * observers, by calling them with the new value.
    */
   void setValue(const double new_value) {
     m_value = new_value;

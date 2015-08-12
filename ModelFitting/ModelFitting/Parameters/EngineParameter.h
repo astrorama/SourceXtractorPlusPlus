@@ -18,12 +18,16 @@ namespace ModelFitting {
 
 /**
  * @class EngineParameter
- * @brief
- * 		Simplest implementation of a parameter class
+ *
+ * @brief EngineParameter are those derived from the minimization process
  *
  * @details
- * 		Simplest implementation of the abstract base class representing any parameter
- *
+ *    EngineParameter is an extension of the BasicParameter class, involving
+ *    coordinate transformation. It provides parameters with unbounded range
+ *    which can be better handled in the minimization process. The "engine"
+ *    terminology is in opposition with the "world" one, referring to parameter
+ *    in physical units. Different possible conversions are implemented through
+ *    the CoordinateConverter abstract base class.
  */
 class EngineParameter: public BasicParameter {
 
@@ -38,30 +42,26 @@ public:
     return m_engine_value;
   }
 
-  void setEngineValue(double engine_value)
+  void setEngineValue(const double engine_value)
       {
         m_engine_value = engine_value;
-        this->setValue(m_converter->engineToWorld(engine_value));
+        BasicParameter::setValue(m_converter->engineToWorld(engine_value));
       }
 
-  /**
-   * @brief
-   *    The pure virtual setValue method
-   * @details
-   *    This method must be implemented in all implementation of this base class
-   * @param value
-   *    The value of the parameter
-   *
+protected:
+  /*
+   * The setValue should not be implemented in this class, nor in any
+   * extension
    */
-//  void setValue(const double value) {
-//    m_value = value;
-//  }
+  void setValue(const double value) = delete;
+
 private:
 
   /// The parameter value in Engine coordinates
   double m_engine_value { 0.0 };
 
-  std::unique_ptr<CoordinateConverter> m_converter {};
+  /// The parameter converter
+  std::unique_ptr<CoordinateConverter> m_converter;
 
 };
 
