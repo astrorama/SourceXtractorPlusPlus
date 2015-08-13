@@ -19,10 +19,7 @@ namespace ModelFitting {
  *
  * @details
  *    Variadic template implementation of a parameter depending on an arbitrary number
- *    of other parameters. The dependent parameter class does not store the input
- *    parameter themselves, but only there values in a private array. It also stores a
- *    function which allows to compute the dependent parameter value as a function of input
- *    parameter values. A dependent parameter cannot be copied, but only moved.
+ *    of other parameters. A dependent parameter cannot be copied, but only moved.
  *
  *    DepoendentParameter creation should be achieved using the factory method
  *    createDependentParameter(...) provide after the end of this class.
@@ -37,6 +34,10 @@ public:
 
   using ValueCalculator = std::function<double(decltype(std::declval<Parameters>().getValue())...)>;
 
+  /**
+   *  This constructore take a function which is used to compute the dependent
+   *  parameter value as a function of input parameter values.
+   */
   DependentParameter(ValueCalculator calculator, Parameters&... parameters)
   : BasicParameter {calculator(parameters.getValue()...)},
   m_calculator {std::move(calculator)},
@@ -59,7 +60,11 @@ private:
 
   /// function to calculate the dependent parameter value
   ValueCalculator m_calculator;
-  /// Array of the input parameter values
+  /*
+   * Array of the input parameter values. The dependent parameter
+   * class does not store the input parameter themselves, but only
+   * there values in a private array.
+   */
   std::array<double, PARAM_NO> m_param_values;
 
   /* The two following methods represent the mecanism to loop over
