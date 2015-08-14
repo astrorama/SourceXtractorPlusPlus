@@ -11,7 +11,7 @@ find_package(Boost)
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
-elements_add_library(ModelFitting src/lib/*.cpp
+elements_add_library(ModelFitting src/lib/Parameters/*.cpp
                      LINK_LIBRARIES ElementsKernel Boost
                      PUBLIC_HEADERS ModelFitting)
 
@@ -23,30 +23,26 @@ elements_install_conf_files()
 
 # Instruction for building C++ tests
 elements_add_unit_test(ManualParameter_test                  
-                       tests/src/ManualParameter_test.cpp
+                       tests/src/Parameters/ManualParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
 elements_add_unit_test(NeutralConverter_test                  
-                       tests/src/NeutralConverter_test.cpp
+                       tests/src/Parameters/NeutralConverter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
 elements_add_unit_test(SigmoidConverter_test                  
-                       tests/src/SigmoidConverter_test.cpp
+                       tests/src/Parameters/SigmoidConverter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
 elements_add_unit_test(ExpSigmoidConverter_test                  
-                       tests/src/ExpSigmoidConverter_test.cpp
+                       tests/src/Parameters/ExpSigmoidConverter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
 elements_add_unit_test(EngineParameter_test              
-                       tests/src/EngineParameter_test.cpp
+                       tests/src/Parameters/EngineParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
 elements_add_unit_test(DependentParameter_test              
-                       tests/src/DependentParameter_test.cpp
+                       tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
                        
-                       
-                       
-                       
-                                          
