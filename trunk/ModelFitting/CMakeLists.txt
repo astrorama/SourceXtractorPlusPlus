@@ -11,8 +11,10 @@ find_package(Boost)
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
-elements_add_library(ModelFitting src/lib/Parameters/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost
+elements_add_library(ModelFitting
+                     src/lib/Parameters/*.cpp
+                     src/lib/Engine/*.cpp
+                     LINK_LIBRARIES ElementsKernel Boost levmar
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
@@ -45,4 +47,3 @@ elements_add_unit_test(EngineParameter_test
 elements_add_unit_test(DependentParameter_test              
                        tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
-                       
