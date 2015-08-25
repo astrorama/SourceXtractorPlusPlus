@@ -8,7 +8,8 @@
 #define MODELFITTING_BASICPARAMETER_H
 
 #include <functional>    // for std::function of the parameter observer
-#include <vector>        // for vector of parameter values
+#include <map>           // for std::map
+#include <memory>
 
 namespace ModelFitting {
 
@@ -38,24 +39,27 @@ public:
    * @brief Getter to access the private parameter value
    */
   double getValue() {
-    return m_value;
+    return *m_value;
   }
 
   /**
    * @brief
    *    The addObserver method adding observer to the member
    *    list
+   * @return The key to use for removing an observer
    */
-  void addObserver(ParameterObserver observer);
+  std::size_t addObserver(ParameterObserver observer);
+  
+  bool removeObserver(std::size_t id);
 
 protected:
 
   BasicParameter(const double value) :
-      m_value { value } {
+      m_value {new double{value}} {
   }
 
-  BasicParameter(const BasicParameter&) = delete;
-  BasicParameter& operator=(const BasicParameter&) = delete;
+  BasicParameter(const BasicParameter&) = default;
+  BasicParameter& operator=(const BasicParameter&) = default;
   BasicParameter(BasicParameter&&) = default;
   BasicParameter& operator=(BasicParameter&&) = default;
 
@@ -67,8 +71,10 @@ protected:
 
 private:
 
-  double m_value;
-  std::vector<ParameterObserver> m_observer_list { };
+  std::shared_ptr<double> m_value;
+  std::shared_ptr<std::map<std::size_t, ParameterObserver>> m_observer_map {
+                                    new std::map<std::size_t, ParameterObserver>{}};
+  std::shared_ptr<std::size_t> m_last_obs_id {new std::size_t{0}};
 
 };
 

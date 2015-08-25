@@ -8,7 +8,10 @@
 #define MODELFITTING_DEPENDENTPARAMETER_H
 
 #include <array>
+#include <vector>
+#include <memory>
 #include "ModelFitting/Parameters/BasicParameter.h"
+#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 
@@ -40,15 +43,10 @@ public:
    */
   DependentParameter(ValueCalculator calculator, Parameters&... parameters)
   : BasicParameter {calculator(parameters.getValue()...)},
-  m_calculator {std::move(calculator)},
-  m_param_values {parameters.getValue()...} {
+  m_calculator {new ValueCalculator{std::move(calculator)}},
+  m_param_values {new std::array<double, PARAM_NO>{parameters.getValue()...}} {
     inputParameterLoop(parameters...);
   }
-
-  DependentParameter(const DependentParameter&) = delete;
-  DependentParameter& operator=(const DependentParameter&) = delete;
-  DependentParameter(DependentParameter&&) = default;
-  DependentParameter& operator=(DependentParameter&&) = default;
 
   virtual ~DependentParameter() = default;
 
@@ -59,13 +57,17 @@ protected:
 private:
 
   /// function to calculate the dependent parameter value
-  ValueCalculator m_calculator;
+  std::shared_ptr<ValueCalculator> m_calculator;
   /*
    * Array of the input parameter values. The dependent parameter
    * class does not store the input parameter themselves, but only
    * there values in a private array.
    */
-  std::array<double, PARAM_NO> m_param_values;
+  std::shared_ptr<std::array<double, PARAM_NO>> m_param_values;
+  
+  std::shared_ptr<std::vector<std::unique_ptr<ReferenceUpdater>>> m_updaters {
+    new std::vector<std::unique_ptr<ReferenceUpdater>>{}
+  };
 
   /* The two following methods represent the mecanism to loop over
    * the arbitrary number of variadic elements, the first one is called
@@ -91,24 +93,23 @@ private:
    */
   template <typename... ParamValues>
   void update(ParamValues... values) {
-    update(values..., m_param_values[sizeof...(values)]);
+    update(values..., (*m_param_values)[sizeof...(values)]);
   }
 
   void update(decltype(std::declval<Parameters>().getValue())... values) {
     /* Beware that it is the updated value (m_calculator(values...)) that
      * is passed to the setValue
      */
-    BasicParameter::setValue(m_calculator(values...));
+    BasicParameter::setValue((*m_calculator)(values...));
   }
 
   template<typename Param>
   void addParameterObserver(int i, Param& param) {
-    param.addObserver([this, i](double v) {
-          /// update the value of appropriate input parameter
-          this->m_param_values[i] = v;
-          /// called a method to update the dependent parameter value
-          this->update(this->m_param_values[0]);
-        });
+    m_updaters->emplace_back(new ReferenceUpdater{
+          param, (*m_param_values)[i],
+          ReferenceUpdater::PreAction{},
+          [this](double){this->update((*m_param_values)[0]);}
+    });
   }
 
 };
