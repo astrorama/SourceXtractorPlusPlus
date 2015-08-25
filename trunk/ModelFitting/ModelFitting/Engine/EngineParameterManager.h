@@ -8,7 +8,6 @@
 #define	MODELFITTING_ENGINEPARAMETERMANAGER_H
 
 #include <vector>
-#include <functional>
 #include "ModelFitting/Parameters/EngineParameter.h"
 
 namespace ModelFitting {
@@ -71,7 +70,7 @@ public:
    * @param parameter
    *    The EngineParameter to register to the manager
    */
-  void registerParameter(EngineParameter& parameter);
+  void registerParameter(EngineParameter parameter);
   
   /// Returns the number of parameters managed by the manager
   std::size_t numberOfParameters();
@@ -119,8 +118,7 @@ public:
   
 private:
   
-  std::vector<std::function<double()>> m_getter_functions {};
-  std::vector<std::function<void(double)>> m_setter_functions {};
+  std::vector<EngineParameter> m_parameters {};
   
 }; // end of class EngineParameterManager
 
