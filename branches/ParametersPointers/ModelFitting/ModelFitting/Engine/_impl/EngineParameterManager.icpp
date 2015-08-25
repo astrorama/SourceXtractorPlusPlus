@@ -8,15 +8,15 @@ namespace ModelFitting {
 
 template <typename DoubleIter>
 void EngineParameterManager::getEngineValues(DoubleIter output_iter) const {
-  for (auto& getter : m_getter_functions) {
-    *(output_iter++) = getter();
+  for (auto& parameter : m_parameters) {
+    *(output_iter++) = parameter->getEngineValue();
   }
 }
 
 template <typename DoubleIter>
 void EngineParameterManager::updateEngineValues(DoubleIter new_values_iter) {
-  for (auto& setter : m_setter_functions) {
-    setter(*(new_values_iter++));
+  for (auto& parameter : m_parameters) {
+    parameter->setEngineValue(*(new_values_iter++));
   }
 }
 

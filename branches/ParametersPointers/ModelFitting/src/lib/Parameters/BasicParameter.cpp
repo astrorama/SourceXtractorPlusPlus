@@ -15,13 +15,19 @@ BasicParameter::~BasicParameter() = default;
 
 void BasicParameter::setValue(const double new_value) {
   m_value = new_value;
-  for (auto& observer : m_observer_list) {
-    observer(m_value);
+  for (auto& observer : m_observer_map) {
+    observer.second(m_value);
   }
 }
 
-void BasicParameter::addObserver(ParameterObserver observer) {
-  m_observer_list.emplace_back(std::move(observer));
+std::size_t BasicParameter::addObserver(ParameterObserver observer) {
+  m_last_obs_id += 1;
+  m_observer_map.emplace(m_last_obs_id, std::move(observer));
+  return m_last_obs_id;
+}
+
+bool BasicParameter::removeObserver(std::size_t id) {
+  return m_observer_map.erase(id);
 }
 
 }// namespace ModelFitting

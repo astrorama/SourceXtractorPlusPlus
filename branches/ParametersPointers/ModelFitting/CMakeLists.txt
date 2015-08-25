@@ -47,3 +47,6 @@ elements_add_unit_test(EngineParameter_test
 elements_add_unit_test(DependentParameter_test              
                        tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
+
+elements_add_executable(Temp src/program/Temp.cpp
+                        LINK_LIBRARIES ModelFitting)

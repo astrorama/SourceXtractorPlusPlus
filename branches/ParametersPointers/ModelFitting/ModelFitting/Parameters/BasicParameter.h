@@ -8,7 +8,7 @@
 #define MODELFITTING_BASICPARAMETER_H
 
 #include <functional>    // for std::function of the parameter observer
-#include <vector>        // for vector of parameter values
+#include <map>           // for std::map
 
 namespace ModelFitting {
 
@@ -45,8 +45,11 @@ public:
    * @brief
    *    The addObserver method adding observer to the member
    *    list
+   * @return The key to use for removing an observer
    */
-  void addObserver(ParameterObserver observer);
+  std::size_t addObserver(ParameterObserver observer);
+  
+  bool removeObserver(std::size_t id);
 
 protected:
 
@@ -56,8 +59,8 @@ protected:
 
   BasicParameter(const BasicParameter&) = delete;
   BasicParameter& operator=(const BasicParameter&) = delete;
-  BasicParameter(BasicParameter&&) = default;
-  BasicParameter& operator=(BasicParameter&&) = default;
+  BasicParameter(BasicParameter&&) = delete;
+  BasicParameter& operator=(BasicParameter&&) = delete;
 
   /*
    * @brief Setter for the new value, which also notify the
@@ -68,7 +71,8 @@ protected:
 private:
 
   double m_value;
-  std::vector<ParameterObserver> m_observer_list { };
+  std::map<std::size_t, ParameterObserver> m_observer_map { };
+  std::size_t m_last_obs_id {0};
 
 };
 

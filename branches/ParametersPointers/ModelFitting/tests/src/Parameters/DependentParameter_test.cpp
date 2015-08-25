@@ -15,16 +15,16 @@ using namespace std;
 BOOST_AUTO_TEST_SUITE (DependentParameter_test)
 
 BOOST_AUTO_TEST_CASE(getInputValue_test) {
-  ManualParameter param1 { 4.0 };
-  ManualParameter param2 { 2.0 };
+  std::shared_ptr<ManualParameter> param1 { new ManualParameter{4.0} };
+  std::shared_ptr<ManualParameter> param2 { new ManualParameter{2.0} };
 
   double test_observer { 0.0 };
 
-  param1.addObserver([&](double v) {test_observer = v;});
+  param1->addObserver([&](double v) {test_observer = v;});
 
   BOOST_CHECK_EQUAL(0.0, test_observer);
 
-  param1.setValue(10.0);
+  param1->setValue(10.0);
 
   BOOST_CHECK_EQUAL(10.0, test_observer);
 
@@ -34,9 +34,9 @@ BOOST_AUTO_TEST_CASE(getInputValue_test) {
 
   test_observer = 0.0;
 
-  dp.addObserver([&](double v){test_observer = v;});
+  dp->addObserver([&](double v){test_observer = v;});
 
-  param2.setValue(7.);
+  param2->setValue(7.);
 
   BOOST_CHECK_EQUAL(17.0, test_observer);
 

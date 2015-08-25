@@ -8,7 +8,10 @@
 #define MODELFITTING_DEPENDENTPARAMETER_H
 
 #include <array>
+#include <memory>
+#include <vector>
 #include "ModelFitting/Parameters/BasicParameter.h"
+#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 
@@ -35,20 +38,15 @@ public:
   using ValueCalculator = std::function<double(decltype(std::declval<Parameters>().getValue())...)>;
 
   /**
-   *  This constructore take a function which is used to compute the dependent
+   *  This constructor take a function which is used to compute the dependent
    *  parameter value as a function of input parameter values.
    */
-  DependentParameter(ValueCalculator calculator, Parameters&... parameters)
-  : BasicParameter {calculator(parameters.getValue()...)},
+  DependentParameter(ValueCalculator calculator, std::shared_ptr<Parameters>... parameters)
+  : BasicParameter {calculator(parameters->getValue()...)},
   m_calculator {std::move(calculator)},
-  m_param_values {parameters.getValue()...} {
+  m_param_values {parameters->getValue()...} {
     inputParameterLoop(parameters...);
   }
-
-  DependentParameter(const DependentParameter&) = delete;
-  DependentParameter& operator=(const DependentParameter&) = delete;
-  DependentParameter(DependentParameter&&) = default;
-  DependentParameter& operator=(DependentParameter&&) = default;
 
   virtual ~DependentParameter() = default;
 
@@ -66,6 +64,8 @@ private:
    * there values in a private array.
    */
   std::array<double, PARAM_NO> m_param_values;
+  
+  std::vector<std::unique_ptr<ReferenceUpdater>> m_updaters {};
 
   /* The two following methods represent the mecanism to loop over
    * the arbitrary number of variadic elements, the first one is called
@@ -73,13 +73,13 @@ private:
    * second one is called when there is only one left.
    */
   template<typename First, typename ... Rest>
-  void inputParameterLoop(First& first, Rest&... rest) {
+  void inputParameterLoop(First first, Rest... rest) {
     addParameterObserver(PARAM_NO - sizeof...(rest) - 1, first);
     inputParameterLoop(rest...);
   }
 
   template<typename Last>
-  void inputParameterLoop(Last& last) {
+  void inputParameterLoop(Last last) {
     addParameterObserver(PARAM_NO - 1, last);
   }
 
@@ -102,22 +102,23 @@ private:
   }
 
   template<typename Param>
-  void addParameterObserver(int i, Param& param) {
-    param.addObserver([this, i](double v) {
-          /// update the value of appropriate input parameter
-          this->m_param_values[i] = v;
-          /// called a method to update the dependent parameter value
-          this->update(this->m_param_values[0]);
-        });
+  void addParameterObserver(int i, Param param) {
+    m_updaters.emplace_back(new ReferenceUpdater{
+            param, this->m_param_values[i],
+            ReferenceUpdater::PreAction{}, 
+            [this](double){this->update(this->m_param_values[0]);}
+    });
   }
 
 };
 
 template<typename ... Parameters>
-DependentParameter<Parameters...> createDependentParameter(
+std::unique_ptr<DependentParameter<Parameters...>> createDependentParameter(
     typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
-    Parameters &... parameters) {
-  return DependentParameter<Parameters...> { value_calculator, parameters... };
+    std::shared_ptr<Parameters>... parameters) {
+  return std::unique_ptr<DependentParameter<Parameters...>> {
+    new DependentParameter<Parameters...> { value_calculator, parameters... }
+  };
 }
 
 }
