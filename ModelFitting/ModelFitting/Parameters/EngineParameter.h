@@ -32,13 +32,13 @@ class EngineParameter: public BasicParameter {
 
 public:
 
-  EngineParameter(const double world_value, std::unique_ptr<CoordinateConverter> converter) :
-      BasicParameter(world_value), m_converter( move(converter) ) {
-    m_engine_value = m_converter->worldToEngine(world_value);
-  }
+  EngineParameter(const double world_value, std::unique_ptr<CoordinateConverter> converter)
+              : BasicParameter(world_value),
+                m_engine_value{new double{converter->worldToEngine(world_value)}},
+                m_converter{std::move(converter)} { }
 
   double getEngineValue() const {
-    return m_engine_value;
+    return *m_engine_value;
   }
 
   void setEngineValue(const double engine_value);
@@ -53,10 +53,10 @@ protected:
 private:
 
   /// The parameter value in Engine coordinates
-  double m_engine_value { 0.0 };
+  std::shared_ptr<double> m_engine_value;
 
   /// The parameter converter
-  std::unique_ptr<CoordinateConverter> m_converter;
+  std::shared_ptr<CoordinateConverter> m_converter;
 
 };
 
