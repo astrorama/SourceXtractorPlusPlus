@@ -7,6 +7,7 @@ elements_depends_on_subdirs(ElementsKernel)
 # Declare library dependencies
 #    The module is using the Boost C++ library
 find_package(Boost)
+find_package(OpenCV)
 
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
@@ -14,7 +15,8 @@ find_package(Boost)
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost levmar
+                     src/lib/Models/*.cpp
+                     LINK_LIBRARIES ElementsKernel Boost levmar OpenCV
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
