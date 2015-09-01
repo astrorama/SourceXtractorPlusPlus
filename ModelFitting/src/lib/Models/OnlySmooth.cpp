@@ -10,7 +10,7 @@ namespace ModelFitting {
 
 OnlySmooth::~OnlySmooth() = default;
 
-void OnlySmooth::updateRasterizationInfo(double, double, ProfileProjection) {
+void OnlySmooth::updateRasterizationInfo(double, double, Profile) {
   // do nothing here
 }
 

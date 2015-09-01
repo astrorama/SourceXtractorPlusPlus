@@ -19,7 +19,7 @@ public:
   
   virtual ~OldSharp();
   
-  void updateRasterizationInfo(double scale, double, ProfileProjection) override;
+  void updateRasterizationInfo(double scale, double, Profile) override;
   
   bool insideSharpRegion(double r) override;
   

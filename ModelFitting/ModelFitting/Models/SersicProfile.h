@@ -1,5 +1,5 @@
 /** 
- * @file SersicProfileProjection.h
+ * @file SersicProfile.h
  * @date August 25, 2015
  * @author Nikolaos Apostolakos
  */
@@ -12,15 +12,15 @@
 
 namespace ModelFitting {
 
-class SersicProfileProjection {
+class SersicProfile {
   
 public:
   
-  SersicProfileProjection(BasicParameter& i0, BasicParameter& n, BasicParameter& k);
+  SersicProfile(BasicParameter& i0, BasicParameter& n, BasicParameter& k);
               
-  SersicProfileProjection(const SersicProfileProjection& other);
+  SersicProfile(const SersicProfile& other);
   
-  virtual ~SersicProfileProjection();
+  virtual ~SersicProfile();
   
   double operator()(double r) const;
   
@@ -33,7 +33,7 @@ private:
   ReferenceUpdater m_n_updater;
   ReferenceUpdater m_k_updater;
   
-}; // end of class SersicProfileProjection
+}; // end of class SersicProfile
 
 } // end of namespace ModelFitting
 

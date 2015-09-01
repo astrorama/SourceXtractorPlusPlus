@@ -11,11 +11,11 @@
 #include <vector>
 #include "ModelFitting/Models/SharpRegionManager.h"
 #include "ModelFitting/Models/ModelComponent.h"
-#include "ModelFitting/Models/SersicProfileProjection.h"
+#include "ModelFitting/Models/SersicProfile.h"
 
 namespace ModelFitting {
 
-template <typename ProfileProjection>
+template <typename Profile>
 class CircularlySymmetricModelComponent : public ModelComponent {
   
 public:
@@ -37,11 +37,11 @@ public:
 private:
   
   std::unique_ptr<SharpRegionManager> m_sharp_manager;
-  ProfileProjection m_projection;
+  Profile m_projection;
   
 }; // end of class CircularlySymmetricModelComponent
 
-using SersicModelComponent = CircularlySymmetricModelComponent<SersicProfileProjection>;
+using SersicModelComponent = CircularlySymmetricModelComponent<SersicProfile>;
 
 } // end of namespace ModelFitting
 
