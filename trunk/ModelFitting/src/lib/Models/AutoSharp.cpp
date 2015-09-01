@@ -17,13 +17,13 @@ AutoSharp::AutoSharp(double log_incr, double first_r, double tolerance, double m
 
 AutoSharp::~AutoSharp() = default;
 
-void AutoSharp::updateRasterizationInfo(double scale, double r_max, ProfileProjection projection) {
+void AutoSharp::updateRasterizationInfo(double scale, double r_max, Profile profile) {
   m_r_sharp = 0.;
   double err = m_tolerance;
   while (m_r_sharp < r_max && err >= m_tolerance) {
-    double v1 = projection(m_r_sharp);
-    double v2 = projection(m_r_sharp + scale / 2.);
-    double v3 = projection(m_r_sharp + scale);
+    double v1 = profile(m_r_sharp);
+    double v2 = profile(m_r_sharp + scale / 2.);
+    double v3 = profile(m_r_sharp + scale);
     err = std::abs((v2 - (v3 + v1) / 2) / v2);
     m_r_sharp += scale;
   }

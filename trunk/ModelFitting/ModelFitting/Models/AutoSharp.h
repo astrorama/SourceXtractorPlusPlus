@@ -22,7 +22,7 @@ public:
   virtual ~AutoSharp();
   
   void updateRasterizationInfo(double scale, double r_max,
-                               ProfileProjection projection) override;
+                               Profile profile) override;
   
   bool insideSharpRegion(double r) override;
   

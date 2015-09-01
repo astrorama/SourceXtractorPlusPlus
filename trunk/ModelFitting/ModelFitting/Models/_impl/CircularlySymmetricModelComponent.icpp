@@ -11,31 +11,31 @@
 
 namespace ModelFitting {
 
-template <typename ProfileProjection>
+template <typename Profile>
 template <typename... ProjectionParameters>
-CircularlySymmetricModelComponent<ProfileProjection>::CircularlySymmetricModelComponent(
+CircularlySymmetricModelComponent<Profile>::CircularlySymmetricModelComponent(
                                 std::unique_ptr<SharpRegionManager> sharp_manager,
                                 ProjectionParameters&&... proj_parameters)
           : m_sharp_manager{std::move(sharp_manager)},
             m_projection(std::forward<ProjectionParameters>(proj_parameters)...) {
 }
 
-template <typename ProfileProjection>
-CircularlySymmetricModelComponent<ProfileProjection>::~CircularlySymmetricModelComponent() = default;
+template <typename Profile>
+CircularlySymmetricModelComponent<Profile>::~CircularlySymmetricModelComponent() = default;
 
-template <typename ProfileProjection>
-double CircularlySymmetricModelComponent<ProfileProjection>::getValue(double x, double y) {
+template <typename Profile>
+double CircularlySymmetricModelComponent<Profile>::getValue(double x, double y) {
   return m_projection(std::sqrt(x*x + y*y));
 }
 
-template <typename ProfileProjection>
-void CircularlySymmetricModelComponent<ProfileProjection>::updateRasterizationInfo(
+template <typename Profile>
+void CircularlySymmetricModelComponent<Profile>::updateRasterizationInfo(
                                                           double scale, double r_max) {
   m_sharp_manager->updateRasterizationInfo(scale, r_max, std::ref(m_projection));
 }
 
-template <typename ProfileProjection>
-auto CircularlySymmetricModelComponent<ProfileProjection>::getSharpSampling()
+template <typename Profile>
+auto CircularlySymmetricModelComponent<Profile>::getSharpSampling()
                                                     -> std::vector<ModelSample> {
   std::vector<ModelSample> result {};
   double r1 {0.};
@@ -55,8 +55,8 @@ auto CircularlySymmetricModelComponent<ProfileProjection>::getSharpSampling()
   return result;
 }
 
-template <typename ProfileProjection>
-bool CircularlySymmetricModelComponent<ProfileProjection>:: insideSharpRegion(double x, double y) {
+template <typename Profile>
+bool CircularlySymmetricModelComponent<Profile>:: insideSharpRegion(double x, double y) {
   return m_sharp_manager->insideSharpRegion(std::sqrt(x*x + y*y));
 }
 

@@ -17,12 +17,12 @@ class SharpRegionManager {
   
 public:
   
-  using ProfileProjection = std::function<double(double)>;
+  using Profile = std::function<double(double)>;
   
   virtual ~SharpRegionManager() = default;
 
   virtual void updateRasterizationInfo(double scale, double r_max,
-                                       ProfileProjection projection) = 0;
+                                       Profile profile) = 0;
   
   virtual bool insideSharpRegion(double r) = 0;
   

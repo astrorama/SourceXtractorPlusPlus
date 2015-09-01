@@ -14,7 +14,7 @@ OldSharp::OldSharp(double r_sharp_pix, double log_incr, double first_r)
 
 OldSharp::~OldSharp() = default;
 
-void OldSharp::updateRasterizationInfo(double scale, double, ProfileProjection) {
+void OldSharp::updateRasterizationInfo(double scale, double, Profile) {
   m_r_sharp = m_r_sharp_pix * scale;
 }
 

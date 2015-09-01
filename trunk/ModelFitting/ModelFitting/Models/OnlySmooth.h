@@ -17,7 +17,7 @@ public:
   
   virtual ~OnlySmooth();
   
-  void updateRasterizationInfo(double, double, ProfileProjection) override;
+  void updateRasterizationInfo(double, double, Profile) override;
   
   bool insideSharpRegion(double) override;
   
