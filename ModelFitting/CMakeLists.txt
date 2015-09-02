@@ -49,3 +49,17 @@ elements_add_unit_test(EngineParameter_test
 elements_add_unit_test(DependentParameter_test              
                        tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
+
+find_package(CCfits)
+
+elements_add_executable(Example1 src/program/Example1.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)
+
+elements_add_executable(Example2 src/program/Example2.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)
+
+elements_add_executable(Example3 src/program/Example3.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)

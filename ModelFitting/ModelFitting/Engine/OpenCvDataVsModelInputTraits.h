@@ -9,6 +9,7 @@
 
 #include <utility>
 #include <opencv2/opencv.hpp>
+#include "ModelFitting/Engine/DataVsModelInputTraits.h"
 
 namespace ModelFitting {
 
