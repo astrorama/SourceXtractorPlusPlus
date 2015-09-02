@@ -7,7 +7,7 @@
 namespace ModelFitting {
 
 template <typename PsfType, typename ImageType>
-FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, double width, double height,
+FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width, std::size_t height,
                                            std::vector<ConstantModel> constant_model_list,
                                            std::vector<PointModel> point_model_list,
                                            std::vector<ExtendedModel> extended_model_list,
