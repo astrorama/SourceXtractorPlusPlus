@@ -6,4 +6,4 @@ find_package(ElementsProject)
 #---------------------------------------------------------------
 
 # Declare project name and version
-elements_project(SExtractorxx 1.0 USE Elements 3.7)
+elements_project(SExtractorxx .1 USE Elements 3.7)
