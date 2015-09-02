@@ -17,7 +17,7 @@ class AutoSharp : public SharpRegionManager {
 public:
   
   AutoSharp(double log_incr=1.122, double first_r=1E-4, double tolerance=0.05,
-            double max_step_factor=5.);
+            double min_sampling_factor=5.);
   
   virtual ~AutoSharp();
   
@@ -36,7 +36,7 @@ private:
   double m_log_incr;
   double m_first_r;
   double m_tolerance;
-  double m_max_step_factor;
+  double m_min_sampling_factor;
   
 }; // end of class AutoSharp
 
