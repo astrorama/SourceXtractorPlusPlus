@@ -10,6 +10,7 @@
 #include <cmath>
 #include <algorithm>
 #include <chrono>
+#include <utility>
 #include <opencv2/opencv.hpp>
 #include "ModelFitting/Image/ImageTraits.h"
 

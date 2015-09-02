@@ -6,12 +6,12 @@
 
 namespace ModelFitting {
 
-template <typename PsfType>
-FrameModel<PsfType>::FrameModel(double pixel_scale, double width, double height,
-                                std::vector<ConstantModel> constant_model_list,
-                                std::vector<PointModel> point_model_list,
-                                std::vector<ExtendedModel> extended_model_list,
-                                PsfType psf)
+template <typename PsfType, typename ImageType>
+FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, double width, double height,
+                                           std::vector<ConstantModel> constant_model_list,
+                                           std::vector<PointModel> point_model_list,
+                                           std::vector<ExtendedModel> extended_model_list,
+                                           PsfType psf)
         : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
           m_constant_model_list{std::move(constant_model_list)},
           m_point_model_list{std::move(point_model_list)},
@@ -19,8 +19,8 @@ FrameModel<PsfType>::FrameModel(double pixel_scale, double width, double height,
           m_psf{std::move(psf)} {
 }
 
-template <typename PsfType>
-FrameModel<PsfType>::~FrameModel() = default;
+template <typename PsfType, typename ImageType>
+FrameModel<PsfType, ImageType>::~FrameModel() = default;
 
 namespace _impl {
   
@@ -68,15 +68,35 @@ void addExtendedModels(ImageType& image, const std::vector<ExtendedModel>& model
 
 } // end of namespace _impl
 
-template <typename PsfType>
-template<typename ImageType>
-ImageType FrameModel<PsfType>::getImage() {
+template <typename PsfType, typename ImageType>
+void FrameModel<PsfType, ImageType>::recomputeImage() {
   using Traits = ImageTraits<ImageType>;
-  ImageType image = Traits::factory(m_width, m_height);
-  _impl::addConstantModels(image, m_constant_model_list);
-  _impl::addPointModels(image, m_point_model_list, m_psf, m_pixel_scale);
-  _impl::addExtendedModels(image, m_extended_model_list, m_psf, m_pixel_scale);
-  return image;
+  m_model_image.reset(new ImageType(Traits::factory(m_width, m_height)));
+  _impl::addConstantModels(*m_model_image, m_constant_model_list);
+  _impl::addPointModels(*m_model_image, m_point_model_list, m_psf, m_pixel_scale);
+  _impl::addExtendedModels(*m_model_image, m_extended_model_list, m_psf, m_pixel_scale);
+}
+
+template <typename PsfType, typename ImageType>
+const ImageType& FrameModel<PsfType, ImageType>::getImage() {
+  recomputeImage();
+  return *m_model_image;
+}
+
+template <typename PsfType, typename ImageType>
+auto FrameModel<PsfType, ImageType>::begin() -> const_iterator {
+  recomputeImage();
+  return ImageTraits<ImageType>::begin(*m_model_image);
+}
+
+template <typename PsfType, typename ImageType>
+auto FrameModel<PsfType, ImageType>::end() -> const_iterator {
+  return ImageTraits<ImageType>::end(*m_model_image);
+}
+
+template <typename PsfType, typename ImageType>
+std::size_t FrameModel<PsfType, ImageType>::size() const {
+  return m_width * m_height;
 }
 
 } // end of namespace ModelFitting

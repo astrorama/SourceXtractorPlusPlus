@@ -16,10 +16,12 @@
 
 namespace ModelFitting {
 
-template <typename PsfType>
+template <typename PsfType, typename ImageType>
 class FrameModel {
   
 public:
+  
+  using const_iterator = typename ImageTraits<ImageType>::iterator;
   
   FrameModel(double pixel_scale, double width, double height,
              std::vector<ConstantModel> constant_model_list,
@@ -27,10 +29,19 @@ public:
              std::vector<ExtendedModel> extended_model_list,
              PsfType psf);
   
+  FrameModel(FrameModel&&) = default;
+  
   virtual ~FrameModel();
   
-  template<typename ImageType>
-  ImageType getImage();
+  void recomputeImage();
+  
+  const ImageType& getImage();
+  
+  const_iterator begin();
+  
+  const_iterator end();
+  
+  std::size_t size() const;
   
 private:
   
@@ -41,6 +52,7 @@ private:
   std::vector<PointModel> m_point_model_list;
   std::vector<ExtendedModel> m_extended_model_list;
   PsfType m_psf;
+  std::unique_ptr<ImageType> m_model_image {};
   
 }; // end of class FrameModel
 
