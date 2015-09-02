@@ -24,8 +24,8 @@ bool OldSharp::insideSharpRegion(double r) {
 
 std::pair<double, int> OldSharp::nextRadiusAndAngleNo(double prev_r) {
   double next_r = prev_r > 0
-      ? prev_r * m_log_incr
-      : m_first_r;
+                  ? prev_r * m_log_incr
+                  : m_first_r;
   return std::make_pair(next_r, 72);
 }
 

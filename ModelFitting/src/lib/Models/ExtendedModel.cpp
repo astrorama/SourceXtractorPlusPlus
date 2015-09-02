@@ -17,8 +17,8 @@ ExtendedModel::ExtendedModel(std::vector<std::unique_ptr<ModelComponent> > compo
                              BasicParameter& x, BasicParameter& y)
         : PositionedModel(x, y), m_width{width}, m_height{height} {
   for (auto& component : component_list) {
-    auto scaled = ModelCompFactory<ScaledModelComponent>::make(std::move(component), x_scale, y_scale);
-    auto rotated = ModelCompFactory<RotatedModelComponent>::make(std::move(scaled), rotation_angle);
+    auto scaled = makeModelComponent<ScaledModelComponent>(std::move(component), x_scale, y_scale);
+    auto rotated = makeModelComponent<RotatedModelComponent>(std::move(scaled), rotation_angle);
     m_component_list.emplace_back(std::move(rotated));
   }
 }

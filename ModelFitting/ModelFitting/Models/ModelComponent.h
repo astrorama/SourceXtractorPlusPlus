@@ -32,15 +32,22 @@ public:
   
 }; // end of class ModelComponent
 
-template <typename ComponentType>
-struct ModelCompFactory {
-  template <typename... Parameters>
-  static std::unique_ptr<ModelComponent> make(Parameters&&... parameters) {
-    return std::unique_ptr<ModelComponent> {
-      new ComponentType{std::forward<Parameters>(parameters)...}
-    };
-  }
-};
+//template <typename ComponentType>
+//struct ModelCompFactory {
+//  template <typename... Parameters>
+//  static std::unique_ptr<ModelComponent> make(Parameters&&... parameters) {
+//    return std::unique_ptr<ModelComponent> {
+//      new ComponentType{std::forward<Parameters>(parameters)...}
+//    };
+//  }
+//};
+
+template <typename ComponentType, typename... Parameters>
+std::unique_ptr<ModelComponent> makeModelComponent(Parameters&&... parameters) {
+  return std::unique_ptr<ModelComponent> {
+    new ComponentType{std::forward<Parameters>(parameters)...}
+  };
+}
 
 } // end of namespace ModelFitting
 

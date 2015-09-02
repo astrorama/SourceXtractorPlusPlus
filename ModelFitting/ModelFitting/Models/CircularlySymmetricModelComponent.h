@@ -20,9 +20,9 @@ class CircularlySymmetricModelComponent : public ModelComponent {
   
 public:
   
-  template <typename... ProjectionParameters>
+  template <typename... ProfileParameters>
   CircularlySymmetricModelComponent(std::unique_ptr<SharpRegionManager> sharp_manager,
-                                    ProjectionParameters&&... proj_parameters);
+                                    ProfileParameters&&... proj_parameters);
   
   virtual ~CircularlySymmetricModelComponent();
   
@@ -37,7 +37,7 @@ public:
 private:
   
   std::unique_ptr<SharpRegionManager> m_sharp_manager;
-  Profile m_projection;
+  Profile m_profile;
   
 }; // end of class CircularlySymmetricModelComponent
 
