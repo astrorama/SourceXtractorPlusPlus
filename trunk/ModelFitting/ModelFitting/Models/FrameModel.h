@@ -23,7 +23,7 @@ public:
   
   using const_iterator = typename ImageTraits<ImageType>::iterator;
   
-  FrameModel(double pixel_scale, double width, double height,
+  FrameModel(double pixel_scale, std::size_t width, std::size_t height,
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
              std::vector<ExtendedModel> extended_model_list,
@@ -46,8 +46,8 @@ public:
 private:
   
   double m_pixel_scale;
-  double m_width;
-  double m_height;
+  std::size_t m_width;
+  std::size_t m_height;
   std::vector<ConstantModel> m_constant_model_list;
   std::vector<PointModel> m_point_model_list;
   std::vector<ExtendedModel> m_extended_model_list;
