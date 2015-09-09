@@ -63,3 +63,7 @@ elements_add_executable(Example2 src/program/Example2.cpp
 elements_add_executable(Example3 src/program/Example3.cpp
                         LINK_LIBRARIES ModelFitting CCfits
                         INCLUDE_DIRS CCfits)
+
+elements_add_executable(Example3b src/program/Example3b.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)
