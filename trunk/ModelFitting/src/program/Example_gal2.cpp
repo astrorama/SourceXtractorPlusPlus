@@ -1,5 +1,5 @@
 /** 
- * @file Example3.cpp
+ * @file Example_gal2.cpp
  * @date September 2, 2015
  * @author Nikolaos Apostolakos
  */
@@ -15,6 +15,7 @@
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 #include "ModelFitting/Parameters/NormalizedConverter.h"
+#include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/ExtendedModel.h"
@@ -24,22 +25,13 @@
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
+#include "ModelFitting/Engine/WorldValueResidual.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
 using namespace std;
 using namespace ModelFitting;
-
-// This example demonstrates how to use the DataVsModelResiduals to perform
-// minimization over an observed image and a FrameModel. The real parameters
-// are:
-// - I0 : 12.
-// - X : 128
-// - Y : 128
-// - X_SCALE : 0.83
-// - Y_SCALE : 0.25
-// - ROT_ANGLE : 2.3
 
 int main() {
   
@@ -107,7 +99,7 @@ int main() {
     move(extended_models), move(psf)
   };
   
-  writeToFits(frame_model.getImage(), "example3b.fits");
+  writeToFits(frame_model.getImage(), "example_gal2_before.fits");
   
   //
   // Minimization
@@ -134,6 +126,19 @@ int main() {
   // We create a residual estimator and we add our block provider
   ResidualEstimator res_estimator {};
   res_estimator.registerBlockProvider(move(data_vs_model));
+  
+  // Here we want to add a prior to the aspect ratio. To do that we first need
+  // A dependent parameter which computes the aspect ratio from the x and y scales
+  auto aspect_ratio = createDependentParameter(
+      [](double x, double y){return x/y;}, // This is a lambda expression computing the aspect ratio
+      x_scale, y_scale // These are the parameters the input of the lambda expression are taken
+  );
+  // Now we can create a prior to the newly created parameter
+  res_estimator.registerBlockProvider(make_unique<WorldValueResidual>(
+      aspect_ratio, // The parameter to apply the prior for
+      0.3, // The expected value. Note that this will invert the X and Y
+      1000. // The weight (optional). We give a high value to drive the minimization
+  ));
   
   // We print the parameters before the minimization for comparison
   cout << "I0 = " << i0.getValue() << '\n';
@@ -178,6 +183,6 @@ int main() {
     pixel_scale, (size_t)image.cols, (size_t)image.rows, move(constant_models), {},
     move(extended_models), readPsf(psf_path[0].string())
   };
-  writeToFits(frame_model_after.getImage(), "example3b2.fits");
+  writeToFits(frame_model_after.getImage(), "example_gal2_after.fits");
 
 }
