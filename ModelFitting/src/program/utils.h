@@ -76,6 +76,28 @@ std::pair<cv::Mat, double> readImage(const std::string& filename) {
   return std::make_pair(image, pixel_scale);
 }
 
+std::vector<std::pair<cv::Mat, double>> readFrames(const std::string& filename) {
+  // Read the HDU from the file
+  std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS(filename)};
+  std::vector<std::pair<cv::Mat, double>> result {};
+  for (auto& pair : pFits->extension()) {
+    auto& image_hdu = *pair.second;
+    // Get the pixel scale from the header
+    double pixel_scale = 0.;
+    image_hdu.readKey("SCALE", pixel_scale);
+    // Get the dimension of the image
+    auto width = image_hdu.axis(1);
+    auto height = image_hdu.axis(0);
+    // Get the data
+    std::valarray<double> data {};
+    image_hdu.read(data);
+    cv::Mat image (width, height, CV_64F);
+    std::copy(begin(data), end(data), image.begin<double>());
+    result.emplace_back(image, pixel_scale);
+  }
+  return result;
+}
+
 // Prints on the screen the info of the levmar minimization
 void printLevmarInfo(std::array<double,10> info) {
   std::cout << "\nMinimization info:\n";

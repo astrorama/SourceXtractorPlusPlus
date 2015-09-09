@@ -64,6 +64,14 @@ elements_add_executable(Example3 src/program/Example3.cpp
                         LINK_LIBRARIES ModelFitting CCfits
                         INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example3b src/program/Example3b.cpp
+elements_add_executable(Example4 src/program/Example4.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)
+
+elements_add_executable(Example_gal src/program/Example_gal.cpp
+                        LINK_LIBRARIES ModelFitting CCfits
+                        INCLUDE_DIRS CCfits)
+
+elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
                         LINK_LIBRARIES ModelFitting CCfits
                         INCLUDE_DIRS CCfits)
