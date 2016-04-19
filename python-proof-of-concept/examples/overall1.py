@@ -52,7 +52,7 @@ def listener(lutz_group):
     pixel_list = []
     for p in lutz_group.pixel_list:
         pixel_list.append((p.x, p.y))
-    pixel_group_list.append(dm.PixelGroup(pixel_list, tsk.pixel_group_task_manager))
+    pixel_group_list.append(dm.PixelSource(pixel_list, tsk.pixel_group_task_manager))
 
 
 # Execute the segmentation
@@ -93,7 +93,7 @@ for pixel_group in pixel_group_list:
     else:
         # else we need to construct the new groups
         for minxy,maxxy,pixels in merged:
-            refined_pixel_group_list.append(dm.PixelGroup(pixels, tsk.pixel_group_task_manager))
+            refined_pixel_group_list.append(dm.PixelSource(pixels, tsk.pixel_group_task_manager))
     #############################################################
     
 print 'Pixel group refinement finished with ', len(refined_pixel_group_list), 'pixel groups'
