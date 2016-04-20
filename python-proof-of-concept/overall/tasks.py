@@ -13,18 +13,18 @@ class Configurable(object):
     
     
     
-class PixelGroupTask(Configurable):
-    """Interface for classes which compute pixel group properties"""
+class PixelSourceTask():
+    """Interface for classes which compute pixel source properties"""
     
     def __call__(self, pixel_group):
-        """This should populate the given pixel group with the result properties
-        of the task. It accesses the pixels of the group using the getPixelList()"""
+        """This should populate the given pixel source with the result properties
+        of the task. It accesses the pixels of the source using the getPixelList()"""
         raise NotImplementedError()
     
 
     
     
-class SourceGroupTask(Configurable):
+class SourceGroupTask():
     """Interface for classes which compute source group properties"""
     
     def __call__(self, source_group):
@@ -65,7 +65,7 @@ class GroupTaskFactory(TaskFactory):
         
       
     
-class TaskManager(Configurable):
+class TaskRegistry(Configurable):
     
     def __init__(self):
         self.factories = []
@@ -100,5 +100,4 @@ class TaskManager(Configurable):
 
 
 
-pixel_group_task_manager = TaskManager()
-source_group_task_manager = TaskManager()
+task_registry = TaskRegistry()

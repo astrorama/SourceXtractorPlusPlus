@@ -3,7 +3,11 @@ class Property(object):
     """Superclass of all properties"""
     pass
 
-
+class Source(object):
+    """Interface used to access Sources"""
+    
+    def getProperty(self, name):
+        raise NotImplementedError()
 
 class Source(object):
     """Interface representing a source, as it is viewed from all the parts of
@@ -34,7 +38,7 @@ class ObjectWithProperties(object):
         return name in self.properties
         
     def getProperty(self, name):
-        """Returns the requested property if it exsists, None otherwise"""
+        """Returns the requested property if it exists, None otherwise"""
         if self._isPropertySet(name):
             return self.properties[name]
         else:
@@ -47,9 +51,9 @@ class ObjectWithProperties(object):
 
 
 
-class PixelSource(ObjectWithProperties):
+class PixelSource(ObjectWithProperties, Source):
     """Represents a collection of pixels, which has some properties. Properties
-    which are not yet set, are laizily initialized by using the pixel group task
+    which are not yet set, are laizily initialized by using the pixel source task
     manager."""
     
     def __init__(self, pixel_list, task_mgr):
@@ -86,16 +90,15 @@ class PixelSource(ObjectWithProperties):
                 task(self)
             
         return super(PixelSource, self).getProperty(name)
-        
-        
+                
         
         
 class SourceGroup(ObjectWithProperties):
     """Represents a group of Sources, which should be handled together. It is
-    itself an object with properties to acomodate the properties which belong
+    itself an object with properties to accommodate the properties which belong
     to the group and not to a specific source"""
     
-    class GroupedSource(Source):
+    class GroupedSource(PixelSource, Source):
         """Nested class of the SourceGroup, which introduce the idea that a
         source belongs to a group. It encapsulates a PixelSource and it delegates
         properties requests to it, if the properties are not locally available."""
@@ -111,7 +114,7 @@ class SourceGroup(ObjectWithProperties):
                 task_mgr:
                     An object which provides tasks for computing properties of a
                     SourceGroup. It should provide the method getTask(property), which
-                    should return a callable object, that if is called with SourceGroup
+                    should return a callable object, that is called with SourceGroup
                     as parameter, will compute and set this property on the group, or
                     on the sources it contains.
             """
@@ -121,28 +124,25 @@ class SourceGroup(ObjectWithProperties):
             self.task_mgr = task_mgr
     
         def getProperty(self, name):
-            # If the property is already computed and attached to the group, we return it
-            # We don't call directly the group.getProperty() to not initiate a computation
-            # for the case that this is a property produced by a GroupTask, attached to the
-            # sources.
+            # If the property is already computed and attached to ourself, we return it  
+            if self._isPropertySet(name):
+                return super(SourceGroup.GroupedSource, self).getProperty(name)
+
+            # If the property is already computed and attached to the group, we return it            
             if self.group._isPropertySet(name):
                 return self.group.getProperty(name)
             
-            # We check if the property is already set at the local object
-            if self._isPropertySet(name):
-                return super(SourceGroup.GroupedSource, self).getProperty(name)
-            
-            # We check if the encapsulated PixelSource has the property (which
-            # might be computed at this call)
+            # Try to get the property from the encapsulated object, to be computed if needed and possible            
             prop = self.pixel_source.getProperty(name)
             if prop != None:
                 return prop
-
-            # If we reached here, means that we have to compute the property using
-            # a group task
+            
+            # If we reached here, it means that we have to compute the property using a group task
             task = self.task_mgr.getTask(name)
             if task == None:
                 return None
+            
+            # Computes the property by executing the task
             task(self.group)
 
             # Now the property will be either at the group or at the local object
@@ -150,7 +150,6 @@ class SourceGroup(ObjectWithProperties):
                 return self.group.getProperty(name)
             else:
                 return super(SourceGroup.GroupedSource, self).getProperty(name)
-    
     
     def __init__(self, pixel_source_list, task_mgr):
         """Constructs a SourceGroup from the given pixel source list"""

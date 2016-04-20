@@ -19,46 +19,40 @@ class DetectionFramePixelValues(dm.Property):
     
     
 
-class DetectionFramePixelValuesTask(tsk.PixelGroupTask):
+class DetectionFramePixelValuesTask(tsk.PixelSourceTask):
     
-    def getOptions(self):
-        return ['DetectionImage']
+    def __init__(self, det_image):
+        self.det_image = det_image
     
-    def configure(self, options):
-        self.det_image = fits.open(options['DetectionImage'])[0].data
-        
-    def __call__(self, pixel_group):
+    def __call__(self, pixel_source):
         values = []
-        for p in pixel_group.getPixelList():
-            x = p[1]
-            y = p[0]
+        for (x, y) in pixel_source.getPixelList():
             values.append(self.det_image[x][y])
-        pixel_group.setProperty(DetectionFramePixelValues.__name__, DetectionFramePixelValues(values))
+        pixel_source.setProperty(DetectionFramePixelValues.__name__, DetectionFramePixelValues(values))
     
     
     
 class DetectionFramePixelValuesFactory(tsk.TaskFactory):
     
     def __init__(self):
-        self.task = DetectionFramePixelValuesTask()
+        self.task = None
+        
     
     def getProducedProperties(self):
         return [DetectionFramePixelValues.__name__]
     
     def getOptions(self):
-        options = []
-        options.extend(self.task.getOptions())
-        return options
+        return ['DetectionImage']
     
     def configure(self, options):
-        self.task.configure(options)
+        self.task = DetectionFramePixelValuesTask(fits.open(options['DetectionImage'])[0].data)
     
     def getTask(self):
         return self.task
     
     
 
-tsk.pixel_group_task_manager.registerTaskFactory(DetectionFramePixelValuesFactory())
+tsk.task_registry.registerTaskFactory(DetectionFramePixelValuesFactory())
 
 
 ###############################################################################
@@ -79,14 +73,14 @@ class PixelBoundaries(dm.Property):
     
     
 
-class PixelBoundariesTask(tsk.PixelGroupTask):
+class PixelBoundariesTask(tsk.PixelSourceTask):
         
-    def __call__(self, pixel_group):
+    def __call__(self, pixel_source):
         min_x = sys.maxint
         max_x = 0
         min_y = sys.maxint
         max_y = 0
-        for p in pixel_group.getPixelList():
+        for p in pixel_source.getPixelList():
             if p[0] < min_x:
                 min_x = p[0]
             if p[0] > max_x:
@@ -95,7 +89,7 @@ class PixelBoundariesTask(tsk.PixelGroupTask):
                 min_y = p[1]
             if p[1] > max_y:
                 max_y = p[1]
-        pixel_group.setProperty(PixelBoundaries.__name__, PixelBoundaries(min_x, max_x, min_y, max_y))
+        pixel_source.setProperty(PixelBoundaries.__name__, PixelBoundaries(min_x, max_x, min_y, max_y))
     
     
     
@@ -112,14 +106,14 @@ class PixelBoundariesFactory(tsk.TaskFactory):
     
     
 
-tsk.pixel_group_task_manager.registerTaskFactory(PixelBoundariesFactory())
+tsk.task_registry.registerTaskFactory(PixelBoundariesFactory())
 
 
 ###############################################################################
-# Pixel group stamp of the detection frame
+# Pixel source stamp of the detection frame
 ###############################################################################
 
-class DetectionFramePixelGroupStamp(dm.Property):
+class DetectionFramePixelSourceStamp(dm.Property):
     
     def __init__(self, stamp):
         self.stamp = stamp
@@ -129,45 +123,40 @@ class DetectionFramePixelGroupStamp(dm.Property):
     
     
 
-class DetectionFramePixelGroupStampTask(tsk.PixelGroupTask):
+class DetectionFramePixelSourceStampTask(tsk.PixelSourceTask):
     
-    def getOptions(self):
-        return ['DetectionImage']
-    
-    def configure(self, options):
-        self.det_image = fits.open(options['DetectionImage'])[0].data
+    def __init__(self, det_image):
+        self.det_image = det_image
         
-    def __call__(self, pixel_group):
-        boundaries = pixel_group.getProperty('PixelBoundaries')
+    def __call__(self, pixel_source):
+        boundaries = pixel_source.getProperty('PixelBoundaries')
         min_x, min_y = boundaries.getMin()
         max_x, max_y = boundaries.getMax()
         stamp = self.det_image[min_y:max_y+1, min_x:max_x+1]
-        pixel_group.setProperty(DetectionFramePixelGroupStamp.__name__, DetectionFramePixelGroupStamp(stamp))
+        pixel_source.setProperty(DetectionFramePixelSourceStamp.__name__, DetectionFramePixelSourceStamp(stamp))
     
     
     
-class DetectionFramePixelGroupStampFactory(tsk.TaskFactory):
+class DetectionFramePixelSourceStampFactory(tsk.TaskFactory):
     
     def __init__(self):
-        self.task = DetectionFramePixelGroupStampTask()
+        self.task = None
     
     def getProducedProperties(self):
-        return [DetectionFramePixelGroupStamp.__name__]
+        return [DetectionFramePixelSourceStamp.__name__]
     
     def getOptions(self):
-        options = []
-        options.extend(self.task.getOptions())
-        return options
-    
+        return ['DetectionImage']
+        
     def configure(self, options):
-        self.task.configure(options)
+        self.task = DetectionFramePixelSourceStampTask(fits.open(options['DetectionImage'])[0].data)
     
     def getTask(self):
         return self.task
     
     
 
-tsk.pixel_group_task_manager.registerTaskFactory(DetectionFramePixelGroupStampFactory())
+tsk.task_registry.registerTaskFactory(DetectionFramePixelSourceStampFactory())
     
     
 ###############################################################################
@@ -176,7 +165,7 @@ tsk.pixel_group_task_manager.registerTaskFactory(DetectionFramePixelGroupStampFa
 
 task_count = 0
 
-class DummyPixelGroupTask(object):
+class DummyPixelSourceTask(object):
     
     def __init__(self, prop_list):
         global task_count
@@ -184,13 +173,13 @@ class DummyPixelGroupTask(object):
         self.task_id = task_count
         self.prop_list = prop_list
         
-    def __call__(self, pixel_group):
+    def __call__(self, pixel_source):
         for p in self.prop_list:
-            pixel_group.setProperty(p, "Set by pixel group task "+str(self.task_id))
+            pixel_source.setProperty(p, "Set by pixel source task "+str(self.task_id))
     
     
 
-class DummyPixelGroupTaskManager(object):
+class DummyPixelSourceTaskManager(object):
     
     def __init__(self):
         self.available_tasks = [
@@ -201,7 +190,7 @@ class DummyPixelGroupTaskManager(object):
     def getTask(self, prop_name):
         for prop_list in self.available_tasks:
             if prop_name in prop_list:
-                return DummyPixelGroupTask(prop_list)
+                return DummyPixelSourceTask(prop_list)
         return None
     
 

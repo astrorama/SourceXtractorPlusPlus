@@ -39,12 +39,11 @@ algo = segmentation.SegmentationAlgo(pixel_properties={}, group_properties={})
 options = {
     'DetectionImage' : det_im_name
 }
-tsk.pixel_group_task_manager.configure(options)
-tsk.source_group_task_manager.configure(options)
+tsk.task_registry.configure(options)
 
 
-# The pixel group list, as they are computed by the Lutz
-pixel_group_list = []
+# The pixel source list, as they are computed by the Lutz
+pixel_source_list = []
 
 # A listener which implements the overview design in demonstration
 def listener(lutz_group):
@@ -52,28 +51,28 @@ def listener(lutz_group):
     pixel_list = []
     for p in lutz_group.pixel_list:
         pixel_list.append((p.x, p.y))
-    pixel_group_list.append(dm.PixelSource(pixel_list, tsk.pixel_group_task_manager))
+    pixel_source_list.append(dm.PixelSource(pixel_list, tsk.task_registry))
 
 
 # Execute the segmentation
 print 'Starting segmentation process...'
 algo.scan(bg, listener)
-print 'Segmentation finished. Detected', len(pixel_group_list), 'pixel groups'
+print 'Segmentation finished. Detected', len(pixel_source_list), 'pixel sources'
 
 
-# The pixel group list, as they are exiting the refinement process
-refined_pixel_group_list = []
+# The pixel source list, as they are exiting the refinement process
+refined_pixel_source_list = []
 
 
-# This loop simulates the pixel group refinement box, calling all the refinement steps
-print 'Starting the pixel group refinement process...'
-for pixel_group in pixel_group_list:
+# This loop simulates the pixel source refinement box, calling all the refinement steps
+print 'Starting the pixel source refinement process...'
+for pixel_source in pixel_source_list:
     
     #############################################################
-    # We simulate a single refinement step, by using atractors
+    # We simulate a single refinement step, by using attractors
     #############################################################
-    stamp = pixel_group.getProperty('DetectionFramePixelGroupStamp').getStamp()
-    bounds = pixel_group.getProperty('PixelBoundaries')
+    stamp = pixel_source.getProperty('DetectionFramePixelSourceStamp').getStamp()
+    bounds = pixel_source.getProperty('PixelBoundaries')
     minxy = bounds.getMin()
     maxxy = bounds.getMax()
     def value(x,y):
@@ -82,18 +81,18 @@ for pixel_group in pixel_group_list:
         return im[x - minxy[0]][y - minxy[1]]
     
     # Regroup the pixels based on attractors
-    pix_loc = [(p, p) for p in pixel_group.getPixelList()]
+    pix_loc = [(p, p) for p in pixel_source.getPixelList()]
     attractors = {}
     deblend._attractPixels(pix_loc, attractors, value)
     merged = deblend._mergeAttractors(attractors)
     
     # If we end up with a single group use the original group
     if len(merged) == 1:
-        refined_pixel_group_list.append(pixel_group)
+        refined_pixel_source_list.append(pixel_source)
     else:
         # else we need to construct the new groups
         for minxy,maxxy,pixels in merged:
-            refined_pixel_group_list.append(dm.PixelSource(pixels, tsk.pixel_group_task_manager))
+            refined_pixel_source_list.append(dm.PixelSource(pixels, tsk.task_registry))
     #############################################################
     
-print 'Pixel group refinement finished with ', len(refined_pixel_group_list), 'pixel groups'
+print 'pixel source refinement finished with ', len(refined_pixel_source_list), 'pixel sources'
