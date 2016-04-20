@@ -3,11 +3,7 @@ class Property(object):
     """Superclass of all properties"""
     pass
 
-class Source(object):
-    """Interface used to access Sources"""
-    
-    def getProperty(self, name):
-        raise NotImplementedError()
+
 
 class Source(object):
     """Interface representing a source, as it is viewed from all the parts of
@@ -15,8 +11,7 @@ class Source(object):
     
     def getProperty(self, name):
         """Returns the requested property of the source"""
-        raise NotImplementedError()
-    
+        raise NotImplementedError()    
 
 
 
