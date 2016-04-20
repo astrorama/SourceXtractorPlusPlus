@@ -1,9 +1,36 @@
 import tasks as tsk
 import datamodel as dm
+import configuration as conf
 
 import sys
+import os
 import astropy.io.fits as fits
 
+###############################################################################
+# Configuration classes which are generic and can be used by more than one
+# task factories
+###############################################################################
+
+class DetectionImageConfig(conf.Configuration):
+    
+    def __init__(self, manager):
+        super(DetectionImageConfig, self).__init__(manager)
+    
+    def getProgramOptions(self):
+        return [conf.OptionDescr('DETECTION_IMAGE', str, "The image to use for the detection")]
+    
+    def preInitialize(self, user_values):
+        filename = user_values['DETECTION_IMAGE']
+        if not os.path.isfile(filename):
+            raise Exception('Detection image file '+filename+' does not exist')
+    
+    def initialize(self, user_values):
+        self.image = fits.open(user_values['DETECTION_IMAGE'])[0].data
+    
+    def getImage(self):
+        if self.state < self.State.INITIALIZED:
+            raise Exception('getImage() call on uninitialized DetectionImageConfig')
+        return self.image
 
 ###############################################################################
 # Detection frame pixel values
@@ -37,15 +64,15 @@ class DetectionFramePixelValuesFactory(tsk.TaskFactory):
     def __init__(self):
         self.task = None
         
-    
     def getProducedProperties(self):
         return [DetectionFramePixelValues.__name__]
     
-    def getOptions(self):
-        return ['DetectionImage']
+    def reportConfDependencies(self, config_manager):
+        config_manager.registerConfiguration(DetectionImageConfig)
     
-    def configure(self, options):
-        self.task = DetectionFramePixelValuesTask(fits.open(options['DetectionImage'])[0].data)
+    def configure(self, config_manager):
+        det_image = config_manager.getConfiguration(DetectionImageConfig).getImage()
+        self.task = DetectionFramePixelValuesTask(det_image)
     
     def getTask(self):
         return self.task
@@ -145,11 +172,12 @@ class DetectionFramePixelSourceStampFactory(tsk.TaskFactory):
     def getProducedProperties(self):
         return [DetectionFramePixelSourceStamp.__name__]
     
-    def getOptions(self):
-        return ['DetectionImage']
+    def reportConfDependencies(self, config_manager):
+        config_manager.registerConfiguration(DetectionImageConfig)
         
-    def configure(self, options):
-        self.task = DetectionFramePixelSourceStampTask(fits.open(options['DetectionImage'])[0].data)
+    def configure(self, config_manager):
+        det_image = config_manager.getConfiguration(DetectionImageConfig).getImage()
+        self.task = DetectionFramePixelSourceStampTask(det_image)
     
     def getTask(self):
         return self.task
@@ -157,71 +185,3 @@ class DetectionFramePixelSourceStampFactory(tsk.TaskFactory):
     
 
 tsk.task_registry.registerTaskFactory(DetectionFramePixelSourceStampFactory())
-    
-    
-###############################################################################
-
-# In the rest of the file as some dummy classes for testing
-
-task_count = 0
-
-class DummyPixelSourceTask(object):
-    
-    def __init__(self, prop_list):
-        global task_count
-        task_count += 1
-        self.task_id = task_count
-        self.prop_list = prop_list
-        
-    def __call__(self, pixel_source):
-        for p in self.prop_list:
-            pixel_source.setProperty(p, "Set by pixel source task "+str(self.task_id))
-    
-    
-
-class DummyPixelSourceTaskManager(object):
-    
-    def __init__(self):
-        self.available_tasks = [
-            ['pg_1', 'pg_2'],
-            ['pg_3', 'pg_4'],
-        ]
-    
-    def getTask(self, prop_name):
-        for prop_list in self.available_tasks:
-            if prop_name in prop_list:
-                return DummyPixelSourceTask(prop_list)
-        return None
-    
-
-class DummySourceGroupTask(object):
-    
-    def __init__(self, source_prop_list, group_prop_list):
-        global task_count
-        task_count += 1
-        self.task_id = task_count
-        self.source_prop_list = source_prop_list
-        self.group_prop_list = group_prop_list
-    
-    def __call__(self, source_group):
-        for p in self.group_prop_list:
-            source_group.setProperty(p, "Set by source group task "+str(self.task_id))
-        for s in source_group.getSources():
-            for p in self.source_prop_list:
-                s.setProperty(p, "Set by source group task "+str(self.task_id))
-    
-    
-
-class DummySourceGroupTaskManager(object):
-    
-    def __init__(self):
-        self.available_tasks = [
-            [['s_1', 's_2'], ['sg_1', 'sg_2']],
-            [['s_3', 's_4'], ['sg_3', 'sg_4']]
-        ]
-    
-    def getTask(self, prop_name):
-        for task in self.available_tasks:
-            if prop_name in task[0] or prop_name in task[1]:
-                return DummySourceGroupTask(task[0], task[1])
-        return None

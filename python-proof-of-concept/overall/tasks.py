@@ -2,12 +2,15 @@
 class Configurable(object):
     """Interface of an object which can be configured"""
     
-    def getOptions(self):
-        """Method which returns the required options"""
-        return []
+    def reportConfDependencies(self, config_manager):
+        """Configurable implementations should implement this method to register
+        to the given ConfigManager (using the registerConfiguration(type) method)
+        all the Configurations it is going to use"""
+        pass
     
-    def configure(self, options):
-        """Method which should initialize the object from the given configuration"""
+    def configure(self, config_manager):
+        """Method which should initialize the object. All the required Configurations
+        can be accessed using the getConfiguration(type) method of the given manager"""
         pass
     
     
@@ -79,15 +82,13 @@ class TaskRegistry(Configurable):
                 self.factories.append(task_factory)
                 self.prop_factory_map[prop] = task_factory
                 
-    def getOptions(self):
-        options = []
+    def reportConfDependencies(self, config_manager):
         for f in self.factories:
-            options.extend(f.getOptions())
-        return options
+            f.reportConfDependencies(config_manager)
     
-    def configure(self, options):
+    def configure(self, config_manager):
         for f in self.factories:
-            f.configure(options)
+            f.configure(config_manager)
             
     def getAvailableProperties(self):
         return self.prop_factory_map.keys()

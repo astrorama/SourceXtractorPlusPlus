@@ -6,6 +6,7 @@ sys.path.append('..')
 
 import overall.tasks as tsk
 import overall.datamodel as dm
+import overall.configuration as conf
 import overall.tasks_impl as tsk_impl
 
 import detection.image as image
@@ -39,7 +40,16 @@ algo = segmentation.SegmentationAlgo(pixel_properties={}, group_properties={})
 options = {
     'DetectionImage' : det_im_name
 }
-tsk.task_registry.configure(options)
+
+conf_mgr = conf.ConfigManager()
+tsk.task_registry.reportConfDependencies(conf_mgr)
+program_options = conf_mgr.closeRegistration()
+# Here we should parse the user input to get the program options
+options = {
+    'DETECTION_IMAGE' : det_im_name
+}
+conf_mgr.initialize(options)
+tsk.task_registry.configure(conf_mgr)
 
 
 # The pixel source list, as they are computed by the Lutz
