@@ -1,4 +1,3 @@
-
 import maincomponents as mc
 import configuration as conf
 import datamodel as dm
@@ -143,4 +142,4 @@ class PixelSourceRefinementFactory(mc.Configurable):
         
     def getPixelSourceRefinement(self):
         return PixelSourceRefinement(self.action_list)
-    
+

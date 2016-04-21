@@ -15,7 +15,6 @@ class Configurable(object):
     
     
     
-    
 class PixelSourceListener(object):
     """Interface of classes which can listen of PixelSource events"""
     
@@ -24,6 +23,16 @@ class PixelSourceListener(object):
         of handling a PixelSource"""
         raise NotImplementedError()
     
+
+
+class SourceGroupListener(object):
+    """Interface of classes which can listen of SourceGroup events"""
+    
+    def handleSourceGroup(self, pixel_source):
+        """Implementations should override this method to implement their logic
+        of handling a SourceGroup"""
+        raise NotImplementedError()
+        
     
     
 class PixelSourceEventGenerator(object):
@@ -41,10 +50,27 @@ class PixelSourceEventGenerator(object):
         generate"""
         for l in self.listeners:
             l.handlePixelSource(pixel_source)
+
+
+
+class GroupSourceEventGenerator(object):
     
+    def __init__(self):
+        self.listeners = []
     
-    
-    
+    def addPixelSourceListener(self, listener):
+        """Adds a listener which will be notified for GroupSource"""
+        self.listeners.append(listener)
+        
+    def _notifyListeners(self, source_group):
+        """This is a protected method which the subclasses should use in their
+        implementations to notify the listeners for the GroupSource they
+        generate"""
+        for l in self.listeners:
+            l.handleSourceGroup(source_group)
+
+
+
 class SourceListener(object):
     """Interface of classes which can listen of Source events"""
     
@@ -52,6 +78,20 @@ class SourceListener(object):
         """Implementations should override this method to implement their logic
         of handling a Source"""
         raise NotImplementedError()
+
+
+
+class SelectionCriteria(object):
     
+    def mustBeProcessed(self, source):
+        raise NotImplementedError()
+
+
+
+class ProcessSourceListener(object):
     
-    
+    def processSources(self, selection_criteria):
+        raise NotImplementedError()
+
+
+

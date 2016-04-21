@@ -49,16 +49,16 @@ class ObjectWithProperties(object):
 class PixelSource(ObjectWithProperties, Source):
     """Represents a collection of pixels, which has some properties. Properties
     which are not yet set, are laizily initialized by using the pixel source task
-    manager."""
+    registry."""
     
-    def __init__(self, pixel_list, task_mgr):
+    def __init__(self, pixel_list, task_registry):
         """Creates a new PixelSource.
         
         Args:
             pixel_list:
                 A list containing the coordinates of the pixels of the source as
                 (x,y) pairs
-            task_mgr:
+            task_registry:
                 An object which provides tasks for computing properties of a
                 PixelSource. It should provide the method getTask(property), which
                 should return a callable object, that if is called with PixelSource
@@ -66,7 +66,7 @@ class PixelSource(ObjectWithProperties, Source):
         """
         super(PixelSource, self).__init__()
         self.pixel_list = pixel_list
-        self.task_mgr = task_mgr
+        self.task_registry = task_registry
         
     def getPixelList(self):
         """Gives access to the pixel coordinates"""
@@ -76,11 +76,11 @@ class PixelSource(ObjectWithProperties, Source):
         """Returns the requested property of the PixelSource.
         
         If the PixelSource does not contain such property, this method will try
-        to use the task manager to compute it.
+        to use the task registry to compute it.
         """
         # If the property is not yet set, try to compute it
         if not self._isPropertySet(name):
-            task = self.task_mgr.getTask(name)
+            task = self.task_registry.getTask(name)
             if task != None:
                 task(self)
             
@@ -93,12 +93,12 @@ class SourceGroup(ObjectWithProperties):
     itself an object with properties to accommodate the properties which belong
     to the group and not to a specific source"""
     
-    class GroupedSource(PixelSource, Source):
+    class GroupedSource(ObjectWithProperties, Source):
         """Nested class of the SourceGroup, which introduce the idea that a
         source belongs to a group. It encapsulates a PixelSource and it delegates
         properties requests to it, if the properties are not locally available."""
         
-        def __init__(self, pixel_source, group, task_mgr):
+        def __init__(self, pixel_source, group, task_registry):
             """Constructs a new instance of a GroupedSource.
             
             Args:
@@ -106,7 +106,7 @@ class SourceGroup(ObjectWithProperties):
                     The pixel source to encapsulate
                 group:
                     The SourceGroup in which the GroupedSource belongs
-                task_mgr:
+                task_registry:
                     An object which provides tasks for computing properties of a
                     SourceGroup. It should provide the method getTask(property), which
                     should return a callable object, that is called with SourceGroup
@@ -116,7 +116,7 @@ class SourceGroup(ObjectWithProperties):
             super(SourceGroup.GroupedSource, self).__init__()
             self.pixel_source = pixel_source
             self.group = group
-            self.task_mgr = task_mgr
+            self.task_registry = task_registry
     
         def getProperty(self, name):
             # If the property is already computed and attached to ourself, we return it  
@@ -133,7 +133,7 @@ class SourceGroup(ObjectWithProperties):
                 return prop
             
             # If we reached here, it means that we have to compute the property using a group task
-            task = self.task_mgr.getTask(name)
+            task = self.task_registry.getTask(name)
             if task == None:
                 return None
             
@@ -146,11 +146,11 @@ class SourceGroup(ObjectWithProperties):
             else:
                 return super(SourceGroup.GroupedSource, self).getProperty(name)
     
-    def __init__(self, pixel_source_list, task_mgr):
+    def __init__(self, pixel_source_list, task_registry):
         """Constructs a SourceGroup from the given pixel source list"""
         super(SourceGroup, self).__init__()
-        self.source_list = [SourceGroup.GroupedSource(s, self, task_mgr) for s in pixel_source_list]
-        self.task_mgr = task_mgr
+        self.source_list = [SourceGroup.GroupedSource(s, self, task_registry) for s in pixel_source_list]
+        self.task_registry = task_registry
         
     def getSources(self):
         """This returns a list of the contained sources. In C++ it should be
@@ -161,12 +161,12 @@ class SourceGroup(ObjectWithProperties):
         """Returns the requested property of the group.
         
         If the group does not contain such property, this method will try
-        to use the task manager to compute it. If this is not possible, an
+        to use the task registry to compute it. If this is not possible, an
         UnknownProperty exception will be raised.
         """
         # The property is not yet set, so try to compute it
         if not self._isPropertySet(name):
-            task = self.task_mgr.getTask(name)
+            task = self.task_registry.getTask(name)
             if task != None:
                 task(self)
             
