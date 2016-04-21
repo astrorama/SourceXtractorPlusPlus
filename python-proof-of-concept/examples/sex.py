@@ -10,6 +10,7 @@ import overall.tasks as tsk
 import overall.segmentation as segm
 import overall.sourcegrouping as sgrp
 import overall.pixelrefinement as pref
+import overall.grouprefinement as gref
 import overall.output as out
 
 # We import all the tasks implementations. This will register them to the
@@ -47,6 +48,9 @@ pix_ref_factory.reportConfDependencies(conf_mgr)
 source_grouping = sgrp.SourceGrouping(tsk.task_registry)
 source_grouping.reportConfDependencies(conf_mgr)
 
+grp_ref_factory = gref.SourceGroupRefinementFactory()
+grp_ref_factory.reportConfDependencies(conf_mgr)
+
 # We setup the output handler
 out_handler = out.OutputHandler()
 out_handler.reportConfDependencies(conf_mgr)
@@ -83,11 +87,13 @@ tsk.task_registry.configure(conf_mgr)
 segm_factory.configure(conf_mgr)
 pix_ref_factory.configure(conf_mgr)
 source_grouping.configure(conf_mgr)
+grp_ref_factory.configure(conf_mgr)
 out_handler.configure(conf_mgr)
 
 # We get the main components which are constructed by factories
 segm_algo = segm_factory.getSegmentation()
 pix_ref_algo = pix_ref_factory.getPixelSourceRefinement()
+grp_ref_algo = grp_ref_factory.getSourceGroupRefinement()
 
 sources = []
 class listener:
@@ -99,7 +105,8 @@ class listener:
 # We connect the main components with each other
 segm_algo.addPixelSourceListener(pix_ref_algo)
 pix_ref_algo.addPixelSourceListener(source_grouping)
-source_grouping.addPixelSourceListener(listener())
+source_grouping.addSourceGroupListener(grp_ref_algo)
+grp_ref_algo.addSourceGroupListener(listener())
 
 # We retrieve the detection image from the configuration
 det_im = conf_mgr.getConfiguration(tsk_impl.DetectionImageConfig).getImage()

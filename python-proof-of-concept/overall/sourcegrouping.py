@@ -5,7 +5,7 @@ class CriteriaAllSources(mc.SelectionCriteria):
        def mustBeProcessed(self, source):
            return True
 
-class SourceGrouping(mc.PixelSourceListener, mc.ProcessSourceListener, mc.GroupSourceEventGenerator, mc.Configurable):
+class SourceGrouping(mc.PixelSourceListener, mc.ProcessSourceListener, mc.SourceGroupEventGenerator, mc.Configurable):
     
     def __init__(self, task_registry):
         super(SourceGrouping, self).__init__()

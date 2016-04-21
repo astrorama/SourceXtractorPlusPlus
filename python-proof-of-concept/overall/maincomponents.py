@@ -53,13 +53,13 @@ class PixelSourceEventGenerator(object):
 
 
 
-class GroupSourceEventGenerator(object):
+class SourceGroupEventGenerator(object):
     
     def __init__(self):
         self.listeners = []
     
-    def addPixelSourceListener(self, listener):
-        """Adds a listener which will be notified for GroupSource"""
+    def addSourceGroupListener(self, listener):
+        """Adds a listener which will be notified for SourceGroup"""
         self.listeners.append(listener)
         
     def _notifyListeners(self, source_group):
