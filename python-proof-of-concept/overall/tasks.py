@@ -1,21 +1,5 @@
+import maincomponents as mc
 
-class Configurable(object):
-    """Interface of an object which can be configured"""
-    
-    def reportConfDependencies(self, config_manager):
-        """Configurable implementations should implement this method to register
-        to the given ConfigManager (using the registerConfiguration(type) method)
-        all the Configurations it is going to use"""
-        pass
-    
-    def configure(self, config_manager):
-        """Method which should initialize the object. All the required Configurations
-        can be accessed using the getConfiguration(type) method of the given manager"""
-        pass
-    
-    
-    
-    
 class PixelSourceTask():
     """Interface for classes which compute pixel source properties"""
     
@@ -38,7 +22,7 @@ class SourceGroupTask():
     
 
 
-class TaskFactory(Configurable):
+class TaskFactory(mc.Configurable):
     """For each type of tasks a factory should be provided, which will be responsible
     for instansiating the specific task, based on the user configuration"""
     
@@ -68,7 +52,7 @@ class GroupTaskFactory(TaskFactory):
         
       
     
-class TaskRegistry(Configurable):
+class TaskRegistry(mc.Configurable):
     
     def __init__(self):
         self.factories = []

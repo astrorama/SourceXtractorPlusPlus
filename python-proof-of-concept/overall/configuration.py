@@ -119,7 +119,6 @@ class ConfigManager(object):
         """
         if self.state != ConfigManager.State.REGISTRATION:
             raise Exception("Manager is closed for configuration registration")
-        print conf_type, conf_type in self.config_dict
         if not conf_type in self.config_dict:
             self.config_dict[conf_type] = None
             self.config_dict[conf_type] = conf_type(self)

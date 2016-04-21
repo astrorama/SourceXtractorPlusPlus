@@ -1,10 +1,13 @@
 import tasks as tsk
 import datamodel as dm
 import configuration as conf
+import output as out
 
 import sys
 import os
 import astropy.io.fits as fits
+import numpy as np
+import warnings
 
 ###############################################################################
 # Configuration classes which are generic and can be used by more than one
@@ -17,7 +20,10 @@ class DetectionImageConfig(conf.Configuration):
         super(DetectionImageConfig, self).__init__(manager)
     
     def getProgramOptions(self):
-        return [conf.OptionDescr('DETECTION_IMAGE', str, "The image to use for the detection")]
+        return [
+            conf.OptionDescr('DETECTION_IMAGE', str, "A FITS file containing image to use for the detection"),
+            conf.OptionDescr('BACKGROUND_VALUE', float, "The background value to subtract (defaults to 2 * median)")
+        ]
     
     def preInitialize(self, user_values):
         filename = user_values['DETECTION_IMAGE']
@@ -25,12 +31,21 @@ class DetectionImageConfig(conf.Configuration):
             raise Exception('Detection image file '+filename+' does not exist')
     
     def initialize(self, user_values):
+        warnings.simplefilter('ignore', UserWarning)
         self.image = fits.open(user_values['DETECTION_IMAGE'])[0].data
-    
+        if 'BACKGROUND_VALUE' in user_values:
+            bg = user_values['BACKGROUND_VALUE']
+        else:
+            bg = 2 * np.median(self.image)
+            print 'Using auto computed background:', bg
+        self.image = self.image - bg
+        
     def getImage(self):
         if self.state < self.State.INITIALIZED:
             raise Exception('getImage() call on uninitialized DetectionImageConfig')
         return self.image
+
+
 
 ###############################################################################
 # Detection frame pixel values
@@ -97,6 +112,11 @@ class PixelBoundaries(dm.Property):
         
     def getMax(self):
         return self.max_coords
+
+out.output_column_manager.registerColumn('PIX_MIN_X', PixelBoundaries, lambda p: p.getMin()[0])
+out.output_column_manager.registerColumn('PIX_MIN_Y', PixelBoundaries, lambda p: p.getMin()[1])
+out.output_column_manager.registerColumn('PIX_MAX_X', PixelBoundaries, lambda p: p.getMax()[0])
+out.output_column_manager.registerColumn('PIX_MAX_Y', PixelBoundaries, lambda p: p.getMax()[1])
     
     
 
