@@ -71,7 +71,7 @@ user_values = {
     'OUT_COLUMNS' : 'PIX_CENTROID_X PIX_CENTROID_Y',
 #    'BACKGROUND_VALUE' : 10000,
     'DETECTION_IMAGE' : 'data/galaxies.fits',
-    'DETECT_MINAREA' : 5,
+    'DETECT_MINAREA' : 3,
     'DEBLEND_ALGORITHM' : 'OFF',
     'DEBLEND_ALGORITHM' : 'ATRACTORS',
     'SEGMENTATION_ALGORITHM' : 'LUTZ'
@@ -89,10 +89,12 @@ out_handler.configure(conf_mgr)
 segm_algo = segm_factory.getSegmentation()
 pix_ref_algo = pix_ref_factory.getPixelSourceRefinement()
 
+sources = []
 class listener:
     def handleSourceGroup(self, source_group):
         for s in source_group.getSources():
             out_handler.handleSource(s)
+            sources.append(s.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid())
         
 # We connect the main components with each other
 segm_algo.addPixelSourceListener(pix_ref_algo)
@@ -107,3 +109,23 @@ segm_algo.scan(det_im)
 
 source_grouping.processSources(sgrp.CriteriaAllSources())
 
+
+
+# If the user requested for a visual output show it
+if '-im' in sys.argv:
+    import matplotlib.pyplot as plt
+    import numpy as np
+    from PIL import Image
+    xs = [x for x,y in sources]
+    ys = [y for x,y in sources]
+    im = det_im - det_im.min() + 1
+    im = np.sqrt(im)
+    im = im - im.min()
+    img = Image.fromarray(im/im.max()*255*1.3)
+    plt.imshow(img, interpolation='nearest')
+    xlim = plt.xlim()
+    ylim = plt.ylim()
+    plt.scatter(xs,ys,s=200,edgecolor='r', facecolor='none')
+    plt.xlim(xlim)
+    plt.ylim(ylim)
+    plt.show()
