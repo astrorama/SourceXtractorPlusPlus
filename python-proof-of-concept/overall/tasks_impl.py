@@ -5,6 +5,7 @@ import output as out
 
 import sys
 import os
+import itertools
 import astropy.io.fits as fits
 import numpy as np
 import warnings
@@ -205,3 +206,55 @@ class DetectionFramePixelSourceStampFactory(tsk.TaskFactory):
     
 
 tsk.task_registry.registerTaskFactory(DetectionFramePixelSourceStampFactory())
+
+###############################################################################
+# PixelSource centroid
+###############################################################################
+
+class PixelCentroid(dm.Property):
+    
+    def __init__(self, x, y):
+        self.centroid = (x, y)
+        
+    def getCentroid(self):
+        return self.centroid
+    
+out.output_column_manager.registerColumn('PIX_CENTROID_X', PixelCentroid, lambda p: p.getCentroid()[0])
+out.output_column_manager.registerColumn('PIX_CENTROID_Y', PixelCentroid, lambda p: p.getCentroid()[1])
+
+class PixelCentroidTask(tsk.PixelSourceTask):
+    
+    def __init__(self):
+        pass
+    
+    def __call__(self, pixel_source):
+        pixel_values = pixel_source.getProperty('DetectionFramePixelValues').getPixelValues()
+        
+        centroid_x = 0.0
+        centroid_y = 0.0
+        total_value = 0.0
+        
+        for ((x, y), pixel_value) in itertools.izip(pixel_source.getPixelList(), pixel_values):
+            total_value += pixel_value
+            centroid_x += x * pixel_value
+            centroid_y += y * pixel_value
+        
+        centroid_x = centroid_x / total_value
+        centroid_y = centroid_y / total_value
+        
+        pixel_source.setProperty(PixelCentroid.__name__, PixelCentroid(centroid_x, centroid_y))
+
+class PixelCentroidFactory(tsk.TaskFactory):
+    
+    def __init__(self):
+        self.task = PixelCentroidTask()
+    
+    def getProducedProperties(self):
+        return [PixelCentroid.__name__]
+    
+    def getTask(self):
+        return self.task
+
+
+tsk.task_registry.registerTaskFactory(PixelCentroidFactory())
+
