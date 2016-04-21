@@ -121,7 +121,9 @@ if '-im' in sys.argv:
     im = det_im - det_im.min() + 1
     im = np.sqrt(im)
     im = im - im.min()
-    img = Image.fromarray(im/im.max()*255*1.3)
+    im = im.clip(max=im.max()/3.) - im.max()/10
+    im = im * 255 / im.max()
+    img = Image.fromarray(im)
     plt.imshow(img, interpolation='nearest')
     xlim = plt.xlim()
     ylim = plt.ylim()
