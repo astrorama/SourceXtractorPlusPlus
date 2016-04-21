@@ -63,6 +63,7 @@ class OutputHandler(mc.Configurable, mc.SourceListener):
     
     def __init__(self):
         self.print_title = True
+        self.next_id = 1
     
     def reportConfDependencies(self, config_manager):
         config_manager.registerConfiguration(CatalogColumnsConfig)
@@ -74,11 +75,13 @@ class OutputHandler(mc.Configurable, mc.SourceListener):
         if self.print_title:
             self.print_title = False
             print ''
+            print '# ID'
             for c in self.col_names:
                 print '#', c
-        if not self.col_names:
-            return
-        values = output_column_manager.convertToColumns(source, self.col_names)
-        for c in self.col_names:
-            print values[c], '\t', 
+        print self.next_id, '\t',
+        self.next_id += 1
+        if self.col_names:
+            values = output_column_manager.convertToColumns(source, self.col_names)
+            for c in self.col_names:
+                print values[c], '\t', 
         print ''

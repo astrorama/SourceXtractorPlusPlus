@@ -18,6 +18,7 @@ class Segmentation(mc.PixelSourceEventGenerator):
         raise NotImplementedError()
     
     
+    
 
 class SegmentationFactoryConfig(conf.Configuration):
     
