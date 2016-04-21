@@ -69,10 +69,10 @@ if '-d' in sys.argv:
 # parses the user file. We simulate the result with a manual dictionary
 user_values = {
     'OUT_COLUMNS' : 'PIX_CENTROID_X PIX_CENTROID_Y',
-#    'BACKGROUND_VALUE' : 10000,
+    'BACKGROUND_VALUE' : 9000,
     'DETECTION_IMAGE' : 'data/galaxies.fits',
     'DETECT_MINAREA' : 3,
-    'DEBLEND_ALGORITHM' : 'OFF',
+#    'DEBLEND_ALGORITHM' : 'OFF',
     'DEBLEND_ALGORITHM' : 'ATRACTORS',
     'SEGMENTATION_ALGORITHM' : 'LUTZ'
 }

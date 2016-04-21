@@ -180,7 +180,7 @@ class DetectionFramePixelSourceStampTask(tsk.PixelSourceTask):
         boundaries = pixel_source.getProperty(PixelBoundaries.__name__)
         min_x, min_y = boundaries.getMin()
         max_x, max_y = boundaries.getMax()
-        stamp = self.det_image[min_y:max_y+2, min_x:max_x+2]
+        stamp = self.det_image[min_y:max_y+1, min_x:max_x+1]
         pixel_source.setProperty(DetectionFramePixelSourceStamp.__name__, DetectionFramePixelSourceStamp(stamp))
     
     

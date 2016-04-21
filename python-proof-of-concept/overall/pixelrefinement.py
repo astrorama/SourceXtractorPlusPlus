@@ -41,12 +41,12 @@ class AtractorsRefineAction(PixelSourceRefineAction):
     def refine(self, pixel_source):
         stamp = pixel_source.getProperty('DetectionFramePixelSourceStamp').getStamp()
         bounds = pixel_source.getProperty('PixelBoundaries')
-        minxy = bounds.getMin()
-        maxxy = bounds.getMax()
+        min_x, min_y = bounds.getMin()
+        max_x, max_y = bounds.getMax()
         def value(x,y):
-            if (x < minxy[0] or x > maxxy[0] or y < minxy[1] or y > maxxy[1]):
+            if (x < min_x or x > max_x or y < min_y or y > max_y):
                 return -sys.float_info.max
-            return stamp[x - minxy[0], y - minxy[1]]
+            return stamp[y - min_y, x - min_x]
 
         # Regroup the pixels based on attractors
         pix_loc = [(p, p) for p in pixel_source.getPixelList()]
