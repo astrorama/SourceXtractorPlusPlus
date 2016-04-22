@@ -28,7 +28,7 @@ class PixelSourceListener(object):
 class SourceGroupListener(object):
     """Interface of classes which can listen of SourceGroup events"""
     
-    def handleSourceGroup(self, pixel_source):
+    def handleSourceGroup(self, source_group):
         """Implementations should override this method to implement their logic
         of handling a SourceGroup"""
         raise NotImplementedError()

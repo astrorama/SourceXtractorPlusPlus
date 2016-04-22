@@ -99,15 +99,16 @@ grp_ref_algo = grp_ref_factory.getSourceGroupRefinement()
 
 sources = []
 class listener:
-    def handlePixelSourceList(self, pixel_source_list):
-        for s in pixel_source_list:
+    def handleSourceGroup(self, source_group):
+        for s in source_group.getSources():
             out_handler.handleSource(s)
-            sources.append(s.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid())
+            sources.append(s)
         
 # We connect the main components with each other
 segm_algo.addPixelSourceListener(pix_ref_algo)
 pix_ref_algo.addPixelSourceListener(source_grouping)
-source_grouping.addPixelSourceListListener(listener())
+source_grouping.addPixelSourceListListener(grp_ref_algo)
+grp_ref_algo.addSourceGroupListener(listener())
 
 #grp_ref_algo.addSourceGroupListener(listener())
 
@@ -126,8 +127,9 @@ if '-im' in sys.argv:
     import matplotlib.pyplot as plt
     import numpy as np
     from PIL import Image
-    xs = [x for x,y in sources]
-    ys = [y for x,y in sources]
+    centroids = [s.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid() for s in sources]
+    xs = [x for x,y in centroids]
+    ys = [y for x,y in centroids]
     im = det_im - det_im.min() + 1
     im = np.sqrt(im)
     im = im - im.min()

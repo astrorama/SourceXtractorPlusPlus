@@ -202,33 +202,12 @@ class SourceGroup(ObjectWithProperties):
                 return self.group.getProperty(name)
             else:
                 return super(SourceGroup.GroupedSource, self).getProperty(name)
-    
-    def __init__(self, arg1, arg2):
-        # In python we don't have multiple constructors, so simulate it by identifying
-        # the type of the first argument
-        if type(arg1) == SourceGroup:
-            self.second_constructor(arg1, arg2)
-        else:
-            self.first_constructor(arg1, arg2)
-    
-    def first_constructor(self, pixel_source_list, task_registry):
+            
+    def __init__(self, pixel_source_list, task_registry):
         """Constructs a SourceGroup from the given pixel source list"""
         super(SourceGroup, self).__init__()
-        self.source_list = [SourceGroup.GroupedSource(s, self, task_registry) for s in pixel_source_list]
+        self.source_list = [SourceGroup.GroupedSource(s, self, task_registry) for s in pixel_source_list.getPixelSources()]
         self.task_registry = task_registry
-        
-    def second_constructor(self, other_group, extra_pixel_source_list):
-        """Constructs a new SourceGroup overtaking the sources of the given one.
-        The constructed group does not have any properties set and all sources
-        are striped out from the properties which were computed by the group.
-        The old group is striped out of its properties and all its sources are
-        removed."""
-        super(SourceGroup, self).__init__()
-        self.task_registry = task_registry
-        self.source_list = [SourceGroup.GroupedSource(s.getPixelList(), self, task_registry) for s in other_group]
-        self.source_list.extend(extra_pixel_source_list)
-        other.source_list = []
-        other.properties = {}
         
     def getSources(self):
         """This returns a list of the contained sources. In C++ it should be
