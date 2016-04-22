@@ -45,8 +45,9 @@ segm_factory.reportConfDependencies(conf_mgr)
 pix_ref_factory = pref.PixelSourceRefinementFactory()
 pix_ref_factory.reportConfDependencies(conf_mgr)
 
-source_grouping = sgrp.SourceGrouping(tsk.task_registry)
-source_grouping.reportConfDependencies(conf_mgr)
+# Configuring the SourceGroupingFactory
+source_grouping_factory = sgrp.SourceGroupingFactory(tsk.task_registry)
+source_grouping_factory.reportConfDependencies(conf_mgr)
 
 grp_ref_factory = gref.SourceGroupRefinementFactory()
 grp_ref_factory.reportConfDependencies(conf_mgr)
@@ -77,7 +78,7 @@ user_values = {
     'DETECTION_IMAGE' : 'data/galaxies.fits',
     'DETECT_MINAREA' : 3,
 #    'DEBLEND_ALGORITHM' : 'OFF',
-    'DEBLEND_ALGORITHM' : 'ATRACTORS',
+    'DEBLEND_ALGORITHM' : 'ATTRACTORS',
     'SEGMENTATION_ALGORITHM' : 'LUTZ'
 }
 
@@ -86,27 +87,29 @@ conf_mgr.initialize(user_values)
 tsk.task_registry.configure(conf_mgr)
 segm_factory.configure(conf_mgr)
 pix_ref_factory.configure(conf_mgr)
-source_grouping.configure(conf_mgr)
+source_grouping_factory.configure(conf_mgr)
 grp_ref_factory.configure(conf_mgr)
 out_handler.configure(conf_mgr)
 
 # We get the main components which are constructed by factories
 segm_algo = segm_factory.getSegmentation()
 pix_ref_algo = pix_ref_factory.getPixelSourceRefinement()
+source_grouping = source_grouping_factory.getSourceGrouping()
 grp_ref_algo = grp_ref_factory.getSourceGroupRefinement()
 
 sources = []
 class listener:
-    def handleSourceGroup(self, source_group):
-        for s in source_group.getSources():
+    def handlePixelSourceList(self, pixel_source_list):
+        for s in pixel_source_list:
             out_handler.handleSource(s)
             sources.append(s.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid())
         
 # We connect the main components with each other
 segm_algo.addPixelSourceListener(pix_ref_algo)
 pix_ref_algo.addPixelSourceListener(source_grouping)
-source_grouping.addSourceGroupListener(grp_ref_algo)
-grp_ref_algo.addSourceGroupListener(listener())
+source_grouping.addPixelSourceListListener(listener())
+
+#grp_ref_algo.addSourceGroupListener(listener())
 
 # We retrieve the detection image from the configuration
 det_im = conf_mgr.getConfiguration(tsk_impl.DetectionImageConfig).getImage()

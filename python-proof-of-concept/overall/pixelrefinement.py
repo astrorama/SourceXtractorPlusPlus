@@ -35,8 +35,8 @@ class MinAreaRefineAction(PixelSourceRefineAction):
         
 
 
-class AtractorsRefineAction(PixelSourceRefineAction):
-    """Refnement using atractors (similar to DBSCAN)"""
+class AttractorsRefineAction(PixelSourceRefineAction):
+    """Refnement using attractors (similar to DBSCAN)"""
     
     def refine(self, pixel_source):
         stamp = pixel_source.getProperty('DetectionFramePixelSourceStamp').getStamp()
@@ -104,21 +104,21 @@ class PixelSourceRefinementConfig(conf.Configuration):
     
     def getProgramOptions(self):
         return [
-            conf.OptionDescr('DEBLEND_ALGORITHM', str, "One of OFF, LUTZ, DBSCAN, ATRACTORS, etc..."),
+            conf.OptionDescr('DEBLEND_ALGORITHM', str, "One of OFF, LUTZ, DBSCAN, ATTRACTORS, etc..."),
             conf.OptionDescr('DETECT_MINAREA', int, "min. # of pixels to be considered a detection")
         ]
     
     def preInitialize(self, user_values):
         if not 'DEBLEND_ALGORITHM' in user_values:
             raise Exception('Missing obligatory parameter DEBLEND_ALGORITHM')
-        if not user_values['DEBLEND_ALGORITHM'] in ('OFF', 'ATRACTORS'):
-            raise Exception("Only ATRACTORS algorithm is currently implemented for deblending!")
+        if not user_values['DEBLEND_ALGORITHM'] in ('OFF', 'ATTRACTORS'):
+            raise Exception("Only ATTRACTORS algorithm is currently implemented for deblending!")
     
     def initialize(self, user_values):
         # First chose which deblending algorithm we use
         algo = user_values['DEBLEND_ALGORITHM']
-        if (algo == 'ATRACTORS'):
-            self.action_list.append(AtractorsRefineAction())
+        if (algo == 'ATTRACTORS'):
+            self.action_list.append(AttractorsRefineAction())
         # As the last action we filter out any source with less than the specified
         # number of pixels
         if 'DETECT_MINAREA' in user_values:

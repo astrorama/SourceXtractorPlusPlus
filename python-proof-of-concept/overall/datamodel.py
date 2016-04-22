@@ -1,3 +1,4 @@
+import sys
 
 class Property(object):
     """Superclass of all properties"""
@@ -85,8 +86,64 @@ class PixelSource(ObjectWithProperties, Source):
                 task(self)
             
         return super(PixelSource, self).getProperty(name)
-                
+    
+class PixelSourceList(object):
+    """ A list of PixelSource that have been put together for potential grouping. It contains a few
+        hardcoded attribute that we know how to recompute efficiently when we add new sources to the list
+        or when two lists are merged together.
+        """
+    
+    def __init__(self, pixel_sources = []):
+        self.pixel_sources = []
+        self.min_coords = (sys.maxint, sys.maxint)
+        self.max_coords = (-sys.maxint - 1, -sys.maxint - 1)
+
+        for s in pixel_sources:
+            self.append(s)
+            
+    def append(self, pixel_source):
+        """ Appends one source to the list and recomputes what attributes are needed """
         
+        self.pixel_sources.append(pixel_source)
+        
+        boundaries = pixel_source.getProperty('PixelBoundaries')
+        
+        self.min_coords = (min(self.min_coords[0], boundaries.getMin()[0]), min(self.min_coords[1], boundaries.getMin()[1]))
+        self.max_coords = (max(self.max_coords[0], boundaries.getMax()[0]), max(self.max_coords[1], boundaries.getMax()[1]))
+        
+    def merge(self, pixel_source_list):
+        """ Merges another PixelSourceList to this list, it can be smart in recomputing attributes
+         without having to reiterate on the whole list"""
+        
+        self.pixel_sources.extend(pixel_source_list.pixel_sources)
+        
+        self.min_coords = (min(self.min_coords[0], pixel_source_list.min_coords[0]), min(self.min_coords[1], pixel_source_list.min_coords[1]))
+        self.max_coords = (max(self.max_coords[0], pixel_source_list.max_coords[0]), max(self.max_coords[1], pixel_source_list.max_coords[1]))
+        
+    def getPixelSources(self):
+        """Gets a copy of the current list of PixelSources"""
+        
+        return self.pixel_sources[:]
+    
+    # minimum coordinates of the bounding box of the entire list
+    def getMin(self):
+        return self.min_coords
+        
+    # maximum coordinates of the bounding box of the entire list
+    def getMax(self):
+        return self.max_coords
+
+    # Allows accessing PixelSourceList directly like a Python container
+        
+    def __iter__(self):
+        return self.pixel_sources.__iter__()
+    
+    def __getitem__(self, index):
+        return self.pixel_sources[index]
+
+    def __len__(self):
+        return len(self.pixel_sources)
+       
         
 class SourceGroup(ObjectWithProperties):
     """Represents a group of Sources, which should be handled together. It is

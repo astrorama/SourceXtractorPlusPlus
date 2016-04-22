@@ -11,7 +11,7 @@ class SourceGroupRefineAction(object):
         """This method should be implemented to check the sources inside the
         group and try to identify hidden sources inside the group, using more
         sophisticated methods, like modeling (redeblending). If no refinement is
-        required, the input should just be forwared, If new sources are detected
+        required, the input should just be forwarded, If new sources are detected
         a new group should be created (via the appropriate SourceGroup constructor)
         and returned."""
         raise NotImplementedError()

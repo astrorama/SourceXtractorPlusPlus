@@ -32,7 +32,17 @@ class SourceGroupListener(object):
         """Implementations should override this method to implement their logic
         of handling a SourceGroup"""
         raise NotImplementedError()
-        
+
+
+
+class PixelSourceListListener(object):
+    """Interface of classes which can listen of PixelSourceList events"""
+    
+    def handlePixelSourceList(self, pixel_source_list):
+        """Implementations should override this method to implement their logic
+        of handling a PixelSourceList"""
+        raise NotImplementedError()
+
     
     
 class PixelSourceEventGenerator(object):
@@ -68,6 +78,24 @@ class SourceGroupEventGenerator(object):
         generate"""
         for l in self.listeners:
             l.handleSourceGroup(source_group)
+
+
+
+class PixelSourceListEventGenerator(object):
+    
+    def __init__(self):
+        self.listeners = []
+    
+    def addPixelSourceListListener(self, listener):
+        """Adds a listener which will be notified for PixelSourceList"""
+        self.listeners.append(listener)
+        
+    def _notifyListeners(self, pixel_source_list):
+        """This is a protected method which the subclasses should use in their
+        implementations to notify the listeners for the PixelSourceList they
+        generate"""
+        for l in self.listeners:
+            l.handlePixelSourceList(pixel_source_list)
 
 
 

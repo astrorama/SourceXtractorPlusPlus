@@ -1,6 +1,10 @@
 import maincomponents as mc
 
-class PixelSourceTask():
+class Task(object):
+    """Common base class for all tasks"""
+    pass
+
+class PixelSourceTask(Task):
     """Interface for classes which compute pixel source properties"""
     
     def __call__(self, pixel_group):
@@ -11,7 +15,7 @@ class PixelSourceTask():
 
     
     
-class SourceGroupTask():
+class SourceGroupTask(Task):
     """Interface for classes which compute source group properties"""
     
     def __call__(self, source_group):
@@ -30,27 +34,12 @@ class TaskFactory(mc.Configurable):
         """This should return which properties are produced by this factory tasks"""
         raise NotImplementedError()
     
-    
-    
-    
-class SourceTaskFactory(TaskFactory):
-    """Factory which produces SourceTasks"""
-    
     def getTask(self):
-        """Returns an instance of a SourceTask"""
+        """Returns an instance of a Task"""
         raise NotImplementedError()
     
-   
     
     
-class GroupTaskFactory(TaskFactory):
-    """Factory which produces GroupTasks"""
-    
-    def getTask(self):
-        """Returns an instance of a GroupTask"""
-        raise NotImplementedError()
-        
-      
     
 class TaskRegistry(mc.Configurable):
     
