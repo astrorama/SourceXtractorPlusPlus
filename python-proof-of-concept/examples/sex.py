@@ -79,7 +79,8 @@ user_values = {
     'DETECT_MINAREA' : 3,
 #    'DEBLEND_ALGORITHM' : 'OFF',
     'DEBLEND_ALGORITHM' : 'ATTRACTORS',
-    'SEGMENTATION_ALGORITHM' : 'LUTZ'
+    'SEGMENTATION_ALGORITHM' : 'LUTZ',
+    'NEIGHBOR_MERGING' : 'ON'
 }
 
 # We initialize the config manager and we use it to configure all the Configurables

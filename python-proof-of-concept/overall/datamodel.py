@@ -110,6 +110,25 @@ class PixelSourceList(object):
         
         self.min_coords = (min(self.min_coords[0], boundaries.getMin()[0]), min(self.min_coords[1], boundaries.getMin()[1]))
         self.max_coords = (max(self.max_coords[0], boundaries.getMax()[0]), max(self.max_coords[1], boundaries.getMax()[1]))
+    
+    def remove(self, pixel_source):
+        """Removes a source from the list and recomputes what attributes are needed"""
+        if not pixel_source in self.pixel_sources:
+            return
+        self.pixel_sources.remove(pixel_source)
+        if len(self.pixel_sources) == 0:
+            return
+        s_bounds = pixel_source.getProperty('PixelBoundaries')
+        s_min = s_bounds.getMin()
+        s_max = s_bounds.getMax()
+        if self.min_coords[0] == s_min[0] or self.min_coords[1] == s_min[1] or self.max_coords[0] == s_max[0] or self.max_coords[1] == s_max[1]:
+            min_x = min(s.getProperty('PixelBoundaries').getMin()[0] for s in self.pixel_sources)
+            min_y = min(s.getProperty('PixelBoundaries').getMin()[1] for s in self.pixel_sources)
+            max_x = max(s.getProperty('PixelBoundaries').getMax()[0] for s in self.pixel_sources)
+            max_y = max(s.getProperty('PixelBoundaries').getMax()[1] for s in self.pixel_sources)
+            self.min_coords = (min_x, min_y)
+            self.max_coords = (max_x, max_y)
+        
         
     def merge(self, pixel_source_list):
         """ Merges another PixelSourceList to this list, it can be smart in recomputing attributes

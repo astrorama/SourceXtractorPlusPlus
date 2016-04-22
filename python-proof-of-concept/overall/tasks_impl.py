@@ -70,7 +70,7 @@ class DetectionFramePixelValuesTask(tsk.PixelSourceTask):
     def __call__(self, pixel_source):
         values = []
         for (x, y) in pixel_source.getPixelList():
-            values.append(self.det_image[x][y])
+            values.append(self.det_image[y][x])
         pixel_source.setProperty(DetectionFramePixelValues.__name__, DetectionFramePixelValues(values))
     
     
