@@ -76,7 +76,7 @@ user_values = {
     'OUT_COLUMNS' : 'PIX_CENTROID_X PIX_CENTROID_Y',
     'BACKGROUND_VALUE' : 9000,
     'DETECTION_IMAGE' : 'data/galaxies.fits',
-    'DETECT_MINAREA' : 3,
+    'DETECT_MINAREA' : 10,
 #    'DEBLEND_ALGORITHM' : 'OFF',
     'DEBLEND_ALGORITHM' : 'ATTRACTORS',
     'SEGMENTATION_ALGORITHM' : 'LUTZ',
@@ -115,6 +115,28 @@ grp_ref_algo.addSourceGroupListener(listener())
 
 # We retrieve the detection image from the configuration
 det_im = conf_mgr.getConfiguration(tsk_impl.DetectionImageConfig).getImage()
+
+# If the user requested zeroqm messages add the listeners
+if '-zmq' in sys.argv:
+    import zmq
+    context = zmq.Context()
+    socket = context.socket(zmq.PUB)
+    socket.bind("tcp://*:5556")
+    class segm_listener:
+        def handlePixelSource(self, source):
+            socket.send('SEGM '+str(source.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid()))
+    segm_algo.addPixelSourceListener(segm_listener())
+    class ref_listener:
+        def handlePixelSource(self, source):
+            socket.send('REF '+str(source.getProperty(tsk_impl.PixelCentroid.__name__).getCentroid()))
+    pix_ref_algo.addPixelSourceListener(ref_listener())
+    
+if '-slow' in sys.argv:
+    import time
+    class slow_listener:
+        def handlePixelSource(self,s):
+            time.sleep(1)
+    segm_algo.addPixelSourceListener(slow_listener())
 
 # We scan the detection image, using the segmentation algorithm
 segm_algo.scan(det_im)
