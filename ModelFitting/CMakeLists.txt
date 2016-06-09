@@ -16,7 +16,7 @@ elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost levmar OpenCV
+                     LINK_LIBRARIES ElementsKernel Boost levmar OpenCV lapack blas
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
