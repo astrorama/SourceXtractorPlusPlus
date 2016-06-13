@@ -14,6 +14,7 @@ elements_subdir(SEFramework)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(SEUtils)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -26,7 +27,6 @@ find_package(GMock)
 find_package(CCfits)
 
 
-find_package(SEUtils)
 
 #===============================================================================
 # Declare the library dependencies here
