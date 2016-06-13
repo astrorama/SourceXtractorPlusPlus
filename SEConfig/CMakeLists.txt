@@ -14,6 +14,9 @@ elements_subdir(SEConfig)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(Configuration) # From Alexandria
+elements_depends_on_subdirs(SEUtils)
+elements_depends_on_subdirs(SEFramework)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -22,10 +25,6 @@ elements_depends_on_subdirs(ElementsKernel)
 #          find_package(CppUnit)
 #===============================================================================
 
-find_package(Configuration) # From Alexandria
-
-find_package(SEUtils)
-find_package(SEFramework)
 
 #===============================================================================
 # Declare the library dependencies here
