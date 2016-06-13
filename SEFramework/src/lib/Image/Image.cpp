@@ -7,9 +7,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageBuffer.h"
 
-using SEUtils::PixelCoordinate;
-
-namespace SEFramework {
+namespace SExtractor {
 
 std::shared_ptr<Image> Image::getSubImage(PixelCoordinate min_coord, PixelCoordinate max_coord) const {
   auto width = max_coord.m_x - min_coord.m_x + 1;

@@ -8,7 +8,7 @@
 
 #include "SEConfig/SegmentationConfig.h"
 
-using namespace SEConfig;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

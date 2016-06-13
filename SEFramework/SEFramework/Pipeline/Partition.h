@@ -7,10 +7,10 @@
 #ifndef _SEFRAMEWORK_PIPELINE_PARTITION_H
 #define _SEFRAMEWORK_PIPELINE_PARTITION_H
 
-#include "SEFramework/Source/Source.h"
 #include "SEUtils/Observable.h"
+#include "SEFramework/Source/Source.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class PartitionStep {
 public:
@@ -28,8 +28,8 @@ public:
  * @brief
  *
  */
-class Partition : public SEUtils::Observer<std::shared_ptr<Source>>,
-    public SEUtils::Observable<std::shared_ptr<Source>> {
+class Partition : public Observer<std::shared_ptr<Source>>,
+    public Observable<std::shared_ptr<Source>> {
 
 public:
 

@@ -10,12 +10,12 @@
 #include <memory>
 #include <list>
 
+#include "SEUtils/Observable.h"
+
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceList.h"
 
-#include "SEUtils/Observable.h"
-
-namespace SEFramework {
+namespace SExtractor {
 
 class SelectionCriteria {
 public:
@@ -48,8 +48,8 @@ public:
  * @brief
  *
  */
-class SourceGrouping : public SEUtils::Observer<std::shared_ptr<Source>>,
-    public SEUtils::Observer<ProcessSourcesEvent>, public SEUtils::Observable<std::shared_ptr<SourceList>> {
+class SourceGrouping : public Observer<std::shared_ptr<Source>>,
+    public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceList>> {
 public:
 
   /**

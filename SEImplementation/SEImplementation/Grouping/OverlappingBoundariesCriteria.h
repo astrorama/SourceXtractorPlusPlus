@@ -9,11 +9,7 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SEImplementation {
-
-using SEFramework::GroupingCriteria;
-using SEFramework::Source;
-using SEFramework::SourceList;
+namespace SExtractor {
 
 class OverlappingBoundariesCriteria : public GroupingCriteria {
 public:

@@ -9,7 +9,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Property/PropertyId.h"
 
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Example property derived from Property
 class ExampleProperty : public Property {

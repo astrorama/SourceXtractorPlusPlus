@@ -14,8 +14,7 @@
 #include <memory>
 #include <utility>
 
-using namespace SEFramework;
-using namespace SEUtils;
+using namespace SExtractor;
 
 // Example Property containing an int
 class SimpleIntProperty : public Property {

@@ -12,9 +12,7 @@
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Property/PixelCentroid.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
-using namespace SEImplementation;
+using namespace SExtractor;
 
 struct PixelCentroidFixture {
   std::shared_ptr<TaskRegistry> task_registry;

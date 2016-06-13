@@ -6,7 +6,7 @@
 
 #include "SEFramework/Pipeline/Deblending.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskRegistry> task_registry)
   : m_actions(std::move(actions)),

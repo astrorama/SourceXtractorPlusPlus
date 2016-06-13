@@ -6,7 +6,7 @@
 
 #include "SEFramework/Task/TaskRegistry.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 void TaskRegistry::registerTaskFactory(std::unique_ptr<TaskFactory> task_factory) {
   // List of property_ids that this factory can be used to produce

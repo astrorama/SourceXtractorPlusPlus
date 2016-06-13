@@ -7,7 +7,7 @@
 #ifndef _SEFRAMEWORK_TASK_TASK_H
 #define _SEFRAMEWORK_TASK_TASK_H
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class Task

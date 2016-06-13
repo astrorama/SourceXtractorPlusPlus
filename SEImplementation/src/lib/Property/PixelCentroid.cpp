@@ -9,7 +9,7 @@
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Property/PixelCentroid.h"
 
-namespace SEImplementation {
+namespace SExtractor {
 
 void PixelCentroidTask::computeProperties(Source& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();

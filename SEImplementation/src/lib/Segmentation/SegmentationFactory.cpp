@@ -7,7 +7,7 @@
 #include "SEImplementation/Segmentation/Lutz.h"
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
-namespace SEImplementation {
+namespace SExtractor {
 
 SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskRegistry> task_registry)
 : m_task_registry(task_registry) {}

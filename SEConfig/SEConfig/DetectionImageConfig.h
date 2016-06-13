@@ -9,11 +9,11 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SEFramework {
+namespace SExtractor {
 class Image;
 }
 
-namespace SEConfig {
+namespace SExtractor {
 
 /**
  * @class DetectionImageConfig
@@ -22,7 +22,7 @@ namespace SEConfig {
  */
 class DetectionImageConfig : public Euclid::Configuration::Configuration {
 
-public:
+ public:
 
   /**
    * @brief Destructor
@@ -35,12 +35,12 @@ public:
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;
 
-  std::shared_ptr<SEFramework::Image> getDetectionImage() const {
+  std::shared_ptr<Image> getDetectionImage() const {
     return m_detection_image;
   }
 
 private:
-  std::shared_ptr<SEFramework::Image> m_detection_image;
+  std::shared_ptr<Image> m_detection_image;
 
 }; /* End of DetectionImageConfig class */
 

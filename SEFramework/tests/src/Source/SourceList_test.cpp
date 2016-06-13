@@ -11,8 +11,7 @@
 
 #include "SEFramework/Source/SourceList.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
+using namespace SExtractor;
 
 struct SourceListFixture {
   std::shared_ptr<TaskRegistry> task_registry;

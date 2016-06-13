@@ -8,7 +8,7 @@
 
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

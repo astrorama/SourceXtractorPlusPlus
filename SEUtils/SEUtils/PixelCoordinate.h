@@ -8,8 +8,9 @@
 #define _SEUTILS_PIXELCOORDINATE_H
 
 #include <functional>
+#include <boost/functional/hash.hpp>
 
-namespace SEUtils {
+namespace SExtractor {
 
 /**
  * @class PixelCoordinate
@@ -42,10 +43,13 @@ struct PixelCoordinate {
 namespace std {
 
 template <>
-struct hash<SEUtils::PixelCoordinate>
+struct hash<SExtractor::PixelCoordinate>
 {
-  std::size_t operator()(const SEUtils::PixelCoordinate& coord) const {
-     return hash<int>()(coord.m_x) ^ hash<int>()(coord.m_y);
+  std::size_t operator()(const SExtractor::PixelCoordinate& coord) const {
+    std::size_t hash = 0;
+    boost::hash_combine(hash, coord.m_x);
+    boost::hash_combine(hash, coord.m_y);
+    return hash;
   }
 };
 

@@ -9,10 +9,10 @@
 
 #include <memory>
 
-#include "SEFramework/Source/Source.h"
 #include "SEUtils/Observable.h"
+#include "SEFramework/Source/Source.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class Image;
 
@@ -21,7 +21,7 @@ class Image;
  * @brief
  *
  */
-class Segmentation : public SEUtils::Observable<std::shared_ptr<Source>> {
+class Segmentation : public Observable<std::shared_ptr<Source>> {
 
 public:
 

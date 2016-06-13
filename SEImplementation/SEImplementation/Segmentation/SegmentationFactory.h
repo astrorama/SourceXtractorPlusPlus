@@ -10,10 +10,7 @@
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Pipeline/Segmentation.h"
 
-namespace SEImplementation {
-
-using SEFramework::TaskRegistry;
-using SEFramework::Segmentation;
+namespace SExtractor {
 
 /**
  * @class SegmentationFactory

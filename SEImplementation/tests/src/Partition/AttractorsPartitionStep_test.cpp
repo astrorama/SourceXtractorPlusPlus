@@ -8,7 +8,7 @@
 
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

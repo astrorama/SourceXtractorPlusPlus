@@ -6,7 +6,7 @@
 
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
-namespace SEImplementation {
+namespace SExtractor {
 
 MinAreaPartitionStep::MinAreaPartitionStep(unsigned int min_pixel_count) : m_min_pixel_count (min_pixel_count) {
 }

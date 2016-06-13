@@ -36,11 +36,7 @@
 #include "Configuration/Utils.h"
 
 namespace po = boost::program_options;
-using namespace SEUtils;
-using namespace SEFramework;
-using namespace SEImplementation;
-using namespace SEConfig;
-
+using namespace SExtractor;
 using namespace Euclid::Configuration;
 
 static long config_manager_id = 0;
@@ -65,7 +61,7 @@ public:
 
 static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
-class SExtractor : public Elements::Program {
+class SEMain : public Elements::Program {
 
 public:
 
@@ -144,7 +140,7 @@ public:
 
 };
 
-MAIN_FOR(SExtractor)
+MAIN_FOR(SEMain)
 
 
 

@@ -8,7 +8,7 @@
 
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

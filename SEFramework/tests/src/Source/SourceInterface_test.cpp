@@ -16,7 +16,7 @@ using ::testing::ReturnRef;
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Property/Property.h"
 
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Example Property containing an int
 class ExampleProperty : public Property {
@@ -30,7 +30,11 @@ public:
 // the goal of this test of to verify that the template method correctly calls getPropertyImpl()
 class MockSourceInterface : public SourceInterface {
 public:
-  MOCK_CONST_METHOD1(getPropertyImpl, Property& (const PropertyId property_id));
+  using SourceInterface::getProperty;
+  using SourceInterface::setProperty;
+
+  MOCK_CONST_METHOD1(getProperty, Property& (const PropertyId& property_id));
+  void setProperty(std::unique_ptr<Property>, const PropertyId& ) {}
 };
 
 //-----------------------------------------------------------------------------
@@ -46,11 +50,11 @@ BOOST_AUTO_TEST_CASE( source_interface_test ) {
   ExampleProperty example_property_two(2);
 
   // We expect two calls with different PropertyIds
-  EXPECT_CALL(source_interface, getPropertyImpl(PropertyId(typeid(ExampleProperty))))
+  EXPECT_CALL(source_interface, getProperty(PropertyId(typeid(ExampleProperty))))
       .Times(1)
       .WillOnce(ReturnRef(example_property_one));
 
-  EXPECT_CALL(source_interface, getPropertyImpl(PropertyId(typeid(ExampleProperty), "test")))
+  EXPECT_CALL(source_interface, getProperty(PropertyId(typeid(ExampleProperty), "test")))
       .Times(1)
       .WillOnce(ReturnRef(example_property_two));
 

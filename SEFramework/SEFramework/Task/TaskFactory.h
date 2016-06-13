@@ -11,9 +11,9 @@
 #include <memory>
 
 #include "SEFramework/Property/PropertyId.h"
-#include "Task.h"
+#include "SEFramework/Task/Task.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class TaskFactory

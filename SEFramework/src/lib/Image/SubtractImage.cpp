@@ -6,7 +6,7 @@
 
 #include "SEFramework/Image/SubtractImage.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 double SubtractImage::getValue(int x, int y) const {
   return m_image->getValue(x, y) - m_value_to_subtract;

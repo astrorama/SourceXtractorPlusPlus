@@ -9,10 +9,7 @@
 
 #include "SEFramework/Source/SourceList.h"
 
-namespace SEImplementation {
-
-using SEFramework::SourceList;
-using SEFramework::Source;
+namespace SExtractor {
 
 /**
  * @class OverlappingBoundariesSourceList
@@ -22,24 +19,24 @@ using SEFramework::Source;
 class OverlappingBoundariesSourceList : public SourceList {
 public:
 
-  OverlappingBoundariesSourceList(std::vector<std::shared_ptr<Source>> sources = {});
+  OverlappingBoundariesSourceList(const std::vector<std::shared_ptr<Source>>& sources = {});
   virtual ~OverlappingBoundariesSourceList() = default;
 
   virtual void addSource(std::shared_ptr<Source> source) override;
   virtual void removeSource(std::shared_ptr<Source> source) override;
   virtual void merge(SourceList& source_list) override;
 
-  SEUtils::PixelCoordinate getMin() const {
+  PixelCoordinate getMin() const {
     return m_min_coord;
   }
 
-  SEUtils::PixelCoordinate getMax() const {
+  PixelCoordinate getMax() const {
     return m_max_coord;
   }
 
 private:
-  SEUtils::PixelCoordinate m_min_coord;
-  SEUtils::PixelCoordinate m_max_coord;
+  PixelCoordinate m_min_coord;
+  PixelCoordinate m_max_coord;
 
   void processSource(Source& source);
 

@@ -13,7 +13,7 @@
 #include "SEFramework/Property/PropertyNotFoundException.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class SourceInterface
@@ -37,14 +37,22 @@ public:
 
   /// Returns a reference to the requested property. The property may be computed if needed
   /// Throws a PropertyNotFoundException if the property cannot be provided.
-  template<class T, typename... Ts>
-  T& getProperty(Ts&&... params) const {
-    return dynamic_cast<T&>(getPropertyImpl(PropertyId {typeid(T), std::forward<Ts>(params)...} ));
+
+  virtual const Property& getProperty(const PropertyId& property_id) const = 0;
+  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
+
+  /// Convenience template method to call getProperty() with a more user-friendly syntax
+  template<typename T>
+  const T& getProperty(std::string param = "") const {
+    return dynamic_cast<const T&>(getProperty(PropertyId(typeid(T), param)));
   }
 
-protected:
-  /// Implementation used by the template method getProperty()
-  virtual Property& getPropertyImpl(const PropertyId property_id) const = 0;
+  /// Convenience template method to call setProperty() with a more user-friendly syntax
+  template<class T>
+  void setProperty(std::unique_ptr<T> property, std::string param = "") {
+    setProperty(std::move(property), PropertyId(typeid(T), param) );
+  }
+
 
 private:
 }; /* End of SourceInterface class */

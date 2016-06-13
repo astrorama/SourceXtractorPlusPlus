@@ -11,10 +11,10 @@
 #include <list>
 #include <functional>
 
-#include "SEFramework/Property/ObjectWithProperties.h"
-#include "ModifiableSource.h"
+#include "SEFramework/Property/PropertyHolder.h"
+#include "SEFramework/Source/SourceInterface.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class TaskRegistry;
 class Source;
@@ -24,7 +24,7 @@ class Source;
  * @brief Represents a group of Sources that must be processed together
  *
  */
-class EntangledSourceGroup : protected ObjectWithProperties, public std::enable_shared_from_this<EntangledSourceGroup> {
+class EntangledSourceGroup : public std::enable_shared_from_this<EntangledSourceGroup> {
 
 private:
   class EntangledSourceWrapper;
@@ -34,7 +34,7 @@ private:
    * @brief A source inside an EntangledSourceGroup. Encapsulates Source and adds group related properties to it.
    */
 
-  class EntangledSource : public ModifiableSource, protected ObjectWithProperties  {
+  class EntangledSource : public SourceInterface {
   public:
 
     virtual ~EntangledSource() = default;
@@ -42,11 +42,13 @@ private:
     EntangledSource(std::shared_ptr<Source> source, std::shared_ptr<EntangledSourceGroup> group,
         std::shared_ptr<TaskRegistry> task_registry);
 
-    // Implementation of ModifiableSource
-    virtual Property& getPropertyImpl(const PropertyId property_id) const override;
-    virtual void setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id) override;
+    // Implementation of SourceInterface
+    virtual const Property& getProperty(const PropertyId& property_id) const override;
+    virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
   private:
+    PropertyHolder m_property_holder;
+
     std::shared_ptr<Source> m_source;
     std::weak_ptr<EntangledSourceGroup> m_group;
     std::shared_ptr<TaskRegistry> m_task_registry;
@@ -61,14 +63,14 @@ private:
    * EntangledSourceWrapper that contains both a shared_ptr to the source and to the group.
    */
 
-  class EntangledSourceWrapper : public ModifiableSource {
+  class EntangledSourceWrapper : public SourceInterface {
   public:
     EntangledSourceWrapper(std::shared_ptr<EntangledSource> source, std::shared_ptr<const EntangledSourceGroup> group)
       : m_source(source), m_group(group) {}
 
-    // Implementation of ModifiableSource (just simple forward to the encapsulated EntangledSource
-    virtual Property& getPropertyImpl(const PropertyId property_id) const override;
-    virtual void setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id) override;
+    // Implementation of SourceInterface (just simple forward to the encapsulated EntangledSource
+    virtual const Property& getProperty(const PropertyId& property_id) const override;
+    virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
   private:
     std::shared_ptr<EntangledSource> m_source;
@@ -92,30 +94,31 @@ public:
    */
   virtual ~EntangledSourceGroup() = default;
 
-  /// returns a vector of pointers to the sources contained in this group as SourceInterface
+  /// returns a vector of pointers to the sources contained in this group as const SourceInterface
   virtual std::vector<std::shared_ptr<const SourceInterface>> getSources() const;
 
-  /// returns a vector of pointers to the sources contained in this group as ModifiableSource interfaces
-  virtual const std::vector<std::shared_ptr<ModifiableSource>> getModifiableSources();
+  /// returns a vector of pointers to the sources contained in this group as SourceInterfaces
+  virtual std::vector<std::shared_ptr<SourceInterface>> getSources();
 
-  /// Gets a reference to a property
-  template<class T, typename... Ts>
-  T& getProperty(Ts&&... params) const {
-    return dynamic_cast<T&>(getPropertyImpl(PropertyId {typeid(T), std::forward<Ts>(params)...} ));
-  }
-
-  /// Sets a property, overwriting it if it exists
-  template<class T, typename... Ts>
-  void setProperty(std::unique_ptr<T> property, Ts&&... params) {
-    setPropertyImpl(std::move(property), PropertyId(typeid(T), std::forward<Ts>(params)...) );
-  }
-
-protected:
   // implementation actual implementation used by the getProperty() and setProperty() methods
-  virtual Property& getPropertyImpl(const PropertyId property_id) const override;
-  virtual void setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id) override;
+  virtual const Property& getProperty(const PropertyId& property_id) const;
+  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id);
+
+  /// Convenience template method to call getProperty() with a more user-friendly syntax
+  template<typename T>
+  const T& getProperty(std::string param = "") const {
+    return dynamic_cast<const T&>(getProperty(PropertyId(typeid(T), param)));
+  }
+
+  /// Convenience template method to call setProperty() with a more user-friendly syntax
+  template<class T>
+  void setProperty(std::unique_ptr<T> property, std::string param = "") {
+    setProperty(std::move(property), PropertyId(typeid(T), param) );
+  }
 
 private:
+  PropertyHolder m_property_holder;
+
   EntangledSourceGroup(std::shared_ptr<TaskRegistry> task_registry);
   void setSources(std::list<std::shared_ptr<Source>> sources);
 

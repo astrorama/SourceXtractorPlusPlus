@@ -63,7 +63,7 @@ elements_add_library(SEFramework
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
 if(GMOCK_FOUND)
-elements_add_unit_test(ObjectWithProperties_test tests/src/Property/ObjectWithProperties_test.cpp 
+elements_add_unit_test(ObjectWithProperties_test tests/src/Property/PropertyHolder_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)

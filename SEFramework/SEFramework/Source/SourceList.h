@@ -12,7 +12,7 @@
 
 #include "SEFramework/Source/Source.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class SourceList
@@ -34,17 +34,17 @@ public:
 
   virtual const std::list<std::shared_ptr<Source>>& getSources() const;
 
-  using SourceListFactory = std::function<std::shared_ptr<SourceList>(std::vector<std::shared_ptr<Source>>)>;
+  using SourceListFactory = std::function<std::unique_ptr<SourceList>(const std::vector<std::shared_ptr<Source>>&)>;
 
   template <class T = SourceList>
   static SourceListFactory getFactory() {
-    return [](std::vector<std::shared_ptr<Source>> sources) {
-      return std::shared_ptr<SourceList>(new T(std::move(sources)));
+    return [](const std::vector<std::shared_ptr<Source>>& sources) {
+      return std::unique_ptr<SourceList>(new T(std::move(sources)));
     };
   }
 
 protected:
-  SourceList(std::vector<std::shared_ptr<Source>> sources);
+  explicit SourceList(const std::vector<std::shared_ptr<Source>>& sources);
 
   std::list<std::shared_ptr<Source>> m_sources;
 

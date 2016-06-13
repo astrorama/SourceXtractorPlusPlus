@@ -13,12 +13,7 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SEImplementation {
-
-using SEFramework::Source;
-using SEFramework::PartitionStep;
-using SEFramework::TaskRegistry;
-
+namespace SExtractor {
 
 /**
  * @class AttractorsPartitionStep
@@ -42,12 +37,12 @@ private:
   std::shared_ptr<TaskRegistry> m_task_registry;
 
   void attractPixels(
-      const std::vector<std::pair<SEUtils::PixelCoordinate, SEUtils::PixelCoordinate>>& pixels_with_origin,
-      std::unordered_map<SEUtils::PixelCoordinate, std::vector<SEUtils::PixelCoordinate>>& attractors,
-      std::function<double (SEUtils::PixelCoordinate)> value_function) const;
+      const std::vector<std::pair<PixelCoordinate, PixelCoordinate>>& pixels_with_origin,
+      std::unordered_map<PixelCoordinate, std::vector<PixelCoordinate>>& attractors,
+      std::function<double (PixelCoordinate)> value_function) const;
 
-  std::vector<std::vector<SEUtils::PixelCoordinate>> mergeAttractors(
-      const std::unordered_map<SEUtils::PixelCoordinate, std::vector<SEUtils::PixelCoordinate>>& attractors) const;
+  std::vector<std::vector<PixelCoordinate>> mergeAttractors(
+      const std::unordered_map<PixelCoordinate, std::vector<PixelCoordinate>>& attractors) const;
 
 
 }; /* End of AttractorsPartitionStep class */

@@ -5,9 +5,9 @@
  */
 #include "SEFramework/Source/SourceList.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
-SourceList::SourceList(std::vector<std::shared_ptr<Source>> sources) {
+SourceList::SourceList(const std::vector<std::shared_ptr<Source>>& sources) {
   for (auto& source : sources) {
     addSource(source);
   }
