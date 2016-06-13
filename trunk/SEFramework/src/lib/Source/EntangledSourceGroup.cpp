@@ -11,7 +11,7 @@
 
 #include "SEFramework/Source/EntangledSourceGroup.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 EntangledSourceGroup::EntangledSourceGroup(std::shared_ptr<TaskRegistry> task_registry)
     : m_task_registry(task_registry) {}
@@ -34,8 +34,8 @@ std::vector<std::shared_ptr<const SourceInterface>> EntangledSourceGroup::getSou
   return sources;
 }
 
-const std::vector<std::shared_ptr<ModifiableSource>> EntangledSourceGroup::getModifiableSources() {
-  std::vector<std::shared_ptr<ModifiableSource>> sources;
+std::vector<std::shared_ptr<SourceInterface>> EntangledSourceGroup::getSources() {
+  std::vector<std::shared_ptr<SourceInterface>> sources;
   sources.reserve(m_sources.size());
   for (auto source : m_sources) {
     // Encapsulates every EntangledSource into an EntangledSourceWrapper before returning it
@@ -44,25 +44,25 @@ const std::vector<std::shared_ptr<ModifiableSource>> EntangledSourceGroup::getMo
   return sources;
 }
 
-Property& EntangledSourceGroup::getPropertyImpl(const PropertyId property_id) const {
+const Property& EntangledSourceGroup::getProperty(const PropertyId& property_id) const {
   // If we already have the property, return it
-  if (isPropertySet(property_id)) {
-    return ObjectWithProperties::getPropertyImpl(property_id);
+  if (m_property_holder.isPropertySet(property_id)) {
+    return m_property_holder.getProperty(property_id);
   }
 
   // If not, get the task for that property, use it to compute the property then return it
   auto task = m_task_registry->getTask<GroupTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<EntangledSourceGroup&>(*this));
-    return ObjectWithProperties::getPropertyImpl(property_id);
+    return m_property_holder.getProperty(property_id);
   }
 
   // No task available to make that property, we throw an exception
   throw PropertyNotFoundException();
 }
 
-void EntangledSourceGroup::setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id) {
-  ObjectWithProperties::setPropertyImpl(std::move(property), property_id);
+void EntangledSourceGroup::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+  m_property_holder.setProperty(std::move(property), property_id);
 }
 
 /*********************************************************************************************************************/
@@ -71,11 +71,11 @@ EntangledSourceGroup::EntangledSource::EntangledSource(std::shared_ptr<Source> s
     std::shared_ptr<EntangledSourceGroup> group, std::shared_ptr<TaskRegistry> task_registry)
       : m_source(source), m_group(group), m_task_registry(task_registry) {}
 
-Property& EntangledSourceGroup::EntangledSource::getPropertyImpl(const PropertyId property_id) const {
+const Property& EntangledSourceGroup::EntangledSource::getProperty(const PropertyId& property_id) const {
 
   // If we already have the property stored in this object, returns it
-  if (isPropertySet(property_id)) {
-    return ObjectWithProperties::getPropertyImpl(property_id);
+  if (m_property_holder.isPropertySet(property_id)) {
+    return m_property_holder.getProperty(property_id);
   }
 
   // Gets a pointer to the group we belong to
@@ -87,14 +87,14 @@ Property& EntangledSourceGroup::EntangledSource::getPropertyImpl(const PropertyI
   }
 
   // If the property is already stored in the group, we return it
-  if (group->isPropertySet(property_id)) {
-    return group->getPropertyImpl(property_id);
+  if (group->m_property_holder.isPropertySet(property_id)) {
+    return group->getProperty(property_id);
   }
 
   try {
     // Try to get the the property from the encapsulated Source
     // if it cannot provide it, this will throw a PropertyNotFoundException
-    return m_source->getPropertyImpl(property_id);
+    return m_source->getProperty(property_id);
   } catch (PropertyNotFoundException& e) {
     // Getting this exception means the property must be computed at the group level
 
@@ -109,31 +109,30 @@ Property& EntangledSourceGroup::EntangledSource::getPropertyImpl(const PropertyI
     group_task->computeProperties(*group);
 
     // The property should now be available either in this object or in the group object
-    if (isPropertySet(property_id)) {
-      return ObjectWithProperties::getPropertyImpl(property_id);
+    if (m_property_holder.isPropertySet(property_id)) {
+      return m_property_holder.getProperty(property_id);
     } else {
-      return group->ObjectWithProperties::getPropertyImpl(property_id);
+      return group->m_property_holder.getProperty(property_id);
     }
   }
 }
 
-void EntangledSourceGroup::EntangledSource::setPropertyImpl(
-    std::unique_ptr<Property> property, PropertyId property_id) {
-  ObjectWithProperties::setPropertyImpl(std::move(property), property_id);
+void EntangledSourceGroup::EntangledSource::setProperty(
+    std::unique_ptr<Property> property, const PropertyId& property_id) {
+  m_property_holder.setProperty(std::move(property), property_id);
 }
 
 /*********************************************************************************************************************/
 
-Property& EntangledSourceGroup::EntangledSourceWrapper::getPropertyImpl(
-    const PropertyId property_id) const  {
+const Property& EntangledSourceGroup::EntangledSourceWrapper::getProperty(const PropertyId& property_id) const  {
   // Just forwards the call
-  return m_source->getPropertyImpl(property_id);
+  return m_source->getProperty(property_id);
 }
 
-void EntangledSourceGroup::EntangledSourceWrapper::setPropertyImpl(std::unique_ptr<Property> property,
-    PropertyId property_id)  {
+void EntangledSourceGroup::EntangledSourceWrapper::setProperty(std::unique_ptr<Property> property,
+    const PropertyId& property_id)  {
   // Just forwards the call
-  m_source->setPropertyImpl(std::move(property), property_id);
+  m_source->setProperty(std::move(property), property_id);
 }
 
 

@@ -4,43 +4,43 @@
  * @author mschefer
  */
 
-#ifndef _SEFRAMEWORK_PROPERTY_OBJECTWITHPROPERTIES_H
-#define _SEFRAMEWORK_PROPERTY_OBJECTWITHPROPERTIES_H
+#ifndef _SEFRAMEWORK_PROPERTY_PROPERTYHOLDER_H
+#define _SEFRAMEWORK_PROPERTY_PROPERTYHOLDER_H
 
 #include <memory>
 #include <unordered_map>
 
-#include "PropertyId.h"
-#include "Property.h"
+#include "SEFramework/Property/PropertyId.h"
+#include "SEFramework/Property/Property.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 
 /**
- * @class ObjectWithProperties
+ * @class PropertyHolder
  * @brief A class providing a simple implementation of an object with properties
  *
- * @details This class is used to provide a common implementation of collection properties
+ * @details This class is used to provide a common implementation for objects that have properties
  *
  */
 
-class ObjectWithProperties {
+class PropertyHolder {
 
 public:
 
   /**
    * @brief Destructor
    */
-  virtual ~ObjectWithProperties() = default;
+  virtual ~PropertyHolder() = default;
 
   /// Returns a reference to a Property if it is set, if not throws a PropertyNotFoundException
-  virtual Property& getPropertyImpl(const PropertyId property_id) const;
+  virtual const Property& getProperty(const PropertyId& property_id) const;
 
   /// Set a property, overwriting it if necessary
-  virtual void setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id);
+  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id);
 
   /// Returns true if the property is set
-  virtual bool isPropertySet(const PropertyId property_id) const;
+  virtual bool isPropertySet(const PropertyId& property_id) const;
 
 private:
 

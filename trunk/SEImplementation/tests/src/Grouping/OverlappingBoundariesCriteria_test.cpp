@@ -8,7 +8,7 @@
 
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

@@ -14,9 +14,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-using namespace SEFramework;
-
-namespace SEConfig {
+namespace SExtractor {
 
 static const std::string DETECTION_IMAGE {"detection-image" };
 static const std::string BACKGROUND_VALUE {"background-value" };

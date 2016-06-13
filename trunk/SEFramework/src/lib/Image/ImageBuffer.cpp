@@ -6,7 +6,7 @@
 
 #include "SEFramework/Image/ImageBuffer.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 ImageBuffer::ImageBuffer(int width, int height) : m_width(width), m_height(height) {
   m_data.resize(m_width * m_height);

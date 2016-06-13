@@ -12,8 +12,7 @@ using namespace testing;
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Example property containing an int
 class SimpleIntProperty : public Property {
@@ -37,10 +36,11 @@ public:
     if (property.m_value % 2 != 0) {
       return { source };
     } else {
-      property.m_value /= 2;
+      int newValue = property.m_value / 2;
+      source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
       auto new_source = std::make_shared<Source>(source->getPixels(), m_task_registry);
-      new_source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(property.m_value)));
+      new_source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
       return { source, new_source };
     }

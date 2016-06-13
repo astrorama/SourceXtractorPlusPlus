@@ -11,8 +11,7 @@
 
 #include "SEImplementation/Property/PixelBoundaries.h"
 
-using namespace SEFramework;
-using namespace SEImplementation;
+using namespace SExtractor;
 
 struct PixelBoundariesFixture {
   std::shared_ptr<TaskRegistry> task_registry;

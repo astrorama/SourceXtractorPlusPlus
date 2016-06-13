@@ -9,7 +9,7 @@
 
 #include "ElementsKernel/Exception.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class PropertyNotFoundException

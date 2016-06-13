@@ -17,8 +17,7 @@ using namespace testing;
 
 #include "SEFramework/Source/EntangledSourceGroup.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Mock for the TaskRegistry so that we can check interactions with it
 class MockTaskRegistry : public TaskRegistry {
@@ -65,7 +64,7 @@ public:
 
   virtual void computeProperties(EntangledSourceGroup& group) {
     // Sets the property on all the sources in the group
-    for (auto source : group.getModifiableSources()) {
+    for (auto source : group.getSources()) {
       source->setProperty(std::unique_ptr<SourceProperty>(new SourceProperty(m_value)));
     }
   }

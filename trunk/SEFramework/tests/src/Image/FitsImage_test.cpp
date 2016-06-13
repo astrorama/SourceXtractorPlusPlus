@@ -8,7 +8,7 @@
 
 #include "SEFramework/Image/FitsImage.h"
 
-using namespace SEFramework;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

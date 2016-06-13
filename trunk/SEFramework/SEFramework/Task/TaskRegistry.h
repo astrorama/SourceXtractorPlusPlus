@@ -11,12 +11,11 @@
 #include <unordered_map>
 
 #include "ElementsKernel/Exception.h"
+#include "SEFramework/Task/TaskFactory.h"
 
-#include "TaskFactory.h"
+namespace SExtractor {
 
-namespace SEFramework {
-
-/**shared_ptr
+/**
  * @class TaskRegistry
  * @brief Used to get the Task used to create a given property
  *

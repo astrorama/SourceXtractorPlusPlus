@@ -9,9 +9,9 @@
 
 #include <vector>
 
-#include "Image.h"
+#include "SEFramework/Image/Image.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class ImageBuffer

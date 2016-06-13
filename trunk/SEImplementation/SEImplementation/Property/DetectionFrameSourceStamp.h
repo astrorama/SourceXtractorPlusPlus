@@ -12,19 +12,11 @@
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SEFramework {
+namespace SExtractor {
   class Image;
 }
 
-namespace SEImplementation {
-
-using SEFramework::Image;
-using SEFramework::Property;
-using SEFramework::PropertyId;
-using SEFramework::Source;
-using SEFramework::SourceTask;
-using SEFramework::Task;
-using SEFramework::TaskFactory;
+namespace SExtractor {
 
 /**
  * @class DetectionFrameSourceStamp

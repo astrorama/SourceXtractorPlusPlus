@@ -7,9 +7,9 @@
 #ifndef _SEFRAMEWORK_TASK_SOURCETASK_H
 #define _SEFRAMEWORK_TASK_SOURCETASK_H
 
-#include "Task.h"
+#include "SEFramework/Task/Task.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class Source;
 

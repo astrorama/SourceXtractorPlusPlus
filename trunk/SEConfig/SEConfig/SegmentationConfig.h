@@ -9,7 +9,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SEConfig {
+namespace SExtractor {
 
 /**
  * @class SegmentationConfig

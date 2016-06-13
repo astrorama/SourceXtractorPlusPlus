@@ -11,7 +11,7 @@
 
 #include "SEUtils/PixelCoordinate.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class Image
@@ -30,8 +30,7 @@ public:
   virtual int getWidth() const = 0;
   virtual int getHeight() const = 0;
 
-  virtual std::shared_ptr<Image> getSubImage(SEUtils::PixelCoordinate min_coord,
-      SEUtils::PixelCoordinate max_coord) const;
+  virtual std::shared_ptr<Image> getSubImage(PixelCoordinate min_coord, PixelCoordinate max_coord) const;
 
 
 private:

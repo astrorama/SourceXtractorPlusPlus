@@ -8,7 +8,7 @@
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

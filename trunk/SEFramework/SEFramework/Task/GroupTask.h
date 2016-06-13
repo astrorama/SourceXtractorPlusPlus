@@ -7,9 +7,9 @@
 #ifndef _SEFRAMEWORK_TASK_GROUPTASK_H
 #define _SEFRAMEWORK_TASK_GROUPTASK_H
 
-#include "Task.h"
+#include "SEFramework/Task/Task.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class EntangledSourceGroup;
 

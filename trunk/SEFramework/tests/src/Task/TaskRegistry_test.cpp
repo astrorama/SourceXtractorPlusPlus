@@ -12,7 +12,7 @@
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/Property.h"
 
-using namespace SEFramework;
+using namespace SExtractor;
 
 class ExampleProperty : public Property {
 };

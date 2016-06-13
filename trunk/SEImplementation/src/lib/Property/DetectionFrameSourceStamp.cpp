@@ -13,9 +13,8 @@
 #include "SEConfig/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
-using namespace SEConfig;
 
-namespace SEImplementation {
+namespace SExtractor {
 
 
 void DetectionFrameSourceStampTask::computeProperties(Source& source) const {

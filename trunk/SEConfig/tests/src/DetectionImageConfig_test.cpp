@@ -8,7 +8,7 @@
 
 #include "SEConfig/DetectionImageConfig.h"
 
-using namespace SEConfig;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

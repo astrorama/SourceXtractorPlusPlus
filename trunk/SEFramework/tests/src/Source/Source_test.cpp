@@ -12,8 +12,7 @@ using namespace testing;
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskRegistry.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
+using namespace SExtractor;
 
 
 // Example Property containing an int

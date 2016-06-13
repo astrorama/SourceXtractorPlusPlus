@@ -9,7 +9,7 @@
 #include <boost/test/unit_test.hpp>
 
 
-using namespace SEImplementation;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

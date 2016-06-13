@@ -13,9 +13,7 @@
 
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
-using namespace SEImplementation;
+using namespace SExtractor;
 
 struct MinAreaPartitionFixture {
   std::shared_ptr<MinAreaPartitionStep> min_area_step;

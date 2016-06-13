@@ -8,8 +8,7 @@
 
 #include "SEFramework/Pipeline/Deblending.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Example property containing an int
 class SimpleIntProperty : public Property {

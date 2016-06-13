@@ -10,9 +10,9 @@
 #include <string>
 #include <valarray>
 
-#include "Image.h"
+#include "SEFramework/Image/Image.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class FitsImage

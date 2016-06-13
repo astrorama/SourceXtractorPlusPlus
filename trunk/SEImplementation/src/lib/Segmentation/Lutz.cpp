@@ -10,10 +10,7 @@
 #include "SEImplementation/Segmentation/Lutz.h"
 
 
-namespace SEImplementation {
-
-using SEUtils::PixelCoordinate;
-
+namespace SExtractor {
 
 enum class LutzStatus {
   COMPLETE = 0,

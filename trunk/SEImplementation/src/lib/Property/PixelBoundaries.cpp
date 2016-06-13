@@ -8,7 +8,7 @@
 #include <climits>
 #include "SEImplementation/Property/PixelBoundaries.h"
 
-namespace SEImplementation {
+namespace SExtractor {
 
 void PixelBoundariesTask::computeProperties(Source& source) const {
   int min_x = INT_MAX;

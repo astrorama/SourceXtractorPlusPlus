@@ -9,7 +9,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
 
-namespace SEFramework {
+namespace SExtractor {
 
 SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
     SourceList::SourceListFactory source_list_factory)
@@ -25,7 +25,7 @@ void SourceGrouping::handleMessage(const std::shared_ptr<Source>& source) {
     }
 
     if (lists_to_merge.empty()) {
-      auto new_list = m_source_list_factory({});
+      auto new_list = std::shared_ptr<SourceList>(m_source_list_factory({}));
       new_list->addSource(source);
       m_source_lists.push_back(new_list);
     } else {

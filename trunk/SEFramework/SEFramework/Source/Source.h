@@ -7,14 +7,13 @@
 #ifndef _SEFRAMEWORK_SOURCE_SOURCE_H
 #define _SEFRAMEWORK_SOURCE_SOURCE_H
 
+#include <vector>
+
 #include "SEUtils/PixelCoordinate.h"
-#include "SEFramework/Property/ObjectWithProperties.h"
+#include "SEFramework/Property/PropertyHolder.h"
+#include "SEFramework/Source/SourceInterface.h"
 
-#include "ModifiableSource.h"
-#include "EntangledSourceGroup.h"
-
-
-namespace SEFramework {
+namespace SExtractor {
 
 class TaskRegistry;
 
@@ -22,11 +21,11 @@ class TaskRegistry;
  * @class Source
  * @brief Source containing pixel detection information.
  *
- * @details Provides getPropertyImpl() and setPropertyImpl implementations
+ * @details Provides getProperty() and setProperty implementations
  *
  */
 
-class Source : public ModifiableSource, protected ObjectWithProperties {
+class Source : public SourceInterface {
 
 public:
 
@@ -35,23 +34,30 @@ public:
    */
   virtual ~Source() = default;
 
-  /// Constructor
-  Source(std::vector<SEUtils::PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
+  Source(const Source&) = delete;
+  Source& operator=(const Source&) = delete;
+  Source(Source&&) = delete;
+  Source& operator=(Source&&) = delete;
 
-  const std::vector<SEUtils::PixelCoordinate>& getPixels() const {
+  /// Constructor
+  Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
+
+  const std::vector<PixelCoordinate>& getPixels() const {
     return m_pixels;
   }
 
-protected:
-  // Implementation of ModifiableSource
-  virtual Property& getPropertyImpl(const PropertyId property_id) const override;
-  virtual void setPropertyImpl(std::unique_ptr<Property> property, PropertyId property_id) override;
+  // Implementation of SourceInterface
+  using SourceInterface::getProperty;
+  virtual const Property& getProperty(const PropertyId& property_id) const override;
+
+  using SourceInterface::setProperty;
+  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
-  std::shared_ptr<const TaskRegistry> m_task_registry;
-  std::vector<SEUtils::PixelCoordinate> m_pixels;
+  PropertyHolder m_property_holder;
+  std::vector<PixelCoordinate> m_pixels;
 
-  friend class EntangledSourceGroup::EntangledSource;
+  std::shared_ptr<const TaskRegistry> m_task_registry;
 }; /* End of Source class */
 
 } /* namespace SEFramework */

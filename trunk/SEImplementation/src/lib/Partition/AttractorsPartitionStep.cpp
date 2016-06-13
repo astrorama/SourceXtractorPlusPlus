@@ -12,12 +12,9 @@
 
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
-using namespace SEFramework;
-
-namespace SEImplementation {
+namespace SExtractor {
 
 std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::shared_ptr<Source> source) const {
-
   auto& stamp = source->getProperty<DetectionFrameSourceStamp>().getStamp();
   auto& bounds = source->getProperty<PixelBoundaries>();
 
@@ -74,7 +71,6 @@ void AttractorsPartitionStep::attractPixels(
   }
 
   std::vector<std::pair<PixelCoordinate, PixelCoordinate>> pixels_to_be_processed;
-
 
   for (auto& pixel_origin : pixels_with_origin) {
     auto pixel = pixel_origin.first;

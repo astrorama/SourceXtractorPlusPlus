@@ -7,7 +7,7 @@
 #ifndef _SEFRAMEWORK_PROPERTY_PROPERTY_H
 #define _SEFRAMEWORK_PROPERTY_PROPERTY_H
 
-namespace SEFramework {
+namespace SExtractor {
 
 /**
  * @class Property

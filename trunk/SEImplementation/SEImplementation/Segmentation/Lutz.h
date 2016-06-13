@@ -12,12 +12,7 @@
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SEImplementation {
-
-using SEFramework::Segmentation;
-using SEFramework::Image;
-using SEFramework::TaskRegistry;
-using SEFramework::Source;
+namespace SExtractor {
 
 class PixelGroup;
 

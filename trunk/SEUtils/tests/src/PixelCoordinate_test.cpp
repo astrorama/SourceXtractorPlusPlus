@@ -8,7 +8,7 @@
 
 #include "SEUtils/PixelCoordinate.h"
 
-using namespace SEUtils;
+using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 

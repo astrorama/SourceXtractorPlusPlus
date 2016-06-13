@@ -6,7 +6,7 @@
 
 #include "SEConfig/SegmentationConfig.h"
 
-namespace SEConfig {
+namespace SExtractor {
 
 
 } // SEConfig namespace

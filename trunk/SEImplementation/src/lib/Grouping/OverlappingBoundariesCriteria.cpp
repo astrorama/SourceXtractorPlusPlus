@@ -8,10 +8,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
-using namespace SEUtils;
-using namespace SEFramework;
-
-namespace SEImplementation {
+namespace SExtractor {
 
 bool OverlappingBoundariesCriteria::shouldGroup(const SourceList& source_list, const Source& source) const {
   auto& boundaries = source.getProperty<PixelBoundaries>();

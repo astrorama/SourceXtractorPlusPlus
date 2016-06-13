@@ -11,7 +11,9 @@
 #include <string>
 #include <functional>
 
-namespace SEFramework {
+#include <boost/functional/hash.hpp>
+
+namespace SExtractor {
 
 class PropertyId {
 public:
@@ -37,10 +39,13 @@ namespace std {
 // defines a hash for PropertyId, this is to be able to use PropertyId as a key in a std::unordered_map
 
 template <>
-struct hash<SEFramework::PropertyId>
+struct hash<SExtractor::PropertyId>
 {
-  std::size_t operator()(const SEFramework::PropertyId& id) const {
-     return hash<std::string>()(id.m_parameter) ^ hash<std::type_index>()(id.m_property_type);
+  std::size_t operator()(const SExtractor::PropertyId& id) const {
+    std::size_t hash = 0;
+    boost::hash_combine(hash, id.m_parameter);
+    boost::hash_combine(hash, id.m_property_type);
+    return hash;
   }
 };
 

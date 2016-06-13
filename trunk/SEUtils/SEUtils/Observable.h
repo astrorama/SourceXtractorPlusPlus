@@ -10,7 +10,7 @@
 #include <memory>
 #include <list>
 
-namespace SEUtils {
+namespace SExtractor {
 
 template <class T>
 class Observer {

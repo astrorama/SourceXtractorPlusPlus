@@ -11,9 +11,8 @@
 #include "SEConfig/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
-using namespace SEConfig;
 
-namespace SEImplementation {
+namespace SExtractor {
 
 void DetectionFramePixelValuesTask::computeProperties(Source& source) const {
   std::vector<double> values;

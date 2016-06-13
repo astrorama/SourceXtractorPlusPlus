@@ -10,10 +10,7 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SEImplementation {
-
-using SEFramework::Source;
-using SEFramework::PartitionStep;
+namespace SExtractor {
 
 /**
  * @class MinAreaPartitionStep

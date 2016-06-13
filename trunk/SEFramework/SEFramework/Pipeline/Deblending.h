@@ -12,7 +12,7 @@
 #include "SEFramework/Source/EntangledSourceGroup.h"
 #include "SEFramework/Task/TaskRegistry.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 class DeblendAction {
 public:
@@ -30,8 +30,8 @@ public:
  * @brief
  *
  */
-class Deblending : public SEUtils::Observer<std::shared_ptr<SourceList>>,
-  public SEUtils::Observable<std::shared_ptr<EntangledSourceGroup>> {
+class Deblending : public Observer<std::shared_ptr<SourceList>>,
+  public Observable<std::shared_ptr<EntangledSourceGroup>> {
 
 public:
 

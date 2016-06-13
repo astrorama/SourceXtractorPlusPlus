@@ -9,7 +9,7 @@ using namespace CCfits;
 
 #include "SEFramework/Image/FitsImage.h"
 
-namespace SEFramework {
+namespace SExtractor {
 
 
 FitsImage::FitsImage(const std::string& filename) {

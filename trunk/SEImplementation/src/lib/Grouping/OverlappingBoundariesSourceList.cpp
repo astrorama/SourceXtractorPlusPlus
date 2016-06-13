@@ -9,11 +9,9 @@
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
-using namespace SEUtils;
+namespace SExtractor {
 
-namespace SEImplementation {
-
-OverlappingBoundariesSourceList::OverlappingBoundariesSourceList(std::vector<std::shared_ptr<Source>> sources)
+OverlappingBoundariesSourceList::OverlappingBoundariesSourceList(const std::vector<std::shared_ptr<Source>>& sources)
     : SourceList(std::move(sources)),
       m_min_coord(INT_MAX, INT_MAX),
       m_max_coord(INT_MIN, INT_MIN) {

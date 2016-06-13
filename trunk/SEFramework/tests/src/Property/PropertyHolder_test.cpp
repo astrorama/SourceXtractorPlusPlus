@@ -4,6 +4,8 @@
  * @author mschefer
  */
 
+#include "SEFramework/Property/PropertyHolder.h"
+
 #include <memory.h>
 
 #include <boost/test/unit_test.hpp>
@@ -11,9 +13,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
 
-#include "SEFramework/Property/ObjectWithProperties.h"
-
-using namespace SEFramework;
+using namespace SExtractor;
 
 // Example property containing a string
 class SimpleStringProperty : public Property {
@@ -34,10 +34,10 @@ public:
 };
 
 // We want a test class that overrides the protected method isPropertySet() as a public method to be able to test it
-class ObjectWithPropertiesTest : public ObjectWithProperties {
+class ObjectWithPropertiesTest : public PropertyHolder {
 public:
   virtual bool isPropertySet(const PropertyId property_id) const {
-    return ObjectWithProperties::isPropertySet(property_id);
+    return PropertyHolder::isPropertySet(property_id);
   }
 };
 
@@ -59,39 +59,39 @@ BOOST_AUTO_TEST_SUITE (ObjectWithProperties_test)
 
 BOOST_FIXTURE_TEST_CASE( getProperty_NotSet_test, ObjectWithPropertiesFixture ) {
   // check that accessing a property that was not set results in an exception
-  BOOST_CHECK_THROW(object.getPropertyImpl(typeid(SimpleStringProperty)), PropertyNotFoundException);
+  BOOST_CHECK_THROW(object.getProperty(typeid(SimpleStringProperty)), PropertyNotFoundException);
 }
 
 BOOST_FIXTURE_TEST_CASE( setGetProperty_DifferentTypes_test, ObjectWithPropertiesFixture ) {
   // Sets two properties of different types
-  object.setPropertyImpl(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
+  object.setProperty(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
       typeid(SimpleStringProperty));
-  object.setPropertyImpl(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(magic_number)),
+  object.setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(magic_number)),
       typeid(SimpleIntProperty));
 
   // check that we can access them and that they contain what they should
-  auto& string_property = dynamic_cast<SimpleStringProperty&>(object.getPropertyImpl(typeid(SimpleStringProperty)));
+  auto& string_property = dynamic_cast<const SimpleStringProperty&>(object.getProperty(typeid(SimpleStringProperty)));
   BOOST_CHECK_EQUAL(string_property.m_str, test_string);
 
-  auto& int_property = dynamic_cast<SimpleIntProperty&>(object.getPropertyImpl(typeid(SimpleIntProperty)));
+  auto& int_property = dynamic_cast<const SimpleIntProperty&>(object.getProperty(typeid(SimpleIntProperty)));
   BOOST_CHECK_EQUAL(int_property.m_value, magic_number);
 }
 
 BOOST_FIXTURE_TEST_CASE( setGetProperty_SameType_test, ObjectWithPropertiesFixture ) {
   // Sets two properties of the same type with string parameters
-  object.setPropertyImpl(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
+  object.setProperty(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
       { typeid(SimpleStringProperty), test_property_name } );
-  object.setPropertyImpl(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string_2)),
+  object.setProperty(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string_2)),
       { typeid(SimpleStringProperty), test_property_name_2 } );
 
 
   // check that we can access them and that they have their correct values
-  auto string_property = dynamic_cast<SimpleStringProperty&>(
-      object.getPropertyImpl(PropertyId(typeid(SimpleStringProperty), test_property_name)));
+  auto string_property = dynamic_cast<const SimpleStringProperty&>(
+      object.getProperty(PropertyId(typeid(SimpleStringProperty), test_property_name)));
   BOOST_CHECK_EQUAL(string_property.m_str, test_string);
 
-  auto string_property_2 = dynamic_cast<SimpleStringProperty&>(
-      object.getPropertyImpl(PropertyId(typeid(SimpleStringProperty), test_property_name_2)));
+  auto string_property_2 = dynamic_cast<const SimpleStringProperty&>(
+      object.getProperty(PropertyId(typeid(SimpleStringProperty), test_property_name_2)));
   BOOST_CHECK_EQUAL(string_property_2.m_str, test_string_2);
 }
 
@@ -100,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE( isPropertySet_test, ObjectWithPropertiesFixture ) {
   BOOST_CHECK(!object.isPropertySet(typeid(SimpleStringProperty)));
 
   // Set that property
-  object.setPropertyImpl(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
+  object.setProperty(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string)),
       typeid(SimpleStringProperty));
 
   // Check that it is now being reported as set
