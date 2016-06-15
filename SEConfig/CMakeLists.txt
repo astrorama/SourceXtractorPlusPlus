@@ -61,6 +61,9 @@ elements_add_unit_test(DetectionImageConfig_test tests/src/DetectionImageConfig_
 elements_add_unit_test(SegmentationConfig_test tests/src/SegmentationConfig_test.cpp 
                      LINK_LIBRARIES SEConfig
                      TYPE Boost)
+elements_add_unit_test(ExternalFlagConfig_test tests/src/ExternalFlagConfig_test.cpp 
+                     LINK_LIBRARIES SEConfig
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

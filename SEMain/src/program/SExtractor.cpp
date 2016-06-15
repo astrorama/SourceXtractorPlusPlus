@@ -30,9 +30,11 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
 #include "SEConfig/DetectionImageConfig.h"
+#include "SEConfig/ExternalFlagConfig.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
+#include "SEImplementation/Property/ExternalFlag.h"
 
 namespace po = boost::program_options;
 using namespace SExtractor;
@@ -67,6 +69,7 @@ public:
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<DetectionImageConfig>();
+    config_manager.registerConfiguration<ExternalFlagConfig>();
     return config_manager.closeRegistration();
   }
 
@@ -88,6 +91,7 @@ public:
     task_registry->registerTaskFactory(std::unique_ptr<PixelBoundariesTaskFactory>(new PixelBoundariesTaskFactory));
     task_registry->registerTaskFactory(
         std::unique_ptr<DetectionFrameSourceStampTaskFactory>(new DetectionFrameSourceStampTaskFactory));
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new ExternalFlagTaskFactory{}));
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
@@ -125,6 +129,20 @@ public:
       for (auto& source : group->getSources()) {
           auto& centroid = source->getProperty<PixelCentroid>();
           std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
+          if (args.count("flag-image-top") == 1) {
+            auto& top_flag = source->getProperty<ExternalFlag>("top");
+            if (top_flag.getFlag() == 0) {
+              std::cout << "TOP\n";
+            } else {
+              std::cout << "BOTTOM\n";
+            }
+          }
+          if (args.count("flag-image-points") == 1) {
+            auto& points_flag = source->getProperty<ExternalFlag>("points");
+            if (points_flag.getFlag() == 1) {
+              std::cout << "FLAGGED!!!!\n";
+            }
+          }
       }
     }
 
