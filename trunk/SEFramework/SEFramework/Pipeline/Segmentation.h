@@ -11,10 +11,9 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/Source.h"
+#include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
-
-class Image;
 
 /**
  * @class Segmentation
@@ -30,7 +29,7 @@ public:
    */
   virtual ~Segmentation() = default;
 
-  virtual void scan(const Image& image) = 0;
+  virtual void scan(const DetectionImage& image) = 0;
 
 private:
 

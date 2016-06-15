@@ -11,10 +11,8 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskFactory.h"
+#include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
-  class Image;
-}
 
 namespace SExtractor {
 
@@ -32,15 +30,15 @@ public:
    */
   virtual ~DetectionFrameSourceStamp() = default;
 
-  DetectionFrameSourceStamp(std::shared_ptr<Image> stamp) : m_stamp(stamp) {}
+  DetectionFrameSourceStamp(std::shared_ptr<DetectionImage> stamp) : m_stamp(stamp) {}
 
-  const Image& getStamp() const {
+  const DetectionImage& getStamp() const {
     return *m_stamp;
   }
 
 private:
 
-  std::shared_ptr<Image> m_stamp;
+  std::shared_ptr<DetectionImage> m_stamp;
 
 }; /* End of DetectionFrameSourceStamp class */
 
@@ -58,12 +56,12 @@ public:
    */
   virtual ~DetectionFrameSourceStampTask() = default;
 
-  DetectionFrameSourceStampTask(std::shared_ptr<Image> image) : m_image(image) {}
+  DetectionFrameSourceStampTask(std::shared_ptr<DetectionImage> image) : m_image(image) {}
 
   virtual void computeProperties(Source& source) const override;
 
 private:
-  std::shared_ptr<Image> m_image;
+  std::shared_ptr<DetectionImage> m_image;
 
 }; /* End of DetectionFrameSourceStampTask class */
 

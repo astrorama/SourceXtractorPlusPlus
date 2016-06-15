@@ -18,7 +18,8 @@ namespace SExtractor {
  * @brief
  *
  */
-class SubtractImage : public Image {
+template <typename T>
+class SubtractImage : public Image<T> {
 
 public:
 
@@ -27,16 +28,24 @@ public:
    */
   virtual ~SubtractImage() = default;
 
-  SubtractImage(std::shared_ptr<Image> image, double value_to_subtract)
+  SubtractImage(std::shared_ptr<Image<T>> image, T value_to_subtract)
       : m_image(image), m_value_to_subtract(value_to_subtract) {};
 
-  virtual double getValue(int x, int y) const override;
-  virtual int getWidth() const override;
-  virtual int getHeight() const override;
+  T getValue(int x, int y) const override {
+    return m_image->getValue(x, y) - m_value_to_subtract;
+  }
+  
+  int getWidth() const override {
+    return m_image->getWidth();
+  }
+  
+  int getHeight() const override {
+    return m_image->getHeight();
+  }
 
 private:
-  std::shared_ptr<Image> m_image;
-  double m_value_to_subtract;
+  std::shared_ptr<Image<T>> m_image;
+  T m_value_to_subtract;
 
 
 }; /* End of SubtractImage class */

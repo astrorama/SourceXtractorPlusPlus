@@ -13,7 +13,6 @@
 #include "ElementsKernel/ProgramHeaders.h"
 
 #include "SEFramework/Task/TaskRegistry.h"
-#include "SEFramework/Image/FitsImage.h"
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"

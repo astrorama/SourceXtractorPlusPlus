@@ -8,10 +8,7 @@
 #define _SECONFIG_DETECTIONIMAGECONFIG_H
 
 #include "Configuration/Configuration.h"
-
-namespace SExtractor {
-class Image;
-}
+#include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
 
@@ -35,12 +32,12 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;
 
-  std::shared_ptr<Image> getDetectionImage() const {
+  std::shared_ptr<DetectionImage> getDetectionImage() const {
     return m_detection_image;
   }
 
 private:
-  std::shared_ptr<Image> m_detection_image;
+  std::shared_ptr<DetectionImage> m_detection_image;
 
 }; /* End of DetectionImageConfig class */
 
