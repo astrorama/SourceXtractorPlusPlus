@@ -31,7 +31,7 @@ public:
 
   Lutz(std::shared_ptr<TaskRegistry> task_registry) : m_task_registry(task_registry) {}
 
-  virtual void scan(const Image& image) override;
+  virtual void scan(const DetectionImage& image) override;
 
 
 private:

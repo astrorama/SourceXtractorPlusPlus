@@ -6,7 +6,7 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
-#include "SEFramework/Image/FitsImage.h"
+#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/SubtractImage.h"
 
 #include "SEConfig/DetectionImageConfig.h"
@@ -32,9 +32,9 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  auto fits_image = std::make_shared<FitsImage>(args.find(DETECTION_IMAGE)->second.as<std::string>());
-  m_detection_image = std::make_shared<SubtractImage>(
-      fits_image, args.find(BACKGROUND_VALUE)->second.as<double>());
+  auto fits_image = FitsReader<double>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_detection_image = std::make_shared<SubtractImage<double>>(
+      std::move(fits_image), args.find(BACKGROUND_VALUE)->second.as<double>());
 }
 
 

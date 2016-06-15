@@ -24,7 +24,7 @@ void DetectionFramePixelValuesTask::computeProperties(Source& source) const {
   source.setProperty(std::unique_ptr<DetectionFramePixelValues>(new DetectionFramePixelValues(std::move(values))));
 }
 
-DetectionFramePixelValuesTask::DetectionFramePixelValuesTask(std::shared_ptr<Image> image) : m_image(image) {
+DetectionFramePixelValuesTask::DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image) : m_image(image) {
 }
 
 DetectionFramePixelValuesTaskFactory::DetectionFramePixelValuesTaskFactory()

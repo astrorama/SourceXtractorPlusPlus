@@ -84,7 +84,6 @@ elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
                      INCLUDE_DIRS GMock
                      TYPE Boost)
 endif(GMOCK_FOUND)
-
 elements_add_unit_test(TaskRegistry_test tests/src/Task/TaskRegistry_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
@@ -100,8 +99,11 @@ elements_add_unit_test(Deblending_test tests/src/Pipeline/Deblending_test.cpp
 elements_add_unit_test(SourceList_test tests/src/Source/SourceList_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(FitsImage_test tests/src/Image/FitsImage_test.cpp 
-                     LINK_LIBRARIES SEImplementation
+elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp 
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
+                     LINK_LIBRARIES SEFramework
                      TYPE Boost)
                      
 

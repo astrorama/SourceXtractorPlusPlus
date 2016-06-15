@@ -46,7 +46,7 @@ void Lutz::publishGroup(PixelGroup& pixel_group) {
   notifyObservers(source);
 }
 
-void Lutz::scan(const Image& image) {
+void Lutz::scan(const DetectionImage& image) {
 
   int width = image.getWidth() + 1; // one extra pixel
 

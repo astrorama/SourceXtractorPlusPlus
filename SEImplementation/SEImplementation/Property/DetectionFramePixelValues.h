@@ -11,10 +11,8 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskFactory.h"
+#include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
-  class Image;
-}
 
 namespace SExtractor {
 
@@ -58,12 +56,12 @@ public:
    */
   virtual ~DetectionFramePixelValuesTask() = default;
 
-  DetectionFramePixelValuesTask(std::shared_ptr<Image> image);
+  DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image);
 
   virtual void computeProperties(Source& source) const override;
 
 private:
-  std::shared_ptr<Image> m_image;
+  std::shared_ptr<DetectionImage> m_image;
 
 }; /* End of DetectionFramePixelValuesTask class */
 

@@ -15,27 +15,37 @@ namespace SExtractor {
 
 /**
  * @class Image
- * @brief
- *
+ * @brief Interface representing an image
+ * @tparam T the type of the pixel values
  */
+template <typename T>
 class Image {
+  
 public:
+  
+  using PixelType = T;
 
   /**
    * @brief Destructor
    */
   virtual ~Image() = default;
 
-  virtual double getValue(int x, int y) const = 0;
+  /// Returns the value of the pixel with the coordinates (x,y)
+  virtual T getValue(int x, int y) const = 0;
+  
+  /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
+  
+  /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
-  virtual std::shared_ptr<Image> getSubImage(PixelCoordinate min_coord, PixelCoordinate max_coord) const;
-
-
-private:
-
 }; /* End of Image class */
+
+/// Alias for the detection image, to make easier its type modification
+using DetectionImage = Image<double>;
+
+/// Alias for the flag image, to make easier its type modification
+using FlagImage = Image<std::int64_t>;
 
 } /* namespace SEFramework */
 
