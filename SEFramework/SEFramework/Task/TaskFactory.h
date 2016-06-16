@@ -12,6 +12,7 @@
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
+#include "SEFramework/Configuration/Configurable.h"
 
 namespace SExtractor {
 
@@ -20,7 +21,7 @@ namespace SExtractor {
  * @brief Creates a Task for computing a given property
  *
  */
-class TaskFactory {
+class TaskFactory : public Configurable {
 
 public:
 
@@ -31,6 +32,11 @@ public:
 
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) = 0;
   virtual const std::vector<PropertyId> getProducedProperties() = 0;
+  
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager&) override { }
+  
+  void configure(Euclid::Configuration::ConfigManager&) override { }
+
 
 private:
 

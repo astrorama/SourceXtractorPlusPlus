@@ -44,7 +44,7 @@ namespace po = boost::program_options;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
 
-static long config_manager_id = 0;
+static long config_manager_id = getUniqueManagerId();
 
 class GroupObserver : public Observer<std::shared_ptr<EntangledSourceGroup>> {
 public:
@@ -67,14 +67,28 @@ public:
 static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
 class SEMain : public Elements::Program {
+  
+  std::shared_ptr<TaskRegistry> task_registry = TaskRegistry::getSingleton();
+  SegmentationFactory segmentation_factory {task_registry};
 
 public:
+  
+  SEMain() {
+    // TODO
+    // At the moment we register the task factories in the constructor of the
+    // SEMain. This should be moved to the different task factory implementation
+    // files.
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new PixelCentroidTaskFactory));
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new DetectionFramePixelValuesTaskFactory));
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new DetectionFrameSourceStampTaskFactory));
+    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new ExternalFlagTaskFactory{}));
+  }
 
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
-    config_manager.registerConfiguration<DetectionImageConfig>();
-    config_manager.registerConfiguration<SegmentationConfig>();
-    config_manager.registerConfiguration<ExternalFlagConfig>();
+    task_registry->reportConfigDependencies(config_manager);
+    segmentation_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
   }
 
@@ -82,27 +96,20 @@ public:
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
     Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
-    auto& config_manager = ConfigManager::getInstance(0);
+    auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
-    auto task_registry = std::make_shared<TaskRegistry>();
+    task_registry->configure(config_manager);
+    segmentation_factory.configure(config_manager);
+    
     auto source_observer = std::make_shared<SourceObserver>();
     auto group_observer = std::make_shared<GroupObserver>();
-
-    // Register all tasks
-    task_registry->registerTaskFactory(std::unique_ptr<PixelCentroidTaskFactory>(new PixelCentroidTaskFactory));
-    task_registry->registerTaskFactory(
-        std::unique_ptr<DetectionFramePixelValuesTaskFactory>(new DetectionFramePixelValuesTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<PixelBoundariesTaskFactory>(new PixelBoundariesTaskFactory));
-    task_registry->registerTaskFactory(
-        std::unique_ptr<DetectionFrameSourceStampTaskFactory>(new DetectionFrameSourceStampTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new ExternalFlagTaskFactory{}));
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
     // Segmentation
 
-    auto segmentation = SegmentationFactory(task_registry).getSegmentation();
+    auto segmentation = segmentation_factory.getSegmentation();
 
     auto min_area_step = std::make_shared<MinAreaPartitionStep>(10);
     auto attractors_step = std::make_shared<AttractorsPartitionStep>(task_registry);

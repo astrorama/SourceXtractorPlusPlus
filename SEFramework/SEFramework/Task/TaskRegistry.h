@@ -13,6 +13,7 @@
 #include "ElementsKernel/Exception.h"
 
 #include "SEFramework/Property/PropertyId.h"
+#include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SExtractor {
@@ -22,7 +23,7 @@ namespace SExtractor {
  * @brief Used to get the Task used to create a given property
  *
  */
-class TaskRegistry {
+class TaskRegistry : public Configurable {
 
 public:
 
@@ -30,6 +31,11 @@ public:
   public:
     DuplicateFactoryException() : Elements::Exception("Duplicate PropertyId in TaskRegistry") {}
   };
+  
+  static std::shared_ptr<TaskRegistry> getSingleton() {
+    static std::shared_ptr<TaskRegistry> singleton {new TaskRegistry{}};
+    return singleton;
+  }
 
   /**
    * @brief Destructor
@@ -47,9 +53,18 @@ public:
   std::shared_ptr<T> getTask(const PropertyId& property_id) const {
     return std::dynamic_pointer_cast<T>(getTask(property_id));
   }
+  
+  /// Redirects the call to all the registered task factories
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
+
+  /// Redirects the call to all the registered task factories and initializes
+  /// the property to factory map
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
-  std::unordered_map<PropertyId, std::shared_ptr<TaskFactory>> m_factories;
+  
+  std::vector<std::unique_ptr<TaskFactory>> m_factory_list;
+  std::unordered_map<PropertyId, std::size_t> m_property_factory_map;
 
 }; /* End of TaskRegistry class */
 

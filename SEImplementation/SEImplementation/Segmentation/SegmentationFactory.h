@@ -8,6 +8,7 @@
 #define _SEIMPLEMENTATION_SEGMENTATIONFACTORY_H
 
 #include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Pipeline/Segmentation.h"
 
 namespace SExtractor {
@@ -17,7 +18,7 @@ namespace SExtractor {
  * @brief
  *
  */
-class SegmentationFactory {
+class SegmentationFactory : public Configurable {
 
 public:
 
@@ -29,10 +30,15 @@ public:
   SegmentationFactory(std::shared_ptr<TaskRegistry> task_registry);
 
   std::shared_ptr<Segmentation> getSegmentation() const;
-
+  
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
+  
   std::shared_ptr<TaskRegistry> m_task_registry;
+  std::shared_ptr<Segmentation> m_task;
 
 }; /* End of SegmentationFactory class */
 

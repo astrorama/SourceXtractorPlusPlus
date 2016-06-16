@@ -31,15 +31,15 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
   }}};
 }
 
-void SegmentationConfig::initialize(const UserValues& args) {
-  auto algorithm_name = args.find(SEGMENTATION_ALGORITHM)->second.as<std::string>();
-  boost::algorithm::to_lower(algorithm_name);
-
-  if (algorithm_name == "lutz") {
-    m_selected_algorithm = Algorithm::LUTZ;
-  } else {
-    throw Elements::Exception("Unknown segmentation algorithm.");
+void SegmentationConfig::preInitialize(const UserValues& args) {
+  auto& algorithm_name = args.at(SEGMENTATION_ALGORITHM).as<std::string>();
+  if (algorithm_name != "LUTZ") {
+    throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
+}
+
+void SegmentationConfig::initialize(const UserValues&) {
+  m_selected_algorithm = Algorithm::LUTZ;
 }
 
 } // SEConfig namespace
