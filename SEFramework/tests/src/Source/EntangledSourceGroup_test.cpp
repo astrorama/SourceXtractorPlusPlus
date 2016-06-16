@@ -14,6 +14,7 @@ using namespace testing;
 #include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Source/Source.h"
+#include "SEFramework/Property/Property.h"
 
 #include "SEFramework/Source/EntangledSourceGroup.h"
 
@@ -22,7 +23,7 @@ using namespace SExtractor;
 // Mock for the TaskRegistry so that we can check interactions with it
 class MockTaskRegistry : public TaskRegistry {
 public:
-  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (PropertyId property_id));
+  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (const PropertyId& property_id));
 };
 
 // Example properties
@@ -116,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE( example_test, EntangledSourceGroupFixture ) {
 
 BOOST_FIXTURE_TEST_CASE( entangled_source_property_test, EntangledSourceGroupFixture ) {
   // We expect that first we will try to get a Source task then a Group task when that fails
-  EXPECT_CALL(*mock_registry, getTask(PropertyId(typeid(SourceProperty))))
+  EXPECT_CALL(*mock_registry, getTask(PropertyId::create<SourceProperty>()))
       .Times(2)
       .WillRepeatedly(Return(std::make_shared<GroupedSourceTask>(magic_number)));
 
@@ -131,6 +132,7 @@ BOOST_FIXTURE_TEST_CASE( entangled_source_property_test, EntangledSourceGroupFix
   property = sources[1]->getProperty<SourceProperty>();
   BOOST_CHECK_EQUAL(property.m_value, magic_number);
 }
+
 
 //-----------------------------------------------------------------------------
 

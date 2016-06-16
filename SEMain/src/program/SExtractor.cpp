@@ -30,6 +30,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
 #include "SEConfig/DetectionImageConfig.h"
+#include "SEConfig/SegmentationConfig.h"
 #include "SEConfig/ExternalFlagConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -69,6 +70,7 @@ public:
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<DetectionImageConfig>();
+    config_manager.registerConfiguration<SegmentationConfig>();
     config_manager.registerConfiguration<ExternalFlagConfig>();
     return config_manager.closeRegistration();
   }
@@ -130,7 +132,8 @@ public:
           auto& centroid = source->getProperty<PixelCentroid>();
           std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
           if (args.count("flag-image-top") == 1) {
-            auto& top_flag = source->getProperty<ExternalFlag>("top");
+            // FIXME find correct property index
+            auto& top_flag = source->getProperty<ExternalFlag>(0); // top
             if (top_flag.getFlag() == 0) {
               std::cout << "TOP\n";
             } else {
@@ -138,7 +141,7 @@ public:
             }
           }
           if (args.count("flag-image-points") == 1) {
-            auto& points_flag = source->getProperty<ExternalFlag>("points");
+            auto& points_flag = source->getProperty<ExternalFlag>(1); // points
             if (points_flag.getFlag() == 1) {
               std::cout << "FLAGGED!!!!\n";
             }

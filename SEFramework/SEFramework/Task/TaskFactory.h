@@ -29,7 +29,7 @@ public:
    */
   virtual ~TaskFactory() = default;
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) = 0;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) = 0;
   virtual const std::vector<PropertyId> getProducedProperties() = 0;
 
 private:

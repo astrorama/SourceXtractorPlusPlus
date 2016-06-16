@@ -13,23 +13,38 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "SEFramework/Registration/RegistrationManager.h"
+
 namespace SExtractor {
 
 class PropertyId {
 public:
-  PropertyId(const std::type_info& property_type, const std::string& parameter="") :
-    m_property_type (property_type), m_parameter(parameter) {
+  template<typename T, class R = RegistrationManager>
+  static PropertyId create(unsigned int index = 0) {
+    static unsigned int id = R::instance().getNextPropertyId();
+    return PropertyId(id, index);
   }
 
   /// Comparison operator is needed to be use PropertyId as key in unordered_map
-  bool operator==(const PropertyId other) const {
-    return m_property_type == other.m_property_type && m_parameter == other.m_parameter;
+  bool operator==(PropertyId other) const {
+    return m_type_id == other.m_type_id && m_index == other.m_index;
   }
 
-  std::type_index m_property_type;
+  bool operator<(PropertyId other) const {
+    if (m_type_id == other.m_type_id) {
+      return m_index < other.m_index;
+    }
 
-  // TODO currently using a string as generic property id parameter but should be a generic way to specify parameters
-  std::string m_parameter;
+    return m_type_id < other.m_type_id;
+  }
+
+private:
+  PropertyId(unsigned int type_id, unsigned int index) : m_type_id(type_id), m_index(index) {}
+
+  unsigned int m_type_id;
+  unsigned int m_index;
+
+  friend struct std::hash<SExtractor::PropertyId>;
 };
 
 }
@@ -43,8 +58,8 @@ struct hash<SExtractor::PropertyId>
 {
   std::size_t operator()(const SExtractor::PropertyId& id) const {
     std::size_t hash = 0;
-    boost::hash_combine(hash, id.m_parameter);
-    boost::hash_combine(hash, id.m_property_type);
+    boost::hash_combine(hash, id.m_type_id);
+    boost::hash_combine(hash, id.m_index);
     return hash;
   }
 };

@@ -28,7 +28,7 @@ void TaskRegistry::registerTaskFactory(std::unique_ptr<TaskFactory> task_factory
   }
 }
 
-std::shared_ptr<Task> TaskRegistry::getTask(PropertyId property_id) const {
+std::shared_ptr<Task> TaskRegistry::getTask(const PropertyId& property_id) const {
   auto iterTaskFactory = m_factories.find(property_id);
   if (iterTaskFactory != m_factories.end()) {
     auto task_factory = iterTaskFactory->second;

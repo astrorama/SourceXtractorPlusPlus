@@ -36,8 +36,8 @@ void PixelCentroidTask::computeProperties(Source& source) const {
 PixelCentroidTaskFactory::PixelCentroidTaskFactory() : m_pixel_centroid_task(std::make_shared<PixelCentroidTask>()) {
 }
 
-std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(PropertyId property_id) {
-  if (property_id == PropertyId(typeid(PixelCentroid))) {
+std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& property_id) {
+  if (property_id == PropertyId::create<PixelCentroid>()) {
     return m_pixel_centroid_task;
   } else {
     return nullptr;
@@ -45,11 +45,9 @@ std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(PropertyId property_id) 
 }
 
 const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() {
-  return { PropertyId(typeid(PixelCentroid)) };
+  return { PropertyId::create<PixelCentroid>() };
 }
 
 
 } // SEImplementation namespace
-
-
 

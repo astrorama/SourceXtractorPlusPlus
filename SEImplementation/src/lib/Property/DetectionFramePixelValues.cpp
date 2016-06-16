@@ -32,8 +32,8 @@ DetectionFramePixelValuesTaskFactory::DetectionFramePixelValuesTaskFactory()
       ConfigManager::getInstance(0).getConfiguration<DetectionImageConfig>().getDetectionImage())) {
 }
 
-std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(PropertyId property_id) {
-  if (property_id == PropertyId(typeid(DetectionFramePixelValues))) {
+std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const PropertyId& property_id) {
+  if (property_id == PropertyId::create<DetectionFramePixelValues>()) {
     return m_detection_frame_pixel_values_task;
   } else {
     return nullptr;
@@ -41,7 +41,7 @@ std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(PropertyId p
 }
 
 const std::vector<PropertyId> DetectionFramePixelValuesTaskFactory::getProducedProperties() {
-  return { PropertyId(typeid(DetectionFramePixelValues)) };
+  return { PropertyId::create<DetectionFramePixelValues>() };
 }
 
 } // SEImplementation namespace

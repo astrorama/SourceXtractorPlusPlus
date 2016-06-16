@@ -11,6 +11,8 @@
 #include <unordered_map>
 
 #include "ElementsKernel/Exception.h"
+
+#include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SExtractor {
@@ -38,11 +40,11 @@ public:
   virtual void registerTaskFactory(std::unique_ptr<TaskFactory> task_factory);
 
   /// Requests a Task that will be used to compute the property corresponding to the property_id
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) const;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const;
 
   /// Template version of getTask() that includes casting the returned pointer to the appropriate type
   template<class T>
-  std::shared_ptr<T> getTask(PropertyId property_id) const {
+  std::shared_ptr<T> getTask(const PropertyId& property_id) const {
     return std::dynamic_pointer_cast<T>(getTask(property_id));
   }
 

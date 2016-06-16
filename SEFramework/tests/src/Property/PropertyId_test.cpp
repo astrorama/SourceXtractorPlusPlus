@@ -6,13 +6,18 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Property/Property.h"
 #include "SEFramework/Property/PropertyId.h"
+#include "SEFramework/Property/Property.h"
 
 using namespace SExtractor;
 
-// Example property derived from Property
-class ExampleProperty : public Property {
+// Example property derived from PropertyImplementation
+class ExamplePropertyA : public Property {
+  // No content
+};
+
+// Example property derived from PropertyImplementation
+class ExamplePropertyB : public Property {
   // No content
 };
 
@@ -23,16 +28,14 @@ BOOST_AUTO_TEST_SUITE (Property_test)
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE( example_test ) {
+  PropertyId test_property_a(PropertyId::create<ExamplePropertyA>());
+  PropertyId test_property_a2(PropertyId::create<ExamplePropertyA>());
 
-  PropertyId test_property(typeid(ExampleProperty));
-  PropertyId test_property_with_empty_string(typeid(ExampleProperty), "");
+  BOOST_CHECK(test_property_a == test_property_a2);
+  BOOST_CHECK(std::hash<PropertyId>()(test_property_a) == std::hash<PropertyId>()(test_property_a2));
 
-  BOOST_CHECK(test_property == test_property_with_empty_string);
-  BOOST_CHECK(std::hash<PropertyId>()(test_property) == std::hash<PropertyId>()(test_property_with_empty_string));
-
-  PropertyId test_property_2(typeid(Property));
-  BOOST_CHECK(!(test_property == test_property_2));
-
+  PropertyId test_property_b(PropertyId::create<ExamplePropertyB>());
+  BOOST_CHECK(!(test_property_a == test_property_b));
 }
 
 //-----------------------------------------------------------------------------

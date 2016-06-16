@@ -16,6 +16,7 @@ using ::testing::ReturnRef;
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Property/Property.h"
 
+
 using namespace SExtractor;
 
 // Example Property containing an int
@@ -46,15 +47,17 @@ BOOST_AUTO_TEST_SUITE (SourceInterface_test)
 BOOST_AUTO_TEST_CASE( source_interface_test ) {
   MockSourceInterface source_interface;
 
+  const int property_index = 3;
+
   ExampleProperty example_property_one(1);
   ExampleProperty example_property_two(2);
 
   // We expect two calls with different PropertyIds
-  EXPECT_CALL(source_interface, getProperty(PropertyId(typeid(ExampleProperty))))
+  EXPECT_CALL(source_interface, getProperty(PropertyId::create<ExampleProperty>()))
       .Times(1)
       .WillOnce(ReturnRef(example_property_one));
 
-  EXPECT_CALL(source_interface, getProperty(PropertyId(typeid(ExampleProperty), "test")))
+  EXPECT_CALL(source_interface, getProperty(PropertyId::create<ExampleProperty>(property_index)))
       .Times(1)
       .WillOnce(ReturnRef(example_property_two));
 
@@ -62,7 +65,7 @@ BOOST_AUTO_TEST_CASE( source_interface_test ) {
   BOOST_CHECK(source_interface.getProperty<ExampleProperty>().m_value == 1);
 
   // Try the version with a parameter
-  BOOST_CHECK(source_interface.getProperty<ExampleProperty>("test").m_value == 2);
+  BOOST_CHECK(source_interface.getProperty<ExampleProperty>(property_index).m_value == 2);
 }
 
 //-----------------------------------------------------------------------------

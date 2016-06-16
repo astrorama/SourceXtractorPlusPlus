@@ -11,10 +11,14 @@
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Property/Property.h"
+
 
 using namespace SExtractor;
 
 class ExampleProperty : public Property {
+};
+class ExamplePropertyB : public Property {
 };
 
 class ExampleTask : public SourceTask {
@@ -26,16 +30,16 @@ class ExampleTask : public SourceTask {
 // Example implementation of a TaskFactory
 class ExampleTaskFactory : public TaskFactory {
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) override {
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override {
     // check that we request the correct type of Property
-    BOOST_CHECK(property_id == PropertyId(typeid(ExampleProperty)));
+    BOOST_CHECK(property_id == PropertyId::create<ExampleProperty>());
 
     // And then create a new Task
     return std::make_shared<ExampleTask>();
   }
 
   virtual const std::vector<PropertyId> getProducedProperties() override  {
-    return {typeid(ExampleProperty)};
+    return { PropertyId::create<ExampleProperty>() };
   }
 };
 
@@ -58,7 +62,7 @@ BOOST_FIXTURE_TEST_CASE( taskregistry_test, TaskRegistryFixture ) {
   // Register our factory
   registry->registerTaskFactory(std::move(factory));
 
-  auto task = registry->getTask<SourceTask>(typeid(ExampleProperty));
+  auto task = registry->getTask<SourceTask>(PropertyId::create<ExampleProperty>());
   BOOST_CHECK(task);
 
   // check the task is of the correct type (for testing, normally we would not care about the type)
@@ -70,7 +74,7 @@ BOOST_FIXTURE_TEST_CASE( taskregistry_notfound_test, TaskRegistryFixture ) {
   registry->registerTaskFactory(std::move(factory));
 
   // Try to create a task for property type not registered
-  auto task = registry->getTask<SourceTask>(typeid(Property));
+  auto task = registry->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>());
 
   // Check that we get a null pointer
   BOOST_CHECK(!task);

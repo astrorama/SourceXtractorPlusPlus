@@ -21,5 +21,4 @@ public:
 
 } /* namespace SEFramework */
 
-
 #endif

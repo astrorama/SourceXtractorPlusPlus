@@ -31,8 +31,8 @@ PixelBoundariesTaskFactory::PixelBoundariesTaskFactory()
 
 }
 
-std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(PropertyId property_id) {
-  if (property_id == PropertyId(typeid(PixelBoundaries))) {
+std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& property_id) {
+  if (property_id == PropertyId::create<PixelBoundaries>()) {
     return m_pixel_boundaries_task;
   } else {
     return nullptr;
@@ -40,7 +40,7 @@ std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(PropertyId property_id
 }
 
 const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties() {
-  return { PropertyId(typeid(PixelBoundaries)) };
+  return { PropertyId::create<PixelBoundaries>() };
 }
 
 } // SEImplementation namespace

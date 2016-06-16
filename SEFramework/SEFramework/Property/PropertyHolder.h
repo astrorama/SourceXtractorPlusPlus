@@ -34,13 +34,13 @@ public:
   virtual ~PropertyHolder() = default;
 
   /// Returns a reference to a Property if it is set, if not throws a PropertyNotFoundException
-  virtual const Property& getProperty(const PropertyId& property_id) const;
+  const Property& getProperty(const PropertyId& property_id) const;
 
   /// Set a property, overwriting it if necessary
-  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id);
+  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id);
 
   /// Returns true if the property is set
-  virtual bool isPropertySet(const PropertyId& property_id) const;
+  bool isPropertySet(const PropertyId& property_id) const;
 
 private:
 

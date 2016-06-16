@@ -129,8 +129,8 @@ const Property& EntangledSourceGroup::EntangledSourceWrapper::getProperty(const 
   return m_source->getProperty(property_id);
 }
 
-void EntangledSourceGroup::EntangledSourceWrapper::setProperty(std::unique_ptr<Property> property,
-    const PropertyId& property_id)  {
+void EntangledSourceGroup::EntangledSourceWrapper::setProperty(
+    std::unique_ptr<Property> property, const PropertyId& property_id)  {
   // Just forwards the call
   m_source->setProperty(std::move(property), property_id);
 }

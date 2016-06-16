@@ -13,7 +13,6 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Image/Image.h"
 
-
 namespace SExtractor {
 
 /**
@@ -76,7 +75,7 @@ public:
    */
   virtual ~DetectionFrameSourceStampTaskFactory() = default;
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) override;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
 private:

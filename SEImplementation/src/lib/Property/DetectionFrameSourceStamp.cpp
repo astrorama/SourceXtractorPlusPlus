@@ -42,8 +42,8 @@ DetectionFrameSourceStampTaskFactory::DetectionFrameSourceStampTaskFactory()
           ConfigManager::getInstance(0).getConfiguration<DetectionImageConfig>().getDetectionImage())) {
 }
 
-std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(PropertyId property_id) {
-  if (property_id == PropertyId(typeid(DetectionFrameSourceStamp))) {
+std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const PropertyId& property_id) {
+  if (property_id == PropertyId::create<DetectionFrameSourceStamp>()) {
     return m_detection_frame_source_stamp_task;
   } else {
     return nullptr;
@@ -51,7 +51,7 @@ std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(PropertyId p
 }
 
 const std::vector<PropertyId> DetectionFrameSourceStampTaskFactory::getProducedProperties() {
-  return { PropertyId(typeid(DetectionFrameSourceStamp)) };
+  return { PropertyId::create<DetectionFrameSourceStamp>() };
 }
 
 

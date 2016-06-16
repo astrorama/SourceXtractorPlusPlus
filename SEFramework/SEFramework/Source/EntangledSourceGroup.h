@@ -106,14 +106,14 @@ public:
 
   /// Convenience template method to call getProperty() with a more user-friendly syntax
   template<typename T>
-  const T& getProperty(std::string param = "") const {
-    return dynamic_cast<const T&>(getProperty(PropertyId(typeid(T), param)));
+  const T& getProperty(unsigned int index = 0) const {
+    return dynamic_cast<const T&>(getProperty(PropertyId::create<T>(index)));
   }
 
   /// Convenience template method to call setProperty() with a more user-friendly syntax
-  template<class T>
-  void setProperty(std::unique_ptr<T> property, std::string param = "") {
-    setProperty(std::move(property), PropertyId(typeid(T), param) );
+  template<typename T>
+  void setProperty(std::unique_ptr<T> property, unsigned int index = 0) {
+    setProperty(std::move(property), PropertyId::create<T>(index));
   }
 
 private:
@@ -124,9 +124,6 @@ private:
 
   std::vector<std::shared_ptr<EntangledSource>> m_sources;
   std::shared_ptr<TaskRegistry> m_task_registry;
-
-  friend class Source;
-
 }; /* End of EntangledSourceGroup class */
 
 } /* namespace SEFramework */

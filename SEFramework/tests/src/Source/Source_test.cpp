@@ -11,6 +11,7 @@ using namespace testing;
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Property/Property.h"
 
 using namespace SExtractor;
 
@@ -29,7 +30,7 @@ public:
   SimpleIntPropertyTask(int value) : m_value(value) {}
 
   virtual void computeProperties(Source& source) const override {
-    source.setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(m_value)), "");
+    source.setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(m_value)));
   }
 
 private:
@@ -39,7 +40,7 @@ private:
 // Mock for the TaskRegistry so that we can check interactions with it
 class MockTaskRegistry : public TaskRegistry {
 public:
-  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (PropertyId property_id));
+  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (const PropertyId& property_id));
 };
 
 struct SourceFixture {
