@@ -132,8 +132,12 @@ public:
           auto& centroid = source->getProperty<PixelCentroid>();
           std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
           if (args.count("flag-image-top") == 1) {
-            // FIXME find correct property index
-            auto& top_flag = source->getProperty<ExternalFlag>(0); // top
+            auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+            auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
+                    [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
+                      return pair.first == "top";
+                    });
+            auto& top_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // top
             if (top_flag.getFlag() == 0) {
               std::cout << "TOP\n";
             } else {
@@ -141,7 +145,12 @@ public:
             }
           }
           if (args.count("flag-image-points") == 1) {
-            auto& points_flag = source->getProperty<ExternalFlag>(1); // points
+            auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+            auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
+                    [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
+                      return pair.first == "points";
+                    });
+            auto& points_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // points
             if (points_flag.getFlag() == 1) {
               std::cout << "FLAGGED!!!!\n";
             }
