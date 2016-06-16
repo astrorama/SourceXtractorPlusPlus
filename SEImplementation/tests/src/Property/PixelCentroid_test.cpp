@@ -11,6 +11,7 @@
 
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Property/PixelCentroid.h"
+#include "SEImplementation/Task/PixelCentroidTaskFactory.h"
 
 using namespace SExtractor;
 

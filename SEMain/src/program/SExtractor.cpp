@@ -21,9 +21,12 @@
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
 #include "SEImplementation/Property/PixelCentroid.h"
-#include "SEImplementation/Property/DetectionFramePixelValues.h"
-#include "SEImplementation/Property/PixelBoundaries.h"
-#include "SEImplementation/Property/DetectionFrameSourceStamp.h"
+
+#include "SEImplementation/Task/PixelCentroidTaskFactory.h"
+#include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
+#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
+#include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
+
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"

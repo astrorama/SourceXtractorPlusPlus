@@ -1,13 +1,13 @@
 /**
- * @file src/lib/PixelCentroid.cpp
- * @date 05/27/16
+ * @file src/lib/Task/PixelCentroidTask.cpp
+ * @date 06/16/16
  * @author mschefer
  */
 
-#include "SEFramework/Source/Source.h"
-
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Property/PixelCentroid.h"
+
+#include "SEImplementation/Task/PixelCentroidTask.h"
 
 namespace SExtractor {
 
@@ -33,21 +33,8 @@ void PixelCentroidTask::computeProperties(Source& source) const {
   source.setProperty(std::unique_ptr<PixelCentroid>(new PixelCentroid(centroid_x, centroid_y)));
 }
 
-PixelCentroidTaskFactory::PixelCentroidTaskFactory() : m_pixel_centroid_task(std::make_shared<PixelCentroidTask>()) {
-}
-
-std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& property_id) {
-  if (property_id == PropertyId::create<PixelCentroid>()) {
-    return m_pixel_centroid_task;
-  } else {
-    return nullptr;
-  }
-}
-
-const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() {
-  return { PropertyId::create<PixelCentroid>() };
-}
-
 
 } // SEImplementation namespace
+
+
 
