@@ -1,12 +1,13 @@
 /**
- * @file src/lib/PixelBoundaries.cpp
- * @date 05/30/16
+ * @file src/lib/Task/PixelBoundariesTask.cpp
+ * @date 06/16/16
  * @author mschefer
  */
 
-
 #include <climits>
+
 #include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Task/PixelBoundariesTask.h"
 
 namespace SExtractor {
 
@@ -24,23 +25,6 @@ void PixelBoundariesTask::computeProperties(Source& source) const {
   }
 
   source.setProperty(std::unique_ptr<PixelBoundaries>(new PixelBoundaries(min_x, min_y, max_x, max_y)));
-}
-
-PixelBoundariesTaskFactory::PixelBoundariesTaskFactory()
-  : m_pixel_boundaries_task(std::make_shared<PixelBoundariesTask>()) {
-
-}
-
-std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& property_id) {
-  if (property_id == PropertyId::create<PixelBoundaries>()) {
-    return m_pixel_boundaries_task;
-  } else {
-    return nullptr;
-  }
-}
-
-const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties() {
-  return { PropertyId::create<PixelBoundaries>() };
 }
 
 } // SEImplementation namespace

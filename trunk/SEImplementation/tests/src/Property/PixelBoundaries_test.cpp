@@ -10,6 +10,7 @@
 #include "SEFramework/Task/TaskRegistry.h"
 
 #include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 
 using namespace SExtractor;
 

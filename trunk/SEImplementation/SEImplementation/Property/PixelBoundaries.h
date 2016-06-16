@@ -10,9 +10,6 @@
 #include "SEUtils/PixelCoordinate.h"
 
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/Source/Source.h"
-#include "SEFramework/Task/SourceTask.h"
-#include "SEFramework/Task/TaskFactory.h"
 
 namespace SExtractor {
 
@@ -46,42 +43,7 @@ private:
 
 }; /* End of PixelBoundaries class */
 
-class PixelBoundariesTask : public SourceTask {
 
-public:
-
-  /**
-   * @brief Destructor
-   */
-  virtual ~PixelBoundariesTask() = default;
-
-  virtual void computeProperties(Source& source) const override;
-
-
-private:
-
-}; /* End of PixelBoundariesTask class */
-
-class PixelBoundariesTaskFactory : public TaskFactory {
-
-public:
-
-  /**
-   * @brief Destructor
-   */
-  virtual ~PixelBoundariesTaskFactory() = default;
-
-  PixelBoundariesTaskFactory();
-
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
-  virtual const std::vector<PropertyId> getProducedProperties() override;
-
-private:
-  std::shared_ptr<PixelBoundariesTask> m_pixel_boundaries_task;
-
-private:
-
-}; /* End of PixelBoundariesTaskFactory class */
 
 } /* namespace SEImplementation */
 

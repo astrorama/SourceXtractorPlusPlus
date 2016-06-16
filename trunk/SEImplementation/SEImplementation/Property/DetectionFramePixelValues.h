@@ -7,19 +7,16 @@
 #ifndef _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAMEPIXELVALUES_H
 #define _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAMEPIXELVALUES_H
 
-#include "SEFramework/Property/Property.h"
-#include "SEFramework/Source/Source.h"
-#include "SEFramework/Task/SourceTask.h"
-#include "SEFramework/Task/TaskFactory.h"
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Property/Property.h"
+#include <vector>
 
+#include "SEFramework/Property/Property.h"
 
 namespace SExtractor {
 
 /**
  * @class DetectionFramePixelValues
- * @brief
+ * @brief The values of a Source's pixels in the detection image. They are returned as
+ * a vector in the same order as the Source's pixels.
  *
  */
 class DetectionFramePixelValues : public Property {
@@ -41,45 +38,6 @@ private:
   std::vector<double> m_values;
 
 }; /* End of DetectionFramePixelValues class */
-
-/**
- * @class PixelCentroid
- * @brief
- *
- */
-class DetectionFramePixelValuesTask : public SourceTask {
-
-public:
-
-  /**
-   * @brief Destructor
-   */
-  virtual ~DetectionFramePixelValuesTask() = default;
-
-  DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image);
-
-  virtual void computeProperties(Source& source) const override;
-
-private:
-  std::shared_ptr<DetectionImage> m_image;
-
-}; /* End of DetectionFramePixelValuesTask class */
-
-class DetectionFramePixelValuesTaskFactory : public TaskFactory {
-public:
-  DetectionFramePixelValuesTaskFactory();
-
-  /**
-   * @brief Destructor
-   */
-  virtual ~DetectionFramePixelValuesTaskFactory() = default;
-
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
-  virtual const std::vector<PropertyId> getProducedProperties() override;
-
-private:
-  std::shared_ptr<DetectionFramePixelValuesTask> m_detection_frame_pixel_values_task;
-};
 
 } /* namespace SEImplementation */
 

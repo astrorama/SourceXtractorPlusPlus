@@ -33,7 +33,7 @@ elements_depends_on_subdirs(SEConfig)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEImplementation src/lib/Partition/*.cpp src/lib/Property/*.cpp src/lib/Segmentation/*.cpp src/lib/Grouping/*.cpp
+elements_add_library(SEImplementation src/lib/Partition/*.cpp src/lib/Property/*.cpp src/lib/Segmentation/*.cpp src/lib/Grouping/*.cpp src/lib/Task/*.cpp
                      LINK_LIBRARIES ElementsKernel SEUtils SEFramework SEConfig
                      INCLUDE_DIRS SEUtils SEFramework SEConfig
                      PUBLIC_HEADERS SEImplementation)
@@ -87,6 +87,7 @@ elements_add_unit_test(SegmentationFactory_test tests/src/Segmentation/Segmentat
 elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+                     
 
 #===============================================================================
 # Declare the Python programs here
