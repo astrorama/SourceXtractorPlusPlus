@@ -15,9 +15,13 @@ using namespace Euclid::Configuration;
 
 namespace SExtractor {
 
-DetectionFramePixelValuesTaskFactory::DetectionFramePixelValuesTaskFactory()
-  : m_detection_frame_pixel_values_task(std::make_shared<DetectionFramePixelValuesTask>(
-      ConfigManager::getInstance(0).getConfiguration<DetectionImageConfig>().getDetectionImage())) {
+void DetectionFramePixelValuesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+  manager.registerConfiguration<DetectionImageConfig>();
+}
+
+void DetectionFramePixelValuesTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  m_detection_frame_pixel_values_task = std::make_shared<DetectionFramePixelValuesTask>(
+      manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
 }
 
 std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const PropertyId& property_id) {

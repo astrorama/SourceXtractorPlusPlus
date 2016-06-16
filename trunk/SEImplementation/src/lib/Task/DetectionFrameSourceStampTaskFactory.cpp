@@ -16,10 +16,13 @@ using namespace Euclid::Configuration;
 
 namespace SExtractor {
 
-DetectionFrameSourceStampTaskFactory::DetectionFrameSourceStampTaskFactory()
-  : m_detection_frame_source_stamp_task(
-      std::make_shared<DetectionFrameSourceStampTask>(
-          ConfigManager::getInstance(0).getConfiguration<DetectionImageConfig>().getDetectionImage())) {
+void DetectionFrameSourceStampTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+  manager.registerConfiguration<DetectionImageConfig>();
+}
+
+void DetectionFrameSourceStampTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  m_detection_frame_source_stamp_task = std::make_shared<DetectionFrameSourceStampTask>(
+          manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
 }
 
 std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const PropertyId& property_id) {

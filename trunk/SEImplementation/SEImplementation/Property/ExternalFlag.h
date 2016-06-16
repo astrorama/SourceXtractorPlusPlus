@@ -169,9 +169,14 @@ public:
     }
   };
   
-  ExternalFlagTaskFactory() {
-    auto& conf_mgr = Euclid::Configuration::ConfigManager::getInstance(0);
-    auto& flag_info_list = conf_mgr.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+  virtual ~ExternalFlagTaskFactory() = default;
+
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override {
+    manager.registerConfiguration<ExternalFlagConfig>();
+  }
+
+  void configure(Euclid::Configuration::ConfigManager& manager) override {
+    auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
     for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
       auto& pair = flag_info_list.at(i);
       switch (pair.second.second) {
@@ -219,8 +224,6 @@ public:
     }
   }
   
-  virtual ~ExternalFlagTaskFactory() = default;
-
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override {
     if (m_task_map.count(property_id) != 1) {
       return nullptr;
