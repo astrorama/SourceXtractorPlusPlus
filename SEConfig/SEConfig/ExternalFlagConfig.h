@@ -7,7 +7,7 @@
 #ifndef _SECONFIG_EXTERNALFLAGCONFIG_H
 #define _SECONFIG_EXTERNALFLAGCONFIG_H
 
-#include <map>
+#include <vector>
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
@@ -41,11 +41,11 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  const std::map<std::string, FlagInfo>& getFlagInfo() const;
+  const std::vector<std::pair<std::string, FlagInfo>>& getFlagInfoList() const;
 
 private:
   
-  std::map<std::string, FlagInfo> m_flag_info_map;
+  std::vector<std::pair<std::string, FlagInfo>> m_flag_info_list;
   
 
 }; /* End of ExternalFlagConfig class */

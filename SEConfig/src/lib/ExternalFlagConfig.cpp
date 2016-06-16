@@ -75,12 +75,12 @@ void ExternalFlagConfig::initialize(const UserValues& args) {
     auto& type_str = args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>();
     Type type = available_types.at(type_str);
     
-    m_flag_info_map[name] = FlagInfo{std::move(image), type};
+    m_flag_info_list.emplace_back(name, FlagInfo{std::move(image), type});
   }
 }
 
-auto ExternalFlagConfig::getFlagInfo() const -> const std::map<std::string, FlagInfo>& {
-  return m_flag_info_map;
+auto ExternalFlagConfig::getFlagInfoList() const -> const std::vector<std::pair<std::string, FlagInfo>>& {
+  return m_flag_info_list;
 }
 
 } // SExtractor namespace

@@ -60,8 +60,8 @@ public:
   
   virtual ~ExternalFlagTask() = default;
   
-  ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, const PropertyId& property_id)
-        : m_flag_image(flag_image), m_property_id(property_id) { }
+  ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance)
+        : m_flag_image(flag_image), m_flag_instance(flag_instance) { }
 
   void computeProperties(Source& source) const override {
     std::vector<FlagImage::PixelType> pixel_flags {};
@@ -71,13 +71,16 @@ public:
     std::int64_t flag = 0;
     int count = 0;
     std::tie(flag, count) = Combine::combine(pixel_flags);
-    source.setProperty(std::unique_ptr<ExternalFlag>(new ExternalFlag{flag, count}), m_property_id);
+    source.setProperty<ExternalFlag>(
+        std::unique_ptr<ExternalFlag>(new ExternalFlag{flag, count}), 
+        m_flag_instance
+    );
   }
 
 private:
   
   std::shared_ptr<FlagImage> m_flag_image;
-  PropertyId m_property_id;
+  unsigned int m_flag_instance;
   
 };
 
@@ -168,47 +171,47 @@ public:
   
   ExternalFlagTaskFactory() {
     auto& conf_mgr = Euclid::Configuration::ConfigManager::getInstance(0);
-    auto& flag_info_map = conf_mgr.getConfiguration<ExternalFlagConfig>().getFlagInfo();
-    int i = 0;
-    for (auto& pair : flag_info_map) {
+    auto& flag_info_list = conf_mgr.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+    for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
+      auto& pair = flag_info_list.at(i);
       switch (pair.second.second) {
         case ExternalFlagConfig::Type::OR:
         {
-          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          auto property_id = PropertyId::create<ExternalFlag>(i);
           m_task_map[property_id] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Or>(pair.second.first, property_id)
+            new ExternalFlagTask<Or>(pair.second.first, i)
           };
           break;
         }
         case ExternalFlagConfig::Type::AND:
         {
-          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          auto property_id = PropertyId::create<ExternalFlag>(i);
           m_task_map[property_id] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<And>(pair.second.first, property_id)
+            new ExternalFlagTask<And>(pair.second.first, i)
           };
           break;
         }
         case ExternalFlagConfig::Type::MIN:
         {
-          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          auto property_id = PropertyId::create<ExternalFlag>(i);
           m_task_map[property_id] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Min>(pair.second.first, property_id)
+            new ExternalFlagTask<Min>(pair.second.first, i)
           };
           break;
         }
         case ExternalFlagConfig::Type::MAX:
         {
-          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          auto property_id = PropertyId::create<ExternalFlag>(i);
           m_task_map[property_id] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Max>(pair.second.first, property_id)
+            new ExternalFlagTask<Max>(pair.second.first, i)
           };
           break;
         }
         case ExternalFlagConfig::Type::MOST:
         {
-          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          auto property_id = PropertyId::create<ExternalFlag>(i);
           m_task_map[property_id] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Most>(pair.second.first, property_id)
+            new ExternalFlagTask<Most>(pair.second.first, i)
           };
           break;
         }
@@ -226,10 +229,11 @@ public:
   }
   
   virtual const std::vector<PropertyId> getProducedProperties() override {
-    // FIXME tmp hardcoded
-    return {PropertyId::create<ExternalFlag>(0),
-            PropertyId::create<ExternalFlag>(1)
-    };
+    std::vector<PropertyId> result {};
+    for (auto& pair : m_task_map) {
+      result.emplace_back(pair.first);
+    }
+    return result;
   }
   
 private:
