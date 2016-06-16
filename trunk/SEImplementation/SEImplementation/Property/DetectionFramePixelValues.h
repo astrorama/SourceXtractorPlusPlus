@@ -12,6 +12,7 @@
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Property/Property.h"
 
 
 namespace SExtractor {
@@ -22,7 +23,6 @@ namespace SExtractor {
  *
  */
 class DetectionFramePixelValues : public Property {
-
 public:
 
   /**
@@ -74,7 +74,7 @@ public:
    */
   virtual ~DetectionFramePixelValuesTaskFactory() = default;
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) override;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
 private:

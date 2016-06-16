@@ -60,8 +60,8 @@ public:
   
   virtual ~ExternalFlagTask() = default;
   
-  ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, const std::string& flag_name)
-        : m_flag_image(flag_image), m_flag_name(flag_name) { }
+  ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, const PropertyId& property_id)
+        : m_flag_image(flag_image), m_property_id(property_id) { }
 
   void computeProperties(Source& source) const override {
     std::vector<FlagImage::PixelType> pixel_flags {};
@@ -71,13 +71,13 @@ public:
     std::int64_t flag = 0;
     int count = 0;
     std::tie(flag, count) = Combine::combine(pixel_flags);
-    source.setProperty(std::unique_ptr<ExternalFlag>(new ExternalFlag{flag, count}), m_flag_name);
+    source.setProperty(std::unique_ptr<ExternalFlag>(new ExternalFlag{flag, count}), m_property_id);
   }
 
 private:
   
   std::shared_ptr<FlagImage> m_flag_image;
-  std::string m_flag_name;
+  PropertyId m_property_id;
   
 };
 
@@ -169,57 +169,72 @@ public:
   ExternalFlagTaskFactory() {
     auto& conf_mgr = Euclid::Configuration::ConfigManager::getInstance(0);
     auto& flag_info_map = conf_mgr.getConfiguration<ExternalFlagConfig>().getFlagInfo();
+    int i = 0;
     for (auto& pair : flag_info_map) {
       switch (pair.second.second) {
         case ExternalFlagConfig::Type::OR:
-          m_task_map[pair.first] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Or>(pair.second.first, pair.first)
+        {
+          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          m_task_map[property_id] = std::shared_ptr<SourceTask> {
+            new ExternalFlagTask<Or>(pair.second.first, property_id)
           };
           break;
+        }
         case ExternalFlagConfig::Type::AND:
-          m_task_map[pair.first] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<And>(pair.second.first, pair.first)
+        {
+          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          m_task_map[property_id] = std::shared_ptr<SourceTask> {
+            new ExternalFlagTask<And>(pair.second.first, property_id)
           };
           break;
+        }
         case ExternalFlagConfig::Type::MIN:
-          m_task_map[pair.first] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Min>(pair.second.first, pair.first)
+        {
+          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          m_task_map[property_id] = std::shared_ptr<SourceTask> {
+            new ExternalFlagTask<Min>(pair.second.first, property_id)
           };
           break;
+        }
         case ExternalFlagConfig::Type::MAX:
-          m_task_map[pair.first] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Max>(pair.second.first, pair.first)
+        {
+          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          m_task_map[property_id] = std::shared_ptr<SourceTask> {
+            new ExternalFlagTask<Max>(pair.second.first, property_id)
           };
           break;
+        }
         case ExternalFlagConfig::Type::MOST:
-          m_task_map[pair.first] = std::shared_ptr<SourceTask> {
-            new ExternalFlagTask<Most>(pair.second.first, pair.first)
+        {
+          auto property_id = PropertyId::create<ExternalFlag>(i++);
+          m_task_map[property_id] = std::shared_ptr<SourceTask> {
+            new ExternalFlagTask<Most>(pair.second.first, property_id)
           };
           break;
+        }
       }
     }
   }
   
   virtual ~ExternalFlagTaskFactory() = default;
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) override {
-    if (property_id.m_property_type != typeid(ExternalFlag)) {
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override {
+    if (m_task_map.count(property_id) != 1) {
       return nullptr;
     }
-    auto& name = property_id.m_parameter;
-    if (m_task_map.count(name) != 1) {
-      return nullptr;
-    }
-    return m_task_map.at(name);
+    return m_task_map.at(property_id);
   }
   
   virtual const std::vector<PropertyId> getProducedProperties() override {
-    return {PropertyId(typeid(ExternalFlag), "top"), PropertyId(typeid(ExternalFlag), "points")};
+    // FIXME tmp hardcoded
+    return {PropertyId::create<ExternalFlag>(0),
+            PropertyId::create<ExternalFlag>(1)
+    };
   }
   
 private:
   
-  std::map<std::string, std::shared_ptr<SourceTask>> m_task_map;
+  std::map<PropertyId, std::shared_ptr<SourceTask>> m_task_map;
   
 };
 

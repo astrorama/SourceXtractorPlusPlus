@@ -36,12 +36,7 @@ find_package(CCfits)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEFramework
-                     src/lib/Image/*.cpp
-                     src/lib/Pipeline/*.cpp
-                     src/lib/Property/*.cpp
-                     src/lib/Source/*.cpp
-                     src/lib/Task/*.cpp
+elements_add_library(SEFramework src/lib/Image/*.cpp src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp
                      LINK_LIBRARIES ElementsKernel CCfits SEUtils
                      INCLUDE_DIRS SEUtils CCfits
                      PUBLIC_HEADERS SEFramework)
@@ -63,7 +58,7 @@ elements_add_library(SEFramework
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
 if(GMOCK_FOUND)
-elements_add_unit_test(ObjectWithProperties_test tests/src/Property/PropertyHolder_test.cpp 
+elements_add_unit_test(PropertyHolder_test tests/src/Property/PropertyHolder_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
@@ -105,8 +100,6 @@ elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp
 elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-                     
-
 
 #===============================================================================
 # Declare the Python programs here

@@ -73,7 +73,7 @@ public:
 
   PixelBoundariesTaskFactory();
 
-  virtual std::shared_ptr<Task> getTask(PropertyId property_id) override;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
 private:

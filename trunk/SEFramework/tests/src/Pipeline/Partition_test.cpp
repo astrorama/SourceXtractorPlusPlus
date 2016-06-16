@@ -11,6 +11,7 @@ using namespace testing;
 #include "SEFramework/Pipeline/Partition.h"
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Property/Property.h"
 
 using namespace SExtractor;
 

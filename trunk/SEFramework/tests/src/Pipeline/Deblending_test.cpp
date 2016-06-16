@@ -6,11 +6,12 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "SEFramework/Property/Property.h"
 #include "SEFramework/Pipeline/Deblending.h"
 
 using namespace SExtractor;
 
-// Example property containing an int
+// Example Property containing an int
 class SimpleIntProperty : public Property {
 public:
   int m_value;
