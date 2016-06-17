@@ -21,11 +21,13 @@
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
 #include "SEImplementation/Property/PixelCentroid.h"
+#include "SEImplementation/Property/ExternalFlag.h"
 
 #include "SEImplementation/Task/PixelCentroidTaskFactory.h"
 #include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 #include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
+#include "SEImplementation/Task/ExternalFlagTaskFactory.h"
 
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
@@ -38,7 +40,6 @@
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
-#include "SEImplementation/Property/ExternalFlag.h"
 
 namespace po = boost::program_options;
 using namespace SExtractor;
