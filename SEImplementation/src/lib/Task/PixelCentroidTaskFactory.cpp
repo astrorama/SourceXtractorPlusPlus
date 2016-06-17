@@ -4,11 +4,15 @@
  * @author mschefer
  */
 
+#include "SEFramework/Registration/AutoRegisterer.h"
+
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Task/PixelCentroidTask.h"
 #include "SEImplementation/Task/PixelCentroidTaskFactory.h"
 
 namespace SExtractor {
+
+static AutoRegisterer<PixelCentroidTaskFactory> s_pixel_centroid_registerer;
 
 PixelCentroidTaskFactory::PixelCentroidTaskFactory() : m_pixel_centroid_task(std::make_shared<PixelCentroidTask>()) {
 }

@@ -23,12 +23,6 @@
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Property/ExternalFlag.h"
 
-#include "SEImplementation/Task/PixelCentroidTaskFactory.h"
-#include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
-#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
-#include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
-#include "SEImplementation/Task/ExternalFlagTaskFactory.h"
-
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
@@ -69,26 +63,18 @@ static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
 class SEMain : public Elements::Program {
   
-  std::shared_ptr<TaskRegistry> task_registry = TaskRegistry::getSingleton();
+  std::shared_ptr<TaskRegistry> task_registry = RegistrationManager::instance().getTaskRegistry();
   SegmentationFactory segmentation_factory {task_registry};
 
 public:
   
   SEMain() {
-    // TODO
-    // At the moment we register the task factories in the constructor of the
-    // SEMain. This should be moved to the different task factory implementation
-    // files.
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new PixelCentroidTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new DetectionFramePixelValuesTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new DetectionFrameSourceStampTaskFactory));
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new ExternalFlagTaskFactory{}));
   }
 
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
-    task_registry->reportConfigDependencies(config_manager);
+    //task_registry->reportConfigDependencies(config_manager);
+    RegistrationManager::instance().reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
   }
@@ -100,7 +86,7 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
-    task_registry->configure(config_manager);
+    RegistrationManager::instance().configure(config_manager);
     segmentation_factory.configure(config_manager);
     
     auto source_observer = std::make_shared<SourceObserver>();

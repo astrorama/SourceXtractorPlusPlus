@@ -9,41 +9,39 @@
 namespace SExtractor {
 
 void TaskRegistry::registerTaskFactory(std::unique_ptr<TaskFactory> task_factory) {
-  m_factory_list.emplace_back(std::move(task_factory));
+  // List of property_ids that this factory can be used to produce
+  auto& property_ids = task_factory->getProducedProperties();
+
+  // converts the unique_ptr to shared_ptr to be able have multiple copies of the pointer
+  std::shared_ptr<TaskFactory> task_factory_shared_ptr = std::move(task_factory);
+
+  // for each property_id stores a pointer to the task_factory
+  for (auto property_id : property_ids) {
+
+    // if we already have a factory for a property_id, throw an exception
+    if (m_factories.find(property_id) != m_factories.end()) {
+      throw DuplicateFactoryException();
+    }
+
+    // add the factory
+    m_factories[property_id] = task_factory_shared_ptr;
+  }
 }
 
 std::shared_ptr<Task> TaskRegistry::getTask(const PropertyId& property_id) const {
-  if (m_property_factory_map.count(property_id) == 1) {
-    std::size_t factory_index = m_property_factory_map.at(property_id);
-    auto& factory = m_factory_list.at(factory_index);
-    return factory->getTask(property_id);
+  // tries to find the TaskFactory for the property
+  auto iterTaskFactory = m_factories.find(property_id);
+
+  if (iterTaskFactory != m_factories.end()) {
+    auto task_factory = iterTaskFactory->second;
+    if (task_factory) {
+      // If we found it use it to get the Task and return it
+      return task_factory->getTask(property_id);
+    }
   }
 
+  // If not found we return a null pointer
   return nullptr;
 }
 
-void TaskRegistry::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
-  for (auto& factory : m_factory_list) {
-    factory->reportConfigDependencies(manager);
-  }
-}
-
-void TaskRegistry::configure(Euclid::Configuration::ConfigManager& manager) {
-  for (std::size_t i = 0; i < m_factory_list.size(); ++i) {
-    auto& factory = m_factory_list.at(i);
-    
-    // First we configure the factory, so it will know which properties it produces
-    factory->configure(manager);
-    
-    // Then we populate the property_factory_map
-    for (auto& property_id : factory->getProducedProperties()) {
-      if (m_property_factory_map.find(property_id) != m_property_factory_map.end()) {
-        throw DuplicateFactoryException();
-      }
-      m_property_factory_map[property_id] = i;
-    }
-  }
-}
-
 } // SEFramework namespace
-

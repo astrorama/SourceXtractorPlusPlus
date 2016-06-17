@@ -25,7 +25,7 @@ public:
 
 /**
  * @class Partition
- * @brief
+ * @brief For each Source it receives, Partition applies PartitionSteps on it and outputs one or more Sources.
  *
  */
 class Partition : public Observer<std::shared_ptr<Source>>,

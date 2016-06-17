@@ -5,8 +5,10 @@
  */
 
 #include "Configuration/ConfigManager.h"
-#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
+#include "SEFramework/Registration/AutoRegisterer.h"
+
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Task/DetectionFramePixelValuesTask.h"
 #include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
@@ -14,6 +16,8 @@
 using namespace Euclid::Configuration;
 
 namespace SExtractor {
+
+static AutoRegisterer<DetectionFramePixelValuesTaskFactory> s_detection_frame_pixel_values_registerer;
 
 void DetectionFramePixelValuesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
   manager.registerConfiguration<DetectionImageConfig>();
