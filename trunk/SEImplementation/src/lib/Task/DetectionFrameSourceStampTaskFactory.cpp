@@ -5,7 +5,7 @@
  */
 
 #include "Configuration/ConfigManager.h"
-#include "SEConfig/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
 

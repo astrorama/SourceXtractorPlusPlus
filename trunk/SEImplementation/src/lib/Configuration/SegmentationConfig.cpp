@@ -11,7 +11,7 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
-#include "SEConfig/SegmentationConfig.h"
+#include "SEImplementation/Configuration/SegmentationConfig.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -21,7 +21,7 @@ namespace SExtractor {
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-      m_selected_algorithm(Algorithm::UNKNOWN) {
+    m_selected_algorithm(Algorithm::UNKNOWN) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
@@ -42,4 +42,4 @@ void SegmentationConfig::initialize(const UserValues&) {
   m_selected_algorithm = Algorithm::LUTZ;
 }
 
-} // SEConfig namespace
+} // SExtractor namespace

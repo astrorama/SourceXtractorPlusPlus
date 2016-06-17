@@ -17,7 +17,6 @@ elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration)
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
-elements_depends_on_subdirs(SEConfig)
 elements_depends_on_subdirs(SEImplementation)
 
 #===============================================================================
@@ -44,8 +43,8 @@ elements_depends_on_subdirs(SEImplementation)
 #                        INCLUDE_DIRS Boost ElementsExamples)
 #===============================================================================
 elements_add_executable(SExtractor src/program/SExtractor.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework SEConfig SEImplementation
-                     INCLUDE_DIRS Configuration SEUtils SEFramework SEConfig SEImplementation)
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework SEImplementation
+                     INCLUDE_DIRS Configuration SEUtils SEFramework SEImplementation)
 
 #===============================================================================
 # Declare the Boost tests here

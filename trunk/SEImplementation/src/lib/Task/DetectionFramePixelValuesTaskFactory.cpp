@@ -5,7 +5,7 @@
  */
 
 #include "Configuration/ConfigManager.h"
-#include "SEConfig/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Task/DetectionFramePixelValuesTask.h"

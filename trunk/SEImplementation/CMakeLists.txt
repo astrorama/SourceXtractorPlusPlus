@@ -14,9 +14,10 @@ elements_subdir(SEImplementation)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
-elements_depends_on_subdirs(SEConfig)
+
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -33,9 +34,9 @@ elements_depends_on_subdirs(SEConfig)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEImplementation src/lib/Partition/*.cpp src/lib/Property/*.cpp src/lib/Segmentation/*.cpp src/lib/Grouping/*.cpp src/lib/Task/*.cpp
-                     LINK_LIBRARIES ElementsKernel SEUtils SEFramework SEConfig
-                     INCLUDE_DIRS SEUtils SEFramework SEConfig
+elements_add_library(SEImplementation src/lib/Partition/*.cpp src/lib/Property/*.cpp src/lib/Segmentation/*.cpp src/lib/Grouping/*.cpp src/lib/Task/*.cpp  src/lib/Configuration/*.cpp
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework
+                     INCLUDE_DIRS Configuration SEUtils SEFramework
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
@@ -87,7 +88,15 @@ elements_add_unit_test(SegmentationFactory_test tests/src/Segmentation/Segmentat
 elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-                     
+elements_add_unit_test(DetectionImageConfig_test tests/src/Configuration/DetectionImageConfig_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(SegmentationConfig_test tests/src/Configuration/SegmentationConfig_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(ExternalFlagConfig_test tests/src/Configuration/ExternalFlagConfig_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

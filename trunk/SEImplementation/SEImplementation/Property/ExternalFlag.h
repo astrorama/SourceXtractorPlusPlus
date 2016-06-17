@@ -18,7 +18,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Image/Image.h"
-#include "SEConfig/ExternalFlagConfig.h"
+#include "SEImplementation/Configuration/ExternalFlagConfig.h"
 
 namespace SExtractor {
 

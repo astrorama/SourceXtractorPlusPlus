@@ -1,11 +1,11 @@
 /**
- * @file SEConfig/DetectionImageConfig.h
+ * @file SEImplementation/Configuration/DetectionImageConfig.h
  * @date 06/06/16
  * @author mschefer
  */
 
-#ifndef _SECONFIG_DETECTIONIMAGECONFIG_H
-#define _SECONFIG_DETECTIONIMAGECONFIG_H
+#ifndef _SEIMPLEMENTATION_DETECTIONIMAGECONFIG_H
+#define _SEIMPLEMENTATION_DETECTIONIMAGECONFIG_H
 
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
@@ -41,7 +41,7 @@ private:
 
 }; /* End of DetectionImageConfig class */
 
-} /* namespace SEConfig */
+} /* namespace SExtractor */
 
 
 #endif

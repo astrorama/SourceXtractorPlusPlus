@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEConfig/SegmentationConfig.h"
+#include "SEImplementation/Configuration/SegmentationConfig.h"
 
 using namespace SExtractor;
 
