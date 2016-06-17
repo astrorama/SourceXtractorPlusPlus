@@ -32,9 +32,9 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
-#include "SEConfig/DetectionImageConfig.h"
-#include "SEConfig/SegmentationConfig.h"
-#include "SEConfig/ExternalFlagConfig.h"
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/SegmentationConfig.h"
+#include "SEImplementation/Configuration/ExternalFlagConfig.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"

@@ -1,11 +1,11 @@
 /**
- * @file SEConfig/SegmentationConfig.h
+ * @file SEImplementation/Configuration/SegmentationConfig.h
  * @date 06/08/16
  * @author mschefer
  */
 
-#ifndef _SECONFIG_SEGMENTATIONCONFIG_H
-#define _SECONFIG_SEGMENTATIONCONFIG_H
+#ifndef _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
+#define _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
 
 #include "Configuration/Configuration.h"
 
@@ -45,7 +45,7 @@ private:
 
 }; /* End of SegmentationConfig class */
 
-} /* namespace SEConfig */
+} /* namespace SExtractor */
 
 
 #endif

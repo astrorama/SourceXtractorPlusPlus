@@ -1,11 +1,11 @@
 /**
- * @file SEConfig/ExternalFlagConfig.h
+ * @file SEImplementation/Configuration/ExternalFlagConfig.h
  * @date 06/15/16
  * @author nikoapos
  */
 
-#ifndef _SECONFIG_EXTERNALFLAGCONFIG_H
-#define _SECONFIG_EXTERNALFLAGCONFIG_H
+#ifndef _SEIMPLEMENTATION_EXTERNALFLAGCONFIG_H
+#define _SEIMPLEMENTATION_EXTERNALFLAGCONFIG_H
 
 #include <vector>
 #include "Configuration/Configuration.h"

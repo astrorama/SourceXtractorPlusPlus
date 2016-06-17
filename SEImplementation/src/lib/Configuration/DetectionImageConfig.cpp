@@ -9,7 +9,7 @@
 #include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/SubtractImage.h"
 
-#include "SEConfig/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -38,7 +38,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 }
 
 
-} // SEConfig namespace
+} // SExtractor namespace
 
 
 

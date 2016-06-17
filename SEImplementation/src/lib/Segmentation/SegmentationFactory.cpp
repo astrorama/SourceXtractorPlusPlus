@@ -5,7 +5,7 @@
  */
 
 #include "Configuration/ConfigManager.h"
-#include "SEConfig/SegmentationConfig.h"
+#include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Segmentation/Lutz.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
@@ -27,6 +27,9 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
     case SegmentationConfig::Algorithm::LUTZ:
       m_task = std::make_shared<Lutz>(m_task_registry);
       break;
+    case SegmentationConfig::Algorithm::UNKNOWN:
+    default:
+      throw Elements::Exception("Unknown segmentation algorithm.");
   }
 }
 

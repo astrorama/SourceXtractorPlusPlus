@@ -7,7 +7,7 @@
 #include <boost/filesystem.hpp>
 #include "Configuration/ProgramOptionsHelper.h"
 #include "SEFramework/Image/FitsReader.h"
-#include "SEConfig/ExternalFlagConfig.h"
+#include "SEImplementation/Configuration/ExternalFlagConfig.h"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
