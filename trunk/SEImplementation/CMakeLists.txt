@@ -34,9 +34,13 @@ elements_depends_on_subdirs(SEFramework)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEImplementation src/lib/Partition/*.cpp src/lib/Property/*.cpp src/lib/Segmentation/*.cpp src/lib/Grouping/*.cpp src/lib/Task/*.cpp  src/lib/Configuration/*.cpp
+elements_add_library(SEImplementation
+                     src/lib/Partition/*.cpp
+                     src/lib/Segmentation/*.cpp
+                     src/lib/Grouping/*.cpp 
+                     src/lib/Task/*.cpp
+                     src/lib/Configuration/*.cpp
                      LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework
-                     INCLUDE_DIRS Configuration SEUtils SEFramework
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
@@ -86,6 +90,12 @@ elements_add_unit_test(SegmentationFactory_test tests/src/Segmentation/Segmentat
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(ExternalFlagTask_test tests/src/Task/ExternalFlagTask_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(ExternalFlagTaskFactory_test tests/src/Task/ExternalFlagTaskFactory_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(DetectionImageConfig_test tests/src/Configuration/DetectionImageConfig_test.cpp 
