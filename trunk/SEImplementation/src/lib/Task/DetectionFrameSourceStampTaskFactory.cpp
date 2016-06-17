@@ -5,16 +5,19 @@
  */
 
 #include "Configuration/ConfigManager.h"
+
+#include "SEFramework/Registration/AutoRegisterer.h"
+
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
-
-using namespace Euclid::Configuration;
-
-
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Task/DetectionFrameSourceStampTask.h"
 #include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
 
+using namespace Euclid::Configuration;
+
 namespace SExtractor {
+
+static AutoRegisterer<DetectionFrameSourceStampTaskFactory> s_detection_frame_source_stamp_registerer;
 
 void DetectionFrameSourceStampTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
   manager.registerConfiguration<DetectionImageConfig>();

@@ -4,6 +4,8 @@
  * @author nikoapos
  */
 
+#include "SEFramework/Registration/AutoRegisterer.h"
+
 #include "SEImplementation/Configuration/ExternalFlagConfig.h"
 #include "SEImplementation/Property/ExternalFlag.h"
 #include "SEImplementation/Task/ExternalFlagTask.h"
@@ -11,6 +13,7 @@
 
 namespace SExtractor {
 
+static AutoRegisterer<ExternalFlagTaskFactory> s_external_flag_registerer;
 
 void ExternalFlagTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
   manager.registerConfiguration<ExternalFlagConfig>();

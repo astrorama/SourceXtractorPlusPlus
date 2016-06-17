@@ -17,7 +17,8 @@ namespace SExtractor {
 
 /**
  * @class Segmentation
- * @brief
+ * @brief Segmentation takes an image and splits into individual Sources for further refinement. Each Source
+ * results in a notification of the Segmentation's observers.
  *
  */
 class Segmentation : public Observable<std::shared_ptr<Source>> {

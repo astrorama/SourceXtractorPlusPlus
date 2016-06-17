@@ -45,7 +45,9 @@ public:
 
 /**
  * @class SourceGrouping
- * @brief
+ * @brief SourceGrouping takes Source, groups them together according to its GroupingCriteria and stores them.
+ *  When a ProcessSourcesEvent is received the sources that need to be processed are output togther with the
+ *  sources they are grouped with as a SourceList.
  *
  */
 class SourceGrouping : public Observer<std::shared_ptr<Source>>,
