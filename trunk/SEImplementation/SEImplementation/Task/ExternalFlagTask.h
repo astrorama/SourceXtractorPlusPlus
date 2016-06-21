@@ -24,7 +24,7 @@ class Most;
 
 /**
  * @class ExternalFlagTask
- * @brief
+ * @brief Task to produce the ExternalFlag Property
  *
  */
 template <typename Combine>

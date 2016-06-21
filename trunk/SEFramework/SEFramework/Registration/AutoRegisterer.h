@@ -12,6 +12,12 @@
 
 namespace SExtractor {
 
+/**
+ * @class AutoRegisterer
+ * @brief A template used to automatically register any type of object with the RegistrationManager
+ *
+ */
+
 template<typename T, class R = RegistrationManager>
 class AutoRegisterer {
 public:

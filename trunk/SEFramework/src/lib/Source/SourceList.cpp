@@ -8,20 +8,21 @@
 namespace SExtractor {
 
 SourceList::SourceList(const std::vector<std::shared_ptr<Source>>& sources) {
+  // add all the Sources one by one
   for (auto& source : sources) {
     addSource(source);
   }
 }
 
 void SourceList::addSource(std::shared_ptr<Source> source) {
-  m_sources.push_back(source);
+  m_sources.emplace_back(source);
 }
 
 void SourceList::removeSource(std::shared_ptr<Source> source) {
   m_sources.remove(source);
 }
 
-void SourceList::merge(SourceList& source_list) {
+void SourceList::merge(const SourceList& source_list) {
   auto& other_sources = source_list.getSources();
   m_sources.insert(m_sources.end(), other_sources.begin(), other_sources.end());
 }
@@ -31,6 +32,3 @@ const std::list<std::shared_ptr<Source>>& SourceList::getSources() const {
 }
 
 } // SEFramework namespace
-
-
-

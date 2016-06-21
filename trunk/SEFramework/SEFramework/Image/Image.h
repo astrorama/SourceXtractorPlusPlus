@@ -47,7 +47,7 @@ using DetectionImage = Image<double>;
 /// Alias for the flag image, to make easier its type modification
 using FlagImage = Image<std::int64_t>;
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

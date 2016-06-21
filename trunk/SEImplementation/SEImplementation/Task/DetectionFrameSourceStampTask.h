@@ -15,8 +15,8 @@ namespace SExtractor {
 
 /**
  * @class DetectionFrameSourceStampTask
- * @brief
- *
+  * @brief Task to produce the DetectionFrameSourceStamp Property
+*
  */
 class DetectionFrameSourceStampTask : public SourceTask {
 public:

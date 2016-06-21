@@ -34,6 +34,8 @@ public:
    */
   virtual ~Source() = default;
 
+  // removes copy/move constructors and assignment operators
+
   Source(const Source&) = delete;
   Source& operator=(const Source&) = delete;
   Source(Source&&) = delete;
@@ -42,6 +44,7 @@ public:
   /// Constructor
   Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
 
+  /// Gets a vector of PixelCoordinates for all the pixels in this source
   const std::vector<PixelCoordinate>& getPixels() const {
     return m_pixels;
   }
@@ -60,6 +63,6 @@ private:
   std::shared_ptr<const TaskRegistry> m_task_registry;
 }; /* End of Source class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 #endif

@@ -14,12 +14,17 @@ Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std:
 }
 
 void Deblending::handleMessage(const std::shared_ptr<SourceList>& source_list) {
+  // Applies every DeblendAction to the SourceList
   for (auto& action : m_actions) {
     action->deblend(*source_list);
   }
 
-  auto source_group = EntangledSourceGroup::create(source_list->getSources(), m_task_registry);
-  notifyObservers(source_group);
+  // If the SourceList still contains sources, we create an EntangledSourceGroup with them and notify the observers
+  auto& sources = source_list->getSources();
+  if (sources.size() > 0) {
+    auto source_group = EntangledSourceGroup::create(sources, m_task_registry);
+    notifyObservers(source_group);
+  }
 }
 
 } // SEFramework namespace

@@ -82,8 +82,7 @@ const Property& EntangledSourceGroup::EntangledSource::getProperty(const Propert
   auto group = m_group.lock();
   if (!group) {
     // Something went wrong, we don't have a pointer to the group, this should not happen
-    // FIXME use a more specific exception
-    throw PropertyNotFoundException();
+    throw Elements::Exception("Internal error: null group pointer in EntangledSource");
   }
 
   // If the property is already stored in the group, we return it

@@ -27,14 +27,14 @@ public:
    */
   virtual ~SourceTask() = default;
 
-  // Computes one or more properties for the Source
+  /// Computes one or more properties for the Source
   virtual void computeProperties(Source& source) const = 0;
 
 private:
 
 }; /* End of SourceTask class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

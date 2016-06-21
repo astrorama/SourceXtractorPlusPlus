@@ -36,7 +36,7 @@ find_package(CCfits)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEFramework src/lib/Image/*.cpp src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp
+elements_add_library(SEFramework src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp
                      LINK_LIBRARIES ElementsKernel CCfits SEUtils
                      INCLUDE_DIRS SEUtils CCfits
                      PUBLIC_HEADERS SEFramework)

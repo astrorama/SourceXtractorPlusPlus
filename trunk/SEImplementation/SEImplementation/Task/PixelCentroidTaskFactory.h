@@ -15,7 +15,7 @@ class PixelCentroidTask;
 
 /**
  * @class PixelCentroidTaskFactory
- * @brief
+ * @brief Produces PixelCentroidTask
  *
  */
 class PixelCentroidTaskFactory : public TaskFactory {
@@ -27,6 +27,7 @@ public:
    */
   virtual ~PixelCentroidTaskFactory() = default;
 
+  // TaskFactory implementation
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
@@ -35,7 +36,7 @@ private:
 };
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

@@ -13,7 +13,7 @@ namespace SExtractor {
 
 /**
  * @class SegmentationConfig
- * @brief
+ * @brief Used to select a Segmentation algorithm.
  *
  */
 class SegmentationConfig : public Euclid::Configuration::Configuration {

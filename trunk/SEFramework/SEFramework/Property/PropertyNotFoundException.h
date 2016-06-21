@@ -21,7 +21,7 @@ public:
   PropertyNotFoundException() : Elements::Exception("Property not found!") {}
 };
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

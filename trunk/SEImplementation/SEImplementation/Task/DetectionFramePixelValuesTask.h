@@ -15,7 +15,7 @@ namespace SExtractor {
 
 /**
  * @class DetectionFramePixelValuesTask
- * @brief
+ * @brief Task to produce the DetectionFramePixelValues Property
  *
  */
 
@@ -39,7 +39,7 @@ private:
 
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

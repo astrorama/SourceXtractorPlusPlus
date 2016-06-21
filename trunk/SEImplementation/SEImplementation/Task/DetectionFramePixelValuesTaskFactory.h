@@ -15,21 +15,23 @@
 namespace SExtractor {
 
 class DetectionFramePixelValuesTask;
+
 /**
  * @class DetectionFramePixelValuesTaskFactory
- * @brief
+ * @brief TaskFactory to produce DetectionFramePixelValuesTask
  *
  */
 class DetectionFramePixelValuesTaskFactory : public TaskFactory {
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~DetectionFramePixelValuesTaskFactory() = default;
 
+  // TaskFactory implementation
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
+
+  // Configurable implementation
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
 
@@ -37,7 +39,7 @@ private:
   std::shared_ptr<DetectionFramePixelValuesTask> m_detection_frame_pixel_values_task;
 };
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

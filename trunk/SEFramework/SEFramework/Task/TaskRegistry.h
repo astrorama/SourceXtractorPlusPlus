@@ -19,21 +19,20 @@ namespace SExtractor {
 
 /**
  * @class TaskRegistry
- * @brief Used to get the Task used to create a given property
+ * @brief Registry of all the TaskFactories providing the Tasks used to compute a given Property
  *
  */
 class TaskRegistry {
 
 public:
 
+  /// Exception raised when trying to register 2 TaskFactories that produce the same PropertyId
   class DuplicateFactoryException : public Elements::Exception {
   public:
     DuplicateFactoryException() : Elements::Exception("Duplicate PropertyId in TaskRegistry") {}
   };
   
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~TaskRegistry() = default;
 
   /// Registers a TaskFactory that will be used to create tasks when needed
@@ -54,7 +53,7 @@ private:
 }; /* End of TaskRegistry class */
 
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

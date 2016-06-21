@@ -15,7 +15,7 @@ namespace SExtractor {
 
 /**
  * @class SubtractImage
- * @brief
+ * @brief Used to subtract a constant value from an Image
  *
  */
 template <typename T>
@@ -50,7 +50,7 @@ private:
 
 }; /* End of SubtractImage class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

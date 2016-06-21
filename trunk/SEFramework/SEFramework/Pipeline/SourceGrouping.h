@@ -17,6 +17,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class SelectionCriteria
+ * @brief Used to determine if a Source is selected for processing.
+ *
+ */
 class SelectionCriteria {
 public:
   /**
@@ -24,15 +29,40 @@ public:
    */
   virtual ~SelectionCriteria() = default;
 
+  /// Determines if the given Source must be processed or not
   virtual bool mustBeProcessed(const Source& source) const = 0;
 };
 
+/**
+ * @class SelectAllCriteria
+ * @brief An implementation of SelectionCriteria that just marks all Sources as selected
+ *
+ */
+class SelectAllCriteria : public SelectionCriteria {
+public:
+  virtual bool mustBeProcessed(const Source& ) const override {
+    return true;
+  }
+};
+
+
+/**
+ * @class ProcessSourcesEvent
+ * @brief Event received by SourceGrouping to request the processing of some of the Sources stored.
+ *
+ */
 struct ProcessSourcesEvent {
-  const SelectionCriteria& m_selection_criteria;
+
+  const SelectionCriteria& m_selection_criteria;   // Used to identify the Sources to process
 
   ProcessSourcesEvent(const SelectionCriteria& selection_criteria) : m_selection_criteria(selection_criteria) {}
 };
 
+/**
+ * @class GroupingCriteria
+ * @brief Criteria used by SourceGrouping to determine if a Source should be grouped with tsome others.
+ *
+ */
 class GroupingCriteria {
 public:
   /**
@@ -40,6 +70,7 @@ public:
    */
   virtual ~GroupingCriteria() = default;
 
+  /// Determines if the Source should be grouped with those in the SourceList
   virtual bool shouldGroup(const SourceList& source_list, const Source& source) const = 0;
 };
 
@@ -62,7 +93,10 @@ public:
   SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
       SourceList::SourceListFactory source_list_factory);
 
+  /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<Source>& source) override;
+
+  // Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
   virtual void handleMessage(const ProcessSourcesEvent& source) override;
 
 private:
@@ -74,14 +108,7 @@ private:
 }; /* End of SourceGrouping class */
 
 
-class SelectAllCriteria : public SelectionCriteria {
-public:
-  virtual bool mustBeProcessed(const Source& ) const override {
-    return true;
-  }
-};
-
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

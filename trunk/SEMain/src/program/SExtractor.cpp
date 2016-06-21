@@ -126,32 +126,32 @@ public:
     for (auto& group : group_observer->m_list) {
       std::cout << "#" << std::endl;
       for (auto& source : group->getSources()) {
-          auto& centroid = source->getProperty<PixelCentroid>();
-          std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
-          if (args.count("flag-image-top") == 1) {
-            auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
-            auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
-                    [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
-                      return pair.first == "top";
-                    });
-            auto& top_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // top
-            if (top_flag.getFlag() == 0) {
-              std::cout << "TOP\n";
-            } else {
-              std::cout << "BOTTOM\n";
-            }
+        auto& centroid = source->getProperty<PixelCentroid>();
+        std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
+        if (args.count("flag-image-top") == 1) {
+          auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+          auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
+                  [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
+                    return pair.first == "top";
+                  });
+          auto& top_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // top
+          if (top_flag.getFlag() == 0) {
+            std::cout << "TOP\n";
+          } else {
+            std::cout << "BOTTOM\n";
           }
-          if (args.count("flag-image-points") == 1) {
-            auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
-            auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
-                    [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
-                      return pair.first == "points";
-                    });
-            auto& points_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // points
-            if (points_flag.getFlag() == 1) {
-              std::cout << "FLAGGED!!!!\n";
-            }
+        }
+        if (args.count("flag-image-points") == 1) {
+          auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
+          auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
+                  [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
+                    return pair.first == "points";
+                  });
+          auto& points_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // points
+          if (points_flag.getFlag() == 1) {
+            std::cout << "FLAGGED!!!!\n";
           }
+        }
       }
     }
 

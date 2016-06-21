@@ -17,24 +17,36 @@
 
 namespace SExtractor {
 
+/**
+ * @class PropertyId
+ * @brief Identifier used to set and retrieve properties.
+ *
+ */
+
 class PropertyId {
 public:
+  /// Templated factory method used to create a PropertyId based on the type of a property.
+  /// An optional index parameter is used to make the distinction between several properties of the same type.
   template<typename T, class R = RegistrationManager>
   static PropertyId create(unsigned int index = 0) {
     static unsigned int id = R::instance().getNextPropertyId();
     return PropertyId(id, index);
   }
 
-  /// Comparison operator is needed to be use PropertyId as key in unordered_map
+  /// Equality operator is needed to be use PropertyId as key in unordered_map
   bool operator==(PropertyId other) const {
+    // A PropertyId is equal to another if both their type_id and index are the same
     return m_type_id == other.m_type_id && m_index == other.m_index;
   }
 
+  /// Less than operator needed to use PropertyId as key in a std::map
   bool operator<(PropertyId other) const {
+    // if both type_ids are equal, use index as the tie breaker
     if (m_type_id == other.m_type_id) {
       return m_index < other.m_index;
     }
 
+    // order PropertyIds by their type_ids
     return m_type_id < other.m_type_id;
   }
 

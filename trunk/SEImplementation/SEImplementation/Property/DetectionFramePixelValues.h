@@ -39,7 +39,7 @@ private:
 
 }; /* End of DetectionFramePixelValues class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

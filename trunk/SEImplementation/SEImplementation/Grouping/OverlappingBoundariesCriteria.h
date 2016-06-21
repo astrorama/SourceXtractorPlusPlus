@@ -11,6 +11,12 @@
 
 namespace SExtractor {
 
+/**
+ * @class OverlappingBoundariesCriteria
+ * @brief Groups sources if their bounding boxes overlap (to be used with OverlappingBoundariesSourceList)
+ *
+ */
+
 class OverlappingBoundariesCriteria : public GroupingCriteria {
 public:
   virtual bool shouldGroup(const SourceList& source_list, const Source& source) const override;
@@ -18,7 +24,7 @@ public:
 };
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

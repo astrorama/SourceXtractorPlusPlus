@@ -19,6 +19,6 @@ public:
   virtual ~Property() = default;
 };
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 #endif

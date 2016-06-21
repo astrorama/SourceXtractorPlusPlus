@@ -18,7 +18,7 @@ namespace SExtractor {
 
 /**
  * @class PropertyHolder
- * @brief A class providing a simple implementation of an object with properties
+ * @brief A class providing a simple implementation of a container of properties.
  *
  * @details This class is used to provide a common implementation for objects that have properties
  *
@@ -28,15 +28,13 @@ class PropertyHolder {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~PropertyHolder() = default;
 
   /// Returns a reference to a Property if it is set, if not throws a PropertyNotFoundException
   const Property& getProperty(const PropertyId& property_id) const;
 
-  /// Set a property, overwriting it if necessary
+  /// Sets a property, overwriting it if necessary
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id);
 
   /// Returns true if the property is set
@@ -48,7 +46,7 @@ private:
 
 }; /* End of ObjectWithProperties class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif
