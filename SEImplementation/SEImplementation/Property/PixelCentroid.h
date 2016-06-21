@@ -13,8 +13,7 @@ namespace SExtractor {
 
 /**
  * @class PixelCentroid
- * @brief
- *
+ * @brief The centroid of all the pixels in the source, weighted by their DetectionImage pixel values.
  */
 class PixelCentroid : public Property {
 public:
@@ -26,10 +25,12 @@ public:
 
   PixelCentroid(double centroid_x, double centroid_y) : m_centroid_x(centroid_x), m_centroid_y(centroid_y) {}
 
+  /// X coordinate of centroid
   double getCentroidX() const {
     return m_centroid_x;
   }
 
+  /// Y coordinate of centroid
   double getCentroidY() const {
     return m_centroid_y;
   }
@@ -39,7 +40,7 @@ private:
 
 }; /* End of PixelCentroid class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

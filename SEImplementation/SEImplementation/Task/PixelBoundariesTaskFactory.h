@@ -15,7 +15,7 @@ class PixelBoundariesTask;
 
 /**
  * @class PixelBoundariesTaskFactory
- * @brief
+ * @brief Produces a PixelBoundariesTask
  *
  */
 class PixelBoundariesTaskFactory : public TaskFactory {
@@ -29,6 +29,7 @@ public:
 
   PixelBoundariesTaskFactory();
 
+  // TaskFactory implementation
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
@@ -40,7 +41,7 @@ private:
 }; /* End of PixelBoundariesTaskFactory class */
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

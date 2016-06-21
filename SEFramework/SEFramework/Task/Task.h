@@ -30,7 +30,7 @@ private:
 
 }; /* End of Task class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

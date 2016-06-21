@@ -18,23 +18,25 @@ namespace SExtractor {
 
 /**
  * @class TaskFactory
- * @brief Creates a Task for computing a given property
+ * @brief Creates a Task for computing a given property.
  *
  */
+
 class TaskFactory : public Configurable {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~TaskFactory() = default;
 
+  /// Returns a Task producing a Property corresponding to the given PropertyId
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) = 0;
+
+  /// Returns a vector containing all the PropertyIds of the Properties that this TaskFactory provides Tasks for.
   virtual const std::vector<PropertyId> getProducedProperties() = 0;
   
+  // Provides a default implementation of the Configurable interface that does nothing
   void reportConfigDependencies(Euclid::Configuration::ConfigManager&) override { }
-  
   void configure(Euclid::Configuration::ConfigManager&) override { }
 
 
@@ -42,7 +44,7 @@ private:
 
 }; /* End of TaskFactory class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

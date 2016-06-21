@@ -12,6 +12,12 @@
 
 namespace SExtractor {
 
+/**
+ * @class Observer
+ * @brief Observer interface to be used  with Observable to implement the Observer pattern.
+ *
+ */
+
 template <class T>
 class Observer {
 public:
@@ -21,7 +27,7 @@ public:
 
 /**
  * @class Observable
- * @brief
+ * @brief Implements the Observer pattern. Notifications will be made using a message of type T.
  *
  */
 
@@ -30,19 +36,20 @@ class Observable {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~Observable() = default;
 
+  /// Adds an Observer that will be notified when notify Observers is called
   void addObserver(std::shared_ptr<Observer<T>> observer) {
     m_observers.push_back(observer);
   }
 
+  /// Removes a previously added Observer from the list of Observers to notify
   void removeObserver(std::shared_ptr<Observer<T>> observer) {
     m_observers.remove(observer);
   }
 
+  // Notify all registered Observers with the given message
   void notifyObservers(const T& message) const {
     for (auto& observer : m_observers) {
       observer->handleMessage(message);
@@ -54,7 +61,7 @@ private:
 
 }; /* End of Observable class */
 
-} /* namespace SEUtils */
+} /* namespace SExtractor */
 
 
 #endif

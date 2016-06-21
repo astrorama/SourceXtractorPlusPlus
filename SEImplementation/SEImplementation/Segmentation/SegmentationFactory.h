@@ -15,24 +15,23 @@ namespace SExtractor {
 
 /**
  * @class SegmentationFactory
- * @brief
+ * @brief The SegmentationFactory will provide a Segmentation implementation based on the current configuration
  *
  */
 class SegmentationFactory : public Configurable {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~SegmentationFactory() = default;
 
+  /// Constructor
   SegmentationFactory(std::shared_ptr<TaskRegistry> task_registry);
 
   std::shared_ptr<Segmentation> getSegmentation() const;
   
+  // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
-  
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
@@ -42,7 +41,7 @@ private:
 
 }; /* End of SegmentationFactory class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

@@ -14,7 +14,7 @@ namespace SExtractor {
 
 /**
  * @class DetectionImageConfig
- * @brief
+ * @brief Provides the detection image
  *
  */
 class DetectionImageConfig : public Euclid::Configuration::Configuration {

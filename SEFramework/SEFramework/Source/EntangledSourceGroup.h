@@ -126,7 +126,7 @@ private:
   std::shared_ptr<TaskRegistry> m_task_registry;
 }; /* End of EntangledSourceGroup class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

@@ -14,7 +14,7 @@ namespace SExtractor {
 
 /**
  * @class PixelCoordinate
- * @brief
+ * @brief A pixel coordinate made of two integers m_x and m_y.
  *
  */
 
@@ -27,6 +27,10 @@ struct PixelCoordinate {
     return m_x == other.m_x && m_y == other.m_y;
   }
 
+  bool operator!=(const PixelCoordinate& other) const {
+    return !(*this == other);
+  }
+
   PixelCoordinate operator+(const PixelCoordinate& other) const {
     return PixelCoordinate(m_x + other.m_x, m_y + other.m_y);
   }
@@ -37,7 +41,7 @@ struct PixelCoordinate {
 };
 
 
-} /* namespace SEUtils */
+} /* namespace SExtractor */
 
 
 namespace std {

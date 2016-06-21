@@ -17,7 +17,7 @@ namespace SExtractor {
 
 /**
  * @class AttractorsPartitionStep
- * @brief
+ * @brief Splits sources by identifying an attractor pixel by climbing the values gradient from every pixel.
  *
  */
 class AttractorsPartitionStep : public PartitionStep {
@@ -30,8 +30,7 @@ public:
 
   AttractorsPartitionStep(std::shared_ptr<TaskRegistry> task_registry) : m_task_registry(task_registry) {}
 
-  virtual std::vector<std::shared_ptr<Source>> partition(
-      std::shared_ptr<Source> source) const override;
+  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const override;
 
 private:
   std::shared_ptr<TaskRegistry> m_task_registry;
@@ -47,7 +46,7 @@ private:
 
 }; /* End of AttractorsPartitionStep class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

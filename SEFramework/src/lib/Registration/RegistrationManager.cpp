@@ -21,6 +21,7 @@ RegistrationManager::~RegistrationManager() {
 
 
 void RegistrationManager::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+  // Reports the config dependencies for every TaskFactory that was registered
   for (auto& factory : m_factory_list) {
     factory->reportConfigDependencies(manager);
   }

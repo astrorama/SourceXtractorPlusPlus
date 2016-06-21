@@ -14,9 +14,9 @@ namespace SExtractor {
 
 /**
  * @class DetectionFrameSourceStamp
- * @brief
- *
+ * @brief A copy of the rectangular region of the detection image just large enough to include the whole Source
  */
+
 class DetectionFrameSourceStamp : public Property {
 
 public:
@@ -28,18 +28,18 @@ public:
 
   DetectionFrameSourceStamp(std::shared_ptr<DetectionImage> stamp) : m_stamp(stamp) {}
 
+  // Returns the stamp image
   const DetectionImage& getStamp() const {
     return *m_stamp;
   }
 
 private:
-
   std::shared_ptr<DetectionImage> m_stamp;
 
 }; /* End of DetectionFrameSourceStamp class */
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

@@ -20,9 +20,9 @@ namespace SExtractor {
  * @brief The SourceInterface is an abstract "source" that has properties attached to it.
  *
  * @details
- * Properties are accessed through the templated method getProperty<>().
+ * Properties are normally accessed through the templated method getProperty<>()/setProperty<>().
  *
- * Actual implementation in sub-classed is done by overriding getPropertyImpl()
+ * Actual implementation in sub-classed is done by overriding the virtual getProperty()/setProperty()
  *
  */
 
@@ -57,7 +57,7 @@ public:
 private:
 }; /* End of SourceInterface class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

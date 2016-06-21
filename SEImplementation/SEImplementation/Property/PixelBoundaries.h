@@ -15,7 +15,7 @@ namespace SExtractor {
 
 /**
  * @class PixelBoundaries
- * @brief
+ * @brief The bounding box of all the pixels in the source. Both min and max coordinate are inclusive.
  *
  */
 class PixelBoundaries : public Property {
@@ -45,7 +45,7 @@ private:
 
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

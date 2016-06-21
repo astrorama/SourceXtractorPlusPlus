@@ -35,7 +35,7 @@ private:
 
 }; /* End of GroupTask class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

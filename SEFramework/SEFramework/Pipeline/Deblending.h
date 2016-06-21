@@ -14,20 +14,25 @@
 
 namespace SExtractor {
 
+/**
+ * @class DeblendAction
+ * @brief An action to be applied to a SourceList
+ *
+ */
 class DeblendAction {
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~DeblendAction() = default;
 
+  // Performs the DeblendAction on the SourceList
   virtual void deblend(SourceList& source_list) const = 0;
 };
 
 /**
  * @class Deblending
- * @brief
+ * @brief Performs a number of steps on a SourceList that can add or remove Sources. Each finalized SourceList
+ * is then converted to an EntangledSourceGroup.
  *
  */
 class Deblending : public Observer<std::shared_ptr<SourceList>>,
@@ -35,15 +40,14 @@ class Deblending : public Observer<std::shared_ptr<SourceList>>,
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~Deblending() = default;
 
+  /// Constructor - takes a vector of DeblendAction to be applied, in order, to every SourceList
   Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskRegistry> task_registry);
 
+  /// Handles a new SourceList, applies the DeblendAction and then notifies the observers with an EntangledSourceGroup
   virtual void handleMessage(const std::shared_ptr<SourceList>& source_list) override;
-
 
 private:
   std::vector<std::shared_ptr<DeblendAction>> m_actions;
@@ -51,7 +55,7 @@ private:
 
 }; /* End of Deblending class */
 
-} /* namespace SEFramework */
+} /* namespace SExtractor */
 
 
 #endif

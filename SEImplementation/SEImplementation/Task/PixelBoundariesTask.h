@@ -14,7 +14,7 @@ namespace SExtractor {
 
 /**
  * @class PixelBoundariesTask
- * @brief
+ * @brief Task to produce the PixelBoundaries Property
  *
  */
 class PixelBoundariesTask : public SourceTask {
@@ -34,7 +34,7 @@ private:
 }; /* End of PixelBoundariesTask class */
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

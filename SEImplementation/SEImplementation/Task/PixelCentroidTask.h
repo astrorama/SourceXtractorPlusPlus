@@ -14,7 +14,7 @@ namespace SExtractor {
 
 /**
  * @class PixelCentroidTask
- * @brief
+ * @brief Task to produce the PixelCentroid Property
  *
  */
 
@@ -35,7 +35,7 @@ private:
 }; /* End of PixelCentroidTask class */
 
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

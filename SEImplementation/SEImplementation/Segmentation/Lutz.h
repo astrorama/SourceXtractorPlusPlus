@@ -18,9 +18,9 @@ class PixelGroup;
 
 /**
  * @class Lutz
- * @brief
+ * @brief Implements a Segmentation based on the Lutz algorithm
  */
-class Lutz  : public Segmentation {
+class Lutz : public Segmentation {
 
 public:
 
@@ -41,7 +41,7 @@ private:
 
 }; /* End of Lutz class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif

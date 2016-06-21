@@ -41,7 +41,6 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
   auto merged = mergeAttractors(attractors);
 
   // If we end up with a single group use the original group
-
   if (merged.size() == 1) {
     return { source };
   } else {

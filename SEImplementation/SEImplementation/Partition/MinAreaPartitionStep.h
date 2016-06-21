@@ -14,22 +14,20 @@ namespace SExtractor {
 
 /**
  * @class MinAreaPartitionStep
- * @brief
+ * @brief A PartitionStep that rejects Sources if they do not have at least a given number of pixels
  *
  */
 class MinAreaPartitionStep : public PartitionStep {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~MinAreaPartitionStep() = default;
 
+  /// Constructor
   MinAreaPartitionStep(unsigned int min_pixel_count);
 
-  virtual std::vector<std::shared_ptr<Source>> partition(
-      std::shared_ptr<Source> source) const override;
+  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const override;
 
 
 private:
@@ -38,7 +36,7 @@ private:
 
 }; /* End of MinAreaPartitionStep class */
 
-} /* namespace SEImplementation */
+} /* namespace SExtractor */
 
 
 #endif
