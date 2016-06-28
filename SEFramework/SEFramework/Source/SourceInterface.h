@@ -37,7 +37,6 @@ public:
 
   /// Returns a reference to the requested property. The property may be computed if needed
   /// Throws a PropertyNotFoundException if the property cannot be provided.
-
   virtual const Property& getProperty(const PropertyId& property_id) const = 0;
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
 

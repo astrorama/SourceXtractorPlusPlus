@@ -77,26 +77,38 @@ BOOST_AUTO_TEST_SUITE (PixelRefinement_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( default_behavior_test, RefineSourceFixture ) {
+  // We want to test a Partition with no PartitionStep at all
   Partition partition( {} );
+
+  // Make a source
   auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
 
-  EXPECT_CALL(*mock_observer, handleMessage(source))
-      .Times(1);
+  // We expect to get our Source back unchanged
+  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
 
+  // Add the Observer
   partition.addObserver(mock_observer);
+
+  // And process the Source
   partition.handleMessage(source);
 }
 
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
+  // A Partition with a single PartitionStep that does nothing
   Partition partition( { nop_step } );
+
+  // Make a source
   auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
 
-  EXPECT_CALL(*mock_observer, handleMessage(source))
-      .Times(1);
+  // We expect to get our Source back unchanged
+  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
 
+  // Add the Observer
   partition.addObserver(mock_observer);
+
+  // And process the Source
   partition.handleMessage(source);
 }
 
@@ -105,8 +117,7 @@ BOOST_FIXTURE_TEST_CASE( example_step_test, RefineSourceFixture ) {
   auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
   source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(4)));
 
-  EXPECT_CALL(*mock_observer, handleMessage(_))
-      .Times(4);
+  EXPECT_CALL(*mock_observer, handleMessage(_)).Times(4);
 
   partition.addObserver(mock_observer);
   partition.handleMessage(source);

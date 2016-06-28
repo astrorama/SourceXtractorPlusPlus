@@ -35,11 +35,12 @@ elements_depends_on_subdirs(SEFramework)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEImplementation
-                     src/lib/Partition/*.cpp
-                     src/lib/Segmentation/*.cpp
-                     src/lib/Grouping/*.cpp 
-                     src/lib/Task/*.cpp
-                     src/lib/Configuration/*.cpp
+					 src/lib/Partition/*.cpp
+					 src/lib/Segmentation/*.cpp
+					 src/lib/Grouping/*.cpp
+					 src/lib/Task/*.cpp
+					 src/lib/Configuration/*.cpp
+					 src/lib/Output/*.cpp
                      LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework
                      PUBLIC_HEADERS SEImplementation)
 
@@ -105,6 +106,12 @@ elements_add_unit_test(SegmentationConfig_test tests/src/Configuration/Segmentat
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(ExternalFlagConfig_test tests/src/Configuration/ExternalFlagConfig_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(OutputFactory_test tests/src/Output/OutputFactory_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(OutputConfig_test tests/src/Configuration/OutputConfig_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 

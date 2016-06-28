@@ -22,6 +22,9 @@ class Configurable {
   
 public:
   
+  /// Destructor
+  virtual ~Configurable() = default;
+
   /**
    * @brief Registers all the Configuration dependencies
    * @details
