@@ -4,7 +4,9 @@
  * @author mschefer
  */
 
+#include "SEFramework/Registration/RegistrationManager.h"
 #include "SEFramework/Registration/AutoRegisterer.h"
+#include "SEFramework/Output/OutputColumn.h"
 
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Task/PixelCentroidTask.h"
@@ -29,7 +31,19 @@ const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() 
   return { PropertyId::create<PixelCentroid>() };
 }
 
+void PixelCentroidTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  RegistrationManager::instance().registerOutputColumn(
+      OutputColumn("pixel_centroid_x", PropertyId::create<PixelCentroid>(),
+      [](const Property& prop){return dynamic_cast<const PixelCentroid&>(prop).getCentroidX();}));
+  RegistrationManager::instance().registerOutputColumn(
+      OutputColumn("pixel_centroid_y", PropertyId::create<PixelCentroid>(),
+      [](const Property& prop){return dynamic_cast<const PixelCentroid&>(prop).getCentroidY();}));
+}
+
+void PixelCentroidTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+
+}
+
+
 } // SEImplementation namespace
-
-
 

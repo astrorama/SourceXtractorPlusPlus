@@ -19,6 +19,7 @@
 #include "SEFramework/Pipeline/Partition.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
+#include "SEImplementation/Output/OutputFactory.h"
 
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Property/ExternalFlag.h"
@@ -65,6 +66,7 @@ class SEMain : public Elements::Program {
   
   std::shared_ptr<TaskRegistry> task_registry = RegistrationManager::instance().getTaskRegistry();
   SegmentationFactory segmentation_factory {task_registry};
+  OutputFactory output_factory;
 
 public:
   
@@ -76,6 +78,7 @@ public:
     //task_registry->reportConfigDependencies(config_manager);
     RegistrationManager::instance().reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
+    output_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
   }
 
@@ -84,10 +87,12 @@ public:
     Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
+
     config_manager.initialize(args);
 
     RegistrationManager::instance().configure(config_manager);
     segmentation_factory.configure(config_manager);
+    output_factory.configure(config_manager);
     
     auto source_observer = std::make_shared<SourceObserver>();
     auto group_observer = std::make_shared<GroupObserver>();
@@ -95,7 +100,6 @@ public:
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
     // Segmentation
-
     auto segmentation = segmentation_factory.getSegmentation();
 
     auto min_area_step = std::make_shared<MinAreaPartitionStep>(10);
@@ -107,11 +111,13 @@ public:
         SourceList::getFactory<OverlappingBoundariesSourceList>());
     auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>(), task_registry);
 
+    std::shared_ptr<Output> output = output_factory.getOutput();
+
     // Link together the pipeline's steps
     segmentation->addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
-    deblending->addObserver(group_observer);
+    deblending->addObserver(output);
 
     // Process the image
     segmentation->scan(*detection_image);
@@ -119,6 +125,17 @@ public:
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
+    logger.info("#");
+    logger.info("# Exiting mainMethod()");
+    logger.info("#");
+
+    return Elements::ExitCode::OK;
+  }
+
+};
+
+
+/*
     std::cout << group_observer->m_list.size() << std::endl;
 
     std::cout << std::setprecision(10);
@@ -157,14 +174,7 @@ public:
 
     std::cout << std::endl;
 
-    logger.info("#");
-    logger.info("# Exiting mainMethod()");
-    logger.info("#");
-
-    return Elements::ExitCode::OK;
-  }
-
-};
+ */
 
 MAIN_FOR(SEMain)
 

@@ -25,7 +25,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 
   switch (segmentation_config.getAlgorithmOption()) {
     case SegmentationConfig::Algorithm::LUTZ:
-      m_task = std::make_shared<Lutz>(m_task_registry);
+      m_segmentation = std::make_shared<Lutz>(m_task_registry);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
@@ -34,7 +34,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::getSegmentation() const {
-  return m_task;
+  return m_segmentation;
 }
 
 

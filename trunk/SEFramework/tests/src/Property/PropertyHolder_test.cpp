@@ -89,7 +89,6 @@ BOOST_FIXTURE_TEST_CASE( setGetProperty_SameType_test, ObjectWithPropertiesFixtu
   object.setProperty(std::unique_ptr<SimpleStringProperty>(new SimpleStringProperty(test_string_2)),
       PropertyId::create<SimpleStringProperty>(1) );
 
-
   // check that we can access them and that they have their correct values
   auto string_property = dynamic_cast<const SimpleStringProperty&>(
       object.getProperty(PropertyId::create<SimpleStringProperty>()));

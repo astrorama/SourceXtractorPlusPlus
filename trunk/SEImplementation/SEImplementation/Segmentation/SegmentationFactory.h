@@ -37,7 +37,7 @@ public:
 private:
   
   std::shared_ptr<TaskRegistry> m_task_registry;
-  std::shared_ptr<Segmentation> m_task;
+  std::shared_ptr<Segmentation> m_segmentation;
 
 }; /* End of SegmentationFactory class */
 

@@ -1,18 +1,18 @@
 /**
- * @file tests/src/ExternalFlag_test.cpp
- * @date 06/13/16
- * @author nikoapos
+ * @file tests/src/OutputFactory_test.cpp
+ * @date 06/23/16
+ * @author mschefer
  */
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEImplementation/Property/ExternalFlag.h"
+#include "SEImplementation/Output/OutputFactory.h"
 
 using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (ExternalFlag_test)
+BOOST_AUTO_TEST_SUITE (OutputFactory_test)
 
 //-----------------------------------------------------------------------------
 

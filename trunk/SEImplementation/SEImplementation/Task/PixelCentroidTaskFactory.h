@@ -31,6 +31,10 @@ public:
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
   virtual const std::vector<PropertyId> getProducedProperties() override;
 
+  // Configurable implementation
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
+
 private:
   std::shared_ptr<PixelCentroidTask> m_pixel_centroid_task;
 };
