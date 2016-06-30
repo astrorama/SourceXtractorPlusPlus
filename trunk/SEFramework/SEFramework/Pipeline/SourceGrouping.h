@@ -77,7 +77,7 @@ public:
 /**
  * @class SourceGrouping
  * @brief SourceGrouping takes Source, groups them together according to its GroupingCriteria and stores them.
- *  When a ProcessSourcesEvent is received the sources that need to be processed are output togther with the
+ *  When a ProcessSourcesEvent is received the sources that need to be processed are output together with the
  *  sources they are grouped with as a SourceList.
  *
  */
