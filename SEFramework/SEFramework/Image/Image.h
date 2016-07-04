@@ -33,6 +33,10 @@ public:
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const = 0;
   
+  T getValue(PixelCoordinate pc) const {
+    return getValue(pc.m_x, pc.m_y);
+  }
+
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
   

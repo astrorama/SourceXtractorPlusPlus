@@ -26,6 +26,7 @@ public:
    */
   virtual ~DetectionFrameSourceStampTask() = default;
 
+  /// Constructor
   DetectionFrameSourceStampTask(std::shared_ptr<DetectionImage> image) : m_image(image) {}
 
   virtual void computeProperties(Source& source) const override;

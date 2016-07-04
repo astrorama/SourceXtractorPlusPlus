@@ -31,6 +31,7 @@ public:
   SubtractImage(std::shared_ptr<Image<T>> image, T value_to_subtract)
       : m_image(image), m_value_to_subtract(value_to_subtract) {};
 
+  using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) - m_value_to_subtract;
   }

@@ -29,5 +29,3 @@ void PixelBoundariesTask::computeProperties(Source& source) const {
 
 } // SEImplementation namespace
 
-
-

@@ -8,6 +8,8 @@
 #define _SEFRAMEWORK_IMAGE_VECTORIMAGE_H
 
 #include <vector>
+#include <cassert>
+
 #include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
@@ -31,8 +33,12 @@ class VectorImage : public Image<T> {
 
 public:
 
-  VectorImage(int m_width, int m_height, std::vector<T> m_data) :
-          m_width(m_width), m_height(m_height), m_data(std::move(m_data)) {
+  VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height) {
+  }
+
+  VectorImage(int width, int height, std::vector<T> data) :
+      m_width(width), m_height(height), m_data(std::move(data)) {
+    assert(m_data.size() == std::size_t(width * height));
   }
   
   int getHeight() const override {
@@ -43,10 +49,19 @@ public:
     return m_width;
   }
 
+  using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_data[x + y * m_width];
   }
   
+  void setValue(int x, int y, T value) {
+    m_data[x + y * m_width] = value;
+  }
+
+  void setValue(PixelCoordinate pc, T value) {
+    setValue(pc.m_x, pc.m_y, value);
+  }
+
   const std::vector<T>& getData() const {
     return m_data;
   }
