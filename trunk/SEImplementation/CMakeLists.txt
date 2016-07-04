@@ -87,9 +87,6 @@ elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/Ove
 elements_add_unit_test(OverlappingBoundariesSourceList_test tests/src/Grouping/OverlappingBoundariesSourceList_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(SegmentationFactory_test tests/src/Segmentation/SegmentationFactory_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
 elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
@@ -97,21 +94,6 @@ elements_add_unit_test(ExternalFlagTask_test tests/src/Task/ExternalFlagTask_tes
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(ExternalFlagTaskFactory_test tests/src/Task/ExternalFlagTaskFactory_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(DetectionImageConfig_test tests/src/Configuration/DetectionImageConfig_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(SegmentationConfig_test tests/src/Configuration/SegmentationConfig_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(ExternalFlagConfig_test tests/src/Configuration/ExternalFlagConfig_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(OutputFactory_test tests/src/Output/OutputFactory_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(OutputConfig_test tests/src/Configuration/OutputConfig_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 
