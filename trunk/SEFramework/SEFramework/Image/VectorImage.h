@@ -34,10 +34,12 @@ class VectorImage : public Image<T> {
 public:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height) {
+    assert(width > 0 && height > 0);
   }
 
   VectorImage(int width, int height, std::vector<T> data) :
       m_width(width), m_height(height), m_data(std::move(data)) {
+    assert(width > 0 && height > 0);
     assert(m_data.size() == std::size_t(width * height));
   }
   

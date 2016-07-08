@@ -23,7 +23,7 @@ class TaskRegistry;
  * @class Source
  * @brief Source containing pixel detection information.
  *
- * @details Provides getProperty() and setProperty implementations
+ * @details Provides getProperty() and setProperty() implementations
  *
  */
 
@@ -59,10 +59,9 @@ public:
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
-  PropertyHolder m_property_holder;
-  std::vector<PixelCoordinate> m_pixels;
-
   std::shared_ptr<const TaskRegistry> m_task_registry;
+  std::vector<PixelCoordinate> m_pixels;
+  PropertyHolder m_property_holder;
 }; /* End of Source class */
 
 } /* namespace SExtractor */

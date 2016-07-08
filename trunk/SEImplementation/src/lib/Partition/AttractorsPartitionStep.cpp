@@ -5,11 +5,11 @@
  */
 #include <limits>
 
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/History/SourceHistory.h"
+
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Property/PixelBoundaries.h"
-
-#include "SEFramework/Image/Image.h"
-
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
 namespace SExtractor {
@@ -46,7 +46,9 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
   } else {
     std::vector<std::shared_ptr<Source>> sources;
     for (auto& source_pixels : merged) {
-      sources.push_back(std::make_shared<Source>(source_pixels, m_task_registry));
+      auto new_source = std::make_shared<Source>(source_pixels, m_task_registry);
+      new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
+      sources.push_back(new_source);
     }
     return sources;
   }

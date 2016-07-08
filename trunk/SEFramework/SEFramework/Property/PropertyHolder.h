@@ -31,6 +31,15 @@ public:
   /// Destructor
   virtual ~PropertyHolder() = default;
 
+  // removes copy/move constructors and assignment operators
+  PropertyHolder(const PropertyHolder&) = delete;
+  PropertyHolder& operator=(const PropertyHolder&) = delete;
+  PropertyHolder(PropertyHolder&&) = delete;
+  PropertyHolder& operator=(PropertyHolder&&) = delete;
+
+  /// Constructors
+  PropertyHolder() {}
+
   /// Returns a reference to a Property if it is set, if not throws a PropertyNotFoundException
   const Property& getProperty(const PropertyId& property_id) const;
 
