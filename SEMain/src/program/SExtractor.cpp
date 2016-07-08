@@ -75,7 +75,6 @@ public:
 
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
-    //task_registry->reportConfigDependencies(config_manager);
     RegistrationManager::instance().reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
@@ -133,48 +132,6 @@ public:
   }
 
 };
-
-
-/*
-    std::cout << group_observer->m_list.size() << std::endl;
-
-    std::cout << std::setprecision(10);
-
-    for (auto& group : group_observer->m_list) {
-      std::cout << "#" << std::endl;
-      for (auto& source : group->getSources()) {
-        auto& centroid = source->getProperty<PixelCentroid>();
-        std::cout << centroid.getCentroidX() << " / " << centroid.getCentroidY() << std::endl;
-        if (args.count("flag-image-top") == 1) {
-          auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
-          auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
-                  [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
-                    return pair.first == "top";
-                  });
-          auto& top_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // top
-          if (top_flag.getFlag() == 0) {
-            std::cout << "TOP\n";
-          } else {
-            std::cout << "BOTTOM\n";
-          }
-        }
-        if (args.count("flag-image-points") == 1) {
-          auto& flag_info_list = config_manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
-          auto it = std::find_if(flag_info_list.begin(), flag_info_list.end(),
-                  [](const std::pair<std::string, ExternalFlagConfig::FlagInfo>& pair) {
-                    return pair.first == "points";
-                  });
-          auto& points_flag = source->getProperty<ExternalFlag>(it - flag_info_list.begin()); // points
-          if (points_flag.getFlag() == 1) {
-            std::cout << "FLAGGED!!!!\n";
-          }
-        }
-      }
-    }
-
-    std::cout << std::endl;
-
- */
 
 MAIN_FOR(SEMain)
 

@@ -13,8 +13,8 @@
 namespace SExtractor {
 
 Source::Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry) :
-    m_pixels(std::move(pixels)),
-    m_task_registry(task_registry) {
+    m_task_registry(task_registry),
+    m_pixels(std::move(pixels)) {
 }
 
 const Property& Source::getProperty(const PropertyId& property_id) const {
@@ -38,6 +38,7 @@ void Source::setProperty(std::unique_ptr<Property> property, const PropertyId& p
   // just forward to the ObjectWithProperties implementation
   m_property_holder.setProperty(std::move(property), property_id);
 }
+
 
 } // SEFramework namespace
 

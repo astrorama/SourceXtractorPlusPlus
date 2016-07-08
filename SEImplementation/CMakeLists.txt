@@ -90,12 +90,6 @@ elements_add_unit_test(OverlappingBoundariesSourceList_test tests/src/Grouping/O
 elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(ExternalFlagTask_test tests/src/Task/ExternalFlagTask_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
-elements_add_unit_test(ExternalFlagTaskFactory_test tests/src/Task/ExternalFlagTaskFactory_test.cpp 
-                     LINK_LIBRARIES SEImplementation
-                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

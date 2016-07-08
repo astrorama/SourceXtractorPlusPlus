@@ -47,7 +47,6 @@ void Lutz::publishGroup(PixelGroup& pixel_group) {
 }
 
 void Lutz::scan(const DetectionImage& image) {
-
   int width = image.getWidth() + 1; // one extra pixel
 
   std::vector<LutzMarker> marker(image.getWidth()+1);
@@ -93,7 +92,7 @@ void Lutz::scan(const DetectionImage& image) {
             // Start of completely new pixel group
             ps_stack.push_back(ps);
             ps = LutzStatus::COMPLETE;
-            group_stack.push_back(PixelGroup());
+            group_stack.emplace_back();
             marker[x] = LutzMarker::S;
             group_stack.back().start = x;
           }
@@ -111,7 +110,7 @@ void Lutz::scan(const DetectionImage& image) {
             // The S marker is the first encounter with this group
             ps_stack.push_back(LutzStatus::COMPLETE);
 
-            group_stack.push_back(inc_group_map.at(x));
+            group_stack.emplace_back(std::move(inc_group_map.at(x)));
             inc_group_map.erase(x);
 
             group_stack.back().start = -1;
@@ -131,7 +130,7 @@ void Lutz::scan(const DetectionImage& image) {
           if (cs == LutzStatus::OBJECT && ps == LutzStatus::COMPLETE) {
             // Current group is joined to preceding group
             ps_stack.pop_back();
-            auto old_group = group_stack.back();
+            auto old_group = std::move(group_stack.back());
             group_stack.pop_back();
             group_stack.back().merge_pixel_list(old_group);
 
@@ -156,7 +155,7 @@ void Lutz::scan(const DetectionImage& image) {
 
           if (cs == LutzStatus::NONOBJECT && ps == LutzStatus::COMPLETE) {
             // If no more of current group to come then finish it
-            auto old_group = group_stack.back();
+            auto old_group = std::move(group_stack.back());
             group_stack.pop_back();
             if (old_group.start == -1) {
               // Pixel group completed

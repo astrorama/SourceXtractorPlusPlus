@@ -13,7 +13,7 @@
 namespace SExtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
-  return std::unique_ptr<Output>(new TextOutput(m_output_columns));
+  return std::unique_ptr<Output>(new TextOutput(m_output_columns, std::cout));
 }
 
 void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
