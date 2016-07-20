@@ -5,6 +5,8 @@
  */
 
 #include "SEFramework/Registration/AutoRegisterer.h"
+#include "SEFramework/Registration/RegistrationManager.h"
+#include "SEFramework/Output/OutputColumn.h"
 
 #include "SEImplementation/Configuration/ExternalFlagConfig.h"
 #include "SEImplementation/Property/ExternalFlag.h"
@@ -41,10 +43,16 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
   auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
   for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
     auto& pair = flag_info_list.at(i);
+    auto property_id = PropertyId::create<ExternalFlag>(i);
+    RegistrationManager::instance().registerOutputColumn(
+        OutputColumn("external_flag_"+pair.first, property_id,
+        [](const Property& prop){return dynamic_cast<const ExternalFlag&>(prop).getFlag();}));
+    RegistrationManager::instance().registerOutputColumn(
+        OutputColumn("external_flag_"+pair.first+"_count", property_id,
+        [](const Property& prop){return dynamic_cast<const ExternalFlag&>(prop).getCount();}));
     switch (pair.second.second) {
       case ExternalFlagConfig::Type::OR:
       {
-        auto property_id = PropertyId::create<ExternalFlag>(i);
         m_task_map[property_id] = std::shared_ptr<SourceTask>{
           new ExternalFlagTaskOr(pair.second.first, i)
         };
@@ -52,7 +60,6 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
       }
       case ExternalFlagConfig::Type::AND:
       {
-        auto property_id = PropertyId::create<ExternalFlag>(i);
         m_task_map[property_id] = std::shared_ptr<SourceTask>{
           new ExternalFlagTaskAnd(pair.second.first, i)
         };
@@ -60,7 +67,6 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
       }
       case ExternalFlagConfig::Type::MIN:
       {
-        auto property_id = PropertyId::create<ExternalFlag>(i);
         m_task_map[property_id] = std::shared_ptr<SourceTask>{
           new ExternalFlagTaskMin(pair.second.first, i)
         };
@@ -68,7 +74,6 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
       }
       case ExternalFlagConfig::Type::MAX:
       {
-        auto property_id = PropertyId::create<ExternalFlag>(i);
         m_task_map[property_id] = std::shared_ptr<SourceTask>{
           new ExternalFlagTaskMax(pair.second.first, i)
         };
@@ -76,7 +81,6 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
       }
       case ExternalFlagConfig::Type::MOST:
       {
-        auto property_id = PropertyId::create<ExternalFlag>(i);
         m_task_map[property_id] = std::shared_ptr<SourceTask>{
           new ExternalFlagTaskMost(pair.second.first, i)
         };
