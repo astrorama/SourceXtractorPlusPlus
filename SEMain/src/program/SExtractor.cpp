@@ -33,6 +33,8 @@
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/ExternalFlagConfig.h"
 
+#include "SEMain/SExtractorConfig.h"
+
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 
@@ -75,6 +77,7 @@ public:
 
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
+    config_manager.registerConfiguration<SExtractorConfig>();
     RegistrationManager::instance().reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
@@ -92,6 +95,14 @@ public:
     RegistrationManager::instance().configure(config_manager);
     segmentation_factory.configure(config_manager);
     output_factory.configure(config_manager);
+    
+    // Check if the user just wants to print the available output columns
+    if (config_manager.getConfiguration<SExtractorConfig>().listOutputColumns()) {
+      for (auto& pair : RegistrationManager::instance().getOutputColumns()) {
+        std::cout << pair.first << '\n';
+      }
+      return Elements::ExitCode::OK;
+    }
     
     auto source_observer = std::make_shared<SourceObserver>();
     auto group_observer = std::make_shared<GroupObserver>();
@@ -123,10 +134,6 @@ public:
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
-
-    logger.info("#");
-    logger.info("# Exiting mainMethod()");
-    logger.info("#");
 
     return Elements::ExitCode::OK;
   }
