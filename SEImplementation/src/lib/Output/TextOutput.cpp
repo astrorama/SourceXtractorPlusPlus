@@ -27,6 +27,9 @@ void TextOutput::outputSource(const SourceInterface& source) {
     } else if (any_value.type() == typeid(int)) {
       auto int_value = boost::any_cast<int>(column.getValue(source));
       m_output_stream << int_value << " ";
+    } else if (any_value.type() == typeid(std::int64_t)) {
+      auto int_value = boost::any_cast<std::int64_t>(any_value);
+      m_output_stream << int_value << " ";
     }
   }
   m_output_stream << std::endl;
