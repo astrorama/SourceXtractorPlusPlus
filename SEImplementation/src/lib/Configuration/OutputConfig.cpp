@@ -22,9 +22,18 @@ OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id) {
 
 std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getProgramOptions() {
   return { {"Output columns", {
-      {OUTPUT_COLUMNS.c_str(), po::value<std::string>()->default_value(""),
+      {OUTPUT_COLUMNS.c_str(), po::value<std::string>()->required(),
           "Comma-separated list of output columns"},
   }}};
+}
+
+void OutputConfig::preInitialize(const UserValues& args) {
+  // In pre initialize phase we do a fast check that the use gave at least one
+  // column name
+  if (args.at(OUTPUT_COLUMNS).as<std::string>().size() == 0) {
+    throw Elements::Exception() << OUTPUT_COLUMNS << " option must contain at "
+            << "least one column name";
+  }
 }
 
 void OutputConfig::initialize(const UserValues& args) {
@@ -33,7 +42,6 @@ void OutputConfig::initialize(const UserValues& args) {
   boost::char_separator<char> separator(",");
   boost::tokenizer<boost::char_separator<char>> tok(output_columns_string, separator);
 
-  std::vector<std::string> output_columns_names;
   std::copy(tok.begin(), tok.end(), back_inserter(m_output_columns));
 }
 
