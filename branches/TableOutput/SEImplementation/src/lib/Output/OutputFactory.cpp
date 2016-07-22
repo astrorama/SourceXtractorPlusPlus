@@ -23,6 +23,9 @@ void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManage
 void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
   auto& output_columns_names = output_config.getOutputColumns();
+  if (output_columns_names.size() == 0) {
+    throw Elements::Exception() << "No output columns are requested";
+  }
 
   auto& registered_columns = RegistrationManager::instance().getOutputColumns();
   for (auto& column_name : output_columns_names) {
