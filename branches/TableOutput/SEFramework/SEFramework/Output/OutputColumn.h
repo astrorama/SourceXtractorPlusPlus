@@ -9,7 +9,6 @@
 #define _SEFRAMEWORK_OUTPUT_OUTPUTCOLUMN_H_
 
 #include "Table/Row.h"
-#include <boost/any.hpp>
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Source/SourceInterface.h"
 
@@ -19,8 +18,7 @@ class OutputColumn {
   
 public:
   
-//  using cell_type = Euclid::Table::Row::cell_type;
-  using cell_type = boost::any;
+  using cell_type = Euclid::Table::Row::cell_type;
 
   template<typename PropertyType>
   using GetterFunction = std::function<cell_type (const PropertyType&)>;

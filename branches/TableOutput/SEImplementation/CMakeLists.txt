@@ -15,6 +15,7 @@ elements_subdir(SEImplementation)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
+elements_depends_on_subdirs(Table) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 
@@ -41,7 +42,7 @@ elements_add_library(SEImplementation
 					 src/lib/Task/*.cpp
 					 src/lib/Configuration/*.cpp
 					 src/lib/Output/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
