@@ -21,8 +21,12 @@ public:
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
   
   virtual ~TableOutput() {
-    Euclid::Table::Table table {m_rows};
-    m_table_handler(table);
+    if (!m_rows.empty()) {
+      Euclid::Table::Table table {m_rows};
+      m_table_handler(table);
+    } else {
+      std::cout << "NO SOURCES DETECTED\n";
+    }
   }
   
   TableOutput(std::vector<OutputColumn> output_columns, TableHandler table_handler) 
