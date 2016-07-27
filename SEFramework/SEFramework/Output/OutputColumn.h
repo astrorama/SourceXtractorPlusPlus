@@ -8,27 +8,34 @@
 #ifndef _SEFRAMEWORK_OUTPUT_OUTPUTCOLUMN_H_
 #define _SEFRAMEWORK_OUTPUT_OUTPUTCOLUMN_H_
 
-#include <boost/any.hpp>
+#include "Table/Row.h"
 #include "SEFramework/Property/PropertyId.h"
-#include "SEFramework/Property/Property.h"
 #include "SEFramework/Source/SourceInterface.h"
 
 namespace SExtractor {
 
 class OutputColumn {
+  
 public:
+  
+  using cell_type = Euclid::Table::Row::cell_type;
 
-  using GetterFunction = std::function<boost::any (const Property&)>;
+  template<typename PropertyType>
+  using GetterFunction = std::function<cell_type (const PropertyType&)>;
 
   virtual ~OutputColumn() = default;
 
-  OutputColumn(std::string column_name, PropertyId property_id, GetterFunction getter) :
-      m_column_name(column_name), m_property_id(property_id), m_getter(getter) {
+  template<typename PropertyType>
+  OutputColumn(std::string column_name, GetterFunction<PropertyType> getter, std::size_t index=0) :
+      m_column_name(column_name),
+      m_getter([getter, index](const SourceInterface& source) {
+        auto& property = source.getProperty<PropertyType>(index);
+        return getter(property);
+      }) {
   }
 
-  boost::any getValue(const SourceInterface& source) const {
-    auto& property = source.getProperty(m_property_id);
-    return m_getter(property);
+  cell_type getValue(const SourceInterface& source) const {
+    return m_getter(source);
   }
 
   const std::string& getColumnName() const {
@@ -37,8 +44,7 @@ public:
 
 protected:
   std::string m_column_name;
-  PropertyId m_property_id;
-  GetterFunction m_getter;
+  std::function<cell_type (const SourceInterface&)> m_getter;
 };
 
 

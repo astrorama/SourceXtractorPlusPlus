@@ -33,18 +33,14 @@ const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties(
 }
 
 void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  RegistrationManager::instance().registerOutputColumn(
-      OutputColumn("pixel_boundaries_min_x", PropertyId::create<PixelBoundaries>(),
-      [](const Property& prop){return dynamic_cast<const PixelBoundaries&>(prop).getMin().m_x;}));
-  RegistrationManager::instance().registerOutputColumn(
-      OutputColumn("pixel_boundaries_min_y", PropertyId::create<PixelBoundaries>(),
-      [](const Property& prop){return dynamic_cast<const PixelBoundaries&>(prop).getMin().m_y;}));
-  RegistrationManager::instance().registerOutputColumn(
-      OutputColumn("pixel_boundaries_max_x", PropertyId::create<PixelBoundaries>(),
-      [](const Property& prop){return dynamic_cast<const PixelBoundaries&>(prop).getMax().m_x;}));
-  RegistrationManager::instance().registerOutputColumn(
-      OutputColumn("pixel_boundaries_max_y", PropertyId::create<PixelBoundaries>(),
-      [](const Property& prop){return dynamic_cast<const PixelBoundaries&>(prop).getMax().m_y;}));
+  OutputColumn::GetterFunction<PixelBoundaries> min_x {[](const PixelBoundaries& prop){return prop.getMin().m_x;}};
+  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_min_x", min_x));
+  OutputColumn::GetterFunction<PixelBoundaries> min_y {[](const PixelBoundaries& prop){return prop.getMin().m_y;}};
+  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_min_y", min_y));
+  OutputColumn::GetterFunction<PixelBoundaries> max_x {[](const PixelBoundaries& prop){return prop.getMax().m_x;}};
+  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_max_x", max_x));
+  OutputColumn::GetterFunction<PixelBoundaries> max_y {[](const PixelBoundaries& prop){return prop.getMax().m_y;}};
+  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_max_y", max_y));
 }
 
 void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {

@@ -33,7 +33,6 @@ public:
 
   // Configurable implementation
   void configure(Euclid::Configuration::ConfigManager& manager) override;
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
   std::shared_ptr<PixelCentroidTask> m_pixel_centroid_task;
