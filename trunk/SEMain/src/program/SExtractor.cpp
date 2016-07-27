@@ -93,8 +93,6 @@ public:
     config_manager.initialize(args);
 
     RegistrationManager::instance().configure(config_manager);
-    segmentation_factory.configure(config_manager);
-    output_factory.configure(config_manager);
     
     // Check if the user just wants to print the available output columns
     if (config_manager.getConfiguration<SExtractorConfig>().listOutputColumns()) {
@@ -103,6 +101,9 @@ public:
       }
       return Elements::ExitCode::OK;
     }
+    
+    segmentation_factory.configure(config_manager);
+    output_factory.configure(config_manager);
     
     auto source_observer = std::make_shared<SourceObserver>();
     auto group_observer = std::make_shared<GroupObserver>();

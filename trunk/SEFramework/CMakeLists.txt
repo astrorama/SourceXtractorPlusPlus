@@ -14,6 +14,7 @@ elements_subdir(SEFramework)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(Table)
 elements_depends_on_subdirs(SEUtils)
 
 #===============================================================================
@@ -37,7 +38,7 @@ find_package(CCfits)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEFramework src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp
-                     LINK_LIBRARIES ElementsKernel CCfits SEUtils
+                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table
                      INCLUDE_DIRS SEUtils CCfits
                      PUBLIC_HEADERS SEFramework)
                      

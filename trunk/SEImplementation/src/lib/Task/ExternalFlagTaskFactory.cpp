@@ -40,16 +40,15 @@ const std::vector<PropertyId> ExternalFlagTaskFactory::getProducedProperties() {
 
 
 void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  // Loop through the different flag infos and create a task for each. The i
+  // will be the index of the flag property.
   auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
   for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
     auto& pair = flag_info_list.at(i);
     auto property_id = PropertyId::create<ExternalFlag>(i);
-    RegistrationManager::instance().registerOutputColumn(
-        OutputColumn("external_flag_"+pair.first, property_id,
-        [](const Property& prop){return dynamic_cast<const ExternalFlag&>(prop).getFlag();}));
-    RegistrationManager::instance().registerOutputColumn(
-        OutputColumn("external_flag_"+pair.first+"_count", property_id,
-        [](const Property& prop){return dynamic_cast<const ExternalFlag&>(prop).getCount();}));
+    
+    // Here we use an ugly switch for choosing the correct type of the task to
+    // instantiate.
     switch (pair.second.second) {
       case ExternalFlagConfig::Type::OR:
       {
@@ -87,6 +86,13 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
         break;
       }
     }
+    
+    // Register the catalog columns which can be produced from the ExternalFlag
+    // property. These are two, one for the flag value and one for the count.
+    OutputColumn::GetterFunction<ExternalFlag> flag_getter {[](const ExternalFlag& prop){return prop.getFlag();}};
+    RegistrationManager::instance().registerOutputColumn(OutputColumn("IMAFLAGS_ISO_"+pair.first, flag_getter, i));
+    OutputColumn::GetterFunction<ExternalFlag> count_getter {[](const ExternalFlag& prop){return prop.getCount();}};
+    RegistrationManager::instance().registerOutputColumn(OutputColumn("NIMAFLAGS_ISO_"+pair.first, count_getter, i));
   }
 }
 
