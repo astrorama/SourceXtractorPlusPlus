@@ -45,6 +45,7 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
   auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
   for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
     auto& pair = flag_info_list.at(i);
+    m_instance_names.emplace_back(pair.first);
     auto property_id = PropertyId::create<ExternalFlag>(i);
     
     // Here we use an ugly switch for choosing the correct type of the task to
@@ -96,6 +97,9 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
   }
 }
 
+void ExternalFlagTaskFactory::registerPropertyInstances(OutputRegistry& output_registry) {
+  output_registry.registerPropertyInstances<ExternalFlag>(m_instance_names);
+}
 
 } // SExtractor namespace
 

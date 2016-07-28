@@ -17,6 +17,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
+#include "SEFramework/Registration/OutputRegistry.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -37,6 +38,7 @@
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
+#include "SEImplementation/Output/TextOutput.h"
 
 namespace po = boost::program_options;
 using namespace SExtractor;
@@ -128,6 +130,8 @@ public:
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
+    
+    deblending->addObserver(std::make_shared<TextOutput>(std::cout));
 
     // Process the image
     segmentation->scan(*detection_image);

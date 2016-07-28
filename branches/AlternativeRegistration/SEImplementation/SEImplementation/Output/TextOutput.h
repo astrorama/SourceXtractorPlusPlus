@@ -19,12 +19,11 @@ class TextOutput : public Output {
 public:
   virtual ~TextOutput() = default;
 
-  TextOutput(std::vector<OutputColumn> output_columns, std::ostream& output_stream);
+  TextOutput(std::ostream& output_stream);
 
   virtual void outputSource(const SourceInterface& source) override;
 
 private:
-  std::vector<OutputColumn> m_output_columns;
   std::ostream& m_output_stream;
 };
 

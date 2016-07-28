@@ -9,6 +9,7 @@
 #include "SEFramework/Output/OutputColumn.h"
 
 #include "SEFramework/Registration/RegistrationManager.h"
+#include "SEFramework/Registration/OutputRegistry.h"
 
 namespace SExtractor {
 
@@ -33,6 +34,7 @@ void RegistrationManager::configure(Euclid::Configuration::ConfigManager& manage
   for (auto& factory : m_factory_list) {
     // First we configure the factory, so it will know which properties it produces
     factory->configure(manager);
+    factory->registerPropertyInstances(output_registry);
 
     // Then we register it in the TaskRegistry
     m_task_registry->registerTaskFactory(std::move(factory));
