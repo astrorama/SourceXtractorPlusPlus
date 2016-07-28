@@ -32,7 +32,7 @@ const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties(
   return { PropertyId::create<PixelBoundaries>() };
 }
 
-void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
   OutputColumn::GetterFunction<PixelBoundaries> min_x {[](const PixelBoundaries& prop){return prop.getMin().m_x;}};
   RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_min_x", min_x));
   OutputColumn::GetterFunction<PixelBoundaries> min_y {[](const PixelBoundaries& prop){return prop.getMin().m_y;}};
@@ -43,7 +43,7 @@ void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager&
   RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_boundaries_max_y", max_y));
 }
 
-void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) {
 
 }
 
