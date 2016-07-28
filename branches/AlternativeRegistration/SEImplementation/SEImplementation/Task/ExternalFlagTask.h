@@ -36,7 +36,7 @@ public:
   
   ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance);
 
-  void computeProperties(Source& source) const override;
+  void computeProperties(PixelSourceInterface& source) const override;
 
 private:
   

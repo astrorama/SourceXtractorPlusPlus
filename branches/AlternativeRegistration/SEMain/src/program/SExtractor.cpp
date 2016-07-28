@@ -86,7 +86,6 @@ public:
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
 

@@ -12,7 +12,7 @@
 
 namespace SExtractor {
 
-void DetectionFrameSourceStampTask::computeProperties(Source& source) const {
+void DetectionFrameSourceStampTask::computeProperties(PixelSourceInterface& source) const {
   const auto& boundaries = source.getProperty<PixelBoundaries>();
   const auto& min = boundaries.getMin();
   const auto& max = boundaries.getMax();

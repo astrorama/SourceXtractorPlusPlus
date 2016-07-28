@@ -15,7 +15,7 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 
 template<typename Combine>
-void ExternalFlagTask<Combine>::computeProperties(Source& source) const {
+void ExternalFlagTask<Combine>::computeProperties(PixelSourceInterface& source) const {
   std::vector<FlagImage::PixelType> pixel_flags{};
   for (auto& coords : source.getPixels()) {
     pixel_flags.push_back(m_flag_image->getValue(coords.m_x, coords.m_y));

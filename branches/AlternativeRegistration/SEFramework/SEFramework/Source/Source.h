@@ -12,6 +12,7 @@
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Source/PixelSourceInterface.h"
 
 #include "SEFramework/History/History.h"
 
@@ -27,7 +28,7 @@ class TaskRegistry;
  *
  */
 
-class Source : public SourceInterface, public History {
+class Source : public PixelSourceInterface, public History {
 
 public:
 
@@ -45,11 +46,6 @@ public:
 
   /// Constructor
   Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
-
-  /// Gets a vector of PixelCoordinates for all the pixels in this source
-  const std::vector<PixelCoordinate>& getPixels() const {
-    return m_pixels;
-  }
 
   // Implementation of SourceInterface
   //
@@ -70,7 +66,6 @@ public:
 
 private:
   std::shared_ptr<const TaskRegistry> m_task_registry;
-  std::vector<PixelCoordinate> m_pixels;
   PropertyHolder m_property_holder;
 }; /* End of Source class */
 

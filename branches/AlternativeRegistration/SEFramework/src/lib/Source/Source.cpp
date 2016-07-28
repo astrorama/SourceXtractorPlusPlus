@@ -13,8 +13,7 @@
 namespace SExtractor {
 
 Source::Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry) :
-    m_task_registry(task_registry),
-    m_pixels(std::move(pixels)) {
+    PixelSourceInterface(std::move(pixels)), m_task_registry(task_registry) {
 }
 
 const Property& Source::getProperty(const PropertyId& property_id) const {

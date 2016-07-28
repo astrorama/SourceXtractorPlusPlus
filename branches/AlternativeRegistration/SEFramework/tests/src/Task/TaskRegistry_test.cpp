@@ -22,7 +22,7 @@ class ExamplePropertyB : public Property {
 };
 
 class ExampleTask : public SourceTask {
-  virtual void computeProperties(Source& ) const override {
+  virtual void computeProperties(PixelSourceInterface& ) const override {
     // Don't do anything
   }
 };

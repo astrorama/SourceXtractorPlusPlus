@@ -11,7 +11,7 @@
 
 namespace SExtractor {
 
-void PixelCentroidTask::computeProperties(Source& source) const {
+void PixelCentroidTask::computeProperties(PixelSourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
 
   double centroid_x = 0.0;

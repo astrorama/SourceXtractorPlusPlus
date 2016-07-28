@@ -11,7 +11,7 @@
 
 namespace SExtractor {
 
-void PixelBoundariesTask::computeProperties(Source& source) const {
+void PixelBoundariesTask::computeProperties(PixelSourceInterface& source) const {
   int min_x = INT_MAX;
   int min_y = INT_MAX;
   int max_x = INT_MIN;
