@@ -40,11 +40,6 @@ public:
     return instance;
   }
 
-  /// Used to get a global counter used for PropertyId
-  unsigned int getNextPropertyId() {
-    return m_property_id_counter++;
-  }
-
   /// Gets a pointer to the TaskRegistry created by RegistrationManager to be used globally
   std::shared_ptr<TaskRegistry> getTaskRegistry() const {
     return m_task_registry;
@@ -65,7 +60,6 @@ public:
 private:
   RegistrationManager();
 
-  unsigned int m_property_id_counter;
   std::shared_ptr<TaskRegistry> m_task_registry;
   std::vector<std::unique_ptr<TaskFactory>> m_factory_list;
   std::map<std::string, OutputColumn> m_output_columns;
