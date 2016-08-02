@@ -4,6 +4,7 @@
  * @author nikoapos
  */
 
+#include "SEFramework/Property/PixelCoordinateList.h"
 #include "SEImplementation/Task/ExternalFlagTask.h"
 
 namespace SExtractor {
@@ -15,9 +16,9 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 
 template<typename Combine>
-void ExternalFlagTask<Combine>::computeProperties(Source& source) const {
+void ExternalFlagTask<Combine>::computeProperties(SourceInterface& source) const {
   std::vector<FlagImage::PixelType> pixel_flags{};
-  for (auto& coords : source.getPixels()) {
+  for (auto& coords : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     pixel_flags.push_back(m_flag_image->getValue(coords.m_x, coords.m_y));
   }
   std::int64_t flag = 0;

@@ -67,7 +67,8 @@ private:
   public:
     EntangledSourceWrapper(std::shared_ptr<EntangledSource> source, std::shared_ptr<const EntangledSourceGroup> group)
       : m_source(source), m_group(group) {}
-
+      
+  protected:
     // Implementation of SourceInterface (just simple forward to the encapsulated EntangledSource
     virtual const Property& getProperty(const PropertyId& property_id) const override;
     virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;

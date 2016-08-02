@@ -18,6 +18,7 @@
 
 namespace SExtractor {
 
+
 void PluginManager::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
   manager.registerConfiguration<PluginConfig>();
 }

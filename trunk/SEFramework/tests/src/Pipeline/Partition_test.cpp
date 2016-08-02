@@ -12,6 +12,7 @@ using namespace testing;
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 using namespace SExtractor;
 
@@ -40,7 +41,7 @@ public:
       int newValue = property.m_value / 2;
       source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
-      auto new_source = std::make_shared<Source>(source->getPixels(), m_task_registry);
+      auto new_source = std::make_shared<Source>(source->getProperty<PixelCoordinateList>().getCoordinateList(), m_task_registry);
       new_source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
       return { source, new_source };

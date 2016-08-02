@@ -7,6 +7,7 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/History/SourceHistory.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Property/PixelBoundaries.h"
@@ -30,8 +31,9 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
   };
 
   std::vector<std::pair<PixelCoordinate, PixelCoordinate>> pixel_coordinates;
-  pixel_coordinates.reserve(source->getPixels().size());
-  for (auto& pixel : source->getPixels()) {
+  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
+  pixel_coordinates.reserve(pixel_list.size());
+  for (auto& pixel : pixel_list) {
     pixel_coordinates.emplace_back(pixel, pixel);
   }
 

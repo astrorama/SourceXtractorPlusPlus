@@ -10,6 +10,7 @@
 #include "SEFramework/Task/TaskRegistry.h"
 
 #include "SEFramework/Pipeline/Partition.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
@@ -46,7 +47,8 @@ BOOST_AUTO_TEST_SUITE (MinAreaPartitionStep_test)
 BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
   source.reset(new Source(
       std::vector<PixelCoordinate>( { PixelCoordinate(1,3), PixelCoordinate(8,4) } ), task_registry));
-  BOOST_CHECK(source->getPixels() == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, 4) } ));
+  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
+  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, 4) } ));
 
   Partition partition( { min_area_step } );
 
@@ -61,7 +63,8 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
 BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
   source.reset(new Source(
       std::vector<PixelCoordinate>( { PixelCoordinate(1,3), PixelCoordinate(8,4), PixelCoordinate(1,2) } ), task_registry));
-  BOOST_CHECK(source->getPixels() == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3),
+  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
+  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3),
     PixelCoordinate(8, 4), PixelCoordinate(1,2)  } ));
 
   Partition partition( { min_area_step } );

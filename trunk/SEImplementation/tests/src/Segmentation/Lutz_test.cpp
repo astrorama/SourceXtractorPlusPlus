@@ -8,6 +8,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Segmentation/Lutz.h"
 
@@ -144,7 +145,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   // and remove that group
   for (auto& source : source_observer->m_list) {
     VectorImage<double> check_image(10, 10, std::vector<double>(100, 0.0));
-    for (auto& pixel : source->getPixels()) {
+    for (auto& pixel : source->getProperty<PixelCoordinateList>().getCoordinateList()) {
       BOOST_CHECK_CLOSE(check_image.getValue(pixel), 0.0, 0.00001);
       check_image.setValue(pixel, 1.0);
     }

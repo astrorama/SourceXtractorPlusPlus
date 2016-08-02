@@ -8,7 +8,6 @@
 #define _SEIMPLEMENTATION_OUTPUT_OUTPUTFACTORY_H
 
 #include "SEFramework/Output/Output.h"
-#include "SEFramework/Output/OutputColumn.h"
 #include "SEFramework/Configuration/Configurable.h"
 
 namespace SExtractor {
@@ -30,9 +29,6 @@ public:
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
-
-private:
-  std::vector<OutputColumn> m_output_columns;
 
 }; /* End of OutputFactory class */
 

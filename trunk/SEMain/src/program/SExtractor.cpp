@@ -19,6 +19,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
+#include "SEFramework/Registration/OutputRegistry.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -92,7 +93,6 @@ public:
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
 
@@ -101,14 +101,6 @@ public:
     plugin_manager.configure(config_manager);
 
     RegistrationManager::instance().configure(config_manager);
-    
-    // Check if the user just wants to print the available output columns
-    if (config_manager.getConfiguration<SExtractorConfig>().listOutputColumns()) {
-      for (auto& pair : RegistrationManager::instance().getOutputColumns()) {
-        std::cout << pair.first << '\n';
-      }
-      return Elements::ExitCode::OK;
-    }
     
     segmentation_factory.configure(config_manager);
     output_factory.configure(config_manager);

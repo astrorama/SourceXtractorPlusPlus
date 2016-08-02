@@ -27,8 +27,7 @@ elements_depends_on_subdirs(SEUtils)
 
 find_package(GMock)
 find_package(CCfits)
-
-
+find_package(BoostDLL)
 
 #===============================================================================
 # Declare the library dependencies here
@@ -39,8 +38,8 @@ find_package(CCfits)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEFramework src/lib/Configuration/*.cpp src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp src/lib/Plugin/*.cpp
-                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration 
-                     INCLUDE_DIRS SEUtils CCfits
+                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration
+                     INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
                      
 #===============================================================================
