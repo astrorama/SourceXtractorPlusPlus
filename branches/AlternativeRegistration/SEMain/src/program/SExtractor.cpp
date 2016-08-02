@@ -38,7 +38,6 @@
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
-#include "SEImplementation/Output/TextOutput.h"
 
 namespace po = boost::program_options;
 using namespace SExtractor;
@@ -130,8 +129,6 @@ public:
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
-    
-    deblending->addObserver(std::make_shared<TextOutput>(std::cout));
 
     // Process the image
     segmentation->scan(*detection_image);

@@ -24,6 +24,8 @@ public:
   template <typename PropertyType, typename OutType>
   using ColumnConverter = std::function<OutType(const PropertyType&)>;
   
+  using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
+  
   template <typename PropertyType, typename OutType>
   void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter) {
     m_property_to_names_map[typeid(PropertyType)].emplace_back(column_name);
@@ -68,7 +70,7 @@ public:
     m_output_properties.emplace_back(typeid(PropertyName));
   }
   
-  Euclid::Table::Row convertSourceToRow(const SourceInterface& source);
+  SourceToRowConverter getSourceToRowConverter();
   
 private:
   
