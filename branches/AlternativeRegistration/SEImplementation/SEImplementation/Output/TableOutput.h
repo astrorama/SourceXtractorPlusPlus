@@ -10,7 +10,6 @@
 #include "Table/CastVisitor.h"
 
 #include "SEFramework/Output/Output.h"
-#include "SEFramework/Output/OutputColumn.h"
 
 namespace SExtractor {
 

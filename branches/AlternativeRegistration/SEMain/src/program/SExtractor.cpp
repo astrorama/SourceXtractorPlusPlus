@@ -94,14 +94,6 @@ public:
 
     RegistrationManager::instance().configure(config_manager);
     
-    // Check if the user just wants to print the available output columns
-    if (config_manager.getConfiguration<SExtractorConfig>().listOutputColumns()) {
-      for (auto& pair : RegistrationManager::instance().getOutputColumns()) {
-        std::cout << pair.first << '\n';
-      }
-      return Elements::ExitCode::OK;
-    }
-    
     segmentation_factory.configure(config_manager);
     output_factory.configure(config_manager);
     

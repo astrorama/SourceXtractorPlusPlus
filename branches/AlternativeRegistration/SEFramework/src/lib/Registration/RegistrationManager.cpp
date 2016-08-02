@@ -6,7 +6,6 @@
  */
 
 #include "SEFramework/Task/TaskRegistry.h"
-#include "SEFramework/Output/OutputColumn.h"
 
 #include "SEFramework/Registration/RegistrationManager.h"
 #include "SEFramework/Registration/OutputRegistry.h"
@@ -46,14 +45,6 @@ void RegistrationManager::configure(Euclid::Configuration::ConfigManager& manage
 
 void RegistrationManager::registerObject(std::unique_ptr<TaskFactory> task_factory) {
   m_factory_list.emplace_back(std::move(task_factory));
-}
-
-void RegistrationManager::registerOutputColumn(const OutputColumn& output_column) {
-  if (m_output_columns.find(output_column.getColumnName()) != m_output_columns.end()) {
-    throw Elements::Exception("Internal error: duplicate column name");
-  }
-
-  m_output_columns.emplace(output_column.getColumnName(), output_column);
 }
 
 }

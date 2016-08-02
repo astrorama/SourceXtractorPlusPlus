@@ -6,7 +6,6 @@
 
 #include "SEFramework/Registration/RegistrationManager.h"
 #include "SEFramework/Registration/AutoRegisterer.h"
-#include "SEFramework/Output/OutputColumn.h"
 
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Task/PixelCentroidTask.h"
@@ -32,10 +31,6 @@ const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() 
 }
 
 void PixelCentroidTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
-  OutputColumn::GetterFunction<PixelCentroid> pc_x {[](const PixelCentroid& prop){return prop.getCentroidX();}};
-  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_centroid_x", pc_x));
-  OutputColumn::GetterFunction<PixelCentroid> pc_y {[](const PixelCentroid& prop){return prop.getCentroidY();}};
-  RegistrationManager::instance().registerOutputColumn(OutputColumn("pixel_centroid_y", pc_y));
 }
 
 

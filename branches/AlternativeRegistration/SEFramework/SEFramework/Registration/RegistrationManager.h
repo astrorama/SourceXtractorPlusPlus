@@ -15,7 +15,6 @@ namespace SExtractor {
 
 class TaskRegistry;
 class TaskFactory;
-class OutputColumn;
 
 /**
  * @class RegistrationManager
@@ -52,12 +51,7 @@ public:
 
   /// Registers a TaskFactory, once configured it will be put into the TaskRegistry
   void registerObject(std::unique_ptr<TaskFactory> task_factory);
-
-  void registerOutputColumn(const OutputColumn& output_column);
-  const std::map<std::string, OutputColumn>& getOutputColumns() const {
-    return m_output_columns;
-  }
-
+  
   // Implements the Configurable interface
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
@@ -68,7 +62,6 @@ private:
   unsigned int m_property_id_counter;
   std::shared_ptr<TaskRegistry> m_task_registry;
   std::vector<std::unique_ptr<TaskFactory>> m_factory_list;
-  std::map<std::string, OutputColumn> m_output_columns;
 
 }; /* End of RegistrationManager class */
 
