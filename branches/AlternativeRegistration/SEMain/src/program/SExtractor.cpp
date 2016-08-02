@@ -12,6 +12,8 @@
 
 #include "ElementsKernel/ProgramHeaders.h"
 
+#include "SEFramework/Plugin/PluginManager.h"
+
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
@@ -70,6 +72,7 @@ class SEMain : public Elements::Program {
   std::shared_ptr<TaskRegistry> task_registry = RegistrationManager::instance().getTaskRegistry();
   SegmentationFactory segmentation_factory {task_registry};
   OutputFactory output_factory;
+  PluginManager plugin_manager;
 
 public:
   
@@ -79,6 +82,9 @@ public:
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
+
+    plugin_manager.reportConfigDependencies(config_manager);
+
     RegistrationManager::instance().reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
@@ -91,6 +97,8 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
 
     config_manager.initialize(args);
+
+    plugin_manager.configure(config_manager);
 
     RegistrationManager::instance().configure(config_manager);
     

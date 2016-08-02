@@ -19,7 +19,6 @@ elements_depends_on_subdirs(Table) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 
-
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
 # libraries.

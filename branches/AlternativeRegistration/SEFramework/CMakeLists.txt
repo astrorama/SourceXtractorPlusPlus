@@ -14,6 +14,7 @@ elements_subdir(SEFramework)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table)
 elements_depends_on_subdirs(SEUtils)
 
@@ -26,8 +27,7 @@ elements_depends_on_subdirs(SEUtils)
 
 find_package(GMock)
 find_package(CCfits)
-
-
+find_package(BoostDLL)
 
 #===============================================================================
 # Declare the library dependencies here
@@ -37,9 +37,9 @@ find_package(CCfits)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEFramework src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp
-                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table
-                     INCLUDE_DIRS SEUtils CCfits
+elements_add_library(SEFramework src/lib/Configuration/*.cpp src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp src/lib/Plugin/*.cpp
+                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration
+                     INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
                      
 #===============================================================================

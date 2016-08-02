@@ -13,8 +13,7 @@
 namespace SExtractor {
 
 RegistrationManager::RegistrationManager()
-    : m_property_id_counter(0),
-      m_task_registry(std::make_shared<TaskRegistry>()) {
+    : m_task_registry(std::make_shared<TaskRegistry>()) {
 }
 
 RegistrationManager::~RegistrationManager() {

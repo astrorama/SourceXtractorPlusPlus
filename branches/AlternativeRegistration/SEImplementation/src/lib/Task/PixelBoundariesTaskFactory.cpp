@@ -38,9 +38,5 @@ void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration:
 
 }
 
-
-
 } // SEImplementation namespace
-
-
 

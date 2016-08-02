@@ -27,9 +27,9 @@ class PropertyId {
 public:
   /// Templated factory method used to create a PropertyId based on the type of a property.
   /// An optional index parameter is used to make the distinction between several properties of the same type.
-  template<typename T, class R = RegistrationManager>
+  template<typename T>
   static PropertyId create(unsigned int index = 0) {
-    static unsigned int id = R::instance().getNextPropertyId();
+    static unsigned int id = PropertyId::getNextPropertyId();
     return PropertyId(id, index);
   }
 
@@ -53,8 +53,14 @@ public:
 private:
   PropertyId(unsigned int type_id, unsigned int index) : m_type_id(type_id), m_index(index) {}
 
+  static unsigned int getNextPropertyId() {
+    return s_property_id_counter++;
+  }
+
   unsigned int m_type_id;
   unsigned int m_index;
+
+  static unsigned int s_property_id_counter;
 
   friend struct std::hash<SExtractor::PropertyId>;
 };
