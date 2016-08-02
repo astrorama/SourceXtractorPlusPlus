@@ -7,13 +7,17 @@
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 #include "SEFramework/Source/Source.h"
 
 namespace SExtractor {
 
 Source::Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry) :
-    PixelSourceInterface(std::move(pixels)), m_task_registry(task_registry) {
+            m_task_registry(task_registry) {
+  setProperty<PixelCoordinateList>(
+  std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{std::move(pixels)}}
+  );
 }
 
 const Property& Source::getProperty(const PropertyId& property_id) const {

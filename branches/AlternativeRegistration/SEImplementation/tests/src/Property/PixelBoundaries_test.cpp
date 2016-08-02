@@ -8,6 +8,7 @@
 
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
@@ -32,7 +33,8 @@ BOOST_AUTO_TEST_SUITE (PixelBoundaries_test)
 BOOST_FIXTURE_TEST_CASE( boundaries_test, PixelBoundariesFixture ) {
   source.reset(new Source(
       std::vector<PixelCoordinate>( { PixelCoordinate(1,3), PixelCoordinate(8,-4) } ), task_registry));
-  BOOST_CHECK(source->getPixels() == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, -4) } ));
+  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
+  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, -4) } ));
 
   auto boundaries = source->getProperty<PixelBoundaries>();
   BOOST_CHECK(boundaries.getMin() == PixelCoordinate(1, -4));

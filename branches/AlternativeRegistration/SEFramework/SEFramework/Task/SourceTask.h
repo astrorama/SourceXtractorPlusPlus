@@ -8,7 +8,7 @@
 #define _SEFRAMEWORK_TASK_SOURCETASK_H
 
 #include "SEFramework/Task/Task.h"
-#include "SEFramework/Source/PixelSourceInterface.h"
+#include "SEFramework/Source/SourceInterface.h"
 
 namespace SExtractor {
 
@@ -27,7 +27,7 @@ public:
   virtual ~SourceTask() = default;
 
   /// Computes one or more properties for the Source
-  virtual void computeProperties(PixelSourceInterface& source) const = 0;
+  virtual void computeProperties(SourceInterface& source) const = 0;
 
 private:
 

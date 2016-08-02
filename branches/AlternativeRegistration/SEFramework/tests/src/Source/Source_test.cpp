@@ -29,7 +29,7 @@ class SimpleIntPropertyTask : public SourceTask {
 public:
   SimpleIntPropertyTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(PixelSourceInterface& source) const override {
+  virtual void computeProperties(SourceInterface& source) const override {
     source.setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(m_value)));
   }
 

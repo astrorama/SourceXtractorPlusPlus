@@ -12,7 +12,6 @@
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Source/PixelSourceInterface.h"
 
 #include "SEFramework/History/History.h"
 
@@ -28,7 +27,7 @@ class TaskRegistry;
  *
  */
 
-class Source : public PixelSourceInterface, public History {
+class Source : public SourceInterface, public History {
 
 public:
 
