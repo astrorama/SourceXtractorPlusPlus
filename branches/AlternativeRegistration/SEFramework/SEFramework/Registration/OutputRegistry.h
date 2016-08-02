@@ -61,13 +61,13 @@ public:
     m_property_to_names_map[typeid(PropertyType)] = new_names;
   }
   
-  template <typename PropertyName>
+  template <typename PropertyType>
   void enableOutput() {
-    if (m_property_to_names_map.count(typeid(PropertyName)) == 0) {
+    if (m_property_to_names_map.count(typeid(PropertyType)) == 0) {
       throw Elements::Exception() << "No registered ColumnConverters for"
-              << " property " << typeid(PropertyName).name();
+              << " property " << typeid(PropertyType).name();
     }
-    m_output_properties.emplace_back(typeid(PropertyName));
+    m_output_properties.emplace_back(typeid(PropertyType));
   }
   
   SourceToRowConverter getSourceToRowConverter();
