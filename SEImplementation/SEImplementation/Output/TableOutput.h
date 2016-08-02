@@ -10,7 +10,6 @@
 #include "Table/CastVisitor.h"
 
 #include "SEFramework/Output/Output.h"
-#include "SEFramework/Output/OutputColumn.h"
 
 namespace SExtractor {
 
@@ -18,6 +17,7 @@ class TableOutput : public Output {
   
 public:
   
+  using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
   
   virtual ~TableOutput() {
@@ -29,30 +29,18 @@ public:
     }
   }
   
-  TableOutput(std::vector<OutputColumn> output_columns, TableHandler table_handler) 
-          : m_output_columns(output_columns), m_table_handler(table_handler) {
-    std::vector<Euclid::Table::ColumnInfo::info_type> info_list = {};
-    for (auto& oc : m_output_columns) {
-      info_list.emplace_back(oc.getColumnName(), typeid(std::string));
-    }
-    m_column_info = std::make_shared<Euclid::Table::ColumnInfo>(std::move(info_list));
+  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler) 
+          : m_source_to_row(source_to_row), m_table_handler(table_handler) {
   }
 
   void outputSource(const SourceInterface& source) override {
-    std::vector<Euclid::Table::Row::cell_type> cells {};
-    for (auto& oc : m_output_columns) {
-      auto cell_value = oc.getValue(source);
-      auto cell_value_str = boost::apply_visitor(Euclid::Table::CastVisitor<std::string>{}, cell_value);
-      cells.emplace_back(cell_value_str);
-    }
-    m_rows.emplace_back(std::move(cells), m_column_info);
+    m_rows.emplace_back(m_source_to_row(source));
   }
   
 private:
   
-  std::vector<OutputColumn> m_output_columns;
+  SourceToRowConverter m_source_to_row;
   TableHandler m_table_handler;
-  std::shared_ptr<Euclid::Table::ColumnInfo> m_column_info {};
   std::vector<Euclid::Table::Row> m_rows {};
   
 };

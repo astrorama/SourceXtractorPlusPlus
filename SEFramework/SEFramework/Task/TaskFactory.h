@@ -13,6 +13,7 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 #include "SEFramework/Configuration/Configurable.h"
+#include "SEFramework/Registration/OutputRegistry.h"
 
 namespace SExtractor {
 
@@ -38,7 +39,10 @@ public:
   // Provides a default implementation of the Configurable interface that does nothing
   void reportConfigDependencies(Euclid::Configuration::ConfigManager&) override { }
   void configure(Euclid::Configuration::ConfigManager&) override { }
-
+  
+  virtual void registerPropertyInstances(OutputRegistry&) {
+    // By default do nothing
+  }
 
 private:
 

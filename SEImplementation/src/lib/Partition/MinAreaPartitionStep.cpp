@@ -4,6 +4,7 @@
  * @author mschefer
  */
 
+#include "SEFramework/Property/PixelCoordinateList.h"
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
 namespace SExtractor {
@@ -12,7 +13,7 @@ MinAreaPartitionStep::MinAreaPartitionStep(unsigned int min_pixel_count) : m_min
 }
 
 std::vector<std::shared_ptr<Source>> MinAreaPartitionStep::partition(std::shared_ptr<Source> source) const {
-  if (source->getPixels().size() < m_min_pixel_count) {
+  if (source->getProperty<PixelCoordinateList>().getCoordinateList().size() < m_min_pixel_count) {
     return {};
   } else {
     return { source };

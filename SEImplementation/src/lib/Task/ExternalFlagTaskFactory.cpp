@@ -6,7 +6,6 @@
 
 #include "SEFramework/Registration/AutoRegisterer.h"
 #include "SEFramework/Registration/RegistrationManager.h"
-#include "SEFramework/Output/OutputColumn.h"
 
 #include "SEImplementation/Configuration/ExternalFlagConfig.h"
 #include "SEImplementation/Property/ExternalFlag.h"
@@ -45,6 +44,7 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
   auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
   for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
     auto& pair = flag_info_list.at(i);
+    m_instance_names.emplace_back(pair.first);
     auto property_id = PropertyId::create<ExternalFlag>(i);
     
     // Here we use an ugly switch for choosing the correct type of the task to
@@ -86,16 +86,12 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
         break;
       }
     }
-    
-    // Register the catalog columns which can be produced from the ExternalFlag
-    // property. These are two, one for the flag value and one for the count.
-    OutputColumn::GetterFunction<ExternalFlag> flag_getter {[](const ExternalFlag& prop){return prop.getFlag();}};
-    RegistrationManager::instance().registerOutputColumn(OutputColumn("IMAFLAGS_ISO_"+pair.first, flag_getter, i));
-    OutputColumn::GetterFunction<ExternalFlag> count_getter {[](const ExternalFlag& prop){return prop.getCount();}};
-    RegistrationManager::instance().registerOutputColumn(OutputColumn("NIMAFLAGS_ISO_"+pair.first, count_getter, i));
   }
 }
 
+void ExternalFlagTaskFactory::registerPropertyInstances(OutputRegistry& output_registry) {
+  output_registry.registerPropertyInstances<ExternalFlag>(m_instance_names);
+}
 
 } // SExtractor namespace
 

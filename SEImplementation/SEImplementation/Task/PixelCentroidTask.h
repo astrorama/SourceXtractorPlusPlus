@@ -27,7 +27,7 @@ public:
    */
   virtual ~PixelCentroidTask() = default;
 
-  virtual void computeProperties(Source& source) const override;
+  virtual void computeProperties(SourceInterface& source) const override;
 
 
 private:

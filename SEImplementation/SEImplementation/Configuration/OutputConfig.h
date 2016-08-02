@@ -8,7 +8,7 @@
 #define _SEIMPLEMENTATION_CONFIGURATION_OUTPUTCONFIG_H
 
 #include "Configuration/Configuration.h"
-#include "SEFramework/Output/OutputColumn.h"
+#include "SEFramework/Registration/OutputRegistry.h"
 
 namespace SExtractor {
 
@@ -29,13 +29,13 @@ public:
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   
   void initialize(const UserValues& args) override;
-
-  const std::vector<std::string>& getOutputColumns() const {
-    return m_output_columns;
-  }
+  
+  void setEnabledOutputs(OutputRegistry& output_registry);
 
 private:
-  std::vector<std::string> m_output_columns;
+  
+  bool m_pixel_centroid;
+  bool m_pixel_boundaries;
 
 }; /* End of OutputConfig class */
 

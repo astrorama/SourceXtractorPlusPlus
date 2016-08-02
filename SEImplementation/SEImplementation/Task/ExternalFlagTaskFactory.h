@@ -31,9 +31,13 @@ public:
   
   virtual const std::vector<PropertyId> getProducedProperties() override;
   
+  void registerPropertyInstances(OutputRegistry&) override;
+
+  
 private:
   
   std::map<PropertyId, std::shared_ptr<SourceTask>> m_task_map;
+  std::vector<std::string> m_instance_names;
   
 }; /* End of ExternalFlagTaskFactory class */
 

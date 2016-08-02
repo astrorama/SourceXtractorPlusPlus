@@ -4,6 +4,7 @@
  * @author mschefer
  */
 
+#include "SEFramework/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/DetectionFramePixelValues.h"
 #include "SEImplementation/Property/PixelCentroid.h"
 
@@ -11,7 +12,7 @@
 
 namespace SExtractor {
 
-void PixelCentroidTask::computeProperties(Source& source) const {
+void PixelCentroidTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
 
   double centroid_x = 0.0;
@@ -19,7 +20,7 @@ void PixelCentroidTask::computeProperties(Source& source) const {
   double total_value = 0.0;
 
   auto i = pixel_values.begin();
-  for (auto pixel_coord : source.getPixels()) {
+  for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     double value = *i++;
 
     total_value += value;

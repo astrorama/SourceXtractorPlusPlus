@@ -41,6 +41,7 @@ elements_add_library(SEImplementation
 					 src/lib/Task/*.cpp
 					 src/lib/Configuration/*.cpp
 					 src/lib/Output/*.cpp
+					 src/lib/Property/*.cpp
                      LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table
                      PUBLIC_HEADERS SEImplementation)
 

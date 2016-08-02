@@ -46,12 +46,17 @@ public:
   /// Constructor
   Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
 
-  /// Gets a vector of PixelCoordinates for all the pixels in this source
-  const std::vector<PixelCoordinate>& getPixels() const {
-    return m_pixels;
-  }
-
   // Implementation of SourceInterface
+  //
+  // Note 1 : Because the get/setProperty() methods of the SourceInterface are
+  // templated, the overrides of the non-templated versions will hide them. For
+  // this reason it is necessary to re-introduce the templated methods, which is
+  // done by the using statements below.
+  // 
+  // Note 2 : The Source class promotes the non-templated versions of the
+  // get/setProperty() method to public. This is done to allow their usage when
+  // the property type is not known until runtime (this is required for the
+  // internal implementation of the task execution logic).
   using SourceInterface::getProperty;
   virtual const Property& getProperty(const PropertyId& property_id) const override;
 
@@ -60,7 +65,6 @@ public:
 
 private:
   std::shared_ptr<const TaskRegistry> m_task_registry;
-  std::vector<PixelCoordinate> m_pixels;
   PropertyHolder m_property_holder;
 }; /* End of Source class */
 

@@ -20,7 +20,7 @@ namespace SExtractor {
  * @brief The SourceInterface is an abstract "source" that has properties attached to it.
  *
  * @details
- * Properties are normally accessed through the templated method getProperty<>()/setProperty<>().
+ * Properties are accessed through the templated method getProperty<>()/setProperty<>().
  *
  * Actual implementation in sub-classed is done by overriding the virtual getProperty()/setProperty()
  *
@@ -35,11 +35,6 @@ public:
    */
   virtual ~SourceInterface() = default;
 
-  /// Returns a reference to the requested property. The property may be computed if needed
-  /// Throws a PropertyNotFoundException if the property cannot be provided.
-  virtual const Property& getProperty(const PropertyId& property_id) const = 0;
-  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
-
   /// Convenience template method to call getProperty() with a more user-friendly syntax
   template<typename T>
   const T& getProperty(unsigned int index = 0) const {
@@ -52,8 +47,13 @@ public:
     setProperty(std::move(property), PropertyId::create<T>(index));
   }
 
-
-private:
+protected:
+  
+  /// Returns a reference to the requested property. The property may be computed if needed
+  /// Throws a PropertyNotFoundException if the property cannot be provided.
+  virtual const Property& getProperty(const PropertyId& property_id) const = 0;
+  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
+  
 }; /* End of SourceInterface class */
 
 } /* namespace SExtractor */

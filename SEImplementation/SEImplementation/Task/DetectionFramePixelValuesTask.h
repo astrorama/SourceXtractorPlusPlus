@@ -30,7 +30,7 @@ public:
 
   DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image);
 
-  virtual void computeProperties(Source& source) const override;
+  virtual void computeProperties(SourceInterface& source) const override;
 
 private:
   std::shared_ptr<DetectionImage> m_image;
