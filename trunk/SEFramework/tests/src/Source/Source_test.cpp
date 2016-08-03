@@ -52,7 +52,7 @@ struct SourceFixture {
 
   SourceFixture() :
     mock_registry(std::make_shared<MockTaskRegistry>()),
-    source(std::vector<PixelCoordinate>(), mock_registry) {}
+    source(mock_registry) {}
 };
 
 //-----------------------------------------------------------------------------

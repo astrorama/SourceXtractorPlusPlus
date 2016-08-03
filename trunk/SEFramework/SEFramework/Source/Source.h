@@ -9,7 +9,6 @@
 
 #include <vector>
 
-#include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
 
@@ -44,7 +43,7 @@ public:
   Source& operator=(Source&&) = delete;
 
   /// Constructor
-  Source(std::vector<PixelCoordinate> pixels, std::shared_ptr<const TaskRegistry> task_registry);
+  Source(std::shared_ptr<const TaskRegistry> task_registry);
 
   // Implementation of SourceInterface
   //

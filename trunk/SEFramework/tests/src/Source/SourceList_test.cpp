@@ -19,9 +19,9 @@ struct SourceListFixture {
 
   SourceListFixture()
     : task_registry(new TaskRegistry()),
-      source_a(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_b(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_c(new Source(std::vector<PixelCoordinate>(), task_registry)) {
+      source_a(new Source(task_registry)),
+      source_b(new Source(task_registry)),
+      source_c(new Source(task_registry)) {
   }
 };
 

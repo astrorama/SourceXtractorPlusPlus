@@ -48,9 +48,9 @@ struct DeblendingFixture {
   DeblendingFixture()
     : task_registry(new TaskRegistry),
       example_deblend_action(new ExampleDeblendAction),
-      source_a(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_b(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_c(new Source(std::vector<PixelCoordinate>(), task_registry)),
+      source_a(new Source(task_registry)),
+      source_b(new Source(task_registry)),
+      source_c(new Source(task_registry)),
       source_list(SourceList::getFactory()({})),
       test_group_observer(new TestGroupObserver) {
 

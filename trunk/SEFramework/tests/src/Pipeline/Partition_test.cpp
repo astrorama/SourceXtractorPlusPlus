@@ -12,7 +12,6 @@ using namespace testing;
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/Property/PixelCoordinateList.h"
 
 using namespace SExtractor;
 
@@ -41,7 +40,7 @@ public:
       int newValue = property.m_value / 2;
       source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
-      auto new_source = std::make_shared<Source>(source->getProperty<PixelCoordinateList>().getCoordinateList(), m_task_registry);
+      auto new_source = std::make_shared<Source>(m_task_registry);
       new_source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(newValue)));
 
       return { source, new_source };
@@ -82,7 +81,7 @@ BOOST_FIXTURE_TEST_CASE( default_behavior_test, RefineSourceFixture ) {
   Partition partition( {} );
 
   // Make a source
-  auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
+  auto source = std::make_shared<Source>(task_registry);
 
   // We expect to get our Source back unchanged
   EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
@@ -101,7 +100,7 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
   Partition partition( { nop_step } );
 
   // Make a source
-  auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
+  auto source = std::make_shared<Source>(task_registry);
 
   // We expect to get our Source back unchanged
   EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
@@ -115,7 +114,7 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
 
 BOOST_FIXTURE_TEST_CASE( example_step_test, RefineSourceFixture ) {
   Partition partition( { example_step, nop_step, example_step, example_step } );
-  auto source = std::make_shared<Source>(std::vector<PixelCoordinate>(), task_registry);
+  auto source = std::make_shared<Source>(task_registry);
   source->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(4)));
 
   EXPECT_CALL(*mock_observer, handleMessage(_)).Times(4);

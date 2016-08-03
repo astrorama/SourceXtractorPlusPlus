@@ -56,9 +56,9 @@ struct SourceGroupingFixture {
     : source_grouping(new SourceGrouping(
         std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), SourceList::getFactory())),
       task_registry(new TaskRegistry()),
-      source_a(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_b(new Source(std::vector<PixelCoordinate>(), task_registry)),
-      source_c(new Source(std::vector<PixelCoordinate>(), task_registry)),
+      source_a(new Source(task_registry)),
+      source_b(new Source(task_registry)),
+      source_c(new Source(task_registry)),
       source_list_observer(new SourceListObserver) {
     source_grouping->addObserver(source_list_observer);
   }

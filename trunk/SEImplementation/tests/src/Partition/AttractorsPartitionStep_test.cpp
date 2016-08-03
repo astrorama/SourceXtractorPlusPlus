@@ -12,6 +12,7 @@
 
 #include "SEFramework/Pipeline/Partition.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
@@ -49,11 +50,10 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
-  source.reset(new Source(
-      std::vector<PixelCoordinate>( {
-        PixelCoordinate(0,0), PixelCoordinate(1,0),
-        PixelCoordinate(2,0), PixelCoordinate(3,0)
-  } ), task_registry));
+  source.reset(new Source(task_registry));
+  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
+    {PixelCoordinate(0,0), PixelCoordinate(1,0), PixelCoordinate(2,0), PixelCoordinate(3,0)}
+  }});
 
   auto stamp_one_source = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 3.0, 4.0, 2.0});
   auto stamp_two_sources = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 1.0, 1.0, 2.0});

@@ -9,8 +9,8 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/TaskRegistry.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Property/PixelCoordinateList.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Task/DetectionFrameSourceStampTask.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
@@ -33,8 +33,10 @@ BOOST_AUTO_TEST_SUITE (DetectionFrameSourceStamp_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
-  source.reset(new Source(
-      std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ), task_registry));
+  source.reset(new Source(task_registry));
+  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
+    {PixelCoordinate(2,0), PixelCoordinate(1,1)}
+  }});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));
 
