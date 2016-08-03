@@ -7,6 +7,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Source/Source.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Segmentation/Lutz.h"
 
 
@@ -42,7 +43,8 @@ public:
 };
 
 void Lutz::publishGroup(PixelGroup& pixel_group) {
-  auto source = std::make_shared<Source>(pixel_group.pixel_list, m_task_registry);
+  auto source = std::make_shared<Source>(m_task_registry);
+  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{pixel_group.pixel_list}});
   notifyObservers(source);
 }
 

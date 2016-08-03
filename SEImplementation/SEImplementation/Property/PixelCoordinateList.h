@@ -3,8 +3,8 @@
  * @author nikoapos
  */
 
-#ifndef _SEFRAMEWORK_PIXELCOORDINATELIST_H
-#define _SEFRAMEWORK_PIXELCOORDINATELIST_H
+#ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
+#define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
 
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/Property.h"
@@ -32,5 +32,5 @@ private:
 
 } /* namespace SExtractor */
 
-#endif /* _SEFRAMEWORK_PIXELCOORDINATELIST_H */
+#endif /* _SEIMPLEMENTATION_PIXELCOORDINATELIST_H */
 

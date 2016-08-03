@@ -8,8 +8,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Property/PixelCoordinateList.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Segmentation/Lutz.h"
 
 using namespace SExtractor;

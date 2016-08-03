@@ -6,7 +6,7 @@
 
 #include <climits>
 
-#include "SEFramework/Property/PixelCoordinateList.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Task/PixelBoundariesTask.h"
 

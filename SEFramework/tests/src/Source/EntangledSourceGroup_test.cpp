@@ -84,8 +84,8 @@ struct EntangledSourceGroupFixture {
 
   EntangledSourceGroupFixture() :
     mock_registry(std::make_shared<MockTaskRegistry>()),
-    source_a(new Source(std::vector<PixelCoordinate>(), mock_registry)),
-    source_b(new Source(std::vector<PixelCoordinate>(), mock_registry)),
+    source_a(new Source(mock_registry)),
+    source_b(new Source(mock_registry)),
     group(EntangledSourceGroup::create({source_a, source_b}, mock_registry)) {
   }
 };

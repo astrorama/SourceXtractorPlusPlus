@@ -11,6 +11,7 @@
 
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
@@ -34,12 +35,18 @@ BOOST_AUTO_TEST_SUITE (OverlappingBoundariesSourceList_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( OverlappingBoundariesSourceListTest, OverlappingBoundariesSourceListFixture ) {
-  source_a.reset(new Source(
-      std::vector<PixelCoordinate>( { PixelCoordinate(1,3), PixelCoordinate(2,4) } ), task_registry));
-  source_b.reset(new Source(
-      std::vector<PixelCoordinate>( { PixelCoordinate(1,4), PixelCoordinate(1,5) } ), task_registry));
-  source_c.reset(new Source(
-      std::vector<PixelCoordinate>( { PixelCoordinate(1,5), PixelCoordinate(1,6) } ), task_registry));
+  source_a.reset(new Source(task_registry));
+  source_a->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
+    {PixelCoordinate(1,3), PixelCoordinate(2,4)}
+  }});
+  source_b.reset(new Source(task_registry));
+  source_b->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
+    {PixelCoordinate(1,4), PixelCoordinate(1,5)}
+  }});
+  source_c.reset(new Source(task_registry));
+  source_c->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
+    {PixelCoordinate(1,5), PixelCoordinate(1,6)}
+  }});
 
   source_list->addSource(source_a);
   source_list->addSource(source_b);

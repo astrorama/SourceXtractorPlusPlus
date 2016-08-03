@@ -7,8 +7,8 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/History/SourceHistory.h"
-#include "SEFramework/Property/PixelCoordinateList.h"
 
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
@@ -48,7 +48,8 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
   } else {
     std::vector<std::shared_ptr<Source>> sources;
     for (auto& source_pixels : merged) {
-      auto new_source = std::make_shared<Source>(source_pixels, m_task_registry);
+      auto new_source = std::make_shared<Source>(m_task_registry);
+      new_source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{source_pixels}});
       new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
       sources.push_back(new_source);
     }
