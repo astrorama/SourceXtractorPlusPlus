@@ -51,9 +51,7 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   source.reset(new Source(task_registry));
-  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(0,0), PixelCoordinate(1,0), PixelCoordinate(2,0), PixelCoordinate(3,0)}
-  }});
+  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
 
   auto stamp_one_source = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 3.0, 4.0, 2.0});
   auto stamp_two_sources = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 1.0, 1.0, 2.0});
@@ -62,12 +60,12 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto source_list_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_list_observer);
 
-  source->setProperty(std::unique_ptr<DetectionFrameSourceStamp>(new DetectionFrameSourceStamp(stamp_one_source)));
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source);
   partition.handleMessage(source);
   BOOST_CHECK(source_list_observer->m_list.size() == 1);
   source_list_observer->m_list.clear();
 
-  source->setProperty(std::unique_ptr<DetectionFrameSourceStamp>(new DetectionFrameSourceStamp(stamp_two_sources)));
+  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources);
   partition.handleMessage(source);
   BOOST_CHECK(source_list_observer->m_list.size() == 2);
   source_list_observer->m_list.clear();

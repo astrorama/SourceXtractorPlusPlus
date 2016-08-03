@@ -25,7 +25,7 @@ void PixelBoundariesTask::computeProperties(SourceInterface& source) const {
     max_y = std::max(max_y, pixel_coord.m_y);
   }
 
-  source.setProperty(std::unique_ptr<PixelBoundaries>(new PixelBoundaries(min_x, min_y, max_x, max_y)));
+  source.setProperty<PixelBoundaries>(min_x, min_y, max_x, max_y);
 }
 
 } // SEImplementation namespace

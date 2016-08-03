@@ -67,9 +67,9 @@ BOOST_AUTO_TEST_SUITE (Deblending_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
-  source_a->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
-  source_b->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(2)));
-  source_c->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(3)));
+  source_a->setProperty<SimpleIntProperty>(1);
+  source_b->setProperty<SimpleIntProperty>(2);
+  source_c->setProperty<SimpleIntProperty>(3);
 
   Deblending deblending({example_deblend_action}, task_registry);
   deblending.addObserver(test_group_observer);
@@ -85,9 +85,9 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
 
 //-----------------------------------------------------------------------------
 BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
-  source_a->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
-  source_b->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(2)));
-  source_c->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(3)));
+  source_a->setProperty<SimpleIntProperty>(1);
+  source_b->setProperty<SimpleIntProperty>(2);
+  source_c->setProperty<SimpleIntProperty>(3);
 
   // we want to execute example_deblend_action twice
   Deblending deblending({example_deblend_action, example_deblend_action}, task_registry);

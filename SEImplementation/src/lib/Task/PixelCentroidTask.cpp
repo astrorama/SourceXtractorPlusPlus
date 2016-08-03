@@ -31,7 +31,7 @@ void PixelCentroidTask::computeProperties(SourceInterface& source) const {
   centroid_x /= total_value;
   centroid_y /= total_value;
 
-  source.setProperty(std::unique_ptr<PixelCentroid>(new PixelCentroid(centroid_x, centroid_y)));
+  source.setProperty<PixelCentroid>(centroid_x, centroid_y);
 }
 
 

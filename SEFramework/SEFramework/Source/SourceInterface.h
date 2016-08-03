@@ -42,9 +42,15 @@ public:
   }
 
   /// Convenience template method to call setProperty() with a more user-friendly syntax
-  template<typename T>
-  void setProperty(std::unique_ptr<T> property, unsigned int index = 0) {
-    setProperty(std::move(property), PropertyId::create<T>(index));
+  template<typename PropertyType, typename ... Args>
+  void setIndexedProperty(std::size_t index, Args... args) {
+    setProperty(std::unique_ptr<PropertyType>{new PropertyType(std::forward<Args>(args)...)},
+                PropertyId::create<PropertyType>(index));
+  }
+  
+  template<typename PropertyType, typename ... Args>
+  void setProperty(Args... args) {
+    setIndexedProperty<PropertyType>(0, std::forward<Args>(args)...);
   }
 
 protected:

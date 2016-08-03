@@ -46,9 +46,7 @@ BOOST_AUTO_TEST_SUITE (MinAreaPartitionStep_test)
 
 BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
   source.reset(new Source(task_registry));
-  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,3), PixelCoordinate(8,4)}
-  }});
+  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, 4) } ));
 
@@ -64,9 +62,7 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
 
 BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
   source.reset(new Source(task_registry));
-  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,3), PixelCoordinate(8,4), PixelCoordinate(1,2)}
-  }});
+  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}, {1,2}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3),
     PixelCoordinate(8, 4), PixelCoordinate(1,2)  } ));

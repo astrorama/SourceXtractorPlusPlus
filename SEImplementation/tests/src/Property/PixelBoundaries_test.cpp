@@ -32,9 +32,7 @@ BOOST_AUTO_TEST_SUITE (PixelBoundaries_test)
 
 BOOST_FIXTURE_TEST_CASE( boundaries_test, PixelBoundariesFixture ) {
   source.reset(new Source(task_registry));
-  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,3), PixelCoordinate(8,-4)}
-  }});
+  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,-4}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, -4) } ));
 

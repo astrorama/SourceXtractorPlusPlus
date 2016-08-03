@@ -71,9 +71,9 @@ BOOST_AUTO_TEST_SUITE (SourceGrouping_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( source_grouping_test, SourceGroupingFixture ) {
-  source_a->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
-  source_b->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(2)));
-  source_c->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
+  source_a->setProperty<SimpleIntProperty>(1);
+  source_b->setProperty<SimpleIntProperty>(2);
+  source_c->setProperty<SimpleIntProperty>(1);
 
   source_grouping->handleMessage(source_a);
   source_grouping->handleMessage(source_b);
@@ -91,9 +91,9 @@ BOOST_FIXTURE_TEST_CASE( source_grouping_test, SourceGroupingFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( process_sources_test, SourceGroupingFixture ) {
-  source_a->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
-  source_b->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(2)));
-  source_c->setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(1)));
+  source_a->setProperty<SimpleIntProperty>(1);
+  source_b->setProperty<SimpleIntProperty>(2);
+  source_c->setProperty<SimpleIntProperty>(1);
 
   source_grouping->handleMessage(source_a);
   source_grouping->handleMessage(source_b);
