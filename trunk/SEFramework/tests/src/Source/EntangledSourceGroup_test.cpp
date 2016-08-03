@@ -66,7 +66,7 @@ public:
   virtual void computeProperties(EntangledSourceGroup& group) {
     // Sets the property on all the sources in the group
     for (auto source : group.getSources()) {
-      source->setProperty(std::unique_ptr<SourceProperty>(new SourceProperty(m_value)));
+      source->setProperty<SourceProperty>(m_value);
     }
   }
 

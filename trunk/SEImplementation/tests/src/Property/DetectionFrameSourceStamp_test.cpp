@@ -34,9 +34,7 @@ BOOST_AUTO_TEST_SUITE (DetectionFrameSourceStamp_test)
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
   source.reset(new Source(task_registry));
-  source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(2,0), PixelCoordinate(1,1)}
-  }});
+  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));
 

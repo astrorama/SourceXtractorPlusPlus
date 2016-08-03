@@ -49,7 +49,7 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
     std::vector<std::shared_ptr<Source>> sources;
     for (auto& source_pixels : merged) {
       auto new_source = std::make_shared<Source>(m_task_registry);
-      new_source->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{source_pixels}});
+      new_source->setProperty<PixelCoordinateList>(source_pixels);
       new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
       sources.push_back(new_source);
     }

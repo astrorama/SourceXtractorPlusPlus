@@ -24,10 +24,7 @@ void ExternalFlagTask<Combine>::computeProperties(SourceInterface& source) const
   std::int64_t flag = 0;
   int count = 0;
   std::tie(flag, count) = Combine::combine(pixel_flags);
-  source.setProperty<ExternalFlag>(
-          std::unique_ptr<ExternalFlag>(new ExternalFlag{flag, count}),
-          m_flag_instance
-  );
+  source.setIndexedProperty<ExternalFlag>(m_flag_instance, flag, count);
 }
 
 

@@ -36,17 +36,11 @@ BOOST_AUTO_TEST_SUITE (OverlappingBoundariesCriteria_test)
 
 BOOST_FIXTURE_TEST_CASE(OverlappingBoundariesCriteriaTest, OverlappingBoundariesCriteriaFixture) {
   source_a.reset(new Source(task_registry));
-  source_a->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,3), PixelCoordinate(2,4)}
-  }});
+  source_a->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {2,4}});
   source_b.reset(new Source(task_registry));
-  source_b->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,4), PixelCoordinate(1,5)}
-  }});
+  source_b->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,4}, {1,5}});
   source_c.reset(new Source(task_registry));
-  source_c->setProperty<PixelCoordinateList>(std::unique_ptr<PixelCoordinateList>{new PixelCoordinateList{
-    {PixelCoordinate(1,5), PixelCoordinate(1,6)}
-  }});
+  source_c->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,5}, {1,6}});
 
   source_list->addSource(source_a);
 

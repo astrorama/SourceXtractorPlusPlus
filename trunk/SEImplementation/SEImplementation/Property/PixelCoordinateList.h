@@ -15,7 +15,8 @@ class PixelCoordinateList : public Property {
   
 public:
   
-  PixelCoordinateList(std::vector<PixelCoordinate> coordinate_list) : m_coordinate_list(coordinate_list) {
+  PixelCoordinateList(std::vector<PixelCoordinate> coordinate_list) 
+          : m_coordinate_list(std::move(coordinate_list)) {
   }
 
   virtual ~PixelCoordinateList() = default;

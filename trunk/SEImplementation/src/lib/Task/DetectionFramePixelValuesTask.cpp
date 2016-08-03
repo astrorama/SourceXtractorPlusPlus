@@ -18,7 +18,7 @@ void DetectionFramePixelValuesTask::computeProperties(SourceInterface& source) c
     values.push_back(m_image->getValue(pixel_coord.m_x, pixel_coord.m_y));
   }
 
-  source.setProperty(std::unique_ptr<DetectionFramePixelValues>(new DetectionFramePixelValues(std::move(values))));
+  source.setProperty<DetectionFramePixelValues>(std::move(values));
 }
 
 DetectionFramePixelValuesTask::DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image) : m_image(image) {

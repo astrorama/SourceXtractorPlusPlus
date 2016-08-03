@@ -26,8 +26,7 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
     }
   }
   std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};
-  source.setProperty(
-      std::unique_ptr<DetectionFrameSourceStamp>(new DetectionFrameSourceStamp(stamp)));
+  source.setProperty<DetectionFrameSourceStamp>(stamp);
 }
 
 } // SEImplementation namespace

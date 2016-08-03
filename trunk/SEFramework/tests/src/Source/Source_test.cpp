@@ -30,7 +30,7 @@ public:
   SimpleIntPropertyTask(int value) : m_value(value) {}
 
   virtual void computeProperties(SourceInterface& source) const override {
-    source.setProperty(std::unique_ptr<SimpleIntProperty>(new SimpleIntProperty(m_value)));
+    source.setProperty<SimpleIntProperty>(m_value);
   }
 
 private:
