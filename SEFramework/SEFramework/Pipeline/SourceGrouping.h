@@ -13,6 +13,7 @@
 #include "SEUtils/Observable.h"
 
 #include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceList.h"
 
 namespace SExtractor {
@@ -60,7 +61,7 @@ struct ProcessSourcesEvent {
 
 /**
  * @class GroupingCriteria
- * @brief Criteria used by SourceGrouping to determine if a Source should be grouped with tsome others.
+ * @brief Criteria used by SourceGrouping to determine if two sources should be grouped together
  *
  */
 class GroupingCriteria {
@@ -70,8 +71,8 @@ public:
    */
   virtual ~GroupingCriteria() = default;
 
-  /// Determines if the Source should be grouped with those in the SourceList
-  virtual bool shouldGroup(const SourceList& source_list, const Source& source) const = 0;
+  /// Determines if the two sources should be grouped together
+  virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const = 0;
 };
 
 /**

@@ -20,8 +20,11 @@ void SourceGrouping::handleMessage(const std::shared_ptr<Source>& source) {
   // Makes a list of all currently existing SourceLists that this source should be grouped with
   std::list<std::shared_ptr<SourceList>> lists_to_merge;
   for (auto& list : m_source_lists) {
-    if (m_grouping_criteria->shouldGroup(*list, *source)) {
-      lists_to_merge.push_back(list);
+    for (auto& list_source : list->getSources()) {
+      if (m_grouping_criteria->shouldGroup(*source, * list_source)) {
+        lists_to_merge.push_back(list);
+        break;
+      }
     }
   }
 

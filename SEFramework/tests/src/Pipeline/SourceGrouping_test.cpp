@@ -25,13 +25,12 @@ public:
 };
 
 class TestGroupingCriteria : public GroupingCriteria {
-  virtual bool shouldGroup(const SourceList& source_list, const Source& source) const {
-    BOOST_CHECK(!source_list.getSources().empty());
+  virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
 
-    auto source_group_id = source.getProperty<SimpleIntProperty>().m_value;
-    auto group_group_id = source_list.getSources().front()->getProperty<SimpleIntProperty>().m_value;
+    auto first_group_id = first.getProperty<SimpleIntProperty>().m_value;
+    auto second_group_id = second.getProperty<SimpleIntProperty>().m_value;
 
-    return source_group_id == group_group_id;
+    return first_group_id == second_group_id;
   }
 };
 
