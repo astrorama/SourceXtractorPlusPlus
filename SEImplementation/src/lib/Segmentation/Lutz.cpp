@@ -43,7 +43,7 @@ public:
 };
 
 void Lutz::publishGroup(PixelGroup& pixel_group) {
-  auto source = std::make_shared<Source>(m_task_registry);
+  auto source = std::make_shared<Source>(m_task_provider);
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
   notifyObservers(source);
 }

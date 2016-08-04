@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Source/Source.h"
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -17,10 +17,10 @@
 using namespace SExtractor;
 
 struct DetectionFramePixelValuesFixture {
-  std::shared_ptr<TaskRegistry> task_registry;
+  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<Source> source;
 
-  DetectionFramePixelValuesFixture() : task_registry(new TaskRegistry) {}
+  DetectionFramePixelValuesFixture() : task_provider(new TaskProvider(nullptr)) {}
 };
 
 //-----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_SUITE (DetectionFramePixelValues_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFramePixelValuesFixture) {
-  source.reset(new Source(task_registry));
+  source.reset(new Source(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));

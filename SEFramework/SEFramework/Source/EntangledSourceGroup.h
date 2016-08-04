@@ -16,7 +16,7 @@
 
 namespace SExtractor {
 
-class TaskRegistry;
+class TaskProvider;
 class Source;
 
 /**
@@ -40,7 +40,7 @@ private:
     virtual ~EntangledSource() = default;
 
     EntangledSource(std::shared_ptr<Source> source, std::shared_ptr<EntangledSourceGroup> group,
-        std::shared_ptr<TaskRegistry> task_registry);
+        std::shared_ptr<TaskProvider> task_provider);
 
     // Implementation of SourceInterface
     virtual const Property& getProperty(const PropertyId& property_id) const override;
@@ -51,7 +51,7 @@ private:
 
     std::shared_ptr<Source> m_source;
     std::weak_ptr<EntangledSourceGroup> m_group;
-    std::shared_ptr<TaskRegistry> m_task_registry;
+    std::shared_ptr<TaskProvider> m_task_provider;
   };
 
   /**
@@ -84,8 +84,8 @@ public:
   /// the constructor must be private and this method must be used instead.
 
   static std::shared_ptr<EntangledSourceGroup> create(std::list<std::shared_ptr<Source>> sources,
-      std::shared_ptr<TaskRegistry> task_registry) {
-    auto new_instance = std::shared_ptr<EntangledSourceGroup>(new EntangledSourceGroup(task_registry));
+      std::shared_ptr<TaskProvider> task_provider) {
+    auto new_instance = std::shared_ptr<EntangledSourceGroup>(new EntangledSourceGroup(task_provider));
     new_instance->setSources(sources);
     return new_instance;
   }
@@ -120,11 +120,11 @@ public:
 private:
   PropertyHolder m_property_holder;
 
-  EntangledSourceGroup(std::shared_ptr<TaskRegistry> task_registry);
+  EntangledSourceGroup(std::shared_ptr<TaskProvider> task_provider);
   void setSources(std::list<std::shared_ptr<Source>> sources);
 
   std::vector<std::shared_ptr<EntangledSource>> m_sources;
-  std::shared_ptr<TaskRegistry> m_task_registry;
+  std::shared_ptr<TaskProvider> m_task_provider;
 }; /* End of EntangledSourceGroup class */
 
 } /* namespace SExtractor */

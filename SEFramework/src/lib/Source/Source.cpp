@@ -4,7 +4,7 @@
  * @author mschefer
  */
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
 
@@ -12,8 +12,8 @@
 
 namespace SExtractor {
 
-Source::Source(std::shared_ptr<const TaskRegistry> task_registry) :
-            m_task_registry(task_registry) {
+Source::Source(std::shared_ptr<const TaskProvider> task_provider) :
+            m_task_provider(task_provider) {
 }
 
 const Property& Source::getProperty(const PropertyId& property_id) const {
@@ -23,7 +23,7 @@ const Property& Source::getProperty(const PropertyId& property_id) const {
   }
 
   // if not, get the task that makes it and execute, we should have it then
-  auto task = m_task_registry->getTask<SourceTask>(property_id);
+  auto task = m_task_provider->getTask<SourceTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<Source&>(*this));
     return m_property_holder.getProperty(property_id);

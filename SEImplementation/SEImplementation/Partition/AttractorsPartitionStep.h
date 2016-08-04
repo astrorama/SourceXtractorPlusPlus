@@ -28,12 +28,12 @@ public:
    */
   virtual ~AttractorsPartitionStep() = default;
 
-  AttractorsPartitionStep(std::shared_ptr<TaskRegistry> task_registry) : m_task_registry(task_registry) {}
+  AttractorsPartitionStep(std::shared_ptr<TaskProvider> task_provider) : m_task_provider(task_provider) {}
 
   virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const override;
 
 private:
-  std::shared_ptr<TaskRegistry> m_task_registry;
+  std::shared_ptr<TaskProvider> m_task_provider;
 
   void attractPixels(
       const std::vector<std::pair<PixelCoordinate, PixelCoordinate>>& pixels_with_origin,

@@ -33,7 +33,7 @@ public:
    * all the Configurations they are going to use
    * @param manager The manager to register the dependencies to
    */
-  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) = 0;
+  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const = 0;
   
   /**
    * @brief Method which should initialize the object

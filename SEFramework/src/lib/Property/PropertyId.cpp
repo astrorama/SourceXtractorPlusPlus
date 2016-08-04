@@ -9,6 +9,5 @@
 
 namespace SExtractor {
 
-unsigned int PropertyId::s_property_id_counter = 0;
 
 }

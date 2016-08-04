@@ -14,12 +14,14 @@
 
 #include "SEFramework/Plugin/PluginManager.h"
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
 #include "SEFramework/Registration/OutputRegistry.h"
+
+#include "SEFramework/Task/TaskFactoryRegistry.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -69,8 +71,8 @@ static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
 class SEMain : public Elements::Program {
   
-  std::shared_ptr<TaskRegistry> task_registry = RegistrationManager::instance().getTaskRegistry();
-  SegmentationFactory segmentation_factory {task_registry};
+  std::shared_ptr<TaskProvider> task_provider = RegistrationManager::instance().getTaskProvider();
+  SegmentationFactory segmentation_factory {task_provider};
   OutputFactory output_factory;
   PluginManager plugin_manager;
 
@@ -114,13 +116,13 @@ public:
     auto segmentation = segmentation_factory.getSegmentation();
 
     auto min_area_step = std::make_shared<MinAreaPartitionStep>(10);
-    auto attractors_step = std::make_shared<AttractorsPartitionStep>(task_registry);
+    auto attractors_step = std::make_shared<AttractorsPartitionStep>(task_provider);
     auto partition = std::make_shared<Partition>(std::vector<std::shared_ptr<PartitionStep>>({attractors_step, min_area_step}));
 
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria),
         SourceList::getFactory<OverlappingBoundariesSourceList>());
-    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>(), task_registry);
+    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>(), task_provider);
 
     std::shared_ptr<Output> output = output_factory.getOutput();
 

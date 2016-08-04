@@ -80,7 +80,7 @@ elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
                      INCLUDE_DIRS GMock
                      TYPE Boost)
 endif(GMOCK_FOUND)
-elements_add_unit_test(TaskRegistry_test tests/src/Task/TaskRegistry_test.cpp 
+elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(PropertyId_test tests/src/Property/PropertyId_test.cpp 

@@ -9,6 +9,7 @@
 #define _SEFRAMEWORK_REGISTRATION_AUTOREGISTERER_H_
 
 #include "SEFramework/Registration/RegistrationManager.h"
+#include "SEFramework/Task/TaskFactoryRegistry.h"
 
 namespace SExtractor {
 
@@ -18,11 +19,11 @@ namespace SExtractor {
  *
  */
 
-template<typename T, class R = RegistrationManager>
+template<typename T, typename... Ps>
 class AutoRegisterer {
 public:
   AutoRegisterer() {
-    R::instance().registerObject(std::move(std::unique_ptr<T>(new T)));
+    RegistrationManager::instance().getTaskFactoryRegistry()->registerTaskFactory<Ps...>(std::move(std::unique_ptr<T>(new T)));
   }
 };
 

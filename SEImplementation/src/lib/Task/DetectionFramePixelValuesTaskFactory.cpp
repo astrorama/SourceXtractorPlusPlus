@@ -17,9 +17,9 @@ using namespace Euclid::Configuration;
 
 namespace SExtractor {
 
-static AutoRegisterer<DetectionFramePixelValuesTaskFactory> s_detection_frame_pixel_values_registerer;
+static AutoRegisterer<DetectionFramePixelValuesTaskFactory, DetectionFramePixelValues> s_detection_frame_pixel_values_registerer;
 
-void DetectionFramePixelValuesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void DetectionFramePixelValuesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<DetectionImageConfig>();
 }
 
@@ -28,7 +28,7 @@ void DetectionFramePixelValuesTaskFactory::configure(Euclid::Configuration::Conf
       manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
 }
 
-std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const PropertyId& property_id) {
+std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<DetectionFramePixelValues>()) {
     return m_detection_frame_pixel_values_task;
   } else {
@@ -36,7 +36,7 @@ std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const Proper
   }
 }
 
-const std::vector<PropertyId> DetectionFramePixelValuesTaskFactory::getProducedProperties() {
+const std::vector<PropertyId> DetectionFramePixelValuesTaskFactory::getProducedProperties() const {
   return { PropertyId::create<DetectionFramePixelValues>() };
 }
 

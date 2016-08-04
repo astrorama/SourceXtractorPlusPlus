@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/Source.h"
 
 #include "SEFramework/Source/SourceList.h"
@@ -14,14 +14,14 @@
 using namespace SExtractor;
 
 struct SourceListFixture {
-  std::shared_ptr<TaskRegistry> task_registry;
+  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<Source> source_a, source_b, source_c;
 
   SourceListFixture()
-    : task_registry(new TaskRegistry()),
-      source_a(new Source(task_registry)),
-      source_b(new Source(task_registry)),
-      source_c(new Source(task_registry)) {
+    : task_provider(new TaskProvider(nullptr)),
+      source_a(new Source(task_provider)),
+      source_b(new Source(task_provider)),
+      source_c(new Source(task_provider)) {
   }
 };
 

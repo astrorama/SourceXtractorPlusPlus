@@ -29,8 +29,7 @@ public:
   /// An optional index parameter is used to make the distinction between several properties of the same type.
   template<typename T>
   static PropertyId create(unsigned int index = 0) {
-    static unsigned int id = PropertyId::getNextPropertyId();
-    return PropertyId(id, index);
+    return PropertyId(typeid(T), index);
   }
 
   /// Equality operator is needed to be use PropertyId as key in unordered_map
@@ -50,17 +49,20 @@ public:
     return m_type_id < other.m_type_id;
   }
 
-private:
-  PropertyId(unsigned int type_id, unsigned int index) : m_type_id(type_id), m_index(index) {}
-
-  static unsigned int getNextPropertyId() {
-    return s_property_id_counter++;
+  std::type_index getTypeId() const {
+    return m_type_id;
   }
 
-  unsigned int m_type_id;
+  unsigned int getIndex() const {
+    return m_index;
+  }
+
+private:
+  PropertyId(std::type_index type_id, unsigned int index) : m_type_id(type_id), m_index(index) {}
+
+  std::type_index m_type_id;
   unsigned int m_index;
 
-  static unsigned int s_property_id_counter;
 
   friend struct std::hash<SExtractor::PropertyId>;
 };

@@ -13,27 +13,28 @@
 
 #include "SEFramework/Configuration/PluginConfig.h"
 
+#include "SEFramework/Task/TaskFactoryRegistry.h"
+
 #include "SEFramework/Plugin/PluginManager.h"
 #include "SEFramework/Plugin/Plugin.h"
 
 namespace SExtractor {
 
 
-void PluginManager::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void PluginManager::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<PluginConfig>();
 }
 
 void PluginManager::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& plugin_config = manager.getConfiguration<PluginConfig>();
-
   auto plugin_paths = plugin_config.getPluginPaths();
 
   for (auto& plugin_path : plugin_paths) {
     typedef std::shared_ptr<Plugin> (pluginapi_create_t)();
     std::function<pluginapi_create_t> creator;
 
-    creator = boost::dll::import_alias<pluginapi_create_t>(
-        plugin_path, "create_plugin", boost::dll::load_mode::append_decorations);
+    boost::dll::shared_library lib(plugin_path);
+    creator = lib.get_alias<pluginapi_create_t>("create_plugin");
 
     auto plugin = creator();
     auto id_string = plugin->getIdString();
@@ -41,13 +42,9 @@ void PluginManager::configure(Euclid::Configuration::ConfigManager& manager) {
 
     plugin->registerPlugin(*this);
 
-    m_loaded_plugins.push_back(plugin);
+    // keep the library loaded while PluginManager still exists
+    m_loaded_plugins.push_back(lib);
   }
 }
-
-void PluginManager::registerTaskFactory(std::unique_ptr<TaskFactory> task_factory) {
-  RegistrationManager::instance().registerObject(std::move(task_factory));
-}
-
 
 }

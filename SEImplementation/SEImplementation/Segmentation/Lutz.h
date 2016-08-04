@@ -7,7 +7,7 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEFramework/Image/Image.h"
@@ -29,7 +29,7 @@ public:
    */
   virtual ~Lutz() = default;
 
-  Lutz(std::shared_ptr<TaskRegistry> task_registry) : m_task_registry(task_registry) {}
+  Lutz(std::shared_ptr<TaskProvider> task_provider) : m_task_provider(task_provider) {}
 
   virtual void scan(const DetectionImage& image) override;
 
@@ -37,7 +37,7 @@ public:
 private:
   void publishGroup(PixelGroup& pixel_group);
 
-  std::shared_ptr<TaskRegistry> m_task_registry;
+  std::shared_ptr<TaskProvider> m_task_provider;
 
 }; /* End of Lutz class */
 

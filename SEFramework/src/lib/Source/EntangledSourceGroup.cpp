@@ -4,7 +4,7 @@
  * @author mschefer
  */
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
@@ -13,14 +13,14 @@
 
 namespace SExtractor {
 
-EntangledSourceGroup::EntangledSourceGroup(std::shared_ptr<TaskRegistry> task_registry)
-    : m_task_registry(task_registry) {}
+EntangledSourceGroup::EntangledSourceGroup(std::shared_ptr<TaskProvider> task_provider)
+    : m_task_provider(task_provider) {}
 
 void EntangledSourceGroup::setSources(std::list<std::shared_ptr<Source>> sources) {
   m_sources.reserve(sources.size());
   for (auto& source : sources) {
     // Encapsulates every Source into an EntangledSource object and stores it
-    m_sources.push_back(std::make_shared<EntangledSource>(source, shared_from_this(), m_task_registry));
+    m_sources.push_back(std::make_shared<EntangledSource>(source, shared_from_this(), m_task_provider));
   }
 }
 
@@ -51,7 +51,7 @@ const Property& EntangledSourceGroup::getProperty(const PropertyId& property_id)
   }
 
   // If not, get the task for that property, use it to compute the property then return it
-  auto task = m_task_registry->getTask<GroupTask>(property_id);
+  auto task = m_task_provider->getTask<GroupTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<EntangledSourceGroup&>(*this));
     return m_property_holder.getProperty(property_id);
@@ -68,8 +68,8 @@ void EntangledSourceGroup::setProperty(std::unique_ptr<Property> property, const
 /*********************************************************************************************************************/
 
 EntangledSourceGroup::EntangledSource::EntangledSource(std::shared_ptr<Source> source,
-    std::shared_ptr<EntangledSourceGroup> group, std::shared_ptr<TaskRegistry> task_registry)
-      : m_source(source), m_group(group), m_task_registry(task_registry) {}
+    std::shared_ptr<EntangledSourceGroup> group, std::shared_ptr<TaskProvider> task_provider)
+      : m_source(source), m_group(group), m_task_provider(task_provider) {}
 
 const Property& EntangledSourceGroup::EntangledSource::getProperty(const PropertyId& property_id) const {
 
@@ -98,7 +98,7 @@ const Property& EntangledSourceGroup::EntangledSource::getProperty(const Propert
     // Getting this exception means the property must be computed at the group level
 
     // Get the group task
-    auto group_task = m_task_registry->getTask<GroupTask>(property_id);
+    auto group_task = m_task_provider->getTask<GroupTask>(property_id);
     if (!group_task) {
       // No task is available to make that property
       throw PropertyNotFoundException();

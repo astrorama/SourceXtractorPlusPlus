@@ -10,7 +10,7 @@ using namespace testing;
 
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Task/SourceTask.h"
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Property/Property.h"
 
 using namespace SExtractor;
@@ -37,21 +37,23 @@ private:
   int m_value;
 };
 
-// Mock for the TaskRegistry so that we can check interactions with it
-class MockTaskRegistry : public TaskRegistry {
+// Mock for the TaskProvider so that we can check interactions with it
+class MockTaskProvider : public TaskProvider {
 public:
-  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (const PropertyId& property_id));
+  MockTaskProvider() : TaskProvider(nullptr) {}
+
+  MOCK_CONST_METHOD1(getTask, std::shared_ptr<const Task> (const PropertyId& property_id));
 };
 
 struct SourceFixture {
 
-  std::shared_ptr<MockTaskRegistry> mock_registry;
+  std::shared_ptr<MockTaskProvider> mock_registry;
   Source source;
 
   const int magic_number = 42;
 
   SourceFixture() :
-    mock_registry(std::make_shared<MockTaskRegistry>()),
+    mock_registry(std::make_shared<MockTaskProvider>()),
     source(mock_registry) {}
 };
 

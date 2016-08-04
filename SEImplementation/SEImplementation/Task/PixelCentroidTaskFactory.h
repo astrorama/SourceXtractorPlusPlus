@@ -28,8 +28,8 @@ public:
   virtual ~PixelCentroidTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
-  virtual const std::vector<PropertyId> getProducedProperties() override;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
+  virtual const std::vector<PropertyId> getProducedProperties() const override;
 
   // Configurable implementation
   void configure(Euclid::Configuration::ConfigManager& manager) override;

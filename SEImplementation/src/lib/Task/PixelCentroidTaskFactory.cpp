@@ -13,12 +13,12 @@
 
 namespace SExtractor {
 
-static AutoRegisterer<PixelCentroidTaskFactory> s_pixel_centroid_registerer;
+static AutoRegisterer<PixelCentroidTaskFactory, PixelCentroid> s_pixel_centroid_registerer;
 
 PixelCentroidTaskFactory::PixelCentroidTaskFactory() : m_pixel_centroid_task(std::make_shared<PixelCentroidTask>()) {
 }
 
-std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& property_id) {
+std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelCentroid>()) {
     return m_pixel_centroid_task;
   } else {
@@ -26,7 +26,7 @@ std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& proper
   }
 }
 
-const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() {
+const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() const {
   return { PropertyId::create<PixelCentroid>() };
 }
 

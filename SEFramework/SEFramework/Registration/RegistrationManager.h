@@ -13,7 +13,8 @@
 
 namespace SExtractor {
 
-class TaskRegistry;
+class TaskFactoryRegistry;
+class TaskProvider;
 class TaskFactory;
 
 /**
@@ -39,24 +40,24 @@ public:
     return instance;
   }
 
-  /// Gets a pointer to the TaskRegistry created by RegistrationManager to be used globally
-  std::shared_ptr<TaskRegistry> getTaskRegistry() const {
-    return m_task_registry;
+  std::shared_ptr<TaskFactoryRegistry> getTaskFactoryRegistry() const {
+    return m_task_factory_registry;
   }
 
-  /// Registers a TaskFactory, once configured it will be put into the TaskRegistry
-  void registerObject(std::unique_ptr<TaskFactory> task_factory);
-  
+  /// Gets a pointer to the TaskProvider created by RegistrationManager to be used globally
+  std::shared_ptr<TaskProvider> getTaskProvider() const {
+    return m_task_provider;
+  }
+
   // Implements the Configurable interface
-  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
+  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
   RegistrationManager();
 
-  std::shared_ptr<TaskRegistry> m_task_registry;
-  std::vector<std::unique_ptr<TaskFactory>> m_factory_list;
-
+  std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
+  std::shared_ptr<TaskProvider> m_task_provider;
 }; /* End of RegistrationManager class */
 
 } /* namespace SExtractor */

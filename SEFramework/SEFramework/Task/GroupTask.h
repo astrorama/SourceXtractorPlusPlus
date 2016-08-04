@@ -28,7 +28,7 @@ public:
   virtual ~GroupTask() = default;
 
   /// Computes one or more properties for the EntangledSourceGroup and/or the Sources it contains
-  virtual void computeProperties(EntangledSourceGroup& group) = 0;
+  virtual void computeProperties(EntangledSourceGroup& group) const = 0;
 
 
 private:

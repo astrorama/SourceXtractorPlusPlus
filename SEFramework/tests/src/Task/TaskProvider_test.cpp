@@ -1,5 +1,5 @@
 /**
- * @file tests/src/TaskRegistry_test.cpp
+ * @file tests/src/TaskProvider_test.cpp
  * @date 05/09/16
  * @author mschefer
  */
@@ -8,7 +8,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Property/Property.h"
@@ -30,7 +30,7 @@ class ExampleTask : public SourceTask {
 // Example implementation of a TaskFactory
 class ExampleTaskFactory : public TaskFactory {
 
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override {
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override {
     // check that we request the correct type of Property
     BOOST_CHECK(property_id == PropertyId::create<ExampleProperty>());
 
@@ -38,57 +38,57 @@ class ExampleTaskFactory : public TaskFactory {
     return std::make_shared<ExampleTask>();
   }
 
-  virtual const std::vector<PropertyId> getProducedProperties() override  {
+  virtual const std::vector<PropertyId> getProducedProperties() const override  {
     return { PropertyId::create<ExampleProperty>() };
   }
 };
 
-struct TaskRegistryFixture {
+struct TaskProviderFixture {
   std::unique_ptr<ExampleTaskFactory> factory;
-  std::shared_ptr<TaskRegistry> registry;
+  std::shared_ptr<TaskFactoryRegistry> registry;
+  std::shared_ptr<TaskProvider> provider;
 
-  TaskRegistryFixture()
-    : factory(new ExampleTaskFactory()), registry(new TaskRegistry()) {
+  TaskProviderFixture()
+    : factory(new ExampleTaskFactory()),
+      registry(new TaskFactoryRegistry),
+      provider(new TaskProvider(registry)) {
   }
 };
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (TaskRegistry_test)
+BOOST_AUTO_TEST_SUITE (TaskProvider_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE( taskregistry_test, TaskRegistryFixture ) {
+BOOST_FIXTURE_TEST_CASE( TaskProvider_test, TaskProviderFixture ) {
   // Register our factory
-  registry->registerTaskFactory(std::move(factory));
+  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
 
-  auto task = registry->getTask<SourceTask>(PropertyId::create<ExampleProperty>());
+  auto task = provider->getTask<SourceTask>(PropertyId::create<ExampleProperty>());
   BOOST_CHECK(task);
 
   // check the task is of the correct type (for testing, normally we would not care about the type)
-  auto example_task = std::dynamic_pointer_cast<ExampleTask>(task);
+  auto example_task = std::dynamic_pointer_cast<const ExampleTask>(task);
   BOOST_CHECK(example_task);
 }
 
-BOOST_FIXTURE_TEST_CASE( taskregistry_notfound_test, TaskRegistryFixture ) {
-  registry->registerTaskFactory(std::move(factory));
+BOOST_FIXTURE_TEST_CASE( TaskProvider_notfound_test, TaskProviderFixture ) {
+  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
 
   // Try to create a task for property type not registered
-  auto task = registry->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>());
-
-  // Check that we get a null pointer
-  BOOST_CHECK(!task);
+  BOOST_CHECK_THROW(provider->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>()), std::exception);
 }
 
-BOOST_FIXTURE_TEST_CASE( taskregistry_duplicate_property, TaskRegistryFixture ) {
+BOOST_FIXTURE_TEST_CASE( TaskProvider_duplicate_property, TaskProviderFixture ) {
   // Register our factory
-  registry->registerTaskFactory(std::move(factory));
+  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
 
   // Create a second instance of the same registry
   std::unique_ptr<ExampleTaskFactory> same_factory(new ExampleTaskFactory());
 
   // And then  we try to register it, we should get an exception
-  BOOST_CHECK_THROW(registry->registerTaskFactory(std::move(same_factory)), TaskRegistry::DuplicateFactoryException);
+  BOOST_CHECK_THROW(registry->registerTaskFactory<ExampleProperty>(std::move(same_factory)), TaskFactoryRegistry::DuplicateFactoryException);
 }
 
 //-----------------------------------------------------------------------------

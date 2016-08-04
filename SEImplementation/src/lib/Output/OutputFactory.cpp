@@ -26,7 +26,7 @@ std::unique_ptr<Output> OutputFactory::getOutput() const {
   return std::unique_ptr<Output>(new TableOutput(source_to_row, std_out_handler));
 }
 
-void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<OutputConfig>();
 }
 

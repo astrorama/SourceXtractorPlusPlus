@@ -10,7 +10,7 @@ using namespace testing;
 
 #include "SEUtils/PixelCoordinate.h"
 
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Source/Source.h"
@@ -20,10 +20,12 @@ using namespace testing;
 
 using namespace SExtractor;
 
-// Mock for the TaskRegistry so that we can check interactions with it
-class MockTaskRegistry : public TaskRegistry {
+// Mock for the TaskProvider so that we can check interactions with it
+class MockTaskProvider : public TaskProvider {
 public:
-  MOCK_CONST_METHOD1(getTask, std::shared_ptr<Task> (const PropertyId& property_id));
+  MockTaskProvider() : TaskProvider(nullptr) {}
+
+  MOCK_CONST_METHOD1(getTask, std::shared_ptr<const Task> (const PropertyId& property_id));
 };
 
 // Example properties
@@ -49,7 +51,7 @@ public:
 
   GroupPropertyTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(EntangledSourceGroup& group) {
+  virtual void computeProperties(EntangledSourceGroup& group) const {
     group.setProperty(std::unique_ptr<GroupProperty>(new GroupProperty(m_value)));
   }
 
@@ -63,7 +65,7 @@ public:
 
   GroupedSourceTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(EntangledSourceGroup& group) {
+  virtual void computeProperties(EntangledSourceGroup& group) const {
     // Sets the property on all the sources in the group
     for (auto source : group.getSources()) {
       source->setProperty<SourceProperty>(m_value);
@@ -76,14 +78,14 @@ private:
 
 struct EntangledSourceGroupFixture {
 
-  std::shared_ptr<MockTaskRegistry> mock_registry;
+  std::shared_ptr<MockTaskProvider> mock_registry;
   std::shared_ptr<Source> source_a, source_b;
   std::shared_ptr<EntangledSourceGroup> group;
 
   const int magic_number = 42;
 
   EntangledSourceGroupFixture() :
-    mock_registry(std::make_shared<MockTaskRegistry>()),
+    mock_registry(std::make_shared<MockTaskProvider>()),
     source_a(new Source(mock_registry)),
     source_b(new Source(mock_registry)),
     group(EntangledSourceGroup::create({source_a, source_b}, mock_registry)) {
