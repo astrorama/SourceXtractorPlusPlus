@@ -19,7 +19,7 @@ namespace SExtractor {
 
 class OverlappingBoundariesCriteria : public GroupingCriteria {
 public:
-  virtual bool shouldGroup(const SourceList& source_list, const Source& source) const override;
+  virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const override;
 };
 
 

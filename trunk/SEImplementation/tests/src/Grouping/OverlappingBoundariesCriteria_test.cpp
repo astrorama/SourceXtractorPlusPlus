@@ -44,9 +44,9 @@ BOOST_FIXTURE_TEST_CASE(OverlappingBoundariesCriteriaTest, OverlappingBoundaries
 
   source_list->addSource(source_a);
 
-  BOOST_CHECK(OverlappingBoundariesCriteria().shouldGroup(*source_list, *source_a));
-  BOOST_CHECK(OverlappingBoundariesCriteria().shouldGroup(*source_list, *source_b));
-  BOOST_CHECK(!OverlappingBoundariesCriteria().shouldGroup(*source_list, *source_c));
+  BOOST_CHECK(OverlappingBoundariesCriteria().shouldGroup(*source_a, *source_a));
+  BOOST_CHECK(OverlappingBoundariesCriteria().shouldGroup(*source_a, *source_b));
+  BOOST_CHECK(!OverlappingBoundariesCriteria().shouldGroup(*source_a, *source_c));
 }
 
 //-----------------------------------------------------------------------------
