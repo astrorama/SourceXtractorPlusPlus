@@ -28,7 +28,7 @@ public:
 
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 }; /* End of OutputFactory class */
 

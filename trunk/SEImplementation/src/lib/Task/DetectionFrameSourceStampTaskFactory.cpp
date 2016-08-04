@@ -17,9 +17,9 @@ using namespace Euclid::Configuration;
 
 namespace SExtractor {
 
-static AutoRegisterer<DetectionFrameSourceStampTaskFactory> s_detection_frame_source_stamp_registerer;
+static AutoRegisterer<DetectionFrameSourceStampTaskFactory, DetectionFrameSourceStamp> s_detection_frame_source_stamp_registerer;
 
-void DetectionFrameSourceStampTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void DetectionFrameSourceStampTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<DetectionImageConfig>();
 }
 
@@ -28,7 +28,7 @@ void DetectionFrameSourceStampTaskFactory::configure(Euclid::Configuration::Conf
           manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
 }
 
-std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const PropertyId& property_id) {
+std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<DetectionFrameSourceStamp>()) {
     return m_detection_frame_source_stamp_task;
   } else {
@@ -36,7 +36,7 @@ std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const Proper
   }
 }
 
-const std::vector<PropertyId> DetectionFrameSourceStampTaskFactory::getProducedProperties() {
+const std::vector<PropertyId> DetectionFrameSourceStampTaskFactory::getProducedProperties() const {
   return { PropertyId::create<DetectionFrameSourceStamp>() };
 }
 

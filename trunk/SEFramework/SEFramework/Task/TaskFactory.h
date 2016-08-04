@@ -31,13 +31,13 @@ public:
   virtual ~TaskFactory() = default;
 
   /// Returns a Task producing a Property corresponding to the given PropertyId
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) = 0;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const = 0;
 
   /// Returns a vector containing all the PropertyIds of the Properties that this TaskFactory provides Tasks for.
-  virtual const std::vector<PropertyId> getProducedProperties() = 0;
+  virtual const std::vector<PropertyId> getProducedProperties() const = 0;
   
   // Provides a default implementation of the Configurable interface that does nothing
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager&) override { }
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager&) const override { }
   void configure(Euclid::Configuration::ConfigManager&) override { }
   
   virtual void registerPropertyInstances(OutputRegistry&) {

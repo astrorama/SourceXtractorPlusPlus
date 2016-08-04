@@ -12,11 +12,11 @@
 
 using namespace Euclid::Configuration;namespace SExtractor {
 
-SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskRegistry> task_registry)
-: m_task_registry(task_registry) {
+SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_provider)
+: m_task_provider(task_provider) {
 }
 
-void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<SegmentationConfig>();
 }
 
@@ -25,7 +25,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 
   switch (segmentation_config.getAlgorithmOption()) {
     case SegmentationConfig::Algorithm::LUTZ:
-      m_segmentation = std::make_shared<Lutz>(m_task_registry);
+      m_segmentation = std::make_shared<Lutz>(m_task_provider);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

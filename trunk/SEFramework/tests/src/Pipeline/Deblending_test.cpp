@@ -39,18 +39,18 @@ public:
 };
 
 struct DeblendingFixture {
-  std::shared_ptr<TaskRegistry> task_registry;
+  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<ExampleDeblendAction> example_deblend_action;
   std::shared_ptr<Source> source_a, source_b, source_c;
   std::shared_ptr<SourceList> source_list;
   std::shared_ptr<TestGroupObserver> test_group_observer;
 
   DeblendingFixture()
-    : task_registry(new TaskRegistry),
+    : task_provider(new TaskProvider(nullptr)),
       example_deblend_action(new ExampleDeblendAction),
-      source_a(new Source(task_registry)),
-      source_b(new Source(task_registry)),
-      source_c(new Source(task_registry)),
+      source_a(new Source(task_provider)),
+      source_b(new Source(task_provider)),
+      source_c(new Source(task_provider)),
       source_list(SourceList::getFactory()({})),
       test_group_observer(new TestGroupObserver) {
 
@@ -71,7 +71,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(3);
 
-  Deblending deblending({example_deblend_action}, task_registry);
+  Deblending deblending({example_deblend_action}, task_provider);
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_list);
@@ -90,7 +90,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   source_c->setProperty<SimpleIntProperty>(3);
 
   // we want to execute example_deblend_action twice
-  Deblending deblending({example_deblend_action, example_deblend_action}, task_registry);
+  Deblending deblending({example_deblend_action, example_deblend_action}, task_provider);
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_list);

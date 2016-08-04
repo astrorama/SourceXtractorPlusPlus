@@ -10,11 +10,10 @@
 
 #include <vector>
 
+#include <SEFramework/Plugin/PluginManager.h>
 #include <SEFramework/Task/TaskFactory.h>
 
 namespace SExtractor {
-
-class PluginManager;
 
 class Plugin {
 public:

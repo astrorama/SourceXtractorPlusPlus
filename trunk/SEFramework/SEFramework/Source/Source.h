@@ -16,7 +16,7 @@
 
 namespace SExtractor {
 
-class TaskRegistry;
+class TaskProvider;
 
 /**
  * @class Source
@@ -43,7 +43,7 @@ public:
   Source& operator=(Source&&) = delete;
 
   /// Constructor
-  Source(std::shared_ptr<const TaskRegistry> task_registry);
+  Source(std::shared_ptr<const TaskProvider> task_provider);
 
   // Implementation of SourceInterface
   //
@@ -63,7 +63,7 @@ public:
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
-  std::shared_ptr<const TaskRegistry> m_task_registry;
+  std::shared_ptr<const TaskProvider> m_task_provider;
   PropertyHolder m_property_holder;
 }; /* End of Source class */
 

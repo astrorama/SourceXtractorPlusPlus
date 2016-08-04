@@ -30,12 +30,12 @@ public:
   PixelBoundariesTaskFactory();
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) override;
-  virtual const std::vector<PropertyId> getProducedProperties() override;
+  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
+  virtual const std::vector<PropertyId> getProducedProperties() const override;
 
   // Configurable implementation
   void configure(Euclid::Configuration::ConfigManager& manager) override;
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) override;
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
   std::shared_ptr<PixelBoundariesTask> m_pixel_boundaries_task;

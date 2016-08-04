@@ -14,14 +14,14 @@
 
 namespace SExtractor {
 
-static AutoRegisterer<ExternalFlagTaskFactory> s_external_flag_registerer;
+static AutoRegisterer<ExternalFlagTaskFactory, ExternalFlag> s_external_flag_registerer;
 
-void ExternalFlagTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) {
+void ExternalFlagTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<ExternalFlagConfig>();
 }
 
 
-std::shared_ptr<Task> ExternalFlagTaskFactory::getTask(const PropertyId& property_id) {
+std::shared_ptr<Task> ExternalFlagTaskFactory::getTask(const PropertyId& property_id) const {
   if (m_task_map.count(property_id) != 1) {
     return nullptr;
   }
@@ -29,7 +29,7 @@ std::shared_ptr<Task> ExternalFlagTaskFactory::getTask(const PropertyId& propert
 }
 
 
-const std::vector<PropertyId> ExternalFlagTaskFactory::getProducedProperties() {
+const std::vector<PropertyId> ExternalFlagTaskFactory::getProducedProperties() const {
   std::vector<PropertyId> result{};
   for (auto& pair : m_task_map) {
     result.emplace_back(pair.first);

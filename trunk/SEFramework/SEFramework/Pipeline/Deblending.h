@@ -10,7 +10,7 @@
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceList.h"
 #include "SEFramework/Source/EntangledSourceGroup.h"
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 
 namespace SExtractor {
 
@@ -44,14 +44,14 @@ public:
   virtual ~Deblending() = default;
 
   /// Constructor - takes a vector of DeblendAction to be applied, in order, to every SourceList
-  Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskRegistry> task_registry);
+  Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskProvider> task_provider);
 
   /// Handles a new SourceList, applies the DeblendAction and then notifies the observers with an EntangledSourceGroup
   virtual void handleMessage(const std::shared_ptr<SourceList>& source_list) override;
 
 private:
   std::vector<std::shared_ptr<DeblendAction>> m_actions;
-  std::shared_ptr<TaskRegistry> m_task_registry;
+  std::shared_ptr<TaskProvider> m_task_provider;
 
 }; /* End of Deblending class */
 

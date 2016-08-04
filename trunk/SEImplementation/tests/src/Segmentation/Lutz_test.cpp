@@ -25,10 +25,10 @@ public:
 
 
 struct LutzFixture {
-  std::shared_ptr<TaskRegistry> task_registry;
+  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<SourceObserver> source_observer;
 
-  LutzFixture() : task_registry(new TaskRegistry), source_observer(new SourceObserver) {
+  LutzFixture() : task_provider(new TaskProvider(nullptr)), source_observer(new SourceObserver) {
   }
 };
 
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   VectorImage<double> image(10, 10, composite_image);
 
   // use Lutz to split them
-  Lutz lutz(task_registry);
+  Lutz lutz(task_provider);
   lutz.addObserver(source_observer);
   lutz.scan(image);
 

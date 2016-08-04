@@ -12,14 +12,14 @@
 
 namespace SExtractor {
 
-static AutoRegisterer<PixelBoundariesTaskFactory> s_pixel_boundaries_registerer;
+static AutoRegisterer<PixelBoundariesTaskFactory, PixelBoundaries> s_pixel_boundaries_registerer;
 
 PixelBoundariesTaskFactory::PixelBoundariesTaskFactory()
   : m_pixel_boundaries_task(std::make_shared<PixelBoundariesTask>()) {
 
 }
 
-std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& property_id) {
+std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelBoundaries>()) {
     return m_pixel_boundaries_task;
   } else {
@@ -27,14 +27,14 @@ std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& prop
   }
 }
 
-const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties() {
+const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties() const {
   return { PropertyId::create<PixelBoundaries>() };
 }
 
 void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
 }
 
-void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) {
+void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
 
 }
 

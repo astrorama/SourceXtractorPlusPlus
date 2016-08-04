@@ -7,22 +7,26 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Source/Source.h"
-#include "SEFramework/Task/TaskRegistry.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Task/DetectionFrameSourceStampTask.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 
 using namespace SExtractor;
 
 struct DetectionFrameSourceStampFixture {
-  std::shared_ptr<TaskRegistry> task_registry;
+  std::shared_ptr<TaskFactoryRegistry> task_factory_registry;
+  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<Source> source;
 
-  DetectionFrameSourceStampFixture() : task_registry(new TaskRegistry) {
-    task_registry->registerTaskFactory(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
+  DetectionFrameSourceStampFixture() :
+      task_factory_registry(new TaskFactoryRegistry()),
+      task_provider(new TaskProvider(task_factory_registry)) {
+    task_factory_registry->registerTaskFactory<PixelBoundaries>(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
   }
 };
 
@@ -33,7 +37,7 @@ BOOST_AUTO_TEST_SUITE (DetectionFrameSourceStamp_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
-  source.reset(new Source(task_registry));
+  source.reset(new Source(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));
