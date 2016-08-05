@@ -1,0 +1,27 @@
+To add a new property :
+
+Overview of the steps:
+
+1) Create a property class that inherits from Property
+2) Create a task class to compute the property
+3) Create a factory class for that task. It will be used to create and provide the task class.
+4) Optional: create one or more configuration class to provide the configuration to the factory class.
+
+== Property class
+
+The property class the container for the property's data. It should be immutable and provide access to the data with
+as little overhead as possible.
+
+class MyProperty : Property {
+...
+}
+
+== Task class
+
+This is where the computation is done. It should be constructed with everything it needs that does not come from
+a source's properties.
+
+== TaskFactory
+The TaskFactory is responsible for providing a Task that will compute a given property.It should use the Configuration
+system to get all the things required by the Task constructor
+
