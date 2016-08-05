@@ -49,13 +49,13 @@ using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
-class GroupObserver : public Observer<std::shared_ptr<EntangledSourceGroup>> {
+class GroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<EntangledSourceGroup>& group) override {
+  virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override {
       m_list.push_back(group);
   }
 
-  std::list<std::shared_ptr<EntangledSourceGroup>> m_list;
+  std::list<std::shared_ptr<SourceGroup>> m_list;
 };
 
 class SourceObserver : public Observer<std::shared_ptr<Source>> {

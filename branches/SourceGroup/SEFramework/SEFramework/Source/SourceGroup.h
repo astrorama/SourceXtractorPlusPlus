@@ -147,6 +147,11 @@ public:
     return *this;
   }
   
+  iter& operator--() {
+    --m_entangled_it;
+    return *this;
+  }
+  
   bool operator==(const iter& other) const {
     return this->m_entangled_it == other.m_entangled_it;
   }

@@ -67,10 +67,6 @@ elements_add_unit_test(SExtractorSource_test tests/src/Source/Source_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(EntangledSourceGroup_test tests/src/Source/EntangledSourceGroup_test.cpp 
-                     LINK_LIBRARIES SEFramework GMock
-                     INCLUDE_DIRS GMock
-                     TYPE Boost)
 elements_add_unit_test(SourceInterface_test tests/src/Source/SourceInterface_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
