@@ -48,6 +48,16 @@ SourceGroup::iterator SourceGroup::removeSource(iterator pos) {
   
 }
 
+void SourceGroup::merge(const SourceGroup& other) {
+  // We go through the EntangledSources of the other group and we create new ones
+  // locally, pointing to the same wrapped sources. This is necessary, so the
+  // new EntangledSources have a reference to the correct group.
+  for (auto& source : other.m_sources) {
+    this->m_sources.emplace( source.m_source, *this);
+  }
+  this->clearGroupProperties();
+}
+
 const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
   // If we already have the property, return it
   if (m_property_holder.isPropertySet(property_id)) {

@@ -14,7 +14,6 @@
 
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Source/SourceList.h"
 #include "SEFramework/Source/SourceGroup.h"
 
 namespace SExtractor {
@@ -32,7 +31,7 @@ public:
   virtual ~SelectionCriteria() = default;
 
   /// Determines if the given Source must be processed or not
-  virtual bool mustBeProcessed(const Source& source) const = 0;
+  virtual bool mustBeProcessed(const SourceInterface& source) const = 0;
 };
 
 /**
@@ -42,7 +41,7 @@ public:
  */
 class SelectAllCriteria : public SelectionCriteria {
 public:
-  virtual bool mustBeProcessed(const Source& ) const override {
+  virtual bool mustBeProcessed(const SourceInterface& ) const override {
     return true;
   }
 };
@@ -93,8 +92,7 @@ public:
   virtual ~SourceGrouping() = default;
 
   SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
-      SourceList::SourceListFactory source_list_factory,
-      std::shared_ptr<TaskProvider> task_provider);
+                 std::shared_ptr<TaskProvider> task_provider);
 
   /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<Source>& source) override;
@@ -103,11 +101,10 @@ public:
   virtual void handleMessage(const ProcessSourcesEvent& source) override;
 
 private:
-  std::unique_ptr<GroupingCriteria> m_grouping_criteria;
-  std::list<std::shared_ptr<SourceList>> m_source_lists;
 
-  SourceList::SourceListFactory m_source_list_factory;
+  std::unique_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<TaskProvider> m_task_provider;
+  std::list<std::shared_ptr<SourceGroup>> m_source_groups;
 
 }; /* End of SourceGrouping class */
 

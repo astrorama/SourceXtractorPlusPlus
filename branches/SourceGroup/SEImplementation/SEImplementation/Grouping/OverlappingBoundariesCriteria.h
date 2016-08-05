@@ -13,7 +13,7 @@ namespace SExtractor {
 
 /**
  * @class OverlappingBoundariesCriteria
- * @brief Groups sources if their bounding boxes overlap (to be used with OverlappingBoundariesSourceList)
+ * @brief Groups sources if their bounding boxes overlap
  *
  */
 

@@ -59,7 +59,7 @@ struct SourceGroupingFixture {
   SourceGroupingFixture()
     : task_provider(new TaskProvider(nullptr)),
       source_grouping(new SourceGrouping(
-        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), SourceList::getFactory(), task_provider)),
+        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), task_provider)),
       source_a(new Source(task_provider)),
       source_b(new Source(task_provider)),
       source_c(new Source(task_provider)),

@@ -6,7 +6,6 @@
 
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
-#include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
 namespace SExtractor {
 
