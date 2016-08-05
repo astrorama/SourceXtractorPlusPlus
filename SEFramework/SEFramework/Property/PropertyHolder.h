@@ -48,6 +48,8 @@ public:
 
   /// Returns true if the property is set
   bool isPropertySet(const PropertyId& property_id) const;
+  
+  void clear();
 
 private:
 

@@ -10,13 +10,13 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/Source.h"
-#include "SEFramework/Source/EntangledSourceGroup.h"
+#include "SEFramework/Source/SourceGroup.h"
 
 namespace SExtractor {
 
 class Output :
     public Observer<std::shared_ptr<Source>>,
-    public Observer<std::shared_ptr<EntangledSourceGroup>> {
+    public Observer<std::shared_ptr<SourceGroup>> {
 
 public:
 
@@ -26,9 +26,9 @@ public:
     outputSource(*source);
   }
 
-  virtual void handleMessage(const std::shared_ptr<EntangledSourceGroup>& source_group) override {
-    for (auto& source: source_group->getSources()) {
-      outputSource(*source);
+  virtual void handleMessage(const std::shared_ptr<SourceGroup>& source_group) override {
+    for (auto& source: *source_group) {
+      outputSource(source);
     }
   }
 

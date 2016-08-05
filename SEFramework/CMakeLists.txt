@@ -67,10 +67,6 @@ elements_add_unit_test(SExtractorSource_test tests/src/Source/Source_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(EntangledSourceGroup_test tests/src/Source/EntangledSourceGroup_test.cpp 
-                     LINK_LIBRARIES SEFramework GMock
-                     INCLUDE_DIRS GMock
-                     TYPE Boost)
 elements_add_unit_test(SourceInterface_test tests/src/Source/SourceInterface_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
@@ -79,6 +75,10 @@ elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
+elements_add_unit_test(SourceGroup_test tests/src/Source/SourceGroup_test.cpp 
+                     LINK_LIBRARIES SEFramework GMock
+                     TYPE Boost)
+
 endif(GMOCK_FOUND)
 elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp 
                      LINK_LIBRARIES SEFramework
@@ -101,10 +101,6 @@ elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp
 elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(SourceGroup_test tests/src/Source/SourceGroup_test.cpp 
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
-
 #===============================================================================
 # Declare the Python programs here
 # Examples :

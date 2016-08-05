@@ -29,13 +29,13 @@ public:
   }
 };
 
-class TestGroupObserver : public Observer<std::shared_ptr<EntangledSourceGroup>> {
+class TestGroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<EntangledSourceGroup>& source_group) override {
+  virtual void handleMessage(const std::shared_ptr<SourceGroup>& source_group) override {
     m_groups.push_back(source_group);
   }
 
-  std::list<std::shared_ptr<EntangledSourceGroup>> m_groups;
+  std::list<std::shared_ptr<SourceGroup>> m_groups;
 };
 
 struct DeblendingFixture {
@@ -77,10 +77,15 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   deblending.handleMessage(source_list);
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
-  auto sources = test_group_observer->m_groups.front()->getSources();
-  BOOST_CHECK(sources.size() == 2);
-  BOOST_CHECK(sources[0]->getProperty<SimpleIntProperty>().m_value == 2);
-  BOOST_CHECK(sources[1]->getProperty<SimpleIntProperty>().m_value == 3);
+  auto group = test_group_observer->m_groups.front();
+  auto iter = group->begin();
+  BOOST_CHECK(iter != group->end());
+  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 2);
+  ++iter;
+  BOOST_CHECK(iter != group->end());
+  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 3);
+  ++iter;
+  BOOST_CHECK(iter == group->end());
 }
 
 //-----------------------------------------------------------------------------
@@ -96,9 +101,12 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   deblending.handleMessage(source_list);
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
-  auto sources = test_group_observer->m_groups.front()->getSources();
-  BOOST_CHECK(sources.size() == 1);
-  BOOST_CHECK(sources[0]->getProperty<SimpleIntProperty>().m_value == 3);
+  auto group = test_group_observer->m_groups.front();
+  auto iter = group->begin();
+  BOOST_CHECK(iter != group->end());
+  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 3);
+  ++iter;
+  BOOST_CHECK(iter == group->end());
 }
 
 //-----------------------------------------------------------------------------
