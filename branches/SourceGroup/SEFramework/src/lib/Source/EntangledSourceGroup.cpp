@@ -53,7 +53,7 @@ const Property& EntangledSourceGroup::getProperty(const PropertyId& property_id)
   // If not, get the task for that property, use it to compute the property then return it
   auto task = m_task_provider->getTask<GroupTask>(property_id);
   if (task) {
-    task->computeProperties(const_cast<EntangledSourceGroup&>(*this));
+//    task->computeProperties(const_cast<EntangledSourceGroup&>(*this));
     return m_property_holder.getProperty(property_id);
   }
 
@@ -105,7 +105,7 @@ const Property& EntangledSourceGroup::EntangledSource::getProperty(const Propert
     }
 
     // Use the task to make the property
-    group_task->computeProperties(*group);
+//    group_task->computeProperties(*group);
 
     // The property should now be available either in this object or in the group object
     if (m_property_holder.isPropertySet(property_id)) {

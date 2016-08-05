@@ -51,8 +51,8 @@ public:
 
   GroupPropertyTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(EntangledSourceGroup& group) const {
-    group.setProperty(std::unique_ptr<GroupProperty>(new GroupProperty(m_value)));
+  virtual void computeProperties(SourceGroup& group) const {
+    group.setProperty<GroupProperty>(m_value);
   }
 
 private:
@@ -65,10 +65,10 @@ public:
 
   GroupedSourceTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(EntangledSourceGroup& group) const {
+  virtual void computeProperties(SourceGroup& group) const {
     // Sets the property on all the sources in the group
-    for (auto source : group.getSources()) {
-      source->setProperty<SourceProperty>(m_value);
+    for (auto& source : group) {
+      source.setProperty<SourceProperty>(m_value);
     }
   }
 

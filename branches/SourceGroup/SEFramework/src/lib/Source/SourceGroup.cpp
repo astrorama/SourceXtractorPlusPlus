@@ -5,6 +5,7 @@
  */
 
 #include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Task/GroupTask.h"
 
 namespace SExtractor {
 
@@ -51,7 +52,7 @@ const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
   }
 
   // If not, get the task for that property, use it to compute the property then return it
-  auto task = m_task_provider->getTask<ToDoReplaceWithGroupTask>(property_id);
+  auto task = m_task_provider->getTask<GroupTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<SourceGroup&>(*this));
     return m_property_holder.getProperty(property_id);
@@ -64,6 +65,16 @@ const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
 void SourceGroup::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
+
+
+
+
+
+
+
+
+
+
 
 } // SExtractor namespace
 

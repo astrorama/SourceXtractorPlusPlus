@@ -8,14 +8,13 @@
 #define _SEFRAMEWORK_TASK_GROUPTASK_H
 
 #include "SEFramework/Task/Task.h"
+#include "SEFramework/Source/SourceGroup.h"
 
 namespace SExtractor {
 
-class EntangledSourceGroup;
-
 /**
  * @class GroupTask
- * @brief A Task that acts on an EntangledSourceGroup to compute one or more properties
+ * @brief A Task that acts on a SourceGroup to compute one or more properties
  *
  */
 class GroupTask : public Task {
@@ -27,8 +26,8 @@ public:
    */
   virtual ~GroupTask() = default;
 
-  /// Computes one or more properties for the EntangledSourceGroup and/or the Sources it contains
-  virtual void computeProperties(EntangledSourceGroup& group) const = 0;
+  /// Computes one or more properties for the SourceGroup and/or the Sources it contains
+  virtual void computeProperties(SourceGroup& group) const = 0;
 
 
 private:
