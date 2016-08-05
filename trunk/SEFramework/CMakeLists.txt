@@ -92,9 +92,6 @@ elements_add_unit_test(SourceGrouping_test tests/src/Pipeline/SourceGrouping_tes
 elements_add_unit_test(Deblending_test tests/src/Pipeline/Deblending_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(SourceList_test tests/src/Source/SourceList_test.cpp 
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)

@@ -68,6 +68,8 @@ public:
   
   iterator removeSource(iterator pos);
   
+  void merge(const SourceGroup& other);
+  
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 
@@ -111,6 +113,7 @@ private:
   SourceGroup& m_group;
   
   friend void SourceGroup::clearGroupProperties();
+  friend void SourceGroup::merge(const SourceGroup&);
   
 };
 

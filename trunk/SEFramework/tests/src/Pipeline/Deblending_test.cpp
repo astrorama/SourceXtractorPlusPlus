@@ -4,6 +4,7 @@
  * @author mschefer
  */
 
+#include <iterator>
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Property/Property.h"
@@ -22,9 +23,9 @@ public:
 /// ExampleDeblendAction: if SourceList has at least 2 elements, remove the first element
 class ExampleDeblendAction : public DeblendAction {
 public:
-  virtual void deblend(SourceList& source_list) const {
-    if (source_list.getSources().size() >= 2) {
-      source_list.removeSource(source_list.getSources().front());
+  virtual void deblend(SourceGroup& group) const {
+    if (std::distance(group.begin(), group.end()) >= 2) {
+      group.removeSource(group.begin());
     }
   }
 };
@@ -42,7 +43,7 @@ struct DeblendingFixture {
   std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<ExampleDeblendAction> example_deblend_action;
   std::shared_ptr<Source> source_a, source_b, source_c;
-  std::shared_ptr<SourceList> source_list;
+  std::shared_ptr<SourceGroup> source_group;
   std::shared_ptr<TestGroupObserver> test_group_observer;
 
   DeblendingFixture()
@@ -51,12 +52,12 @@ struct DeblendingFixture {
       source_a(new Source(task_provider)),
       source_b(new Source(task_provider)),
       source_c(new Source(task_provider)),
-      source_list(SourceList::getFactory()({})),
+      source_group(new SourceGroup{task_provider}),
       test_group_observer(new TestGroupObserver) {
 
-    source_list->addSource(source_a);
-    source_list->addSource(source_b);
-    source_list->addSource(source_c);
+    source_group->addSource(source_a);
+    source_group->addSource(source_b);
+    source_group->addSource(source_c);
   }
 };
 
@@ -74,7 +75,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   Deblending deblending({example_deblend_action}, task_provider);
   deblending.addObserver(test_group_observer);
 
-  deblending.handleMessage(source_list);
+  deblending.handleMessage(source_group);
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
   auto group = test_group_observer->m_groups.front();
@@ -98,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   Deblending deblending({example_deblend_action, example_deblend_action}, task_provider);
   deblending.addObserver(test_group_observer);
 
-  deblending.handleMessage(source_list);
+  deblending.handleMessage(source_group);
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
   auto group = test_group_observer->m_groups.front();
