@@ -14,16 +14,17 @@ Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std:
 }
 
 void Deblending::handleMessage(const std::shared_ptr<SourceList>& source_list) {
-  // Applies every DeblendAction to the SourceList
+  // Converts the SourceList to a SourceGroup
+  auto group = std::make_shared<SourceGroup>(m_task_provider, source_list->getSources());
+  
+  // Applies every DeblendAction to the SourceGroup
   for (auto& action : m_actions) {
-    action->deblend(*source_list);
+    action->deblend(*group);
   }
 
-  // If the SourceList still contains sources, we create an EntangledSourceGroup with them and notify the observers
-  auto& sources = source_list->getSources();
-  if (sources.size() > 0) {
-    auto source_group = std::make_shared<SourceGroup>(m_task_provider, sources);
-    notifyObservers(source_group);
+  // If the SourceList still contains sources, we notify the observers
+  if (group->begin() != group->end()) {
+    notifyObservers(group);
   }
 }
 

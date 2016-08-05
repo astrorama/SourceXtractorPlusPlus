@@ -4,6 +4,7 @@
  * @author mschefer
  */
 
+#include <iterator>
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Property/Property.h"
@@ -22,9 +23,9 @@ public:
 /// ExampleDeblendAction: if SourceList has at least 2 elements, remove the first element
 class ExampleDeblendAction : public DeblendAction {
 public:
-  virtual void deblend(SourceList& source_list) const {
-    if (source_list.getSources().size() >= 2) {
-      source_list.removeSource(source_list.getSources().front());
+  virtual void deblend(SourceGroup& group) const {
+    if (std::distance(group.begin(), group.end()) >= 2) {
+      group.removeSource(group.begin());
     }
   }
 };

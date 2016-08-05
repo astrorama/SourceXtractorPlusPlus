@@ -16,7 +16,7 @@ namespace SExtractor {
 
 /**
  * @class DeblendAction
- * @brief An action to be applied to a SourceList
+ * @brief An action to be applied to a SourceGroup for deblending its sources
  *
  */
 class DeblendAction {
@@ -25,8 +25,8 @@ public:
   /// Destructor
   virtual ~DeblendAction() = default;
 
-  // Performs the DeblendAction on the SourceList
-  virtual void deblend(SourceList& source_list) const = 0;
+  // Performs the DeblendAction on the SourceGroup
+  virtual void deblend(SourceGroup& group) const = 0;
 };
 
 /**
