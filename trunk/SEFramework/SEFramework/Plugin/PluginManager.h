@@ -16,13 +16,13 @@
 #include "SEFramework/Registration/RegistrationManager.h"
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Task/TaskFactoryRegistry.h"
+#include "SEFramework/Plugin/PluginAPI.h"
 
 namespace SExtractor {
 
 class Plugin;
-class TaskFactory;
 
-class PluginManager : public Configurable {
+class PluginManager : public Configurable, public PluginAPI {
 public:
 
   virtual ~PluginManager() = default;
@@ -31,8 +31,13 @@ public:
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  virtual std::shared_ptr<TaskFactoryRegistry> getTaskFactoryRegistry() const {
-    return RegistrationManager::instance().getTaskFactoryRegistry();
+  // PluginAPI implementation
+  virtual TaskFactoryRegistry& getTaskFactoryRegistry() const override {
+    return *RegistrationManager::instance().getTaskFactoryRegistry();
+  }
+
+  virtual OutputRegistry& getOutputRegistry() const override {
+    return output_registry;
   }
 
 private:
