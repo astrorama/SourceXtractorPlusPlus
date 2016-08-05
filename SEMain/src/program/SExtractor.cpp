@@ -32,7 +32,6 @@
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
-#include "SEImplementation/Grouping/OverlappingBoundariesSourceList.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
@@ -120,8 +119,7 @@ public:
     auto partition = std::make_shared<Partition>(std::vector<std::shared_ptr<PartitionStep>>({attractors_step, min_area_step}));
 
     auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria),
-        SourceList::getFactory<OverlappingBoundariesSourceList>());
+        std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), task_provider);
     auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>(), task_provider);
 
     std::shared_ptr<Output> output = output_factory.getOutput();
