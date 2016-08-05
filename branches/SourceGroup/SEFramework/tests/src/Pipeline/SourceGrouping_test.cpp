@@ -24,6 +24,11 @@ public:
   SimpleIntProperty(int value) : m_value(value) {}
 };
 
+struct IdProperty : public Property {
+  std::string id;
+  IdProperty(std::string id) : id(id) { }
+};
+
 class TestGroupingCriteria : public GroupingCriteria {
   virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
 
@@ -34,32 +39,35 @@ class TestGroupingCriteria : public GroupingCriteria {
   }
 };
 
-class SourceListObserver : public Observer<std::shared_ptr<SourceList>> {
+class SourceGroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceList>& source_list) override {
-      m_list.push_back(source_list->getSources());
+  virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override {
+      m_list.push_back(group);
   }
 
-  std::list<std::list<std::shared_ptr<Source>>> m_list;
+  std::vector<std::shared_ptr<SourceGroup>> m_list;
 };
 
 struct SourceGroupingFixture {
+  std::shared_ptr<TaskProvider> task_provider;
   SelectAllCriteria select_all_criteria;
 
   std::shared_ptr<SourceGrouping> source_grouping;
-  std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<Source> source_a, source_b, source_c;
-  std::shared_ptr<SourceListObserver> source_list_observer;
+  std::shared_ptr<SourceGroupObserver> source_group_observer;
 
   SourceGroupingFixture()
-    : source_grouping(new SourceGrouping(
-        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), SourceList::getFactory())),
-      task_provider(new TaskProvider(nullptr)),
+    : task_provider(new TaskProvider(nullptr)),
+      source_grouping(new SourceGrouping(
+        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), SourceList::getFactory(), task_provider)),
       source_a(new Source(task_provider)),
       source_b(new Source(task_provider)),
       source_c(new Source(task_provider)),
-      source_list_observer(new SourceListObserver) {
-    source_grouping->addObserver(source_list_observer);
+      source_group_observer(new SourceGroupObserver) {
+    source_grouping->addObserver(source_group_observer);
+    source_a->setProperty<IdProperty>("A");
+    source_b->setProperty<IdProperty>("B");
+    source_c->setProperty<IdProperty>("C");
   }
 };
 
@@ -80,11 +88,20 @@ BOOST_FIXTURE_TEST_CASE( source_grouping_test, SourceGroupingFixture ) {
 
   source_grouping->handleMessage(ProcessSourcesEvent { select_all_criteria } );
 
-  BOOST_CHECK(source_list_observer->m_list.size() == 2);
-  BOOST_CHECK(source_list_observer->m_list == std::list<std::list<std::shared_ptr<Source>>> ({
-    std::list<std::shared_ptr<Source>>( {source_a, source_c} ),
-    std::list<std::shared_ptr<Source>>( {source_b} )
-  }));
+  BOOST_CHECK(source_group_observer->m_list.size() == 2);
+  auto group = source_group_observer->m_list[0];
+  auto iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "A");
+  ++iter;
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "C");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  group = source_group_observer->m_list[1];
+  iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "B");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  
 }
 
 //-----------------------------------------------------------------------------
@@ -106,12 +123,23 @@ BOOST_FIXTURE_TEST_CASE( process_sources_test, SourceGroupingFixture ) {
   source_grouping->handleMessage(ProcessSourcesEvent { select_all_criteria } );
 
   // this time the sources were not grouped due to them being processed before they could be grouped
-  BOOST_CHECK(source_list_observer->m_list.size() == 3);
-  BOOST_CHECK(source_list_observer->m_list == std::list<std::list<std::shared_ptr<Source>>> ({
-    std::list<std::shared_ptr<Source>>( {source_a} ),
-    std::list<std::shared_ptr<Source>>( {source_b} ),
-    std::list<std::shared_ptr<Source>>( {source_c} )
-  }));
+  BOOST_CHECK(source_group_observer->m_list.size() == 3);
+  auto group = source_group_observer->m_list[0];
+  auto iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "A");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  group = source_group_observer->m_list[1];
+  iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "B");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  group = source_group_observer->m_list[2];
+  iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "C");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  
 }
 
 //-----------------------------------------------------------------------------

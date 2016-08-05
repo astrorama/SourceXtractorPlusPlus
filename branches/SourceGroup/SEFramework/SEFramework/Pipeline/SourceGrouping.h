@@ -15,6 +15,7 @@
 #include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceList.h"
+#include "SEFramework/Source/SourceGroup.h"
 
 namespace SExtractor {
 
@@ -79,11 +80,11 @@ public:
  * @class SourceGrouping
  * @brief SourceGrouping takes Source, groups them together according to its GroupingCriteria and stores them.
  *  When a ProcessSourcesEvent is received the sources that need to be processed are output together with the
- *  sources they are grouped with as a SourceList.
+ *  sources they are grouped with as a SourceGroup.
  *
  */
 class SourceGrouping : public Observer<std::shared_ptr<Source>>,
-    public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceList>> {
+    public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceGroup>> {
 public:
 
   /**
@@ -92,7 +93,8 @@ public:
   virtual ~SourceGrouping() = default;
 
   SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
-      SourceList::SourceListFactory source_list_factory);
+      SourceList::SourceListFactory source_list_factory,
+      std::shared_ptr<TaskProvider> task_provider);
 
   /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<Source>& source) override;
@@ -105,6 +107,7 @@ private:
   std::list<std::shared_ptr<SourceList>> m_source_lists;
 
   SourceList::SourceListFactory m_source_list_factory;
+  std::shared_ptr<TaskProvider> m_task_provider;
 
 }; /* End of SourceGrouping class */
 

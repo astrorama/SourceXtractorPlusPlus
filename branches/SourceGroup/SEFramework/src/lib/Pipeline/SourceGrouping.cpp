@@ -7,13 +7,15 @@
 #include "SEFramework/Source/SourceList.h"
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
+#include "SEFramework/Source/SourceGroup.h"
 
 
 namespace SExtractor {
 
 SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
-    SourceList::SourceListFactory source_list_factory)
-    : m_grouping_criteria(std::move(grouping_criteria)), m_source_list_factory(source_list_factory) {
+    SourceList::SourceListFactory source_list_factory, std::shared_ptr<TaskProvider> task_provider)
+    : m_grouping_criteria(std::move(grouping_criteria)), m_source_list_factory(source_list_factory),
+      m_task_provider(task_provider) {
 }
 
 void SourceGrouping::handleMessage(const std::shared_ptr<Source>& source) {
@@ -67,7 +69,7 @@ void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
   for (auto& list : lists_to_process) {
     // we remove it from our list of stored SourceLists and notify our observers
     m_source_lists.remove(list);
-    notifyObservers(list);
+    notifyObservers(std::make_shared<SourceGroup>(m_task_provider, list->getSources()));
   }
 }
 
