@@ -29,4 +29,8 @@ bool PropertyHolder::isPropertySet(const PropertyId& property_id) const {
   return m_properties.find(property_id) != m_properties.end();
 }
 
+void PropertyHolder::clear() {
+  m_properties.clear();
+}
+
 } // SEFramework namespace

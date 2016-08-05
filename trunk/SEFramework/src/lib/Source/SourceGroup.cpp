@@ -5,6 +5,7 @@
  */
 
 #include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Task/GroupTask.h"
 
 namespace SExtractor {
 
@@ -37,11 +38,14 @@ SourceGroup::const_iterator SourceGroup::end() const {
 }
 
 void SourceGroup::addSource(std::shared_ptr<Source> source) {
+  clearGroupProperties();
   m_sources.emplace(source, *this);
 }
 
 SourceGroup::iterator SourceGroup::removeSource(iterator pos) {
+  clearGroupProperties();
   return iterator(m_sources.erase(pos.m_entangled_it));
+  
 }
 
 const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
@@ -51,7 +55,7 @@ const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
   }
 
   // If not, get the task for that property, use it to compute the property then return it
-  auto task = m_task_provider->getTask<ToDoReplaceWithGroupTask>(property_id);
+  auto task = m_task_provider->getTask<GroupTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<SourceGroup&>(*this));
     return m_property_holder.getProperty(property_id);
@@ -64,6 +68,22 @@ const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
 void SourceGroup::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
+
+void SourceGroup::clearGroupProperties() {
+  m_property_holder.clear();
+  for (auto& source : m_sources) {
+    const_cast<EntangledSource&>(source).m_property_holder.clear();
+  }
+}
+
+
+
+
+
+
+
+
+
 
 } // SExtractor namespace
 

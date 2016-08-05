@@ -22,7 +22,7 @@ void Deblending::handleMessage(const std::shared_ptr<SourceList>& source_list) {
   // If the SourceList still contains sources, we create an EntangledSourceGroup with them and notify the observers
   auto& sources = source_list->getSources();
   if (sources.size() > 0) {
-    auto source_group = EntangledSourceGroup::create(sources, m_task_provider);
+    auto source_group = std::make_shared<SourceGroup>(m_task_provider, sources);
     notifyObservers(source_group);
   }
 }

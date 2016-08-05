@@ -9,7 +9,7 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceList.h"
-#include "SEFramework/Source/EntangledSourceGroup.h"
+#include "SEFramework/Source/SourceGroup.h"
 #include "SEFramework/Task/TaskProvider.h"
 
 namespace SExtractor {
@@ -32,11 +32,11 @@ public:
 /**
  * @class Deblending
  * @brief Performs a number of steps on a SourceList that can add or remove Sources. Each finalized SourceList
- * is then converted to an EntangledSourceGroup.
+ * is then converted to a SourceGroup.
  *
  */
 class Deblending : public Observer<std::shared_ptr<SourceList>>,
-  public Observable<std::shared_ptr<EntangledSourceGroup>> {
+  public Observable<std::shared_ptr<SourceGroup>> {
 
 public:
 
