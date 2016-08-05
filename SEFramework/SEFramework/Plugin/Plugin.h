@@ -8,17 +8,14 @@
 #ifndef _SEFRAMEWORK_PLUGIN_PLUGIN_H_
 #define _SEFRAMEWORK_PLUGIN_PLUGIN_H_
 
-#include <vector>
-
-#include <SEFramework/Plugin/PluginManager.h>
-#include <SEFramework/Task/TaskFactory.h>
+#include <SEFramework/Plugin/PluginAPI.h>
 
 namespace SExtractor {
 
 class Plugin {
 public:
   virtual std::string getIdString() const = 0;
-  virtual void registerPlugin(PluginManager& plugin_manager) = 0;
+  virtual void registerPlugin(PluginAPI& plugin_api) = 0;
 };
 
 } // namespace SExtractor
