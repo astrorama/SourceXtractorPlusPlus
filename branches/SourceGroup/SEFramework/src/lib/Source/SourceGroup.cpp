@@ -38,11 +38,14 @@ SourceGroup::const_iterator SourceGroup::end() const {
 }
 
 void SourceGroup::addSource(std::shared_ptr<Source> source) {
+  clearGroupProperties();
   m_sources.emplace(source, *this);
 }
 
 SourceGroup::iterator SourceGroup::removeSource(iterator pos) {
+  clearGroupProperties();
   return iterator(m_sources.erase(pos.m_entangled_it));
+  
 }
 
 const Property& SourceGroup::getProperty(const PropertyId& property_id) const {
@@ -66,6 +69,12 @@ void SourceGroup::setProperty(std::unique_ptr<Property> property, const Property
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
+void SourceGroup::clearGroupProperties() {
+  m_property_holder.clear();
+  for (auto& source : m_sources) {
+    const_cast<EntangledSource&>(source).m_property_holder.clear();
+  }
+}
 
 
 

@@ -83,6 +83,8 @@ private:
   std::set<EntangledSource> m_sources;
   PropertyHolder m_property_holder;
   std::shared_ptr<TaskProvider> m_task_provider;
+  
+  void clearGroupProperties();
 
 }; /* End of SourceGroup class */
 
@@ -107,6 +109,8 @@ private:
   PropertyHolder m_property_holder;
   std::shared_ptr<Source> m_source;
   SourceGroup& m_group;
+  
+  friend void SourceGroup::clearGroupProperties();
   
 };
 
