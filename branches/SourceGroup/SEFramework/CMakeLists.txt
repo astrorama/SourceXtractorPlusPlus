@@ -79,6 +79,10 @@ elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
+elements_add_unit_test(SourceGroup_test tests/src/Source/SourceGroup_test.cpp 
+                     LINK_LIBRARIES SEFramework GMock
+                     TYPE Boost)
+
 endif(GMOCK_FOUND)
 elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp 
                      LINK_LIBRARIES SEFramework
@@ -101,10 +105,6 @@ elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp
 elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(SourceGroup_test tests/src/Source/SourceGroup_test.cpp 
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
-
 #===============================================================================
 # Declare the Python programs here
 # Examples :
