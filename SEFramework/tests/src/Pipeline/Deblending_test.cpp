@@ -9,6 +9,7 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Pipeline/Deblending.h"
+#include "SEFramework/Source/Source.h"
 
 using namespace SExtractor;
 

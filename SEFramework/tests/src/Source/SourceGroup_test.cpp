@@ -81,7 +81,7 @@ struct SourceGroupFixture {
   std::shared_ptr<MockTaskProvider> mock_registry {std::make_shared<MockTaskProvider>()};
   std::shared_ptr<Source> source_a {new Source(mock_registry)};
   std::shared_ptr<Source> source_b {new Source(mock_registry)};
-  SourceGroup group {mock_registry, std::vector<std::shared_ptr<Source>>{source_a, source_b}};
+  SourceGroup group {mock_registry, std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b}};
 
   const int magic_number = 42;
 

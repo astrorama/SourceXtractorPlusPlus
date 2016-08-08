@@ -11,9 +11,9 @@
 #include <iterator>
 #include <type_traits>
 
-#include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Property/PropertyHolder.h"
 
 namespace SExtractor {
 
@@ -28,7 +28,7 @@ class SourceGroup : public SourceInterface {
   using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
   
   template <typename T>
-  using EnableIfSourcePtr = typename std::enable_if<std::is_same<CollectionType<T>, std::shared_ptr<Source>>::value>;
+  using EnableIfSourcePtr = typename std::enable_if<std::is_same<CollectionType<T>, std::shared_ptr<SourceInterface>>::value>;
 
 public:
   
@@ -64,7 +64,7 @@ public:
   
   const_iterator end() const;
   
-  void addSource(std::shared_ptr<Source> source);
+  void addSource(std::shared_ptr<SourceInterface> source);
   
   iterator removeSource(iterator pos);
   
@@ -96,7 +96,7 @@ class SourceGroup::EntangledSource : public SourceInterface {
   
 public:
   
-  EntangledSource(std::shared_ptr<Source> source, SourceGroup& group);
+  EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroup& group);
 
   virtual ~EntangledSource() = default;
 
@@ -109,7 +109,7 @@ public:
 private:
   
   PropertyHolder m_property_holder;
-  std::shared_ptr<Source> m_source;
+  std::shared_ptr<SourceInterface> m_source;
   SourceGroup& m_group;
   
   friend void SourceGroup::clearGroupProperties();
