@@ -37,7 +37,7 @@ SourceGroup::const_iterator SourceGroup::end() const {
   return const_iterator(m_sources.end());
 }
 
-void SourceGroup::addSource(std::shared_ptr<Source> source) {
+void SourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
   clearGroupProperties();
   m_sources.emplace(source, *this);
 }
