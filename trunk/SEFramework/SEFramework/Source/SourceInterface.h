@@ -8,6 +8,7 @@
 #define _SEFRAMEWORK_SOURCE_SOURCEINTERFACE_H
 
 #include <memory>
+#include <type_traits>
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
@@ -36,14 +37,17 @@ public:
   virtual ~SourceInterface() = default;
 
   /// Convenience template method to call getProperty() with a more user-friendly syntax
-  template<typename T>
-  const T& getProperty(unsigned int index = 0) const {
-    return dynamic_cast<const T&>(getProperty(PropertyId::create<T>(index)));
+  template<typename PropertyType>
+  const PropertyType& getProperty(unsigned int index = 0) const {
+    static_assert(std::is_base_of<Property, PropertyType>::value, "PropertyType must inherit from SExtractor::Property");
+    return dynamic_cast<const PropertyType&>(getProperty(PropertyId::create<PropertyType>(index)));
   }
 
   /// Convenience template method to call setProperty() with a more user-friendly syntax
   template<typename PropertyType, typename ... Args>
   void setIndexedProperty(std::size_t index, Args... args) {
+    static_assert(std::is_base_of<Property, PropertyType>::value, "PropertyType must inherit from SExtractor::Property");
+    static_assert(std::is_constructible<PropertyType, Args...>::value, "PropertyType must be constructible from args");
     setProperty(std::unique_ptr<PropertyType>{new PropertyType(std::forward<Args>(args)...)},
                 PropertyId::create<PropertyType>(index));
   }
