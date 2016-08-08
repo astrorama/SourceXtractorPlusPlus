@@ -5,13 +5,11 @@
  * Created on July 28, 2016, 7:12 PM
  */
 
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 using namespace Euclid::Table;
 
 namespace SExtractor {
-
-OutputRegistry output_registry;
 
 auto OutputRegistry::getSourceToRowConverter() -> SourceToRowConverter {
   return [this](const SourceInterface& source) {

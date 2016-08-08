@@ -8,7 +8,7 @@
 #define _SEIMPLEMENTATION_CONFIGURATION_OUTPUTCONFIG_H
 
 #include "Configuration/Configuration.h"
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 namespace SExtractor {
 

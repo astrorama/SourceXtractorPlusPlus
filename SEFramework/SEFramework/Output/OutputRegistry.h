@@ -96,8 +96,6 @@ private:
   
 };
 
-extern OutputRegistry output_registry;
-
 } /* namespace SExtractor */
 
 #endif /* _SEFRAMEWORK_OUTPUTREGISTRY_H */

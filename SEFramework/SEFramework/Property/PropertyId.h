@@ -13,8 +13,6 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "SEFramework/Registration/RegistrationManager.h"
-
 namespace SExtractor {
 
 /**

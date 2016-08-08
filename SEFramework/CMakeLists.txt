@@ -37,7 +37,14 @@ find_package(BoostDLL)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEFramework src/lib/Configuration/*.cpp src/lib/Pipeline/*.cpp src/lib/Property/*.cpp src/lib/Source/*.cpp src/lib/Task/*.cpp src/lib/Registration/*.cpp src/lib/Plugin/*.cpp
+elements_add_library(SEFramework
+                     src/lib/Configuration/*.cpp
+                     src/lib/Pipeline/*.cpp 
+                     src/lib/Property/*.cpp
+                     src/lib/Source/*.cpp 
+                     src/lib/Task/*.cpp
+                     src/lib/Output/*.cpp
+                     src/lib/Plugin/*.cpp
                      LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration
                      INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)

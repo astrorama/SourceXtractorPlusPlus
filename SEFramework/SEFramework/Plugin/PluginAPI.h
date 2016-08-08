@@ -9,7 +9,7 @@
 #define _SEFRAMEWORK_PLUGIN_PLUGINAPI_H_
 
 #include "SEFramework/Task/TaskFactoryRegistry.h"
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 namespace SExtractor {
 
