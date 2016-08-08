@@ -51,9 +51,9 @@ private:
   std::shared_ptr<TaskProvider> m_task_provider;
 };
 
-class MockSourceObserver : public Observer<std::shared_ptr<Source>> {
+class MockSourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:
-  MOCK_METHOD1(handleMessage, void (const std::shared_ptr<Source>&));
+  MOCK_METHOD1(handleMessage, void (const std::shared_ptr<SourceInterface>&));
 };
 
 struct RefineSourceFixture {
@@ -82,9 +82,10 @@ BOOST_FIXTURE_TEST_CASE( default_behavior_test, RefineSourceFixture ) {
 
   // Make a source
   auto source = std::make_shared<Source>(task_provider);
+  std::shared_ptr<SourceInterface> source_interface = source;
 
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(source_interface)).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);
@@ -101,9 +102,10 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
 
   // Make a source
   auto source = std::make_shared<Source>(task_provider);
+  std::shared_ptr<SourceInterface> source_interface = source;
 
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(source_interface)).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);

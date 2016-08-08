@@ -9,6 +9,7 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceInterface.h"
 
 namespace SExtractor {
 
@@ -38,7 +39,7 @@ public:
  * notified to the Observers one by one.
  *
  */
-class Partition : public Observer<std::shared_ptr<Source>>, public Observable<std::shared_ptr<Source>> {
+class Partition : public Observer<std::shared_ptr<Source>>, public Observable<std::shared_ptr<SourceInterface>> {
 
 public:
 
