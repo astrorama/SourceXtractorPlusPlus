@@ -9,20 +9,20 @@
 #define _SEFRAMEWORK_PIPELINE_OUTPUT_H_
 
 #include "SEUtils/Observable.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Source/SourceGroup.h"
 
 namespace SExtractor {
 
 class Output :
-    public Observer<std::shared_ptr<Source>>,
+    public Observer<std::shared_ptr<SourceWithOnDemandProperties>>,
     public Observer<std::shared_ptr<SourceGroup>> {
 
 public:
 
   virtual ~Output() = default;
 
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override {
+  virtual void handleMessage(const std::shared_ptr<SourceWithOnDemandProperties>& source) override {
     outputSource(*source);
   }
 

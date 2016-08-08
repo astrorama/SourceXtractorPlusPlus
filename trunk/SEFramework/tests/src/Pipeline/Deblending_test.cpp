@@ -9,7 +9,7 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Pipeline/Deblending.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 using namespace SExtractor;
 
@@ -43,16 +43,16 @@ public:
 struct DeblendingFixture {
   std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<ExampleDeblendAction> example_deblend_action;
-  std::shared_ptr<Source> source_a, source_b, source_c;
+  std::shared_ptr<SourceWithOnDemandProperties> source_a, source_b, source_c;
   std::shared_ptr<SourceGroup> source_group;
   std::shared_ptr<TestGroupObserver> test_group_observer;
 
   DeblendingFixture()
     : task_provider(new TaskProvider(nullptr)),
       example_deblend_action(new ExampleDeblendAction),
-      source_a(new Source(task_provider)),
-      source_b(new Source(task_provider)),
-      source_c(new Source(task_provider)),
+      source_a(new SourceWithOnDemandProperties(task_provider)),
+      source_b(new SourceWithOnDemandProperties(task_provider)),
+      source_c(new SourceWithOnDemandProperties(task_provider)),
       source_group(new SourceGroup{task_provider}),
       test_group_observer(new TestGroupObserver) {
 

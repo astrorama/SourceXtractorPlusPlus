@@ -16,7 +16,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Image/Image.h"
 #include "SEImplementation/Configuration/ExternalFlagConfig.h"
 

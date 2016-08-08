@@ -1,5 +1,5 @@
 /**
- * @file SEFramework/Source/Source.h
+ * @file SEFramework/Source/SourceWithOnDemandProperties.h
  * @date 05/04/16
  * @author mschefer
  */
@@ -19,31 +19,31 @@ namespace SExtractor {
 class TaskProvider;
 
 /**
- * @class Source
- * @brief Source containing pixel detection information.
+ * @class SourceWithOnDemandProperties
  *
- * @details Provides getProperty() and setProperty() implementations
+ * @details Provides getProperty() and setProperty() implementations which use
+ * a TaskProvider to compute the non already available properties on demand.
  *
  */
 
-class Source : public SourceInterface, public History {
+class SourceWithOnDemandProperties : public SourceInterface, public History {
 
 public:
 
   /**
    * @brief Destructor
    */
-  virtual ~Source() = default;
+  virtual ~SourceWithOnDemandProperties() = default;
 
   // removes copy/move constructors and assignment operators
 
-  Source(const Source&) = delete;
-  Source& operator=(const Source&) = delete;
-  Source(Source&&) = delete;
-  Source& operator=(Source&&) = delete;
+  SourceWithOnDemandProperties(const SourceWithOnDemandProperties&) = delete;
+  SourceWithOnDemandProperties& operator=(const SourceWithOnDemandProperties&) = delete;
+  SourceWithOnDemandProperties(SourceWithOnDemandProperties&&) = delete;
+  SourceWithOnDemandProperties& operator=(SourceWithOnDemandProperties&&) = delete;
 
   /// Constructor
-  Source(std::shared_ptr<const TaskProvider> task_provider);
+  SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider);
 
   // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For

@@ -48,7 +48,7 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
   } else {
     std::vector<std::shared_ptr<SourceInterface>> sources;
     for (auto& source_pixels : merged) {
-      auto new_source = std::make_shared<Source>(m_task_provider);
+      auto new_source = std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
       new_source->setProperty<PixelCoordinateList>(source_pixels);
       new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
       sources.push_back(new_source);

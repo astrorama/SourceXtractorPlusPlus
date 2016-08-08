@@ -8,7 +8,7 @@
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H
 
 #include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEFramework/Image/Image.h"
 

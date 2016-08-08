@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -21,7 +21,7 @@ using namespace SExtractor;
 struct DetectionFrameSourceStampFixture {
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry;
   std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<Source> source;
+  std::shared_ptr<SourceWithOnDemandProperties> source;
 
   DetectionFrameSourceStampFixture() :
       task_factory_registry(new TaskFactoryRegistry()),
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_SUITE (DetectionFrameSourceStamp_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));

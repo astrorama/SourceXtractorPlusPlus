@@ -8,7 +8,7 @@
 #define _SEIMPLEMENTATION_TASK_DETECTIONFRAMESOURCESTAMPTASK_H
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {

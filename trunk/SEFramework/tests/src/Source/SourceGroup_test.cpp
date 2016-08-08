@@ -13,7 +13,7 @@ using namespace testing;
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Task/SourceTask.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Property/Property.h"
 
 #include "SEFramework/Source/SourceGroup.h"
@@ -79,8 +79,8 @@ private:
 struct SourceGroupFixture {
 
   std::shared_ptr<MockTaskProvider> mock_registry {std::make_shared<MockTaskProvider>()};
-  std::shared_ptr<Source> source_a {new Source(mock_registry)};
-  std::shared_ptr<Source> source_b {new Source(mock_registry)};
+  std::shared_ptr<SourceWithOnDemandProperties> source_a {new SourceWithOnDemandProperties(mock_registry)};
+  std::shared_ptr<SourceWithOnDemandProperties> source_b {new SourceWithOnDemandProperties(mock_registry)};
   SourceGroup group {mock_registry, std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b}};
 
   const int magic_number = 42;
