@@ -28,7 +28,7 @@ enum class LutzMarker {
   F0
 };
 
-class PixelGroup {
+class Lutz::PixelGroup {
 public:
 
   int start;
@@ -43,7 +43,7 @@ public:
 };
 
 void Lutz::publishGroup(PixelGroup& pixel_group) {
-  auto source = std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
+  auto source = m_source_factory->createSource();
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
   notifyObservers(source);
 }

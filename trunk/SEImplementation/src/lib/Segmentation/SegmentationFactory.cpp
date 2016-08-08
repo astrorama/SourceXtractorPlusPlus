@@ -5,6 +5,10 @@
  */
 
 #include "Configuration/ConfigManager.h"
+
+#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
+
+
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Segmentation/Lutz.h"
 
@@ -25,7 +29,8 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 
   switch (segmentation_config.getAlgorithmOption()) {
     case SegmentationConfig::Algorithm::LUTZ:
-      m_segmentation = std::make_shared<Lutz>(m_task_provider);
+      m_segmentation = std::make_shared<Lutz>(
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

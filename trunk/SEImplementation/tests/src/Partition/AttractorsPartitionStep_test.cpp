@@ -7,6 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
+#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -28,9 +29,11 @@ struct AttractorsPartitionFixture {
 
   AttractorsPartitionFixture()
       :
+        // FIXME task_provider not needed anymore if we use a different SourceFactory
         task_factory_registry(new TaskFactoryRegistry()),
         task_provider(new TaskProvider(task_factory_registry)),
-        attractors_step(new AttractorsPartitionStep(task_provider)) {
+        attractors_step(new AttractorsPartitionStep(
+            std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider))) {
     task_factory_registry->registerTaskFactory<PixelBoundaries>(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
   }
 };

@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Partition.h"
 
@@ -28,12 +29,13 @@ public:
    */
   virtual ~AttractorsPartitionStep() = default;
 
-  AttractorsPartitionStep(std::shared_ptr<TaskProvider> task_provider) : m_task_provider(task_provider) {}
+  AttractorsPartitionStep(std::shared_ptr<SourceFactory> source_factory) :
+        m_source_factory(source_factory) {}
 
   virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
 
 private:
-  std::shared_ptr<TaskProvider> m_task_provider;
+  std::shared_ptr<SourceFactory> m_source_factory;
 
   void attractPixels(
       const std::vector<std::pair<PixelCoordinate, PixelCoordinate>>& pixels_with_origin,
