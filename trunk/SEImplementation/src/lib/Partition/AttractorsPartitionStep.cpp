@@ -15,7 +15,7 @@
 
 namespace SExtractor {
 
-std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::shared_ptr<Source> source) const {
+std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
   auto& stamp = source->getProperty<DetectionFrameSourceStamp>().getStamp();
   auto& bounds = source->getProperty<PixelBoundaries>();
 
@@ -46,7 +46,7 @@ std::vector<std::shared_ptr<Source>> AttractorsPartitionStep::partition(std::sha
   if (merged.size() == 1) {
     return { source };
   } else {
-    std::vector<std::shared_ptr<Source>> sources;
+    std::vector<std::shared_ptr<SourceInterface>> sources;
     for (auto& source_pixels : merged) {
       auto new_source = std::make_shared<Source>(m_task_provider);
       new_source->setProperty<PixelCoordinateList>(source_pixels);

@@ -12,7 +12,7 @@ namespace SExtractor {
 MinAreaPartitionStep::MinAreaPartitionStep(unsigned int min_pixel_count) : m_min_pixel_count (min_pixel_count) {
 }
 
-std::vector<std::shared_ptr<Source>> MinAreaPartitionStep::partition(std::shared_ptr<Source> source) const {
+std::vector<std::shared_ptr<SourceInterface>> MinAreaPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
   if (source->getProperty<PixelCoordinateList>().getCoordinateList().size() < m_min_pixel_count) {
     return {};
   } else {

@@ -7,7 +7,6 @@
 #ifndef _SEIMPLEMENTATION_PARTITION_MINAREAPARTITIONSTEP_H
 #define _SEIMPLEMENTATION_PARTITION_MINAREAPARTITIONSTEP_H
 
-#include "SEFramework/Source/Source.h"
 #include "SEFramework/Pipeline/Partition.h"
 
 namespace SExtractor {
@@ -27,7 +26,7 @@ public:
   /// Constructor
   MinAreaPartitionStep(unsigned int min_pixel_count);
 
-  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const override;
+  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
 
 
 private:
