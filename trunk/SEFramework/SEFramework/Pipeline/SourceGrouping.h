@@ -12,7 +12,6 @@
 
 #include "SEUtils/Observable.h"
 
-#include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceGroup.h"
 
@@ -82,7 +81,7 @@ public:
  *  sources they are grouped with as a SourceGroup.
  *
  */
-class SourceGrouping : public Observer<std::shared_ptr<Source>>,
+class SourceGrouping : public Observer<std::shared_ptr<SourceInterface>>,
     public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceGroup>> {
 public:
 
@@ -95,7 +94,7 @@ public:
                  std::shared_ptr<TaskProvider> task_provider);
 
   /// Handles a new Source
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override;
+  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
 
   // Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
   virtual void handleMessage(const ProcessSourcesEvent& source) override;

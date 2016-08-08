@@ -29,13 +29,13 @@ struct MinAreaPartitionFixture {
   }
 };
 
-class SourceObserver : public Observer<std::shared_ptr<Source>> {
+class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override {
+  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
       m_list.push_back(source);
   }
 
-  std::list<std::shared_ptr<Source>> m_list;
+  std::list<std::shared_ptr<SourceInterface>> m_list;
 };
 
 //-----------------------------------------------------------------------------
@@ -52,12 +52,12 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
 
   Partition partition( { min_area_step } );
 
-  auto source_list_observer = std::make_shared<SourceObserver>();
-  partition.addObserver(source_list_observer);
+  auto source_observer = std::make_shared<SourceObserver>();
+  partition.addObserver(source_observer);
 
   partition.handleMessage(source);
 
-  BOOST_CHECK(source_list_observer->m_list.empty());
+  BOOST_CHECK(source_observer->m_list.empty());
 }
 
 BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
@@ -69,12 +69,12 @@ BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
 
   Partition partition( { min_area_step } );
 
-  auto source_list_observer = std::make_shared<SourceObserver>();
-  partition.addObserver(source_list_observer);
+  auto source_observer = std::make_shared<SourceObserver>();
+  partition.addObserver(source_observer);
 
   partition.handleMessage(source);
 
-  BOOST_CHECK(source_list_observer->m_list.size() == 1);
+  BOOST_CHECK(source_observer->m_list.size() == 1);
 }
 
 //-----------------------------------------------------------------------------

@@ -14,7 +14,7 @@ SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criter
         : m_grouping_criteria(std::move(grouping_criteria)), m_task_provider(task_provider) {
 }
 
-void SourceGrouping::handleMessage(const std::shared_ptr<Source>& source) {
+void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   // Pointer which points to the group of the source
   std::shared_ptr<SourceGroup> matched_group = nullptr;
   

@@ -35,13 +35,13 @@ struct AttractorsPartitionFixture {
   }
 };
 
-class SourceObserver : public Observer<std::shared_ptr<Source>> {
+class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override {
+  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
       m_list.push_back(source);
   }
 
-  std::list<std::shared_ptr<Source>> m_list;
+  std::list<std::shared_ptr<SourceInterface>> m_list;
 };
 
 using namespace SExtractor;
@@ -60,18 +60,18 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto stamp_two_sources = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 1.0, 1.0, 2.0});
 
   Partition partition( { attractors_step } );
-  auto source_list_observer = std::make_shared<SourceObserver>();
-  partition.addObserver(source_list_observer);
+  auto source_observer = std::make_shared<SourceObserver>();
+  partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source);
   partition.handleMessage(source);
-  BOOST_CHECK(source_list_observer->m_list.size() == 1);
-  source_list_observer->m_list.clear();
+  BOOST_CHECK(source_observer->m_list.size() == 1);
+  source_observer->m_list.clear();
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources);
   partition.handleMessage(source);
-  BOOST_CHECK(source_list_observer->m_list.size() == 2);
-  source_list_observer->m_list.clear();
+  BOOST_CHECK(source_observer->m_list.size() == 2);
+  source_observer->m_list.clear();
 }
 
 //-----------------------------------------------------------------------------

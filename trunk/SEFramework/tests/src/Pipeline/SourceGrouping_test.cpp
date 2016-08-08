@@ -8,6 +8,7 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/Source.h"
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
