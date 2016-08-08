@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -24,7 +24,7 @@ struct AttractorsPartitionFixture {
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry;
   std::shared_ptr<TaskProvider> task_provider;
   std::shared_ptr<AttractorsPartitionStep> attractors_step;
-  std::shared_ptr<Source> source;
+  std::shared_ptr<SourceWithOnDemandProperties> source;
 
   AttractorsPartitionFixture()
       :
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
 
   auto stamp_one_source = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 3.0, 4.0, 2.0});

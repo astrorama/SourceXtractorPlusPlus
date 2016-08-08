@@ -8,7 +8,7 @@
 #include "ElementsKernel/EnableGMock.h"
 using namespace testing;
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Property/Property.h"
@@ -48,7 +48,7 @@ public:
 struct SourceFixture {
 
   std::shared_ptr<MockTaskProvider> mock_registry;
-  Source source;
+  SourceWithOnDemandProperties source;
 
   const int magic_number = 42;
 
@@ -59,11 +59,11 @@ struct SourceFixture {
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (Source_test)
+BOOST_AUTO_TEST_SUITE (SourceWithOnDemandProperties_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE( Source_getProperty_test, SourceFixture ) {
+BOOST_FIXTURE_TEST_CASE( SourceWithOnDemandProperties_getProperty_test, SourceFixture ) {
 
   // getTask() should only be called once
   EXPECT_CALL(*mock_registry, getTask(_))

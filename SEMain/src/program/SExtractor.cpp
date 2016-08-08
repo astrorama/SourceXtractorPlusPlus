@@ -57,13 +57,13 @@ public:
   std::list<std::shared_ptr<SourceGroup>> m_list;
 };
 
-class SourceObserver : public Observer<std::shared_ptr<Source>> {
+class SourceObserver : public Observer<std::shared_ptr<SourceWithOnDemandProperties>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override {
+  virtual void handleMessage(const std::shared_ptr<SourceWithOnDemandProperties>& source) override {
       m_list.push_back(source);
   }
 
-  std::list<std::shared_ptr<Source>> m_list;
+  std::list<std::shared_ptr<SourceWithOnDemandProperties>> m_list;
 };
 
 static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");

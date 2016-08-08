@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/TaskProvider.h"
 
 #include "SEFramework/Pipeline/Partition.h"
@@ -19,7 +19,7 @@ using namespace SExtractor;
 struct MinAreaPartitionFixture {
   std::shared_ptr<MinAreaPartitionStep> min_area_step;
   std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<Source> source;
+  std::shared_ptr<SourceWithOnDemandProperties> source;
 
   const static int min_pixels = 3;
 
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_SUITE (MinAreaPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, 4) } ));
@@ -61,7 +61,7 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}, {1,2}});
   auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
   BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3),

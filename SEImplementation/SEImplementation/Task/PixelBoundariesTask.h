@@ -7,7 +7,7 @@
 #ifndef _SEIMPLEMENTATION_TASK_PIXELBOUNDARIESTASK_H
 #define _SEIMPLEMENTATION_TASK_PIXELBOUNDARIESTASK_H
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {

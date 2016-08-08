@@ -70,7 +70,7 @@ elements_add_unit_test(PropertyHolder_test tests/src/Property/PropertyHolder_tes
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(SExtractorSource_test tests/src/Source/Source_test.cpp 
+elements_add_unit_test(SourceWithOnDemandProperties_test tests/src/Source/SourceWithOnDemandProperties_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)

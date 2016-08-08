@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Partition.h"
 
 namespace SExtractor {

@@ -5,7 +5,7 @@
  */
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Segmentation/Lutz.h"
@@ -43,7 +43,7 @@ public:
 };
 
 void Lutz::publishGroup(PixelGroup& pixel_group) {
-  auto source = std::make_shared<Source>(m_task_provider);
+  auto source = std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
   notifyObservers(source);
 }

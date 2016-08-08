@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -18,7 +18,7 @@ using namespace SExtractor;
 
 struct ExternalFlagFixture {
   std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<Source> source;
+  std::shared_ptr<SourceWithOnDemandProperties> source;
 
   ExternalFlagFixture() : task_provider(new TaskProvider(nullptr)) {
   }
@@ -31,7 +31,7 @@ BOOST_AUTO_TEST_SUITE (ExternalFlag_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( external_flag_or_test, ExternalFlagFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1, 0}, {2, 0}});
 
   auto flag_image = std::make_shared<VectorImage<std::int64_t>>(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_or_test, ExternalFlagFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( external_flag_and_test, ExternalFlagFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1, 0}, {3, 0}});
 
   auto flag_image = std::make_shared<VectorImage<std::int64_t>>(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_and_test, ExternalFlagFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( external_flag_min_test, ExternalFlagFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1, 0}, {3, 0}});
 
   auto flag_image = std::make_shared<VectorImage<std::int64_t>>(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
@@ -82,7 +82,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_min_test, ExternalFlagFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( external_flag_max_test, ExternalFlagFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1, 0}, {3, 0}});
 
   auto flag_image = std::make_shared<VectorImage<std::int64_t>>(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
@@ -99,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_max_test, ExternalFlagFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( external_flag_most_test, ExternalFlagFixture ) {
-  source.reset(new Source(task_provider));
+  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1, 0}, {2, 0}, {3, 0}});
 
   auto flag_image = std::make_shared<VectorImage<std::int64_t>>(4, 1, std::vector<std::int64_t> {0, 1, 1, 3} );

@@ -8,7 +8,7 @@
 #define _SEIMPLEMENTATION_TASK_DETECTIONFRAMEPIXELVALUESTASK_H
 
 #include "SEFramework/Task/SourceTask.h"
-#include "SEFramework/Source/Source.h"
+#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
