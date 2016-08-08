@@ -45,21 +45,17 @@ public:
   /// Constructor
   Source(std::shared_ptr<const TaskProvider> task_provider);
 
-  // Implementation of SourceInterface
-  //
-  // Note 1 : Because the get/setProperty() methods of the SourceInterface are
+  // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For
   // this reason it is necessary to re-introduce the templated methods, which is
   // done by the using statements below.
-  // 
-  // Note 2 : The Source class promotes the non-templated versions of the
-  // get/setProperty() method to public. This is done to allow their usage when
-  // the property type is not known until runtime (this is required for the
-  // internal implementation of the task execution logic).
   using SourceInterface::getProperty;
-  virtual const Property& getProperty(const PropertyId& property_id) const override;
-
   using SourceInterface::setProperty;
+  
+protected:
+  
+  // Implementation of SourceInterface
+  virtual const Property& getProperty(const PropertyId& property_id) const override;
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
