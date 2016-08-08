@@ -27,7 +27,7 @@ const Property& SourceGroup::EntangledSource::getProperty(const PropertyId& prop
   try {
     // Try to get the the property from the encapsulated Source
     // if it cannot provide it, this will throw a PropertyNotFoundException
-    return m_source->getProperty(property_id);
+    return getPropertyFromInterface(*m_source, property_id);
   } catch (PropertyNotFoundException& e) {
     // Getting this exception means the property must be computed at the group level
 

@@ -60,6 +60,12 @@ protected:
   virtual const Property& getProperty(const PropertyId& property_id) const = 0;
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
   
+  // The following method allow the specific implementations of the interface
+  // to call the protected getProperty of instances of an unknown sub-type.
+  const Property& getPropertyFromInterface(const SourceInterface& source, const PropertyId& property_id) const {
+    return source.getProperty(property_id);
+  }
+  
 }; /* End of SourceInterface class */
 
 } /* namespace SExtractor */
