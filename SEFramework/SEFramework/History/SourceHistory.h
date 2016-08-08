@@ -12,17 +12,17 @@
 
 namespace SExtractor {
 
-class Source;
+class SourceInterface;
 
 class SourceHistory : public HistoryEntry {
 public:
 
-  SourceHistory(std::shared_ptr<Source> source) : m_source(source) {}
+  SourceHistory(std::shared_ptr<SourceInterface> source) : m_source(source) {}
 
-  std::shared_ptr<Source> getSource() const { return m_source; }
+  std::shared_ptr<SourceInterface> getSource() const { return m_source; }
 
 private:
-  std::shared_ptr<Source> m_source;
+  std::shared_ptr<SourceInterface> m_source;
 };
 
 }

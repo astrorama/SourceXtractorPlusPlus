@@ -27,7 +27,7 @@ public:
    */
   virtual ~PartitionStep() = default;
 
-  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const = 0;
+  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const = 0;
 };
 
 /**

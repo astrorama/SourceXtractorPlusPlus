@@ -25,14 +25,14 @@ public:
 
 class NopPartitionStep : public PartitionStep {
 public:
-  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const {
+  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const {
     return { source };
   }
 };
 
 class ExamplePartitionStep : public PartitionStep {
 public:
-  virtual std::vector<std::shared_ptr<Source>> partition(std::shared_ptr<Source> source) const {
+  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const {
     auto& property = source->getProperty<SimpleIntProperty>();
     if (property.m_value % 2 != 0) {
       return { source };
