@@ -17,6 +17,7 @@
 
 namespace SExtractor {
 
+class OutputRegistry;
 class TaskFactory;
 
 class TaskFactoryRegistry : public Configurable {
@@ -46,6 +47,8 @@ public:
   // Configurable interface
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
+
+  void registerPropertyInstances(OutputRegistry& output_registry);
 
 private:
   template<typename T>

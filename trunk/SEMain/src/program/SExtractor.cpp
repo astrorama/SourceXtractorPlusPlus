@@ -19,7 +19,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 
@@ -70,10 +70,12 @@ static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
 class SEMain : public Elements::Program {
   
-  std::shared_ptr<TaskProvider> task_provider = RegistrationManager::instance().getTaskProvider();
+  std::shared_ptr<TaskFactoryRegistry> task_factory_registry = std::make_shared<TaskFactoryRegistry>();
+  std::shared_ptr<TaskProvider> task_provider = std::make_shared<TaskProvider>(task_factory_registry);
+  std::shared_ptr<OutputRegistry> output_registry = std::make_shared<OutputRegistry>();
   SegmentationFactory segmentation_factory {task_provider};
-  OutputFactory output_factory;
-  PluginManager plugin_manager;
+  OutputFactory output_factory { output_registry };
+  PluginManager plugin_manager { task_factory_registry, output_registry };
 
 public:
   
@@ -84,9 +86,10 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
 
+    plugin_manager.loadPlugins(); // FIXME currently loading only static plugins here
     plugin_manager.reportConfigDependencies(config_manager);
 
-    RegistrationManager::instance().reportConfigDependencies(config_manager);
+    task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
@@ -101,7 +104,8 @@ public:
 
     plugin_manager.configure(config_manager);
 
-    RegistrationManager::instance().configure(config_manager);
+    task_factory_registry->configure(config_manager);
+    task_factory_registry->registerPropertyInstances(*output_registry);
     
     segmentation_factory.configure(config_manager);
     output_factory.configure(config_manager);

@@ -4,15 +4,11 @@
  * @author mschefer
  */
 
-#include "SEFramework/Registration/AutoRegisterer.h"
-
 #include "SEImplementation/Property/PixelBoundaries.h"
 #include "SEImplementation/Task/PixelBoundariesTask.h"
 #include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
 
 namespace SExtractor {
-
-static AutoRegisterer<PixelBoundariesTaskFactory, PixelBoundaries> s_pixel_boundaries_registerer;
 
 PixelBoundariesTaskFactory::PixelBoundariesTaskFactory()
   : m_pixel_boundaries_task(std::make_shared<PixelBoundariesTask>()) {

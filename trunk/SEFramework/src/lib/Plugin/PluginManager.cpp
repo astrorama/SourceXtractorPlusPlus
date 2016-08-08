@@ -18,8 +18,20 @@
 #include "SEFramework/Plugin/PluginManager.h"
 #include "SEFramework/Plugin/Plugin.h"
 
+#include <iostream>
+
+
 namespace SExtractor {
 
+std::vector<std::unique_ptr<Plugin>> PluginManager::s_static_plugins;
+
+void PluginManager::loadPlugins() {
+  std::cout << "loadPlugins" << std::endl;
+  //plugins need to be registered before reportConfigDependencies()
+  for (auto& static_plugin : s_static_plugins) {
+    static_plugin->registerPlugin(*this);
+  }
+}
 
 void PluginManager::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<PluginConfig>();

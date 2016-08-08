@@ -13,7 +13,7 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 #include "SEFramework/Configuration/Configurable.h"
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 namespace SExtractor {
 

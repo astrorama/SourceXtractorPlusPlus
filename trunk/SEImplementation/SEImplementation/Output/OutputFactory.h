@@ -21,6 +21,10 @@ class OutputFactory : public Configurable {
 
 public:
 
+  OutputFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry) {
+  }
+
+
   /// Destructor
   virtual ~OutputFactory() = default;
 
@@ -29,6 +33,9 @@ public:
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+
+private:
+  std::shared_ptr<OutputRegistry> m_output_registry;
 
 }; /* End of OutputFactory class */
 

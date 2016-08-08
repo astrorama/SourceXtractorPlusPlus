@@ -13,7 +13,6 @@
 #include <memory>
 #include <vector>
 
-#include "SEFramework/Registration/RegistrationManager.h"
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Plugin/PluginAPI.h"
@@ -27,21 +26,37 @@ public:
 
   virtual ~PluginManager() = default;
 
+  PluginManager(std::shared_ptr<TaskFactoryRegistry> task_factory_registry,
+                std::shared_ptr<OutputRegistry> output_registry) :
+        m_task_factory_registry(task_factory_registry),
+        m_output_registry(output_registry) {}
+
+  void loadPlugins();
+
   // Implements the Configurable interface
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // PluginAPI implementation
   virtual TaskFactoryRegistry& getTaskFactoryRegistry() const override {
-    return *RegistrationManager::instance().getTaskFactoryRegistry();
+    return *m_task_factory_registry;
   }
 
   virtual OutputRegistry& getOutputRegistry() const override {
-    return output_registry;
+    return *m_output_registry;
+  }
+
+  template<typename T>
+  static void registerStaticPlugin() {
+    s_static_plugins.emplace_back(new T);
   }
 
 private:
   std::vector<boost::dll::shared_library> m_loaded_plugins;
+  std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
+  std::shared_ptr<OutputRegistry> m_output_registry;
+
+  static std::vector<std::unique_ptr<Plugin>> s_static_plugins;
 
 };
 

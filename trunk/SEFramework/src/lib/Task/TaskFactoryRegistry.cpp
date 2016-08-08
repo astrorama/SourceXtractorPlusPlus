@@ -20,9 +20,15 @@ void TaskFactoryRegistry::reportConfigDependencies(Euclid::Configuration::Config
 void TaskFactoryRegistry::configure(Euclid::Configuration::ConfigManager& manager) {
   for (auto& factory : m_task_factories) {
     factory->configure(manager);
+  }
+}
+
+void TaskFactoryRegistry::registerPropertyInstances(OutputRegistry& output_registry) {
+  for (auto& factory : m_task_factories) {
     factory->registerPropertyInstances(output_registry);
   }
 }
+
 
 }
 

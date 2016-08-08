@@ -8,7 +8,7 @@
 
 #include "Table/AsciiWriter.h"
 
-#include "SEFramework/Registration/OutputRegistry.h"
+#include "SEFramework/Output/OutputRegistry.h"
 
 #include "SEImplementation/Output/OutputFactory.h"
 #include "SEImplementation/Output/TableOutput.h"
@@ -19,7 +19,7 @@
 namespace SExtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
-  auto source_to_row = output_registry.getSourceToRowConverter();
+  auto source_to_row = m_output_registry->getSourceToRowConverter();
   auto std_out_handler = [](const Euclid::Table::Table& table) {
     Euclid::Table::AsciiWriter{}.write(std::cout, table);
   };
@@ -32,7 +32,7 @@ void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManage
 
 void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
-  output_config.setEnabledOutputs(output_registry);
+  output_config.setEnabledOutputs(*m_output_registry);
 }
 
 } // SExtractor namespace
