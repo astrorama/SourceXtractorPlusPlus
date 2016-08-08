@@ -12,7 +12,7 @@ Partition::Partition(std::vector<std::shared_ptr<PartitionStep>> steps)
   : m_steps(std::move(steps)) {
 }
 
-void Partition::handleMessage(const std::shared_ptr<Source>& source) {
+void Partition::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   // The input of the current step
   std::vector<std::shared_ptr<SourceInterface>> step_input_sources { source };
 

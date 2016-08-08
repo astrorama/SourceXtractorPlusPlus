@@ -8,7 +8,6 @@
 #define _SEFRAMEWORK_PIPELINE_PARTITION_H
 
 #include "SEUtils/Observable.h"
-#include "SEFramework/Source/Source.h"
 #include "SEFramework/Source/SourceInterface.h"
 
 namespace SExtractor {
@@ -39,7 +38,7 @@ public:
  * notified to the Observers one by one.
  *
  */
-class Partition : public Observer<std::shared_ptr<Source>>, public Observable<std::shared_ptr<SourceInterface>> {
+class Partition : public Observer<std::shared_ptr<SourceInterface>>, public Observable<std::shared_ptr<SourceInterface>> {
 
 public:
 
@@ -52,7 +51,7 @@ public:
   Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
 
   /// Handles a Source (applies PartitionSteps) and notifies the Observers for every Source in the final result
-  virtual void handleMessage(const std::shared_ptr<Source>& source) override;
+  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
 
 private:
   std::vector<std::shared_ptr<PartitionStep>> m_steps;
