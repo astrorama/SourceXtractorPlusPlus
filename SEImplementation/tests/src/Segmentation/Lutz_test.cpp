@@ -12,6 +12,8 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Segmentation/Lutz.h"
 
+#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
+
 using namespace SExtractor;
 
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
@@ -133,8 +135,12 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   VectorImage<double> image(10, 10, composite_image);
 
+
+
   // use Lutz to split them
-  Lutz lutz(task_provider);
+  // FIXME simplify this, we don't need to have "OnDemand" sources here
+  Lutz lutz(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider));
+
   lutz.addObserver(source_observer);
   lutz.scan(image);
 

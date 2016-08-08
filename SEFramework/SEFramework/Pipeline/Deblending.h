@@ -43,15 +43,13 @@ public:
   virtual ~Deblending() = default;
 
   /// Constructor - takes a vector of DeblendAction to be applied, in order, to every SourceGroup
-  Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskProvider> task_provider);
+  Deblending(std::vector<std::shared_ptr<DeblendAction>> actions);
 
   /// Handles a new SourceGroup, applies the DeblendActions and then notifies the observers with the result
   virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override;
 
 private:
   std::vector<std::shared_ptr<DeblendAction>> m_actions;
-  std::shared_ptr<TaskProvider> m_task_provider;
-
 }; /* End of Deblending class */
 
 } /* namespace SExtractor */

@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(3);
 
-  Deblending deblending({example_deblend_action}, task_provider);
+  Deblending deblending({example_deblend_action});
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_group);
@@ -97,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   source_c->setProperty<SimpleIntProperty>(3);
 
   // we want to execute example_deblend_action twice
-  Deblending deblending({example_deblend_action, example_deblend_action}, task_provider);
+  Deblending deblending({example_deblend_action, example_deblend_action});
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_group);

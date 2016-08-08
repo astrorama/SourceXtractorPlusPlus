@@ -8,9 +8,8 @@
 
 namespace SExtractor {
 
-Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions, std::shared_ptr<TaskProvider> task_provider)
-  : m_actions(std::move(actions)),
-    m_task_provider(task_provider) {
+Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions)
+  : m_actions(std::move(actions)) {
 }
 
 void Deblending::handleMessage(const std::shared_ptr<SourceGroup>& group) {

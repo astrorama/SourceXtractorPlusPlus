@@ -23,6 +23,8 @@
 
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 
+#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
+
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
 
@@ -76,6 +78,8 @@ class SEMain : public Elements::Program {
   SegmentationFactory segmentation_factory {task_provider};
   OutputFactory output_factory { output_registry };
   PluginManager plugin_manager { task_factory_registry, output_registry };
+  std::shared_ptr<SourceFactory> source_factory =
+      std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider);
 
 public:
   
@@ -119,12 +123,12 @@ public:
     auto segmentation = segmentation_factory.getSegmentation();
 
     auto min_area_step = std::make_shared<MinAreaPartitionStep>(10);
-    auto attractors_step = std::make_shared<AttractorsPartitionStep>(task_provider);
+    auto attractors_step = std::make_shared<AttractorsPartitionStep>(source_factory);
     auto partition = std::make_shared<Partition>(std::vector<std::shared_ptr<PartitionStep>>({attractors_step, min_area_step}));
 
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), task_provider);
-    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>(), task_provider);
+    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>());
 
     std::shared_ptr<Output> output = output_factory.getOutput();
 
