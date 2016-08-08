@@ -10,7 +10,6 @@
 #include <memory>
 
 #include "SEUtils/Observable.h"
-#include "SEFramework/Source/Source.h"
 #include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
@@ -21,7 +20,7 @@ namespace SExtractor {
  * results in a notification of the Segmentation's Observers.
  *
  */
-class Segmentation : public Observable<std::shared_ptr<Source>> {
+class Segmentation : public Observable<std::shared_ptr<SourceInterface>> {
 
 public:
 
