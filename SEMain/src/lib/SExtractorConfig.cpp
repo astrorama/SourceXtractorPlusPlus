@@ -5,6 +5,7 @@
  */
 
 #include "SEMain/SExtractorConfig.h"
+#include "SEImplementation/Configuration/BackgroundConfig.h"
 
 namespace po = boost::program_options;
 
@@ -13,6 +14,7 @@ namespace SExtractor {
 static const std::string LIST_OUTPUT_COLUMNS {"list-columns"};
 
 SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) {
+  declareDependency<BackgroundConfig>();
 }
 
 auto SExtractorConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

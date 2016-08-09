@@ -6,7 +6,6 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
-#include "SEFramework/Image/SubtractImage.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -16,7 +15,6 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string DETECTION_IMAGE {"detection-image" };
-static const std::string BACKGROUND_VALUE {"background-value" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id) {
 }
@@ -24,18 +22,42 @@ DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(mana
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
   return { {"Detection image", {
       {DETECTION_IMAGE.c_str(), po::value<std::string>(),
-          "Path to a fits format image to be used as detection image."},
-      {BACKGROUND_VALUE.c_str(), po::value<double>(),
-          "Background value to be subtracted from the detection image."}
+          "Path to a fits format image to be used as detection image."}
   }}};
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  auto fits_image = FitsReader<double>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
-  m_detection_image = std::make_shared<SubtractImage<double>>(
-      std::move(fits_image), args.find(BACKGROUND_VALUE)->second.as<double>());
+  m_original_image = FitsReader<double>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
 }
 
+void DetectionImageConfig::postInitialize(const UserValues&) {
+  m_detection_image = m_original_image;
+  for (auto& action : m_decorate_action_list) {
+    m_detection_image = action(m_detection_image);
+  }
+}
+
+
+void DetectionImageConfig::addDecorateImageAction(DecorateImageAction action) {
+  if (getCurrentState() >= State::FINAL) {
+    throw Elements::Exception() << "getOriginalImage() call on finalized DetectionImageConfig";
+  }
+  m_decorate_action_list.emplace_back(action);
+}
+
+std::shared_ptr<DetectionImage> DetectionImageConfig::getOriginalImage() const {
+  if (getCurrentState() < State::INITIALIZED) {
+    throw Elements::Exception() << "getOriginalImage() call on uninitialized DetectionImageConfig";
+  }
+  return m_original_image;
+}
+
+std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {
+  if (getCurrentState() < State::FINAL) {
+    throw Elements::Exception() << "getDetectionImage() call on not finalized DetectionImageConfig";
+  }
+  return m_detection_image;
+}
 
 } // SExtractor namespace
 
