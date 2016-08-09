@@ -1,5 +1,5 @@
 /**
- * @file tests/src/SourceGroup_test.cpp
+ * @file tests/src/SourceGroupWithOnDemandProeprties_test.cpp
  * @date 08/04/16
  * @author nikoapos
  */
@@ -16,7 +16,7 @@ using namespace testing;
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Property/Property.h"
 
-#include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
 using namespace SExtractor;
 
@@ -51,7 +51,7 @@ public:
 
   GroupPropertyTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(SourceGroup& group) const {
+  virtual void computeProperties(SourceGroupWithOnDemandProperties& group) const {
     group.setProperty<GroupProperty>(m_value);
   }
 
@@ -65,7 +65,7 @@ public:
 
   GroupedSourceTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(SourceGroup& group) const {
+  virtual void computeProperties(SourceGroupWithOnDemandProperties& group) const {
     // Sets the property on all the sources in the group
     for (auto& source : group) {
       source.setProperty<SourceProperty>(m_value);
@@ -81,7 +81,7 @@ struct SourceGroupFixture {
   std::shared_ptr<MockTaskProvider> mock_registry {std::make_shared<MockTaskProvider>()};
   std::shared_ptr<SourceWithOnDemandProperties> source_a {new SourceWithOnDemandProperties(mock_registry)};
   std::shared_ptr<SourceWithOnDemandProperties> source_b {new SourceWithOnDemandProperties(mock_registry)};
-  SourceGroup group {mock_registry, std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b}};
+  SourceGroupWithOnDemandProperties group {mock_registry, std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b}};
 
   const int magic_number = 42;
 
