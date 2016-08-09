@@ -34,23 +34,23 @@ public:
    */
   virtual ~SourceGroupWithOnDemandProperties() = default;
   
-  iterator begin();
+  iterator begin() override;
   
-  iterator end();
+  iterator end() override;
   
-  const_iterator cbegin();
+  const_iterator cbegin() override;
   
-  const_iterator cend();
+  const_iterator cend() override;
   
-  const_iterator begin() const;
+  const_iterator begin() const override;
   
-  const_iterator end() const;
+  const_iterator end() const override;
   
-  void addSource(std::shared_ptr<SourceInterface> source);
+  void addSource(std::shared_ptr<SourceInterface> source) override;
   
-  iterator removeSource(iterator pos);
+  iterator removeSource(iterator pos) override;
   
-  void merge(const SourceGroupInterface& other);
+  void merge(const SourceGroupInterface& other) override;
   
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
