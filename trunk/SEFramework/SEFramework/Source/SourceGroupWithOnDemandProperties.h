@@ -101,7 +101,7 @@ private:
 };
 
 
-class SourceGroupWithOnDemandProperties::iter : public SourceGroupWithOnDemandProperties::IteratorImpl {
+class SourceGroupWithOnDemandProperties::iter : public SourceGroupInterface::IteratorImpl {
   
 public:
   
