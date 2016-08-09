@@ -10,6 +10,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
+#include "SEFramework/Source/SourceGroup.h"
 
 using namespace SExtractor;
 
@@ -24,20 +25,20 @@ public:
 /// ExampleDeblendAction: if SourceList has at least 2 elements, remove the first element
 class ExampleDeblendAction : public DeblendAction {
 public:
-  virtual void deblend(SourceGroup& group) const {
+  virtual void deblend(SourceGroupInterface& group) const {
     if (std::distance(group.begin(), group.end()) >= 2) {
       group.removeSource(group.begin());
     }
   }
 };
 
-class TestGroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
+class TestGroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceGroup>& source_group) override {
+  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
     m_groups.push_back(source_group);
   }
 
-  std::list<std::shared_ptr<SourceGroup>> m_groups;
+  std::list<std::shared_ptr<SourceGroupInterface>> m_groups;
 };
 
 struct DeblendingFixture {

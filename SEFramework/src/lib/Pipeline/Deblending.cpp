@@ -12,7 +12,7 @@ Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions)
   : m_actions(std::move(actions)) {
 }
 
-void Deblending::handleMessage(const std::shared_ptr<SourceGroup>& group) {
+void Deblending::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   
   // Applies every DeblendAction to the SourceGroup
   for (auto& action : m_actions) {
