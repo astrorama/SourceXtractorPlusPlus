@@ -35,8 +35,8 @@ public:
     std::valarray<T> data {};
     image.read(data);
     std::vector<T> data_v {std::begin(data), std::end(data)};
-    auto width = image.axis(0);
-    auto height = image.axis(1);
+    int width = image.axis(0);
+    int height = image.axis(1);
     return std::unique_ptr<Image<T>> {new VectorImage<T> {width, height, data_v}};
   }
 

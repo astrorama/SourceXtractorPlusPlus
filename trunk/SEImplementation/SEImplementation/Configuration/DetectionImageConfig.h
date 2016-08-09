@@ -20,6 +20,10 @@ namespace SExtractor {
 class DetectionImageConfig : public Euclid::Configuration::Configuration {
 
  public:
+   
+   /// An action which gets a detection image, wraps it with a decorator and
+   /// returns the result
+   using DecorateImageAction = std::function<std::shared_ptr<DetectionImage>(std::shared_ptr<DetectionImage>)>;
 
   /**
    * @brief Destructor
@@ -30,13 +34,21 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   DetectionImageConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
+  
   void initialize(const UserValues& args) override;
-
-  std::shared_ptr<DetectionImage> getDetectionImage() const {
-    return m_detection_image;
-  }
-
+  
+  void postInitialize(const UserValues& args) override;
+  
+  void addDecorateImageAction(DecorateImageAction action);
+  
+  std::shared_ptr<DetectionImage> getOriginalImage() const;
+  
+  std::shared_ptr<DetectionImage> getDetectionImage() const;
+  
 private:
+  
+  std::vector<DecorateImageAction> m_decorate_action_list;
+  std::shared_ptr<DetectionImage> m_original_image;
   std::shared_ptr<DetectionImage> m_detection_image;
 
 }; /* End of DetectionImageConfig class */

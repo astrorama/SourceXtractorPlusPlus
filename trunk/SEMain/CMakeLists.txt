@@ -35,7 +35,7 @@ elements_depends_on_subdirs(SEImplementation)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEMain src/lib/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration
+                     LINK_LIBRARIES ElementsKernel Configuration SEImplementation
                      PUBLIC_HEADERS SEMain)
 
 #===============================================================================
