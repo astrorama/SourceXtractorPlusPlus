@@ -12,6 +12,12 @@ namespace SExtractor {
 
 class SourceGroupInterface : protected SourceInterface {
   
+  template <typename Collection>
+  using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
+  
+  template <typename T>
+  using EnableIfSourcePtr = typename std::enable_if<std::is_same<CollectionType<T>, std::shared_ptr<SourceInterface>>::value>;
+  
 public:
   
   template <typename T>
@@ -29,6 +35,14 @@ public:
   virtual void addSource(std::shared_ptr<SourceInterface> source) = 0;
   virtual iterator removeSource(iterator pos) = 0;
   virtual void merge(const SourceGroupInterface& other) = 0;
+  
+  /// Convenient method to add all the sources of a collection
+  template <typename SourceCollection, typename EnableIfSourcePtr<SourceCollection>::type* = nullptr>
+  void addAllSources(const SourceCollection& sources) {
+    for (auto& source : sources) {
+      addSource(source);
+    }
+  }
   
   // We introduce the get/setProperty methods from the SourceInterface in the
   // public symbols so they become part of the SourceGroupInterface. The group

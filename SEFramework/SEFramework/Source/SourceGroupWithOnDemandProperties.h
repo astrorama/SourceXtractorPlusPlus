@@ -24,24 +24,10 @@ namespace SExtractor {
  *
  */
 class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
-  
-  template <typename Collection>
-  using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
-  
-  template <typename T>
-  using EnableIfSourcePtr = typename std::enable_if<std::is_same<CollectionType<T>, std::shared_ptr<SourceInterface>>::value>;
 
 public:
   
   SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
-  
-  template <typename SourceCollection, typename EnableIfSourcePtr<SourceCollection>::type* = nullptr>
-  SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider, const SourceCollection& sources)
-          : SourceGroupWithOnDemandProperties(task_provider) {
-    for (auto& source : sources) {
-      m_sources.emplace(source, *this);
-    }
-  }
 
   /**
    * @brief Destructor
