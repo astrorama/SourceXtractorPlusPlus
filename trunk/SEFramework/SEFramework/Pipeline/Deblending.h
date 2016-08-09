@@ -8,7 +8,7 @@
 #define _SEFRAMEWORK_PIPELINE_DEBLENDING_H
 
 #include "SEUtils/Observable.h"
-#include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
 
 namespace SExtractor {
@@ -25,7 +25,7 @@ public:
   virtual ~DeblendAction() = default;
 
   // Performs the DeblendAction on the SourceGroup
-  virtual void deblend(SourceGroup& group) const = 0;
+  virtual void deblend(SourceGroupInterface& group) const = 0;
 };
 
 /**
@@ -34,8 +34,8 @@ public:
  * for deblending the group.
  *
  */
-class Deblending : public Observer<std::shared_ptr<SourceGroup>>,
-  public Observable<std::shared_ptr<SourceGroup>> {
+class Deblending : public Observer<std::shared_ptr<SourceGroupInterface>>,
+  public Observable<std::shared_ptr<SourceGroupInterface>> {
 
 public:
 
@@ -46,7 +46,7 @@ public:
   Deblending(std::vector<std::shared_ptr<DeblendAction>> actions);
 
   /// Handles a new SourceGroup, applies the DeblendActions and then notifies the observers with the result
-  virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override;
+  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
 
 private:
   std::vector<std::shared_ptr<DeblendAction>> m_actions;

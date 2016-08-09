@@ -40,13 +40,13 @@ class TestGroupingCriteria : public GroupingCriteria {
   }
 };
 
-class SourceGroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
+class SourceGroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override {
+  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override {
       m_list.push_back(group);
   }
 
-  std::vector<std::shared_ptr<SourceGroup>> m_list;
+  std::vector<std::shared_ptr<SourceGroupInterface>> m_list;
 };
 
 struct SourceGroupingFixture {

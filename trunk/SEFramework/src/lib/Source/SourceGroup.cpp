@@ -14,27 +14,27 @@ SourceGroup::SourceGroup(std::shared_ptr<TaskProvider> task_provider)
 }
 
 SourceGroup::iterator SourceGroup::begin() {
-  return iterator(m_sources.begin());
+  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
 }
 
 SourceGroup::iterator SourceGroup::end() {
-  return iterator(m_sources.end());
+  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
 }
 
 SourceGroup::const_iterator SourceGroup::cbegin() {
-  return const_iterator(m_sources.begin());
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
 }
 
 SourceGroup::const_iterator SourceGroup::cend() {
-  return const_iterator(m_sources.end());
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
 }
 
 SourceGroup::const_iterator SourceGroup::begin() const {
-  return const_iterator(m_sources.begin());
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
 }
 
 SourceGroup::const_iterator SourceGroup::end() const {
-  return const_iterator(m_sources.end());
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
 }
 
 void SourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
@@ -43,17 +43,20 @@ void SourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
 }
 
 SourceGroup::iterator SourceGroup::removeSource(iterator pos) {
+  iter& iter_impl = dynamic_cast<iter&>(pos.getImpl());
+  auto next_entangled_it = m_sources.erase(iter_impl.m_entangled_it);
   clearGroupProperties();
-  return iterator(m_sources.erase(pos.m_entangled_it));
-  
+  return iterator(std::unique_ptr<IteratorImpl>(new iter{next_entangled_it}));
 }
 
-void SourceGroup::merge(const SourceGroup& other) {
+void SourceGroup::merge(const SourceGroupInterface& other) {
+  auto& other_group = dynamic_cast<const SourceGroup&>(other);
   // We go through the EntangledSources of the other group and we create new ones
   // locally, pointing to the same wrapped sources. This is necessary, so the
   // new EntangledSources have a reference to the correct group.
-  for (auto& source : other.m_sources) {
-    this->m_sources.emplace( source.m_source, *this);
+  for (auto& source : other_group.m_sources) {
+    auto& entangled_source = dynamic_cast<const EntangledSource&>(source);
+    this->m_sources.emplace( entangled_source.m_source, *this);
   }
   this->clearGroupProperties();
 }

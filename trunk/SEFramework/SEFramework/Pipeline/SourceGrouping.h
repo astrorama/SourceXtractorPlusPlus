@@ -13,7 +13,9 @@
 #include "SEUtils/Observable.h"
 
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Task/TaskProvider.h"
 
 namespace SExtractor {
 
@@ -82,7 +84,7 @@ public:
  *
  */
 class SourceGrouping : public Observer<std::shared_ptr<SourceInterface>>,
-    public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceGroup>> {
+    public Observer<ProcessSourcesEvent>, public Observable<std::shared_ptr<SourceGroupInterface>> {
 public:
 
   /**
