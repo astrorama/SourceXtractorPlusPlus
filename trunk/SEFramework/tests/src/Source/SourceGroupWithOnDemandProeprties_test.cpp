@@ -51,7 +51,7 @@ public:
 
   GroupPropertyTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(SourceGroupWithOnDemandProperties& group) const {
+  virtual void computeProperties(SourceGroupInterface& group) const {
     group.setProperty<GroupProperty>(m_value);
   }
 
@@ -65,7 +65,7 @@ public:
 
   GroupedSourceTask(int value) : m_value(value) {}
 
-  virtual void computeProperties(SourceGroupWithOnDemandProperties& group) const {
+  virtual void computeProperties(SourceGroupInterface& group) const {
     // Sets the property on all the sources in the group
     for (auto& source : group) {
       source.setProperty<SourceProperty>(m_value);
