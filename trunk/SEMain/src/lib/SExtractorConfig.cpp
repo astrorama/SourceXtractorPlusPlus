@@ -6,6 +6,8 @@
 
 #include "SEMain/SExtractorConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
+#include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
+#include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
 
 namespace po = boost::program_options;
 
@@ -15,6 +17,8 @@ static const std::string LIST_OUTPUT_COLUMNS {"list-columns"};
 
 SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<BackgroundConfig>();
+  declareDependency<MinAreaPartitionConfig>();
+  declareDependency<AttractorsPartitionConfig>();
 }
 
 auto SExtractorConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

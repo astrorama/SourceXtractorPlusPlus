@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Partition.h"
