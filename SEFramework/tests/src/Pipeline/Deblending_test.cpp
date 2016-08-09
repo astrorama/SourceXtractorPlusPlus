@@ -9,7 +9,7 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Pipeline/Deblending.h"
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
+#include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
 
 using namespace SExtractor;
@@ -42,21 +42,14 @@ public:
 };
 
 struct DeblendingFixture {
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<ExampleDeblendAction> example_deblend_action;
-  std::shared_ptr<SourceWithOnDemandProperties> source_a, source_b, source_c;
-  std::shared_ptr<SourceGroupInterface> source_group;
-  std::shared_ptr<TestGroupObserver> test_group_observer;
+  std::shared_ptr<ExampleDeblendAction> example_deblend_action {new ExampleDeblendAction};
+  std::shared_ptr<SourceInterface> source_a {new SimpleSource};
+  std::shared_ptr<SourceInterface> source_b {new SimpleSource};
+  std::shared_ptr<SourceInterface> source_c {new SimpleSource};
+  std::shared_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
+  std::shared_ptr<TestGroupObserver> test_group_observer {new TestGroupObserver};
 
-  DeblendingFixture()
-    : task_provider(new TaskProvider(nullptr)),
-      example_deblend_action(new ExampleDeblendAction),
-      source_a(new SourceWithOnDemandProperties(task_provider)),
-      source_b(new SourceWithOnDemandProperties(task_provider)),
-      source_c(new SourceWithOnDemandProperties(task_provider)),
-      source_group(new SimpleSourceGroup{}),
-      test_group_observer(new TestGroupObserver) {
-
+  DeblendingFixture() {
     source_group->addSource(source_a);
     source_group->addSource(source_b);
     source_group->addSource(source_c);

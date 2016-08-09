@@ -9,8 +9,7 @@
 using namespace testing;
 
 #include "SEFramework/Pipeline/Partition.h"
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Property/Property.h"
 
 using namespace SExtractor;
@@ -40,15 +39,12 @@ public:
       int newValue = property.m_value / 2;
       source->setProperty<SimpleIntProperty>(newValue);
 
-      auto new_source = std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
+      auto new_source = std::make_shared<SimpleSource>();
       new_source->setProperty<SimpleIntProperty>(newValue);
 
       return { source, new_source };
     }
   }
-
-private:
-  std::shared_ptr<TaskProvider> m_task_provider;
 };
 
 class MockSourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
@@ -57,17 +53,10 @@ public:
 };
 
 struct RefineSourceFixture {
-  std::shared_ptr<NopPartitionStep> nop_step;
-  std::shared_ptr<ExamplePartitionStep> example_step;
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<MockSourceObserver> mock_observer;
-
-  RefineSourceFixture()
-    : nop_step(new NopPartitionStep),
-      example_step(new ExamplePartitionStep),
-      task_provider(new TaskProvider(nullptr)),
-      mock_observer(new MockSourceObserver) {
-  }
+  std::shared_ptr<NopPartitionStep> nop_step {new NopPartitionStep};
+  std::shared_ptr<ExamplePartitionStep> example_step {new ExamplePartitionStep};
+  std::shared_ptr<MockSourceObserver> mock_observer {new MockSourceObserver};
+  std::shared_ptr<SourceInterface> source {new SimpleSource};
 };
 
 //-----------------------------------------------------------------------------
@@ -80,12 +69,8 @@ BOOST_FIXTURE_TEST_CASE( default_behavior_test, RefineSourceFixture ) {
   // We want to test a Partition with no PartitionStep at all
   Partition partition( {} );
 
-  // Make a source
-  auto source = std::make_shared<SourceWithOnDemandProperties>(task_provider);
-  std::shared_ptr<SourceInterface> source_interface = source;
-
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source_interface)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);
@@ -100,12 +85,8 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
   // A Partition with a single PartitionStep that does nothing
   Partition partition( { nop_step } );
 
-  // Make a source
-  auto source = std::make_shared<SourceWithOnDemandProperties>(task_provider);
-  std::shared_ptr<SourceInterface> source_interface = source;
-
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source_interface)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);
@@ -116,7 +97,7 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
 
 BOOST_FIXTURE_TEST_CASE( example_step_test, RefineSourceFixture ) {
   Partition partition( { example_step, nop_step, example_step, example_step } );
-  auto source = std::make_shared<SourceWithOnDemandProperties>(task_provider);
+
   source->setProperty<SimpleIntProperty>(4);
 
   EXPECT_CALL(*mock_observer, handleMessage(_)).Times(4);
