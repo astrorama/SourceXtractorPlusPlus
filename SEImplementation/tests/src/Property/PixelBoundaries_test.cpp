@@ -6,25 +6,17 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SimpleSource.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/PixelBoundaries.h"
-#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
+#include "SEImplementation/Task/PixelBoundariesTask.h"
 
 using namespace SExtractor;
 
 struct PixelBoundariesFixture {
-  std::shared_ptr<TaskFactoryRegistry> task_factory_registry;
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<SourceWithOnDemandProperties> source;
-
-  PixelBoundariesFixture() :
-      task_factory_registry(new TaskFactoryRegistry()),
-      task_provider(new TaskProvider(task_factory_registry)) {
-    task_factory_registry->registerTaskFactory<PixelBoundaries>(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
-  }
+  SimpleSource source;
+  PixelBoundariesTask pixel_centroid_task;
 };
 
 //-----------------------------------------------------------------------------
@@ -34,12 +26,11 @@ BOOST_AUTO_TEST_SUITE (PixelBoundaries_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( boundaries_test, PixelBoundariesFixture ) {
-  source.reset(new SourceWithOnDemandProperties(task_provider));
-  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,-4}});
-  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
-  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, -4) } ));
+  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,-4}});
 
-  auto boundaries = source->getProperty<PixelBoundaries>();
+  pixel_centroid_task.computeProperties(source);
+
+  auto boundaries = source.getProperty<PixelBoundaries>();
   BOOST_CHECK(boundaries.getMin() == PixelCoordinate(1, -4));
   BOOST_CHECK(boundaries.getMax() == PixelCoordinate(8, 3));
 }
