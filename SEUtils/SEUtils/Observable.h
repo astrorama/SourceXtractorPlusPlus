@@ -48,6 +48,8 @@ public:
   void removeObserver(std::shared_ptr<Observer<T>> observer) {
     m_observers.remove(observer);
   }
+  
+protected:
 
   // Notify all registered Observers with the given message
   void notifyObservers(const T& message) const {
