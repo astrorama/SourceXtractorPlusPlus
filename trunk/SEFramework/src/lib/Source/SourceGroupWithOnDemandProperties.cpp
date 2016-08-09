@@ -55,8 +55,7 @@ void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface& other)
   // locally, pointing to the same wrapped sources. This is necessary, so the
   // new EntangledSources have a reference to the correct group.
   for (auto& source : other_group.m_sources) {
-    auto& entangled_source = dynamic_cast<const EntangledSource&>(source);
-    this->m_sources.emplace( entangled_source.m_source, *this);
+    this->m_sources.emplace( source.m_source, *this);
   }
   this->clearGroupProperties();
 }
@@ -88,15 +87,6 @@ void SourceGroupWithOnDemandProperties::clearGroupProperties() {
     const_cast<EntangledSource&>(source).m_property_holder.clear();
   }
 }
-
-
-
-
-
-
-
-
-
 
 } // SExtractor namespace
 
