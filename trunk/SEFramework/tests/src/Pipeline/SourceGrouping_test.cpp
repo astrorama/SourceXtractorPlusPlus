@@ -7,8 +7,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
+#include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroupFactory.h"
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
@@ -51,23 +50,19 @@ public:
 };
 
 struct SourceGroupingFixture {
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<SourceGroupFactory> group_factory;
+  std::shared_ptr<SourceGroupFactory> group_factory {new SimpleSourceGroupFactory()};
+  std::shared_ptr<SourceGrouping> source_grouping {
+    new SourceGrouping(std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory)};
+
+  std::shared_ptr<SourceInterface> source_a {new SimpleSource};
+  std::shared_ptr<SourceInterface> source_b {new SimpleSource};
+  std::shared_ptr<SourceInterface> source_c {new SimpleSource};
+
+  std::shared_ptr<SourceGroupObserver> source_group_observer {new SourceGroupObserver};
+
   SelectAllCriteria select_all_criteria;
 
-  std::shared_ptr<SourceGrouping> source_grouping;
-  std::shared_ptr<SourceWithOnDemandProperties> source_a, source_b, source_c;
-  std::shared_ptr<SourceGroupObserver> source_group_observer;
-
-  SourceGroupingFixture()
-    : task_provider(new TaskProvider(nullptr)),
-      group_factory(new SimpleSourceGroupFactory()),
-      source_grouping(new SourceGrouping(
-        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory)),
-      source_a(new SourceWithOnDemandProperties(task_provider)),
-      source_b(new SourceWithOnDemandProperties(task_provider)),
-      source_c(new SourceWithOnDemandProperties(task_provider)),
-      source_group_observer(new SourceGroupObserver) {
+  SourceGroupingFixture() {
     source_grouping->addObserver(source_group_observer);
     source_a->setProperty<IdProperty>("A");
     source_b->setProperty<IdProperty>("B");
