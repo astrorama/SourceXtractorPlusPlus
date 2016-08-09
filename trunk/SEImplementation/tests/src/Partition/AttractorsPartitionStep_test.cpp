@@ -6,9 +6,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
-#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SimpleSource.h"
+#include "SEFramework/Source/SimpleSourceFactory.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEFramework/Pipeline/Partition.h"
@@ -22,20 +21,10 @@
 using namespace SExtractor;
 
 struct AttractorsPartitionFixture {
-  std::shared_ptr<TaskFactoryRegistry> task_factory_registry;
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<AttractorsPartitionStep> attractors_step;
-  std::shared_ptr<SourceWithOnDemandProperties> source;
-
-  AttractorsPartitionFixture()
-      :
-        // FIXME task_provider not needed anymore if we use a different SourceFactory
-        task_factory_registry(new TaskFactoryRegistry()),
-        task_provider(new TaskProvider(task_factory_registry)),
-        attractors_step(new AttractorsPartitionStep(
-            std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider))) {
-    task_factory_registry->registerTaskFactory<PixelBoundaries>(std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
-  }
+  std::shared_ptr<SimpleSource> source {new SimpleSource};
+  std::shared_ptr<AttractorsPartitionStep> attractors_step {
+    new AttractorsPartitionStep(std::make_shared<SimpleSourceFactory>())
+  };
 };
 
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
@@ -56,8 +45,8 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
-  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
+  source->setProperty<PixelBoundaries>(0, 0, 3, 0);
 
   auto stamp_one_source = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 3.0, 4.0, 2.0});
   auto stamp_two_sources = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 1.0, 1.0, 2.0});

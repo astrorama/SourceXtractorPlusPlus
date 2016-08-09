@@ -1,5 +1,5 @@
 /**
- * @file tests/src/SourceGroupWithOnDemandProeprties_test.cpp
+ * @file tests/src/SourceGroupWithOnDemandProperties_test.cpp
  * @date 08/04/16
  * @author nikoapos
  */

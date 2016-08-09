@@ -6,8 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -17,10 +16,7 @@
 using namespace SExtractor;
 
 struct DetectionFramePixelValuesFixture {
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<SourceWithOnDemandProperties> source;
-
-  DetectionFramePixelValuesFixture() : task_provider(new TaskProvider(nullptr)) {}
+  SimpleSource source;
 };
 
 //-----------------------------------------------------------------------------
@@ -29,18 +25,15 @@ BOOST_AUTO_TEST_SUITE (DetectionFramePixelValues_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE(example_test, DetectionFramePixelValuesFixture) {
-  source.reset(new SourceWithOnDemandProperties(task_provider));
-  source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
-  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
-  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(2,0), PixelCoordinate(1,1) } ));
+BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelValuesFixture) {
+  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
 
   auto image = std::make_shared<VectorImage<double>>(3, 2, std::vector<double>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
   DetectionFramePixelValuesTask task(image);
-  task.computeProperties(*source);
+  task.computeProperties(source);
 
-  auto& pixel_values = source->getProperty<DetectionFramePixelValues>();
+  auto& pixel_values = source.getProperty<DetectionFramePixelValues>();
   BOOST_CHECK(pixel_values.getValues() == std::vector<double>( {2.0, 4.0} ));
 }
 

@@ -6,8 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SimpleSource.h"
 
 #include "SEFramework/Pipeline/Partition.h"
 
@@ -17,16 +16,9 @@
 using namespace SExtractor;
 
 struct MinAreaPartitionFixture {
-  std::shared_ptr<MinAreaPartitionStep> min_area_step;
-  std::shared_ptr<TaskProvider> task_provider;
-  std::shared_ptr<SourceWithOnDemandProperties> source;
-
   const static int min_pixels = 3;
-
-  MinAreaPartitionFixture()
-    : min_area_step(new MinAreaPartitionStep(min_pixels)),
-      task_provider(new TaskProvider(nullptr)) {
-  }
+  std::shared_ptr<SimpleSource> source {new SimpleSource};
+  std::shared_ptr<MinAreaPartitionStep> min_area_step {new MinAreaPartitionStep(min_pixels)};
 };
 
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
@@ -45,10 +37,7 @@ BOOST_AUTO_TEST_SUITE (MinAreaPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
-  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}});
-  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
-  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3), PixelCoordinate(8, 4) } ));
 
   Partition partition( { min_area_step } );
 
@@ -61,11 +50,7 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
-  source.reset(new SourceWithOnDemandProperties(task_provider));
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}, {1,2}});
-  auto& pixel_list = source->getProperty<PixelCoordinateList>().getCoordinateList();
-  BOOST_CHECK(pixel_list == std::vector<PixelCoordinate>( { PixelCoordinate(1, 3),
-    PixelCoordinate(8, 4), PixelCoordinate(1,2)  } ));
 
   Partition partition( { min_area_step } );
 
