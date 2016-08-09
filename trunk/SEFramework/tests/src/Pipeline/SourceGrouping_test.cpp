@@ -9,6 +9,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
@@ -51,6 +52,7 @@ public:
 
 struct SourceGroupingFixture {
   std::shared_ptr<TaskProvider> task_provider;
+  std::shared_ptr<SourceGroupFactory> group_factory;
   SelectAllCriteria select_all_criteria;
 
   std::shared_ptr<SourceGrouping> source_grouping;
@@ -59,8 +61,9 @@ struct SourceGroupingFixture {
 
   SourceGroupingFixture()
     : task_provider(new TaskProvider(nullptr)),
+      group_factory(new SourceGroupWithOnDemandPropertiesFactory(task_provider)),
       source_grouping(new SourceGrouping(
-        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), task_provider)),
+        std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory)),
       source_a(new SourceWithOnDemandProperties(task_provider)),
       source_b(new SourceWithOnDemandProperties(task_provider)),
       source_c(new SourceWithOnDemandProperties(task_provider)),

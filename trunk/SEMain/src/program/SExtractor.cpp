@@ -24,6 +24,7 @@
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -50,13 +51,13 @@ using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
-class GroupObserver : public Observer<std::shared_ptr<SourceGroup>> {
+class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceGroup>& group) override {
+  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override {
       m_list.push_back(group);
   }
 
-  std::list<std::shared_ptr<SourceGroup>> m_list;
+  std::list<std::shared_ptr<SourceGroupInterface>> m_list;
 };
 
 class SourceObserver : public Observer<std::shared_ptr<SourceWithOnDemandProperties>> {
@@ -80,6 +81,8 @@ class SEMain : public Elements::Program {
   PluginManager plugin_manager { task_factory_registry, output_registry };
   std::shared_ptr<SourceFactory> source_factory =
       std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider);
+  std::shared_ptr<SourceGroupFactory> group_factory =
+          std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
 
 public:
   
@@ -127,7 +130,7 @@ public:
     auto partition = std::make_shared<Partition>(std::vector<std::shared_ptr<PartitionStep>>({attractors_step, min_area_step}));
 
     auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), task_provider);
+        std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
     auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>());
 
     std::shared_ptr<Output> output = output_factory.getOutput();
