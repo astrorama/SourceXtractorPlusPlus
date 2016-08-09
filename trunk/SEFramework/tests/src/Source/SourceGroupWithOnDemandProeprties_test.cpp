@@ -81,9 +81,13 @@ struct SourceGroupFixture {
   std::shared_ptr<MockTaskProvider> mock_registry {std::make_shared<MockTaskProvider>()};
   std::shared_ptr<SourceWithOnDemandProperties> source_a {new SourceWithOnDemandProperties(mock_registry)};
   std::shared_ptr<SourceWithOnDemandProperties> source_b {new SourceWithOnDemandProperties(mock_registry)};
-  SourceGroupWithOnDemandProperties group {mock_registry, std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b}};
+  SourceGroupWithOnDemandProperties group {mock_registry};
 
   const int magic_number = 42;
+  
+  SourceGroupFixture() {
+    group.addAllSources(std::vector<std::shared_ptr<SourceInterface>>{source_a, source_b});
+  }
 
 };
 
