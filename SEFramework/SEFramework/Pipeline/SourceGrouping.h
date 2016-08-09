@@ -14,8 +14,7 @@
 
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
-#include "SEFramework/Source/SourceGroup.h"
-#include "SEFramework/Task/TaskProvider.h"
+#include "SEFramework/Source/SourceGroupFactory.h"
 
 namespace SExtractor {
 
@@ -93,7 +92,7 @@ public:
   virtual ~SourceGrouping() = default;
 
   SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
-                 std::shared_ptr<TaskProvider> task_provider);
+                 std::shared_ptr<SourceGroupFactory> group_factory);
 
   /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
@@ -104,8 +103,8 @@ public:
 private:
 
   std::unique_ptr<GroupingCriteria> m_grouping_criteria;
-  std::shared_ptr<TaskProvider> m_task_provider;
-  std::list<std::shared_ptr<SourceGroup>> m_source_groups;
+  std::shared_ptr<SourceGroupFactory> m_group_factory;
+  std::list<std::shared_ptr<SourceGroupInterface>> m_source_groups;
 
 }; /* End of SourceGrouping class */
 

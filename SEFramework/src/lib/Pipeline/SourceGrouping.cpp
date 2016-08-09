@@ -10,15 +10,15 @@
 namespace SExtractor {
 
 SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
-                               std::shared_ptr<TaskProvider> task_provider)
-        : m_grouping_criteria(std::move(grouping_criteria)), m_task_provider(task_provider) {
+                               std::shared_ptr<SourceGroupFactory> group_factory)
+        : m_grouping_criteria(std::move(grouping_criteria)), m_group_factory(group_factory) {
 }
 
 void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   // Pointer which points to the group of the source
-  std::shared_ptr<SourceGroup> matched_group = nullptr;
+  std::shared_ptr<SourceGroupInterface> matched_group = nullptr;
   
-  std::vector<std::list<std::shared_ptr<SourceGroup>>::iterator> groups_to_remove {};
+  std::vector<std::list<std::shared_ptr<SourceGroupInterface>>::iterator> groups_to_remove {};
   
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
     // Search if the source meets the grouping criteria with any of the sources in the group
@@ -43,7 +43,7 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
   
   // If there was no group the source should be grouped in, we create a new one
   if (matched_group == nullptr) {
-    matched_group = std::make_shared<SourceGroup>(m_task_provider);
+    matched_group = m_group_factory->createSourceGroup();
     matched_group->addSource(source);
     m_source_groups.emplace_back(matched_group);
   }
@@ -55,7 +55,7 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
 }
 
 void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
-  std::vector<std::list<std::shared_ptr<SourceGroup>>::iterator> groups_to_process;
+  std::vector<std::list<std::shared_ptr<SourceGroupInterface>>::iterator> groups_to_process;
 
   // We iterate through all the SourceGroups we have
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {

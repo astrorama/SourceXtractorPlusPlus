@@ -1,0 +1,34 @@
+/* 
+ * @file SourceGroupWithOnDemandPropertiesFactory.h
+ * @author nikoapos
+ */
+
+#ifndef _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H
+#define _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H
+
+#include "SEFramework/Source/SourceGroupFactory.h"
+#include "SEFramework/Source/SourceGroup.h"
+
+namespace SExtractor {
+
+class SourceGroupWithOnDemandPropertiesFactory : public SourceGroupFactory {
+  
+public:
+  
+  SourceGroupWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
+        m_task_provider(task_provider) {}
+
+  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
+    return std::make_shared<SourceGroup>(m_task_provider);
+  }
+  
+private:
+  
+  std::shared_ptr<TaskProvider> m_task_provider;
+  
+};
+
+}
+
+#endif /* _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H */
+
