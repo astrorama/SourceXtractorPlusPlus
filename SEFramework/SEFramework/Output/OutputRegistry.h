@@ -31,9 +31,8 @@ public:
     m_property_to_names_map[typeid(PropertyType)].emplace_back(column_name);
     std::type_index conv_out_type = typeid(OutType);
     ColumnFromSource conv_func {converter};
-    m_name_to_converter_map.emplace(std::piecewise_construct,
-                                    std::forward_as_tuple(column_name),
-                                    std::forward_as_tuple(conv_out_type, conv_func));
+    m_name_to_converter_map.emplace(column_name,
+                                    std::pair<std::type_index, ColumnFromSource>(conv_out_type, conv_func));
   }
   
   template <typename PropertyType>
@@ -49,9 +48,7 @@ public:
         // Register the new converter with the new name
         auto& postfix = instance_names[i];
         auto new_name = current_name + "_" + postfix;
-        m_name_to_converter_map.emplace(std::piecewise_construct,
-                                        std::forward_as_tuple(new_name),
-                                        std::forward_as_tuple(new_converter));
+        m_name_to_converter_map.emplace(new_name, new_converter);
         new_names.push_back(new_name);
       }
       // Remove the old converter

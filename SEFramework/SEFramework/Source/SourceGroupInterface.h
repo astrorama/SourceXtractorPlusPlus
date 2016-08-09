@@ -14,10 +14,13 @@ class SourceGroupInterface : protected SourceInterface {
   
   template <typename Collection>
   using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
-  
-  template <typename T>
-  using EnableIfSourcePtr = typename std::enable_if<std::is_same<CollectionType<T>, std::shared_ptr<SourceInterface>>::value>;
-  
+
+  // This is used to determine if a type is a kind of std::shared_ptr
+  template <class T>
+  struct is_shared_ptr : std::false_type {};
+  template <class T>
+  struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
+
 public:
   
   template <typename T>
@@ -37,8 +40,12 @@ public:
   virtual void merge(const SourceGroupInterface& other) = 0;
   
   /// Convenient method to add all the sources of a collection
-  template <typename SourceCollection, typename EnableIfSourcePtr<SourceCollection>::type* = nullptr>
+  template <typename SourceCollection>
   void addAllSources(const SourceCollection& sources) {
+    static_assert(is_shared_ptr<CollectionType<SourceCollection>>::value,
+        "SourceCollection must be a collection of std::shared_ptr");
+    static_assert(std::is_base_of<SourceInterface, typename CollectionType<SourceCollection>::element_type>::value,
+        "SourceCollection must be a collection of std::shared_ptr to SourceInterface or a type that inherits from it");
     for (auto& source : sources) {
       addSource(source);
     }

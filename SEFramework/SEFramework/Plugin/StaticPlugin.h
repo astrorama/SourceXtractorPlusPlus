@@ -8,18 +8,17 @@
 #ifndef _SEFRAMEWORK_PLUGIN_STATICPLUGIN_H_
 #define _SEFRAMEWORK_PLUGIN_STATICPLUGIN_H_
 
-#include <iostream> // fixme tmp
-
+#include "SEFramework/Plugin/Plugin.h"
 #include "SEFramework/Plugin/PluginManager.h"
 
 namespace SExtractor {
 
-template<typename T>
+template<typename PluginType>
 class StaticPlugin {
 public:
   StaticPlugin() {
-    std::cout << "StaticPlugin" << std::endl;
-    PluginManager::registerStaticPlugin<T>();
+    static_assert(std::is_base_of<Plugin, PluginType>::value, "PluginType must inherit from SExtractor::Plugin");
+    PluginManager::registerStaticPlugin<PluginType>();
   }
 };
 
