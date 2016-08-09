@@ -32,8 +32,7 @@
 #include "SEImplementation/Property/PixelCentroid.h"
 #include "SEImplementation/Property/ExternalFlag.h"
 
-#include "SEImplementation/Partition/MinAreaPartitionStep.h"
-#include "SEImplementation/Partition/AttractorsPartitionStep.h"
+#include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
@@ -83,6 +82,7 @@ class SEMain : public Elements::Program {
       std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider);
   std::shared_ptr<SourceGroupFactory> group_factory =
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
+  PartitionFactory partition_factory {source_factory};
 
 public:
   
@@ -98,6 +98,7 @@ public:
 
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
+    partition_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
   }
@@ -115,6 +116,7 @@ public:
     task_factory_registry->registerPropertyInstances(*output_registry);
     
     segmentation_factory.configure(config_manager);
+    partition_factory.configure(config_manager);
     output_factory.configure(config_manager);
     
     auto source_observer = std::make_shared<SourceObserver>();
@@ -122,13 +124,10 @@ public:
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
-    // Segmentation
     auto segmentation = segmentation_factory.getSegmentation();
 
-    auto min_area_step = std::make_shared<MinAreaPartitionStep>(10);
-    auto attractors_step = std::make_shared<AttractorsPartitionStep>(source_factory);
-    auto partition = std::make_shared<Partition>(std::vector<std::shared_ptr<PartitionStep>>({attractors_step, min_area_step}));
-
+    auto partition = partition_factory.getPartition();
+    
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
     auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>());
