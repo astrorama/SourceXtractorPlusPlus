@@ -7,7 +7,7 @@
 #define _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H
 
 #include "SEFramework/Source/SourceGroupFactory.h"
-#include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
 namespace SExtractor {
 
@@ -19,7 +19,7 @@ public:
         m_task_provider(task_provider) {}
 
   virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_shared<SourceGroup>(m_task_provider);
+    return std::make_shared<SourceGroupWithOnDemandProperties>(m_task_provider);
   }
   
 private:

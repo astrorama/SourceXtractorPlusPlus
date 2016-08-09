@@ -3,12 +3,12 @@
  * @author nikoapos
  */
 
-#include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
 
 namespace SExtractor {
 
-SourceGroup::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroup& group)
+SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group)
         : m_source(source), m_group(group) {
   // Normally, it should not be possible that the given source is of type
   // EntangledSource, because the entangled sources of a group can only be
@@ -21,7 +21,7 @@ SourceGroup::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> s
   }
 }
 
-const Property& SourceGroup::EntangledSource::getProperty(const PropertyId& property_id) const {
+const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(const PropertyId& property_id) const {
 
   // If we already have the property stored in this object, returns it
   if (m_property_holder.isPropertySet(property_id)) {
@@ -60,11 +60,11 @@ const Property& SourceGroup::EntangledSource::getProperty(const PropertyId& prop
 
 } // end of getProperty()
 
-void SourceGroup::EntangledSource::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SourceGroupWithOnDemandProperties::EntangledSource::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
-bool SourceGroup::EntangledSource::operator<(const EntangledSource& other) const {
+bool SourceGroupWithOnDemandProperties::EntangledSource::operator<(const EntangledSource& other) const {
   return this->m_source < other.m_source;
 }
 

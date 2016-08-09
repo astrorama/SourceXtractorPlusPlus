@@ -1,5 +1,5 @@
 /**
- * @file SEFramework/Source/SourceGroup.h
+ * @file SEFramework/Source/SourceGroupWithOnDemandProperties.h
  * @date 08/04/16
  * @author nikoapos
  */
@@ -23,7 +23,7 @@ namespace SExtractor {
  * @brief
  *
  */
-class SourceGroup : public SourceGroupInterface {
+class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
   
   template <typename Collection>
   using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
@@ -33,11 +33,11 @@ class SourceGroup : public SourceGroupInterface {
 
 public:
   
-  SourceGroup(std::shared_ptr<TaskProvider> task_provider);
+  SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
   
   template <typename SourceCollection, typename EnableIfSourcePtr<SourceCollection>::type* = nullptr>
-  SourceGroup(std::shared_ptr<TaskProvider> task_provider, const SourceCollection& sources)
-          : SourceGroup(task_provider) {
+  SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider, const SourceCollection& sources)
+          : SourceGroupWithOnDemandProperties(task_provider) {
     for (auto& source : sources) {
       m_sources.emplace(source, *this);
     }
@@ -46,7 +46,7 @@ public:
   /**
    * @brief Destructor
    */
-  virtual ~SourceGroup() = default;
+  virtual ~SourceGroupWithOnDemandProperties() = default;
   
   iterator begin();
   
@@ -89,11 +89,11 @@ private:
 
 
 
-class SourceGroup::EntangledSource : public SourceInterface {
+class SourceGroupWithOnDemandProperties::EntangledSource : public SourceInterface {
   
 public:
   
-  EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroup& group);
+  EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group);
 
   virtual ~EntangledSource() = default;
 
@@ -107,15 +107,15 @@ private:
   
   PropertyHolder m_property_holder;
   std::shared_ptr<SourceInterface> m_source;
-  SourceGroup& m_group;
+  SourceGroupWithOnDemandProperties& m_group;
   
-  friend void SourceGroup::clearGroupProperties();
-  friend void SourceGroup::merge(const SourceGroupInterface&);
+  friend void SourceGroupWithOnDemandProperties::clearGroupProperties();
+  friend void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface&);
   
 };
 
 
-class SourceGroup::iter : public SourceGroup::IteratorImpl {
+class SourceGroupWithOnDemandProperties::iter : public SourceGroupWithOnDemandProperties::IteratorImpl {
   
 public:
   
@@ -157,7 +157,7 @@ private:
   
   std::set<EntangledSource>::iterator m_entangled_it;
   
-  friend SourceGroup::iterator SourceGroup::removeSource(SourceGroup::iterator);
+  friend SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(SourceGroupWithOnDemandProperties::iterator);
   
 };
 

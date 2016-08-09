@@ -8,7 +8,7 @@
 #define _SEFRAMEWORK_TASK_GROUPTASK_H
 
 #include "SEFramework/Task/Task.h"
-#include "SEFramework/Source/SourceGroup.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
 namespace SExtractor {
 
@@ -27,7 +27,7 @@ public:
   virtual ~GroupTask() = default;
 
   /// Computes one or more properties for the SourceGroup and/or the Sources it contains
-  virtual void computeProperties(SourceGroup& group) const = 0;
+  virtual void computeProperties(SourceGroupWithOnDemandProperties& group) const = 0;
 
 
 private:
