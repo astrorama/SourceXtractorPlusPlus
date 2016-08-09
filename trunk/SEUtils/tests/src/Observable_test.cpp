@@ -33,6 +33,9 @@ public:
 };
 
 class TestObservable : public ObservableA, public ObservableB {
+public:
+    using ObservableA::notifyObservers;
+  using ObservableB::notifyObservers;
 };
 
 struct ObservableFixture {
@@ -59,7 +62,7 @@ BOOST_FIXTURE_TEST_CASE( simple_notification_test, ObservableFixture ) {
       .Times(1);
 
   // Request that the Observers should be notified
-  test_observable_a->ObservableA::notifyObservers(TestMessageA());
+  test_observable_a->notifyObservers(TestMessageA());
 }
 
 BOOST_FIXTURE_TEST_CASE( removeObserver_test, ObservableFixture ) {
@@ -74,7 +77,7 @@ BOOST_FIXTURE_TEST_CASE( removeObserver_test, ObservableFixture ) {
       .Times(0);
 
   // Request that the Observers should be notified
-  test_observable_a->ObservableA::notifyObservers(TestMessageA());
+  test_observable_a->notifyObservers(TestMessageA());
 }
 
 BOOST_FIXTURE_TEST_CASE( multiple_observers_test, ObservableFixture ) {
@@ -89,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE( multiple_observers_test, ObservableFixture ) {
       .Times(1);
 
   // Request that the Observers should be notified
-  test_observable_a->ObservableA::notifyObservers(TestMessageA());
+  test_observable_a->notifyObservers(TestMessageA());
 }
 
 BOOST_FIXTURE_TEST_CASE( multiple_observables_test, ObservableFixture ) {
@@ -106,8 +109,8 @@ BOOST_FIXTURE_TEST_CASE( multiple_observables_test, ObservableFixture ) {
       .Times(1);
 
   // Request from each Observable that the Observers should be notified
-  test_observable_a->ObservableA::notifyObservers(TestMessageA());
-  test_observable_b->ObservableA::notifyObservers(TestMessageA());
+  test_observable_a->notifyObservers(TestMessageA());
+  test_observable_b->notifyObservers(TestMessageA());
 }
 
 BOOST_FIXTURE_TEST_CASE( multiple_types_test, ObservableFixture ) {
@@ -123,8 +126,8 @@ BOOST_FIXTURE_TEST_CASE( multiple_types_test, ObservableFixture ) {
       .Times(1);
 
   // Request from the  Observable a TestMessageA notification and a TestMessageB notification
-  test_observable_a->ObservableA::notifyObservers(TestMessageA());
-  test_observable_a->ObservableB::notifyObservers(TestMessageB());
+  test_observable_a->notifyObservers(TestMessageA());
+  test_observable_a->notifyObservers(TestMessageB());
 }
 
 //-----------------------------------------------------------------------------
