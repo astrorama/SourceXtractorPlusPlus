@@ -93,8 +93,8 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
 
-    plugin_manager.loadPlugins(); // FIXME currently loading only static plugins here
-    plugin_manager.reportConfigDependencies(config_manager);
+    //plugins need to be registered before reportConfigDependencies()
+    plugin_manager.loadPlugins();
 
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
@@ -109,8 +109,6 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
 
     config_manager.initialize(args);
-
-    plugin_manager.configure(config_manager);
 
     task_factory_registry->configure(config_manager);
     task_factory_registry->registerPropertyInstances(*output_registry);

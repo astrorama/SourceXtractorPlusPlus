@@ -38,7 +38,6 @@ find_package(BoostDLL)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEFramework
-                     src/lib/Configuration/*.cpp
                      src/lib/Pipeline/*.cpp 
                      src/lib/Property/*.cpp
                      src/lib/Source/*.cpp 
