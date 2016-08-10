@@ -29,8 +29,6 @@ public:
   
   virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
   
-  virtual const std::vector<PropertyId> getProducedProperties() const override;
-  
   void registerPropertyInstances(OutputRegistry&) override;
 
   

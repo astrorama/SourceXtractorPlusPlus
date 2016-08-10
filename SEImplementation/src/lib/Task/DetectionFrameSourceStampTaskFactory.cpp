@@ -32,10 +32,6 @@ std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const Proper
   }
 }
 
-const std::vector<PropertyId> DetectionFrameSourceStampTaskFactory::getProducedProperties() const {
-  return { PropertyId::create<DetectionFrameSourceStamp>() };
-}
-
 } // SEImplementation namespace
 
 

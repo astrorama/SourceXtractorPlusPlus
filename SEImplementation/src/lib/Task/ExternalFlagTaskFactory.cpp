@@ -24,15 +24,6 @@ std::shared_ptr<Task> ExternalFlagTaskFactory::getTask(const PropertyId& propert
 }
 
 
-const std::vector<PropertyId> ExternalFlagTaskFactory::getProducedProperties() const {
-  std::vector<PropertyId> result{};
-  for (auto& pair : m_task_map) {
-    result.emplace_back(pair.first);
-  }
-  return result;
-}
-
-
 void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   // Loop through the different flag infos and create a task for each. The i
   // will be the index of the flag property.
