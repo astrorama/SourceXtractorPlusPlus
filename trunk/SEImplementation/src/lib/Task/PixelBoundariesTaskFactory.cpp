@@ -23,16 +23,5 @@ std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& prop
   }
 }
 
-const std::vector<PropertyId> PixelBoundariesTaskFactory::getProducedProperties() const {
-  return { PropertyId::create<PixelBoundaries>() };
-}
-
-void PixelBoundariesTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
-}
-
-void PixelBoundariesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
-
-}
-
 } // SEImplementation namespace
 

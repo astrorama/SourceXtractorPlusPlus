@@ -32,10 +32,6 @@ std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const Proper
   }
 }
 
-const std::vector<PropertyId> DetectionFramePixelValuesTaskFactory::getProducedProperties() const {
-  return { PropertyId::create<DetectionFramePixelValues>() };
-}
-
 } // SEImplementation namespace
 
 

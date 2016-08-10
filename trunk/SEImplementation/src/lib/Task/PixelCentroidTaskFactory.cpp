@@ -21,13 +21,6 @@ std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& proper
   }
 }
 
-const std::vector<PropertyId> PixelCentroidTaskFactory::getProducedProperties() const {
-  return { PropertyId::create<PixelCentroid>() };
-}
-
-void PixelCentroidTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
-}
-
 
 } // SEImplementation namespace
 

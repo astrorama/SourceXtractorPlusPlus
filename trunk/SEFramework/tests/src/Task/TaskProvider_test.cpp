@@ -38,9 +38,6 @@ class ExampleTaskFactory : public TaskFactory {
     return std::make_shared<ExampleTask>();
   }
 
-  virtual const std::vector<PropertyId> getProducedProperties() const override  {
-    return { PropertyId::create<ExampleProperty>() };
-  }
 };
 
 struct TaskProviderFixture {
