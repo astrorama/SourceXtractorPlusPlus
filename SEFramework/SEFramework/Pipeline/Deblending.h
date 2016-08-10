@@ -14,15 +14,15 @@
 namespace SExtractor {
 
 /**
- * @class DeblendAction
+ * @class DeblendStep
  * @brief An action to be applied to a SourceGroup for deblending its sources
  *
  */
-class DeblendAction {
+class DeblendStep {
 public:
 
   /// Destructor
-  virtual ~DeblendAction() = default;
+  virtual ~DeblendStep() = default;
 
   // Performs the DeblendAction on the SourceGroup
   virtual void deblend(SourceGroupInterface& group) const = 0;
@@ -42,14 +42,14 @@ public:
   /// Destructor
   virtual ~Deblending() = default;
 
-  /// Constructor - takes a vector of DeblendAction to be applied, in order, to every SourceGroup
-  Deblending(std::vector<std::shared_ptr<DeblendAction>> actions);
+  /// Constructor - takes a vector of DeblendStep to be applied, in order, to every SourceGroup
+  Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps);
 
-  /// Handles a new SourceGroup, applies the DeblendActions and then notifies the observers with the result
+  /// Handles a new SourceGroup, applies the DeblendSteps and then notifies the observers with the result
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
 
 private:
-  std::vector<std::shared_ptr<DeblendAction>> m_actions;
+  std::vector<std::shared_ptr<DeblendStep>> m_deblend_steps;
 }; /* End of Deblending class */
 
 } /* namespace SExtractor */

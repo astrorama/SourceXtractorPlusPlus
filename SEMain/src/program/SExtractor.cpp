@@ -128,7 +128,7 @@ public:
     
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
-    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendAction>>());
+    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendStep>>());
 
     std::shared_ptr<Output> output = output_factory.getOutput();
 
