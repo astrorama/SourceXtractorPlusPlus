@@ -21,7 +21,7 @@ namespace SExtractor {
 
 class Plugin;
 
-class PluginManager : public Configurable, public PluginAPI {
+class PluginManager : public PluginAPI {
 public:
 
   virtual ~PluginManager() = default;
@@ -32,10 +32,6 @@ public:
         m_output_registry(output_registry) {}
 
   void loadPlugins();
-
-  // Implements the Configurable interface
-  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // PluginAPI implementation
   virtual TaskFactoryRegistry& getTaskFactoryRegistry() const override {
@@ -52,12 +48,13 @@ public:
   }
 
 private:
+  std::vector<boost::filesystem::path> getPluginPaths() const;
+
   std::vector<boost::dll::shared_library> m_loaded_plugins;
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
   std::shared_ptr<OutputRegistry> m_output_registry;
 
   static std::vector<std::unique_ptr<Plugin>> s_static_plugins;
-
 };
 
 }
