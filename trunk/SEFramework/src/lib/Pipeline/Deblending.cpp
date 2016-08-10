@@ -8,15 +8,15 @@
 
 namespace SExtractor {
 
-Deblending::Deblending(std::vector<std::shared_ptr<DeblendAction>> actions)
-  : m_actions(std::move(actions)) {
+Deblending::Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps)
+  : m_deblend_steps(std::move(deblend_steps)) {
 }
 
 void Deblending::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   
-  // Applies every DeblendAction to the SourceGroup
-  for (auto& action : m_actions) {
-    action->deblend(*group);
+  // Applies every DeblendStep to the SourceGroup
+  for (auto& step : m_deblend_steps) {
+    step->deblend(*group);
   }
 
   // If the SourceGroup still contains sources, we notify the observers

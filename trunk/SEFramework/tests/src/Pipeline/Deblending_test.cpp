@@ -22,8 +22,8 @@ public:
   SimpleIntProperty(int value) : m_value(value) {}
 };
 
-/// ExampleDeblendAction: if SourceList has at least 2 elements, remove the first element
-class ExampleDeblendAction : public DeblendAction {
+/// ExampleDeblendStep: if SourceList has at least 2 elements, remove the first element
+class ExampleDeblendStep : public DeblendStep {
 public:
   virtual void deblend(SourceGroupInterface& group) const {
     if (std::distance(group.begin(), group.end()) >= 2) {
@@ -42,7 +42,7 @@ public:
 };
 
 struct DeblendingFixture {
-  std::shared_ptr<ExampleDeblendAction> example_deblend_action {new ExampleDeblendAction};
+  std::shared_ptr<ExampleDeblendStep> example_deblend_step {new ExampleDeblendStep};
   std::shared_ptr<SourceInterface> source_a {new SimpleSource};
   std::shared_ptr<SourceInterface> source_b {new SimpleSource};
   std::shared_ptr<SourceInterface> source_c {new SimpleSource};
@@ -67,7 +67,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(3);
 
-  Deblending deblending({example_deblend_action});
+  Deblending deblending({example_deblend_step});
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_group);
@@ -90,8 +90,8 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(3);
 
-  // we want to execute example_deblend_action twice
-  Deblending deblending({example_deblend_action, example_deblend_action});
+  // we want to execute step twice
+  Deblending deblending({example_deblend_step, example_deblend_step});
   deblending.addObserver(test_group_observer);
 
   deblending.handleMessage(source_group);
