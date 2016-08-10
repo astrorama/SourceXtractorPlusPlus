@@ -20,7 +20,7 @@ MinAreaPartitionConfig::MinAreaPartitionConfig(long manager_id) : Configuration(
   declareDependency<PartitionStepConfig>();
   // The following line guarantees that the Attractors partitioning will be done
   // before the min area filtering
-  declareDependency<AttractorsPartitionConfig>();
+  ConfigManager::getInstance(manager_id).registerDependency<MinAreaPartitionConfig, AttractorsPartitionConfig>();
 }
 
 auto MinAreaPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
