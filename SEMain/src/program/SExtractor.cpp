@@ -34,6 +34,7 @@
 
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
+#include "SEImplementation/Deblending/DeblendingFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
@@ -83,6 +84,7 @@ class SEMain : public Elements::Program {
   std::shared_ptr<SourceGroupFactory> group_factory =
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
+  DeblendingFactory deblending_factory {source_factory};
 
 public:
   
@@ -99,6 +101,7 @@ public:
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
+    deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     return config_manager.closeRegistration();
   }
@@ -115,6 +118,7 @@ public:
     
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
+    deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
     
     auto source_observer = std::make_shared<SourceObserver>();
@@ -128,7 +132,8 @@ public:
     
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
-    auto deblending = std::make_shared<Deblending>(std::vector<std::shared_ptr<DeblendStep>>());
+    
+    auto deblending = deblending_factory.getDeblending();
 
     std::shared_ptr<Output> output = output_factory.getOutput();
 

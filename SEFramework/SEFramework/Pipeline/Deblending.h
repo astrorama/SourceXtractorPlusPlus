@@ -24,7 +24,7 @@ public:
   /// Destructor
   virtual ~DeblendStep() = default;
 
-  // Performs the DeblendAction on the SourceGroup
+  // Performs the DeblendStep on the SourceGroup
   virtual void deblend(SourceGroupInterface& group) const = 0;
 };
 
