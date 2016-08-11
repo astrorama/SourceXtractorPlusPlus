@@ -38,10 +38,9 @@ elements_add_library(SEImplementation
 					 src/lib/Partition/*.cpp
 					 src/lib/Segmentation/*.cpp
 					 src/lib/Grouping/*.cpp
-					 src/lib/Task/*.cpp
 					 src/lib/Configuration/*.cpp
 					 src/lib/Output/*.cpp
-           src/lib/Plugin/*.cpp
+           src/lib/Plugin/*/*.cpp
                      LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table
                      PUBLIC_HEADERS SEImplementation)
 
@@ -61,16 +60,16 @@ elements_add_library(SEImplementation
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
-elements_add_unit_test(PixelCentroid_test tests/src/Property/PixelCentroid_test.cpp 
+elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFramePixelValues_test tests/src/Property/DetectionFramePixelValues_test.cpp 
+elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(PixelBoundaries_test tests/src/Property/PixelBoundaries_test.cpp 
+elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Property/DetectionFrameSourceStamp_test.cpp 
+elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(Lutz_test tests/src/Segmentation/Lutz_test.cpp 
@@ -85,7 +84,7 @@ elements_add_unit_test(AttractorsPartitionStep_test tests/src/Partition/Attracto
 elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/OverlappingBoundariesCriteria_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(ExternalFlag_test tests/src/Property/ExternalFlag_test.cpp 
+elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 

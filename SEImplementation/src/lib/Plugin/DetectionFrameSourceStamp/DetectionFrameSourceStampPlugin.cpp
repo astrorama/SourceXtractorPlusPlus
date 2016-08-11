@@ -7,10 +7,10 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-#include "SEImplementation/Property/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTaskFactory.h"
 
-#include "SEImplementation/Plugin/DetectionFrameSourceStampPlugin.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampPlugin.h"
 
 namespace SExtractor {
 

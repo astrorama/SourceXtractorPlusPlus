@@ -18,7 +18,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Image/Image.h"
-#include "SEImplementation/Configuration/ExternalFlagConfig.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 
 namespace SExtractor {
 

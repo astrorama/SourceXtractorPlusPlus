@@ -4,9 +4,9 @@
  * @author mschefer
  */
 
-#include "SEImplementation/Property/PixelBoundaries.h"
-#include "SEImplementation/Task/PixelBoundariesTask.h"
-#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTask.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTaskFactory.h"
 
 namespace SExtractor {
 

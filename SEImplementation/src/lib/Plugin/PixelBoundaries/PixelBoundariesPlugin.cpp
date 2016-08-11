@@ -8,10 +8,10 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-#include "SEImplementation/Property/PixelBoundaries.h"
-#include "SEImplementation/Task/PixelBoundariesTaskFactory.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTaskFactory.h"
 
-#include "SEImplementation/Plugin/PixelBoundariesPlugin.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesPlugin.h"
 
 namespace SExtractor {
 

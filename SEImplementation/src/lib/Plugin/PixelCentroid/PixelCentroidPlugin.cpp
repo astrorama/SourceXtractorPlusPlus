@@ -7,10 +7,10 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-#include "SEImplementation/Property/PixelCentroid.h"
-#include "SEImplementation/Task/PixelCentroidTaskFactory.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTaskFactory.h"
 
-#include "SEImplementation/Plugin/PixelCentroidPlugin.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroidPlugin.h"
 
 namespace SExtractor {
 

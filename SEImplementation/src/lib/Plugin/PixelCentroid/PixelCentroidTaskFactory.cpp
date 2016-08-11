@@ -4,9 +4,9 @@
  * @author mschefer
  */
 
-#include "SEImplementation/Property/PixelCentroid.h"
-#include "SEImplementation/Task/PixelCentroidTask.h"
-#include "SEImplementation/Task/PixelCentroidTaskFactory.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTask.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTaskFactory.h"
 
 namespace SExtractor {
 

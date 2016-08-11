@@ -9,7 +9,7 @@
 #include "SEFramework/Source/SimpleSource.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 

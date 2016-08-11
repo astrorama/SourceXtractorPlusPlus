@@ -4,10 +4,10 @@
  * @author nikoapos
  */
 
-#include "SEImplementation/Configuration/ExternalFlagConfig.h"
-#include "SEImplementation/Property/ExternalFlag.h"
-#include "SEImplementation/Task/ExternalFlagTask.h"
-#include "SEImplementation/Task/ExternalFlagTaskFactory.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTaskFactory.h"
 
 namespace SExtractor {
 

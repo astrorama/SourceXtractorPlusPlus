@@ -7,10 +7,10 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-#include "SEImplementation/Property/DetectionFramePixelValues.h"
-#include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTaskFactory.h"
 
-#include "SEImplementation/Plugin/DetectionFramePixelValuesPlugin.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesPlugin.h"
 
 namespace SExtractor {
 
