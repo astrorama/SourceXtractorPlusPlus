@@ -5,53 +5,31 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Plugin/PluginManager.h"
+
 #include <iostream>
 #include <string>
 #include <fstream>
 
+#if USE_BOOST_DLL
 #include <boost/dll/import.hpp>
+#endif
+#include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
 
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Plugin/Plugin.h"
 
-#include "SEFramework/Plugin/PluginManager.h"
-
 namespace SExtractor {
-
-static const std::string PLUGIN_DIRECTORY_ENV_VAR { "SEXTRACTOR_PLUGIN_PATH" };
-static const std::string PLUGIN_LIST_FILENAME { "SEPluginList.cfg" };
 
 std::vector<std::unique_ptr<Plugin>> PluginManager::s_static_plugins;
 
-void PluginManager::loadPlugins() {
-  // load staticly registered plugins
-  for (auto& static_plugin : s_static_plugins) {
-    static_plugin->registerPlugin(*this);
-  }
+#if USE_BOOST_DLL
+static const std::string PLUGIN_DIRECTORY_ENV_VAR { "SEXTRACTOR_PLUGIN_PATH" };
+static const std::string PLUGIN_LIST_FILENAME { "SEPluginList.cfg" };
 
-  // load dynamic plugins
-  auto plugin_paths = getPluginPaths();
-  for (auto& plugin_path : plugin_paths) {
-    typedef std::shared_ptr<Plugin> (pluginapi_create_t)();
-    std::function<pluginapi_create_t> creator;
-
-    boost::dll::shared_library lib(plugin_path);
-    creator = lib.get_alias<pluginapi_create_t>("create_plugin");
-
-    auto plugin = creator();
-    auto id_string = plugin->getIdString();
-    std::cout << id_string << std::endl;
-
-    plugin->registerPlugin(*this);
-
-    // keep the library loaded while PluginManager still exists
-    m_loaded_plugins.push_back(lib);
-  }
-}
-
-std::vector<boost::filesystem::path> PluginManager::getPluginPaths() const {
+static std::vector<boost::filesystem::path> getPluginPaths() {
   std::vector<boost::filesystem::path> plugin_paths;
 
   auto plugin_path_env_variable = std::getenv(PLUGIN_DIRECTORY_ENV_VAR.c_str());
@@ -81,6 +59,35 @@ std::vector<boost::filesystem::path> PluginManager::getPluginPaths() const {
   }
 
   return plugin_paths;
+}
+#endif
+
+void PluginManager::loadPlugins() {
+  // load staticly registered plugins
+  for (auto& static_plugin : s_static_plugins) {
+    static_plugin->registerPlugin(*this);
+  }
+
+#if USE_BOOST_DLL
+  // load dynamic plugins
+  auto plugin_paths = getPluginPaths();
+  for (auto& plugin_path : plugin_paths) {
+    typedef std::shared_ptr<Plugin> (pluginapi_create_t)();
+    std::function<pluginapi_create_t> creator;
+
+    boost::dll::shared_library lib(plugin_path);
+    creator = lib.get_alias<pluginapi_create_t>("create_plugin");
+
+    auto plugin = creator();
+    auto id_string = plugin->getIdString();
+    std::cout << id_string << std::endl;
+
+    plugin->registerPlugin(*this);
+
+    // keep the library loaded while PluginManager still exists
+    m_loaded_plugins.push_back(lib);
+  }
+#endif
 }
 
 }
