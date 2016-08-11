@@ -33,12 +33,14 @@ public:
 
   PluginManager(std::shared_ptr<TaskFactoryRegistry> task_factory_registry,
                 std::shared_ptr<OutputRegistry> output_registry,
+                long config_manager_id,
                 std::string plugin_path,
                 std::vector<std::string> plugin_list) :
         m_plugin_path(plugin_path),
         m_plugin_list(plugin_list),
         m_task_factory_registry(task_factory_registry),
-        m_output_registry(output_registry) {}
+        m_output_registry(output_registry),
+        m_config_manager_id(config_manager_id) {}
 
   void loadPlugins();
 
@@ -49,6 +51,10 @@ public:
 
   virtual OutputRegistry& getOutputRegistry() const override {
     return *m_output_registry;
+  }
+
+  Euclid::Configuration::ConfigManager& getConfigManager() const override {
+    return Euclid::Configuration::ConfigManager::getInstance(m_config_manager_id);
   }
 
   template<typename T>
@@ -66,6 +72,7 @@ private:
   
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
   std::shared_ptr<OutputRegistry> m_output_registry;
+  long m_config_manager_id;
 
   static std::vector<std::unique_ptr<Plugin>> s_static_plugins;
 };
