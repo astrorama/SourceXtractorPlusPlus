@@ -88,7 +88,7 @@ class SEMain : public Elements::Program {
 public:
   
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
-          : plugin_manager { task_factory_registry, output_registry, plugin_path, plugin_list } {
+          : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
 
   po::options_description defineSpecificProgramOptions() override {

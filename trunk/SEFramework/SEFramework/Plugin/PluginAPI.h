@@ -8,6 +8,7 @@
 #ifndef _SEFRAMEWORK_PLUGIN_PLUGINAPI_H_
 #define _SEFRAMEWORK_PLUGIN_PLUGINAPI_H_
 
+#include "Configuration/ConfigManager.h"
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
@@ -17,6 +18,7 @@ class PluginAPI {
 public:
   virtual TaskFactoryRegistry& getTaskFactoryRegistry() const = 0;
   virtual OutputRegistry& getOutputRegistry() const = 0;
+  virtual Euclid::Configuration::ConfigManager& getConfigManager() const = 0;
 };
 
 }
