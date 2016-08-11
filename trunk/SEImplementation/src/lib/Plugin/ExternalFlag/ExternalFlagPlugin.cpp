@@ -7,10 +7,10 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-#include "SEImplementation/Property/ExternalFlag.h"
-#include "SEImplementation/Task/ExternalFlagTaskFactory.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTaskFactory.h"
 
-#include "SEImplementation/Plugin/ExternalFlagPlugin.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagPlugin.h"
 
 namespace SExtractor {
 

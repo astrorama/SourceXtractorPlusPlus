@@ -9,8 +9,8 @@
 #include "SEFramework/History/SourceHistory.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Property/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
 namespace SExtractor {

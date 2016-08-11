@@ -6,8 +6,8 @@
 
 #include <boost/tokenizer.hpp>
 
-#include "SEImplementation/Property/PixelCentroid.h"
-#include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 #include "SEImplementation/Configuration/OutputConfig.h"
 

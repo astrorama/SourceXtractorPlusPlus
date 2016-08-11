@@ -6,8 +6,8 @@
 #include <memory>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Property/DetectionFramePixelValues.h"
-#include "SEImplementation/Task/DetectionFramePixelValuesTask.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
 
 namespace SExtractor {
 

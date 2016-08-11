@@ -7,9 +7,9 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
-#include "SEImplementation/Property/DetectionFramePixelValues.h"
-#include "SEImplementation/Task/DetectionFramePixelValuesTask.h"
-#include "SEImplementation/Task/DetectionFramePixelValuesTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTaskFactory.h"
 
 using namespace Euclid::Configuration;
 

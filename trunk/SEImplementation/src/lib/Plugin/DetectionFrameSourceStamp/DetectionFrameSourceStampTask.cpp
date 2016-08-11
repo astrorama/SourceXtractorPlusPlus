@@ -5,10 +5,10 @@
  */
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
-#include "SEImplementation/Property/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Task/DetectionFrameSourceStampTask.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
 
 namespace SExtractor {
 

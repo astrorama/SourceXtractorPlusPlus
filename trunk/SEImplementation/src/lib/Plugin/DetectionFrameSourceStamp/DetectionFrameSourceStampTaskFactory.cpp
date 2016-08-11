@@ -7,9 +7,9 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
-#include "SEImplementation/Property/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Task/DetectionFrameSourceStampTask.h"
-#include "SEImplementation/Task/DetectionFrameSourceStampTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTaskFactory.h"
 
 using namespace Euclid::Configuration;
 

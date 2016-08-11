@@ -5,10 +5,10 @@
  */
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Property/DetectionFramePixelValues.h"
-#include "SEImplementation/Property/PixelCentroid.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
-#include "SEImplementation/Task/PixelCentroidTask.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTask.h"
 
 namespace SExtractor {
 

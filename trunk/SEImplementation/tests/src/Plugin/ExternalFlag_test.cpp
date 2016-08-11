@@ -9,9 +9,9 @@
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEImplementation/Property/ExternalFlag.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Task/ExternalFlagTask.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
 using namespace SExtractor;
 

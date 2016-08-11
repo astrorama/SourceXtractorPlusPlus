@@ -14,7 +14,7 @@
 #include "SEImplementation/Output/TableOutput.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 
-#include "SEImplementation/Property/PixelCentroid.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
 namespace SExtractor {
 

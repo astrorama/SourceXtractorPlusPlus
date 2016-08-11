@@ -4,7 +4,7 @@
  * @author mschefer
  */
 
-#include "SEImplementation/Property/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 
 namespace SExtractor {

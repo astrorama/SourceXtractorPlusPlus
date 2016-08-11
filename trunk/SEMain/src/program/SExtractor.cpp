@@ -29,8 +29,7 @@
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
 
-#include "SEImplementation/Property/PixelCentroid.h"
-#include "SEImplementation/Property/ExternalFlag.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
@@ -38,7 +37,6 @@
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
-#include "SEImplementation/Configuration/ExternalFlagConfig.h"
 
 #include "SEMain/SExtractorConfig.h"
 

@@ -84,7 +84,6 @@ elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
 elements_add_unit_test(SourceGroupWithOnDemandProperties_test tests/src/Source/SourceGroupWithOnDemandProperties_test.cpp 
                      LINK_LIBRARIES SEFramework GMock
                      TYPE Boost)
-
 endif(GMOCK_FOUND)
 elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp 
                      LINK_LIBRARIES SEFramework

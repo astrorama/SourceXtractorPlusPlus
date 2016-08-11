@@ -5,7 +5,7 @@
  */
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Task/ExternalFlagTask.h"
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
 namespace SExtractor {
 
