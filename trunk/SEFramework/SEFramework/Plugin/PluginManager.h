@@ -8,7 +8,12 @@
 #ifndef _SEFRAMEWORK_PLUGIN_PLUGINMANAGER_H_
 #define _SEFRAMEWORK_PLUGIN_PLUGINMANAGER_H_
 
+#include <boost/version.hpp>
+#define USE_BOOST_DLL BOOST_VERSION >= 105500
+
+#if USE_BOOST_DLL
 #include <boost/dll/shared_library.hpp>
+#endif
 
 #include <memory>
 #include <vector>
@@ -48,9 +53,11 @@ public:
   }
 
 private:
-  std::vector<boost::filesystem::path> getPluginPaths() const;
-
+  
+#if USE_BOOST_DLL
   std::vector<boost::dll::shared_library> m_loaded_plugins;
+#endif
+  
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
   std::shared_ptr<OutputRegistry> m_output_registry;
 
