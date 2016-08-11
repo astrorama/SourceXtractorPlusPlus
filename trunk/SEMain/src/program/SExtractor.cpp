@@ -44,6 +44,7 @@
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
+#include "SEMain/PluginConfig.h"
 
 namespace po = boost::program_options;
 using namespace SExtractor;
@@ -78,7 +79,7 @@ class SEMain : public Elements::Program {
   std::shared_ptr<OutputRegistry> output_registry = std::make_shared<OutputRegistry>();
   SegmentationFactory segmentation_factory {task_provider};
   OutputFactory output_factory { output_registry };
-  PluginManager plugin_manager { task_factory_registry, output_registry };
+  PluginManager plugin_manager;
   std::shared_ptr<SourceFactory> source_factory =
       std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider);
   std::shared_ptr<SourceGroupFactory> group_factory =
@@ -88,7 +89,8 @@ class SEMain : public Elements::Program {
 
 public:
   
-  SEMain() {
+  SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
+          : plugin_manager { task_factory_registry, output_registry, plugin_path, plugin_list } {
   }
 
   po::options_description defineSpecificProgramOptions() override {
@@ -154,7 +156,70 @@ public:
 
 };
 
-MAIN_FOR(SEMain)
+
+class PluginOptionsMain : public Elements::Program {
+  
+public:
+  PluginOptionsMain(std::string& plugin_path, std::vector<std::string>& plugin_list) :
+          m_plugin_path(plugin_path), m_plugin_list(plugin_list) {
+  }
+  
+  virtual ~PluginOptionsMain() = default;
+
+  boost::program_options::options_description defineSpecificProgramOptions() override {
+    auto& config_manager = ConfigManager::getInstance(conf_man_id);
+    config_manager.registerConfiguration<PluginConfig>();
+    auto options = config_manager.closeRegistration();
+    options.add_options()("*", po::bool_switch());
+    return options;
+  }
+
+  std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
+    po::options_description desc("t");
+    desc.add_options()("t", po::value<std::vector<std::string>>(), "t");
+    po::positional_options_description pos_desc;
+    pos_desc.add("t", -1);
+    return std::make_pair(desc, pos_desc);
+  }
+  
+
+  
+  Elements::ExitCode mainMethod(std::map<std::string, boost::program_options::variable_value>& args) override {
+    auto& config_manager = ConfigManager::getInstance(conf_man_id);
+    config_manager.initialize(args);
+    auto& conf = config_manager.getConfiguration<PluginConfig>();
+    m_plugin_path = conf.getPluginPath();
+    m_plugin_list = conf.getPluginList();
+    return Elements::ExitCode::OK;
+  }
+
+private:
+  
+  long conf_man_id = getUniqueManagerId();
+  std::string& m_plugin_path;
+  std::vector<std::string>& m_plugin_list;
+  
+};
 
 
 
+ELEMENTS_API int main(int argc, char* argv[]) {
+  std::string plugin_path {};
+  std::vector<std::string> plugin_list {};
+  
+  // First we create a program which has a sole purpose to get the options for
+  // the plugin paths. If the user requested to see the help message we skip
+  // this step.
+  std::set<std::string> args_str (argv, argv + argc);
+  if (args_str.count("--help") == 0) {
+    std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
+    Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
+            THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
+    plugin_options_program.run(argc, argv);
+  }
+  
+  Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
+            THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
+  Elements::ExitCode exit_code = man.run(argc, argv);
+  return static_cast<Elements::ExitCodeType>(exit_code);
+}
