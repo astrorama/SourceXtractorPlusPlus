@@ -1,0 +1,12 @@
+/**
+\mainpage S(ource)Extractor project Documentation
+
+This is the developer documentation of the SExtractor project. Using the tabs at
+the top of the page, you can navigate through the API documentation of all the
+SExtractor classes. Following the links bellow, you can read some documentation
+designed to help the new SExtractor developer.
+
+- \subpage implementationhowtos : Short instructions for
+    performing the most common SExtractor developer tasks
+
+*/

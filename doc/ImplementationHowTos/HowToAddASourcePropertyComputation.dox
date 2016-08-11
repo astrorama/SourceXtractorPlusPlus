@@ -1,0 +1,57 @@
+namespace SExtractor {
+
+/** \page howtoaddsourceproperty HowTo add a new source property computation
+
+\tableofcontents
+
+The Partition stage is where the rough detections of the Segmentation stage can
+be broken down in multiple ones, using more complex algorithms. The Partition
+class itself does not implement any specific algorithm, it is just responsible
+for running a number of PartitionSteps (which implement the algorithm logic).
+The rest of this HowTo describes the steps that need to be performed to add a
+new algorithm as a PartitionStep and to use it within the SExtractor framework.
+
+Note that SExtractor defines all its classes in the namespace SExtractor. The
+following coding snippets assumed that the code is in the SExtractor namespace
+for brevity.
+
+
+\section partitionstepimpl Implementing the PartitionStep interface
+
+\subsection algoclasscreation Creating the algorithm class
+
+The first thing you need to do is to implement your algorithm logic. This is
+done by creating a class which implements the PartitionStep interface:
+
+\code{.cpp}
+#include "SEFramework/Pipeline/Partition.h"
+
+class ExamplePartitionStep : public PartitionStep {
+
+public:
+
+  virtual ~ExamplePartitionStep() = default;
+  
+  std::vector<std::shared_ptr<SourceInterface>> partition(
+                        std::shared_ptr<SourceInterface> source) const override {
+    // Your algorithm logic goes here
+  }
+
+}
+\endcode
+
+The partitioning algorithm logic is implemented in the partition() method. This
+method gets as input the source to apply the algorithm to, and it returns a
+vector of sources, which is the result of the partitioning.
+
+\subsection accessinputinfo Accessing the information of the input source
+
+Retrieving the input source information which is needed by the partitioning
+algorithm is done via accessing its properties. For example, the following gives
+access to the sources pixel coordinates:
+
+\code{.cpp}
+\endcode
+
+*/
+}

@@ -1,0 +1,12 @@
+namespace SExtractor {
+
+/** \page implementationhowtos Implementation HowTos
+
+\subpage howtoaddsourceproperty : This HowTo explains how to add the algorithm
+        for computing a new source property
+
+\subpage howtoaddapartitionstep : This HowTo explains how to add a new algorithm
+        for partitioning a source detected by the Segmentation to smaller pieces
+
+*/
+}
