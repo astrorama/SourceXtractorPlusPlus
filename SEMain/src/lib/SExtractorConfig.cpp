@@ -5,6 +5,7 @@
  */
 
 #include "SEMain/SExtractorConfig.h"
+#include "SEMain/PluginConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
@@ -19,6 +20,9 @@ SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) 
   declareDependency<BackgroundConfig>();
   declareDependency<MinAreaPartitionConfig>();
   declareDependency<AttractorsPartitionConfig>();
+  // The following dependency is not used but it is included so its options
+  // are included in the help message
+  declareDependency<PluginConfig>();
 }
 
 auto SExtractorConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

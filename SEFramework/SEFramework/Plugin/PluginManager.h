@@ -32,7 +32,11 @@ public:
   virtual ~PluginManager() = default;
 
   PluginManager(std::shared_ptr<TaskFactoryRegistry> task_factory_registry,
-                std::shared_ptr<OutputRegistry> output_registry) :
+                std::shared_ptr<OutputRegistry> output_registry,
+                std::string plugin_path,
+                std::vector<std::string> plugin_list) :
+        m_plugin_path(plugin_path),
+        m_plugin_list(plugin_list),
         m_task_factory_registry(task_factory_registry),
         m_output_registry(output_registry) {}
 
@@ -54,6 +58,8 @@ public:
 
 private:
   
+  std::string m_plugin_path;
+  std::vector<std::string> m_plugin_list;
 #if USE_BOOST_DLL
   std::vector<boost::dll::shared_library> m_loaded_plugins;
 #endif
