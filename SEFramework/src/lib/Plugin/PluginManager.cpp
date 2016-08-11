@@ -42,10 +42,10 @@ static std::vector<boost::filesystem::path> getPluginPaths(
         full_path += boost::dll::shared_library::suffix();
 
         if (boost::filesystem::exists(full_path)) {
-          logger.info() << "Loading plugin: " << plugin_name;
+          logger.info() << "Loading plugin from file: " << full_path;
           plugin_paths.emplace_back(full_path);
         } else {
-          logger.warn() << "Failed to load plugin " << plugin_name << " - file not found";
+          logger.warn() << "Failed to load plugins from " << full_path << " - file not found";
         }
       }
     } else {
@@ -75,7 +75,7 @@ void PluginManager::loadPlugins() {
 
     auto plugin = creator();
     auto id_string = plugin->getIdString();
-    std::cout << id_string << std::endl;
+    logger.info() << "Registering plugin " << id_string;
 
     plugin->registerPlugin(*this);
 
