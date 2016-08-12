@@ -60,16 +60,16 @@ elements_add_library(SEImplementation
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
-elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid_test.cpp 
+elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues_test.cpp 
+elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues/DetectionFramePixelValues_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries_test.cpp 
+elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries/PixelBoundaries_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp_test.cpp 
+elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(Lutz_test tests/src/Segmentation/Lutz_test.cpp 
@@ -84,7 +84,7 @@ elements_add_unit_test(AttractorsPartitionStep_test tests/src/Partition/Attracto
 elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/OverlappingBoundariesCriteria_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag_test.cpp 
+elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 
