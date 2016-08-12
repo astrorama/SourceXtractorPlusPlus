@@ -34,15 +34,15 @@ class ExamplePartitionStep : public PartitionStep {
 
 public:
 
-  virtual ~ExamplePartitionStep() = default;
-  
-  std::vector<std::shared_ptr<SourceInterface>> partition(
-                       std::shared_ptr<SourceInterface> source) const override {
+  virtual ~ExamplePartitionStep() = default;
+  
+  std::vector<std::shared_ptr<SourceInterface>> partition(
+                       std::shared_ptr<SourceInterface> source) const override {
 
-    // Your algorithm logic goes here
+    // Your algorithm logic goes here
 
     return {source};
-  }
+  }
 
 };
 \endcode
