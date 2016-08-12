@@ -206,14 +206,26 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   std::vector<std::string> plugin_list {};
   
   // First we create a program which has a sole purpose to get the options for
-  // the plugin paths. If the user requested to see the help message we skip
-  // this step.
+  // the plugin paths. Note that we do not want to have this helper program
+  // showing the help message, so if the user gave the --help option we have to
+  // mask it
+  int help_index = 0;
+  for (; help_index < argc; ++help_index) {
+    if (std::string{argv[help_index]} == "--help") {
+      argv[help_index][0] = ' ';
+      break;
+    }
+  }
   std::set<std::string> args_str (argv, argv + argc);
   if (args_str.count("--help") == 0) {
     std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
     Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
             THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
     plugin_options_program.run(argc, argv);
+  }
+  if (help_index < argc) {
+    // If we have masked the --help option set it back
+    argv[help_index][0] = '-';
   }
   
   Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
