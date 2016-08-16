@@ -5,8 +5,10 @@
  */
 
 #include <iostream>
+#include <CCfits/CCfits>
 
 #include "Table/AsciiWriter.h"
+#include "Table/FitsWriter.h"
 
 #include "SEFramework/Output/OutputRegistry.h"
 
@@ -20,10 +22,7 @@ namespace SExtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
   auto source_to_row = m_output_registry->getSourceToRowConverter();
-  auto std_out_handler = [](const Euclid::Table::Table& table) {
-    Euclid::Table::AsciiWriter{}.write(std::cout, table);
-  };
-  return std::unique_ptr<Output>(new TableOutput(source_to_row, std_out_handler));
+  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_hadler));
 }
 
 void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -33,6 +32,18 @@ void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManage
 void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
   output_config.setEnabledOutputs(*m_output_registry);
+  
+  auto out_file = output_config.getOutputFile();
+  if (out_file != "") {
+    m_table_hadler = [out_file](const Euclid::Table::Table& table) {
+      CCfits::FITS fits {"!"+out_file, CCfits::RWmode::Write};
+      Euclid::Table::FitsWriter{Euclid::Table::FitsWriter::Format::BINARY}.write(fits, "CATALOG", table);
+    };
+  } else {
+    m_table_hadler = [](const Euclid::Table::Table& table) {
+      Euclid::Table::AsciiWriter{}.write(std::cout, table);
+    };
+  }
 }
 
 } // SExtractor namespace

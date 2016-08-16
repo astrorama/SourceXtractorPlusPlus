@@ -9,6 +9,7 @@
 
 #include "SEFramework/Output/Output.h"
 #include "SEFramework/Configuration/Configurable.h"
+#include "TableOutput.h"
 
 namespace SExtractor {
 
@@ -35,7 +36,9 @@ public:
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
+  
   std::shared_ptr<OutputRegistry> m_output_registry;
+  TableOutput::TableHandler m_table_hadler;
 
 }; /* End of OutputFactory class */
 
