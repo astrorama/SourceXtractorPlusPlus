@@ -31,11 +31,14 @@ public:
   void initialize(const UserValues& args) override;
   
   void setEnabledOutputs(OutputRegistry& output_registry);
+  
+  std::string getOutputFile();
 
 private:
   
   bool m_pixel_centroid;
   bool m_pixel_boundaries;
+  std::string m_out_file;
 
 }; /* End of OutputConfig class */
 
