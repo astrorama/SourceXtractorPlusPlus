@@ -168,7 +168,7 @@ public:
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
     config_manager.registerConfiguration<PluginConfig>();
     auto options = config_manager.closeRegistration();
-    options.add_options()("*", po::bool_switch());
+    options.add_options()("*", po::value<std::string>());
     return options;
   }
 
@@ -216,13 +216,10 @@ ELEMENTS_API int main(int argc, char* argv[]) {
       break;
     }
   }
-  std::set<std::string> args_str (argv, argv + argc);
-  if (args_str.count("--help") == 0) {
-    std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
-    Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
-            THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
-    plugin_options_program.run(argc, argv);
-  }
+  std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
+  Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
+          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
+  plugin_options_program.run(argc, argv);
   if (help_index < argc) {
     // If we have masked the --help option set it back
     argv[help_index][0] = '-';
