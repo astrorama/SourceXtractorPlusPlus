@@ -49,6 +49,7 @@ void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
+  plugin_api.getOutputRegistry().optionalOutput<PixelBoundaries>("PixelBoundaries");
 
 }
 

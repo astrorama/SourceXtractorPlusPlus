@@ -30,15 +30,14 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  void setEnabledOutputs(OutputRegistry& output_registry);
-  
   std::string getOutputFile();
+  
+  const std::vector<std::string> getOptionalProperties();
 
 private:
-  
-  bool m_pixel_centroid;
-  bool m_pixel_boundaries;
+ 
   std::string m_out_file;
+  std::vector<std::string> m_optional_properties;
 
 }; /* End of OutputConfig class */
 

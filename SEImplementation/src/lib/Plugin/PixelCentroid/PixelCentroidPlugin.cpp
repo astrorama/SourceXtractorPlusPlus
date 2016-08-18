@@ -33,6 +33,8 @@ void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getCentroidY();
           }
   );
+
+  plugin_api.getOutputRegistry().optionalOutput<PixelCentroid>("PixelCentroid");
 }
 
 std::string PixelCentroidPlugin::getIdString() const {

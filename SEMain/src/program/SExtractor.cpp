@@ -50,6 +50,8 @@ using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
+static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
+
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override {
@@ -103,11 +105,24 @@ public:
     partition_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
-    return config_manager.closeRegistration();
+    auto options = config_manager.closeRegistration();
+    options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
+          "List the possible output properties for the given input parameters and exit");
+    return options;
   }
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
+    
+    // If the user just requested to see the possible output columns we show
+    // them and we do nothing else
+    
+    if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
+      for (auto& name : output_registry->getOptionalOutputNames()) {
+        std::cout << name << '\n';
+      }
+      return Elements::ExitCode::OK;
+    }
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
 
@@ -120,9 +135,6 @@ public:
     partition_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
-    
-    auto source_observer = std::make_shared<SourceObserver>();
-    auto group_observer = std::make_shared<GroupObserver>();
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
@@ -168,11 +180,11 @@ public:
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
     config_manager.registerConfiguration<PluginConfig>();
     auto options = config_manager.closeRegistration();
-    options.add_options()("*", po::value<std::string>());
     return options;
   }
 
   std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
+    // The following handles all the other options as positional arguments
     po::options_description desc("t");
     desc.add_options()("t", po::value<std::vector<std::string>>(), "t");
     po::positional_options_description pos_desc;
@@ -207,22 +219,25 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   
   // First we create a program which has a sole purpose to get the options for
   // the plugin paths. Note that we do not want to have this helper program
-  // showing the help message, so if the user gave the --help option we have to
-  // mask it
-  int help_index = 0;
-  for (; help_index < argc; ++help_index) {
-    if (std::string{argv[help_index]} == "--help") {
-      argv[help_index][0] = ' ';
-      break;
+  // to hangle any other options except of the plugin-directory and plugin, so
+  // we mask them as positional arguments
+  std::vector<int> masked_indices {};
+  for (int i = 0; i < argc; ++i) {
+    if (std::string{argv[i]} == "--plugin-directory" || std::string{argv[i]} == "--plugin") {
+      continue;
+    }
+    if (argv[i][0] == '-') {
+      argv[i][0] = ' ';
+      masked_indices.push_back(i);
     }
   }
   std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
   Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
           THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
   plugin_options_program.run(argc, argv);
-  if (help_index < argc) {
-    // If we have masked the --help option set it back
-    argv[help_index][0] = '-';
+  // Unmask all the options
+  for (auto i : masked_indices) {
+    argv[i][0] = '-';
   }
   
   Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
