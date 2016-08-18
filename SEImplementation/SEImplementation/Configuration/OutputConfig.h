@@ -20,6 +20,11 @@ namespace SExtractor {
 class OutputConfig : public Euclid::Configuration::Configuration {
 
 public:
+  
+  enum class OutputFileFormat {
+    ASCII, FITS
+  };
+  
   /// Destructor
   virtual ~OutputConfig() = default;
 
@@ -28,15 +33,20 @@ public:
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   
+  void preInitialize(const UserValues& args) override;
+
   void initialize(const UserValues& args) override;
   
   std::string getOutputFile();
+  
+  OutputFileFormat getOutputFileFormat();
   
   const std::vector<std::string> getOptionalProperties();
 
 private:
  
   std::string m_out_file;
+  OutputFileFormat m_format;
   std::vector<std::string> m_optional_properties;
 
 }; /* End of OutputConfig class */

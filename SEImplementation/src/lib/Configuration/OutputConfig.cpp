@@ -6,6 +6,8 @@
 
 #include <sstream>
 
+#include "ElementsKernel/Exception.h"
+
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
@@ -17,7 +19,13 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string OUTPUT_FILE {"output-file"};
+static const std::string OUTPUT_FILE_FORMAT {"output-file-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
+
+static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
+  {"ASCII", OutputConfig::OutputFileFormat::ASCII},
+  {"FITS", OutputConfig::OutputFileFormat::FITS}
+};
 
 OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id) {
 }
@@ -26,9 +34,18 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
   return { {"Output configuration", {
       {OUTPUT_FILE.c_str(), po::value<std::string>()->default_value(""),
           "The file to store the output catalog"},
+      {OUTPUT_FILE_FORMAT.c_str(), po::value<std::string>()->default_value("FITS"),
+          "The format of the output catalog, one of ASCII or FITS (default: FITS)"},
           {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value(""),
           "The output properties to add in the output catalog"}
   }}};
+}
+
+void OutputConfig::preInitialize(const UserValues& args) {
+  auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
+  if (format_map.count(format) == 0) {
+    throw Elements::Exception() << "Unknown output file format: " << format;
+  }
 }
 
 void OutputConfig::initialize(const UserValues& args) {
@@ -39,10 +56,17 @@ void OutputConfig::initialize(const UserValues& args) {
   while (std::getline(properties_str, name, ',')) {
     m_optional_properties.emplace_back(name);
   }
+  
+  auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
+  m_format = format_map.at(format);
 }
 
 std::string OutputConfig::getOutputFile() {
   return m_out_file;
+}
+
+OutputConfig::OutputFileFormat OutputConfig::getOutputFileFormat() {
+  return m_format;
 }
 
 const std::vector<std::string> OutputConfig::getOptionalProperties() {

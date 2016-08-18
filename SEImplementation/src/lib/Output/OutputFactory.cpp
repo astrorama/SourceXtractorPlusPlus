@@ -5,6 +5,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 #include <CCfits/CCfits>
 
 #include "Table/AsciiWriter.h"
@@ -35,10 +36,20 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   
   auto out_file = output_config.getOutputFile();
   if (out_file != "") {
-    m_table_hadler = [out_file](const Euclid::Table::Table& table) {
-      CCfits::FITS fits {"!"+out_file, CCfits::RWmode::Write};
-      Euclid::Table::FitsWriter{Euclid::Table::FitsWriter::Format::BINARY}.write(fits, "CATALOG", table);
-    };
+    switch (output_config.getOutputFileFormat()) {
+      case OutputConfig::OutputFileFormat::FITS:
+        m_table_hadler = [out_file](const Euclid::Table::Table& table) {
+          CCfits::FITS fits {"!"+out_file, CCfits::RWmode::Write};
+          Euclid::Table::FitsWriter{Euclid::Table::FitsWriter::Format::BINARY}.write(fits, "CATALOG", table);
+        };
+        break;
+      case OutputConfig::OutputFileFormat::ASCII:
+        m_table_hadler = [out_file](const Euclid::Table::Table& table) {
+          std::ofstream out_stream {out_file};
+          Euclid::Table::AsciiWriter{}.write(out_stream, table);
+        };
+        break;
+    }
   } else {
     m_table_hadler = [](const Euclid::Table::Table& table) {
       Euclid::Table::AsciiWriter{}.write(std::cout, table);
