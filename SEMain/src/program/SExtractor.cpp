@@ -180,19 +180,10 @@ public:
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
     config_manager.registerConfiguration<PluginConfig>();
     auto options = config_manager.closeRegistration();
+    // The following will consume any extra options in the configuration file
+    options.add_options()("*", po::value<std::string>());
     return options;
   }
-
-  std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
-    // The following handles all the other options as positional arguments
-    po::options_description desc("t");
-    desc.add_options()("t", po::value<std::vector<std::string>>(), "t");
-    po::positional_options_description pos_desc;
-    pos_desc.add("t", -1);
-    return std::make_pair(desc, pos_desc);
-  }
-  
-
   
   Elements::ExitCode mainMethod(std::map<std::string, boost::program_options::variable_value>& args) override {
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
@@ -219,26 +210,40 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   
   // First we create a program which has a sole purpose to get the options for
   // the plugin paths. Note that we do not want to have this helper program
-  // to hangle any other options except of the plugin-directory and plugin, so
-  // we mask them as positional arguments
+  // to handle any other options except of the plugin-directory and plugin, so
+  // we create a subset of the given options with only the necessary ones. We
+  // also turn off the the logging.
   std::vector<int> masked_indices {};
+  std::vector<std::string> plugin_options_input {};
+  plugin_options_input.emplace_back("DummyProgram");
+  plugin_options_input.emplace_back("--log-level");
+  plugin_options_input.emplace_back("FATAL");
   for (int i = 0; i < argc; ++i) {
-    if (std::string{argv[i]} == "--plugin-directory" || std::string{argv[i]} == "--plugin") {
-      continue;
+    if (std::string{argv[i]} == "--config-file") {
+      plugin_options_input.emplace_back("--config-file");
+      plugin_options_input.emplace_back(std::string{argv[i+1]});
     }
-    if (argv[i][0] == '-') {
-      argv[i][0] = ' ';
-      masked_indices.push_back(i);
+    if (std::string{argv[i]} == "--plugin-directory") {
+      plugin_options_input.emplace_back("--plugin-directory");
+      plugin_options_input.emplace_back(std::string{argv[i+1]});
+    }
+    if (std::string{argv[i]} == "--plugin") {
+      plugin_options_input.emplace_back("--plugin");
+      plugin_options_input.emplace_back(std::string{argv[i+1]});
     }
   }
+  
+  int argc_tmp = plugin_options_input.size();
+  std::vector<const char*> argv_tmp (argc_tmp);
+  for (int i=0; i<plugin_options_input.size(); ++i){
+    auto& option_str = plugin_options_input[i];
+    argv_tmp[i] = option_str.data();
+  }
+
   std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
   Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
           THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
-  plugin_options_program.run(argc, argv);
-  // Unmask all the options
-  for (auto i : masked_indices) {
-    argv[i][0] = '-';
-  }
+  plugin_options_program.run(argc_tmp, const_cast<char**>(argv_tmp.data()));
   
   Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
             THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING};
