@@ -20,13 +20,12 @@ void DetectionFrameSourceStampTaskFactory::reportConfigDependencies(Euclid::Conf
 }
 
 void DetectionFrameSourceStampTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_detection_frame_source_stamp_task = std::make_shared<DetectionFrameSourceStampTask>(
-          manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
+  m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 }
 
-std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::getTask(const PropertyId& property_id) const {
+std::shared_ptr<Task> DetectionFrameSourceStampTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<DetectionFrameSourceStamp>()) {
-    return m_detection_frame_source_stamp_task;
+    return std::make_shared<DetectionFrameSourceStampTask>(m_detection_image);
   } else {
     return nullptr;
   }

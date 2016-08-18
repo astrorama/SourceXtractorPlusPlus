@@ -10,6 +10,9 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Task/SourceTask.h"
 
+#include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
+
+
 namespace SExtractor {
 
 /**
@@ -27,14 +30,14 @@ public:
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
   
   void registerPropertyInstances(OutputRegistry&) override;
 
   
 private:
   
-  std::map<PropertyId, std::shared_ptr<SourceTask>> m_task_map;
+  std::map<PropertyId, ExternalFlagConfig::FlagInfo> m_flag_info_map;
   std::vector<std::string> m_instance_names;
   
 }; /* End of ExternalFlagTaskFactory class */

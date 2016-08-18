@@ -11,8 +11,6 @@
 
 namespace SExtractor {
 
-class PixelBoundariesTask;
-
 /**
  * @class PixelBoundariesTaskFactory
  * @brief Produces a PixelBoundariesTask
@@ -22,20 +20,13 @@ class PixelBoundariesTaskFactory : public TaskFactory {
 
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~PixelBoundariesTaskFactory() = default;
 
-  PixelBoundariesTaskFactory();
+  PixelBoundariesTaskFactory() {}
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
-
-private:
-  std::shared_ptr<PixelBoundariesTask> m_pixel_boundaries_task;
-
-private:
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 }; /* End of PixelBoundariesTaskFactory class */
 

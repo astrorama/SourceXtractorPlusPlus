@@ -10,14 +10,9 @@
 
 namespace SExtractor {
 
-PixelBoundariesTaskFactory::PixelBoundariesTaskFactory()
-  : m_pixel_boundaries_task(std::make_shared<PixelBoundariesTask>()) {
-
-}
-
-std::shared_ptr<Task> PixelBoundariesTaskFactory::getTask(const PropertyId& property_id) const {
+std::shared_ptr<Task> PixelBoundariesTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelBoundaries>()) {
-    return m_pixel_boundaries_task;
+    return std::make_shared<PixelBoundariesTask>();
   } else {
     return nullptr;
   }

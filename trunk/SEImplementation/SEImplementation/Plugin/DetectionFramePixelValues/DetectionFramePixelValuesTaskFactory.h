@@ -10,11 +10,10 @@
 #include <memory>
 #include <vector>
 
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SExtractor {
-
-class DetectionFramePixelValuesTask;
 
 /**
  * @class DetectionFramePixelValuesTaskFactory
@@ -28,14 +27,14 @@ public:
   virtual ~DetectionFramePixelValuesTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
   // Configurable implementation
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  std::shared_ptr<DetectionFramePixelValuesTask> m_detection_frame_pixel_values_task;
+  std::shared_ptr<DetectionImage> m_detection_image;
 };
 
 } /* namespace SExtractor */
