@@ -30,7 +30,7 @@ class ExampleTask : public SourceTask {
 // Example implementation of a TaskFactory
 class ExampleTaskFactory : public TaskFactory {
 
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override {
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override {
     // check that we request the correct type of Property
     BOOST_CHECK(property_id == PropertyId::create<ExampleProperty>());
 

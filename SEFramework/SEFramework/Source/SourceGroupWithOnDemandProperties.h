@@ -131,12 +131,12 @@ public:
   }
   
   bool equal(const IteratorImpl& other) const override {
-      try {
-        auto& other_iter = dynamic_cast<const iter&>(other);
-        return this->m_entangled_it == other_iter.m_entangled_it;
-      } catch (...) {
-        return false;
-      }
+    try {
+      auto& other_iter = dynamic_cast<const iter&>(other);
+      return this->m_entangled_it == other_iter.m_entangled_it;
+    } catch (...) {
+      return false;
+    }
   }
 
 private:

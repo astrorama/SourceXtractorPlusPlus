@@ -20,13 +20,12 @@ void DetectionFramePixelValuesTaskFactory::reportConfigDependencies(Euclid::Conf
 }
 
 void DetectionFramePixelValuesTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_detection_frame_pixel_values_task = std::make_shared<DetectionFramePixelValuesTask>(
-      manager.getConfiguration<DetectionImageConfig>().getDetectionImage());
+  m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 }
 
-std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::getTask(const PropertyId& property_id) const {
+std::shared_ptr<Task> DetectionFramePixelValuesTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<DetectionFramePixelValues>()) {
-    return m_detection_frame_pixel_values_task;
+    return std::make_shared<DetectionFramePixelValuesTask>(m_detection_image);
   } else {
     return nullptr;
   }

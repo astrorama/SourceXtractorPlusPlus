@@ -11,8 +11,6 @@
 
 namespace SExtractor {
 
-class PixelCentroidTask;
-
 /**
  * @class PixelCentroidTaskFactory
  * @brief Produces PixelCentroidTask
@@ -20,18 +18,13 @@ class PixelCentroidTask;
  */
 class PixelCentroidTaskFactory : public TaskFactory {
 public:
-  PixelCentroidTaskFactory();
+  PixelCentroidTaskFactory() {}
 
-  /**
-   * @brief Destructor
-   */
+  /// Destructor
   virtual ~PixelCentroidTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> getTask(const PropertyId& property_id) const override;
-
-private:
-  std::shared_ptr<PixelCentroidTask> m_pixel_centroid_task;
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 };
 
 

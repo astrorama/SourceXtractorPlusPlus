@@ -10,12 +10,9 @@
 
 namespace SExtractor {
 
-PixelCentroidTaskFactory::PixelCentroidTaskFactory() : m_pixel_centroid_task(std::make_shared<PixelCentroidTask>()) {
-}
-
-std::shared_ptr<Task> PixelCentroidTaskFactory::getTask(const PropertyId& property_id) const {
+std::shared_ptr<Task> PixelCentroidTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelCentroid>()) {
-    return m_pixel_centroid_task;
+    return std::make_shared<PixelCentroidTask>();
   } else {
     return nullptr;
   }
