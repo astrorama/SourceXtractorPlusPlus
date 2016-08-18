@@ -67,7 +67,20 @@ public:
     m_output_properties.emplace_back(typeid(PropertyType));
   }
   
-  SourceToRowConverter getSourceToRowConverter();
+  template <typename PropertyType>
+  void optionalOutput(std::string alias_name) {
+    m_optional_properties.emplace(alias_name, typeid(PropertyType));
+  }
+  
+  std::vector<std::string> getOptionalOutputNames() {
+    std::vector<std::string> result {};
+    for (auto& pair : m_optional_properties) {
+      result.emplace_back(pair.first);
+    }
+    return result;
+  }
+  
+  SourceToRowConverter getSourceToRowConverter(const std::vector<std::string>& enabled_optional);
   
 private:
   
@@ -90,6 +103,7 @@ private:
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
   std::vector<std::type_index> m_output_properties {};
+  std::map<std::string, std::type_index> m_optional_properties {};
   
 };
 

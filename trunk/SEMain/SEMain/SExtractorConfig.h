@@ -26,16 +26,6 @@ public:
   virtual ~SExtractorConfig() = default;
 
   SExtractorConfig(long manager_id);
-  
-  std::map<std::string, OptionDescriptionList> getProgramOptions() override;
-
-  void initialize(const UserValues& args) override;
-  
-  bool listOutputColumns() const;
-
-private:
-  
-  bool m_list_columns_flag;
 
 }; /* End of SExtractorConfig class */
 
