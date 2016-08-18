@@ -6,7 +6,9 @@
 
 #include <map>
 #include <string>
+
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <iomanip>
 
@@ -219,17 +221,27 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   plugin_options_input.emplace_back("--log-level");
   plugin_options_input.emplace_back("FATAL");
   for (int i = 0; i < argc; ++i) {
-    if (std::string{argv[i]} == "--config-file") {
+    std::string option {argv[i]};
+    if (option == "--config-file") {
       plugin_options_input.emplace_back("--config-file");
       plugin_options_input.emplace_back(std::string{argv[i+1]});
     }
-    if (std::string{argv[i]} == "--plugin-directory") {
+    if (boost::starts_with(option, "--config-file=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin-directory") {
       plugin_options_input.emplace_back("--plugin-directory");
       plugin_options_input.emplace_back(std::string{argv[i+1]});
     }
-    if (std::string{argv[i]} == "--plugin") {
+    if (boost::starts_with(option, "--plugin-directory=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin") {
       plugin_options_input.emplace_back("--plugin");
       plugin_options_input.emplace_back(std::string{argv[i+1]});
+    }
+    if (boost::starts_with(option, "--plugin=")) {
+      plugin_options_input.emplace_back(option);
     }
   }
   
