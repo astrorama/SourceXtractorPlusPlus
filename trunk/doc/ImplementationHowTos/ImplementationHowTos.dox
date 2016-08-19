@@ -8,5 +8,8 @@ namespace SExtractor {
 \subpage howto_add_partition_step : This HowTo explains how to add a new algorithm
         for partitioning a source detected by the Segmentation to smaller pieces
 
+\subpage howto_register_a_plugin : This HowTo explains how to register a new
+        plugin to the %SExtractor framework
+
 */
 }
