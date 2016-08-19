@@ -60,7 +60,7 @@ BOOST_AUTO_TEST_SUITE (TaskProvider_test)
 
 BOOST_FIXTURE_TEST_CASE( TaskProvider_test, TaskProviderFixture ) {
   // Register our factory
-  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
+  registry->registerTaskFactory<ExampleTaskFactory, ExampleProperty>();
 
   auto task = provider->getTask<SourceTask>(PropertyId::create<ExampleProperty>());
   BOOST_CHECK(task);
@@ -71,21 +71,10 @@ BOOST_FIXTURE_TEST_CASE( TaskProvider_test, TaskProviderFixture ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( TaskProvider_notfound_test, TaskProviderFixture ) {
-  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
+  registry->registerTaskFactory<ExampleTaskFactory, ExampleProperty>();
 
   // Try to create a task for property type not registered
   BOOST_CHECK_THROW(provider->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>()), std::exception);
-}
-
-BOOST_FIXTURE_TEST_CASE( TaskProvider_duplicate_property, TaskProviderFixture ) {
-  // Register our factory
-  registry->registerTaskFactory<ExampleProperty>(std::move(factory));
-
-  // Create a second instance of the same registry
-  std::unique_ptr<ExampleTaskFactory> same_factory(new ExampleTaskFactory());
-
-  // And then  we try to register it, we should get an exception
-  BOOST_CHECK_THROW(registry->registerTaskFactory<ExampleProperty>(std::move(same_factory)), TaskFactoryRegistry::DuplicateFactoryException);
 }
 
 //-----------------------------------------------------------------------------

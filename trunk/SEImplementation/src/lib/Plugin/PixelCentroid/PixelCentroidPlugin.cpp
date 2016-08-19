@@ -17,8 +17,7 @@ namespace SExtractor {
 static StaticPlugin<PixelCentroidPlugin> pixel_centroid_plugin;
 
 void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelCentroid>(
-      std::unique_ptr<TaskFactory>(new PixelCentroidTaskFactory));
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelCentroidTaskFactory, PixelCentroid>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<PixelCentroid, double>(
           "pixel_centroid_x",

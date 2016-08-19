@@ -17,8 +17,7 @@ namespace SExtractor {
 static StaticPlugin<DetectionFrameSourceStampPlugin> detection_frame_source_stamp_plugin;
 
 void DetectionFrameSourceStampPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<DetectionFrameSourceStamp>(
-      std::unique_ptr<TaskFactory>(new DetectionFrameSourceStampTaskFactory));
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<DetectionFrameSourceStampTaskFactory, DetectionFrameSourceStamp>();
 }
 
 std::string DetectionFrameSourceStampPlugin::getIdString() const {
