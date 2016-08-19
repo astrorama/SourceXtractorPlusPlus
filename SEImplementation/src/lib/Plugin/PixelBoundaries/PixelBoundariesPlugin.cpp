@@ -18,8 +18,7 @@ namespace SExtractor {
 static StaticPlugin<PixelBoundariesPlugin> pixel_boundaries_plugin;
 
 void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelBoundaries>(
-      std::unique_ptr<TaskFactory>(new PixelBoundariesTaskFactory));
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelBoundariesTaskFactory, PixelBoundaries>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<PixelBoundaries, int>(
           "pixel_boundaries_min_x",

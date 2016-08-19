@@ -17,8 +17,7 @@ namespace SExtractor {
 static StaticPlugin<DetectionFramePixelValuesPlugin> detection_frame_pixel_values_plugin;
 
 void DetectionFramePixelValuesPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<DetectionFramePixelValues>(
-      std::unique_ptr<TaskFactory>(new DetectionFramePixelValuesTaskFactory));
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<DetectionFramePixelValuesTaskFactory, DetectionFramePixelValues>();
 }
 
 std::string DetectionFramePixelValuesPlugin::getIdString() const {

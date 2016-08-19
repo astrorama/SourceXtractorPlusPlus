@@ -31,9 +31,9 @@ public:
 
   virtual ~TaskFactoryRegistry() = default;
 
-  template<typename... Ts>
-  void registerTaskFactory(std::unique_ptr<TaskFactory> task_factory) {
-    auto task_factory_shared = std::shared_ptr<TaskFactory>(std::move(task_factory));
+  template<typename FactoryType, typename... Ts>
+  void registerTaskFactory() {
+    auto task_factory_shared = std::shared_ptr<TaskFactory>(std::unique_ptr<TaskFactory>(new FactoryType));
 
     m_task_factories.insert(task_factory_shared);
 

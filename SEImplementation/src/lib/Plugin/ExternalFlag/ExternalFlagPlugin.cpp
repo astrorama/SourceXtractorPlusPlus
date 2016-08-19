@@ -17,8 +17,7 @@ namespace SExtractor {
 static StaticPlugin<ExternalFlagPlugin> pixel_boundaries_plugin;
 
 void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<ExternalFlag>(
-      std::unique_ptr<TaskFactory>(new ExternalFlagTaskFactory));
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<ExternalFlagTaskFactory, ExternalFlag>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<ExternalFlag, std::int64_t>(
           "IMAFLAGS_ISO",
