@@ -57,6 +57,7 @@ public:
   // in their signature.
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
+  using SourceInterface::setIndexedProperty;
   
 protected:
   
