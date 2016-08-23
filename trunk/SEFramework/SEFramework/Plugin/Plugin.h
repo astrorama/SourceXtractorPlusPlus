@@ -12,6 +12,13 @@
 
 namespace SExtractor {
 
+/**
+ * @class Plugin
+ * @brief Plugins must implement this interface.
+ *
+ * @details registerPlugin() is going to be called to give the plugin a chance to register what it needs to.
+ */
+
 class Plugin {
 public:
   virtual std::string getIdString() const = 0;

@@ -13,6 +13,15 @@
 
 namespace SExtractor {
 
+/**
+ * @class SimpleSource
+ * @brief A trivial implementation of SourceInterface meant to be used in unit tests
+ *
+ * @details Unlike SourceWithOnDemandproperties, SimpleSource doesn't do any computation of properties but is
+ *          instead just a simple container for properties.
+ *
+ */
+
 class SimpleSource : public SourceInterface {
 
 public:

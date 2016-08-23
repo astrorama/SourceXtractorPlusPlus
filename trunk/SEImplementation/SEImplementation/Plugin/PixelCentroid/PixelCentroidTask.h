@@ -7,7 +7,6 @@
 #ifndef _SEIMPLEMENTATION_TASK_PIXELCENTROIDTASK_H
 #define _SEIMPLEMENTATION_TASK_PIXELCENTROIDTASK_H
 
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {

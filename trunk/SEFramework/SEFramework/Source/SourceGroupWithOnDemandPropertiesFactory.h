@@ -11,6 +11,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class SourceGroupWithOnDemandPropertiesFactory
+ * @brief A SourceGroupFactory implementation that produces a SourceGroupWithOnDemandProperties
+ */
+
 class SourceGroupWithOnDemandPropertiesFactory : public SourceGroupFactory {
   
 public:

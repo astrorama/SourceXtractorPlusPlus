@@ -14,6 +14,13 @@ namespace SExtractor {
 
 class SourceInterface;
 
+/**
+ * @class SourceFactory
+ * @brief A factory interface to create SourceInterface instances
+ *
+ */
+
+
 class SourceFactory {
 public:
   virtual ~SourceFactory() = default;

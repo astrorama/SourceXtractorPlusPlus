@@ -23,7 +23,7 @@ std::map<std::string, Configuration::OptionDescriptionList> PluginConfig::getPro
   return { {"Plugin configuration", {
       {PLUGIN_DIRECTORY.c_str(), po::value<std::string>()->default_value(""),
           "Path to a directory that contains the plugins"},
-          {PLUGIN.c_str(), po::value<std::vector<std::string>>()->default_value(std::vector<std::string>(), ""),
+      {PLUGIN.c_str(), po::value<std::vector<std::string>>()->default_value(std::vector<std::string>(), ""),
           "Defines a plugin to load (without file extension). Can be used multiple times."}
   }}};
 }

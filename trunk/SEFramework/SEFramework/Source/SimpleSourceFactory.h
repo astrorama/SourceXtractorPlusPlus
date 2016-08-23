@@ -13,6 +13,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class SimpleSourceFactory
+ * @brief A SourceFactory implementation that produces a SimpleSource
+ */
+
 class SimpleSourceFactory : public SourceFactory {
 
 public:
