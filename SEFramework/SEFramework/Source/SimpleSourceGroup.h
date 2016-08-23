@@ -13,6 +13,13 @@
 
 namespace SExtractor {
 
+/**
+ * @class SimpleSourceGroup
+ * @brief A bare bones implementation of SourceGroupInterface meant to be used to implement unit tests
+ *
+ */
+
+
 class SimpleSourceGroup : public SourceGroupInterface {
   
 public:

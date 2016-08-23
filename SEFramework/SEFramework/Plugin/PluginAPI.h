@@ -14,6 +14,12 @@
 
 namespace SExtractor {
 
+/**
+ * @class PluginAPI
+ * @brief This interface is given to the plugin to let it access object instances from the framework.
+ */
+
+
 class PluginAPI {
 public:
   virtual TaskFactoryRegistry& getTaskFactoryRegistry() const = 0;

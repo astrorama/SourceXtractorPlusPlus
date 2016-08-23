@@ -11,6 +11,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class SimpleSourceGroupFactory
+ * @brief A SourceGroupFactory implementation that produces a SimpleSourceGroupFactory
+ */
+
 class SimpleSourceGroupFactory : public SourceGroupFactory {
   
 public:

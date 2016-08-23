@@ -26,6 +26,13 @@ namespace SExtractor {
 
 class Plugin;
 
+/**
+ * @class PluginManager
+ * @brief PluginManager handles the loading of plugins and calls their registration function, providing them with
+ *        with a PluginAPI implementation.
+ */
+
+
 class PluginManager : public PluginAPI {
 public:
 
@@ -42,6 +49,7 @@ public:
         m_output_registry(output_registry),
         m_config_manager_id(config_manager_id) {}
 
+  /// loads all the available plugins. Both those linked at compile-time and those loaded at run-time
   void loadPlugins();
 
   // PluginAPI implementation
@@ -57,6 +65,7 @@ public:
     return Euclid::Configuration::ConfigManager::getInstance(m_config_manager_id);
   }
 
+  /// registers a plugin, this is used to register plugins linked at compile-time
   template<typename T>
   static void registerStaticPlugin() {
     s_static_plugins.emplace_back(new T);

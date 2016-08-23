@@ -13,6 +13,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class StaticPlugin
+ * @brief Used to register compile-time (static) plugins with the PluginManager
+ */
+
 template<typename PluginType>
 class StaticPlugin {
 public:

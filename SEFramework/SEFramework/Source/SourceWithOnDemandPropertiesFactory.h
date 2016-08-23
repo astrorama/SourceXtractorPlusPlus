@@ -13,6 +13,11 @@
 
 namespace SExtractor {
 
+/**
+ * @class SourceWithOnDemandPropertiesFactory
+ * @brief A SourceFactory implementation that produces a SourceWithOnDemandProperties
+ */
+
 class SourceWithOnDemandPropertiesFactory : public SourceFactory {
 public:
   SourceWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :

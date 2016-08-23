@@ -19,8 +19,8 @@
 namespace SExtractor {
 
 /**
- * @class SourceGroup
- * @brief
+ * @class SourceGroupWithOnDemandProperties
+ * @brief A SourceGroupInterface implementation which used a TaskProvider to compute missing properties
  *
  */
 class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
