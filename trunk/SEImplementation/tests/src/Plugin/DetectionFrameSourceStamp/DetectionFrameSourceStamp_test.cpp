@@ -31,7 +31,8 @@ BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   source.setProperty<PixelBoundaries>(1, 0, 2, 1);
 
-  auto image = std::make_shared<VectorImage<double>>(3, 2, std::vector<double>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
+  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
+      std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
   DetectionFrameSourceStampTask task(image);
   task.computeProperties(source);

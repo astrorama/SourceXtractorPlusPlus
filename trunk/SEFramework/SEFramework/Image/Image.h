@@ -46,7 +46,7 @@ public:
 }; /* End of Image class */
 
 /// Alias for the detection image, to make easier its type modification
-using DetectionImage = Image<double>;
+using DetectionImage = Image<float>;
 
 /// Alias for the flag image, to make easier its type modification
 using FlagImage = Image<std::int64_t>;

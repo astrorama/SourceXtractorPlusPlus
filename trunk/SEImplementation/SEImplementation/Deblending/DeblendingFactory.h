@@ -31,8 +31,8 @@ public:
     m_steps = manager.getConfiguration<DeblendStepConfg>().getSteps(m_source_factory);
   }
   
-  std::shared_ptr<Deblending> getDeblending() const {
-    return std::make_shared<Deblending>(m_steps);
+  std::unique_ptr<Deblending> createDeblending() const {
+    return std::unique_ptr<Deblending>(new Deblending(m_steps));
   }
   
 private:

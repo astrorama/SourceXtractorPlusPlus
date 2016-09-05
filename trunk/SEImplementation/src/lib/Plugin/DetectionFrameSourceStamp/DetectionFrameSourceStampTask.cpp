@@ -19,7 +19,7 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
 
   auto width = max.m_x - min.m_x +1;
   auto height = max.m_y - min.m_y + 1;
-  std::vector<double> data (width * height);
+  std::vector<DetectionImage::PixelType> data (width * height);
   for (auto x = min.m_x; x <= max.m_x; ++x) {
     for (auto y = min.m_y; y <= max.m_y; ++y) {
       data[(x-min.m_x) + (y-min.m_y) * width] = m_image->getValue(x, y);
