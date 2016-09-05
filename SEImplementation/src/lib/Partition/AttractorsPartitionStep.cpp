@@ -24,7 +24,7 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
 
   auto value_function = [bbox_min, bbox_max, &stamp](PixelCoordinate coord) {
     if (coord.m_x < bbox_min.m_x || coord.m_x > bbox_max.m_x || coord.m_y < bbox_min.m_y || coord.m_y > bbox_max.m_y) {
-      return std::numeric_limits<double>::lowest();
+      return std::numeric_limits<DetectionImage::PixelType>::lowest();
     }
     auto offset_coord = coord - bbox_min;
     return stamp.getValue(offset_coord.m_x, offset_coord.m_y);

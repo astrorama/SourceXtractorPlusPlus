@@ -20,7 +20,6 @@ class SourceInterface;
  *
  */
 
-
 class SourceFactory {
 public:
   virtual ~SourceFactory() = default;

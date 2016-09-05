@@ -147,7 +147,7 @@ public:
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
     
-    auto deblending = deblending_factory.getDeblending();
+    std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
 
     std::shared_ptr<Output> output = output_factory.getOutput();
 
@@ -247,7 +247,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   
   int argc_tmp = plugin_options_input.size();
   std::vector<const char*> argv_tmp (argc_tmp);
-  for (int i=0; i<plugin_options_input.size(); ++i){
+  for (unsigned int i=0; i<plugin_options_input.size(); ++i){
     auto& option_str = plugin_options_input[i];
     argv_tmp[i] = option_str.data();
   }

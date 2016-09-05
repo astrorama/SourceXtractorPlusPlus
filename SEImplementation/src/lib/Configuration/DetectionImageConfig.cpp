@@ -27,7 +27,7 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  m_original_image = FitsReader<double>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_original_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
 }
 
 void DetectionImageConfig::postInitialize(const UserValues&) {

@@ -47,8 +47,10 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
 
-  auto stamp_one_source = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 3.0, 4.0, 2.0});
-  auto stamp_two_sources = std::make_shared<VectorImage<double>>(4, 1, std::vector<double> {2.0, 1.0, 1.0, 2.0});
+  auto stamp_one_source = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+      4, 1, std::vector<DetectionImage::PixelType> {2.0, 3.0, 4.0, 2.0});
+  auto stamp_two_sources = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+      4, 1, std::vector<DetectionImage::PixelType> {2.0, 1.0, 1.0, 2.0});
 
   Partition partition( { attractors_step } );
   auto source_observer = std::make_shared<SourceObserver>();

@@ -30,7 +30,7 @@ void BackgroundConfig::initialize(const UserValues& args) {
     auto bg_value = args.find(BACKGROUND_VALUE)->second.as<double>();
     getDependency<DetectionImageConfig>().addDecorateImageAction(
           [this, bg_value](std::shared_ptr<DetectionImage> image) {
-            m_background_subtracted_image = std::make_shared<SubtractImage<double>>(image, bg_value);
+            m_background_subtracted_image = std::make_shared<SubtractImage<DetectionImage::PixelType>>(image, bg_value);
             return m_background_subtracted_image;
           }
     );
