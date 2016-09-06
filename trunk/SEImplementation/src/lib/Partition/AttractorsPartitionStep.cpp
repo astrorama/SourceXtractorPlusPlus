@@ -61,7 +61,7 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
 void AttractorsPartitionStep::attractPixels(
     const std::vector<std::pair<PixelCoordinate, PixelCoordinate>>& pixels_with_origin,
     std::unordered_map<PixelCoordinate, std::vector<PixelCoordinate>>& attractors,
-    std::function<double (PixelCoordinate)> value_function) const {
+    std::function<DetectionImage::PixelType  (PixelCoordinate)> value_function) const {
 
   PixelCoordinate offsets[5] {
     PixelCoordinate( 0,  0),
@@ -81,7 +81,7 @@ void AttractorsPartitionStep::attractPixels(
     auto pixel = pixel_origin.first;
     auto origin = pixel_origin.second;
 
-    double values[5];
+    DetectionImage::PixelType values[5];
     for (int i=0; i<5; i++) {
       values[i] = value_function(pixel + offsets[i]);
     }

@@ -15,13 +15,13 @@ namespace SExtractor {
 void PixelCentroidTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
 
-  double centroid_x = 0.0;
-  double centroid_y = 0.0;
-  double total_value = 0.0;
+  SeFloat centroid_x = 0.0;
+  SeFloat centroid_y = 0.0;
+  SeFloat total_value = 0.0;
 
   auto i = pixel_values.begin();
   for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-    double value = *i++;
+    SeFloat value = *i++;
 
     total_value += value;
     centroid_x += pixel_coord.m_x * value;

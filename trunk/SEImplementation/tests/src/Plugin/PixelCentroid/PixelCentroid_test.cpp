@@ -33,8 +33,8 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, PixelCentroidFixture ) {
   pixel_centroid_task.computeProperties(source);
 
   auto centroid = source.getProperty<PixelCentroid>();
-  BOOST_CHECK_CLOSE(centroid.getCentroidX(), 0.0, 0.000001);
-  BOOST_CHECK_CLOSE(centroid.getCentroidY(), 0.0, 0.000001);
+  BOOST_CHECK_CLOSE(centroid.getCentroidX(), 0.0, 0.00001);
+  BOOST_CHECK_CLOSE(centroid.getCentroidY(), 0.0, 0.00001);
 }
 
 //-----------------------------------------------------------------------------
@@ -46,8 +46,8 @@ BOOST_FIXTURE_TEST_CASE( multiple_pixels_test, PixelCentroidFixture ) {
   pixel_centroid_task.computeProperties(source);
 
   auto centroid = source.getProperty<PixelCentroid>();
-  BOOST_CHECK_CLOSE(centroid.getCentroidX(), 3.8, 0.000001);
-  BOOST_CHECK_CLOSE(centroid.getCentroidY(), 3.4, 0.000001);
+  BOOST_CHECK_CLOSE(centroid.getCentroidX(), 3.8, 0.00001);
+  BOOST_CHECK_CLOSE(centroid.getCentroidY(), 3.4, 0.00001);
 }
 
 //-----------------------------------------------------------------------------

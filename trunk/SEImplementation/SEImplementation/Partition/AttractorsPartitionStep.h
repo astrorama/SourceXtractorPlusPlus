@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "SEUtils/PixelCoordinate.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Partition.h"
@@ -41,7 +42,7 @@ private:
   void attractPixels(
       const std::vector<std::pair<PixelCoordinate, PixelCoordinate>>& pixels_with_origin,
       std::unordered_map<PixelCoordinate, std::vector<PixelCoordinate>>& attractors,
-      std::function<double (PixelCoordinate)> value_function) const;
+      std::function<DetectionImage::PixelType (PixelCoordinate)> value_function) const;
 
   std::vector<std::vector<PixelCoordinate>> mergeAttractors(
       const std::unordered_map<PixelCoordinate, std::vector<PixelCoordinate>>& attractors) const;
