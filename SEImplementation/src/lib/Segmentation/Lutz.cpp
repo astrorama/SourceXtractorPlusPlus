@@ -65,7 +65,7 @@ void Lutz::scan(const DetectionImage& image) {
 
 
     for (int x=0; x < width; x++) {
-      double value = (x == width - 1) ? 0.0 : image.getValue(x, y);
+      DetectionImage::PixelType value = (x == width - 1) ? 0.0 : image.getValue(x, y);
 
 
       LutzMarker last_marker = marker[x];
