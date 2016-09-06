@@ -12,7 +12,7 @@
 namespace SExtractor {
 
 void DetectionFramePixelValuesTask::computeProperties(SourceInterface& source) const {
-  std::vector<double> values;
+  std::vector<DetectionImage::PixelType> values;
 
   for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     values.push_back(m_image->getValue(pixel_coord.m_x, pixel_coord.m_y));

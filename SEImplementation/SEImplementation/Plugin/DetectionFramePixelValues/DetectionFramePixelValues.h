@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
 
@@ -27,15 +28,15 @@ public:
    */
   virtual ~DetectionFramePixelValues() = default;
 
-  DetectionFramePixelValues(std::vector<double> values) : m_values(std::move(values)) {}
+  DetectionFramePixelValues(std::vector<DetectionImage::PixelType> values) : m_values(std::move(values)) {}
 
-  const std::vector<double>& getValues() const {
+  const std::vector<DetectionImage::PixelType>& getValues() const {
     return m_values;
   }
 
 private:
 
-  std::vector<double> m_values;
+  std::vector<DetectionImage::PixelType> m_values;
 
 }; /* End of DetectionFramePixelValues class */
 
