@@ -35,7 +35,7 @@ BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelVa
   task.computeProperties(source);
 
   auto& pixel_values = source.getProperty<DetectionFramePixelValues>();
-  BOOST_CHECK(pixel_values.getValues() == std::vector<double>( {2.0, 4.0} ));
+  BOOST_CHECK(pixel_values.getValues() == std::vector<DetectionImage::PixelType>( {2.0, 4.0} ));
 }
 
 //-----------------------------------------------------------------------------
