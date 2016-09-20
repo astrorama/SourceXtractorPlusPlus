@@ -5,6 +5,7 @@
  */
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
@@ -13,6 +14,8 @@
 namespace SExtractor {
 
 void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) const {
+  auto detection_frame = source.getProperty<DetectionFrame>().getDetectionImage();
+
   const auto& boundaries = source.getProperty<PixelBoundaries>();
   const auto& min = boundaries.getMin();
   const auto& max = boundaries.getMax();
@@ -22,7 +25,7 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
   std::vector<DetectionImage::PixelType> data (width * height);
   for (auto x = min.m_x; x <= max.m_x; ++x) {
     for (auto y = min.m_y; y <= max.m_y; ++y) {
-      data[(x-min.m_x) + (y-min.m_y) * width] = m_image->getValue(x, y);
+      data[(x-min.m_x) + (y-min.m_y) * width] = detection_frame->getValue(x, y);
     }
   }
   std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};

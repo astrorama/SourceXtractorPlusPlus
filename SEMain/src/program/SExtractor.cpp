@@ -158,7 +158,7 @@ public:
     deblending->addObserver(output);
 
     // Process the image
-    segmentation->scan(*detection_image);
+    segmentation->processImage(detection_image);
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));

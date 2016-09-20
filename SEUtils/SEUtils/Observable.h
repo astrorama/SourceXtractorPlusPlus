@@ -40,12 +40,12 @@ public:
   virtual ~Observable() = default;
 
   /// Adds an Observer that will be notified when notify Observers is called
-  void addObserver(std::shared_ptr<Observer<T>> observer) {
+  virtual void addObserver(std::shared_ptr<Observer<T>> observer) {
     m_observers.push_back(observer);
   }
 
   /// Removes a previously added Observer from the list of Observers to notify
-  void removeObserver(std::shared_ptr<Observer<T>> observer) {
+  virtual void removeObserver(std::shared_ptr<Observer<T>> observer) {
     m_observers.remove(observer);
   }
   

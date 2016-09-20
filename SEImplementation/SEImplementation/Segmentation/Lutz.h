@@ -19,7 +19,7 @@ namespace SExtractor {
  * @class Lutz
  * @brief Implements a Segmentation based on the Lutz algorithm
  */
-class Lutz : public Segmentation {
+class Lutz : public Segmentation::Labelling {
 
 public:
 
@@ -28,11 +28,14 @@ public:
    */
   virtual ~Lutz() = default;
 
-  Lutz(std::shared_ptr<SourceFactory> source_factory) : m_source_factory(source_factory) {
+  Lutz(const Segmentation& segmentation, std::shared_ptr<SourceFactory> source_factory)
+      : Labelling(segmentation),
+        m_source_factory(source_factory) {
+
     assert(source_factory != nullptr);
   }
 
-  virtual void scan(const DetectionImage& image) override;
+  virtual void labelImage(const DetectionImage& image) override;
 
 
 private:

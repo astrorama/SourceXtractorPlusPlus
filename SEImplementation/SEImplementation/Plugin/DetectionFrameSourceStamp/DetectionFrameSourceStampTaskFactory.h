@@ -28,12 +28,6 @@ public:
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
-  // Configurable implementation
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-
-private:
-  std::shared_ptr<DetectionImage> m_detection_image;
 };
 
 } /* namespace SExtractor */

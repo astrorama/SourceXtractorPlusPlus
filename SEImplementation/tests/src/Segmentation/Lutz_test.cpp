@@ -128,13 +128,14 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
       }
   }
 
-  VectorImage<DetectionImage::PixelType> image(10, 10, composite_image);
+  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(10, 10, composite_image);
 
   // use Lutz to split them
-  Lutz lutz(std::make_shared<SimpleSourceFactory>());
+  Segmentation segmentation(nullptr, nullptr);
+  segmentation.setLabelling<Lutz>(std::make_shared<SimpleSourceFactory>());
 
-  lutz.addObserver(source_observer);
-  lutz.scan(image);
+  segmentation.addObserver(source_observer);
+  segmentation.processImage(image);
 
   // Check that we have the right number of sources
   BOOST_CHECK_EQUAL(source_observer->m_list.size(), group_images.size());

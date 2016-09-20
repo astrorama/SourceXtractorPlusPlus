@@ -34,8 +34,8 @@ public:
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const = 0;
   
   // Provides a default implementation of the Configurable interface that does nothing
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager&) const override { }
-  void configure(Euclid::Configuration::ConfigManager&) override { }
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager&) const override {}
+  void configure(Euclid::Configuration::ConfigManager&) override {}
   
   virtual void registerPropertyInstances(OutputRegistry&) {
     // By default do nothing
