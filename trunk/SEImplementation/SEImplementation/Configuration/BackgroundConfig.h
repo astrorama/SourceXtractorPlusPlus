@@ -23,12 +23,14 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  std::shared_ptr<DetectionImage> getBackgroundSubtractedImage() const;
+  SeFloat getBackgroundValue() const {
+    return m_background_value;
+  }
 
 private:
-  
-  std::shared_ptr<DetectionImage> m_background_subtracted_image;
-  
+
+  SeFloat m_background_value;
+
 };
 
 } /* namespace SExtractor */

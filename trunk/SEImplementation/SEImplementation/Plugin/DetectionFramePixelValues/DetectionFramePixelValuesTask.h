@@ -28,12 +28,9 @@ public:
    */
   virtual ~DetectionFramePixelValuesTask() = default;
 
-  DetectionFramePixelValuesTask(std::shared_ptr<DetectionImage> image);
+  DetectionFramePixelValuesTask() {}
 
   virtual void computeProperties(SourceInterface& source) const override;
-
-private:
-  std::shared_ptr<DetectionImage> m_image;
 
 }; /* End of DetectionFramePixelValuesTask class */
 

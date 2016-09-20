@@ -27,29 +27,7 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  m_original_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
-}
-
-void DetectionImageConfig::postInitialize(const UserValues&) {
-  m_detection_image = m_original_image;
-  for (auto& action : m_decorate_action_list) {
-    m_detection_image = action(m_detection_image);
-  }
-}
-
-
-void DetectionImageConfig::addDecorateImageAction(DecorateImageAction action) {
-  if (getCurrentState() >= State::FINAL) {
-    throw Elements::Exception() << "getOriginalImage() call on finalized DetectionImageConfig";
-  }
-  m_decorate_action_list.emplace_back(action);
-}
-
-std::shared_ptr<DetectionImage> DetectionImageConfig::getOriginalImage() const {
-  if (getCurrentState() < State::INITIALIZED) {
-    throw Elements::Exception() << "getOriginalImage() call on uninitialized DetectionImageConfig";
-  }
-  return m_original_image;
+  m_detection_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
 }
 
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {

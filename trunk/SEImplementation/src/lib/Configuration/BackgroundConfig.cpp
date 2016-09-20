@@ -20,28 +20,13 @@ BackgroundConfig::BackgroundConfig(long manager_id) : Configuration(manager_id) 
 
 std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::getProgramOptions() {
   return { {"Detection image", {
-      {BACKGROUND_VALUE.c_str(), po::value<SeFloat>(),
+      {BACKGROUND_VALUE.c_str(), po::value<SeFloat>()->default_value(0),
           "Background value to be subtracted from the detection image."}
   }}};
 }
 
 void BackgroundConfig::initialize(const UserValues& args) {
-  if (args.count(BACKGROUND_VALUE) != 0) {
-    auto bg_value = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
-    getDependency<DetectionImageConfig>().addDecorateImageAction(
-          [this, bg_value](std::shared_ptr<DetectionImage> image) {
-            m_background_subtracted_image = std::make_shared<SubtractImage<DetectionImage::PixelType>>(image, bg_value);
-            return m_background_subtracted_image;
-          }
-    );
-  }
-}
-
-std::shared_ptr<DetectionImage> BackgroundConfig::getBackgroundSubtractedImage() const {
-  if (getCurrentState() < State::FINAL) {
-    throw Elements::Exception() << "getBackgroundSubtractedImage() call on not finalized BackgroundConfig";
-  }
-  return m_background_subtracted_image;
+  m_background_value = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
 }
 
 } // SExtractor namespace

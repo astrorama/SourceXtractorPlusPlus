@@ -45,10 +45,10 @@ public:
 void Lutz::publishGroup(PixelGroup& pixel_group) {
   auto source = m_source_factory->createSource();
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
-  notifyObservers(source);
+  publishSource(source);
 }
 
-void Lutz::scan(const DetectionImage& image) {
+void Lutz::labelImage(const DetectionImage& image) {
   int width = image.getWidth() + 1; // one extra pixel
 
   std::vector<LutzMarker> marker(image.getWidth()+1);

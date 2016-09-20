@@ -37,18 +37,11 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   
   void initialize(const UserValues& args) override;
   
-  void postInitialize(const UserValues& args) override;
-  
-  void addDecorateImageAction(DecorateImageAction action);
-  
-  std::shared_ptr<DetectionImage> getOriginalImage() const;
-  
   std::shared_ptr<DetectionImage> getDetectionImage() const;
   
 private:
   
   std::vector<DecorateImageAction> m_decorate_action_list;
-  std::shared_ptr<DetectionImage> m_original_image;
   std::shared_ptr<DetectionImage> m_detection_image;
 
 }; /* End of DetectionImageConfig class */

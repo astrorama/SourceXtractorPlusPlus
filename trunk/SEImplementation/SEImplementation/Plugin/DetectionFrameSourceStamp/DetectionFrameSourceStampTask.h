@@ -27,12 +27,9 @@ public:
   virtual ~DetectionFrameSourceStampTask() = default;
 
   /// Constructor
-  DetectionFrameSourceStampTask(std::shared_ptr<DetectionImage> image) : m_image(image) {}
+  DetectionFrameSourceStampTask() {}
 
   virtual void computeProperties(SourceInterface& source) const override;
-
-private:
-  std::shared_ptr<DetectionImage> m_image;
 
 }; /* End of DetectionFrameSourceStampTask class */
 
