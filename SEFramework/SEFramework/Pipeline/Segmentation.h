@@ -69,7 +69,6 @@ public:
   virtual ~Labelling() = default;
 
   Labelling(const Segmentation& segmentation) : m_segmentation(segmentation) {
-    ;
   }
 
   virtual void labelImage(const DetectionImage& image) = 0;

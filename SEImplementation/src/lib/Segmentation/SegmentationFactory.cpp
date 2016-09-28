@@ -37,11 +37,17 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 
   auto image_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
+//        std::make_shared<BackgroundSubtract>(background_config.getBackgroundValue())
+      }
+  );
+
+  auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
+      std::vector<std::shared_ptr<DetectionImageProcessing>>  {
         std::make_shared<BackgroundSubtract>(background_config.getBackgroundValue())
       }
   );
 
-  m_segmentation = std::make_shared<Segmentation>(image_processing_list, nullptr);
+  m_segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list);
   switch (segmentation_config.getAlgorithmOption()) {
     case SegmentationConfig::Algorithm::LUTZ:
       m_segmentation->setLabelling<Lutz>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
