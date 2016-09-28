@@ -72,7 +72,6 @@ public:
   }
 
 private:
-  
   std::string m_plugin_path;
   std::vector<std::string> m_plugin_list;
 #if USE_BOOST_DLL
