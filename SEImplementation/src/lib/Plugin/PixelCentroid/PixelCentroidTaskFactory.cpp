@@ -19,5 +19,5 @@ std::shared_ptr<Task> PixelCentroidTaskFactory::createTask(const PropertyId& pro
 }
 
 
-} // SEImplementation namespace
+}
 

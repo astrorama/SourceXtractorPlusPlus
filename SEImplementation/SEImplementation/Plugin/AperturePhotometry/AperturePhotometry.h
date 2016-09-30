@@ -21,14 +21,19 @@ public:
    */
   virtual ~AperturePhotometry() = default;
 
-  AperturePhotometry(SeFloat flux) : m_flux(flux) {}
+  AperturePhotometry(SeFloat flux, SeFloat mag) : m_flux(flux), m_mag(mag) {}
 
   SeFloat getFlux() const {
     return m_flux;
   }
 
+  SeFloat getMag() const {
+    return m_mag;
+  }
+
 private:
   SeFloat m_flux;
+  SeFloat m_mag;
 
 };
 

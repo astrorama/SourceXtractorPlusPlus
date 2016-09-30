@@ -40,7 +40,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
     }
   }
 
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux);
+  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
 }
 
 }

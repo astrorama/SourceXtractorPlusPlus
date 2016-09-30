@@ -26,14 +26,19 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+          "aperture_mag",
+          [](const AperturePhotometry& prop){
+            return prop.getMag();
+          }
+  );
+
   //plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
   plugin_api.getOutputRegistry().enableOutput<AperturePhotometry>();
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {
-  return "";
+  return "AperturePhotometryPlugin";
 }
 
 }
-
-

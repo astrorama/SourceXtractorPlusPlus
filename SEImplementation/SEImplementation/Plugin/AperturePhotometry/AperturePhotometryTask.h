@@ -20,11 +20,15 @@ public:
    */
   virtual ~AperturePhotometryTask() = default;
 
-  AperturePhotometryTask(SeFloat radius, unsigned int instance) : m_radius(radius), m_instance(instance) {}
+  AperturePhotometryTask(SeFloat radius, unsigned int instance, SeFloat magnitude_zero_point)
+      : m_radius(radius),
+        m_instance(instance),
+        m_magnitude_zero_point(magnitude_zero_point) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
+  SeFloat m_magnitude_zero_point;
   SeFloat m_radius;
   unsigned int m_instance;
 
