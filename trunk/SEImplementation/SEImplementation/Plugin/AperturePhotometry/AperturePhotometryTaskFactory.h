@@ -31,6 +31,7 @@ public:
 private:
   std::vector<std::string> m_instance_names;
   std::vector<SeFloat> m_apertures;
+  SeFloat m_magnitude_zero_point;
 };
 
 }

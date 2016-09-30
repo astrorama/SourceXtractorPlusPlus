@@ -22,14 +22,14 @@ void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getOutputRegistry().registerColumnConverter<PixelCentroid, double>(
           "pixel_centroid_x",
           [](const PixelCentroid& prop){
-            return prop.getCentroidX();
+            return prop.getCentroidX() + 1.0; // add one to use FITS standard coordinates
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<PixelCentroid, double>(
           "pixel_centroid_y",
           [](const PixelCentroid& prop){
-            return prop.getCentroidY();
+            return prop.getCentroidY() + 1.0; // add one to use FITS standard coordinates
           }
   );
 

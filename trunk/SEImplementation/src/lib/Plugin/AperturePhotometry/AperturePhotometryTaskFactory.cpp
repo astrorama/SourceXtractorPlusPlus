@@ -10,6 +10,8 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 
+#include "SEImplementation/Configuration/MagnitudeConfig.h"
+
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
@@ -19,7 +21,10 @@ namespace SExtractor {
 
 std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == typeid(AperturePhotometry) && property_id.getIndex() < m_apertures.size()) {
-    return std::make_shared<AperturePhotometryTask>(m_apertures[property_id.getIndex()], property_id.getIndex());
+    return std::make_shared<AperturePhotometryTask>(
+        m_apertures[property_id.getIndex()],
+        property_id.getIndex(),
+        m_magnitude_zero_point);
   } else {
     return nullptr;
   }
@@ -30,10 +35,12 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry& ou
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+  manager.registerConfiguration<MagnitudeConfig>();
   manager.registerConfiguration<AperturePhotometryConfig>();
 }
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
 
   int instance_counter = 0;

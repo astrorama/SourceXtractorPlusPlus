@@ -34,8 +34,5 @@ void PixelCentroidTask::computeProperties(SourceInterface& source) const {
   source.setProperty<PixelCentroid>(centroid_x, centroid_y);
 }
 
-
-} // SEImplementation namespace
-
-
+}
 
