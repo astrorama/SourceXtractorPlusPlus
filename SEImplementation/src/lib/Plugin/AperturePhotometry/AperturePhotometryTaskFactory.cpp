@@ -22,7 +22,7 @@ namespace SExtractor {
 std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == typeid(AperturePhotometry) && property_id.getIndex() < m_apertures.size()) {
     return std::make_shared<AperturePhotometryTask>(
-        m_apertures[property_id.getIndex()],
+        std::make_shared<CircularAperture>(m_apertures[property_id.getIndex()]),
         property_id.getIndex(),
         m_magnitude_zero_point);
   } else {
