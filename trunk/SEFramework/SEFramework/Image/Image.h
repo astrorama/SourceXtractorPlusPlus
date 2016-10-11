@@ -49,6 +49,9 @@ public:
 /// Alias for the detection image, to make easier its type modification
 using DetectionImage = Image<SeFloat>;
 
+/// Alias for the weight image, to make easier its type modification
+using WeightImage = Image<SeFloat>;
+
 /// Alias for the flag image, to make easier its type modification
 using FlagImage = Image<std::int64_t>;
 
