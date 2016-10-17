@@ -27,9 +27,24 @@ public:
     return m_background_value;
   }
 
-private:
+  bool isBackgroundAbsolute() const {
+    return m_background_absolute;
+  }
 
+  SeFloat getThresholdValue() const {
+    return m_threshold_value;
+  }
+
+  bool isThresholdAbsolute() const {
+    return m_threshold_absolute;
+  }
+
+private:
+  bool m_background_absolute;
   SeFloat m_background_value;
+
+  bool m_threshold_absolute;
+  SeFloat m_threshold_value;
 
 };
 

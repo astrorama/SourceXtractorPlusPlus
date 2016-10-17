@@ -43,6 +43,16 @@ public:
     assert(m_data.size() == std::size_t(width * height));
   }
   
+  explicit VectorImage(const Image<T>& other_image) :
+    m_width(other_image.getWidth()), m_height(other_image.getWidth()), m_data(m_width * m_height) {
+    for (int y = 0; y < m_height; y++) {
+      for (int x = 0; x < m_width; x++) {
+        setValue(x, y, other_image.getValue(x, y));
+      }
+    }
+
+  }
+
   int getHeight() const override {
     return m_height;
   }
@@ -65,6 +75,10 @@ public:
   }
 
   const std::vector<T>& getData() const {
+    return m_data;
+  }
+
+  std::vector<T>& getData() {
     return m_data;
   }
 
