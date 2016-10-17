@@ -35,7 +35,8 @@ elements_depends_on_subdirs(SEFramework)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEImplementation
-					 src/lib/Partition/*.cpp
+           src/lib/Background/*.cpp
+           src/lib/Partition/*.cpp
 					 src/lib/Segmentation/*.cpp
 					 src/lib/Grouping/*.cpp
 					 src/lib/Configuration/*.cpp

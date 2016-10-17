@@ -13,20 +13,33 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string BACKGROUND_VALUE {"background-value" };
+static const std::string THRESHOLD_VALUE {"threshold-value" };
 
-BackgroundConfig::BackgroundConfig(long manager_id) : Configuration(manager_id) {
+BackgroundConfig::BackgroundConfig(long manager_id) :
+    Configuration(manager_id),
+    m_background_absolute(false),
+    m_background_value(0) {
   declareDependency<DetectionImageConfig>();
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::getProgramOptions() {
   return { {"Detection image", {
-      {BACKGROUND_VALUE.c_str(), po::value<SeFloat>()->default_value(0),
-          "Background value to be subtracted from the detection image."}
+      {BACKGROUND_VALUE.c_str(), po::value<SeFloat>(),
+          "Background value to be subtracted from the detection image."},
+      {THRESHOLD_VALUE.c_str(), po::value<SeFloat>(),
+          "Detection threshold above the background."},
   }}};
 }
 
 void BackgroundConfig::initialize(const UserValues& args) {
-  m_background_value = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
+  if (args.find(BACKGROUND_VALUE) != args.end()) {
+    m_background_absolute = true;
+    m_background_value = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
+  }
+  if (args.find(THRESHOLD_VALUE) != args.end()) {
+    m_threshold_absolute = true;
+    m_threshold_value = args.find(THRESHOLD_VALUE)->second.as<SeFloat>();
+  }
 }
 
 } // SExtractor namespace

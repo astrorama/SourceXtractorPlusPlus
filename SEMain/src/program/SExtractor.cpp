@@ -40,6 +40,8 @@
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
+#include "SEImplementation/Background/Background.h"
+
 #include "SEMain/SExtractorConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -127,7 +129,6 @@ public:
     }
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
-
     config_manager.initialize(args);
 
     task_factory_registry->configure(config_manager);
@@ -140,7 +141,14 @@ public:
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
 
-    auto segmentation = segmentation_factory.getSegmentation();
+    auto background = std::make_shared<Background>(detection_image);
+
+    auto background_value = background->getMedian();
+    auto rms = background->getRMS(background_value);
+    auto threshold = 1.5 * rms;
+    std::cout << "background: " <<  background_value << " RMS:" << rms << " threshold: "  << threshold << '\n';
+
+    auto segmentation = segmentation_factory.createSegmentation(background_value, threshold);
 
     auto partition = partition_factory.getPartition();
     
@@ -165,7 +173,6 @@ public:
 
     return Elements::ExitCode::OK;
   }
-
 };
 
 

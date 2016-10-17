@@ -6,15 +6,17 @@
 
 #include "Configuration/ConfigManager.h"
 
+#include "SEFramework/Image/VectorImage.h"
+
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 
 #include "SEFramework/Image/ImageProcessingList.h"
 
-#include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 
 #include "SEImplementation/Segmentation/Lutz.h"
 #include "SEImplementation/Segmentation/BackgroundSubtract.h"
+#include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
@@ -35,31 +37,56 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   auto segmentation_config = manager.getConfiguration<SegmentationConfig>();
   auto background_config = manager.getConfiguration<BackgroundConfig>();
 
+  m_background_absolute = background_config.isBackgroundAbsolute();
+  m_background_value = background_config.getBackgroundValue();
+  m_threshold_absolute = background_config.isThresholdAbsolute();
+  m_threshold_value = background_config.getThresholdValue();
+  m_algorithm = segmentation_config.getAlgorithmOption();
+}
+
+std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat background_value, SeFloat threshold) const {
+
+  // TEST: simple hard-coded 3x3 pyramid filter
+  auto convolution_filter = std::make_shared<VectorImage<SeFloat>>(3, 3);
+  convolution_filter->setValue(0,0, 1);
+  convolution_filter->setValue(0,1, 2);
+  convolution_filter->setValue(0,2, 1);
+
+  convolution_filter->setValue(1,0, 2);
+  convolution_filter->setValue(1,1, 4);
+  convolution_filter->setValue(1,2, 2);
+
+  convolution_filter->setValue(2,0, 1);
+  convolution_filter->setValue(2,1, 2);
+  convolution_filter->setValue(2,2, 1);
+
+  auto actual_background_value = m_background_absolute ? m_background_value : background_value;
+  auto actual_threshold_value = m_threshold_absolute ? m_threshold_value : threshold;
+
   auto image_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-//        std::make_shared<BackgroundSubtract>(background_config.getBackgroundValue())
+        std::make_shared<BackgroundSubtract>(actual_background_value),
       }
   );
 
   auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-        std::make_shared<BackgroundSubtract>(background_config.getBackgroundValue())
+        std::make_shared<BackgroundConvolution>(convolution_filter),
+        std::make_shared<BackgroundSubtract>(actual_threshold_value)
       }
   );
 
-  m_segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list);
-  switch (segmentation_config.getAlgorithmOption()) {
+  auto segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list);
+  switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
-      m_segmentation->setLabelling<Lutz>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+      segmentation->setLabelling<Lutz>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
       throw Elements::Exception("Unknown segmentation algorithm.");
   }
-}
 
-std::shared_ptr<Segmentation> SegmentationFactory::getSegmentation() const {
-  return m_segmentation;
+  return segmentation;
 }
 
 } // SEImplementation namespace

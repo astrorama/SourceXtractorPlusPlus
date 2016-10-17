@@ -7,6 +7,8 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATIONFACTORY_H
 #define _SEIMPLEMENTATION_SEGMENTATIONFACTORY_H
 
+#include "SEImplementation/Configuration/SegmentationConfig.h"
+
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Pipeline/Segmentation.h"
@@ -28,16 +30,20 @@ public:
   /// Constructor
   SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
 
-  std::shared_ptr<Segmentation> getSegmentation() const;
+  std::shared_ptr<Segmentation> createSegmentation(SeFloat background_value, SeFloat threshold) const;
   
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  
+  bool m_background_absolute;
+  SeFloat m_background_value;
+  bool m_threshold_absolute;
+  SeFloat m_threshold_value;
+
+  SegmentationConfig::Algorithm m_algorithm;
   std::shared_ptr<TaskProvider> m_task_provider;
-  std::shared_ptr<Segmentation> m_segmentation;
 
 }; /* End of SegmentationFactory class */
 
