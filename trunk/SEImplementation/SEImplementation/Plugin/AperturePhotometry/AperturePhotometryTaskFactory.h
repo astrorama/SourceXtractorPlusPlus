@@ -14,7 +14,7 @@ namespace SExtractor {
 
 class AperturePhotometryTaskFactory : public TaskFactory {
 public:
-  AperturePhotometryTaskFactory() {}
+  AperturePhotometryTaskFactory() : m_magnitude_zero_point(0) {}
 
   /// Destructor
   virtual ~AperturePhotometryTaskFactory() = default;

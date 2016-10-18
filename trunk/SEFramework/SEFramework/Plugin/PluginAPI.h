@@ -22,6 +22,8 @@ namespace SExtractor {
 
 class PluginAPI {
 public:
+  virtual ~PluginAPI() = default;
+
   virtual TaskFactoryRegistry& getTaskFactoryRegistry() const = 0;
   virtual OutputRegistry& getOutputRegistry() const = 0;
   virtual Euclid::Configuration::ConfigManager& getConfigManager() const = 0;

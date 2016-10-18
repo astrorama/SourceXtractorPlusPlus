@@ -21,6 +21,8 @@ namespace SExtractor {
 
 class Plugin {
 public:
+  virtual ~Plugin() = default;
+
   virtual std::string getIdString() const = 0;
   virtual void registerPlugin(PluginAPI& plugin_api) = 0;
 };

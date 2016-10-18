@@ -25,7 +25,12 @@ using namespace Euclid::Configuration;
 namespace SExtractor {
 
 SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_provider)
-    : m_task_provider(task_provider) {
+    : m_background_absolute(false),
+      m_background_value(0),
+      m_threshold_absolute(false),
+      m_threshold_value(0),
+      m_algorithm(SegmentationConfig::Algorithm::UNKNOWN),
+      m_task_provider(task_provider) {
 }
 
 void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
