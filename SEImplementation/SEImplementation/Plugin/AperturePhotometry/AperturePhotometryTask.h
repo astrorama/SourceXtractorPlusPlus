@@ -52,10 +52,9 @@ public:
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
-  SeFloat m_magnitude_zero_point;
-  unsigned int m_instance;
-
   std::shared_ptr<Aperture> m_aperture;
+  unsigned int m_instance;
+  SeFloat m_magnitude_zero_point;
 };
 
 }

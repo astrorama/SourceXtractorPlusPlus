@@ -18,7 +18,7 @@ namespace SExtractor {
  */
 class IsophotalFluxTaskFactory : public TaskFactory {
 public:
-  IsophotalFluxTaskFactory() {}
+  IsophotalFluxTaskFactory() : m_magnitude_zero_point(0) {}
 
   /// Destructor
   virtual ~IsophotalFluxTaskFactory() = default;

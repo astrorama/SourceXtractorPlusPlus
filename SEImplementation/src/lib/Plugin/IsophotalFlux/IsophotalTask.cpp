@@ -18,9 +18,7 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
 
   SeFloat total_flux = 0.0;
 
-  auto i = pixel_values.begin();
-  for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-    SeFloat value = *i++;
+  for (auto value : pixel_values) {
     total_flux += value;
   }
 

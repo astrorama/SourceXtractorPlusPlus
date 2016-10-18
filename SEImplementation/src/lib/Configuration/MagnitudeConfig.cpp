@@ -14,7 +14,9 @@ namespace SExtractor {
 
 static const std::string MAG_ZEROPOINT {"magnitude-zeropoint"};
 
-MagnitudeConfig::MagnitudeConfig(long manager_id) : Configuration(manager_id) {
+MagnitudeConfig::MagnitudeConfig(long manager_id) :
+    Configuration(manager_id),
+    m_magnitude_zero_point(0) {
 }
 
 auto MagnitudeConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

@@ -43,10 +43,9 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
 
-  int instance_counter = 0;
-  for (int i=0; i<m_apertures.size(); i++) {
+  for (unsigned int i=0; i<m_apertures.size(); i++) {
     std::stringstream instance_name;
-    instance_name << (instance_counter++);
+    instance_name << i;
     m_instance_names.emplace_back(instance_name.str());
   }
 }
