@@ -55,15 +55,15 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, int pixel_
 
   auto distance_squared = dx * dx + dy * dy;
   if (distance_squared <= max_supersampled_radius_squared) {
-    if (distance_squared <= min_supersampled_radius_squared) {
+    if (distance_squared < min_supersampled_radius_squared) {
       return 1.0;
     } else {
       SeFloat area = 0.0;
       for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
         for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
-          auto supersampled_distance_squared =
-              (dx + SeFloat(sub_x) / SUPERSAMPLE_NB) * (dx + SeFloat(sub_x) / SUPERSAMPLE_NB) +
-              (dy + SeFloat(sub_y) / SUPERSAMPLE_NB) * (dy + SeFloat(sub_y) / SUPERSAMPLE_NB);
+          auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB/2) / SUPERSAMPLE_NB;
+          auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_NB/2) / SUPERSAMPLE_NB;
+          auto supersampled_distance_squared = dx2 * dx2 + dy2 * dy2;
           if (supersampled_distance_squared <= m_radius * m_radius) {
             area += 1.0 / (SUPERSAMPLE_NB * SUPERSAMPLE_NB);
           }

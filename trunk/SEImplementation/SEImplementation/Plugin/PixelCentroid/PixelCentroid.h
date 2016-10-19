@@ -15,6 +15,8 @@ namespace SExtractor {
 /**
  * @class PixelCentroid
  * @brief The centroid of all the pixels in the source, weighted by their DetectionImage pixel values.
+ * @details Please note that we consider pixels to be centered around their coordinates
+ *
  */
 class PixelCentroid : public Property {
 public:
