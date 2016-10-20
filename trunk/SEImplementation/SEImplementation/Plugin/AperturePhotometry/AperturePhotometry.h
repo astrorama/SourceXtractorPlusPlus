@@ -13,6 +13,10 @@
 
 namespace SExtractor {
 
+/**
+ * @class AperturePhotometry
+ * @brief Aperture photometry flux and magnitude
+ */
 class AperturePhotometry : public Property {
 public:
 
