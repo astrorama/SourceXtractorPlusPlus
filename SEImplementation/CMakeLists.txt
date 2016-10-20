@@ -91,6 +91,9 @@ elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalF
 elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

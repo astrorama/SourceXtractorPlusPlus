@@ -14,7 +14,8 @@ namespace SExtractor {
 
 /**
  * @class IsophotalFlux
- * @brief
+ * @brief Computes the isophotal flux and magnitude
+ * @details Isophotal flux is the total flux from the detection pixels
  */
 class IsophotalFlux : public Property {
 public:
