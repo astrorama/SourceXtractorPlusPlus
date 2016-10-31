@@ -139,6 +139,10 @@ public:
     }
   }
 
+  std::shared_ptr<IteratorImpl> clone() const override {
+    return std::make_shared<iter>(m_entangled_it);
+  }
+
 private:
   
   std::set<EntangledSource>::iterator m_entangled_it;

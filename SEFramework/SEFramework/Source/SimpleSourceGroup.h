@@ -92,6 +92,11 @@ public:
       }
   }
 
+  std::shared_ptr<IteratorImpl> clone() const override {
+    return std::make_shared<iter>(m_wrapped_it);
+  }
+
+
 private:
   
   std::set<std::shared_ptr<SourceInterface>>::iterator m_wrapped_it;
