@@ -22,12 +22,24 @@ public:
   SimpleIntProperty(int value) : m_value(value) {}
 };
 
-/// ExampleDeblendStep: if SourceList has at least 2 elements, remove the first element
+/// ExampleDeblendStep: Remove the source with lowest SimpleIntProperty value
 class ExampleDeblendStep : public DeblendStep {
 public:
   virtual void deblend(SourceGroupInterface& group) const {
-    if (std::distance(group.begin(), group.end()) >= 2) {
-      group.removeSource(group.begin());
+    int min_value = INT_MAX;
+    SourceGroupInterface::iterator min_value_iter = group.end();
+
+    for(auto iter = group.begin(); iter != group.end(); ++iter) {
+
+      auto value = iter->getProperty<SimpleIntProperty>().m_value;
+      if (value < min_value) {
+        min_value = value;
+        min_value_iter = iter;
+      }
+    }
+
+    if (min_value_iter != group.end()) {
+      group.removeSource(min_value_iter);
     }
   }
 };
@@ -72,16 +84,17 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
 
   deblending.handleMessage(source_group);
 
-  BOOST_CHECK(test_group_observer->m_groups.size() == 1);
+  BOOST_CHECK_EQUAL(test_group_observer->m_groups.size(), 1);
   auto group = test_group_observer->m_groups.front();
-  auto iter = group->begin();
-  BOOST_CHECK(iter != group->end());
-  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 2);
-  ++iter;
-  BOOST_CHECK(iter != group->end());
-  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 3);
-  ++iter;
-  BOOST_CHECK(iter == group->end());
+
+  std::set<int> expected_result {2, 3};
+  std::set<int> actual_result;
+
+  for (auto& source : *group) {
+    actual_result.insert(source.getProperty<SimpleIntProperty>().m_value);
+  }
+
+  BOOST_CHECK(expected_result == actual_result);
 }
 
 //-----------------------------------------------------------------------------
@@ -98,11 +111,15 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
   auto group = test_group_observer->m_groups.front();
-  auto iter = group->begin();
-  BOOST_CHECK(iter != group->end());
-  BOOST_CHECK(iter->getProperty<SimpleIntProperty>().m_value == 3);
-  ++iter;
-  BOOST_CHECK(iter == group->end());
+
+  std::set<int> expected_result {3};
+  std::set<int> actual_result;
+
+  for (auto& source : *group) {
+    actual_result.insert(source.getProperty<SimpleIntProperty>().m_value);
+  }
+
+  BOOST_CHECK(expected_result == actual_result);
 }
 
 //-----------------------------------------------------------------------------

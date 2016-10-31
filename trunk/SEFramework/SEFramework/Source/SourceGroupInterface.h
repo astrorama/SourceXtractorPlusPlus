@@ -10,6 +10,14 @@
 
 namespace SExtractor {
 
+/**
+ * @class SourceGroupInterface
+ * @brief Defines the interface used to group sources
+ *
+ * @details Warning: please note that the order in which the sources are added to a group is not preserved.
+ *
+ */
+
 class SourceGroupInterface : protected SourceInterface {
   
   template <typename Collection>
@@ -68,6 +76,7 @@ protected:
     virtual void increment() = 0;
     virtual void decrement() = 0;
     virtual bool equal(const IteratorImpl& other) const = 0;
+    virtual std::shared_ptr<IteratorImpl> clone() const = 0;
   };
   
 }; // end of SourceGroupInterface class 
@@ -77,6 +86,10 @@ template <typename T>
 class SourceGroupInterface::GroupIterator : public std::iterator<std::forward_iterator_tag, T> {
 public:
   GroupIterator(std::unique_ptr<IteratorImpl> it) : m_it(std::move(it)) { }
+
+  GroupIterator(const GroupIterator& other) : m_it(other.m_it->clone()) {}
+  GroupIterator& operator=(const GroupIterator& other) { m_it = other.m_it->clone(); return *this; }
+
   T& operator*() const { return m_it->dereference(); }
   T* operator->() const { return &(m_it->dereference()); }
   GroupIterator& operator++() { m_it->increment(); return *this; }
