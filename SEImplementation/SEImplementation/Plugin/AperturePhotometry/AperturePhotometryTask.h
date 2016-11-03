@@ -44,9 +44,10 @@ public:
    */
   virtual ~AperturePhotometryTask() = default;
 
-  AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, SeFloat magnitude_zero_point)
+  AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, unsigned int image_instance, SeFloat magnitude_zero_point)
       : m_aperture(aperture),
         m_instance(instance),
+        m_image_instance(image_instance),
         m_magnitude_zero_point(magnitude_zero_point) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
@@ -54,6 +55,7 @@ public:
 private:
   std::shared_ptr<Aperture> m_aperture;
   unsigned int m_instance;
+  unsigned int m_image_instance;
   SeFloat m_magnitude_zero_point;
 };
 

@@ -9,10 +9,10 @@
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Property/DetectionFrame.h"
 
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 using namespace SExtractor;
@@ -28,13 +28,13 @@ BOOST_AUTO_TEST_SUITE (PixelCentroid_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
-  source.setProperty<PixelCentroid>(0, 0);
+  source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 0, 0);
 
-  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(1, 1);
+  auto image = std::make_shared<VectorImage<MeasurementImage::PixelType>>(1, 1);
   image->setValue(0, 0, 1);
-  source.setProperty<DetectionFrame>(image);
+  source.setIndexedProperty<MeasurementFrame>(0, image);
 
-  AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0);
+  AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0, 0);
   aperture_photometry_task.computeProperties(source);
 
   auto aperture_photometry = source.getProperty<AperturePhotometry>();

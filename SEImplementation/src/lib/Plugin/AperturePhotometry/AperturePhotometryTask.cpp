@@ -5,13 +5,8 @@
  *      Author: mschefer
  */
 
-#include <memory>
-
-#include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEFramework/SEFramework/Property/DetectionFrame.h"
-
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
@@ -23,21 +18,21 @@ namespace {
 }
 
 void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<DetectionFrame>().getDetectionImage();
-  auto pixel_centroid = source.getProperty<PixelCentroid>();
+  auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getMeasurementImage();
+  auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_image_instance);
 
   auto min_pixel = m_aperture->getMinPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
   auto min_x = std::max<int>(0, min_pixel.m_x);
   auto min_y = std::max<int>(0, min_pixel.m_y);
 
   auto max_pixel = m_aperture->getMaxPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
-  auto max_x = std::min<int>(detection_frame->getWidth() - 1, max_pixel.m_x);
-  auto max_y = std::min<int>(detection_frame->getHeight() - 1, max_pixel.m_y);
+  auto max_x = std::min<int>(measurement_frame->getWidth() - 1, max_pixel.m_x);
+  auto max_y = std::min<int>(measurement_frame->getHeight() - 1, max_pixel.m_y);
 
   SeFloat flux = 0;
   for (int pixel_y = min_y; pixel_y <= max_y; pixel_y++) {
     for (int pixel_x = min_x; pixel_x <= max_x; pixel_x++) {
-      auto value = detection_frame->getValue(pixel_x, pixel_y);
+      auto value = measurement_frame->getValue(pixel_x, pixel_y);
       flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
           pixel_centroid.getCentroidY(), pixel_x, pixel_y);
     }

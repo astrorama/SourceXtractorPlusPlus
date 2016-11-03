@@ -24,6 +24,7 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
     return std::make_shared<AperturePhotometryTask>(
         std::make_shared<CircularAperture>(m_apertures[property_id.getIndex()]),
         property_id.getIndex(),
+        0, // TMP: always use the 0 image instance
         m_magnitude_zero_point);
   } else {
     return nullptr;
