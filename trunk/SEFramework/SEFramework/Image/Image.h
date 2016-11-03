@@ -49,6 +49,9 @@ public:
 /// Alias for the detection image, to make easier its type modification
 using DetectionImage = Image<SeFloat>;
 
+/// Alias for the measurement image, to make easier its type modification
+using MeasurementImage = Image<SeFloat>;
+
 /// Alias for the weight image, to make easier its type modification
 using WeightImage = Image<SeFloat>;
 

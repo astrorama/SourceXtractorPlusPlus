@@ -10,7 +10,8 @@
 #include <memory>
 #include <type_traits>
 
-#include "../Property/DetectionFrame.h"
+#include "SEFramework/Property/DetectionFrame.h"
+
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Image/Image.h"
@@ -80,7 +81,6 @@ protected:
 
 private:
   const Segmentation& m_segmentation;
-
 };
 
 } /* namespace SExtractor */

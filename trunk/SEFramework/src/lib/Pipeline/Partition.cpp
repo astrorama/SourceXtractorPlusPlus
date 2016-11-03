@@ -22,8 +22,8 @@ void Partition::handleMessage(const std::shared_ptr<SourceInterface>& source) {
     // For each Source in pour input list
     for (const auto& source : step_input_sources) {
       // applies the current step
-     const auto partition_output = step->partition(source);
-     // then merges the result
+      const auto partition_output = step->partition(source);
+      // then merges the result
       step_output_sources.insert(step_output_sources.end(), partition_output.begin(), partition_output.end());
     }
 
@@ -37,9 +37,4 @@ void Partition::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   }
 }
 
-
-
 } // SEFramework namespace
-
-
-
