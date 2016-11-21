@@ -30,7 +30,7 @@ const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& prop
   }
 
   // no task available to make the property, just throw an exception
-  throw PropertyNotFoundException();
+  throw PropertyNotFoundException(property_id);
 }
 
 void SourceWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {

@@ -17,7 +17,7 @@ const Property& PropertyHolder::getProperty(const PropertyId& property_id) const
     return *iter->second;
   } else {
     // If we don't have that property throws an exception
-    throw PropertyNotFoundException();
+    throw PropertyNotFoundException(property_id);
   }
 }
 

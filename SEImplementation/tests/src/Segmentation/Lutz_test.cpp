@@ -135,7 +135,10 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   segmentation.setLabelling<Lutz>(std::make_shared<SimpleSourceFactory>());
 
   segmentation.addObserver(source_observer);
-  segmentation.processImage(image);
+
+  BOOST_CHECK(false);
+  // fixme tmp
+  //segmentation.processImage(image);
 
   // Check that we have the right number of sources
   BOOST_CHECK_EQUAL(source_observer->m_list.size(), group_images.size());

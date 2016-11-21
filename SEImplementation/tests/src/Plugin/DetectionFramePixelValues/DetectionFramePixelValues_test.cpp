@@ -28,17 +28,19 @@ BOOST_AUTO_TEST_SUITE (DetectionFramePixelValues_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelValuesFixture) {
-  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
-      std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
+//  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
+//      std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
+//
+//  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
+//  source.setProperty<DetectionFrame>(image);
+//
+//  DetectionFramePixelValuesTask task;
+//  task.computeProperties(source);
+//
+//  auto& pixel_values = source.getProperty<DetectionFramePixelValues>();
+//  BOOST_CHECK(pixel_values.getValues() == std::vector<DetectionImage::PixelType>( {2.0, 4.0} ));
 
-  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
-  source.setProperty<DetectionFrame>(image);
-
-  DetectionFramePixelValuesTask task;
-  task.computeProperties(source);
-
-  auto& pixel_values = source.getProperty<DetectionFramePixelValues>();
-  BOOST_CHECK(pixel_values.getValues() == std::vector<DetectionImage::PixelType>( {2.0, 4.0} ));
+  BOOST_CHECK(false);
 }
 
 //-----------------------------------------------------------------------------

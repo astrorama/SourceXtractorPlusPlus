@@ -5,7 +5,7 @@
  *      Author: mschefer
  */
 
-#include "SEImplementation/Configuration/MeasurementImagesConfig.h"
+#include "SEImplementation/Configuration/MeasurementConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
@@ -30,11 +30,11 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
 }
 
 void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<MeasurementImagesConfig>();
+  manager.registerConfiguration<MeasurementConfig>();
 }
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_measurement_images = manager.getConfiguration<MeasurementImagesConfig>().getMeasurementImages();
+  m_measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
 }
 
 }

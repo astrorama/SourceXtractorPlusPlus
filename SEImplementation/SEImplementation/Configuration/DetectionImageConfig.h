@@ -9,6 +9,7 @@
 
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SExtractor {
 
@@ -33,9 +34,11 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   void initialize(const UserValues& args) override;
   
   std::shared_ptr<DetectionImage> getDetectionImage() const;
+  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const;
   
 private:
   std::shared_ptr<DetectionImage> m_detection_image;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
 }; /* End of DetectionImageConfig class */
 

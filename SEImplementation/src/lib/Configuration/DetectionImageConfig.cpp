@@ -6,6 +6,7 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
+#include "SEImplementation/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -28,6 +29,7 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 
 void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
 }
 
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {
@@ -35,6 +37,13 @@ std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const 
     throw Elements::Exception() << "getDetectionImage() call on not finalized DetectionImageConfig";
   }
   return m_detection_image;
+}
+
+std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() const {
+  if (getCurrentState() < State::FINAL) {
+    throw Elements::Exception() << "getCoordinateSystem() call on not finalized DetectionImageConfig";
+  }
+  return m_coordinate_system;
 }
 
 } // SExtractor namespace

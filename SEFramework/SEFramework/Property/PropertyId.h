@@ -55,6 +55,12 @@ public:
     return m_index;
   }
 
+  std::string getString() const {
+    std::stringstream property_name;
+    property_name << m_type_id.name() << " [ " << m_index << " ] ";
+    return property_name.str();
+  }
+
 private:
   PropertyId(std::type_index type_id, unsigned int index) : m_type_id(type_id), m_index(index) {}
 

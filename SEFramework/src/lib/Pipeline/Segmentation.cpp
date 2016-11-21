@@ -14,7 +14,11 @@ Segmentation::Segmentation(std::shared_ptr<DetectionImageProcessing> detection_i
       m_labelling_image_processing(labelling_image_processing) {
 }
 
-void Segmentation::processImage(std::shared_ptr<DetectionImage> image) {
+void Segmentation::processImage(std::shared_ptr<DetectionImage> image,
+    std::shared_ptr<CoordinateSystem> coordinate_system) {
+
+  m_detection_image_coordinate_system = coordinate_system;
+
   if (m_detection_image_processing != nullptr) {
     m_processed_detection_image = m_detection_image_processing->processImage(image);
   } else {

@@ -16,6 +16,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageProcessing.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 
 namespace SExtractor {
@@ -48,11 +49,11 @@ public:
   }
 
   /// Processes a DetectionImage notifying Observers with a Source object for each detection
-  void processImage(std::shared_ptr<DetectionImage> image);
+  void processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<CoordinateSystem> coordinate_system);
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    source->setProperty<DetectionFrame>(m_processed_detection_image);
+    source->setProperty<DetectionFrame>(m_processed_detection_image, m_detection_image_coordinate_system);
     notifyObservers(source);
   }
 
@@ -63,6 +64,7 @@ private:
   std::shared_ptr<DetectionImageProcessing> m_labelling_image_processing;
 
   std::shared_ptr<DetectionImage> m_processed_detection_image;
+  std::shared_ptr<CoordinateSystem> m_detection_image_coordinate_system;
 }; /* End of Segmentation class */
 
 class Segmentation::Labelling {
