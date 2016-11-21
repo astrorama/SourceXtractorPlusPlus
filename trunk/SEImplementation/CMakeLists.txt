@@ -26,6 +26,8 @@ elements_depends_on_subdirs(SEFramework)
 #          find_package(CppUnit)
 #===============================================================================
 
+find_package(WCSLIB REQUIRED)
+
 #===============================================================================
 # Declare the library dependencies here
 # Example:
@@ -41,8 +43,9 @@ elements_add_library(SEImplementation
 					 src/lib/Grouping/*.cpp
 					 src/lib/Configuration/*.cpp
 					 src/lib/Output/*.cpp
+           src/lib/CoordinateSystem/*.cpp
            src/lib/Plugin/*/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table WCSLIB
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================

@@ -140,6 +140,7 @@ public:
     output_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
     auto background = std::make_shared<Background>(detection_image);
 
@@ -166,7 +167,7 @@ public:
     deblending->addObserver(output);
 
     // Process the image
-    segmentation->processImage(detection_image);
+    segmentation->processImage(detection_image, detection_image_coordinate_system);
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));

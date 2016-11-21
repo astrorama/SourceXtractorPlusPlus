@@ -8,6 +8,7 @@
 #define _SEFRAMEWORK_PROPERTY_PROPERTYNOTFOUNDEXCEPTION_H
 
 #include "ElementsKernel/Exception.h"
+#include "SEFramework/Property/PropertyId.h"
 
 namespace SExtractor {
 
@@ -18,7 +19,8 @@ namespace SExtractor {
  */
 class PropertyNotFoundException : public Elements::Exception {
 public:
-  PropertyNotFoundException() : Elements::Exception("Property not found!") {}
+  PropertyNotFoundException(PropertyId property_id) : Elements::Exception(
+      std::string("Property ") + property_id.getString() + " not found!") {}
 };
 
 } /* namespace SExtractor */

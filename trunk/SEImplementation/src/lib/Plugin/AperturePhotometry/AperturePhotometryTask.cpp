@@ -42,6 +42,18 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
 }
 
+void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source) const {
+  SeFloat flux;
+  for (auto instance : m_instances_to_aggregate) {
+    auto aperture_photometry = source.getProperty<AperturePhotometry>(instance);
+    flux += aperture_photometry.getFlux();
+  }
+  flux /= m_instances_to_aggregate.size();
+
+  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
+}
+
 SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const {
   auto dx = pixel_x - center_x;
   auto dy = pixel_y - center_y;

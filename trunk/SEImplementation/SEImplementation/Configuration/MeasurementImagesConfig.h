@@ -8,6 +8,7 @@
 #ifndef _SEIMPLEMENTATION_CONFIGURATION_MEASUREMENTIMAGESCONFIG_H_
 #define _SEIMPLEMENTATION_CONFIGURATION_MEASUREMENTIMAGESCONFIG_H_
 
+/*
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
@@ -16,9 +17,6 @@ namespace SExtractor {
 class MeasurementImagesConfig : public Euclid::Configuration::Configuration {
  public:
 
-  /**
-   * @brief Destructor
-   */
   virtual ~MeasurementImagesConfig() = default;
 
   /// Constructs a new DetectionImageConfig object
@@ -28,14 +26,12 @@ class MeasurementImagesConfig : public Euclid::Configuration::Configuration {
 
   void initialize(const UserValues& args) override;
 
-  const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const {
-    return m_measurement_images;
-  }
+  const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const;
 
 private:
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
 };
 
 }
-
+*/
 #endif /* _SEIMPLEMENTATION_CONFIGURATION_MEASUREMENTIMAGESCONFIG_H_ */

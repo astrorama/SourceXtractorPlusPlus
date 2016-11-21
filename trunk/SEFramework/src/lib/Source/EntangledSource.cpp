@@ -44,7 +44,7 @@ const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(
     auto group_task = m_group.m_task_provider->getTask<GroupTask>(property_id);
     if (!group_task) {
       // No task is available to make that property
-      throw PropertyNotFoundException();
+      throw PropertyNotFoundException(property_id);
     }
 
     // Use the task to make the property

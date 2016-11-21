@@ -59,6 +59,26 @@ private:
   SeFloat m_magnitude_zero_point;
 };
 
+class AperturePhotometryAggregateTask : public SourceTask {
+public:
+
+  AperturePhotometryAggregateTask(
+    unsigned int instance, std::vector<unsigned int> instances_to_aggregate, SeFloat magnitude_zero_point
+  ) :
+      m_instance(instance),
+      m_instances_to_aggregate(instances_to_aggregate),
+      m_magnitude_zero_point(magnitude_zero_point) {}
+
+  virtual ~AperturePhotometryAggregateTask() = default;
+
+  virtual void computeProperties(SourceInterface& source) const override;
+
+private:
+  unsigned int m_instance;
+  std::vector<unsigned int> m_instances_to_aggregate;
+  SeFloat m_magnitude_zero_point;
+};
+
 }
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYTASK_H_ */

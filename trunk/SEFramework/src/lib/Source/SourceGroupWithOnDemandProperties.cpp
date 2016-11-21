@@ -74,7 +74,7 @@ const Property& SourceGroupWithOnDemandProperties::getProperty(const PropertyId&
   }
 
   // No task available to make that property, we throw an exception
-  throw PropertyNotFoundException();
+  throw PropertyNotFoundException(property_id);
 }
 
 void SourceGroupWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {

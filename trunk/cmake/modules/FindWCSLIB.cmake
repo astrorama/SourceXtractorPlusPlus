@@ -1,0 +1,17 @@
+if(NOT WCSLIB_FOUND)
+
+  find_path(WCSLIB_INCLUDE_DIR wcslib/wcs.h
+    HINTS ${WCSLIB_ROOT_DIR} PATH_SUFFIXES include)
+  find_library(WCSLIB_LIBRARY wcs
+    HINTS ${WCSLIB_ROOT_DIR} PATH_SUFFIXES lib)
+  find_library(M_LIBRARY m)
+  mark_as_advanced(WCSLIB_INCLUDE_DIR WCSLIB_LIBRARY M_LIBRARY)
+
+  include(FindPackageHandleStandardArgs)
+  find_package_handle_standard_args(WCSLIB DEFAULT_MSG
+    WCSLIB_LIBRARY M_LIBRARY WCSLIB_INCLUDE_DIR)
+
+  set(WCSLIB_INCLUDE_DIRS ${WCSLIB_INCLUDE_DIR})
+  set(WCSLIB_LIBRARIES ${WCSLIB_LIBRARY} ${M_LIBRARY})
+
+endif(NOT WCSLIB_FOUND)
