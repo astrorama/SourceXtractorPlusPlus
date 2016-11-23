@@ -12,6 +12,7 @@
 
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SExtractor {
 
@@ -77,16 +78,21 @@ public:
     return m_measurement_images;
   }
 
+  const std::vector<std::shared_ptr<CoordinateSystem>>& getCoordinateSystems() const {
+    return m_coordinate_systems;
+  }
+
   const std::vector<std::shared_ptr<ImageGroup>>& getImageGroups() const {
     return m_groups;
   }
 
-  unsigned int addImage(std::shared_ptr<MeasurementImage> image);
+  unsigned int addImage(const std::string filename);
 
 private:
   boost::property_tree::ptree m_property_tree;
   std::vector<std::shared_ptr<ImageGroup>> m_groups;
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
+  std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
 };
 
 }

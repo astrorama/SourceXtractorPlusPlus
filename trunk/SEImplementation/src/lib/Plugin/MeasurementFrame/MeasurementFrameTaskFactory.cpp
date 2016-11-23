@@ -17,7 +17,7 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
     auto instance = property_id.getIndex();
 
     if (instance < m_measurement_images.size()) {
-      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_images[instance]);
+      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_images[instance], m_coordinate_systems[instance]);
     } else if (instance == 0) {
       // By default if no measurement image is provided we use the detection image as the first measurement image
       return std::make_shared<DefaultMeasurementFrameTask>(instance);
@@ -35,6 +35,7 @@ void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   m_measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
+  m_coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
 }
 
 }

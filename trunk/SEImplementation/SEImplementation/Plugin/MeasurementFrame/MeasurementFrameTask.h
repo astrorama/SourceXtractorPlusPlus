@@ -20,15 +20,17 @@ public:
    */
   virtual ~MeasurementFrameTask() = default;
 
-  MeasurementFrameTask(unsigned int instance, std::shared_ptr<MeasurementImage> measurement_image) :
+  MeasurementFrameTask(unsigned int instance, std::shared_ptr<MeasurementImage> measurement_image, std::shared_ptr<CoordinateSystem> coordinate_system) :
     m_instance(instance),
-    m_measurement_image(measurement_image) {}
+    m_measurement_image(measurement_image),
+    m_coordinate_system(coordinate_system) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned int m_instance;
   std::shared_ptr<MeasurementImage> m_measurement_image;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 };
 
 class DefaultMeasurementFrameTask : public SourceTask {

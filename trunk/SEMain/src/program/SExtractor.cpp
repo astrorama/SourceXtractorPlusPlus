@@ -149,6 +149,7 @@ public:
     auto threshold = 1.5 * rms;
     std::cout << "background: " <<  background_value << " RMS:" << rms << " threshold: "  << threshold << '\n';
 
+
     auto segmentation = segmentation_factory.createSegmentation(background_value, threshold);
 
     auto partition = partition_factory.getPartition();
