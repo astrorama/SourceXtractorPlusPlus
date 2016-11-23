@@ -11,13 +11,17 @@
 
 #include "SEImplementation/Background/Background.h"
 
+#include <iostream>
 namespace SExtractor {
 
 
 SeFloat Background::getMedian() const {
-  auto image_copy = std::make_shared<VectorImage<DetectionImage::PixelType>>(*m_detection_image);
-  std::sort(image_copy->getData().begin(), image_copy->getData().end());
-  return image_copy->getData()[image_copy->getData().size()/2];
+  if (m_detection_image != nullptr) {
+    auto image_copy = std::make_shared<VectorImage<DetectionImage::PixelType>>(*m_detection_image);
+    std::sort(image_copy->getData().begin(), image_copy->getData().end());
+    return image_copy->getData()[image_copy->getData().size()/2];
+  }
+  return 0;
 }
 
 SeFloat Background::getRMS(SeFloat background_value) const {
@@ -37,7 +41,9 @@ SeFloat Background::getRMS(SeFloat background_value) const {
       }
     }
   }
-  rms /= pixels;
+  if (pixels > 0) {
+    rms /= pixels;
+  }
 
   return sqrt(rms);
 }

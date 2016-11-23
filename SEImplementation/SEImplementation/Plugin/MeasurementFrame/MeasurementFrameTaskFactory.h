@@ -27,6 +27,7 @@ public:
 
 private:
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
+  std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
 };
 
 }

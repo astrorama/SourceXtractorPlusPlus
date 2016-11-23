@@ -29,26 +29,24 @@ BOOST_AUTO_TEST_SUITE (DetectionFrameSourceStamp_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
-//  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
-//      std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
-//
-//  source.setProperty<DetectionFrame>(image);
-//  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
-//  source.setProperty<PixelBoundaries>(1, 0, 2, 1);
-//
-//  DetectionFrameSourceStampTask task;
-//  task.computeProperties(source);
-//
-//  auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
-//
-//  BOOST_CHECK(source_stamp.getWidth() == 2);
-//  BOOST_CHECK(source_stamp.getHeight() == 2);
-//  BOOST_CHECK_CLOSE(source_stamp.getValue(0,0), 1.0, 0.000001);
-//  BOOST_CHECK_CLOSE(source_stamp.getValue(1,0), 2.0, 0.000001);
-//  BOOST_CHECK_CLOSE(source_stamp.getValue(0,1), 4.0, 0.000001);
-//  BOOST_CHECK_CLOSE(source_stamp.getValue(1,1), 5.0, 0.000001);
+  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
+      std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
-  BOOST_CHECK(false);
+  source.setProperty<DetectionFrame>(image, nullptr);
+  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
+  source.setProperty<PixelBoundaries>(1, 0, 2, 1);
+
+  DetectionFrameSourceStampTask task;
+  task.computeProperties(source);
+
+  auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
+
+  BOOST_CHECK(source_stamp.getWidth() == 2);
+  BOOST_CHECK(source_stamp.getHeight() == 2);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(0,0), 1.0, 0.000001);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(1,0), 2.0, 0.000001);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(0,1), 4.0, 0.000001);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(1,1), 5.0, 0.000001);
 }
 
 //----------------------------------------------------------------------------

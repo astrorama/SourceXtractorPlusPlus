@@ -15,6 +15,7 @@
 
 #include "SEFramework/Image/FitsReader.h"
 #include "SEImplementation/Configuration/MeasurementConfig.h"
+#include "SEImplementation/CoordinateSystem/WCS.h"
 
 using namespace Euclid::Configuration;
 
@@ -45,11 +46,6 @@ void MeasurementConfig::initialize(const UserValues& args) {
     pt::read_json(filename, m_property_tree);
     parseTree();
   }
-
-//  for (auto group : m_groups) {
-//    auto group_images = group->getMeasurementImages();
-//    m_measurement_images.insert(m_measurement_images.begin(), group_images.begin(), group_images.end());
-//  }
 }
 
 void MeasurementConfig::parseTree() {
@@ -104,16 +100,21 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const boost::property_
   for (auto path : iter) {
     std::cout << path << std::endl;
 
-    auto image = addImage(std::move(FitsReader<MeasurementImage::PixelType>::readFile(path.path().string())));
+    auto image = addImage(path.path().string());
     images.insert(image);
   }
 
   return images;
 }
 
-unsigned int MeasurementConfig::addImage(std::shared_ptr<MeasurementImage> image) {
+unsigned int MeasurementConfig::addImage(const std::string filename) {
   // fixme check it's not already there
-  m_measurement_images.push_back(image);
+
+  auto image = FitsReader<MeasurementImage::PixelType>::readFile(filename);
+  auto coordinate_system = std::make_shared<WCS>(filename);
+
+  m_measurement_images.push_back(std::move(image));
+  m_coordinate_systems.push_back(coordinate_system);
   return m_measurement_images.size() - 1;
 }
 

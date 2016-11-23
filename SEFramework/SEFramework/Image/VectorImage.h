@@ -44,13 +44,12 @@ public:
   }
   
   explicit VectorImage(const Image<T>& other_image) :
-    m_width(other_image.getWidth()), m_height(other_image.getWidth()), m_data(m_width * m_height) {
+    m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height) {
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
         setValue(x, y, other_image.getValue(x, y));
       }
     }
-
   }
 
   int getHeight() const override {

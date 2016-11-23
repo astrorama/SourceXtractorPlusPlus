@@ -10,20 +10,29 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SExtractor {
 
 class MeasurementFrame : public Property {
 public:
-  MeasurementFrame(std::shared_ptr<MeasurementImage> measurement_image) : m_measurement_image(measurement_image) {
+  MeasurementFrame(std::shared_ptr<MeasurementImage> measurement_image,
+      std::shared_ptr<CoordinateSystem> coordinate_system)
+      : m_measurement_image(measurement_image),
+        m_coordinate_system(coordinate_system) {
   }
 
   std::shared_ptr<MeasurementImage> getMeasurementImage() const {
     return m_measurement_image;
   }
 
+  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
+    return m_coordinate_system;
+  }
+
 private:
   std::shared_ptr<MeasurementImage> m_measurement_image;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 };
 
 }

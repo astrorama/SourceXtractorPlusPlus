@@ -136,9 +136,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   segmentation.addObserver(source_observer);
 
-  BOOST_CHECK(false);
-  // fixme tmp
-  //segmentation.processImage(image);
+  segmentation.processImage(image, nullptr);
 
   // Check that we have the right number of sources
   BOOST_CHECK_EQUAL(source_observer->m_list.size(), group_images.size());
