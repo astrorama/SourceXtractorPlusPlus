@@ -9,4 +9,6 @@ designed to help the new SExtractor developer.
 - \subpage implementationhowtos : Short instructions for
     performing the most common SExtractor developer tasks
 
+- \subpage configuration : configuration specs 
+
 */
