@@ -1,0 +1,303 @@
+namespace SExtractor {
+
+/** \page configuration Configuration
+
+\tableofcontents
+
+\section introduction Introduction
+
+This document describes the configuration system for measurements in SExtractor++. In SExtractor++, many measurement images can be specified with potentially different measurements performed on them. The results of those measurements can also be combined in different ways to provide aggregated results.
+
+\subsection format Format
+
+The configuration file uses the YAML format (http://www.yaml.org/spec/1.2/spec.html)
+
+\section overview Overview
+
+Measurement configuration is done by using a measurement-group to specify image files and measurements. 
+A hierarchy of subgroups can be used to group together some image files and override measurement options.
+
+\subsection grouping Grouping
+
+A measurement-group contains a list of images. Subgroups can be used to group together some of the images, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
+
+A subgroup creates a subset of the images at the level above it by applying a filter to them. All subgroups at the same level have access to the same images at the parent level (previously defined subgroups don't prevent the next ones from using the same images). Subgroups within a subgroup only have access to the images filtered by their parent.
+
+Filtering can be done using selection condition "keyword == value" or using "group-by", the latter will create a different
+subgroup for each unique value of a keyword.
+
+\subsection aggregation Aggregation
+
+Aggregation is the process of combining the measurement results within a subgroup. If grouping was a top-down process, starting
+at the measurement-group and then descending into the subgroups, aggregation is bottom-up: starting at the lowest level, applying the aggregation and then passing the result to the parent subgroup until the top level is reached.
+
+When no aggregation is specifified the default behavior is to keep the measurement results as distinct values. When distinct values remain at the top level, there will be distinct output columns.
+
+Vector aggregation will combine results into a vector containing all the values.
+
+Values can also be combined according to some criteria such as taking the mean or the maximum. The availability of such aggregation methods can depend on the measurement, as they may have to be implemented specifically. (For example, it might not make sense to take the ordinary mean of magnitude values.)
+
+This operation can also be performed on vectors, which will result in every value in the vector being combined with their counterpart in the other vector. In this case, the dimensionality and size of the vectors must match. A runtime error can occur if this is not the case.
+
+\section config_examples Configuration Examples
+
+\subsection example_1 Example 1
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: path/to/file.fits
+  
+  measurement:
+    aperture-photometry:
+      size: [5, 7, 9]
+\endcode
+
+We want to do circular aperture photometry on a single image, using 3 different diameters.
+
+First we define a "measurement-group" to contain our measurement. Inside it we use "image-files" to specifiy
+a single image.
+
+Finally, we request "aperture-photometry", specifying an array of diameters.
+
+\subsubsection output_1 Output
+
+One aperture_photometry column containing a vector of 3 values, one for each aperture size
+(+ associated error values following the same format, to simplify things we won't mention the error value columns anymore)
+
+\subsection example_2 Example 2
+
+\code{.yaml}
+measurement-group:
+  
+  image-files:
+    path: path/to/first_file.fits
+    path: path/to/second_file.fits
+  
+  measurement:
+    aperture-photometry:
+      size: [5, 7, 9]
+    aggregate: mean
+\endcode
+
+A variation on the previous example. This time we specify two fits files by repeating the "path" key.
+
+Without the "aggregate: mean" line, the result would be two columns. But with it, we take the values from the first and second file and compute the mean.
+
+\subsubsection output_2 Output
+
+1 aperture photometry column with a vector
+[
+  mean of first file aperture size 5 and second file aperture size 5,
+  mean of first file aperture size 7 and second file aperture size 7,
+  mean of first file aperture size 9 and second file aperture size 9,
+]
+
+\subsection example_3 Example 3
+
+\code{.yaml}
+measurement-group:
+  name: "g"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_g_*.fits
+
+  measurement:
+    aperture-photometry:
+      size: 5
+    aggregate: mean
+
+measurement-group:
+  name: "r"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_r_*.fits
+
+  measurement:
+    aperture-photometry:
+      size: 5
+    aggregate: mean
+
+measurement-group:
+  name: "i"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_i_*.fits
+
+  measurement:
+    aperture-photometry:
+        size: 7
+    aggregate: mean
+\endcode
+
+Here we have multiple exposures for 3 different bands and we want to get mean for those different bands. Note that we want a different aperture diameter for the "i" band.
+
+We define 3 completely independent "measurement-group" keys. Each contains its own image-files entry loading different files. The parameters
+for the aperture photometry are also repeated.
+
+This is a simple way to do this configuration, but it relies on repeating some of the configuration and we're going to see a more elegant way
+to do this configuration next.
+
+\subsubsection output_3 Output
+
+3 columns:
+aperture_photometry_g = mean of band g aperture photometry values
+aperture_photometry_r = mean of band r aperture photometry values
+aperture_photometry_i = mean of band i aperture photometry values
+
+\subsection example_4 Example 4
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/sim01/sim01_(*)_*.fits
+    wildcard-keyword: "BAND"
+    
+  subgroup:
+    selection: "BAND == 'g'"
+    name: "g"
+    measurement:
+      aperture-photometry:
+        size: 5
+      aggregate: mean
+      
+  subgroup:
+    selection: "BAND == 'r'"
+    name: "r"
+    measurement:
+      aperture-photometry:
+        size: 5
+      aggregate: mean
+
+  subgroup:
+    selection: "BAND == 'i'"
+    name: "i"
+    measurement:
+      aperture-photometry:
+        size: 7
+      aggregate: mean
+\endcode
+
+This reworked version of the previous example, adds the use of a wildcard keyword and subgroups.
+
+We have a single measurement-group this time. For the files specification, we use a double wild card. The first one is in between 
+parentheses to indicate that it will be used for a keyword. The keyword definition itself ("BAND") is next line.
+
+The keyword BAND is defined as the part of the file after the first underscore and until the next one. We then then define subgroups by filtering using this keyword.
+
+Each subgroup can have its own name and and measurement options. We once again use "aggregate" to combine all the images within a subgroup.
+
+\subsubsection output_4 Output
+same as previous example 
+
+\subsection example_5 Example 5
+
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/sim01/sim01_(*)_*.fits
+    wildcard-keyword: "BAND"
+      
+  subgroup:
+    group-by: "BAND"
+    
+    subgroup:
+      selection: "BAND == i"
+      measurement:
+        aperture-photometry:
+          size: 7
+    
+    measurement:
+      aperture-photometry:
+        size: 5
+      aggregate: mean
+\endcode
+        
+This configuration is equivalent to the previous one (if we have the same input files) but uses more advanced syntax and is more generic. 
+
+This time we use a group-by to automatically create a subgroup for each unique value of the keyword "BAND". We then request aperture photometry and a "mean" aggregate for those subgroups.
+
+There is just one thing left to take care of. In the previous example, we used a different aperture size for the i band.
+How can we do that this time? Using another subgroup with a selection key, we can override the aperture photometry parameter just for the i band.
+
+\subsubsection output_5 Output
+same as previous example 
+
+\subsection example_6 Example 6
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/img_(*)_(*)_*.fits
+    wildcard-keyword: ["BAND", "DAY"]
+      
+  subgroup:
+    group-by: "BAND"
+    
+    subgroup:
+      group-by: "DAY"
+      aperture-photometry:
+          aggregate: mean
+    
+    aperture-photometry:
+        size: 5
+        aggregate: vector
+\endcode
+
+In this example, we group files by band, then by day and then by exposure number.
+        
+\subsubsection output_6 Output
+  A column for each band containing a vector with the mean values for each day.
+
+\section reference Reference
+
+measurement-group - contains a description of the image files and configuration of the measurement to be applied on them.
+  name - Defines a name for that group. That name is used to reference this group in the configuration file as well as  well as appear in the outpout column names.
+
+subgroup - Defines a subgroup containing part of the images in the parent measurement-group or subgroup.
+  name - See name in measurement-group.
+  selection - An expression using keywords, if true for an image it will 
+  group-by - creates several subgroups. one for each distinct value of the keyword
+  
+default subgroup: if no subgroup is specified in a measurement-group then a default subgroup exists containing all images
+
+image-files - Used to specify one or more individual image files to be used as measurement images.
+  path - Path to the image file. May contain wildcards or be repeated to add more files. Use () around wildcards to define keyword content.
+  Wildcard available are * to replace anything, ? to replace any one character, and () to define regions for keywords.
+  keywords - List of staticly defined keywords for the images
+    name - Name of the keyword
+    value - Value for that keyword
+  wildcard-keyword - defines keywords using the wildcards in path.
+      (must match the number of wildcard sections in all the path entries for this image-files key.)
+  fits-header-keyword - Allows the use of a fits header as a keyword
+    name - Name of the fits header to use
+    alias - (Optional) An alias that will be used as keyword name instead of the fits header actual name.
+
+image-cube
+  path - Path to a fits file containing an image cube
+  fits-header-keyword - see image-files
+
+multi-hdu-image:
+  path - Path to multi extension fits file
+  fits-header-keyword - see image-files
+
+aperture-photometry - requests an aperture photometry measurement
+  size - Size of the circular aperture used in pixels. Can be an array specifying different sizes.
+  aggregate -
+     - none - (default) individual values are not aggregated
+     - vector - aggregates the results as a single column containing a vector
+     
+     If the following aggregate modes are used, with vector values they must have the same number of elements:
+     - mean - aggregates the results as the mean of the values
+     - max - takes the max value 
+     - min - takes the min value
+     
+   more than one aggregate type is possible
+
+*/
+}
