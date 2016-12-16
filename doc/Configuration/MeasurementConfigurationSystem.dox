@@ -17,27 +17,74 @@ The configuration file uses the YAML format (http://www.yaml.org/spec/1.2/spec.h
 Measurement configuration is done by using a measurement-group to specify image files and measurements. 
 A hierarchy of subgroups can be used to group together some image files and override measurement options.
 
+\subsection config_overview Configuration section overview
+
+Actual yaml keywords are in \b bold.
+
+- \b measurement-group (contains a description of the image files and configuration of the related measurement)
+  - \b image-files (loads one or more image files)
+    + \b path - Path to the image file. May contain wildcards or be repeated to add more files.
+    + \b keyword (keyword to be defined for those images)
+    + \b keyword-wildcard (defines keywords using wildcards in the file name)
+    + \b keyword-fits-header (defines keywords from the content of the FITS headers of the file)
+  - \b image-cube (loads a file containing multiple images as a 3d data cube)
+    + keyword related options identical to image-files
+    + default keyword for the index of the image in the cube
+  - \b image-multi-hdu (loads a multi-header fits file)
+    + keyword related options identical to image-files
+
+  + \b subgroup (defines a subgroup containing a subset of the images in the parent)
+    - \b selection (the condition used to filter the images)
+
+  + \b multigroup (defines a series of subgroups based on a keyword unique values)
+    - \b group-by (specifies a keyword, for each unique value of this keyword, a subgroup is created)
+
+  + \b measurement (lists the measurement operations to be performed)
+    - \a measurement-1 (placeholder for some generic measurement)
+      + \a parameter-1
+      + \a parameter-2
+      + \b aggregate (specifies how the results are to be aggregated:)
+        - "none" - (default) individual values are not aggregated
+        - "vector" - aggregates the results as a single column containing a vector
+        - "mean" - aggregates the results as the mean of the values
+        - "max" - takes the max value
+        - "min" - takes the min value
+
+\subsection input_options Input
+
+A measurement-group contains a list of images that will be used for measurements. Files can have some meta-data attached to them in the form of keyword values. Those keyword values can be specified in the configuration file, come directly from a FITS file headers or be extracted from part of the file name.
+
 \subsection grouping Grouping
 
-A measurement-group contains a list of images. Subgroups can be used to group together some of the images, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
+\image html grouping.png
+\image latex grouping.png width=10cm
+
+Subgroups can be used to group together some of the images in a measurement-group, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
 
 A subgroup creates a subset of the images at the level above it by applying a filter to them. All subgroups at the same level have access to the same images at the parent level (previously defined subgroups don't prevent the next ones from using the same images). Subgroups within a subgroup only have access to the images filtered by their parent.
 
-Filtering can be done using selection condition "keyword == value" or using "group-by", the latter will create a different
-subgroup for each unique value of a keyword.
+Subgroups can be created using selection condition (for example "keyword == value"). Multigroups allow the creation of multiple subgroups at the same time using the syntax "group-by: keyword". This will create a different subgroup for each unique value of the keyword.
 
 \subsection aggregation Aggregation
 
-Aggregation is the process of combining the measurement results within a subgroup. If grouping was a top-down process, starting
-at the measurement-group and then descending into the subgroups, aggregation is bottom-up: starting at the lowest level, applying the aggregation and then passing the result to the parent subgroup until the top level is reached.
+\image html aggregation.png
+\image latex aggregation.png width=10cm
 
-When no aggregation is specifified the default behavior is to keep the measurement results as distinct values. When distinct values remain at the top level, there will be distinct output columns.
+Aggregation is the process of combining the measurement results within a subgroup. If grouping was a top-down process, starting at the measurement-group and then descending into the subgroups, aggregation is bottom-up: starting at the lowest level, applying the aggregation and then passing the result to the parent subgroup until the top level is reached.
+
+When no aggregation is specified the default behavior is to keep the measurement results as distinct values per image in the group. When distinct values remain at the top level, there will be distinct output columns.
 
 Vector aggregation will combine results into a vector containing all the values.
 
 Values can also be combined according to some criteria such as taking the mean or the maximum. The availability of such aggregation methods can depend on the measurement, as they may have to be implemented specifically. (For example, it might not make sense to take the ordinary mean of magnitude values.)
 
-This operation can also be performed on vectors, which will result in every value in the vector being combined with their counterpart in the other vector. In this case, the dimensionality and size of the vectors must match. A runtime error can occur if this is not the case.
+When performing aggregation on vectors the dimensionality and size of the vectors must match or a runtime error will occur.
+
+\subsection output Output
+
+Measurements typically produce several output values that will correspond to different columns in the output catalog. If a measurement is performed on several images and the results are not aggregated, then for each image a set of output columns will be produced. Column names use a fully qualified subgroup name when available. If that's not unique, a distinguishing number will be added to the column name.
+
+When using vector aggregation, we still get one column per measurement output but they will each contain a vector with all the aggregated values.
 
 \section config_examples Configuration Examples
 
@@ -56,7 +103,7 @@ measurement-group:
 
 We want to do circular aperture photometry on a single image, using 3 different diameters.
 
-First we define a "measurement-group" to contain our measurement. Inside it we use "image-files" to specifiy
+First we define a "measurement-group" to contain our measurement. Inside it we use "image-files" to specify
 a single image.
 
 Finally, we request "aperture-photometry", specifying an array of diameters.
@@ -64,6 +111,7 @@ Finally, we request "aperture-photometry", specifying an array of diameters.
 \subsubsection output_1 Output
 
 One aperture_photometry column containing a vector of 3 values, one for each aperture size
+
 (+ associated error values following the same format, to simplify things we won't mention the error value columns anymore)
 
 \subsection example_2 Example 2
@@ -78,7 +126,7 @@ measurement-group:
   measurement:
     aperture-photometry:
       size: [5, 7, 9]
-    aggregate: mean
+      aggregate: mean
 \endcode
 
 A variation on the previous example. This time we specify two fits files by repeating the "path" key.
@@ -88,10 +136,15 @@ Without the "aggregate: mean" line, the result would be two columns. But with it
 \subsubsection output_2 Output
 
 1 aperture photometry column with a vector
+
 [
+
   mean of first file aperture size 5 and second file aperture size 5,
+  
   mean of first file aperture size 7 and second file aperture size 7,
+
   mean of first file aperture size 9 and second file aperture size 9,
+
 ]
 
 \subsection example_3 Example 3
@@ -106,7 +159,7 @@ measurement-group:
   measurement:
     aperture-photometry:
       size: 5
-    aggregate: mean
+      aggregate: mean
 
 measurement-group:
   name: "r"
@@ -117,7 +170,7 @@ measurement-group:
   measurement:
     aperture-photometry:
       size: 5
-    aggregate: mean
+      aggregate: mean
 
 measurement-group:
   name: "i"
@@ -127,8 +180,8 @@ measurement-group:
 
   measurement:
     aperture-photometry:
-        size: 7
-    aggregate: mean
+      size: 7
+      aggregate: mean
 \endcode
 
 Here we have multiple exposures for 3 different bands and we want to get mean for those different bands. Note that we want a different aperture diameter for the "i" band.
@@ -142,8 +195,11 @@ to do this configuration next.
 \subsubsection output_3 Output
 
 3 columns:
+
 aperture_photometry_g = mean of band g aperture photometry values
+
 aperture_photometry_r = mean of band r aperture photometry values
+
 aperture_photometry_i = mean of band i aperture photometry values
 
 \subsection example_4 Example 4
@@ -153,7 +209,7 @@ measurement-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
-    wildcard-keyword: "BAND"
+    keyword-wildcard: "BAND"
     
   subgroup:
     selection: "BAND == 'g'"
@@ -161,7 +217,7 @@ measurement-group:
     measurement:
       aperture-photometry:
         size: 5
-      aggregate: mean
+        aggregate: mean
       
   subgroup:
     selection: "BAND == 'r'"
@@ -169,7 +225,7 @@ measurement-group:
     measurement:
       aperture-photometry:
         size: 5
-      aggregate: mean
+        aggregate: mean
 
   subgroup:
     selection: "BAND == 'i'"
@@ -177,7 +233,7 @@ measurement-group:
     measurement:
       aperture-photometry:
         size: 7
-      aggregate: mean
+        aggregate: mean
 \endcode
 
 This reworked version of the previous example, adds the use of a wildcard keyword and subgroups.
@@ -200,9 +256,9 @@ measurement-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
-    wildcard-keyword: "BAND"
+    keyword-wildcard: "BAND"
       
-  subgroup:
+  multigroup:
     group-by: "BAND"
     
     subgroup:
@@ -214,7 +270,7 @@ measurement-group:
     measurement:
       aperture-photometry:
         size: 5
-      aggregate: mean
+        aggregate: mean
 \endcode
         
 This configuration is equivalent to the previous one (if we have the same input files) but uses more advanced syntax and is more generic. 
@@ -234,9 +290,9 @@ measurement-group:
 
   image-files:
     path: foo/bar/img_(*)_(*)_*.fits
-    wildcard-keyword: ["BAND", "DAY"]
+    keyword-wildcard: ["BAND", "DAY"]
       
-  subgroup:
+  multigroup:
     group-by: "BAND"
     
     subgroup:
@@ -253,51 +309,6 @@ In this example, we group files by band, then by day and then by exposure number
         
 \subsubsection output_6 Output
   A column for each band containing a vector with the mean values for each day.
-
-\section reference Reference
-
-measurement-group - contains a description of the image files and configuration of the measurement to be applied on them.
-  name - Defines a name for that group. That name is used to reference this group in the configuration file as well as  well as appear in the outpout column names.
-
-subgroup - Defines a subgroup containing part of the images in the parent measurement-group or subgroup.
-  name - See name in measurement-group.
-  selection - An expression using keywords, if true for an image it will 
-  group-by - creates several subgroups. one for each distinct value of the keyword
-  
-default subgroup: if no subgroup is specified in a measurement-group then a default subgroup exists containing all images
-
-image-files - Used to specify one or more individual image files to be used as measurement images.
-  path - Path to the image file. May contain wildcards or be repeated to add more files. Use () around wildcards to define keyword content.
-  Wildcard available are * to replace anything, ? to replace any one character, and () to define regions for keywords.
-  keywords - List of staticly defined keywords for the images
-    name - Name of the keyword
-    value - Value for that keyword
-  wildcard-keyword - defines keywords using the wildcards in path.
-      (must match the number of wildcard sections in all the path entries for this image-files key.)
-  fits-header-keyword - Allows the use of a fits header as a keyword
-    name - Name of the fits header to use
-    alias - (Optional) An alias that will be used as keyword name instead of the fits header actual name.
-
-image-cube
-  path - Path to a fits file containing an image cube
-  fits-header-keyword - see image-files
-
-multi-hdu-image:
-  path - Path to multi extension fits file
-  fits-header-keyword - see image-files
-
-aperture-photometry - requests an aperture photometry measurement
-  size - Size of the circular aperture used in pixels. Can be an array specifying different sizes.
-  aggregate -
-     - none - (default) individual values are not aggregated
-     - vector - aggregates the results as a single column containing a vector
-     
-     If the following aggregate modes are used, with vector values they must have the same number of elements:
-     - mean - aggregates the results as the mean of the values
-     - max - takes the max value 
-     - min - takes the min value
-     
-   more than one aggregate type is possible
 
 */
 }
