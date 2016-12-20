@@ -8,7 +8,9 @@
 #ifndef _SEIMPLEMENTATION_CONFIGURATION_MEASUREMENTCONFIG_H_
 #define _SEIMPLEMENTATION_CONFIGURATION_MEASUREMENTCONFIG_H_
 
-#include <boost/property_tree/ptree.hpp>
+//#include <boost/property_tree/ptree.hpp>
+
+#include <yaml-cpp/yaml.h>
 
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
@@ -23,15 +25,26 @@ public:
   public:
     enum class AggregateType {
       None,
-      Mean
+      Mean,
+      Max,
+      Min
     };
 
     AperturePhotometryOptions() : m_aggregate_type(AggregateType::None) {}
 
-    void updateOptions(const boost::property_tree::ptree& image_group);
+    void updateOptions(const YAML::Node& image_group);
+
+    AggregateType getAggregateType() const {
+      return m_aggregate_type;
+    }
+
+    std::vector<double> getApertureSizes() const {
+      return m_aperture_sizes;
+    }
 
   private:
     AggregateType m_aggregate_type;
+    std::vector<double> m_aperture_sizes;
   };
 
   class ImageGroup {
@@ -52,9 +65,16 @@ public:
       m_aperture_options = aperture_options;
     }
 
+    void setName(const std::string name) {
+      m_name = name;
+    }
+
+    std::string getName() const;
+
   private:
     std::set<unsigned int> m_measurement_image_indices;
     AperturePhotometryOptions m_aperture_options;
+    std::string m_name;
   };
 
 
@@ -71,8 +91,8 @@ public:
   void initialize(const UserValues& args) override;
 
   void parseTree();
-  void parseImageGroup(const boost::property_tree::ptree& image_group, AperturePhotometryOptions ap_options);
-  std::set<unsigned int> parseImageFiles(const boost::property_tree::ptree& image_group);
+  void parseMeasurementsGroup(const YAML::Node& image_group, AperturePhotometryOptions ap_options);
+  std::set<unsigned int> parseImageFiles(const YAML::Node& image_group);
 
   const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const {
     return m_measurement_images;
@@ -89,10 +109,13 @@ public:
   unsigned int addImage(const std::string filename);
 
 private:
-  boost::property_tree::ptree m_property_tree;
+  //boost::property_tree::ptree m_property_tree;
+  YAML::Node m_yaml_config;
+
   std::vector<std::shared_ptr<ImageGroup>> m_groups;
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
+  std::map<std::string, unsigned int> m_loaded_images;
 };
 
 }

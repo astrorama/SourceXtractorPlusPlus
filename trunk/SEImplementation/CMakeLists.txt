@@ -26,6 +26,7 @@ elements_depends_on_subdirs(SEFramework)
 #          find_package(CppUnit)
 #===============================================================================
 
+find_package(yaml-cpp)
 find_package(WCSLIB REQUIRED)
 
 #===============================================================================
@@ -45,7 +46,7 @@ elements_add_library(SEImplementation
 					 src/lib/Output/*.cpp
            src/lib/CoordinateSystem/*.cpp
            src/lib/Plugin/*/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table WCSLIB
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table WCSLIB yaml-cpp
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
