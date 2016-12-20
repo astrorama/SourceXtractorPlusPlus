@@ -36,17 +36,17 @@ public:
   }
   
   template <typename PropertyType>
-  void registerPropertyInstances(const std::vector<std::string>& instance_names) {
+  void registerPropertyInstances(const std::vector<std::pair<std::string, unsigned int>>& instance_names) {
     std::vector<std::string> new_names {};
     for (auto& current_name : m_property_to_names_map[typeid(PropertyType)]) {
       // Get the current converter
       auto converter = m_name_to_converter_map.at(current_name);
-      for (std::size_t i=0; i<instance_names.size(); ++i) {
+      for (auto instance : instance_names) {
         // Make a copy of the converter and set the index
         auto new_converter = converter;
-        new_converter.second.index = i;
+        new_converter.second.index = instance.second;
         // Register the new converter with the new name
-        auto& postfix = instance_names[i];
+        auto& postfix = instance.first;
         auto new_name = current_name + "_" + postfix;
         m_name_to_converter_map.emplace(new_name, new_converter);
         new_names.push_back(new_name);

@@ -48,18 +48,19 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementConfig>();
-
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   auto apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
+
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
+  std::cout << "measurement_images_nb: " << measurement_images_nb << std::endl;
 
   for (unsigned int image_nb = 0; image_nb < measurement_images_nb; image_nb++) {
     for (unsigned int aperture_size_index = 0; aperture_size_index < apertures.size(); aperture_size_index++) {
-      std::stringstream instance_name;
-      instance_name << image_nb << "_" << aperture_size_index;
       m_apertures.emplace_back(apertures[aperture_size_index]);
-      m_instance_names.emplace_back(instance_name.str());
+      //m_instance_names.emplace_back(std::make_pair(instance_name.str(), image_nb));
       m_image_instances.emplace_back(image_nb);
+
+//      std::cout << ": " << instance_name.str() << std::endl;
     }
   }
 
@@ -68,24 +69,43 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
   for (auto& group : measurement_config.getImageGroups()) {
     std::cout << "AperturePhotometryTaskFactory: image group" << std::endl;
 
-    for (unsigned int aperture_size_index = 0; aperture_size_index < apertures.size(); aperture_size_index++) {
-      auto indices = group->getMeasurementImageIndices();
-      std::vector<unsigned int> instances(indices.begin(), indices.end());
-      std::for_each(instances.begin(), instances.end(),
-          [&](unsigned int& instance) { instance = instance * apertures.size() + aperture_size_index; }
-      );
+    auto aperture_photometry_options = group->getAperturePhotometryOptions();
 
-      m_aggregate_tasks_map[instance_nb] = std::make_shared<AperturePhotometryAggregateTask>(
-          instance_nb,
-          instances,
-          0
-      );
+    if (aperture_photometry_options.getAggregateType() == MeasurementConfig::AperturePhotometryOptions::AggregateType::None) {
+      for (auto image_nb : group->getMeasurementImageIndices()) {
+        for (unsigned int aperture_size_index = 0; aperture_size_index < apertures.size(); aperture_size_index++) {
+          std::stringstream instance_name;
+          instance_name << group->getName() << "_" << image_nb << "_" << aperture_size_index;
+          m_instance_names.emplace_back(std::make_pair(instance_name.str(), image_nb * apertures.size() + aperture_size_index));
+        }
+      }
+    } else {
+      for (unsigned int aperture_size_index = 0; aperture_size_index < apertures.size(); aperture_size_index++) {
+        auto indices = group->getMeasurementImageIndices();
+        std::vector<unsigned int> instances(indices.begin(), indices.end());
+        std::for_each(instances.begin(), instances.end(),
+            [&](unsigned int& instance) { instance = instance * apertures.size() + aperture_size_index; }
+        );
 
-      std::stringstream instance_name;
-      instance_name << "aggr_" << instance_nb << "_" << aperture_size_index;
-      m_instance_names.emplace_back(instance_name.str());
+        m_aggregate_tasks_map[instance_nb] = std::make_shared<AperturePhotometryAggregateTask>(
+            instance_nb,
+            instances,
+            0
+        );
 
-      instance_nb++;
+        std::stringstream instance_name;
+        std::string group_name = group->getName();
+        instance_name << group_name << "_mean";
+        if (apertures.size() > 1) {
+          instance_name << "_" << aperture_size_index;
+        }
+
+        m_instance_names.emplace_back(std::make_pair(instance_name.str(), instance_nb));
+
+  //      std::cout << ": " << instance_name.str() << std::endl;
+
+        instance_nb++;
+      }
     }
   }
 }

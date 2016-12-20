@@ -29,7 +29,7 @@ public:
   void registerPropertyInstances(OutputRegistry&) override;
 
 private:
-  std::vector<std::string> m_instance_names;
+  std::vector<std::pair<std::string, unsigned int>> m_instance_names;
   std::vector<SeFloat> m_apertures;
   std::vector<unsigned int> m_image_instances;
   SeFloat m_magnitude_zero_point;

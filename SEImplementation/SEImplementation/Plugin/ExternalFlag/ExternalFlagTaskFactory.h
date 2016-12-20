@@ -38,7 +38,7 @@ public:
 private:
   
   std::map<PropertyId, ExternalFlagConfig::FlagInfo> m_flag_info_map;
-  std::vector<std::string> m_instance_names;
+  std::vector<std::pair<std::string, unsigned int>> m_instance_names;
   
 }; /* End of ExternalFlagTaskFactory class */
 

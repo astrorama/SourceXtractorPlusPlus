@@ -45,7 +45,7 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
   auto& flag_info_list = manager.getConfiguration<ExternalFlagConfig>().getFlagInfoList();
   for (unsigned int i = 0; i < flag_info_list.size(); ++i) {
     auto& pair = flag_info_list.at(i);
-    m_instance_names.emplace_back(pair.first);
+    m_instance_names.emplace_back(pair.first, i);
     auto property_id = PropertyId::create<ExternalFlag>(i);
     
     m_flag_info_map[property_id] = pair.second;

@@ -5,6 +5,8 @@
  *      Author: mschefer
  */
 
+#include <iostream>
+
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 
