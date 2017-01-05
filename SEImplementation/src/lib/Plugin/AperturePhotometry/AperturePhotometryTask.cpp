@@ -45,7 +45,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 }
 
 void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source) const {
-  SeFloat flux;
+  SeFloat flux = 0;
   for (auto instance : m_instances_to_aggregate) {
     auto aperture_photometry = source.getProperty<AperturePhotometry>(instance);
     flux += aperture_photometry.getFlux();
@@ -91,6 +91,55 @@ PixelCoordinate CircularAperture::getMinPixel(SeFloat centroid_x, SeFloat centro
 PixelCoordinate CircularAperture::getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const {
   return PixelCoordinate(centroid_x + m_radius + 1, centroid_y + m_radius + 1);
 }
+
+
+//////////////////////////////
+// MultiAperturePhotometryTask
+
+void MultiAperturePhotometryTask::computeProperties(SourceInterface& source) const {
+
+  struct ImageInfo {
+    int min_x, min_y;
+    int max_x, max_y;
+  };
+
+  std::vector<ImageInfo> image_infos;
+
+  for (unsigned int image_instance : m_image_instances) {
+    ImageInfo image_info;
+
+    auto measurement_frame = source.getProperty<MeasurementFrame>(image_instance).getMeasurementImage();
+
+    auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(image_instance);
+
+    auto min_pixel = m_aperture->getMinPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
+    image_info.min_x = std::max<int>(0, min_pixel.m_x);
+    image_info.min_y = std::max<int>(0, min_pixel.m_y);
+
+    auto max_pixel = m_aperture->getMaxPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
+    image_info.max_x = std::min<int>(measurement_frame->getWidth() - 1, max_pixel.m_x);
+    image_info.max_y = std::min<int>(measurement_frame->getHeight() - 1, max_pixel.m_y);
+
+    image_infos.emplace_back(image_info);
+  }
+
+
+//  SeFloat flux = 0;
+//  for (int pixel_y = min_y; pixel_y <= max_y; pixel_y++) {
+//    for (int pixel_x = min_x; pixel_x <= max_x; pixel_x++) {
+//    }
+//  }
+
+//      auto value = measurement_frame->getValue(pixel_x, pixel_y);
+//      flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
+//          pixel_centroid.getCentroidY(), pixel_x, pixel_y);
+//    }
+//  }
+//
+//  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
+//  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
+}
+
 
 }
 
