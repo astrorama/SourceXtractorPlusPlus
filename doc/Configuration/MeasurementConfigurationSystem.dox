@@ -295,14 +295,17 @@ measurement-group:
   multigroup:
     group-by: "BAND"
     
-    subgroup:
+    multigroup:
       group-by: "DAY"
-      aperture-photometry:
-          aggregate: mean
+
+      measurement:
+        aperture-photometry:
+            aggregate: mean
     
-    aperture-photometry:
-        size: 5
-        aggregate: vector
+    measurement:
+      aperture-photometry:
+          size: 5
+          aggregate: vector
 \endcode
 
 In this example, we group files by band, then by day and then by exposure number.
