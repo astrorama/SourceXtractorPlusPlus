@@ -192,6 +192,4 @@ std::string MeasurementConfig::ImageGroup::getName() const {
   return m_name;
 }
 
-
-
 }
