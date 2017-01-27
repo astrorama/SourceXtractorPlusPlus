@@ -53,7 +53,7 @@ public:
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    source->setProperty<DetectionFrame>(m_processed_detection_image, m_detection_image_coordinate_system);
+    source->setProperty<DetectionFrame>(m_processed_detection_image, m_labelling_image, m_detection_image_coordinate_system);
     notifyObservers(source);
   }
 
@@ -64,6 +64,8 @@ private:
   std::shared_ptr<DetectionImageProcessing> m_labelling_image_processing;
 
   std::shared_ptr<DetectionImage> m_processed_detection_image;
+  std::shared_ptr<DetectionImage> m_labelling_image;
+
   std::shared_ptr<CoordinateSystem> m_detection_image_coordinate_system;
 }; /* End of Segmentation class */
 

@@ -9,6 +9,7 @@
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
+#include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
 
 namespace po = boost::program_options;
 
@@ -18,6 +19,7 @@ SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) 
   declareDependency<BackgroundConfig>();
   declareDependency<MinAreaPartitionConfig>();
   declareDependency<AttractorsPartitionConfig>();
+  declareDependency<MultiThresholdPartitionConfig>();
   // The following dependency is not used but it is included so its options
   // are included in the help message
   declareDependency<PluginConfig>();

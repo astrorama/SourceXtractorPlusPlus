@@ -14,11 +14,12 @@
 
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 
-#include "SEImplementation/Segmentation/Lutz.h"
 #include "SEImplementation/Segmentation/BackgroundSubtract.h"
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
+
+#include "../../../SEImplementation/Segmentation/LutzSegmentation.h"
 
 using namespace Euclid::Configuration;
 
@@ -84,7 +85,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
   auto segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
-      segmentation->setLabelling<Lutz>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+      segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

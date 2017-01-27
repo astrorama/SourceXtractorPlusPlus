@@ -62,15 +62,21 @@ public:
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
+    assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     return m_data[x + y * m_width];
   }
   
   void setValue(int x, int y, T value) {
+    assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     m_data[x + y * m_width] = value;
   }
 
   void setValue(PixelCoordinate pc, T value) {
     setValue(pc.m_x, pc.m_y, value);
+  }
+
+  void fillValue(T value) {
+    std::fill(m_data.begin(), m_data.end(), value);
   }
 
   const std::vector<T>& getData() const {

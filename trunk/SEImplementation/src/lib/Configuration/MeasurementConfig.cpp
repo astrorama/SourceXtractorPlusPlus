@@ -92,7 +92,7 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
     if (node.first.as<std::string>() == "path") {
       auto filename = bfs::path(node.second.as<std::string>());
       auto root_path = bfs::absolute(filename.root_path());
-      std::cout << ">>>" << filename << "##" << root_path << std::endl;
+      std::cout << ">>> " << filename << " ## " << root_path << std::endl;
 
       auto path_regexp = filename.filename().string();
       boost::replace_all(path_regexp, ".", "\\.");
@@ -101,7 +101,7 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
 
       auto iter = boost::make_iterator_range(bfs::directory_iterator(root_path), {})
           | ba::filtered(static_cast<bool (*)(const bfs::path &)>(&bfs::is_regular_file))
-          | ba::filtered([&](const bfs::path &path){
+          | ba::filtered([&](const bfs::path &path) {
               boost::smatch what;
               return boost::regex_match(path.filename().string(), what, filter);
           });
@@ -148,17 +148,8 @@ unsigned int MeasurementConfig::addImage(const std::string filename) {
 void MeasurementConfig::AperturePhotometryOptions::updateOptions(const YAML::Node& image_group) {
   try {
     auto aperture_options = image_group["aperture-photometry"];
-    for (auto node : aperture_options) {
-      if (node.first.as<std::string>() == "aggregate") {
-        auto value = node.second.as<std::string>();
-        if (value == "mean") {
-          m_aggregate_type = AggregateType::Mean;
-        //} else if () {
-        } else {
-          m_aggregate_type = AggregateType::None;
-        }
-      }
-    }
+//    for (auto node : aperture_options) {
+//    }
 
     try {
       const auto& aperture_size_node = aperture_options["size"];

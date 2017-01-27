@@ -77,6 +77,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
       aperture_instance_nb++;
     }
   }
+
 }
 
 }
