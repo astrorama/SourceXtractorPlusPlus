@@ -32,7 +32,7 @@ BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelVa
       std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
-  source.setProperty<DetectionFrame>(image, nullptr);
+  source.setProperty<DetectionFrame>(image, nullptr, nullptr);
 
   DetectionFramePixelValuesTask task;
   task.computeProperties(source);

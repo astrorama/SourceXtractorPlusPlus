@@ -23,27 +23,15 @@ public:
 
   class AperturePhotometryOptions {
   public:
-    enum class AggregateType {
-      None,
-      Mean,
-      Max,
-      Min
-    };
-
-    AperturePhotometryOptions() : m_aggregate_type(AggregateType::None) {}
+    AperturePhotometryOptions() {}
 
     void updateOptions(const YAML::Node& image_group);
-
-    AggregateType getAggregateType() const {
-      return m_aggregate_type;
-    }
 
     std::vector<double> getApertureSizes() const {
       return m_aperture_sizes;
     }
 
   private:
-    AggregateType m_aggregate_type;
     std::vector<double> m_aperture_sizes;
   };
 

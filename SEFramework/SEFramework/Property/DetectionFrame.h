@@ -16,13 +16,18 @@ namespace SExtractor {
 
 class DetectionFrame : public Property {
 public:
-  DetectionFrame(std::shared_ptr<DetectionImage> detection_image, std::shared_ptr<CoordinateSystem> coordinate_system)
+  DetectionFrame(std::shared_ptr<DetectionImage> detection_image, std::shared_ptr<DetectionImage> labelling_image, std::shared_ptr<CoordinateSystem> coordinate_system)
       : m_detection_image(detection_image),
+        m_labelling_image(labelling_image),
         m_coordinate_system(coordinate_system) {
   }
 
   std::shared_ptr<DetectionImage> getDetectionImage() const {
     return m_detection_image;
+  }
+
+  std::shared_ptr<DetectionImage> getLabellingImage() const {
+    return m_labelling_image;
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
@@ -31,6 +36,7 @@ public:
 
 private:
   std::shared_ptr<DetectionImage> m_detection_image;
+  std::shared_ptr<DetectionImage> m_labelling_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 };
 

@@ -25,13 +25,13 @@ void Segmentation::processImage(std::shared_ptr<DetectionImage> image,
     m_processed_detection_image = image;
   }
 
+  m_labelling_image = m_processed_detection_image;
   if (m_labelling != nullptr) {
-    auto labelling_image = m_processed_detection_image;
     if (m_labelling_image_processing != nullptr) {
-      labelling_image = m_labelling_image_processing->processImage(m_processed_detection_image);
+      m_labelling_image = m_labelling_image_processing->processImage(m_processed_detection_image);
     }
 
-    m_labelling->labelImage(*labelling_image);
+    m_labelling->labelImage(*m_labelling_image);
   }
 }
 

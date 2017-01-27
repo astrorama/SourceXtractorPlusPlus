@@ -1,17 +1,24 @@
-/**
- * @file src/lib/Segmentation/Lutz.cpp
- * @date 05/31/16
- * @author mschefer
+/*
+ * Lutz.cpp
+ *
+ *  Created on: Jan 17, 2017
+ *      Author: mschefer
  */
+
+#include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Segmentation/Lutz.h"
 
 
 namespace SExtractor {
+
+// class Lutz
+//
+//
+
 
 enum class LutzStatus {
   COMPLETE = 0,
@@ -28,25 +35,6 @@ enum class LutzMarker {
   F0
 };
 
-class Lutz::PixelGroup {
-public:
-
-  int start;
-  int end;
-  std::vector<PixelCoordinate> pixel_list;
-
-  PixelGroup() : start(-1), end(-1) {}
-
-  void merge_pixel_list(PixelGroup& other) {
-    pixel_list.insert(pixel_list.end(), other.pixel_list.begin(), other.pixel_list.end());
-  }
-};
-
-void Lutz::publishGroup(PixelGroup& pixel_group) {
-  auto source = m_source_factory->createSource();
-  source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
-  publishSource(source);
-}
 
 void Lutz::labelImage(const DetectionImage& image) {
   int width = image.getWidth() + 1; // one extra pixel
@@ -210,7 +198,9 @@ void Lutz::labelImage(const DetectionImage& image) {
   }
 }
 
-} // Segmentation namespace
+void LutzList::publishGroup(PixelGroup& pixel_group) {
+  m_groups.push_back(pixel_group);
+}
 
 
-
+}

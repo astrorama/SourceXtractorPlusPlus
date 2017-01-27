@@ -38,6 +38,14 @@ public:
     return m_max;
   }
 
+  int getWidth() const {
+    return m_max.m_x - m_min.m_x + 1;
+  }
+
+  int getHeight() const {
+    return m_max.m_y - m_min.m_y + 1;
+  }
+
 private:
   PixelCoordinate m_min, m_max;
 

@@ -5,13 +5,13 @@
  */
 
 
+#include "SEImplementation/Segmentation/LutzSegmentation.h"
+
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Segmentation/Lutz.h"
-
 #include "SEFramework/Source/SimpleSourceFactory.h"
 
 using namespace SExtractor;
@@ -132,7 +132,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   // use Lutz to split them
   Segmentation segmentation(nullptr, nullptr);
-  segmentation.setLabelling<Lutz>(std::make_shared<SimpleSourceFactory>());
+  segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>());
 
   segmentation.addObserver(source_observer);
 

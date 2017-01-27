@@ -7,6 +7,7 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/History/SourceHistory.h"
+#include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
@@ -17,6 +18,7 @@ namespace SExtractor {
 
 std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
   auto& stamp = source->getProperty<DetectionFrameSourceStamp>().getStamp();
+  auto& detection_frame = source->getProperty<DetectionFrame>();
   auto& bounds = source->getProperty<PixelBoundaries>();
 
   auto bbox_min = bounds.getMin();
@@ -50,6 +52,9 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
     for (auto& source_pixels : merged) {
       auto new_source = m_source_factory->createSource();
       new_source->setProperty<PixelCoordinateList>(source_pixels);
+      new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
+          detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
+
       // FIXME temporarily disabling History functionality
       //new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
       sources.push_back(new_source);

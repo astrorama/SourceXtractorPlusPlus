@@ -2,18 +2,19 @@ measurements-group:
   name: "g"
   
   image-files:
-    path: "simnb01_g_*.fits"
+    path: "simnb01_g_01.fits"
 
   aperture-photometry:
     size: 5
-    aggregate: mean
 
-#measurements-group:
-#  name: "r"
-#  
-#  image-files:
-#      path: "simnb01_r_.*\\.fits"
-#
-#  aperture-photometry:
-#      size: 5
-#      aggregate: mean
+measurements-group:
+  name: "r"
+  
+  image-files:
+    path: "simnb01_r_01.fits"
+
+  aperture-photometry:
+    size:
+      - 1
+      - 2
+      - 3

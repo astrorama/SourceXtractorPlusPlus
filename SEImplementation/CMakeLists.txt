@@ -77,7 +77,7 @@ elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries/Pix
 elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(Lutz_test tests/src/Segmentation/Lutz_test.cpp 
+elements_add_unit_test(Lutz_test tests/src/Segmentation/LutzSegmentation_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(MinAreaPartitionStep_test tests/src/Partition/MinAreaPartitionStep_test.cpp 

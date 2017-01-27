@@ -38,7 +38,6 @@ public:
   }
   
 private:
-  
   SourceToRowConverter m_source_to_row;
   TableHandler m_table_handler;
   std::vector<Euclid::Table::Row> m_rows {};
