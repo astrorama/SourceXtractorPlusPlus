@@ -9,7 +9,7 @@
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEFramework/SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
