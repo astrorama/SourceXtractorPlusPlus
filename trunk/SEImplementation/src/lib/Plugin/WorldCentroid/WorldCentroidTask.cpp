@@ -5,7 +5,7 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"

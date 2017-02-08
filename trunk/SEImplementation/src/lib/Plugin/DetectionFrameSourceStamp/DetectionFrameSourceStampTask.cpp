@@ -5,7 +5,7 @@
  */
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"

@@ -6,7 +6,7 @@
 #include <memory>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEFramework/SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
