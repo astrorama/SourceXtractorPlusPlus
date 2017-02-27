@@ -9,9 +9,11 @@
 namespace SExtractor {
 
 Segmentation::Segmentation(std::shared_ptr<DetectionImageProcessing> detection_image_processing,
-    std::shared_ptr<DetectionImageProcessing> labelling_image_processing)
+    std::shared_ptr<DetectionImageProcessing> labelling_image_processing,
+    std::shared_ptr<DetectionImageProcessing> thresholding_image_processing)
     : m_detection_image_processing(detection_image_processing),
-      m_labelling_image_processing(labelling_image_processing) {
+      m_labelling_image_processing(labelling_image_processing),
+      m_thresholding_image_processing(thresholding_image_processing) {
 }
 
 void Segmentation::processImage(std::shared_ptr<DetectionImage> image,
@@ -31,7 +33,8 @@ void Segmentation::processImage(std::shared_ptr<DetectionImage> image,
       m_labelling_image = m_labelling_image_processing->processImage(m_processed_detection_image);
     }
 
-    m_labelling->labelImage(*m_labelling_image);
+    auto thresholded_image = m_thresholding_image_processing->processImage(m_labelling_image);
+    m_labelling->labelImage(*thresholded_image);
   }
 }
 

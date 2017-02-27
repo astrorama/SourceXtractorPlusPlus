@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE (PixelCentroid_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( one_pixel_test, IsophotalFluxFixture ) {
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0 } ));
+  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0 } ), std::vector<DetectionImage::PixelType>());
 
   isophotal_flux_task.computeProperties(source);
 
@@ -37,7 +37,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, IsophotalFluxFixture ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( isophotal_test, IsophotalFluxFixture ) {
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0, 3.0, 5.7 } ));
+  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0, 3.0, 5.7 } ), std::vector<DetectionImage::PixelType>());
 
   isophotal_flux_task.computeProperties(source);
 

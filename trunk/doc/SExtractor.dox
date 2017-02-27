@@ -10,5 +10,6 @@ designed to help the new SExtractor developer.
     performing the most common SExtractor developer tasks
 
 - \subpage configuration : configuration specs 
+- \subpage modeling_configuration : Modeling configuration examples
 
 */

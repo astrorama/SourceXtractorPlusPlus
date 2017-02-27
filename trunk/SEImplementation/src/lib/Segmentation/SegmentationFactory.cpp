@@ -4,6 +4,8 @@
  * @author mschefer
  */
 
+#include <iostream>
+
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/VectorImage.h"
@@ -19,7 +21,7 @@
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 
-#include "../../../SEImplementation/Segmentation/LutzSegmentation.h"
+#include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 using namespace Euclid::Configuration;
 
@@ -69,6 +71,9 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
   auto actual_background_value = m_background_absolute ? m_background_value : background_value;
   auto actual_threshold_value = m_threshold_absolute ? m_threshold_value : threshold;
 
+  std::cout << "background: " <<  actual_background_value << " threshold: "  << actual_threshold_value << '\n';
+
+
   auto image_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
         std::make_shared<BackgroundSubtract>(actual_background_value),
@@ -78,11 +83,16 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
   auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
         std::make_shared<BackgroundConvolution>(convolution_filter),
+      }
+  );
+
+  auto thresholding_processing_list = std::make_shared<DetectionImageProcessingList>(
+      std::vector<std::shared_ptr<DetectionImageProcessing>>  {
         std::make_shared<BackgroundSubtract>(actual_threshold_value)
       }
   );
 
-  auto segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list);
+  auto segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list, thresholding_processing_list);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
       segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
