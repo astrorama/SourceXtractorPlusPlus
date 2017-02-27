@@ -12,12 +12,26 @@
 
 #include "SEFramework/Pipeline/Partition.h"
 
+#include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
 using namespace SExtractor;
+
+class DummyCoordinateSystem : public CoordinateSystem {
+public:
+
+  virtual WorldCoordinate imageToWorld(ImageCoordinate ) const override {
+    return WorldCoordinate(0,0);
+  }
+
+  virtual ImageCoordinate worldToImage(WorldCoordinate ) const override {
+    return ImageCoordinate(0,0);
+  }
+};
 
 struct AttractorsPartitionFixture {
   std::shared_ptr<SimpleSource> source {new SimpleSource};
@@ -44,9 +58,11 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
+  auto detection_image = std::make_shared<VectorImage<SeFloat>>(1,1);
+  source->setProperty<DetectionFrame>(detection_image, detection_image, std::make_shared<DummyCoordinateSystem>());
+
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
-
   auto stamp_one_source = std::make_shared<VectorImage<DetectionImage::PixelType>>(
       4, 1, std::vector<DetectionImage::PixelType> {2.0, 3.0, 4.0, 2.0});
   auto stamp_two_sources = std::make_shared<VectorImage<DetectionImage::PixelType>>(

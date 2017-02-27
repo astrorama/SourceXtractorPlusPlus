@@ -43,12 +43,6 @@ Actual yaml keywords are in \b bold.
     - \a measurement-1 (placeholder for some generic measurement)
       + \a parameter-1
       + \a parameter-2
-      + \b aggregate (specifies how the results are to be aggregated:)
-        - "none" - (default) individual values are not aggregated
-        - "vector" - aggregates the results as a single column containing a vector
-        - "mean" - aggregates the results as the mean of the values
-        - "max" - takes the max value
-        - "min" - takes the min value
 
 \subsection input_options Input
 
@@ -64,27 +58,6 @@ Subgroups can be used to group together some of the images in a measurement-grou
 A subgroup creates a subset of the images at the level above it by applying a filter to them. All subgroups at the same level have access to the same images at the parent level (previously defined subgroups don't prevent the next ones from using the same images). Subgroups within a subgroup only have access to the images filtered by their parent.
 
 Subgroups can be created using selection condition (for example "keyword == value"). Multigroups allow the creation of multiple subgroups at the same time using the syntax "group-by: keyword". This will create a different subgroup for each unique value of the keyword.
-
-\subsection aggregation Aggregation
-
-\image html aggregation.png
-\image latex aggregation.png width=10cm
-
-Aggregation is the process of combining the measurement results within a subgroup. If grouping was a top-down process, starting at the measurement-group and then descending into the subgroups, aggregation is bottom-up: starting at the lowest level, applying the aggregation and then passing the result to the parent subgroup until the top level is reached.
-
-When no aggregation is specified the default behavior is to keep the measurement results as distinct values per image in the group. When distinct values remain at the top level, there will be distinct output columns.
-
-Vector aggregation will combine results into a vector containing all the values.
-
-Values can also be combined according to some criteria such as taking the mean or the maximum. The availability of such aggregation methods can depend on the measurement, as they may have to be implemented specifically. (For example, it might not make sense to take the ordinary mean of magnitude values.)
-
-When performing aggregation on vectors the dimensionality and size of the vectors must match or a runtime error will occur.
-
-\subsection output Output
-
-Measurements typically produce several output values that will correspond to different columns in the output catalog. If a measurement is performed on several images and the results are not aggregated, then for each image a set of output columns will be produced. Column names use a fully qualified subgroup name when available. If that's not unique, a distinguishing number will be added to the column name.
-
-When using vector aggregation, we still get one column per measurement output but they will each contain a vector with all the aggregated values.
 
 \section config_examples Configuration Examples
 
@@ -124,14 +97,11 @@ measurement-group:
     path: path/to/second_file.fits
   
   measurement:
-    aperture-photometry:
+    multi-aperture-photometry:
       size: [5, 7, 9]
-      aggregate: mean
 \endcode
 
 A variation on the previous example. This time we specify two fits files by repeating the "path" key.
-
-Without the "aggregate: mean" line, the result would be two columns. But with it, we take the values from the first and second file and compute the mean.
 
 \subsubsection output_2 Output
 
@@ -139,11 +109,11 @@ Without the "aggregate: mean" line, the result would be two columns. But with it
 
 [
 
-  mean of first file aperture size 5 and second file aperture size 5,
+  multi-aperture-photometry on both files using size 5
   
-  mean of first file aperture size 7 and second file aperture size 7,
+  multi-aperture-photometry on both files using size 7
 
-  mean of first file aperture size 9 and second file aperture size 9,
+  multi-aperture-photometry on both files using size 9
 
 ]
 
@@ -157,9 +127,8 @@ measurement-group:
     path: foo/bar/sim01/sim01_g_*.fits
 
   measurement:
-    aperture-photometry:
+    multi-aperture-photometry:
       size: 5
-      aggregate: mean
 
 measurement-group:
   name: "r"
@@ -168,9 +137,8 @@ measurement-group:
     path: foo/bar/sim01/sim01_r_*.fits
 
   measurement:
-    aperture-photometry:
+    multi-aperture-photometry:
       size: 5
-      aggregate: mean
 
 measurement-group:
   name: "i"
@@ -179,12 +147,11 @@ measurement-group:
     path: foo/bar/sim01/sim01_i_*.fits
 
   measurement:
-    aperture-photometry:
+    multi-aperture-photometry:
       size: 7
-      aggregate: mean
 \endcode
 
-Here we have multiple exposures for 3 different bands and we want to get mean for those different bands. Note that we want a different aperture diameter for the "i" band.
+Here we have multiple exposures for 3 different bands. Note that we want a different aperture diameter for the "i" band.
 
 We define 3 completely independent "measurement-group" keys. Each contains its own image-files entry loading different files. The parameters
 for the aperture photometry are also repeated.
@@ -196,11 +163,11 @@ to do this configuration next.
 
 3 columns:
 
-aperture_photometry_g = mean of band g aperture photometry values
+aperture_photometry_g = band g aperture photometry values
 
-aperture_photometry_r = mean of band r aperture photometry values
+aperture_photometry_r = band r aperture photometry values
 
-aperture_photometry_i = mean of band i aperture photometry values
+aperture_photometry_i = band i aperture photometry values
 
 \subsection example_4 Example 4
 
@@ -215,25 +182,22 @@ measurement-group:
     selection: "BAND == 'g'"
     name: "g"
     measurement:
-      aperture-photometry:
+      multi-aperture-photometry:
         size: 5
-        aggregate: mean
       
   subgroup:
     selection: "BAND == 'r'"
     name: "r"
     measurement:
-      aperture-photometry:
+      multi-aperture-photometry:
         size: 5
-        aggregate: mean
 
   subgroup:
     selection: "BAND == 'i'"
     name: "i"
     measurement:
-      aperture-photometry:
+      multi-aperture-photometry:
         size: 7
-        aggregate: mean
 \endcode
 
 This reworked version of the previous example, adds the use of a wildcard keyword and subgroups.
@@ -263,19 +227,18 @@ measurement-group:
     
     subgroup:
       selection: "BAND == i"
-      measurement:
-        aperture-photometry:
+      override:
+        multi-aperture-photometry:
           size: 7
     
     measurement:
-      aperture-photometry:
+      multi-aperture-photometry:
         size: 5
-        aggregate: mean
 \endcode
         
 This configuration is equivalent to the previous one (if we have the same input files) but uses more advanced syntax and is more generic. 
 
-This time we use a group-by to automatically create a subgroup for each unique value of the keyword "BAND". We then request aperture photometry and a "mean" aggregate for those subgroups.
+This time we use a group-by to automatically create a subgroup for each unique value of the keyword "BAND". We then request multi aperture photometry.
 
 There is just one thing left to take care of. In the previous example, we used a different aperture size for the i band.
 How can we do that this time? Using another subgroup with a selection key, we can override the aperture photometry parameter just for the i band.
@@ -298,20 +261,15 @@ measurement-group:
     multigroup:
       group-by: "DAY"
 
-      measurement:
-        aperture-photometry:
-            aggregate: mean
-    
     measurement:
-      aperture-photometry:
+      multi-aperture-photometry:
           size: 5
-          aggregate: vector
 \endcode
 
 In this example, we group files by band, then by day and then by exposure number.
         
 \subsubsection output_6 Output
-  A column for each band containing a vector with the mean values for each day.
+  A column for each band containing a vector with the multi aperture photometry values for each day.
 
 */
 }

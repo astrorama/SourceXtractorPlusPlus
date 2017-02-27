@@ -86,6 +86,9 @@ elements_add_unit_test(MinAreaPartitionStep_test tests/src/Partition/MinAreaPart
 elements_add_unit_test(AttractorsPartitionStep_test tests/src/Partition/AttractorsPartitionStep_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(MultiThresholdPartitionStep_test tests/src/Partition/MultiThresholdPartitionStep_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/OverlappingBoundariesCriteria_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

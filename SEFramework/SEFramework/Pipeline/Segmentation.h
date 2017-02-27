@@ -36,7 +36,9 @@ public:
   virtual ~Segmentation() = default;
 
   Segmentation(std::shared_ptr<DetectionImageProcessing> detection_image_processing,
-      std::shared_ptr<DetectionImageProcessing> labelling_image_processing);
+      std::shared_ptr<DetectionImageProcessing> labelling_image_processing,
+      std::shared_ptr<DetectionImageProcessing> thresholding_image_processing
+      );
 
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {
@@ -62,6 +64,7 @@ private:
 
   std::shared_ptr<DetectionImageProcessing> m_detection_image_processing;
   std::shared_ptr<DetectionImageProcessing> m_labelling_image_processing;
+  std::shared_ptr<DetectionImageProcessing> m_thresholding_image_processing;
 
   std::shared_ptr<DetectionImage> m_processed_detection_image;
   std::shared_ptr<DetectionImage> m_labelling_image;

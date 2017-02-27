@@ -28,15 +28,22 @@ public:
    */
   virtual ~DetectionFramePixelValues() = default;
 
-  DetectionFramePixelValues(std::vector<DetectionImage::PixelType> values) : m_values(std::move(values)) {}
+  DetectionFramePixelValues(std::vector<DetectionImage::PixelType> values,
+      std::vector<DetectionImage::PixelType> filtered_values)
+    : m_values(std::move(values)), m_filtered_values(filtered_values) {}
 
   const std::vector<DetectionImage::PixelType>& getValues() const {
     return m_values;
   }
 
+  const std::vector<DetectionImage::PixelType>& getFilteredValues() const {
+    return m_filtered_values;
+  }
+
 private:
 
   std::vector<DetectionImage::PixelType> m_values;
+  std::vector<DetectionImage::PixelType> m_filtered_values;
 
 }; /* End of DetectionFramePixelValues class */
 

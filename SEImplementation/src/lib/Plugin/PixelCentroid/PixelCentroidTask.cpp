@@ -13,11 +13,13 @@
 namespace SExtractor {
 
 void PixelCentroidTask::computeProperties(SourceInterface& source) const {
-  const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
+  const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();
 
   SeFloat centroid_x = 0.0;
   SeFloat centroid_y = 0.0;
   SeFloat total_value = 0.0;
+
+  // FIXME coords relative min x,y for improved precision
 
   auto i = pixel_values.begin();
   for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {

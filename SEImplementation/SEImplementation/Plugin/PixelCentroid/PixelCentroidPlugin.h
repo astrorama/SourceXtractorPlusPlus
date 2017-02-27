@@ -26,7 +26,7 @@ public:
 
 private:
 
-}; /* End of TestPlugin class */
+};
 
 }
 

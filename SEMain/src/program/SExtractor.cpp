@@ -147,7 +147,7 @@ public:
     auto background_value = background->getMedian();
     auto rms = background->getRMS(background_value);
     auto threshold = 1.5 * rms;
-    std::cout << "background: " <<  background_value << " RMS:" << rms << " threshold: "  << threshold << '\n';
+    std::cout << "background detection: " <<  background_value << " RMS:" << rms << " threshold: "  << threshold << '\n';
 
 
     auto segmentation = segmentation_factory.createSegmentation(background_value, threshold);

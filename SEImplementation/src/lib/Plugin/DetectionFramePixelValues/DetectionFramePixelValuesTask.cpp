@@ -15,13 +15,15 @@ namespace SExtractor {
 
 void DetectionFramePixelValuesTask::computeProperties(SourceInterface& source) const {
   auto detection_frame = source.getProperty<DetectionFrame>().getDetectionImage();
+  auto filtered_frame = source.getProperty<DetectionFrame>().getLabellingImage();
 
-  std::vector<DetectionImage::PixelType> values;
+  std::vector<DetectionImage::PixelType> values, filtered_values;
   for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     values.push_back(detection_frame->getValue(pixel_coord.m_x, pixel_coord.m_y));
+    filtered_values.push_back(filtered_frame->getValue(pixel_coord.m_x, pixel_coord.m_y));
   }
 
-  source.setProperty<DetectionFramePixelValues>(std::move(values));
+  source.setProperty<DetectionFramePixelValues>(std::move(values), std::move(filtered_values));
 }
 
 } // SEImplementation namespace
