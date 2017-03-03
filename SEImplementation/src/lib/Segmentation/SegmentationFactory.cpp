@@ -82,7 +82,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
 
   auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-        std::make_shared<BackgroundConvolution>(convolution_filter),
+        //std::make_shared<BackgroundConvolution>(convolution_filter),
       }
   );
 
@@ -95,7 +95,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
   auto segmentation = std::make_shared<Segmentation>(image_processing_list, labelling_processing_list, thresholding_processing_list);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
-      segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+      segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), actual_threshold_value);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

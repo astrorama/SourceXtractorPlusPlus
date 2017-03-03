@@ -30,9 +30,10 @@ public:
    */
   virtual ~LutzSegmentation() = default;
 
-  LutzSegmentation(const Segmentation& segmentation, std::shared_ptr<SourceFactory> source_factory)
+  LutzSegmentation(const Segmentation& segmentation, std::shared_ptr<SourceFactory> source_factory,
+      SeFloat detection_threshold)
       : Labelling(segmentation),
-        m_source_factory(source_factory) {
+        m_source_factory(source_factory), m_detection_threshold(detection_threshold) {
 
     assert(source_factory != nullptr);
   }
@@ -44,6 +45,7 @@ private:
   void publishGroup(Lutz::PixelGroup& pixel_group) override;
 
   std::shared_ptr<SourceFactory> m_source_factory;
+  SeFloat m_detection_threshold;
 
 }; /* End of Lutz class */
 

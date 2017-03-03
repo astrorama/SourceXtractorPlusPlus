@@ -36,7 +36,7 @@ enum class LutzMarker {
 };
 
 
-void Lutz::labelImage(const DetectionImage& image) {
+void Lutz::labelImage(const DetectionImage& image, PixelCoordinate offset) {
   int width = image.getWidth() + 1; // one extra pixel
 
   std::vector<LutzMarker> marker(image.getWidth()+1);
@@ -53,7 +53,7 @@ void Lutz::labelImage(const DetectionImage& image) {
 
 
     for (int x=0; x < width; x++) {
-      DetectionImage::PixelType value = (x == width - 1) ? 0.0 : image.getValue(x, y);
+      DetectionImage::PixelType value = (x == width - 1) ? 0.0 : image.getValue(PixelCoordinate(x, y) + offset);
 
 
       LutzMarker last_marker = marker[x];
@@ -162,7 +162,7 @@ void Lutz::labelImage(const DetectionImage& image) {
 
       if (in_object) {
         // Update current group by current pixel
-        group_stack.back().pixel_list.push_back(PixelCoordinate(x, y));
+        group_stack.back().pixel_list.push_back(PixelCoordinate(x, y) + offset);
 
       } else {
         // The current pixel is not object

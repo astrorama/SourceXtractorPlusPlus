@@ -30,6 +30,14 @@ std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_
           auto x2 = x + cx - hx;
           auto y2 = y + cy - hy;
 
+// alternative way to handle borders
+//          x2 = std::min(image->getWidth() - 1, std::max(0, x2));
+//          y2 = std::min(image->getHeight() - 1, std::max(0, y2));
+//
+//          auto weight = m_convolution_filter->getValue(cx, cy);
+//          total += image->getValue(x2, y2) * weight;
+//          total_weight += weight;
+
           if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
             auto weight = m_convolution_filter->getValue(cx, cy);
             total += image->getValue(x2, y2) * weight;

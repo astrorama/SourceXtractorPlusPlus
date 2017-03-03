@@ -24,6 +24,7 @@ public:
     if (!m_rows.empty()) {
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);
+      std::cout << m_rows.size() << " sources detected\n";
     } else {
       std::cout << "NO SOURCES DETECTED\n";
     }
