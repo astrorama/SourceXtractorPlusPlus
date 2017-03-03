@@ -12,7 +12,8 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
 
-#include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Property/DetectionThreshold.h"
+
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -52,7 +53,7 @@ public:
     return m_parent.lock();
   }
 
-  double getTotalIntensity(DetectionImage& image, DetectionImage::PixelType threshold) const {
+  double getTotalIntensity(DetectionImage& image) const {
     DetectionImage::PixelType total_intensity = 0;
     for (const auto& pixel_coord : m_pixel_list) {
       total_intensity += (image.getValue(pixel_coord) - m_threshold);
@@ -107,72 +108,46 @@ private:
   SeFloat m_threshold;
 };
 
-std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::partition(std::shared_ptr<SourceInterface> original_source) const {
+std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::partition(
+    std::shared_ptr<SourceInterface> original_source) const {
 
   auto& detection_frame = original_source->getProperty<DetectionFrame>();
   const auto labelling_image = detection_frame.getLabellingImage();
-  //const auto unfiltered_image = detection_frame.getDetectionImage();
 
   auto& pixel_boundaries = original_source->getProperty<PixelBoundaries>();
-  auto offset = pixel_boundaries.getMin();
 
   auto& pixel_coords = original_source->getProperty<PixelCoordinateList>().getCoordinateList();
-  std::vector<PixelCoordinate> offset_image_coordinates;
-  for (auto pixel_coord : pixel_coords) {
-    offset_image_coordinates.emplace_back(pixel_coord - offset);
-  }
-
   auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(
-      pixel_boundaries.getWidth(), pixel_boundaries.getHeight());
+      pixel_boundaries.getWidth(), pixel_boundaries.getHeight(), pixel_boundaries.getMin());
   image->fillValue(0);
 
-  //auto min_value = original_source->getProperty<PeakValue>().getMinValue();
-  auto min_value = 32.9558;
+  auto detection_threshold = original_source->getProperty<DetectionThreshold>().getDetectionThreshold();
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
   for (auto pixel_coord : pixel_coords) {
     auto value = labelling_image->getValue(pixel_coord);
-    image->setValue(pixel_coord - offset, value);
+    image->setValue(pixel_coord, value);
   }
 
-//  ////// TEST
-//
-//  auto test_image = std::make_shared<VectorImage<DetectionImage::PixelType>>(
-//      pixel_boundaries.getWidth(), pixel_boundaries.getHeight());
-//  test_image->fillValue(0);
-//
-//  for (auto pixel_coord : pixel_coords) {
-//    auto value = unfiltered_image->getValue(pixel_coord);
-//    test_image->setValue(pixel_coord - offset, value);
-//  }
-//
-//
-//
-//  /////
-
-
-
-
-  auto root = std::make_shared<MultiThresholdNode>(offset_image_coordinates, 0);
+  auto root = std::make_shared<MultiThresholdNode>(pixel_coords, 0);
 
   std::list<std::shared_ptr<MultiThresholdNode>> active_nodes { root };
   std::list<std::shared_ptr<MultiThresholdNode>> junction_nodes;
 
   // Build the tree
-  int thresholds_nb = 64;
-  for (int i = 1; i < thresholds_nb; i++) {
+  for (unsigned int i = 1; i < m_thresholds_nb; i++) {
 
-    auto threshold = min_value * pow(peak_value / min_value, (double) i / thresholds_nb);
+    auto threshold = detection_threshold * pow(peak_value / detection_threshold, (double) i / m_thresholds_nb);
     SubtractImage<DetectionImage::PixelType> subtracted_image(image, threshold);
 
     LutzList lutz;
-    lutz.labelImage(subtracted_image);
+    lutz.labelImage(subtracted_image, image->getOffset());
 
     std::list<std::shared_ptr<MultiThresholdNode>> active_nodes_copy(active_nodes);
     for (auto& node : active_nodes_copy) {
       int nb_of_groups_inside = 0;
       for (auto& pixel_group : lutz.getGroups()) {
-        if (pixel_group.pixel_list.size() >= 3 && node->contains(pixel_group)) {
+        if (pixel_group.pixel_list.size() >= m_min_deblend_area && node->contains(pixel_group)) {
           nb_of_groups_inside++;
         }
       }
@@ -185,7 +160,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
         active_nodes.remove(node);
         junction_nodes.push_back(node);
         for (auto& pixel_group : lutz.getGroups()) {
-          if (pixel_group.pixel_list.size() >= 3 && node->contains(pixel_group)) {
+          if (pixel_group.pixel_list.size() >= m_min_deblend_area && node->contains(pixel_group)) {
             auto new_node = std::make_shared<MultiThresholdNode>(pixel_group.pixel_list, threshold);
             node->addChild(new_node);
             active_nodes.push_back(new_node);
@@ -193,17 +168,10 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
         }
       }
     }
-
-    //std::cout << "%% " << threshold << " / " << lutz.getGroups().size() << std::endl;
   }
 
-  //root->debugPrint();
-  //std::cout << std::endl;
-
   // Identify the sources
-  //double intensity_threshold = root->getTotalIntensity(*image, min_value) * 0.005; // FIXME config parameter
-  double intensity_threshold = root->getTotalIntensity(*image, 0) * 0.005; // FIXME config parameter
-
+  double intensity_threshold = root->getTotalIntensity(*image) * m_contrast;
 
   std::vector<std::shared_ptr<MultiThresholdNode>> source_nodes;
   while (!junction_nodes.empty()) {
@@ -213,7 +181,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     int nb_of_children_above_threshold = 0;
 
     for (auto child : node->getChildren()) {
-      if (child->getTotalIntensity(*image, node->getThreshold()) > intensity_threshold) {
+      if (child->getTotalIntensity(*image) > intensity_threshold) {
         nb_of_children_above_threshold++;
       }
     }
@@ -221,13 +189,12 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     if (nb_of_children_above_threshold >= 2) {
       node->flagAsSplit();
       for (auto child : node->getChildren()) {
-        if (child->getTotalIntensity(*image, node->getThreshold()) > intensity_threshold && !child->isSplit()) {
+        if (child->getTotalIntensity(*image) > intensity_threshold && !child->isSplit()) {
           source_nodes.push_back(child);
         }
       }
     }
   }
-  //std::cout << "%%%%%%%%: " << source_nodes.size() << std::endl;
 
   std::vector<std::shared_ptr<SourceInterface>> sources;
   if (source_nodes.empty()) {
@@ -242,19 +209,30 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
 
     auto new_source = m_source_factory->createSource();
 
-    auto pixels = source_node->getPixels();
-    for (auto& pixel : pixels) {
-      pixel = pixel + offset;
-    }
-    new_source->setProperty<PixelCoordinateList>(pixels);
+    new_source->setProperty<PixelCoordinateList>(source_node->getPixels());
 
     new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
         detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
     sources.push_back(new_source);
   }
 
-  // Reassign leftover pixels
+  auto new_sources = reassignPixels(sources, pixel_coords, image, source_nodes);
 
+  for (auto& new_source : new_sources) {
+    new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
+        detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
+    new_source->setProperty<DetectionThreshold>(detection_threshold);
+  }
+
+  return new_sources;
+}
+
+std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reassignPixels(
+    const std::vector<std::shared_ptr<SourceInterface>>& sources,
+    const std::vector<PixelCoordinate>& pixel_coords,
+    std::shared_ptr<VectorImage<DetectionImage::PixelType>> image,
+    const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes
+    ) const {
 
   std::vector<SeFloat> amplitudes;
   for (auto& source : sources) {
@@ -264,22 +242,19 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     auto thresh = source->getProperty<PeakValue>().getMinValue();
     auto peak = source->getProperty<PeakValue>().getMaxValue();
 
-    // dist = objt->fdnpix/(2*PI*objt->abcor*objt->a*objt->b);
     auto dist = pixel_list.size() / (2.0 * M_PI * shape_parameters.getAbcor() * shape_parameters.getEllipseA() * shape_parameters.getEllipseB());
     auto amp = dist < 70.0 ? thresh * expf(dist) : 4.0 * peak;
 
-    // limit expansion
+    // limit expansion ??
     if (amp > 4.0 * peak) {
       amp = 4.0 * peak;
     }
-
-    //std::cout << "amp " << amp << std::endl;
 
     amplitudes.push_back(amp);
   }
 
   for (auto pixel : pixel_coords) {
-    if (image->getValue(pixel - offset) > 0) {
+    if (image->getValue(pixel) > 0) {
       SeFloat cumulated_probability = 0;
       std::vector<SeFloat> probabilities;
 
@@ -305,29 +280,25 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
 
         cumulated_probability += dist < 70.0 ? amplitudes[i] * expf(-dist) : 0.0;
 
-        //std::cout << "dist " << dist << " cp " << cumulated_probability << std::endl;
-
         probabilities.push_back(cumulated_probability);
         i++;
       }
 
       if (probabilities.back() > 1.0e-31) {
-
         // FIXME use a better RNG
         auto drand = double(probabilities.back()) * double(rand()) / RAND_MAX;
 
         unsigned int i=0;
         for (; i<probabilities.size() && drand >= probabilities[i]; i++);
         if (i < source_nodes.size()) {
-          source_nodes[i]->addPixel(pixel - offset);
+          source_nodes[i]->addPixel(pixel);
         } else {
           std::cout << i << " oops " << drand << " " << probabilities.back() << std::endl;
         }
 
-        // select source i
       } else {
-        closest_source_node->addPixel(pixel - offset);
-        // select closest
+        // select closest source
+        closest_source_node->addPixel(pixel);
       }
     }
   }
@@ -344,23 +315,16 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     auto new_source = m_source_factory->createSource();
 
     auto pixels = source_node->getPixels();
-    for (auto& pixel : pixels) {
-      pixel = pixel + offset;
-      total_pixels++;
-    }
+    total_pixels += pixels.size();
+
     new_source->setProperty<PixelCoordinateList>(pixels);
 
-    new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
-        detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
     new_sources.push_back(new_source);
   }
 
-
-  //std::cout << total_pixels << " / " << pixel_coords.size() << std::endl;
-
-  //return { source };
   return new_sources;
 }
+
 
 } // namespace
 

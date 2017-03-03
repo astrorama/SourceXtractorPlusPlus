@@ -50,7 +50,7 @@ struct MultiThresholdPartitionFixture {
   std::shared_ptr<TaskProvider> task_provider {new TaskProvider(task_factory_registry)};
   std::shared_ptr<SourceWithOnDemandProperties> source {new SourceWithOnDemandProperties(task_provider)};
   std::shared_ptr<MultiThresholdPartitionStep> attractors_step {
-    new MultiThresholdPartitionStep(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider))
+    new MultiThresholdPartitionStep(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider), 0.005, 32, 3)
   };
 
   MultiThresholdPartitionFixture() {

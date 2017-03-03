@@ -35,7 +35,7 @@ public:
   Lutz() {}
   virtual ~Lutz() = default;
 
-  void labelImage(const DetectionImage& image);
+  void labelImage(const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0));
 
 protected:
   virtual void publishGroup(PixelGroup& pixel_group) = 0;

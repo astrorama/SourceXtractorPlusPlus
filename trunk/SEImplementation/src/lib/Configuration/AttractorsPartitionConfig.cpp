@@ -5,6 +5,7 @@
 
 #include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
+#include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
@@ -17,6 +18,8 @@ static const std::string USE_ATTRACTORS_PARTITION {"use-attractors-partition"};
 
 AttractorsPartitionConfig::AttractorsPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();
+  ConfigManager::getInstance(manager_id).registerDependency<AttractorsPartitionConfig, MinAreaPartitionConfig>();
+
 }
 
 auto AttractorsPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

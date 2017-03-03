@@ -132,7 +132,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   // use Lutz to split them
   Segmentation segmentation(nullptr, nullptr, nullptr);
-  segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>());
+  segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>(), 0.5);
 
   segmentation.addObserver(source_observer);
 

@@ -10,6 +10,7 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Property/DetectionThreshold.h"
 
 
 namespace SExtractor {
@@ -26,6 +27,7 @@ void LutzSegmentation::labelImage(const DetectionImage& image) {
 void LutzSegmentation::publishGroup(Lutz::PixelGroup& pixel_group) {
   auto source = m_source_factory->createSource();
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
+  source->setProperty<DetectionThreshold>(m_detection_threshold);
   publishSource(source);
 }
 
