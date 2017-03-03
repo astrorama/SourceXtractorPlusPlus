@@ -36,7 +36,7 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
           "The file to store the output catalog"},
       {OUTPUT_FILE_FORMAT.c_str(), po::value<std::string>()->default_value("FITS"),
           "The format of the output catalog, one of ASCII or FITS (default: FITS)"},
-          {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value(""),
+          {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value("PixelCentroid"),
           "The output properties to add in the output catalog"}
   }}};
 }
