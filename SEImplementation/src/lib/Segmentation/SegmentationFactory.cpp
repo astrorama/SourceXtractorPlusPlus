@@ -82,7 +82,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
 
   auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
       std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-        //std::make_shared<BackgroundConvolution>(convolution_filter),
+        std::make_shared<BackgroundConvolution>(convolution_filter),
       }
   );
 
