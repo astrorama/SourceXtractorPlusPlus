@@ -32,6 +32,7 @@ SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_prov
       m_background_value(0),
       m_threshold_absolute(false),
       m_threshold_value(0),
+      m_filtering_enabled(true),
       m_algorithm(SegmentationConfig::Algorithm::UNKNOWN),
       m_task_provider(task_provider) {
 }
@@ -50,6 +51,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   m_threshold_absolute = background_config.isThresholdAbsolute();
   m_threshold_value = background_config.getThresholdValue();
   m_algorithm = segmentation_config.getAlgorithmOption();
+  m_filtering_enabled = segmentation_config.isFilteringEnabled();
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat background_value, SeFloat threshold) const {
@@ -81,9 +83,12 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation(SeFloat ba
   );
 
   auto labelling_processing_list = std::make_shared<DetectionImageProcessingList>(
-      std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-        std::make_shared<BackgroundConvolution>(convolution_filter),
-      }
+      m_filtering_enabled ?
+        std::vector<std::shared_ptr<DetectionImageProcessing>>  {
+          std::make_shared<BackgroundConvolution>(convolution_filter),
+        }
+      :
+        std::vector<std::shared_ptr<DetectionImageProcessing>>  {}
   );
 
   auto thresholding_processing_list = std::make_shared<DetectionImageProcessingList>(

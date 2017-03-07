@@ -40,8 +40,13 @@ public:
     return m_selected_algorithm;
   }
 
+  bool isFilteringEnabled() const {
+    return m_filtering_enabled;
+  }
+
 private:
   Algorithm m_selected_algorithm;
+  bool m_filtering_enabled;
 
 }; /* End of SegmentationConfig class */
 
