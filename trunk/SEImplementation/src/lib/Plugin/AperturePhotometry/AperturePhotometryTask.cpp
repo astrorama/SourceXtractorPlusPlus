@@ -26,17 +26,23 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_image_instance);
 
   auto min_pixel = m_aperture->getMinPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
-  auto min_x = std::max<int>(0, min_pixel.m_x);
-  auto min_y = std::max<int>(0, min_pixel.m_y);
-
   auto max_pixel = m_aperture->getMaxPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
-  auto max_x = std::min<int>(measurement_frame->getWidth() - 1, max_pixel.m_x);
-  auto max_y = std::min<int>(measurement_frame->getHeight() - 1, max_pixel.m_y);
 
   SeFloat flux = 0;
-  for (int pixel_y = min_y; pixel_y <= max_y; pixel_y++) {
-    for (int pixel_x = min_x; pixel_x <= max_x; pixel_x++) {
-      auto value = measurement_frame->getValue(pixel_x, pixel_y);
+  for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
+    for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
+      MeasurementImage::PixelType value = 0;
+
+      if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_frame->getWidth() && pixel_y < measurement_frame->getHeight()) {
+        value = measurement_frame->getValue(pixel_x, pixel_y);
+      } else if (m_use_symmetry) {
+        auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
+        auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
+        if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_frame->getWidth() && mirror_y < measurement_frame->getHeight()) {
+          value = measurement_frame->getValue(mirror_x, mirror_y);
+        }
+      }
+
       flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
           pixel_centroid.getCentroidY(), pixel_x, pixel_y);
     }
@@ -45,6 +51,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
   source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

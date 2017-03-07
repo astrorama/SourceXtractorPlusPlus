@@ -34,7 +34,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   image->setValue(0, 0, 1);
   source.setIndexedProperty<MeasurementFrame>(0, image, nullptr);
 
-  AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0, 0);
+  AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0, 0, false);
   aperture_photometry_task.computeProperties(source);
 
   auto aperture_photometry = source.getProperty<AperturePhotometry>();

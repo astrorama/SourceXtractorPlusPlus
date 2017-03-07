@@ -41,6 +41,7 @@ private:
   SeFloat m_background_value;
   bool m_threshold_absolute;
   SeFloat m_threshold_value;
+  bool m_filtering_enabled;
 
   SegmentationConfig::Algorithm m_algorithm;
   std::shared_ptr<TaskProvider> m_task_provider;
