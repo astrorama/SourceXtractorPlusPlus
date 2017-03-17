@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAME_H_
 #define _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAME_H_
 
+#include "SEFramework/Frame/Frame.h"
+
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
@@ -16,28 +18,15 @@ namespace SExtractor {
 
 class DetectionFrame : public Property {
 public:
-  DetectionFrame(std::shared_ptr<DetectionImage> detection_image, std::shared_ptr<DetectionImage> labelling_image, std::shared_ptr<CoordinateSystem> coordinate_system)
-      : m_detection_image(detection_image),
-        m_labelling_image(labelling_image),
-        m_coordinate_system(coordinate_system) {
+  DetectionFrame(std::shared_ptr<Frame<DetectionImage>> detection_frame) : m_detection_frame(detection_frame) {
   }
 
-  std::shared_ptr<DetectionImage> getDetectionImage() const {
-    return m_detection_image;
-  }
-
-  std::shared_ptr<DetectionImage> getLabellingImage() const {
-    return m_labelling_image;
-  }
-
-  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
-    return m_coordinate_system;
+  std::shared_ptr<Frame<DetectionImage>> getFrame() const {
+    return m_detection_frame;
   }
 
 private:
-  std::shared_ptr<DetectionImage> m_detection_image;
-  std::shared_ptr<DetectionImage> m_labelling_image;
-  std::shared_ptr<CoordinateSystem> m_coordinate_system;
+  std::shared_ptr<Frame<DetectionImage>> m_detection_frame;
 };
 
 }

@@ -38,9 +38,9 @@
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/BackgroundConfig.h"
+#include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
-
-#include "SEImplementation/Background/Background.h"
 
 #include "SEMain/SExtractorConfig.h"
 
@@ -100,10 +100,10 @@ public:
   po::options_description defineSpecificProgramOptions() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
+    config_manager.registerConfiguration<BackgroundConfig>();
 
     //plugins need to be registered before reportConfigDependencies()
     plugin_manager.loadPlugins();
-
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
@@ -140,25 +140,14 @@ public:
     output_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
-    auto background = std::make_shared<Background>(detection_image);
-
-    auto background_value = background->getMedian();
-    auto rms = background->getRMS(background_value);
-    auto threshold = 1.5 * rms;
-    std::cout << "background detection: " <<  background_value << " RMS:" << rms << " threshold: "  << threshold << '\n';
-
-
-    auto segmentation = segmentation_factory.createSegmentation(background_value, threshold);
-
+    auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
-    
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
-    
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
-
     std::shared_ptr<Output> output = output_factory.getOutput();
 
     // Link together the pipeline's steps
@@ -167,8 +156,23 @@ public:
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
 
+    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, nullptr, detection_image_coordinate_system);
+    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
+        << " RMS:" << detection_frame->getBackgroundRMS() << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+
+    const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
+
+    // Override background level and threshold if requested by the user
+    if (background_config.isBackgroundLevelAbsolute()) {
+      detection_frame->setBackgroundLevel(background_config.getBackgroundLevel());
+    }
+
+    if (background_config.isDetectionThresholdAbsolute()) {
+      detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
+    }
+
     // Process the image
-    segmentation->processImage(detection_image, detection_image_coordinate_system);
+    segmentation->processFrame(detection_frame);
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));

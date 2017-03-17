@@ -27,11 +27,27 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<IsophotalFlux, double>(
+          "isophotal_flux_err",
+          [](const IsophotalFlux& prop){
+            return prop.getFluxError();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<IsophotalFlux, double>(
           "isophotal_mag",
           [](const IsophotalFlux& prop){
             return prop.getMag();
           }
   );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<IsophotalFlux, double>(
+          "isophotal_mag_err",
+          [](const IsophotalFlux& prop){
+            return prop.getMagError();
+          }
+  );
+
+
 
   plugin_api.getOutputRegistry().optionalOutput<IsophotalFlux>("IsophotalFlux");
 }

@@ -5,7 +5,6 @@
 
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
-#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -17,9 +16,10 @@ static const std::string THRESHOLD_VALUE {"threshold-value" };
 
 BackgroundConfig::BackgroundConfig(long manager_id) :
     Configuration(manager_id),
-    m_background_absolute(false),
-    m_background_value(0) {
-  declareDependency<DetectionImageConfig>();
+    m_background_level_absolute(false),
+    m_background_level(0),
+    m_detection_threshold_absolute(false),
+    m_detection_threshold(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::getProgramOptions() {
@@ -33,12 +33,12 @@ std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::ge
 
 void BackgroundConfig::initialize(const UserValues& args) {
   if (args.find(BACKGROUND_VALUE) != args.end()) {
-    m_background_absolute = true;
-    m_background_value = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
+    m_background_level_absolute = true;
+    m_background_level = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
   }
   if (args.find(THRESHOLD_VALUE) != args.end()) {
-    m_threshold_absolute = true;
-    m_threshold_value = args.find(THRESHOLD_VALUE)->second.as<SeFloat>();
+    m_detection_threshold_absolute = true;
+    m_detection_threshold = args.find(THRESHOLD_VALUE)->second.as<SeFloat>();
   }
 }
 

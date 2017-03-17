@@ -12,8 +12,6 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
 
-#include "SEImplementation/Property/DetectionThreshold.h"
-
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -112,7 +110,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     std::shared_ptr<SourceInterface> original_source) const {
 
   auto& detection_frame = original_source->getProperty<DetectionFrame>();
-  const auto labelling_image = detection_frame.getLabellingImage();
+  const auto labelling_image = detection_frame.getFrame()->getFilteredImage();
 
   auto& pixel_boundaries = original_source->getProperty<PixelBoundaries>();
 
@@ -121,7 +119,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
       pixel_boundaries.getWidth(), pixel_boundaries.getHeight(), pixel_boundaries.getMin());
   image->fillValue(0);
 
-  auto detection_threshold = original_source->getProperty<DetectionThreshold>().getDetectionThreshold();
+  auto detection_threshold = detection_frame.getFrame()->getDetectionThreshold();
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
   for (auto pixel_coord : pixel_coords) {
@@ -210,18 +208,15 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     auto new_source = m_source_factory->createSource();
 
     new_source->setProperty<PixelCoordinateList>(source_node->getPixels());
+    new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
 
-    new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
-        detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
     sources.push_back(new_source);
   }
 
   auto new_sources = reassignPixels(sources, pixel_coords, image, source_nodes);
 
   for (auto& new_source : new_sources) {
-    new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
-        detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
-    new_source->setProperty<DetectionThreshold>(detection_threshold);
+    new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
   }
 
   return new_sources;

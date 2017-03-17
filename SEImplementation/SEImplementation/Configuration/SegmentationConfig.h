@@ -29,7 +29,7 @@ public:
    */
   virtual ~SegmentationConfig() = default;
 
-  /// Constructs a new DetectionImageConfig object
+  /// Constructs a new SegmentationConfig object
   SegmentationConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;

@@ -23,28 +23,28 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  SeFloat getBackgroundValue() const {
-    return m_background_value;
+  SeFloat getBackgroundLevel() const {
+    return m_background_level;
   }
 
-  bool isBackgroundAbsolute() const {
-    return m_background_absolute;
+  bool isBackgroundLevelAbsolute() const {
+    return m_background_level_absolute;
   }
 
-  SeFloat getThresholdValue() const {
-    return m_threshold_value;
+  SeFloat getDetectionThreshold() const {
+    return m_detection_threshold;
   }
 
-  bool isThresholdAbsolute() const {
-    return m_threshold_absolute;
+  bool isDetectionThresholdAbsolute() const {
+    return m_detection_threshold_absolute;
   }
 
 private:
-  bool m_background_absolute;
-  SeFloat m_background_value;
+  bool m_background_level_absolute;
+  SeFloat m_background_level;
 
-  bool m_threshold_absolute;
-  SeFloat m_threshold_value;
+  bool m_detection_threshold_absolute;
+  SeFloat m_detection_threshold;
 
 };
 
