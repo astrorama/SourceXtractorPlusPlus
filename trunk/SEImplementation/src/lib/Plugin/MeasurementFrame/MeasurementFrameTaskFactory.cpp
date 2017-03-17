@@ -16,8 +16,8 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
   if (property_id.getTypeId() == PropertyId::create<MeasurementFrame>().getTypeId()) {
     auto instance = property_id.getIndex();
 
-    if (instance < m_measurement_images.size()) {
-      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_images[instance], m_coordinate_systems[instance]);
+    if (instance < m_measurement_frames.size()) {
+      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_frames[instance]);
     } else if (instance == 0) {
       // By default if no measurement image is provided we use the detection image as the first measurement image
       return std::make_shared<DefaultMeasurementFrameTask>(instance);
@@ -34,8 +34,14 @@ void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration
 }
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
-  m_coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
+  const auto& measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
+  const auto& coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
+  const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
+
+  for (unsigned int i=0; i<measurement_images.size(); i++) {
+    m_measurement_frames.emplace_back(std::make_shared<MeasurementImageFrame>(
+        measurement_images[i], weight_images[i], coordinate_systems[i]));
+  }
 }
 
 }

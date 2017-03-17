@@ -16,7 +16,7 @@ class BackgroundConvolution : public DetectionImageProcessing {
 public:
   BackgroundConvolution(std::shared_ptr<Image<SeFloat>> convolution_filter) : m_convolution_filter(convolution_filter) {}
 
-  virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image) override;
+  virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image) const override;
 
 private:
   std::shared_ptr<Image<SeFloat>> m_convolution_filter;

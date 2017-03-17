@@ -71,7 +71,7 @@ public:
    */
   virtual ~MeasurementConfig() = default;
 
-  /// Constructs a new DetectionImageConfig object
+  /// Constructs a new MeasurementConfig object
   MeasurementConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
@@ -90,11 +90,16 @@ public:
     return m_coordinate_systems;
   }
 
+  const std::vector<std::shared_ptr<WeightImage>>& getWeightImages() const {
+    return m_weight_images;
+  }
+
   const std::vector<std::shared_ptr<ImageGroup>>& getImageGroups() const {
     return m_groups;
   }
 
   unsigned int addImage(const std::string filename);
+  unsigned int addWeightImage(const std::string filename);
 
 private:
   //boost::property_tree::ptree m_property_tree;
@@ -103,6 +108,7 @@ private:
   std::vector<std::shared_ptr<ImageGroup>> m_groups;
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
+  std::vector<std::shared_ptr<WeightImage>> m_weight_images;
   std::map<std::string, unsigned int> m_loaded_images;
 };
 

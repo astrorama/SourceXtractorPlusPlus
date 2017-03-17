@@ -7,11 +7,11 @@
 #include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/SubtractImage.h"
+
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Property/DetectionThreshold.h"
-
 
 namespace SExtractor {
 
@@ -19,15 +19,14 @@ namespace SExtractor {
 // class LutzSegmentation
 //
 
-void LutzSegmentation::labelImage(const DetectionImage& image) {
-  Lutz::labelImage(image);
+void LutzSegmentation::labelImage(std::shared_ptr<const DetectionImageFrame> frame) {
+  Lutz::labelImage(*frame->getThresholdedImage());
 }
-
 
 void LutzSegmentation::publishGroup(Lutz::PixelGroup& pixel_group) {
   auto source = m_source_factory->createSource();
   source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
-  source->setProperty<DetectionThreshold>(m_detection_threshold);
+
   publishSource(source);
 }
 

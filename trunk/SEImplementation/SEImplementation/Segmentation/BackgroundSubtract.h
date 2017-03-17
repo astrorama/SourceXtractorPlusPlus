@@ -16,7 +16,7 @@ class BackgroundSubtract : public DetectionImageProcessing {
 public:
   BackgroundSubtract(SeFloat background_value) : m_background_value(background_value) {}
 
-  virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image) override;
+  virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image) const override;
 
 private:
   SeFloat m_background_value;

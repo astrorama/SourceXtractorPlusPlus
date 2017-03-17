@@ -14,7 +14,7 @@
 namespace SExtractor {
 
 void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<DetectionFrame>().getDetectionImage();
+  auto detection_frame = source.getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
 
   const auto& boundaries = source.getProperty<PixelBoundaries>();
   const auto& min = boundaries.getMin();

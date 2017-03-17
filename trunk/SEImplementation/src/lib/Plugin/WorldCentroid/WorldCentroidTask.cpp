@@ -17,8 +17,7 @@
 namespace SExtractor {
 
 void WorldCentroidTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<DetectionFrame>().getDetectionImage();
-  auto coordinate_system = source.getProperty<DetectionFrame>().getCoordinateSystem();
+  auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   ImageCoordinate image_coordinate(
       source.getProperty<PixelCentroid>().getCentroidX(), source.getProperty<PixelCentroid>().getCentroidY());

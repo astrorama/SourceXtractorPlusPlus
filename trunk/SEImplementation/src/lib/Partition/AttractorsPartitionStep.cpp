@@ -52,8 +52,7 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
     for (auto& source_pixels : merged) {
       auto new_source = m_source_factory->createSource();
       new_source->setProperty<PixelCoordinateList>(source_pixels);
-      new_source->setProperty<DetectionFrame>(detection_frame.getDetectionImage(),
-          detection_frame.getLabellingImage(), detection_frame.getCoordinateSystem());
+      new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
 
       // FIXME temporarily disabling History functionality
       //new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));

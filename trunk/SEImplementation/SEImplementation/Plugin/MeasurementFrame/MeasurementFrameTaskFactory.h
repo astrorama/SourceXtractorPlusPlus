@@ -26,8 +26,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
-  std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
-  std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
+  std::vector<std::shared_ptr<MeasurementImageFrame>> m_measurement_frames;
 };
 
 }

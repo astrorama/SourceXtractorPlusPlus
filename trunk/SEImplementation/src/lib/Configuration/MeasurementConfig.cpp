@@ -135,6 +135,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename) {
 
     m_measurement_images.push_back(std::move(image));
     m_coordinate_systems.push_back(coordinate_system);
+    m_weight_images.push_back(nullptr); // FIXME
 
     unsigned int image_index = m_measurement_images.size() - 1;
 
@@ -142,6 +143,10 @@ unsigned int MeasurementConfig::addImage(const std::string filename) {
 
     return m_measurement_images.size() - 1;
   }
+}
+
+unsigned int MeasurementConfig::addWeightImage(const std::string filename) {
+  return 0;
 }
 
 

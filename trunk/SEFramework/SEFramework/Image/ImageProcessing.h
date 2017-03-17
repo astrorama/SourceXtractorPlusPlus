@@ -17,7 +17,7 @@ class ImageProcessing {
 public:
   virtual ~ImageProcessing() = default;
 
-  virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image) = 0;
+  virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image) const = 0;
 };
 
 using DetectionImageProcessing = ImageProcessing<DetectionImage::PixelType>;

@@ -27,9 +27,23 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+          "aperture_flux_err",
+          [](const AperturePhotometry& prop){
+            return prop.getFluxError();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
           "aperture_mag",
           [](const AperturePhotometry& prop){
             return prop.getMag();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+          "aperture_mag_err",
+          [](const AperturePhotometry& prop){
+            return prop.getMagError();
           }
   );
 

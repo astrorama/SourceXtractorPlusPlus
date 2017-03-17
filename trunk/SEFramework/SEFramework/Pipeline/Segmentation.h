@@ -11,6 +11,7 @@
 #include <type_traits>
 
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Frame/Frame.h"
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceInterface.h"
@@ -35,10 +36,7 @@ public:
   /// Destructor
   virtual ~Segmentation() = default;
 
-  Segmentation(std::shared_ptr<DetectionImageProcessing> detection_image_processing,
-      std::shared_ptr<DetectionImageProcessing> labelling_image_processing,
-      std::shared_ptr<DetectionImageProcessing> thresholding_image_processing
-      );
+  Segmentation(std::shared_ptr<DetectionImageProcessing> image_processing);
 
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {
@@ -50,26 +48,21 @@ public:
     m_labelling.reset(new LabellingType(*this, std::forward<Args>(args)...));
   }
 
-  /// Processes a DetectionImage notifying Observers with a Source object for each detection
-  void processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<CoordinateSystem> coordinate_system);
+  /// Processes a Frame notifying Observers with a Source object for each detection
+  void processFrame(std::shared_ptr<DetectionImageFrame> frame);
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    source->setProperty<DetectionFrame>(m_processed_detection_image, m_labelling_image, m_detection_image_coordinate_system);
+    source->setProperty<DetectionFrame>(m_detection_frame);
     notifyObservers(source);
   }
 
 private:
+  std::shared_ptr<DetectionImageFrame> m_detection_frame; // FIXME
+
   std::unique_ptr<Labelling> m_labelling;
+  std::shared_ptr<DetectionImageProcessing> m_filter_image_processing;
 
-  std::shared_ptr<DetectionImageProcessing> m_detection_image_processing;
-  std::shared_ptr<DetectionImageProcessing> m_labelling_image_processing;
-  std::shared_ptr<DetectionImageProcessing> m_thresholding_image_processing;
-
-  std::shared_ptr<DetectionImage> m_processed_detection_image;
-  std::shared_ptr<DetectionImage> m_labelling_image;
-
-  std::shared_ptr<CoordinateSystem> m_detection_image_coordinate_system;
 }; /* End of Segmentation class */
 
 class Segmentation::Labelling {
@@ -79,7 +72,7 @@ public:
   Labelling(const Segmentation& segmentation) : m_segmentation(segmentation) {
   }
 
-  virtual void labelImage(const DetectionImage& image) = 0;
+  virtual void labelImage(std::shared_ptr<const DetectionImageFrame> frame) = 0;
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {

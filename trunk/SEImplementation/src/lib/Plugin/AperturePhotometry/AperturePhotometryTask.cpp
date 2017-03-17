@@ -22,13 +22,20 @@ namespace {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
-  auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getMeasurementImage();
+  auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame()->getSubtractedImage();
+  auto weight_image = source.getProperty<MeasurementFrame>(m_image_instance).getFrame()->getWeightImage();
+
+  //const auto& detection_frame = source.getProperty<DetectionFrame>();
+  //SeFloat background_variance = detection_frame.getBackgroundRMS() * detection_frame.getBackgroundRMS();
+
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_image_instance);
 
   auto min_pixel = m_aperture->getMinPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
   auto max_pixel = m_aperture->getMaxPixel(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
 
-  SeFloat flux = 0;
+  SeFloat total_flux = 0;
+  SeFloat total_variance = 0.0;
+
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
       MeasurementImage::PixelType value = 0;
@@ -43,13 +50,21 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
         }
       }
 
-      flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
+      if (weight_image) {
+        total_variance += weight_image->getValue(pixel_x, pixel_y);
+      }
+
+      total_flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
           pixel_centroid.getCentroidY(), pixel_x, pixel_y);
     }
   }
 
-  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
+  auto flux_error = sqrt(total_variance);
+
+  auto mag = total_flux > 0.0 ? -2.5*log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag_error = 1.0857 * flux_error / total_flux;
+
+  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
 }
 
 
@@ -65,7 +80,7 @@ void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source)
   flux /= m_instances_to_aggregate.size();
 
   auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, mag);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

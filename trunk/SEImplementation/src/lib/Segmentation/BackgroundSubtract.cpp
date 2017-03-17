@@ -11,7 +11,7 @@
 
 namespace SExtractor {
 
-std::shared_ptr<DetectionImage> BackgroundSubtract::processImage(std::shared_ptr<DetectionImage> image) {
+std::shared_ptr<DetectionImage> BackgroundSubtract::processImage(std::shared_ptr<DetectionImage> image) const {
   return std::make_shared<SubtractImage<DetectionImage::PixelType>>(image, m_background_value);
 }
 

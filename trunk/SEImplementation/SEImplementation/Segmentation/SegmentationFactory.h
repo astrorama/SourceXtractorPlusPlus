@@ -30,17 +30,13 @@ public:
   /// Constructor
   SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
 
-  std::shared_ptr<Segmentation> createSegmentation(SeFloat background_value, SeFloat threshold) const;
+  std::shared_ptr<Segmentation> createSegmentation() const;
   
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  bool m_background_absolute;
-  SeFloat m_background_value;
-  bool m_threshold_absolute;
-  SeFloat m_threshold_value;
   bool m_filtering_enabled;
 
   SegmentationConfig::Algorithm m_algorithm;

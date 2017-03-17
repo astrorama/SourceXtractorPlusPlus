@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAME_MEASUREMENTFRAME_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAME_MEASUREMENTFRAME_H_
 
+#include "SEFramework/Frame/Frame.h"
+
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ConstantImage.h"
@@ -17,29 +19,15 @@ namespace SExtractor {
 
 class MeasurementFrame : public Property {
 public:
-  MeasurementFrame(std::shared_ptr<MeasurementImage> measurement_image,
-      std::shared_ptr<CoordinateSystem> coordinate_system)
-      : m_measurement_image(measurement_image),
-        m_coordinate_system(coordinate_system),
-        m_weight_image(new ConstantImage<WeightImage::PixelType>(measurement_image->getWidth(),
-            measurement_image->getHeight(), 1)) {}
-
-  std::shared_ptr<MeasurementImage> getMeasurementImage() const {
-    return m_measurement_image;
+  MeasurementFrame(std::shared_ptr<MeasurementImageFrame> measurement_frame) : m_measurement_frame(measurement_frame) {
   }
 
-  std::shared_ptr<MeasurementImage> getWeightImage() const {
-    return m_weight_image;
-  }
-
-  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
-    return m_coordinate_system;
+  std::shared_ptr<Frame<DetectionImage>> getFrame() const {
+    return m_measurement_frame;
   }
 
 private:
-  std::shared_ptr<MeasurementImage> m_measurement_image;
-  std::shared_ptr<CoordinateSystem> m_coordinate_system;
-  std::shared_ptr<WeightImage> m_weight_image;
+  std::shared_ptr<MeasurementImageFrame> m_measurement_frame;
 };
 
 }

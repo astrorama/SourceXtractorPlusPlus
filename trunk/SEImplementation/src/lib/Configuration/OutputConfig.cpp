@@ -27,7 +27,7 @@ static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
   {"FITS", OutputConfig::OutputFileFormat::FITS}
 };
 
-OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id) {
+OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getProgramOptions() {
