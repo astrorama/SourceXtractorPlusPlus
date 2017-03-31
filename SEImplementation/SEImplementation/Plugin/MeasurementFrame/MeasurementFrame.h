@@ -22,7 +22,7 @@ public:
   MeasurementFrame(std::shared_ptr<MeasurementImageFrame> measurement_frame) : m_measurement_frame(measurement_frame) {
   }
 
-  std::shared_ptr<Frame<DetectionImage>> getFrame() const {
+  std::shared_ptr<MeasurementImageFrame> getFrame() const {
     return m_measurement_frame;
   }
 

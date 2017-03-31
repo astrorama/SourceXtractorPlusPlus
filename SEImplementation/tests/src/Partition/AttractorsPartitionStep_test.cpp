@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto detection_image = std::make_shared<VectorImage<SeFloat>>(1,1);
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, std::make_shared<DummyCoordinateSystem>()));
+  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, false, std::make_shared<DummyCoordinateSystem>()));
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);

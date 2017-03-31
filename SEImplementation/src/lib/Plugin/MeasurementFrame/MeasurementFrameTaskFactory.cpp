@@ -10,6 +10,11 @@
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 
+#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
+
+
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
+
 namespace SExtractor {
 
 std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& property_id) const {
@@ -37,10 +42,16 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
   const auto& coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
   const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
+  const auto& absolute_weights = manager.getConfiguration<MeasurementConfig>().getAbsoluteWeights();
 
   for (unsigned int i=0; i<measurement_images.size(); i++) {
-    m_measurement_frames.emplace_back(std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], coordinate_systems[i]));
+    auto measurement_frame = std::make_shared<MeasurementImageFrame>(
+        measurement_images[i], weight_images[i], absolute_weights[i], coordinate_systems[i]);
+
+    SimpleBackgroundAnalyzer analyzer;
+    analyzer.analyzeBackground(measurement_frame);
+
+    m_measurement_frames.emplace_back(measurement_frame);
   }
 }
 

@@ -85,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   detection_image->setValue(2, 0, 4.0);
   detection_image->setValue(3, 0, 1.0);
 
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, std::make_shared<DummyCoordinateSystem>()));
+  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, false, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 4.0);
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
@@ -109,7 +109,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   detection_image->setValue(2, 0, 1.0);
   detection_image->setValue(3, 0, 10.0);
 
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, std::make_shared<DummyCoordinateSystem>()));
+  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, nullptr, false, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 10.0);
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
@@ -134,7 +134,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   detection_image->setValue(3, 0, 1.04);
 
   source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-      detection_image, nullptr, std::make_shared<DummyCoordinateSystem>()));
+      detection_image, nullptr, false, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 10.0);
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});

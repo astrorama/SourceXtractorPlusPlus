@@ -17,17 +17,28 @@ namespace SExtractor {
 
 void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
-  const auto& detection_frame = source.getProperty<DetectionFrame>();
+  const auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  const auto weight_image = detection_frame->getWeightImage();
 
-  auto rms = detection_frame.getFrame()->getBackgroundRMS();
-  SeFloat background_variance = rms * rms;
+  auto rms = detection_frame->getBackgroundRMS();
+  SeFloat background_variance = (weight_image != nullptr && detection_frame->isWeightAbsolute()) ? 1 : rms * rms;
 
   SeFloat total_flux = 0.0;
   SeFloat total_variance = 0.0;
 
-  for (auto value : pixel_values) {
-    total_flux += value;
-    total_variance += background_variance;
+  if (weight_image != nullptr) {
+    auto value_iter = pixel_values.begin();;
+    for (auto coord : pixel_coordinates) {
+      auto value = *value_iter++;
+      total_flux += value;
+      total_variance += weight_image->getValue(coord.m_x, coord.m_y) * background_variance;
+    }
+  } else {
+    for (auto value : pixel_values) {
+      total_flux += value;
+      total_variance += background_variance;
+    }
   }
 
 //  // Add variance from gain
