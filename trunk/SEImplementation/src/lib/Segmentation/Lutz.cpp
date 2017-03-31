@@ -55,7 +55,6 @@ void Lutz::labelImage(const DetectionImage& image, PixelCoordinate offset) {
     for (int x=0; x < width; x++) {
       DetectionImage::PixelType value = (x == width - 1) ? 0.0 : image.getValue(PixelCoordinate(x, y) + offset);
 
-
       LutzMarker last_marker = marker[x];
       marker[x] = LutzMarker::ZERO;
 

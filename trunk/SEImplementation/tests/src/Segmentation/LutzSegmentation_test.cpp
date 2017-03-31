@@ -136,7 +136,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   segmentation.addObserver(source_observer);
 
-  auto detection_frame = std::make_shared<DetectionImageFrame>(image, nullptr, nullptr);
+  auto detection_frame = std::make_shared<DetectionImageFrame>(image, nullptr, false, nullptr);
   detection_frame->setBackgroundLevel(0);
   detection_frame->setDetectionThreshold(0.5);
   segmentation.processFrame(detection_frame);

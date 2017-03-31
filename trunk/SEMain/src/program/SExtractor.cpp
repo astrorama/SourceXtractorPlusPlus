@@ -42,6 +42,8 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
+
 #include "SEMain/SExtractorConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -90,6 +92,7 @@ class SEMain : public Elements::Program {
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
   DeblendingFactory deblending_factory {source_factory};
+  BackgroundAnalyzerFactory background_analyzer_factory {background_analyzer_factory};
 
 public:
   
@@ -109,6 +112,8 @@ public:
     partition_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
+    background_analyzer_factory.reportConfigDependencies(config_manager);
+
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
           "List the possible output properties for the given input parameters and exit");
@@ -138,9 +143,11 @@ public:
     partition_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
+    background_analyzer_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
+    bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
     auto segmentation = segmentation_factory.createSegmentation();
@@ -156,7 +163,10 @@ public:
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
 
-    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, nullptr, detection_image_coordinate_system);
+    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute, detection_image_coordinate_system);
+    auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
+    background_analyzer->analyzeBackground(detection_frame);
+
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS:" << detection_frame->getBackgroundRMS() << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
@@ -170,6 +180,9 @@ public:
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
+
+    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
+          << " RMS:" << detection_frame->getBackgroundRMS() << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image
     segmentation->processFrame(detection_frame);

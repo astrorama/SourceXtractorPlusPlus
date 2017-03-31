@@ -94,6 +94,10 @@ public:
     return m_weight_images;
   }
 
+  const std::vector<bool>& getAbsoluteWeights() const {
+    return m_absolute_weights;
+  }
+
   const std::vector<std::shared_ptr<ImageGroup>>& getImageGroups() const {
     return m_groups;
   }
@@ -109,6 +113,7 @@ private:
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
+  std::vector<bool> m_absolute_weights;
   std::map<std::string, unsigned int> m_loaded_images;
 };
 

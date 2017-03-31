@@ -22,7 +22,8 @@ namespace {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
-  auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame()->getSubtractedImage();
+  auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame();
+  auto measurement_image = measurement_frame->getSubtractedImage();
   auto weight_image = source.getProperty<MeasurementFrame>(m_image_instance).getFrame()->getWeightImage();
 
   //const auto& detection_frame = source.getProperty<DetectionFrame>();
@@ -36,26 +37,37 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
 
+  auto rms = measurement_frame->getBackgroundRMS();
+  SeFloat background_variance = (weight_image != nullptr && measurement_frame->isWeightAbsolute()) ? 1 : rms * rms;
+
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
       MeasurementImage::PixelType value = 0;
 
-      if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_frame->getWidth() && pixel_y < measurement_frame->getHeight()) {
-        value = measurement_frame->getValue(pixel_x, pixel_y);
+      if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_image->getWidth() && pixel_y < measurement_image->getHeight()) {
+        value = measurement_image->getValue(pixel_x, pixel_y);
       } else if (m_use_symmetry) {
         auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
         auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
-        if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_frame->getWidth() && mirror_y < measurement_frame->getHeight()) {
-          value = measurement_frame->getValue(mirror_x, mirror_y);
+        if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_image->getWidth() && mirror_y < measurement_image->getHeight()) {
+          value = measurement_image->getValue(mirror_x, mirror_y);
         }
       }
 
+      auto area = m_aperture->getArea(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY(), pixel_x, pixel_y);
+
       if (weight_image) {
-        total_variance += weight_image->getValue(pixel_x, pixel_y);
+        total_variance += weight_image->getValue(pixel_x, pixel_y) * background_variance * area;
+      } else {
+        total_variance += background_variance * area;
       }
 
-      total_flux += value * m_aperture->getArea(pixel_centroid.getCentroidX(),
-          pixel_centroid.getCentroidY(), pixel_x, pixel_y);
+      // FIXME add gain noise
+//      if (gainflag && pix>0.0 && gain>0.0)
+//        sigtv += pix/gain*var/backnoise2;
+//      }
+
+      total_flux += value * area;
     }
   }
 
@@ -66,8 +78,6 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 
   source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
 }
-
-
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

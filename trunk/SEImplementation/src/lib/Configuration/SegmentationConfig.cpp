@@ -35,7 +35,7 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
 }
 
 void SegmentationConfig::preInitialize(const UserValues& args) {
-  auto& algorithm_name = args.at(SEGMENTATION_ALGORITHM).as<std::string>();
+  auto algorithm_name = boost::to_upper_copy(args.at(SEGMENTATION_ALGORITHM).as<std::string>());
   if (algorithm_name != "LUTZ") {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
