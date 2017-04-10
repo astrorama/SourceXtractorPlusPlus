@@ -20,9 +20,9 @@ public:
   enum class WeightType {
     WEIGHT_TYPE_NONE,
     WEIGHT_TYPE_FROM_BACKGROUND,
-    WEIGHT_TYPE_ABS_RMS,
-    WEIGHT_TYPE_REL_VARIANCE,
-    WEIGHT_TYPE_REL_WEIGHT,
+    WEIGHT_TYPE_RMS,
+    WEIGHT_TYPE_VARIANCE,
+    WEIGHT_TYPE_WEIGHT,
   };
 
   virtual ~WeightImageConfig() = default;
@@ -40,16 +40,19 @@ public:
   }
 
   bool isWeightAbsolute() const {
-    return m_weight_type != WeightType::WEIGHT_TYPE_REL_VARIANCE && m_weight_type != WeightType::WEIGHT_TYPE_REL_WEIGHT;
+    return m_absolute_weight;
   }
 
 
+  static std::shared_ptr<WeightImage> convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling = 1);
 
 private:
-  void convertWeightMap(WeightType weight_type);
 
   std::shared_ptr<WeightImage> m_weight_image;
   WeightType m_weight_type;
+  bool m_absolute_weight;
+  WeightImage::PixelType m_weight_scaling;
+
 };
 
 

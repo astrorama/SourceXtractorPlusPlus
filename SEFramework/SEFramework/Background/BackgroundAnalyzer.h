@@ -20,9 +20,7 @@ public:
   virtual void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const = 0;
 };
 
-
 }
-
 
 
 #endif /* SEFRAMEWORK_SEFRAMEWORK_BACKGROUND_BACKGROUNDANALYZER_H_ */

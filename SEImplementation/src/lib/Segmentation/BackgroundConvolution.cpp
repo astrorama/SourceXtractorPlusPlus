@@ -22,7 +22,6 @@ std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_
     for (int x = 0; x < image->getWidth(); x++) {
 
       DetectionImage::PixelType total = 0;
-      SeFloat total_weight = 0;
 
       for (int cy = 0; cy < m_convolution_filter->getHeight(); cy++) {
         for (int cx = 0; cx < m_convolution_filter->getWidth(); cx++) {
@@ -39,12 +38,10 @@ std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_
 //          total_weight += weight;
 
           if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
-            auto weight = m_convolution_filter->getValue(cx, cy);
-            total += image->getValue(x2, y2) * weight;
-            total_weight += weight;
+            total += image->getValue(x2, y2) * m_convolution_filter->getValue(cx, cy);
           }
 
-          result_image->setValue(x, y, total / total_weight);
+          result_image->setValue(x, y, total);
         }
       }
     }
@@ -52,6 +49,24 @@ std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_
 
   return result_image;
 }
+
+void BackgroundConvolution::normalize() {
+  double total = 0;
+
+  for (int y = 0; y < m_convolution_filter->getHeight(); y++) {
+    for (int x = 0; x < m_convolution_filter->getWidth(); x++) {
+      total += m_convolution_filter->getValue(x, y);
+    }
+  }
+
+  for (int y = 0; y < m_convolution_filter->getHeight(); y++) {
+    for (int x = 0; x < m_convolution_filter->getWidth(); x++) {
+      m_convolution_filter->setValue(x, y, m_convolution_filter->getValue(x, y) / total);
+    }
+  }
+
+}
+
 
 
 }

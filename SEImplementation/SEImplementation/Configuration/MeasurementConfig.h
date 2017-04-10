@@ -102,10 +102,11 @@ public:
     return m_groups;
   }
 
-  unsigned int addImage(const std::string filename);
-  unsigned int addWeightImage(const std::string filename);
+  unsigned int addImage(const std::string filename, const std::string weight_filename);
 
 private:
+  std::vector<std::string> getFilenamesFromPath(const std::string& path) const;
+
   //boost::property_tree::ptree m_property_tree;
   YAML::Node m_yaml_config;
 
