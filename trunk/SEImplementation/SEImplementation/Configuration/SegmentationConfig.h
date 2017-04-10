@@ -7,6 +7,10 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
 #define _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
 
+#include <memory>
+
+#include "SEFramework/Image/ImageProcessing.h"
+
 #include "Configuration/Configuration.h"
 
 namespace SExtractor {
@@ -41,12 +45,20 @@ public:
   }
 
   bool isFilteringEnabled() const {
-    return m_filtering_enabled;
+    return m_filter != nullptr;
+  }
+
+  std::shared_ptr<DetectionImageProcessing> getFilter() const {
+    return m_filter;
   }
 
 private:
+  std::shared_ptr<DetectionImageProcessing> getDefaultFilter() const;
+  std::shared_ptr<DetectionImageProcessing> loadFilter(const std::string& filename) const;
+
   Algorithm m_selected_algorithm;
   bool m_filtering_enabled;
+  std::shared_ptr<DetectionImageProcessing> m_filter;
 
 }; /* End of SegmentationConfig class */
 
