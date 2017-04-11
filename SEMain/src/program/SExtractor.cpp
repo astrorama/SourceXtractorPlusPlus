@@ -148,6 +148,7 @@ public:
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
+    auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
     auto segmentation = segmentation_factory.createSegmentation();
@@ -163,12 +164,14 @@ public:
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
 
-    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute, detection_image_coordinate_system);
+    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
+        weight_threshold, detection_image_coordinate_system);
     auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
     background_analyzer->analyzeBackground(detection_frame);
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS:" << detection_frame->getBackgroundRMS() << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+        << " RMS: " << detection_frame->getBackgroundRMS()
+        << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
@@ -182,7 +185,8 @@ public:
     }
 
     std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
-          << " RMS:" << detection_frame->getBackgroundRMS() << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+          << " RMS: " << detection_frame->getBackgroundRMS()
+          << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image
     segmentation->processFrame(detection_frame);

@@ -23,11 +23,10 @@ namespace {
 
 void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame();
-  auto measurement_image = measurement_frame->getSubtractedImage();
-  auto weight_image = source.getProperty<MeasurementFrame>(m_image_instance).getFrame()->getWeightImage();
 
-  //const auto& detection_frame = source.getProperty<DetectionFrame>();
-  //SeFloat background_variance = detection_frame.getBackgroundRMS() * detection_frame.getBackgroundRMS();
+  auto measurement_image = measurement_frame->getSubtractedImage();
+  auto weight_image = measurement_frame->getWeightImage();
+  auto weight_threshold = measurement_frame->getWeightThreshold();
 
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_image_instance);
 
@@ -46,14 +45,17 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
       WeightImage::PixelType pixel_variance = 0;
 
       if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_image->getWidth() && pixel_y < measurement_image->getHeight()) {
-        value = measurement_image->getValue(pixel_x, pixel_y);
+
         pixel_variance = weight_image ? weight_image->getValue(pixel_x, pixel_y) : 1;
-      } else if (m_use_symmetry) {
-        auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
-        auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
-        if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_image->getWidth() && mirror_y < measurement_image->getHeight()) {
-          value = measurement_image->getValue(mirror_x, mirror_y);
-          pixel_variance = weight_image ? weight_image->getValue(mirror_x, mirror_y) : 1;
+        if (pixel_variance < weight_threshold) {
+          value = measurement_image->getValue(pixel_x, pixel_y);
+        } else if (m_use_symmetry) {
+          auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
+          auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
+          if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_image->getWidth() && mirror_y < measurement_image->getHeight()) {
+            value = measurement_image->getValue(mirror_x, mirror_y);
+            pixel_variance = weight_image ? weight_image->getValue(mirror_x, mirror_y) : 1;
+          }
         }
       }
 

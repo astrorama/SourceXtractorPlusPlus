@@ -43,6 +43,10 @@ public:
     return m_absolute_weight;
   }
 
+  WeightImage::PixelType getWeightThreshold() const {
+    return m_weight_threshold;
+  }
+
 
   static std::shared_ptr<WeightImage> convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling = 1);
 
@@ -52,7 +56,7 @@ private:
   WeightType m_weight_type;
   bool m_absolute_weight;
   WeightImage::PixelType m_weight_scaling;
-
+  WeightImage::PixelType m_weight_threshold;
 };
 
 

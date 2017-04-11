@@ -27,6 +27,7 @@ public:
   Frame(std::shared_ptr<T> detection_image,
         std::shared_ptr<WeightImage> weight_image,
         bool is_weight_absolute,
+        WeightImage::PixelType weight_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system)
           : m_image(detection_image),
             m_weight_image(weight_image),
@@ -36,7 +37,22 @@ public:
             m_background_rms(0),
             m_detection_threshold(0),
 
-            m_is_weight_absolute(is_weight_absolute)
+            m_is_weight_absolute(is_weight_absolute),
+            m_weight_threshold(weight_threshold)
+            {}
+
+  Frame(std::shared_ptr<T> detection_image,
+        std::shared_ptr<CoordinateSystem> coordinate_system = nullptr)
+          : m_image(detection_image),
+            m_weight_image(nullptr),
+            m_coordinate_system(coordinate_system),
+
+            m_background_level(0),
+            m_background_rms(0),
+            m_detection_threshold(0),
+
+            m_is_weight_absolute(false),
+            m_weight_threshold(0)
             {}
 
   std::shared_ptr<T> getOriginalImage() const {
@@ -60,7 +76,6 @@ public:
     return std::make_shared<SubtractImage<typename T::PixelType>>(getFilteredImage(), getDetectionThreshold());
   }
 
-
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
     return m_coordinate_system;
   }
@@ -71,6 +86,10 @@ public:
 
   bool isWeightAbsolute() const {
     return m_is_weight_absolute;
+  }
+
+  typename WeightImage::PixelType getWeightThreshold() const {
+    return m_weight_threshold;
   }
 
   typename T::PixelType getBackgroundRMS() const {
@@ -113,6 +132,7 @@ private:
   typename T::PixelType m_detection_threshold;
 
   bool m_is_weight_absolute;
+  typename WeightImage::PixelType m_weight_threshold;
 };
 
 using DetectionImageFrame = Frame<DetectionImage>;

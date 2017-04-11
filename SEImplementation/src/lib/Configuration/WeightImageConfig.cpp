@@ -23,9 +23,14 @@ static const std::string WEIGHT_IMAGE {"weight-image" };
 static const std::string WEIGHT_TYPE {"weight-type" };
 static const std::string WEIGHT_ABSOLUTE {"weight-absolute" };
 static const std::string WEIGHT_SCALING {"weight-scaling" };
+static const std::string WEIGHT_THRESHOLD {"weight-threshold" };
 
-WeightImageConfig::WeightImageConfig(long manager_id) : Configuration(manager_id) {
-}
+WeightImageConfig::WeightImageConfig(long manager_id) :
+    Configuration(manager_id),
+    m_weight_type(WeightType::WEIGHT_TYPE_NONE),
+    m_absolute_weight(false),
+    m_weight_scaling(1),
+    m_weight_threshold(0) {}
 
 std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::getProgramOptions() {
   return { {"Weight image", {
@@ -37,7 +42,8 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
           "Weight image type."},
       {WEIGHT_SCALING.c_str(), po::value<double>()->default_value(1.0),
           "Weight map scaling factor."},
-
+      {WEIGHT_THRESHOLD.c_str(), po::value<double>(),
+          "Threshold for pixels to be considered bad pixels. In same units as weight map."},
   }}};
 }
 
@@ -68,45 +74,66 @@ void WeightImageConfig::initialize(const UserValues& args) {
   if (m_weight_image != nullptr) {
     m_weight_image = convertWeightMap(m_weight_image, m_weight_type, m_weight_scaling);
   }
+
+  if (args.count(WEIGHT_THRESHOLD) != 0) {
+    auto threshold = args.find(WEIGHT_THRESHOLD)->second.as<double>();
+    switch (m_weight_type) {
+      default:
+      case WeightType::WEIGHT_TYPE_NONE:
+        m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
+        break;
+      case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
+      case WeightType::WEIGHT_TYPE_RMS:
+        m_weight_threshold = threshold * threshold;
+        break;
+      case WeightType::WEIGHT_TYPE_VARIANCE:
+        m_weight_threshold = threshold;
+        break;
+      case WeightType::WEIGHT_TYPE_WEIGHT:
+        m_weight_threshold = 1.0 / threshold;
+        break;
+    }
+  } else {
+    m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
+  }
 }
 
 std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
   auto new_image = std::make_shared<VectorImage<WeightImage::PixelType>>(weight_image->getWidth(), weight_image->getHeight());
 
   switch (weight_type) {
-  default:
-  case WeightType::WEIGHT_TYPE_NONE:
-  case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
-    return nullptr;
-  case WeightType::WEIGHT_TYPE_RMS:
-    for (int y = 0; y < weight_image->getHeight(); y++) {
-      for (int x = 0; x < weight_image->getWidth(); x++) {
-        auto value = weight_image->getValue(x, y) * scaling;
-        new_image->setValue(x, y, value * value);
-      }
-    }
-    return new_image;
-  case WeightType::WEIGHT_TYPE_VARIANCE:
-    for (int y = 0; y < weight_image->getHeight(); y++) {
-      for (int x = 0; x < weight_image->getWidth(); x++) {
-        new_image->setValue(x, y, weight_image->getValue(x, y) * scaling);
-      }
-    }
-    return new_image;
-  case WeightType::WEIGHT_TYPE_WEIGHT:
-    for (int y = 0; y < weight_image->getHeight(); y++) {
-      for (int x = 0; x < weight_image->getWidth(); x++) {
-        auto value = weight_image->getValue(x, y) * scaling;
-        if (value > 0) {
-          new_image->setValue(x, y, 1 / value);
-        } else {
-          new_image->setValue(x, y, std::numeric_limits<WeightImage::PixelType>::max());
+    default:
+    case WeightType::WEIGHT_TYPE_NONE:
+    case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
+      return nullptr;
+    case WeightType::WEIGHT_TYPE_RMS:
+      for (int y = 0; y < weight_image->getHeight(); y++) {
+        for (int x = 0; x < weight_image->getWidth(); x++) {
+          auto value = weight_image->getValue(x, y) * scaling;
+          new_image->setValue(x, y, value * value);
         }
       }
-    }
-    return new_image;
+      return new_image;
+    case WeightType::WEIGHT_TYPE_VARIANCE:
+      for (int y = 0; y < weight_image->getHeight(); y++) {
+        for (int x = 0; x < weight_image->getWidth(); x++) {
+          new_image->setValue(x, y, weight_image->getValue(x, y) * scaling);
+        }
+      }
+      return new_image;
+    case WeightType::WEIGHT_TYPE_WEIGHT:
+      for (int y = 0; y < weight_image->getHeight(); y++) {
+        for (int x = 0; x < weight_image->getWidth(); x++) {
+          auto value = weight_image->getValue(x, y) * scaling;
+          if (value > 0) {
+            new_image->setValue(x, y, 1.0 / value);
+          } else {
+            new_image->setValue(x, y, std::numeric_limits<WeightImage::PixelType>::max());
+          }
+        }
+      }
+      return new_image;
   }
-
 }
 
 }

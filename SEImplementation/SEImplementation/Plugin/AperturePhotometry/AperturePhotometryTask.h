@@ -42,7 +42,8 @@ public:
   /// Destructor
   virtual ~AperturePhotometryTask() = default;
 
-  AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, unsigned int image_instance, SeFloat magnitude_zero_point, bool use_symmetry)
+  AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, unsigned int image_instance,
+      SeFloat magnitude_zero_point, bool use_symmetry)
       : m_aperture(aperture),
         m_instance(instance),
         m_image_instance(image_instance),
