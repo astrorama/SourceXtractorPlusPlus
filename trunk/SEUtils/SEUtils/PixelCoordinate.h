@@ -35,8 +35,20 @@ struct PixelCoordinate {
     return PixelCoordinate(m_x + other.m_x, m_y + other.m_y);
   }
 
+  PixelCoordinate& operator+=(const PixelCoordinate& other) {
+    m_x += other.m_x;
+    m_y += other.m_y;
+    return *this;
+  }
+
   PixelCoordinate operator-(const PixelCoordinate& other) const {
     return PixelCoordinate(m_x - other.m_x, m_y - other.m_y);
+  }
+
+  PixelCoordinate& operator-=(const PixelCoordinate& other) {
+    m_x -= other.m_x;
+    m_y -= other.m_y;
+    return *this;
   }
 };
 

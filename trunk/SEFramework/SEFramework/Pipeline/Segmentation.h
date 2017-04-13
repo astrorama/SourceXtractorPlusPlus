@@ -31,6 +31,7 @@ namespace SExtractor {
 class Segmentation : public Observable<std::shared_ptr<SourceInterface>> {
 
 public:
+  class LabellingListener;
   class Labelling;
 
   /// Destructor
@@ -42,45 +43,48 @@ public:
   void setLabelling(Args... args) {
     static_assert(std::is_base_of<Labelling, LabellingType>::value,
         "LabellingType must inherit from SExtractor::Segmentation::Labelling");
-    static_assert(std::is_constructible<LabellingType, Segmentation&, Args...>::value,
+    static_assert(std::is_constructible<LabellingType, Args...>::value,
         "LabellingType must be constructible from args");
 
-    m_labelling.reset(new LabellingType(*this, std::forward<Args>(args)...));
+    m_labelling.reset(new LabellingType(std::forward<Args>(args)...));
   }
 
   /// Processes a Frame notifying Observers with a Source object for each detection
-  void processFrame(std::shared_ptr<DetectionImageFrame> frame);
+  void processFrame(std::shared_ptr<DetectionImageFrame> frame) const;
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    source->setProperty<DetectionFrame>(m_detection_frame);
     notifyObservers(source);
   }
 
 private:
-  std::shared_ptr<DetectionImageFrame> m_detection_frame; // FIXME
-
   std::unique_ptr<Labelling> m_labelling;
   std::shared_ptr<DetectionImageProcessing> m_filter_image_processing;
 
 }; /* End of Segmentation class */
 
-class Segmentation::Labelling {
+class Segmentation::LabellingListener {
 public:
-  virtual ~Labelling() = default;
+  LabellingListener(const Segmentation& segmentation, std::shared_ptr<DetectionImageFrame> detection_frame) :
+    m_segmentation(segmentation),
+    m_detection_frame(detection_frame) {}
 
-  Labelling(const Segmentation& segmentation) : m_segmentation(segmentation) {
-  }
-
-  virtual void labelImage(std::shared_ptr<const DetectionImageFrame> frame) = 0;
-
-protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    m_segmentation.publishSource(source);
+    source->setProperty<DetectionFrame>(m_detection_frame);
+    m_segmentation.notifyObservers(source);
   }
 
 private:
   const Segmentation& m_segmentation;
+  std::shared_ptr<DetectionImageFrame> m_detection_frame;
+};
+
+class Segmentation::Labelling {
+public:
+  virtual ~Labelling() = default;
+  Labelling() {}
+
+  virtual void labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) = 0;
 };
 
 } /* namespace SExtractor */

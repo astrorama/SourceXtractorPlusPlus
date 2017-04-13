@@ -15,12 +15,12 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
   return std::make_shared<SimpleBackgroundAnalyzer>();
 }
 
-void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager&) {
 
 }
 
 
-void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
 
 }
 
