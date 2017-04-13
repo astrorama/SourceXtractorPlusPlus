@@ -12,16 +12,14 @@ Segmentation::Segmentation(std::shared_ptr<DetectionImageProcessing> image_proce
     : m_filter_image_processing(image_processing) {
 }
 
-void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) {
-
-  m_detection_frame = frame; // FIXME not re-entrant!!
-
+void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) const {
   if (m_filter_image_processing != nullptr) {
     frame->applyFilter(*m_filter_image_processing);
   }
 
   if (m_labelling != nullptr) {
-    m_labelling->labelImage(frame);
+    LabellingListener listener(*this, frame);
+    m_labelling->labelImage(listener, frame);
   }
 }
 

@@ -32,17 +32,18 @@ public:
     }
   };
 
+  class LutzListener {
+  public:
+    virtual void publishGroup(PixelGroup& pixel_group) = 0;
+  };
+
   Lutz() {}
   virtual ~Lutz() = default;
 
-  void labelImage(const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0));
-
-protected:
-  virtual void publishGroup(PixelGroup& pixel_group) = 0;
-
+  void labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0));
 };
 
-class LutzList : public Lutz {
+class LutzList : public Lutz, public Lutz::LutzListener {
 public:
 
   LutzList() {}
@@ -50,6 +51,10 @@ public:
 
   const std::vector<PixelGroup>& getGroups() const {
     return m_groups;
+  }
+
+  void labelImage(const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0)) {
+    Lutz::labelImage(*this, image, offset);
   }
 
 protected:

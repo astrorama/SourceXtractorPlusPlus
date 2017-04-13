@@ -7,7 +7,6 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 
-#include "SEImplementation/Segmentation/Lutz.h"
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
@@ -21,7 +20,7 @@ namespace SExtractor {
  * @class Lutz
  * @brief Implements a Segmentation based on the Lutz algorithm
  */
-class LutzSegmentation : public Segmentation::Labelling, public Lutz {
+class LutzSegmentation : public Segmentation::Labelling {
 
 public:
 
@@ -30,18 +29,14 @@ public:
    */
   virtual ~LutzSegmentation() = default;
 
-  LutzSegmentation(const Segmentation& segmentation, std::shared_ptr<SourceFactory> source_factory)
-      : Labelling(segmentation),
-        m_source_factory(source_factory) {
-
+  LutzSegmentation(std::shared_ptr<SourceFactory> source_factory)
+      : m_source_factory(source_factory) {
     assert(source_factory != nullptr);
   }
 
-  virtual void labelImage(std::shared_ptr<const DetectionImageFrame> frame) override;
+  virtual void labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) override;
 
 private:
-  void publishGroup(Lutz::PixelGroup& pixel_group) override;
-
   std::shared_ptr<SourceFactory> m_source_factory;
 }; /* End of Lutz class */
 

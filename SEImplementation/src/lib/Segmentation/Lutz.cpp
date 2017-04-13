@@ -12,6 +12,7 @@
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 
+#include "SEImplementation/Segmentation/Lutz.h"
 
 namespace SExtractor {
 
@@ -36,7 +37,7 @@ enum class LutzMarker {
 };
 
 
-void Lutz::labelImage(const DetectionImage& image, PixelCoordinate offset) {
+void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset) {
   int width = image.getWidth() + 1; // one extra pixel
 
   std::vector<LutzMarker> marker(image.getWidth()+1);
@@ -148,7 +149,7 @@ void Lutz::labelImage(const DetectionImage& image, PixelCoordinate offset) {
             group_stack.pop_back();
             if (old_group.start == -1) {
               // Pixel group completed
-              publishGroup(old_group);
+              listener.publishGroup(old_group);
             } else {
               marker[old_group.end] = LutzMarker::F;
               inc_group_map[old_group.start] = old_group;
@@ -193,7 +194,7 @@ void Lutz::labelImage(const DetectionImage& image, PixelCoordinate offset) {
 
   // Process the pixel groups left in the inc_group_map
   for (auto& group : inc_group_map) {
-    publishGroup(group.second);
+    listener.publishGroup(group.second);
   }
 }
 

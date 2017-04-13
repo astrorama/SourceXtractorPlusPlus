@@ -280,7 +280,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
       }
 
       if (probabilities.back() > 1.0e-31) {
-        // FIXME use a better RNG
+        // TODO probably should use a better RNG
         auto drand = double(probabilities.back()) * double(rand()) / RAND_MAX;
 
         unsigned int i=0;
