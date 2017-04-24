@@ -246,7 +246,7 @@ public:
     auto flag_image_map_from_conf = manager.getConfiguration<ExampleConfWithInst>().getFlagImageMap();
     unsigned int instance_idx = 0;
     for (auto& flag_name_image : flag_image_map_from_conf) {
-      m_instance_names.emplace_back(flag_name_image.first);
+      m_instance_names.emplace_back(std::make_pair(flag_name_image.first, instance_idx));
       auto property_id = PropertyId::create<ExamplePropertyWithInst>(instance_idx);
       m_flag_image_map[property_id] = flag_name_image.second;
       instance_idx++;
@@ -268,7 +268,7 @@ public:
 private:
 
   std::map<PropertyId, std::shared_ptr<FlagImage>> m_flag_image_map;
-  std::vector<std::string> m_instance_names;
+  std::vector<std::pair<std::string, unsigned int>> m_instance_names;
 
 };
 
