@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <regex>
+#include <fstream>
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
@@ -100,8 +101,8 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-    line = std::regex_replace(line, std::regex("\\s+#.*"), "");
-    line = std::regex_replace(line, std::regex("\\s+$"), "");
+    line = std::regex_replace(line, std::regex("\\s+#.*"), std::string(""));
+    line = std::regex_replace(line, std::regex("\\s+$"), std::string(""));
     if (line.size() == 0) {
       continue;
     }
