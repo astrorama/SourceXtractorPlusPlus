@@ -37,12 +37,13 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 
+#include "SEImplementation/SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
+#include "SEImplementation/SEImplementation/Background/BackgroundRMSAnalyzerFactory.h"
+
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
-
-#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEMain/SExtractorConfig.h"
 
@@ -92,7 +93,8 @@ class SEMain : public Elements::Program {
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
   DeblendingFactory deblending_factory {source_factory};
-  BackgroundAnalyzerFactory background_analyzer_factory {background_analyzer_factory};
+  BackgroundLevelAnalyzerFactory background_level_analyzer_factory {};
+  BackgroundRMSAnalyzerFactory background_rms_analyzer_factory {};
 
 public:
   
@@ -112,7 +114,8 @@ public:
     partition_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
-    background_analyzer_factory.reportConfigDependencies(config_manager);
+    background_level_analyzer_factory.reportConfigDependencies(config_manager);
+    background_rms_analyzer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -143,7 +146,8 @@ public:
     partition_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
-    background_analyzer_factory.configure(config_manager);
+    background_level_analyzer_factory.configure(config_manager);
+    background_rms_analyzer_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
@@ -166,8 +170,12 @@ public:
 
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
         weight_threshold, detection_image_coordinate_system);
-    auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
-    background_analyzer->analyzeBackground(detection_frame);
+
+    auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    background_level_analyzer->analyzeBackground(detection_frame);
+
+    auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
+    background_rms_analyzer->analyzeBackground(detection_frame);
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS: " << detection_frame->getBackgroundRMS()

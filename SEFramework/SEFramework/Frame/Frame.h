@@ -14,6 +14,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/MultiplyImage.h"
 #include "SEFramework/Image/ImageProcessing.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
@@ -35,7 +36,7 @@ public:
 
             m_background_level(0),
             m_background_rms(0),
-            m_detection_threshold(0),
+            //m_detection_threshold(0),
 
             m_is_weight_absolute(is_weight_absolute),
             m_weight_threshold(weight_threshold)
@@ -49,7 +50,7 @@ public:
 
             m_background_level(0),
             m_background_rms(0),
-            m_detection_threshold(0),
+            //m_detection_threshold(0),
 
             m_is_weight_absolute(false),
             m_weight_threshold(0)
@@ -61,7 +62,7 @@ public:
 
   // Get the image with background subtraction
   std::shared_ptr<T> getSubtractedImage() const {
-    return std::make_shared<SubtractImage<typename T::PixelType>>(getOriginalImage(), getBackgroundLevel());
+    return std::make_shared<SubtractImage<typename T::PixelType>>(getOriginalImage(), getBackgroundLevelMap());
   }
 
   std::shared_ptr<T> getFilteredImage() const {
@@ -73,7 +74,8 @@ public:
   }
 
   std::shared_ptr<T> getThresholdedImage() const {
-    return std::make_shared<SubtractImage<typename T::PixelType>>(getFilteredImage(), getDetectionThreshold());
+    return std::make_shared<SubtractImage<typename T::PixelType>>(getFilteredImage(), m_detection_threshold);
+//        std::make_shared<MultiplyImage<typename T::PixelType>>(getBackgroundRMSMap(), 1.5)); //FIXME
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
@@ -96,39 +98,65 @@ public:
     return m_background_rms;
   }
 
+  std::shared_ptr<T> getBackgroundRMSMap() const {
+    if (m_background_rms_map != nullptr) {
+      return m_background_rms_map;
+    } else {
+      return std::make_shared<ConstantImage<typename T::PixelType>>(
+          m_image->getWidth(), m_image->getHeight(), m_background_rms);
+    }
+  }
+
   typename T::PixelType getBackgroundLevel() const {
     return m_background_level;
   }
 
-  typename T::PixelType getDetectionThreshold() const {
-    return m_detection_threshold;
+  std::shared_ptr<T> getBackgroundLevelMap() const {
+    if (m_background_level_map != nullptr) {
+      return m_background_level_map;
+    } else {
+      return std::make_shared<ConstantImage<typename T::PixelType>>(
+          m_image->getWidth(), m_image->getHeight(), m_background_level);
+    }
   }
 
   void applyFilter(const ImageProcessing<typename T::PixelType>& image_processing) {
     m_filtered_image = image_processing.processImage(getSubtractedImage());
   }
 
+  typename T::PixelType getDetectionThreshold() const {
+    return m_detection_threshold;
+  }
+
   void setDetectionThreshold(typename T::PixelType detection_threshold) {
     m_detection_threshold = detection_threshold;
   }
 
-  void setBackgroundRMS(typename T::PixelType background_rms) {
+  void setBackgroundRMS(typename T::PixelType background_rms, std::shared_ptr<T> background_rms_map =  nullptr) {
     m_background_rms = background_rms;
+    m_detection_threshold = background_rms * 1.5; // FIXME temporary
+    m_background_rms_map = background_rms_map;
   }
 
-  void setBackgroundLevel(typename T::PixelType background_level) {
+  void setBackgroundLevel(typename T::PixelType background_level, std::shared_ptr<T> background_level_map = nullptr) {
     m_background_level = background_level;
+    m_background_level_map = background_level_map;
   }
-
 
 private:
   std::shared_ptr<T> m_image;
   std::shared_ptr<T> m_filtered_image;
+
+  // background maps
+  std::shared_ptr<T> m_background_level_map;
+  std::shared_ptr<T> m_background_rms_map;
+
   std::shared_ptr<WeightImage> m_weight_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
   typename T::PixelType m_background_level;
   typename T::PixelType m_background_rms;
+
   typename T::PixelType m_detection_threshold;
 
   bool m_is_weight_absolute;
