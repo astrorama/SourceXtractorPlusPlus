@@ -14,18 +14,15 @@
 
 namespace SExtractor {
 
-class SimpleBackgroundAnalyzer : public BackgroundAnalyzer {
+class SimpleBackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
 
-  virtual ~SimpleBackgroundAnalyzer() = default;
+  virtual ~SimpleBackgroundLevelAnalyzer() = default;
 
   void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const override;
 
 private:
-
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
-  SeFloat getRMS(std::shared_ptr<DetectionImageFrame> frame, SeFloat background_value) const;
-
 };
 
 }

@@ -10,10 +10,8 @@
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 
-#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-
-
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
+#include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
 
 namespace SExtractor {
 
@@ -46,9 +44,9 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
 
   for (unsigned int i=0; i<measurement_images.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i]); // FIXME we need weight threshold
+        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i]); // FIXME !!! we need weight threshold
 
-    SimpleBackgroundAnalyzer analyzer;
+    SimpleBackgroundLevelAnalyzer analyzer;
     analyzer.analyzeBackground(measurement_frame);
 
     m_measurement_frames.emplace_back(measurement_frame);

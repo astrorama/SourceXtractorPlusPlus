@@ -13,10 +13,10 @@
 
 namespace SExtractor {
 
-class BackgroundAnalyzerFactory  : public Configurable {
+class BackgroundLevelAnalyzerFactory  : public Configurable {
 public:
   /// Destructor
-  virtual ~BackgroundAnalyzerFactory() = default;
+  virtual ~BackgroundLevelAnalyzerFactory() = default;
 
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer() const;
 

@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ConstantImage.h"
 
 namespace SExtractor {
 
@@ -29,11 +30,18 @@ public:
   virtual ~SubtractImage() = default;
 
   SubtractImage(std::shared_ptr<Image<T>> image, T value_to_subtract)
-      : m_image(image), m_value_to_subtract(value_to_subtract) {};
+      : m_image(image), m_image_to_subtract(
+          std::make_shared<ConstantImage<T>>(image->getWidth(), image->getHeight(), value_to_subtract)) {};
+
+  SubtractImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_subtract)
+      : m_image(image), m_image_to_subtract(image_to_subtract) {
+    assert(m_image->getWidth() == m_image_to_subtract->getWidth());
+    assert(m_image->getHeight() == m_image_to_subtract->getHeight());
+  };
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
-    return m_image->getValue(x, y) - m_value_to_subtract;
+    return m_image->getValue(x, y) - m_image_to_subtract->getValue(x, y);
   }
   
   int getWidth() const override {
@@ -45,9 +53,7 @@ public:
   }
 
 private:
-  std::shared_ptr<Image<T>> m_image;
-  T m_value_to_subtract;
-
+  std::shared_ptr<Image<T>> m_image, m_image_to_subtract;
 
 }; /* End of SubtractImage class */
 

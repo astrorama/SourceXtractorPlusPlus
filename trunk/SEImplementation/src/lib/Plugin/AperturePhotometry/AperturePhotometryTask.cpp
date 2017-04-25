@@ -61,9 +61,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 
       auto area = m_aperture->getArea(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY(), pixel_x, pixel_y);
 
-      // FIXME add gain noise
-//      if (gainflag && pix>0.0 && gain>0.0)
-//        sigtv += pix/gain*var/backnoise2;
+      // FIXME add gain noise, weight_gain flag support?
+//      if (gain > 0 && total_flux > 0) {
+//        total_variance += total_flux / gain;
 //      }
 
       total_flux += value * area;
@@ -90,7 +90,7 @@ void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source)
   flux /= m_instances_to_aggregate.size();
 
   auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999); // FIXME
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
