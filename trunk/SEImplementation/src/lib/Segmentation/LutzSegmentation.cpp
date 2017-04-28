@@ -14,6 +14,7 @@
 #include "SEImplementation/Segmentation/Lutz.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Property/SourceId.h"
 
 namespace SExtractor {
 
@@ -28,6 +29,7 @@ public:
   void publishGroup(Lutz::PixelGroup& pixel_group) override {
     auto source = m_source_factory->createSource();
     source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
+    source->setProperty<SourceId>();
     m_listener.publishSource(source);
   }
 

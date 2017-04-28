@@ -35,6 +35,7 @@
 
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
+#include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 
 #include "SEImplementation/SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
@@ -158,7 +159,7 @@ public:
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
     auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<OverlappingBoundariesCriteria>(new OverlappingBoundariesCriteria), group_factory);
+        std::unique_ptr<SplitSourcesCriteria>(new SplitSourcesCriteria), group_factory);
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
     std::shared_ptr<Output> output = output_factory.getOutput();
 
