@@ -74,8 +74,7 @@ public:
   }
 
   std::shared_ptr<T> getThresholdedImage() const {
-    return std::make_shared<SubtractImage<typename T::PixelType>>(getFilteredImage(), m_detection_threshold);
-//        std::make_shared<MultiplyImage<typename T::PixelType>>(getBackgroundRMSMap(), 1.5)); //FIXME
+    return std::make_shared<SubtractImage<typename T::PixelType>>(getFilteredImage(), getThresholdMap());
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
@@ -118,6 +117,10 @@ public:
       return std::make_shared<ConstantImage<typename T::PixelType>>(
           m_image->getWidth(), m_image->getHeight(), m_background_level);
     }
+  }
+
+  std::shared_ptr<T> getThresholdMap() const {
+    return std::make_shared<MultiplyImage<typename T::PixelType>>(getBackgroundRMSMap(), 1.5); // FIXME
   }
 
   void applyFilter(const ImageProcessing<typename T::PixelType>& image_processing) {

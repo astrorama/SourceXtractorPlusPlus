@@ -18,6 +18,8 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 
+#include "SEImplementation/Property/SourceId.h"
+
 #include "SEImplementation/Segmentation/Lutz.h"
 
 namespace SExtractor {
@@ -108,6 +110,8 @@ private:
 
 std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::partition(
     std::shared_ptr<SourceInterface> original_source) const {
+
+  auto parent_source_id = original_source->getProperty<SourceId>().getSourceId();
 
   auto& detection_frame = original_source->getProperty<DetectionFrame>();
   const auto labelling_image = detection_frame.getFrame()->getFilteredImage();
@@ -217,6 +221,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
 
   for (auto& new_source : new_sources) {
     new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
+    new_source->setProperty<SourceId>(parent_source_id);
   }
 
   return new_sources;
