@@ -35,10 +35,15 @@ public:
 
   virtual ~BasicParameter();
 
+  BasicParameter(const BasicParameter&) = default;
+  BasicParameter& operator=(const BasicParameter&) = default;
+  BasicParameter(BasicParameter&&) = default;
+  BasicParameter& operator=(BasicParameter&&) = default;
+
   /*
    * @brief Getter to access the private parameter value
    */
-  double getValue() {
+  double getValue() const {
     return *m_value;
   }
 
@@ -57,11 +62,6 @@ protected:
   BasicParameter(const double value) :
       m_value {new double{value}} {
   }
-
-  BasicParameter(const BasicParameter&) = default;
-  BasicParameter& operator=(const BasicParameter&) = default;
-  BasicParameter(BasicParameter&&) = default;
-  BasicParameter& operator=(BasicParameter&&) = default;
 
   /*
    * @brief Setter for the new value, which also notify the
