@@ -44,7 +44,7 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
 
 
   // FIXME temporary, for now just enlarge the area by a fixed amount of pixels
-  PixelCoordinate border = (max - min) * .5 + PixelCoordinate(2, 2);
+  PixelCoordinate border = (max - min) * .8 + PixelCoordinate(2, 2);
 
   min -= border;
   max += border;

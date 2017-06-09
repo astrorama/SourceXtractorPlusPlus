@@ -46,6 +46,8 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
+#include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEMain/SExtractorConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -97,6 +99,7 @@ class SEMain : public Elements::Program {
   BackgroundLevelAnalyzerFactory background_level_analyzer_factory {};
   BackgroundRMSAnalyzerFactory background_rms_analyzer_factory {};
 
+
 public:
   
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
@@ -107,6 +110,8 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
+
+    CheckImages::getInstance().reportConfigDependencies(config_manager);
 
     //plugins need to be registered before reportConfigDependencies()
     plugin_manager.loadPlugins();
@@ -139,6 +144,8 @@ public:
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
+
+    CheckImages::getInstance().configure(config_manager);
 
     task_factory_registry->configure(config_manager);
     task_factory_registry->registerPropertyInstances(*output_registry);
@@ -202,6 +209,8 @@ public:
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+
+    CheckImages::getInstance().saveImages();
 
     return Elements::ExitCode::OK;
   }

@@ -5,10 +5,11 @@
  *      Author: mschefer
  */
 
-#ifndef SEIMPLEMENTATION_SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
-#define SEIMPLEMENTATION_SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
 
 #include "SEFramework/Image/VectorImage.h"
+#include "ModelFitting/Image/OpenCvPsf.h"
 
 #include "SEFramework/Task/GroupTask.h"
 
@@ -17,7 +18,9 @@ namespace SExtractor {
 class SimpleModelFittingTask : public GroupTask {
 
 public:
-  SimpleModelFittingTask(unsigned int max_iterations) : m_max_iterations(max_iterations) {}
+  SimpleModelFittingTask(std::shared_ptr<ModelFitting::OpenCvPsf> psf, unsigned int max_iterations)
+    : m_psf(psf),
+      m_max_iterations(max_iterations) {}
 
   virtual ~SimpleModelFittingTask() = default;
 
@@ -25,18 +28,10 @@ public:
 
 private:
 
+  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
   unsigned int m_max_iterations;
-
-  // check image
-  std::shared_ptr<VectorImage<DetectionImage::PixelType>> m_check_image;
-
-
-
 };
 
 }
 
-
-
-
-#endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_ */

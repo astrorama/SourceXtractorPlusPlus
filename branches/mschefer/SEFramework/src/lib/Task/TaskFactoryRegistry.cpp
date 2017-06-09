@@ -29,8 +29,4 @@ void TaskFactoryRegistry::registerPropertyInstances(OutputRegistry& output_regis
   }
 }
 
-
 }
-
-
-

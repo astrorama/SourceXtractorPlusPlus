@@ -9,6 +9,7 @@
 #define SEIMPLEMENTATION_SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASKFACTORY_H_
 
 
+#include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTask.h"
 
@@ -30,6 +31,7 @@ public:
 
 private:
   unsigned int m_max_iterations;
+  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
 };
 
 }

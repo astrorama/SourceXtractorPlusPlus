@@ -23,7 +23,7 @@ MinAreaPartitionConfig::MinAreaPartitionConfig(long manager_id) : Configuration(
 
 auto MinAreaPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Extraction", {
-      {DETECT_MINAREA.c_str(), po::value<int>(), "min. # of pixels above threshold"}
+      {DETECT_MINAREA.c_str(), po::value<int>()->default_value(3), "min. # of pixels above threshold"}
   }}};
 }
 
