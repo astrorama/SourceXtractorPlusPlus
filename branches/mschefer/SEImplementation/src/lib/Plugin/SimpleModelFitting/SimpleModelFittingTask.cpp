@@ -64,11 +64,13 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
-
 /////////// FIXME copypasta from ModelFitting tests, move somewhere else
 
 // Prints on the screen the info of the levmar minimization
 void printLevmarInfo(std::array<double,10> info) {
+  static double total_error = 0;
+  total_error += info[1];
+
   std::cout << "\nMinimization info:\n";
   std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
   std::cout << "  ||e||_2: " << info[1] << '\n';
@@ -102,6 +104,7 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # function evaluations: " << info[7] << '\n';
   std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
   std::cout << "  # linear systems solved: " << info[9] << "\n\n";
+  std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -156,7 +159,9 @@ struct SourceModel {
 };
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
+
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
+  auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
 
   double pixel_scale = 1;
@@ -181,14 +186,14 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
       {pixel_centroid.getCentroidX() - stamp_top_left.m_x, make_unique<NormalizedConverter>(10.)},
       {pixel_centroid.getCentroidY() - stamp_top_left.m_y, make_unique<NormalizedConverter>(10.)},
 
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 10.)},
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 10.)},
+      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
+      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
       {peak_value.getMaxValue(), make_unique<ExpSigmoidConverter>(1, 1000000.)},
       {1, make_unique<SigmoidConverter>(0, 100)},
 
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 10.)},
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 10.)},
+      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
+      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
       {peak_value.getMaxValue(), make_unique<ExpSigmoidConverter>(1, 1000000.)},
       {1, make_unique<SigmoidConverter>(0, 100)},
@@ -204,15 +209,18 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source_model.registerParameters(manager);
   }
 
-//  auto psf_path = Elements::pathSearchInEnvVariable("psf_gal.fits", "ELEMENTS_AUX_PATH");
-//  auto psf = readPsf(psf_path[0].string());
-
   FrameModel<OpenCvPsf, cv::Mat> frame_model {
     pixel_scale, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), {},
     std::move(extended_models), *m_psf
   };
 
   cv::Mat weight = cv::Mat::ones(group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
+//  for (int y=0; y < weight_stamp.getHeight(); y++) {
+//    for (int x=0; x < weight_stamp.getWidth(); x++) {
+//      weight.at<double>(y, x) = 1.0 / (weight_stamp.getValue(x, y) + 0.01); // FIXME
+//    }
+//  }
+
 //  for (auto& source : group) {
 //    auto& pixels =  source.getProperty<PixelCoordinateList>().getCoordinateList();
 //    for (auto pixel : pixels) {

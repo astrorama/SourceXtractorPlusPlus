@@ -13,6 +13,22 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
+static const std::string PSF_FILE {"psf-file" };
+static const std::string PSF_FWHM {"psf-fwhm" };
+static const std::string PSF_PIXELSCALE {"psf-pixelscale" };
+
+/// Writes an OpenCv Mat to an image FITS file (prepend the filename with '!' to
+/// override existing files)
+void writeToFits(const cv::Mat& image, const std::string& filename) {
+  std::valarray<double> data (image.total());
+  std::copy(image.begin<double>(), image.end<double>(), begin(data));
+  long naxis = 2;
+  long naxes[2] = {image.size[1], image.size[0]};
+  std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
+  pFits->pHDU().write(1, image.total(), data);
+  std::cout << "Created file " << filename << '\n';
+}
+
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels. The pixel scale is read by the header keyword SCALE which
 /// must be present
@@ -30,7 +46,6 @@ std::shared_ptr<ModelFitting::OpenCvPsf> readPsf(const std::string& filename) {
       pixel_scale = 1;
     }
 
-
     // Get the dimension of the image
     if (image_hdu.axis(0) != image_hdu.axis(1)) {
       throw Elements::Exception() << "Non square PSF (" << image_hdu.axis(0) << 'X'
@@ -42,14 +57,47 @@ std::shared_ptr<ModelFitting::OpenCvPsf> readPsf(const std::string& filename) {
     image_hdu.read(data);
     cv::Mat kernel (size, size, CV_64F);
     std::copy(begin(data), end(data), kernel.begin<double>());
+    std::cout << "pixel scale: " << pixel_scale << std::endl;
     return std::make_shared<ModelFitting::OpenCvPsf>(pixel_scale, kernel);
   } catch (CCfits::FitsException& e) {
     throw Elements::Exception() << "Error loading PSF file: " << e.message();
   }
 }
 
+std::shared_ptr<ModelFitting::OpenCvPsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
+  int supersample = 10;
+  int size = int(fwhm / pixel_scale + 1) * 6 + 1;
+  cv::Mat kernel (size, size, CV_64F);
 
-static const std::string PSF_FILE {"psf-file" };
+  double sigma_squared = (fwhm / (pixel_scale * 2.355)) * (fwhm / (pixel_scale * 2.355));
+
+  double total = 0;
+  for (int y=0; y < size; y++) {
+    for (int x=0; x < size; x++) {
+
+      double pixel_value = 0.0;
+      for (int iy = -(supersample/2); iy <= supersample/2; iy++) {
+        for (int ix = -(supersample/2); ix <=  supersample/2; ix++) {
+          double sx = (x-size/2) + ix * (1.0 / supersample);
+          double sy = (y-size/2) + iy * (1.0 / supersample);
+          auto sub_pixel_value = exp(- (sx*sx + sy*sy) / (2 * sigma_squared) );
+          pixel_value += sub_pixel_value;
+        }
+      }
+      pixel_value /= (supersample * supersample);
+      total += pixel_value;
+      kernel.at<double>(y, x) = pixel_value;
+    }
+  }
+  for (int y=0; y < size; y++) {
+    for (int x=0; x < size; x++) {
+      kernel.at<double>(y, x) /= total;
+    }
+  }
+
+  writeToFits(kernel, "mypsf.fits");
+  return std::make_shared<ModelFitting::OpenCvPsf>(pixel_scale, kernel);
+}
 
 PsfConfig::PsfConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -57,13 +105,20 @@ PsfConfig::PsfConfig(long manager_id) :
 std::map<std::string, Configuration::OptionDescriptionList> PsfConfig::getProgramOptions() {
   return { {"PSF", {
       {PSF_FILE.c_str(), po::value<std::string>(),
-          "Psf image file (FITS format)."}  }}};
+          "Psf image file (FITS format)."},
+      {PSF_FWHM.c_str(), po::value<double>(),
+           "Generate a gaussian PSD with given full-width half-maximum"},
+      {PSF_PIXELSCALE.c_str(), po::value<double>()->default_value(.2),
+          "Pixel scale for generated PSF"}}}};
 }
 
 void PsfConfig::initialize(const UserValues& args) {
   if (args.find(PSF_FILE) != args.end()) {
     //m_psf = FitsReader<SeFloat>::readFile(args.find(PSF_FILE)->second.as<std::string>());
     m_psf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
+  } else if (args.find(PSF_FWHM) != args.end()) {
+    m_psf = generateGaussianPsf(
+        args.find(PSF_FWHM)->second.as<double>(), args.find(PSF_PIXELSCALE)->second.as<double>());
   }
 }
 

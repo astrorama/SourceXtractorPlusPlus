@@ -20,7 +20,9 @@ namespace SExtractor {
 void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group) const {
 
   // FIXME we are obviously assuming the same DetectionFrame for all sources but we should not have to rely on that
-  auto detection_frame = group.cbegin()->getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
+  auto detection_frame = group.cbegin()->getProperty<DetectionFrame>().getFrame();
+  auto subtracted_image = detection_frame->getSubtractedImage();
+  auto weight_image =detection_frame->getWeightImage();
 
   //////////////// FIXME move to its own property?
   int min_x = INT_MAX;
@@ -52,24 +54,28 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   // clip to image size
   min.m_x = std::max(min.m_x, 0);
   min.m_y = std::max(min.m_y, 0);
-  max.m_x = std::min(max.m_x, detection_frame->getWidth()-1);
-  max.m_y = std::min(max.m_y, detection_frame->getHeight()-1);
+  max.m_x = std::min(max.m_x, subtracted_image->getWidth() - 1);
+  max.m_y = std::min(max.m_y, subtracted_image->getHeight() - 1);
 
   // create the image stamp
   auto width = max.m_x - min.m_x +1;
   auto height = max.m_y - min.m_y + 1;
   std::vector<DetectionImage::PixelType> data (width * height);
+  std::vector<DetectionImage::PixelType> weight_data (width * height);
 
   // copy the data
   for (auto x = min.m_x; x <= max.m_x; ++x) {
     for (auto y = min.m_y; y <= max.m_y; ++y) {
-      data[(x-min.m_x) + (y-min.m_y) * width] = detection_frame->getValue(x, y);
+      auto index = (x-min.m_x) + (y-min.m_y) * width;
+      data[index] = subtracted_image->getValue(x, y);
+      weight_data[index] = weight_image != nullptr ? weight_image->getValue(x, y) : 1;
     }
   }
 
   // set the property
   std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};
-  group.setProperty<DetectionFrameGroupStamp>(stamp, min);
+  std::shared_ptr<WeightImage> weight_stamp {new VectorImage<DetectionImage::PixelType>(width, height, weight_data)};
+  group.setProperty<DetectionFrameGroupStamp>(stamp, min, weight_stamp);
 }
 
 } // SEImplementation namespace
