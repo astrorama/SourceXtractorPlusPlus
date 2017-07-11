@@ -20,12 +20,19 @@ public:
 
   virtual ~DetectionFrameGroupStamp() = default;
 
-  DetectionFrameGroupStamp(std::shared_ptr<DetectionImage> stamp, PixelCoordinate top_left,
-      std::shared_ptr<WeightImage> weight_stamp) : m_stamp(stamp), m_weight_stamp(weight_stamp), m_top_left(top_left) {}
+  DetectionFrameGroupStamp(std::shared_ptr<DetectionImage> stamp,
+      std::shared_ptr<DetectionImage> thresholded_stamp, PixelCoordinate top_left,
+      std::shared_ptr<WeightImage> weight_stamp) :
+        m_stamp(stamp), m_thresholded_stamp(thresholded_stamp),
+        m_weight_stamp(weight_stamp), m_top_left(top_left) {}
 
   // Returns the stamp image
   const DetectionImage& getStamp() const {
     return *m_stamp;
+  }
+
+  const DetectionImage& getThresholdedStamp() const {
+    return *m_thresholded_stamp;
   }
 
   // Returns the stamp's associated weight image
@@ -38,7 +45,7 @@ public:
   }
 
 private:
-  std::shared_ptr<DetectionImage> m_stamp;
+  std::shared_ptr<DetectionImage> m_stamp, m_thresholded_stamp;
   std::shared_ptr<WeightImage> m_weight_stamp;
   PixelCoordinate m_top_left;
 

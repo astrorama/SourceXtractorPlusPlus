@@ -22,6 +22,7 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   // FIXME we are obviously assuming the same DetectionFrame for all sources but we should not have to rely on that
   auto detection_frame = group.cbegin()->getProperty<DetectionFrame>().getFrame();
   auto subtracted_image = detection_frame->getSubtractedImage();
+  auto thresholded_image = detection_frame->getThresholdedImage();
   auto weight_image =detection_frame->getWeightImage();
 
   //////////////// FIXME move to its own property?
@@ -60,7 +61,9 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   // create the image stamp
   auto width = max.m_x - min.m_x +1;
   auto height = max.m_y - min.m_y + 1;
+
   std::vector<DetectionImage::PixelType> data (width * height);
+  std::vector<DetectionImage::PixelType> thresholded_data (width * height);
   std::vector<DetectionImage::PixelType> weight_data (width * height);
 
   // copy the data
@@ -68,14 +71,18 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
     for (auto y = min.m_y; y <= max.m_y; ++y) {
       auto index = (x-min.m_x) + (y-min.m_y) * width;
       data[index] = subtracted_image->getValue(x, y);
+      thresholded_data[index] = thresholded_image->getValue(x, y);
       weight_data[index] = weight_image != nullptr ? weight_image->getValue(x, y) : 1;
     }
   }
 
   // set the property
   std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};
+  std::shared_ptr<DetectionImage> thresholded_stamp
+      {new VectorImage<DetectionImage::PixelType>(width, height, thresholded_data)};
   std::shared_ptr<WeightImage> weight_stamp {new VectorImage<DetectionImage::PixelType>(width, height, weight_data)};
-  group.setProperty<DetectionFrameGroupStamp>(stamp, min, weight_stamp);
+
+  group.setProperty<DetectionFrameGroupStamp>(stamp, thresholded_stamp, min, weight_stamp);
 }
 
 } // SEImplementation namespace

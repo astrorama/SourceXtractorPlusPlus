@@ -29,6 +29,3 @@ void WorldCentroidTask::computeProperties(SourceInterface& source) const {
 
 }
 
-
-
-

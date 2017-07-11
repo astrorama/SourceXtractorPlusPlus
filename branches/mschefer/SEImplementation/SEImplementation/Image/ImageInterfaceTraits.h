@@ -24,7 +24,6 @@ using ImageInterfaceTypePtr = std::shared_ptr<ImageInterfaceType>;
 template <>
 struct ImageTraits<ImageInterfaceTypePtr> {
 
-  //using iterator = decltype(std::declval<cv::Mat>().begin<double>());
   using iterator = std::vector<ImageInterfaceType::PixelType>::iterator;
 
   static ImageInterfaceTypePtr factory(std::size_t width, std::size_t height) {
@@ -51,9 +50,9 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     return image->getData().end();
   }
 
-  static void addImageToImage(ImageInterfaceTypePtr& image1, const ImageInterfaceTypePtr& image2,
-                              double scale_factor, double x, double y) {
-  }
+//  static void addImageToImage(ImageInterfaceTypePtr& image1, const ImageInterfaceTypePtr& image2,
+//                              double scale_factor, double x, double y) {
+//  }
 
 }; // end of class ImageTraits<ImageInterfaceTypePtr>
 

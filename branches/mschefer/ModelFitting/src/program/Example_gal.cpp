@@ -145,7 +145,7 @@ int main() {
   cout << "Background = " << back.getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {};
+  LevmarEngine engine {1000, 1E-3, 1E-8, 1E-8, 1E-8, 1E-4};
   auto t1 = chrono::steady_clock::now();
   auto solution = engine.solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();

@@ -23,11 +23,14 @@
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 #include "ModelFitting/Parameters/NormalizedConverter.h"
+#include "ModelFitting/Parameters/NormalizedPositiveConverter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
+#include "ModelFitting/Models/OldSharp.h"
 #include "ModelFitting/Models/AutoSharp.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/ScaledModelComponent.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
+#include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Image/OpenCvMatImageTraits.h"
 #include "ModelFitting/utils.h"
@@ -54,6 +57,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
+#include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
@@ -112,6 +116,8 @@ void printLevmarInfo(std::array<double,10> info) {
 struct SourceModel {
   double size;
   EngineParameter x, y;
+//  EngineParameter x_scale, y_scale, rot_angle, i0;
+//  EngineParameter dev_x_scale, dev_y_scale, dev_rot_angle, dev_i0;
   EngineParameter x_scale, y_scale, rot_angle, i0, k;
   EngineParameter dev_x_scale, dev_y_scale, dev_rot_angle, dev_i0, dev_k;
 
@@ -132,7 +138,12 @@ struct SourceModel {
     manager.registerParameter(dev_k);
   }
 
-  void createModels(std::vector<ExtendedModel>& extended_models) {
+  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models) {
+
+
+//    point_models.emplace_back(x, y, i0);
+    //ManualParameter k { 1 };
+
     // exponential
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
     ManualParameter exp_n { 1 };
@@ -141,7 +152,7 @@ struct SourceModel {
 
     extended_models.emplace_back(std::move(component_list), x_scale, y_scale, rot_angle, size, size, x, y);
 
-    // devaucouleur
+////    // devaucouleur
     component_list.clear();
     ManualParameter devaucouleur_n { 4 };
     auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, devaucouleur_n, dev_k);
@@ -152,16 +163,20 @@ struct SourceModel {
   }
 
   void debugPrint() const {
+    std::cout << "\tsize: " << size << "\n";
     std::cout << "\tx: " << x.getValue() << "\ty: " << y.getValue() << "\n";
-    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\tk: " << k.getValue() << "\n";
-    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\tk: " << dev_k.getValue() << "\n";
+//    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\tk: " << k.getValue() << "\n";
+//    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\tk: " << dev_k.getValue() << "\n";
+    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\n";
+    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\n";
   }
 };
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
 
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
-  auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
+  auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
+  //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
 
   double pixel_scale = 1;
@@ -169,65 +184,104 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   EngineParameterManager manager {};
   std::vector<ConstantModel> constant_models;
   std::vector<ExtendedModel> extended_models;
+  std::vector<PointModel> point_models;
   std::vector<SourceModel> source_models;
 
+  // Setup models for all the sources
   for (auto& source : group) {
     auto& pixel_centroid = source.getProperty<PixelCentroid>();
     auto& shape_parameters = source.getProperty<ShapeParameters>();
     auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
-    auto& peak_value = source.getProperty<PeakValue>();
+    auto& half_maximum_boundaries = source.getProperty<PixelBoundariesHalfMaximum>();
+    //auto& peak_value = source.getProperty<PeakValue>();
+    auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
-    double size_factor = 1.5;
+    double size_factor = 2;
     auto size = std::max<double>(pixel_boundaries.getWidth(), pixel_boundaries.getHeight()) * size_factor;
 
+    double radius_guess = std::max<double>(half_maximum_boundaries.getWidth(), half_maximum_boundaries.getHeight()) / 2.0;
+
+    std::cout << radius_guess << "  :(\n";
+
+//    double exp_scale = radius_guess / .693;
+//    double dev_scale = radius_guess / .231;
+
+    double exp_scale = 1;
+    double dev_scale = 1;
+    double exp_k_guess = log(.5) / -radius_guess;
+    double dev_k_guess = log(.5) / -pow(radius_guess, .25);
+
+    // Creates the SourceModel with initial values
     SourceModel source_model {
       size,
 
-      {pixel_centroid.getCentroidX() - stamp_top_left.m_x, make_unique<NormalizedConverter>(10.)},
-      {pixel_centroid.getCentroidY() - stamp_top_left.m_y, make_unique<NormalizedConverter>(10.)},
+      {pixel_centroid.getCentroidX() - stamp_top_left.m_x, make_unique<SigmoidConverter>(
+          pixel_boundaries.getMin().m_x - stamp_top_left.m_x, pixel_boundaries.getMax().m_x - stamp_top_left.m_x + 1.0, 100)},
+      {pixel_centroid.getCentroidY() - stamp_top_left.m_y, make_unique<SigmoidConverter>(
+          pixel_boundaries.getMin().m_y - stamp_top_left.m_y, pixel_boundaries.getMax().m_y - stamp_top_left.m_y + 1.0, 100)},
 
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
+      {exp_scale, make_unique<ExpSigmoidConverter>(0.01 * exp_scale, 10.0 * exp_scale)},
+      {exp_scale, make_unique<ExpSigmoidConverter>(0.01 * exp_scale, 10.0 * exp_scale)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
-      {peak_value.getMaxValue(), make_unique<ExpSigmoidConverter>(1, 1000000.)},
-      {1, make_unique<SigmoidConverter>(0, 100)},
+      {iso_flux / 2.0, make_unique<ExpSigmoidConverter>(iso_flux * .00001, iso_flux * 10)},
+      {exp_k_guess, make_unique<ExpSigmoidConverter>(exp_k_guess * 0.1, exp_k_guess * 100)},
 
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
-      {1.0 / size_factor, make_unique<SigmoidConverter>(0, 100.)},
+      {dev_scale, make_unique<ExpSigmoidConverter>(0.01 * dev_scale, 10.0 * dev_scale)},
+      {dev_scale, make_unique<ExpSigmoidConverter>(0.01 * dev_scale, 10.0 * dev_scale)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
-      {peak_value.getMaxValue(), make_unique<ExpSigmoidConverter>(1, 1000000.)},
-      {1, make_unique<SigmoidConverter>(0, 100)},
+      {iso_flux / 2.0, make_unique<ExpSigmoidConverter>(iso_flux * .00001, iso_flux * 10)},
+      {dev_k_guess, make_unique<ExpSigmoidConverter>(dev_k_guess * 0.0001, dev_k_guess * 100000000)},
     };
 
-    source_model.createModels(extended_models);
-
-
+    source_model.createModels(extended_models, point_models);
+    source_model.registerParameters(manager);
     source_models.push_back(source_model);
   }
 
-  for (auto& source_model : source_models) {
-    source_model.registerParameters(manager);
-  }
+//  // We add a constant background
+//  ManualParameter back {0.};
+//  constant_models.emplace_back(back);
 
+  // Full frame model with all sources
   FrameModel<OpenCvPsf, cv::Mat> frame_model {
-    pixel_scale, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), {},
-    std::move(extended_models), *m_psf
+    pixel_scale,
+    (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(),
+    std::move(constant_models),
+    std::move(point_models),
+    std::move(extended_models),
+    *m_psf
   };
 
   cv::Mat weight = cv::Mat::ones(group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
-//  for (int y=0; y < weight_stamp.getHeight(); y++) {
-//    for (int x=0; x < weight_stamp.getWidth(); x++) {
-//      weight.at<double>(y, x) = 1.0 / (weight_stamp.getValue(x, y) + 0.01); // FIXME
-//    }
-//  }
 
-//  for (auto& source : group) {
-//    auto& pixels =  source.getProperty<PixelCoordinateList>().getCoordinateList();
-//    for (auto pixel : pixels) {
-//      pixel -= stamp_top_left;
-//      weight.at<double>(pixel.m_y, pixel.m_x) = 10;
-//    }
-//  }
+  for (int y=0; y < group_stamp.getHeight(); y++) {
+    for (int x=0; x < group_stamp.getWidth(); x++) {
+
+      if (thresholded_stamp.getValue(x, y) >= 0) {
+        weight.at<double>(y, x) = 0;
+      }
+    }
+  }
+  for (auto& source : group) {
+    auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+    for (auto pixel : pixel_coordinates) {
+      pixel -= stamp_top_left;
+      weight.at<double>(pixel.m_y, pixel.m_x) = 1;
+    }
+  }
+
+  for (int y=0; y < group_stamp.getHeight(); y++) {
+    for (int x=0; x < group_stamp.getWidth(); x++) {
+
+      //FIXME hardcoded quick n dirty test for ignoring saturated pixels
+      if (group_stamp.getValue(x, y)>64000) {
+        weight.at<double>(y, x) = 0;
+      } else   if (weight.at<double>(y, x)>0) {
+        weight.at<double>(y, x) = sqrt(400.0 / (400.0 /*fixme background variance*/ + group_stamp.getValue(x, y) /*/ gain*/ ));
+
+      }
+    }
+  }
 
   // FIXME for now just copy to an opencv image
   cv::Mat image (group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
@@ -237,12 +291,13 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     }
   }
 
-
-  auto data_vs_model = createDataVsModelResiduals(image, std::move(frame_model),
-      std::move(weight), LogChiSquareComparator{});
+  auto data_vs_model =
+      createDataVsModelResiduals(image, std::move(frame_model), std::move(weight), LogChiSquareComparator{});
 
   ResidualEstimator res_estimator {};
   res_estimator.registerBlockProvider(move(data_vs_model));
+
+  // Perform the minimization
 
   LevmarEngine engine {m_max_iterations};
 
@@ -253,6 +308,10 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   auto solution = engine.solveProblem(manager, res_estimator);
 
+//  if (solution.success_flag) {
+//    std::cout << "Success!\n";
+//  }
+
   for (auto& source_model : source_models) {
     std::cout << "After:  ";
     source_model.debugPrint();
@@ -262,35 +321,30 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
-  auto source_model_iter = source_models.begin();
-  for (auto& source : group) {
-    auto& source_model = *(source_model_iter++);
-  }
-
   auto check_image = CheckImages::getInstance().getModelFittingCheckImage();
-
   auto source_iter = group.begin();
   for (auto& source_model : source_models) {
     auto& source = *source_iter;
     ++source_iter;
 
+    // renders an image of the model for a single source with the final parameters
     std::vector<ExtendedModel> extended_models {};
-
-    source_model.createModels(extended_models);
-
+    std::vector<PointModel> point_models {};
+    source_model.createModels(extended_models, point_models);
     FrameModel<OpenCvPsf, cv::Mat> frame_model_after {
-      1, group_stamp.getWidth(), group_stamp.getHeight(), std::move(constant_models), {},
+      1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
           std::move(extended_models), *m_psf
     };
-
     auto final_image = frame_model_after.getImage();
 
+    // integrates the flux for that source
     double total_flux = 0;
     for (int y=0; y < group_stamp.getHeight(); y++) {
       for (int x=0; x < group_stamp.getWidth(); x++) {
         PixelCoordinate pixel (x,y);
         pixel += stamp_top_left;
 
+        // if requested, updates a check image made by adding all source models
         if (check_image) {
           check_image->setValue(pixel, check_image->getValue(pixel) + final_image.at<double>(y, x));
         }
@@ -299,10 +353,30 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
       }
     }
 
-    source.setProperty<SimpleModelFitting>(total_flux, source_model.i0.getValue(), iterations);
+    auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+    SeFloat x = stamp_top_left.m_x + source_model.x.getValue();
+    SeFloat y = stamp_top_left.m_y + source_model.y.getValue();
+    ImageCoordinate image_coordinate(x, y);
+    auto world_coordinate = coordinate_system->imageToWorld(image_coordinate);
+
+    source.setProperty<SimpleModelFitting>(
+        x, y,
+        world_coordinate.m_alpha, world_coordinate.m_delta,
+        total_flux, iterations,
+        source_model.y_scale.getValue() / source_model.x_scale.getValue(), source_model.rot_angle.getValue(),
+        source_model.dev_y_scale.getValue() / source_model.dev_x_scale.getValue(), source_model.dev_rot_angle.getValue()
+        );
   }
 }
 
 }
 
 
+//    for (auto& source : group) {
+//      auto& pixels =  source.getProperty<PixelCoordinateList>().getCoordinateList();
+//      for (auto pixel : pixels) {
+//        pixel -= stamp_top_left;
+//        weight.at<double>(pixel.m_y, pixel.m_x) = 1;
+//      }
+//    }

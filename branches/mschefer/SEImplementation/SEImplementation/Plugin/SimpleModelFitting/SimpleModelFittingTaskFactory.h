@@ -30,7 +30,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
-  unsigned int m_max_iterations;
+  unsigned int m_max_iterations {0};
   std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
 };
 

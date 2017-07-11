@@ -15,6 +15,8 @@
 
 namespace SExtractor {
 
+// Provides a Psf for model fitting
+
 class PsfConfig : public Euclid::Configuration::Configuration {
 
 public:
@@ -30,6 +32,8 @@ public:
   std::shared_ptr<ModelFitting::OpenCvPsf> getPsf() const {
     return m_psf;
   }
+
+  static std::shared_ptr<ModelFitting::OpenCvPsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale);
 
 private:
 
