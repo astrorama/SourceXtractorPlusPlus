@@ -19,12 +19,12 @@ double ExpSigmoidConverter::worldToEngine(const double world_value) const {
     throw Elements::Exception()
         << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
   }
-  return log(world_value / m_min_value) / log((m_max_value / world_value));
+  return (log(world_value / m_min_value) / log((m_max_value / world_value))) / m_scale_factor;
 }
 
 
 double ExpSigmoidConverter::engineToWorld(const double engine_value) const {
-  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
+  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value * m_scale_factor)) );
 }
 
 

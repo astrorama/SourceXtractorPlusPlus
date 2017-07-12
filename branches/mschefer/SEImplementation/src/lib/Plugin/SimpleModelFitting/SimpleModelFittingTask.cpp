@@ -111,6 +111,36 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
+SeFloat computeReducedChiSquared(const cv::Mat& image, cv::Mat& model, cv::Mat& weights) {
+  double reduced_chi_squared = 0.0;
+  for (int y=0; y < image.rows; y++) {
+    for (int x=0; x < image.cols; x++) {
+      double tmp = image.at<double>(y, x) - model.at<double>(y, x);
+      reduced_chi_squared += tmp * tmp * weights.at<double>(y, x) * weights.at<double>(y, x);
+    }
+  }
+
+  return reduced_chi_squared / (image.rows * image.cols);
+}
+
+void printDebugChi2(SeFloat reduced_chi_squared) {
+  static double total = 0.0;
+  static int count = 0;
+  static std::vector<SeFloat> chi_squares;
+
+  chi_squares.push_back(reduced_chi_squared);
+  total += reduced_chi_squared;
+  count++;
+
+  std::sort(chi_squares.begin(), chi_squares.end());
+
+
+  std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
+  std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
+  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
+  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 struct SourceModel {
@@ -138,37 +168,38 @@ struct SourceModel {
     manager.registerParameter(dev_k);
   }
 
-  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models) {
-
+  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models, bool test = false) {
 
 //    point_models.emplace_back(x, y, i0);
     //ManualParameter k { 1 };
 
-    // exponential
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
+
+    // exponential
     ManualParameter exp_n { 1 };
     auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), i0, exp_n, k);
+    component_list.clear();
     component_list.emplace_back(std::move(exp));
-
     extended_models.emplace_back(std::move(component_list), x_scale, y_scale, rot_angle, size, size, x, y);
 
-////    // devaucouleur
-    component_list.clear();
+    // devaucouleur
+//    if(!test){
     ManualParameter devaucouleur_n { 4 };
-    auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, devaucouleur_n, dev_k);
+    auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, devaucouleur_n, dev_k);
+    component_list.clear();
     component_list.emplace_back(std::move(dev));
-
     extended_models.emplace_back(std::move(component_list), dev_x_scale, dev_y_scale,
         dev_rot_angle, size, size, x, y);
+//}
   }
 
   void debugPrint() const {
     std::cout << "\tsize: " << size << "\n";
     std::cout << "\tx: " << x.getValue() << "\ty: " << y.getValue() << "\n";
-//    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\tk: " << k.getValue() << "\n";
-//    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\tk: " << dev_k.getValue() << "\n";
-    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\n";
-    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\n";
+    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\tk: " << k.getValue() << "\n";
+    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\tk: " << dev_k.getValue() << "\n";
+//    std::cout << "\txs: " << x_scale.getValue() << "\tys: " << y_scale.getValue() << "\trot: " << rot_angle.getValue()<< "\ti0: " << i0.getValue()<< "\n";
+//    std::cout << "dev\txs: " << dev_x_scale.getValue() << "\tys: " << dev_y_scale.getValue() << "\trot: " << dev_rot_angle.getValue()<< "\ti0: " << dev_i0.getValue()<< "\n";
   }
 };
 
@@ -193,7 +224,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     auto& shape_parameters = source.getProperty<ShapeParameters>();
     auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
     auto& half_maximum_boundaries = source.getProperty<PixelBoundariesHalfMaximum>();
-    //auto& peak_value = source.getProperty<PeakValue>();
+    auto peak_value = source.getProperty<PeakValue>().getMaxValue();
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
     double size_factor = 2;
@@ -208,8 +239,11 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
     double exp_scale = 1;
     double dev_scale = 1;
-    double exp_k_guess = log(.5) / -radius_guess;
-    double dev_k_guess = log(.5) / -pow(radius_guess, .25);
+    double exp_k_guess =  2.0 * log(.5) / -radius_guess;
+    double dev_k_guess = 16.0 * log(.5) / -pow(radius_guess, .25);
+
+    double exp_i0_guess = peak_value / 2.0;
+    double dev_i0_guess = 10000 * peak_value / 2.0;
 
     // Creates the SourceModel with initial values
     SourceModel source_model {
@@ -223,14 +257,14 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
       {exp_scale, make_unique<ExpSigmoidConverter>(0.01 * exp_scale, 10.0 * exp_scale)},
       {exp_scale, make_unique<ExpSigmoidConverter>(0.01 * exp_scale, 10.0 * exp_scale)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
-      {iso_flux / 2.0, make_unique<ExpSigmoidConverter>(iso_flux * .00001, iso_flux * 10)},
+      {exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001,exp_i0_guess * 100)},
       {exp_k_guess, make_unique<ExpSigmoidConverter>(exp_k_guess * 0.1, exp_k_guess * 100)},
 
       {dev_scale, make_unique<ExpSigmoidConverter>(0.01 * dev_scale, 10.0 * dev_scale)},
       {dev_scale, make_unique<ExpSigmoidConverter>(0.01 * dev_scale, 10.0 * dev_scale)},
       {shape_parameters.getEllipseTheta(), make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)},
-      {iso_flux / 2.0, make_unique<ExpSigmoidConverter>(iso_flux * .00001, iso_flux * 10)},
-      {dev_k_guess, make_unique<ExpSigmoidConverter>(dev_k_guess * 0.0001, dev_k_guess * 100000000)},
+      {dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001,dev_i0_guess * 10000000)},
+      {dev_k_guess, make_unique<ExpSigmoidConverter>(dev_k_guess * 0.1, dev_k_guess * 100)},
     };
 
     source_model.createModels(extended_models, point_models);
@@ -277,7 +311,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
       if (group_stamp.getValue(x, y)>64000) {
         weight.at<double>(y, x) = 0;
       } else   if (weight.at<double>(y, x)>0) {
-        weight.at<double>(y, x) = sqrt(400.0 / (400.0 /*fixme background variance*/ + group_stamp.getValue(x, y) /*/ gain*/ ));
+        weight.at<double>(y, x) = sqrt(1.0 / (400.0 /*fixme background variance*/ + group_stamp.getValue(x, y) /*/ gain*/ ));
 
       }
     }
@@ -330,12 +364,15 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     // renders an image of the model for a single source with the final parameters
     std::vector<ExtendedModel> extended_models {};
     std::vector<PointModel> point_models {};
-    source_model.createModels(extended_models, point_models);
+    source_model.createModels(extended_models, point_models, true);
     FrameModel<OpenCvPsf, cv::Mat> frame_model_after {
       1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
           std::move(extended_models), *m_psf
     };
     auto final_image = frame_model_after.getImage();
+
+    SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_image, weight);
+    printDebugChi2(reduced_chi_squared);
 
     // integrates the flux for that source
     double total_flux = 0;
