@@ -34,6 +34,7 @@ public:
   }
 
   static std::shared_ptr<ModelFitting::OpenCvPsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale);
+  static std::shared_ptr<ModelFitting::OpenCvPsf> readPsf(const std::string& filename);
 
 private:
 

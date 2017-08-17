@@ -5,6 +5,7 @@
  *     Author: Pierre Dubath
  */
 #include <cmath>
+#include <iostream>
 
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 
@@ -19,12 +20,12 @@ double ExpSigmoidConverter::worldToEngine(const double world_value) const {
     throw Elements::Exception()
         << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
   }
-  return (log(world_value / m_min_value) / log((m_max_value / world_value))) / m_scale_factor;
+  return log(log(world_value / m_min_value) / log(m_max_value / world_value));
 }
 
 
 double ExpSigmoidConverter::engineToWorld(const double engine_value) const {
-  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value * m_scale_factor)) );
+  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
 }
 
 
