@@ -162,6 +162,7 @@ public:
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
+    auto detection_image_gain = config_manager.getConfiguration<DetectionImageConfig>().getGain();
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
@@ -177,7 +178,7 @@ public:
     deblending->addObserver(output);
 
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
-        weight_threshold, detection_image_coordinate_system);
+        weight_threshold, detection_image_coordinate_system, detection_image_gain);
 
     auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     background_level_analyzer->analyzeBackground(detection_frame);

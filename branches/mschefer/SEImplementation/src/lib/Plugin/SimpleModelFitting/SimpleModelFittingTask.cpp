@@ -177,8 +177,8 @@ struct SourceModel {
       double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess,
       double dev_flux_guess, double dev_radius_guess, double dev_aspect_guess, double dev_rot_guess) :
     m_size(size),
-    dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 100)),
-    dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 100)),
+    dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 1)),
+    dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 1)),
 
     x([x_guess](double dx) { return dx + x_guess; }, dx),
     y([y_guess](double dy) { return dy + y_guess; }, dy),
@@ -296,7 +296,6 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
     double guess_x = pixel_centroid.getCentroidX() - stamp_top_left.m_x;
     double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
-    //double exp_flux_guess = iso_flux;
     double exp_flux_guess = iso_flux / 2.0;
     double exp_reff_guess = radius_guess;
     double exp_aspect_guess = shape_parameters.getEllipseB() / shape_parameters.getEllipseA();
@@ -350,17 +349,19 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
   auto back_var = measurement_frame->getBackgroundRMS();
   back_var *= back_var; // RMS -> variance
+  SeFloat gain = measurement_frame->getGain();
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
-
       //FIXME hardcoded quick n dirty test for ignoring saturated pixels
       if (group_stamp.getValue(x, y)>64000) {
         weight.at<double>(y, x) = 0;
       } else   if (weight.at<double>(y, x)>0) {
-        //weight.at<double>(y, x) = sqrt(1.0 / (back_var )); // infinite gain
-        weight.at<double>(y, x) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) /* / gain */ ));
-
+        if (gain > 0.0) {
+          weight.at<double>(y, x) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain ));
+        } else {
+          weight.at<double>(y, x) = sqrt(1.0 / back_var); // infinite gain
+        }
       }
     }
   }
@@ -381,7 +382,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   // Perform the minimization
 
-  LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
+  LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
 
   for (auto& source_model : source_models) {
     std::cout << "Before: ";

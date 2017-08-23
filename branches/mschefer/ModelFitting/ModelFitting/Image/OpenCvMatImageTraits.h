@@ -66,7 +66,7 @@ struct ImageTraits<cv::Mat> {
                                0., scale_factor, y_shift
                            );
     auto window = factory(window_width, window_height);
-    cv::warpAffine(image2, window, affine_trans, {window_width, window_height});
+    cv::warpAffine(image2, window, affine_trans, {window_width, window_height}, cv::INTER_LANCZOS4);
     // We need to correct the window for the scaling, so it has the same integral
     // with the image2
     double corr_factor = 1. / (scale_factor * scale_factor);
