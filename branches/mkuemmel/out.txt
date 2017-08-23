@@ -1,0 +1,113 @@
+make -C build.x86_64-co7-gcc48-o2g all
+make[1]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[2]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  0%] Generating The SEUtils/tests directory
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  0%] Built target SEUtils_tests_dir
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  1%] Generating the SEUtils BoostTestMain.cpp
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  1%] Built target SEUtils_BoostTestMain
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  1%] Built target SEUtils
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  2%] Built target Observable_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  4%] Built target PixelCoordinate_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  5%] Generating The SEFramework/tests directory
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  5%] Built target SEFramework_tests_dir
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  5%] Generating the SEFramework BoostTestMain.cpp
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[  5%] Built target SEFramework_BoostTestMain
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 12%] Built target SEFramework
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 13%] Built target Deblending_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 14%] Built target ImageFitsReader_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 15%] Built target Partition_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 16%] Built target PropertyHolder_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 17%] Built target PropertyId_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 18%] Built target SimpleSource_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 20%] Built target SourceGroupWithOnDemandProperties_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 21%] Built target SourceGrouping_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 22%] Built target SourceInterface_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 23%] Built target SourceWithOnDemandProperties_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 24%] Built target TaskProvider_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 25%] Built target VectorImage_test
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[3]: Entering directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+[ 26%] Building CXX object SEImplementation/CMakeFiles/SEImplementation.dir/src/lib/Plugin/TestPlugin/TestPlugin.cpp.o
+In file included from /home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h:3:0,
+                 from /home/user/Work/Projects/SExtractorxx/SEImplementation/src/lib/Plugin/TestPlugin/TestPlugin.cpp:2:
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestTaskFactory.h:15:33: warning: unused parameter ‘property_id’ [-Wunused-parameter]
+   virtual std::shared_ptr<Task> createTask (const PropertyId& property_id) const {
+                                 ^
+In file included from /home/user/Work/Projects/SExtractorxx/SEImplementation/src/lib/Plugin/TestPlugin/TestPlugin.cpp:2:0:
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h: In lambda function:
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h:13:29: error: ‘const class SExtractor::TestProperty’ has no member named ‘getName’
+                 return prop.getName();
+                             ^
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h: In member function ‘virtual void SExtractor::TestPlugin::registerPlugin(SExtractor::PluginAPI&)’:
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h:15:7: error: no matching function for call to ‘SExtractor::OutputRegistry::registerColumnConverter(const char [9], SExtractor::TestPlugin::registerPlugin(SExtractor::PluginAPI&)::__lambda1)’
+       );
+       ^
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h:15:7: note: candidate is:
+In file included from /home/user/Work/Projects/SExtractorxx/SEFramework/SEFramework/Plugin/PluginAPI.h:13:0,
+                 from /home/user/Work/Projects/SExtractorxx/SEFramework/SEFramework/Plugin/Plugin.h:11,
+                 from /home/user/Work/Projects/SExtractorxx/SEFramework/SEFramework/Plugin/StaticPlugin.h:11,
+                 from /home/user/Work/Projects/SExtractorxx/SEImplementation/src/lib/Plugin/TestPlugin/TestPlugin.cpp:1:
+/home/user/Work/Projects/SExtractorxx/SEFramework/SEFramework/Output/OutputRegistry.h:30:8: note: template<class PropertyType, class OutType> void SExtractor::OutputRegistry::registerColumnConverter(std::string, SExtractor::OutputRegistry::ColumnConverter<PropertyType, OutType>)
+   void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter) {
+        ^
+/home/user/Work/Projects/SExtractorxx/SEFramework/SEFramework/Output/OutputRegistry.h:30:8: note:   template argument deduction/substitution failed:
+In file included from /home/user/Work/Projects/SExtractorxx/SEImplementation/src/lib/Plugin/TestPlugin/TestPlugin.cpp:2:0:
+/home/user/Work/Projects/SExtractorxx/SEImplementation/SEImplementation/Plugin/TestPlugin/TestPlugin.h:15:7: note:   cannot convert ‘<lambda closure object>SExtractor::TestPlugin::registerPlugin(SExtractor::PluginAPI&)::__lambda1{}’ (type ‘SExtractor::TestPlugin::registerPlugin(SExtractor::PluginAPI&)::__lambda1’) to type ‘SExtractor::OutputRegistry::ColumnConverter<SExtractor::TestProperty, int> {aka std::function<int(const SExtractor::TestProperty&)>}’
+       );
+       ^
+make[3]: *** [SEImplementation/CMakeFiles/SEImplementation.dir/src/lib/Plugin/TestPlugin/TestPlugin.cpp.o] Error 1
+make[3]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[2]: *** [SEImplementation/CMakeFiles/SEImplementation.dir/all] Error 2
+make[2]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/home/user/Work/Projects/SExtractorxx/build.x86_64-co7-gcc48-o2g'
+make: *** [all] Error 2

@@ -1,0 +1,288 @@
+namespace SExtractor {
+
+/** \page how_to_add_source_property_with_configuration HowTo add a new source property computation with configuration
+
+\tableofcontents
+
+The structure of this tutorial is identical to that of the \ref how_to_add_source_property 
+"HowTo add a new source property computation" and readers are assumed to have a good 
+knowledge of this previous tutorial. The main difference is the introduction of a configuration class, 
+through which user inputs can be entered into the property computation. To mark the similarities (and 
+the differences), the same class names are used  with a __WithConf__ post-fix. We continue to
+walk-trough a kind of __munimum__ example. The standard directory structure (already described
+\ref directory_creation "here") is assumed.
+
+Note that not much effort is made here to make a smart example. It is only thought for 
+illustration purposes.
+
+\section source_property_impl_with_conf Source Property
+
+Below is our __minimum__ ExamplePropertyWithConf class.
+
+\code{.cpp}
+#include "SEFramework/Property/Property.h"
+
+namespace SExtractor {
+
+class ExamplePropertyWithConf : public Property {
+public:
+
+  virtual ~ExamplePropertyWithConf() = default;
+
+  ExamplePropertyWithConf(std::string name, double value) : m_name(name), m_scaled_mean(value) {}
+
+  const std::string& getName () const {
+    return m_name;
+  }
+
+  double getScaledMean () const {
+    return m_scaled_mean;
+  }
+
+private:
+  std::string m_name;
+  double m_scaled_mean;
+
+}; // End of ExamplePropertyWithConf class
+} // namespace SExtractor
+\endcode
+
+This class is fully analogous to the previous \ref source_property_impl "ExampleProperty" and we 
+refer to it for explanation. This property has two member variables and two getters, but there is 
+nothing related to the configuration yet.
+
+\section example_configuration_with_conf Configuration
+
+Below is the (new) __configuration__ class. After include and namespace comes the definition of the 
+argument names. The anonymous namespace enclosing these variables limits their visibility to the 
+current file (identical to a __static__ declaration).
+
+\code{.cpp}
+#include "Configuration/Configuration.h"
+namespace po = boost::program_options;
+
+namespace {
+const std::string EXAMPLE_DOUBLE_OPTION {"ex-double-option"};
+const std::string EXAMPLE_STRING_OPTION {"ex-string-option"};
+}
+
+namespace SExtractor {
+
+class ExampleConfWithConf : public Euclid::Configuration::Configuration {
+
+public:
+
+  virtual ~ExampleConfWithConf() = default;
+
+  ExampleConfWithConf(long manager_id) : Configuration(manager_id) {}
+
+  std::map<std::string, OptionDescriptionList> getProgramOptions() {
+    return { {"Example options", {
+           { EXAMPLE_DOUBLE_OPTION.c_str(), po::value<double>()->default_value(1.0),
+                          "A double option used as an illustration in ExamplePluginWithConf"},
+           { EXAMPLE_STRING_OPTION.c_str(), po::value<std::string>()->default_value("None"),
+             "A string option used as an illustration in ExamplePluginWithConf"},
+         }}};
+  }
+
+  void initialize(const UserValues& args) {
+    m_example_double_option = args.at(EXAMPLE_DOUBLE_OPTION).as<double>();
+    m_example_string_option = args.at(EXAMPLE_STRING_OPTION).as<std::string>();
+  }
+
+  double getExampleDoubleOption () const {
+    return m_example_double_option;
+  }
+
+  const std::string& getExampleStringOption () const {
+    return m_example_string_option;
+  }
+
+private:
+
+  double m_example_double_option;
+  std::string m_example_string_option;
+
+}; // End of ExampleConfWithConf class 
+} // namespace SExtractor 
+\endcode
+
+The somewhat strange class name should read "example configuration for a plugin with 
+configuration". It extends a Configuration base class which defined to-be-implemented interfaces. 
+__getProgramOptions()__ will be called by the system to get the options specific to this plugin. 
+The syntax follows that of the Boost program_options library. The first field is the option name, 
+the second one the option type, with a default value (if any) and the third one is a longer help 
+text. The __initialize__ method allows to retrieve the options and stored them in local variable.
+Finally __getters__ are defined to provide means to read the configuration information after
+initialization. The choice of two configuration item is again only dictated by illustration
+purposes.
+
+In this example, default values are provided for the two options. This make their run-time 
+specification (though command -line arguments for example) optional. It is also possible not
+to give any default values, but then, the case where the arguments are missing has 
+to be dealt with in the code. What to do if not arguments are provided? It may lead to a stop 
+with the generation of an exception for missing arguments or to a continuation without argument
+values. See next \ref how_to_add_source_property_with_instances "tutorial" for another example 
+of optional configuration.
+
+\section source_task_impl_with_conf SourceTask
+
+Below is the ExampleSourceTaskWithConf example analogous to the \ref source_task_impl 
+"ExampleSourceTask". The main method is again __computeProperties(source)__, but now there
+are two member variables (they were none before), which will be filled through a constructor 
+call with information coming from the configuration. There is however no directed connection
+between the __task__ and the __configuration__ classes. Things will be tied together through
+the __task factory__ (see next section).
+
+\code{.cpp}
+#include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+
+namespace SExtractor {
+
+class ExampleSourceTaskWithConf: public SourceTask {
+
+public:
+
+  virtual ~ExampleSourceTaskWithConf () = default;
+
+  ExampleSourceTaskWithConf (std::string a_name, double a_double_value) :
+    m_name_option(a_name), m_scaling_factor_option(a_double_value) {
+  }
+
+  virtual void computeProperties (SourceInterface& source) const {
+    const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
+
+    double mean_value = 0.0;
+    for (auto value : pixel_values) {
+      mean_value += value;
+    }
+    mean_value /= pixel_values.size();
+
+    source.setProperty<ExamplePropertyWithConf>(m_name_option, m_scaling_factor_option * mean_value);
+  }
+
+private:
+
+  std::string m_name_option;
+  double m_scaling_factor_option;
+
+}; // End of ExampleSourceTaskWithConf class
+} // namespace SExtractor
+\endcode
+
+The pixel mean calculation is identical to the previous case, but the configuration-provided 
+information is used to create the property. Remember that __source.setProperty<ExamplePropertyWithConf>()__ 
+is first calling the property constructor (i.e., ExamplePropertyWithConf(m_name_option, m_scaling_factor_option * 
+mean_value), before attaching the property to the source. 
+
+\section example_task_factory_with_conf TaskFactory
+
+The purpose of the task factory now becomes clearer. As it can be seen in the 
+below ExampleTaskFactoryWithConf example, the configuration object and its members are 
+retrieved through the configuration manager (and the getters). They are then stored
+in local variable before being channeled to the factory method which create the task. 
+The task factory uses the configuration to initialized the task and in this way, it 
+connects user inputs to the property computation.  
+
+\code{.cpp}
+#include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/ExamplePluginWithConf/ExampleConfWithConf.h"
+#include "SEImplementation/Plugin/ExamplePluginWithConf/ExampleSourceTaskWithConf.h"
+
+namespace SExtractor {
+
+class ExampleTaskFactoryWithConf: public TaskFactory {
+public:
+
+  virtual ~ExampleTaskFactoryWithConf () = default;
+
+  void reportConfigDependencies (Euclid::Configuration::ConfigManager& manager) const {
+    manager.registerConfiguration<ExampleConfWithConf>();
+  }
+
+  void configure (Euclid::Configuration::ConfigManager& manager) {
+    m_example_string_option = manager.getConfiguration<ExampleConfWithConf>().getExampleStringOption();
+    m_example_double_option = manager.getConfiguration<ExampleConfWithConf>().getExampleDoubleOption();
+  }
+
+  virtual std::shared_ptr<Task> createTask (const PropertyId& property_id) const {
+    return std::make_shared<ExampleSourceTaskWithConf>(m_example_string_option, m_example_double_option);
+  }
+
+private:
+
+  std::string m_example_string_option;
+  double m_example_double_option;
+};
+
+} // namespace SExtractor
+\endcode
+
+The __reportConfigDependencies(...)__ method must be implemented to declare configuration 
+dependencies. Here, there is no other dependency than the ExampleConfWithConf itself.
+
+\section example_plugin_with_conf Plugin
+
+The below plugin is almost identical to that of the previous \ref example_plugin "ExamplePlugin" example. 
+The only difference is the registration of two output columns (from the same property).
+
+\code{.cpp}
+#include "SEFramework/Plugin/Plugin.h"
+#include "SEImplementation/Plugin/ExamplePluginWithConf/ExamplePropertyWithConf.h"
+#include "SEImplementation/Plugin/ExamplePluginWithConf/ExampleTaskFactoryWithConf.h"
+
+namespace SExtractor {
+
+class ExamplePluginWithConf : public Plugin {
+
+public:
+
+  virtual ~ExamplePluginWithConf() = default;
+
+  virtual void registerPlugin(PluginAPI& plugin_api) {
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<ExampleTaskFactoryWithConf, ExamplePropertyWithConf>();
+
+    plugin_api.getOutputRegistry().registerColumnConverter<ExamplePropertyWithConf, std::string>(
+              "redondant_name",
+              [](const ExamplePropertyWithConf& prop){
+                return prop.getName();
+              }
+      );
+
+    plugin_api.getOutputRegistry().registerColumnConverter<ExamplePropertyWithConf, double>(
+            "scaled_pixel_mean",
+            [](const ExamplePropertyWithConf& prop){
+              return prop.getScaledMean();
+            }
+    );
+
+    plugin_api.getOutputRegistry().optionalOutput<ExamplePropertyWithConf>("ExamplePropertyWithConf");
+  }
+
+  virtual std::string getIdString() const {
+    return "example_plugin_with_conf";
+  }
+
+private:
+
+}; // End of TestPlugin class
+}
+\endcode
+
+Last but not least, the following statement must appear in the plugin .cpp file. It registers our example 
+plugin as a static plugin (i.e., which must be compiled with SExtractor). Other types of plugin will
+be described later. 
+
+\code{.cpp}
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/ExamplePluginWithConf/ExamplePluginWithConf.h"
+
+namespace SExtractor {
+  static StaticPlugin<ExamplePluginWithConf> example_plugin_with_conf;
+}
+\endcode
+
+
+*/
+}
