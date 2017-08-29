@@ -38,8 +38,8 @@
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 
-#include "SEImplementation/SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
-#include "SEImplementation/SEImplementation/Background/BackgroundRMSAnalyzerFactory.h"
+#include "SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
+#include "SEImplementation/Background/BackgroundRMSAnalyzerFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
