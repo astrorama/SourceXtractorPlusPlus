@@ -24,6 +24,8 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 
   // The function which is called by the levmar loop
   auto levmar_res_func = [](double *p, double *hx, int, int, void *extra) {
+    //std::cout << "...";
+
     auto* extra_ptr = (decltype(adata)*)extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(p);

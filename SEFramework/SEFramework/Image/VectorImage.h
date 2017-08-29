@@ -67,23 +67,23 @@ public:
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
+    return const_cast<VectorImage<T>*>(this)->at(x, y);
+  }
+  
+  void setValue(int x, int y, T value) {
+    at(x,y) = value;
+  }
+
+  void setValue(PixelCoordinate pc, T value) {
+    setValue(pc.m_x, pc.m_y, value);
+  }
+
+  T& at(int x, int y) {
     x = x - m_offset.m_x;
     y = y - m_offset.m_y;
 
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     return m_data[x + y * m_width];
-  }
-  
-  void setValue(int x, int y, T value) {
-    x = x - m_offset.m_x;
-    y = y - m_offset.m_y;
-
-    assert(x >= 0 && y >=0 && x < m_width && y < m_height);
-    m_data[x + y * m_width] = value;
-  }
-
-  void setValue(PixelCoordinate pc, T value) {
-    setValue(pc.m_x, pc.m_y, value);
   }
 
   void fillValue(T value) {

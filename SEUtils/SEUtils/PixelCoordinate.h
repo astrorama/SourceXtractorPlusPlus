@@ -31,6 +31,10 @@ struct PixelCoordinate {
     return !(*this == other);
   }
 
+  PixelCoordinate operator*(double scalar) const {
+    return PixelCoordinate(m_x * scalar, m_y  * scalar);
+  }
+
   PixelCoordinate operator+(const PixelCoordinate& other) const {
     return PixelCoordinate(m_x + other.m_x, m_y + other.m_y);
   }

@@ -18,7 +18,7 @@ public:
   using PreAction = std::function<void(double)>;
   using PostAction = std::function<void(double)>;
   
-  ReferenceUpdater(const BasicParameter& parameter, double& target,
+  ReferenceUpdater(BasicParameter& parameter, double& target,
                    PreAction pre_action={}, PostAction post_action={})
             : m_parameter(parameter), m_target(target), 
               m_pre_action{pre_action}, m_post_action{post_action} {
@@ -42,13 +42,13 @@ public:
     return m_parameter_alive;
   }
   
-  const BasicParameter getParameter() const {
+  BasicParameter& getParameter() const {
     return m_parameter;
   }
   
 private:
   
-  BasicParameter m_parameter;
+  BasicParameter& m_parameter;
   double& m_target;
   PreAction m_pre_action;
   PostAction m_post_action;

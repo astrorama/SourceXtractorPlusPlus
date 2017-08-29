@@ -21,7 +21,7 @@ void DetectionFrameSourceStampPlugin::registerPlugin(PluginAPI& plugin_api) {
 }
 
 std::string DetectionFrameSourceStampPlugin::getIdString() const {
-  return "";
+  return "DetectionFrameSourceStamp";
 }
 
 }

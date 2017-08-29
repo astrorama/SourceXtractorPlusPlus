@@ -34,9 +34,14 @@ void DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::populateRes
   auto data_iter = DataTraits::begin(m_data);
   auto model_iter = ModelTraits::begin(m_model);
   auto weight_iter = WeightTraits::begin(m_weight);
+//  double test = 0;
+//  static double diff = 0;
   for (; data_iter!=DataTraits::end(m_data); ++data_iter, ++model_iter, ++weight_iter, ++output_iter) {
     *output_iter = m_comparator(*data_iter, *model_iter, *weight_iter);
+//    test += *output_iter;
   }
+//  std::cout << test << " -- " << test-diff << "\n";
+//  diff = test;
 }
 
 // NOTE TO DEVELOPERS:

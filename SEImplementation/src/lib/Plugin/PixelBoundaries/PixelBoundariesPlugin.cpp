@@ -19,6 +19,7 @@ static StaticPlugin<PixelBoundariesPlugin> pixel_boundaries_plugin;
 
 void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelBoundariesTaskFactory, PixelBoundaries>();
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<PixelBoundariesTaskFactory, PixelBoundariesHalfMaximum>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<PixelBoundaries, int>(
           "pixel_boundaries_min_x",

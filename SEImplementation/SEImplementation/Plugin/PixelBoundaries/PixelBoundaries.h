@@ -52,6 +52,20 @@ private:
 }; /* End of PixelBoundaries class */
 
 
+class PixelBoundariesHalfMaximum : public PixelBoundaries {
+
+public:
+
+  /**
+   * @brief Destructor
+   */
+  virtual ~PixelBoundariesHalfMaximum() = default;
+
+  PixelBoundariesHalfMaximum(int min_x, int min_y, int max_x, int max_y)
+      : PixelBoundaries(min_x, min_y, max_x, max_y) {
+  }
+};
+
 
 } /* namespace SExtractor */
 
