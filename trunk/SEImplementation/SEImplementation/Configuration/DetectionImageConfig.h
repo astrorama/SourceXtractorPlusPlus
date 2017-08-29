@@ -36,9 +36,12 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   std::shared_ptr<DetectionImage> getDetectionImage() const;
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const;
   
+  double getGain() const { return m_gain; }
+
 private:
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
+  double m_gain;
 
 }; /* End of DetectionImageConfig class */
 

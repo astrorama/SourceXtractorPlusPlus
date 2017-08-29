@@ -4,6 +4,7 @@
  * @author Nikolaos Apostolakos
  */
 
+#include <iostream>
 #include <cmath> // for std::sqrt
 #include "ElementsKernel/Exception.h"
 #include "ModelFitting/Image/ImageTraits.h"
@@ -51,6 +52,7 @@ namespace _impl {
 
 template<typename ImageType>
 ImageType ExtendedModel::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
+  //std::cout << "]] " << getX() << " " << getY() << "\n";
   using Traits = ImageTraits<ImageType>;
   if (size_x % 2 == 0 || size_y % 2 == 0) {
     throw Elements::Exception() << "Rasterized image dimensions must be odd numbers "

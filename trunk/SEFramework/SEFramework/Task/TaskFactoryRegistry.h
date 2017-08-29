@@ -59,7 +59,6 @@ private:
       throw DuplicateFactoryException();
     }
     m_type_task_factories_map[type_index] = task_factory;
-
   }
 
   template<typename T, typename T2, typename... Ts>

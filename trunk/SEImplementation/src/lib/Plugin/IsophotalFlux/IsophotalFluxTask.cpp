@@ -28,7 +28,7 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
   SeFloat total_variance = 0.0;
 
   if (weight_image != nullptr) {
-    auto value_iter = pixel_values.begin();;
+    auto value_iter = pixel_values.begin();
     for (auto coord : pixel_coordinates) {
       auto value = *value_iter++;
       total_flux += value;

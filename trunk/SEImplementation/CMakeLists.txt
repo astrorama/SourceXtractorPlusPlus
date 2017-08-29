@@ -18,6 +18,7 @@ elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
+elements_depends_on_subdirs(ModelFitting)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -45,8 +46,9 @@ elements_add_library(SEImplementation
 					 src/lib/Configuration/*.cpp
 					 src/lib/Output/*.cpp
            src/lib/CoordinateSystem/*.cpp
+           src/lib/CheckImages/*.cpp
            src/lib/Plugin/*/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework Table WCSLIB yaml-cpp
+                     LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp
                      PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
@@ -99,6 +101,9 @@ elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotomet
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp 
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(SimpleModelFitting_test tests/src/Plugin/SimpleModelFitting/SimpleModelFitting_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 

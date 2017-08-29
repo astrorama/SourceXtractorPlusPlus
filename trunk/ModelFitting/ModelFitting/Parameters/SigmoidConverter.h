@@ -67,7 +67,6 @@ private:
 
   /// maximum model value in world coordinates
   const double m_max_value;
-
 };
 
 } // namespace ModelFitting
