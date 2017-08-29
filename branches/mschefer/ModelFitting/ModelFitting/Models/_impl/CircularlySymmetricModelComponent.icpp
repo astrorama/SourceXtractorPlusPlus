@@ -1,0 +1,63 @@
+/** 
+ * @file CircularlySymmetricModelComponent.icpp
+ * @date September 1, 2015
+ * @author Nikolaos Apostolakos
+ */
+
+#include <utility> // for std::forward
+#include <cmath> // for std::sqrt, std::cos, std::sin
+#include <tuple> // for std::tie
+#include <functional> // for std::ref
+
+namespace ModelFitting {
+
+template <typename Profile>
+template <typename... ProfileParameters>
+CircularlySymmetricModelComponent<Profile>::CircularlySymmetricModelComponent(
+                                std::unique_ptr<SharpRegionManager> sharp_manager,
+                                ProfileParameters&&... proj_parameters)
+          : m_sharp_manager{std::move(sharp_manager)},
+            m_profile(std::forward<ProfileParameters>(proj_parameters)...) {
+}
+
+template <typename Profile>
+CircularlySymmetricModelComponent<Profile>::~CircularlySymmetricModelComponent() = default;
+
+template <typename Profile>
+double CircularlySymmetricModelComponent<Profile>::getValue(double x, double y) {
+  return m_profile(std::sqrt(x*x + y*y));
+}
+
+template <typename Profile>
+void CircularlySymmetricModelComponent<Profile>::updateRasterizationInfo(
+                                                          double scale, double r_max) {
+  m_sharp_manager->updateRasterizationInfo(scale, r_max, std::ref(m_profile));
+}
+
+template <typename Profile>
+auto CircularlySymmetricModelComponent<Profile>::getSharpSampling()
+                                                    -> std::vector<ModelSample> {
+  std::vector<ModelSample> result {};
+  double r1 {0.};
+  for (double r2=0.; m_sharp_manager->insideSharpRegion(r2); r1=r2) {
+    int angle_no {0};
+    std::tie(r2, angle_no) = m_sharp_manager->nextRadiusAndAngleNo(r1);
+    double r_half = (r1 + r2) / 2.;
+    double area = M_PI * (r2*r2 - r1*r1);
+    double integral = m_profile(r_half) * area / angle_no;
+    double angle_step = 2 * M_PI / angle_no;
+    for (double angle=0.; angle_no!=0; --angle_no, angle+=angle_step) {
+      double x = r_half * std::cos(angle);
+      double y = r_half * std::sin(angle);
+      result.emplace_back(x, y, integral);
+    }
+  }
+  return result;
+}
+
+template <typename Profile>
+bool CircularlySymmetricModelComponent<Profile>:: insideSharpRegion(double x, double y) {
+  return m_sharp_manager->insideSharpRegion(std::sqrt(x*x + y*y));
+}
+
+} // end of namespace ModelFitting
