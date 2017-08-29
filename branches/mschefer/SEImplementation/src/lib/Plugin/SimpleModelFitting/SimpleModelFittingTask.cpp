@@ -176,9 +176,10 @@ struct SourceModel {
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
       double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess,
       double dev_flux_guess, double dev_radius_guess, double dev_aspect_guess, double dev_rot_guess) :
+
     m_size(size),
-    dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 1)),
-    dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range, 1)),
+    dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
+    dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
 
     x([x_guess](double dx) { return dx + x_guess; }, dx),
     y([y_guess](double dy) { return dy + y_guess; }, dy),
@@ -187,14 +188,14 @@ struct SourceModel {
     exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
 //    exp_flux(exp_flux_guess, make_unique<ExpSigmoidConverter>(exp_flux_guess * .00001, exp_flux_guess * 10)),
     exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(exp_radius_guess * 0.001, exp_radius_guess * 100)),
-    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.1)),
+    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess)),
     dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
 //    dev_flux(dev_flux_guess, make_unique<ExpSigmoidConverter>(dev_flux_guess * .00001, dev_flux_guess * 10)),
     dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(dev_radius_guess * 0.001, dev_radius_guess * 100)),
-    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.1)),
+    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     dev_rot(-dev_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
 //    exp_i0(
@@ -382,7 +383,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   // Perform the minimization
 
-  LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
+  LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
 
   for (auto& source_model : source_models) {
     std::cout << "Before: ";

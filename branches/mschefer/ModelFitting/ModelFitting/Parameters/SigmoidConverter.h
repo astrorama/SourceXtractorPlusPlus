@@ -23,8 +23,8 @@ class SigmoidConverter: public CoordinateConverter {
 
 public:
 
-  SigmoidConverter(const double min_value, const double max_value, const double scale_factor=1.0) :
-      m_min_value(min_value), m_max_value(max_value), m_scale_factor(scale_factor) {
+  SigmoidConverter(const double min_value, const double max_value) :
+      m_min_value(min_value), m_max_value(max_value) {
     if (m_min_value > m_max_value) {
       throw Elements::Exception()
           << "SigmoidConverter: min_value larger than max_value!";
@@ -67,8 +67,6 @@ private:
 
   /// maximum model value in world coordinates
   const double m_max_value;
-
-  const double m_scale_factor;
 };
 
 } // namespace ModelFitting
