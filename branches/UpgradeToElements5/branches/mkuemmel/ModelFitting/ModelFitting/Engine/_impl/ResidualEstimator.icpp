@@ -1,0 +1,21 @@
+/** 
+ * @file ResidualEstimator.icpp
+ * @date August 18, 2015
+ * @author Nikolaos Apostolakos
+ */
+
+namespace ModelFitting {
+
+template <typename DoubleIter>
+void ResidualEstimator::populateResiduals(DoubleIter output_iter) const {
+  // In the general case we use an intermediate vector
+  std::vector<double> residuals (m_residual_no, 0.);
+  auto residuals_ptr = residuals.data();
+  for (auto& block_prov_ptr : m_block_provider_list) {
+    block_prov_ptr->populateResidualBlock(residuals_ptr);
+    residuals_ptr += block_prov_ptr->numberOfResiduals();
+  }
+  std::copy(residuals.begin(), residuals.end(), output_iter);
+}
+
+} // end of namespace ModelFitting

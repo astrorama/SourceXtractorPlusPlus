@@ -1,0 +1,428 @@
+namespace SExtractor {
+
+/** \page howto_add_partition_step HowTo add a new PartitionStep
+
+\tableofcontents
+
+The %Partition stage is where the rough detections of the %Segmentation stage
+can be broken down in multiple ones, using more complex algorithms. The
+Partition class itself does not implement any specific algorithm, it is just
+responsible for running a number of PartitionStep%s (which implement the
+algorithm logic). The rest of this HowTo describes the actions that need to be
+performed to add a new algorithm as a PartitionStep and to use it within the
+%SExtractor framework.
+
+Note that %SExtractor defines all its classes in the namespace SExtractor. The
+following coding snippets assumed that the code is in the SExtractor namespace
+for brevity.
+
+\note The last section of this page contains the full source code of the example
+which you can use for copy-pasting
+
+
+\section partition_step_impl Implementing the PartitionStep interface
+
+\subsection algo_class_creation Creating the algorithm class
+
+The first thing you need to do is to implement your algorithm logic. This is
+done by creating a class which implements the PartitionStep interface:
+
+\code{.cpp}
+#include "SEFramework/Pipeline/Partition.h"
+
+class ExamplePartitionStep : public PartitionStep {
+
+public:
+
+  virtual ~ExamplePartitionStep() = default;
+  
+  std::vector<std::shared_ptr<SourceInterface>> partition(
+                       std::shared_ptr<SourceInterface> source) const override {
+
+    // Your algorithm logic goes here
+
+    return {source};
+  }
+
+};
+\endcode
+
+The partitioning algorithm logic is implemented in the partition() method. This
+method gets as input the source to apply the algorithm to and it returns a
+vector of sources, which is the result of the partitioning. Note that if you do
+not want to partition the source, you can just return the input source, as shown
+at the example.
+
+\subsection access_input_info Accessing the information of the input source
+
+Retrieving the input source information which is needed by the partitioning
+algorithm is done via using the methods provided by the SourceInterface class.
+For example, the following gives access to the sources pixel coordinates:
+
+\code{.cpp}
+#include "SEImplementation/Property/PixelCoordinateList.h"
+
+  // inside the partition() method
+  auto& pixel_coords = source->getProperty<PixelCoordinateList>();
+\endcode
+
+The full list of the properties provided by SExtractor can be found at the API
+documentation of the Property class (inheritance diagram). If you need a custom
+property computed specifically for your partition step, you can refer to
+\ref howtoaddsourceproperty. 
+
+\subsection creating_new_sources Spliting a source
+
+If your algorithm decides that a source should be partitioned, you will need to
+create new instances of concrete implementations of the SourceInterface. To keep
+your PartitionStep implementation as flexible as possible, you should not create
+sources of a specific type yourself. Instead, you can delegate the creation of
+the sources to a SourceFactory instance, which you can get at your constructor.
+The following code shows how to modify the example class accordingly:
+
+\code{.cpp}
+#include "SEFramework/Source/SourceFactory.h"
+
+class ExamplePartitionStep : public PartitionStep {
+
+public:
+
+  ExamplePartitionStep(std::shared_ptr<SourceFactory> factory) : m_factory(factory) {
+  }
+
+private:
+
+  std::shared_ptr<SourceFactory> m_factory;
+
+};
+\endcode
+
+The SourceFactory itself is an abstract class, which is not bounded to any
+concrete implementation of the SourceInterface. This gives to your PartitionStep
+the ability to work with any type of sources. You only have to create them via
+the factory and set their PixelCoordinateList, according the results of your
+algorithm (if you are curious to know where the SourceFactory instance will come
+from, you have to be patient until the \ref partition_step_creator section
+bellow). The following code shows an example of how to split the source in two:
+
+\code{.cpp}
+    auto& original_list = pixel_coords.getCoordinateList();
+    
+    std::vector<PixelCoordinate> first_half {original_list.begin(),
+                                             original_list.begin() + original_list.size() / 2};
+    auto first_source = m_factory->createSource();
+    first_source->setProperty<PixelCoordinateList>(first_half);
+    
+    std::vector<PixelCoordinate> second_half {original_list.begin() + original_list.size() / 2,
+                                             original_list.end()};
+    auto second_source = m_factory->createSource();
+    second_source->setProperty<PixelCoordinateList>(second_half);
+    
+    return {first_source, second_source};
+\endcode
+
+Note that you only have to set the PixelCoordinateList property on the sources
+you create (which is the result of your partitioning). %SExtractor is going to
+compute the rest of the properties for your newly created sources, when they are
+requested.
+
+
+\section registering_partition_step Registering the partition step
+
+After you have finished writing your concrete PartitionStep class, the next step
+is to let %SExtractor to know about its existence. This is done via the
+configuration system of %SExtractor.
+
+\subsection partition_config Creating the configuration class
+
+%SExtractor handes its configuration phase via the Alexandria Configuration
+framework. Any action done during this phase, is done by implementing the
+Configuration interface. %SExtractor has one such implementation (class
+PartitionStepConfig), which is responsible for managing the different
+PartitionStep%s. Your configuration class, in its constructor, has to declare
+that it depends on it. The following code shows the skeleton of the example
+configuration class:
+
+\code{.cpp}
+#include "Configuration/Configuration.h"
+#include "SEImplementation/Configuration/PartitionStepConfig.h"
+
+class ExamplePartitionConfig : public Euclid::Configuration::Configuration {
+
+public:
+  
+  ExamplePartitionConfig(long manager_id) : Configuration(manager_id) {
+    // Declare that this Configuration is going to use the PartitionStepConfig
+    declareDependency<PartitionStepConfig>();
+  }
+
+  void initialize(const UserValues& args) override {
+    // Get the SExtractor PartitionStepConfig instance
+    auto& partition_step_config = getDependency<PartitionStepConfig>();
+  }
+
+};
+\endcode
+
+The initialize() method that is overridden above, is the place where you need to
+let %SExtractor know about your partition step. The above example also contains
+the code for retrieving the PartitionStepConfig instance.
+
+\subsection partition_step_creator Defining the creator for your PartitionStep
+
+To register your PartitionStep to %SExtractor you need to instruct the
+PartitionStepConfig class how it can create new instances of it. This is done by
+using the PartitionStepConfig::addPartitionStepCreator() method. This method
+gets as input a PartitionStepConfig::PartitionStepCreator, which can be anything
+that can be called like a function that gets as parameter a SourceFactory and
+returns a PartitionStep instance. The following code shows how to do this by
+using a lambda function:
+
+\code{.cpp}
+    // Create a lambda function which can create your partition step instances
+    auto creator = [](std::shared_ptr<SourceFactory> source_factory) {
+      return std::make_shared<ExamplePartitionStep>(source_factory);
+    };
+\endcode
+
+To see what else you can use instead of a lambda function, you can see the
+documentation of the [std::function](http://en.cppreference.com/w/cpp/utility/functional/function)
+class.
+
+After you have defined the method which generates your PartitionStep instances
+you just have to register it to the PartitionStepConfig:
+
+\code{.cpp}
+    // Register the creator to the PartitionStepConfig
+    partition_step_config.addPartitionStepCreator(creator);
+\endcode
+
+\subsection partition_config_program_option Adding a command line option
+
+Following the steps described above will instruct %SExtractor to always execute
+your PartitionStep. Instead, it is a good practice to provide a command line
+option to allow the users to enable or disable the step as they will. To do this
+you will have to override the getProgramOptions() method of the Configuration
+interface and define a boolean switch option:
+
+\code{.cpp}
+  std::map<std::string, OptionDescriptionList> getProgramOptions() override {
+    return { {"Extraction", {
+        {"enable-example-partition", boost::program_options::bool_switch(),
+                "Enables the use of the example partitioning"}
+    }}};
+  }
+\endcode
+
+Now you can retrieve the flag at the beginning of your initialize() method and
+check what the user has requested:
+
+\code{.cpp}
+    // If the user didn't gave the command line option, do nothing
+    if (!args.at("enable-example-partition").as<bool>()) {
+      return;
+    }
+\endcode
+
+Note that if your PartitionStep needs any other input from the user, you can use
+the same method to define the command line options to get it. Then, you can pass
+this information via the constructor of your class.
+
+\subsection partition_config_registration Registering the ExamplePartitionConfig
+
+The final step for enabling your PartitionStep, is to register your configuration
+class to the %SExtractor ConfigManager via the plugin framework. To do this you
+have to add the following line in the registerPlugin() method of your plugin
+implementation class:
+
+\code{.cpp}
+plugin_api.getConfigManager().registerConfiguration<ExamplePartitionConfig>();
+\endcode
+
+For more information of how to use the plugin framework you can refer to the
+related HowTo. 
+
+
+/section partition_step_order Controlling the execution order
+
+Most of the time, the execution order of the partitioning steps is important and
+might change the results. For this reason, you might want to control which steps
+are executed before and after your one. Because the ordering of the execution is
+the same with the order the related configuration classes are initialized, it
+can be controlled by defining dependencies between the related configuration
+classes. This has to be done in the constructor of your configuration class. For
+example:
+
+\code{.cpp}
+    // Use the configuration manager to declare that this configuration must be
+    // initialized after AttractorsPartitionConfig and before MinAreaPartitionConfig,
+    // to control the order of the partition step execution
+    auto& conf_manager = Euclid::Configuration::ConfigManager::getInstance(manager_id);
+
+    // MinAreaPartitionStep should run after ExamplePartitionConfig
+    conf_manager.registerDependency<MinAreaPartitionConfig, ExamplePartitionConfig>();
+
+    // AttractorsPartitionConfig should run before ExamplePartitionConfig
+    conf_manager.registerDependency<ExamplePartitionConfig, AttractorsPartitionConfig>();
+\endcode
+
+
+\section partition_step_example_code Full example code
+
+The following code snipsets contain the full code of the classes described
+above, for the case you want to copy-paste it:
+
+ExamplePartitionStep.h :
+\code{.cpp}
+#include "SEFramework/Pipeline/Partition.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEFramework/Source/SourceFactory.h"
+
+namespace SExtractor {
+
+class ExamplePartitionStep : public PartitionStep {
+  
+public:
+  
+  ExamplePartitionStep(std::shared_ptr<SourceFactory> factory) : m_factory(factory) {
+  }
+
+  virtual ~ExamplePartitionStep() = default;
+  
+  std::vector<std::shared_ptr<SourceInterface>> partition(
+                        std::shared_ptr<SourceInterface> source) const override {
+    
+    auto& pixel_coords = source->getProperty<PixelCoordinateList>();
+    
+    auto& original_list = pixel_coords.getCoordinateList();
+    
+    std::vector<PixelCoordinate> first_half {original_list.begin(),
+                                             original_list.begin() + original_list.size() / 2};
+    auto first_source = m_factory->createSource();
+    first_source->setProperty<PixelCoordinateList>(first_half);
+    
+    std::vector<PixelCoordinate> second_half {original_list.begin() + original_list.size() / 2,
+                                             original_list.end()};
+    auto second_source = m_factory->createSource();
+    second_source->setProperty<PixelCoordinateList>(second_half);
+    
+    return {first_source, second_source};
+  }
+  
+private:
+  
+  std::shared_ptr<SourceFactory> m_factory;
+  
+}; // end of ExamplePartitionStep class
+
+} // end of SExtractor namespace
+\endcode
+
+
+ExamplePartitionConfig.h :
+\code{.cpp}
+#include "Configuration/Configuration.h"
+#include "SEImplementation/Configuration/PartitionStepConfig.h"
+#include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
+#include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
+
+#include "ExamplePartitionStep.h"
+
+
+namespace SExtractor {
+
+class ExamplePartitionConfig : public Euclid::Configuration::Configuration {
+
+public:
+  
+  ExamplePartitionConfig(long manager_id) : Configuration(manager_id) {
+    // Declare that this Configuration is going to use the PartitionStepConfig
+    declareDependency<PartitionStepConfig>();
+    
+    // Use the configuration manager to declare that this configuration must be
+    // initialized after AttractorsPartitionConfig and before MinAreaPartitionConfig,
+    // to control the order of the partition step execution
+    auto& conf_manager = Euclid::Configuration::ConfigManager::getInstance(manager_id);
+    
+    // MinAreaPartitionStep should run after ExamplePartitionConfig
+    conf_manager.registerDependency<MinAreaPartitionConfig, ExamplePartitionConfig>();
+    
+    // AttractorsPartitionConfig should run before ExamplePartitionConfig
+    conf_manager.registerDependency<ExamplePartitionConfig, AttractorsPartitionConfig>();
+    
+  }
+
+  virtual ~ExamplePartitionConfig() = default;
+  
+  std::map<std::string, OptionDescriptionList> getProgramOptions() override {
+    return { {"Extraction", {
+        {"enable-example-partition", boost::program_options::bool_switch(),
+                "Enables the use of the example partitioning"}
+    }}};
+  }
+
+  void initialize(const UserValues& args) override {
+    // If the user didn't gave the command line option, do nothing
+    if (!args.at("enable-example-partition").as<bool>()) {
+      return;
+    }
+    
+    // Get the SExtractor PartitionStepConfig instance
+    auto& partition_step_config = getDependency<PartitionStepConfig>();
+    
+    // Create a lambda function which can create your partition step instances
+    auto creator = [](std::shared_ptr<SourceFactory> source_factory) {
+      return std::make_shared<ExamplePartitionStep>(source_factory);
+    };
+    
+    // Register the creator to the PartitionStepConfig
+    partition_step_config.addPartitionStepCreator(creator);
+  }
+
+
+}; // end of ExamplePartitionConfig class
+
+} // end of SExtractor namespace
+\endcode
+
+
+ExamplePartitionPlugin.h :
+\code{.cpp}
+#include <boost/dll/alias.hpp>
+#include "SEFramework/Plugin/Plugin.h"
+
+#include "ExamplePartitionConfig.h"
+
+namespace SExtractor {
+
+class ExamplePartitionPlugin : public Plugin {
+
+public:
+  
+  static std::shared_ptr<ExamplePartitionPlugin> create() {
+    return std::make_shared<ExamplePartitionPlugin>();
+  }
+
+  virtual ~ExamplePartitionPlugin() = default;
+
+  std::string getIdString() const override {
+    return "ExamplePartitionPlugin";
+  }
+
+  void registerPlugin(PluginAPI& plugin_api) override {
+    plugin_api.getConfigManager().registerConfiguration<ExamplePartitionConfig>();
+  }
+
+}; // end of ExamplePartitionPlugin class
+
+BOOST_DLL_ALIAS(ExamplePartitionPlugin::create, create_plugin)
+
+} // end of SExtractor namespace
+\endcode
+
+\note The above code registers the plugin as a runtime plugin. If you want to
+register it as a compile time plugin, refer to the related HowTo to see how to
+change the BOOST_DLL_ALIAS directive.
+
+*/
+}

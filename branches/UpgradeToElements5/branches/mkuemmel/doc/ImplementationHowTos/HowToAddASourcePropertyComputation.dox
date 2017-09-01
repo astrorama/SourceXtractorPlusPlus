@@ -1,0 +1,270 @@
+namespace SExtractor {
+
+/** \page how_to_add_source_property HowTo add a new source property computation
+
+\tableofcontents
+
+In this tutorial, it is assumed that readers have a basic understanding of the architecture of the system, 
+with in particular a knowledge of the on-demand property computation scheme. It may also help to browse 
+additional SExtractor source code when reading this tutorial. PixelCentroid provides a good example for
+features introduced below.
+
+Note that %SExtractor defines all its classes in the namespace SExtractor.
+
+\section directory_creation Directories
+
+The SExtractorxx source code structure follows the Elements standards. Below a given working directory (e.g., WORKDIR), 
+all code is located in a __SExtractorxx__ top-level directory and all code discussed in this __HowTo__ must be located 
+in the __SEImplementation__ module. The source code root directory is then
+
+> \b $WORKDIR/SExtractorxx/SEImplementation/
+
+Below this root directory, three directories must be created to store all files related to a new source property computation plugin.
+
+1. \b SEImplementation/Plugin/"plugin_name"/ for all header files
+2. __src/lib/Plugin/"plugin_name"/__ for all .cpp implementation files
+3. __tests/src/Plugin/"plugin_name"/__ for all unit test files
+
+As an illustration, the location of the PixelCentroid source property computation plugin source code is:
+
+1. __SExtractorxx/SEImplementation/SEImplementation/Plugin/PixelCentroid/__ for .h files
+2. __SExtractorxx/SEImplementation/src/lib/Plugin/PixelCentroid/__ for .cpp files
+3. __SExtractorxx/SEImplementation/tests/src/Plugin/PixelCentroid/__ for unit test files
+
+\section source_property_impl Source Property
+
+A source property contains information characterizing a source. It should be 
+possible to compute the property for any sources (but how this can happen 
+is addressed in next \ref source_task_impl "section"). 
+
+A new class implementing the Property.h interface has to be created to define 
+a new property. A dummy "minimum* ExampleProperty class is show below.
+
+\code{.cpp}
+#include "SEFramework/Property/Property.h"
+
+namespace SExtractor {
+
+class ExampleProperty : public Property {
+public:
+
+  virtual ~ExampleProperty() = default;
+
+  ExampleProperty(double pixel_mean_value) : m_pixel_mean_value(pixel_mean_value) {}
+
+  double getPixelMeanValue () const {
+    return m_pixel_mean_value;
+  }
+
+private:
+  double m_pixel_mean_value;
+
+}; // End of ExampleProperty class
+} // namespace SExtractor
+\endcode
+
+The Property.h actually do not include any to-be-implemented interfaces. Implementing 
+this interface is just a way to declare that the class represents a property. A virtual 
+default destructor must always be present.
+
+All information required to fill a new instance of your property must be provided 
+through the constructor (no default constructor and no setter). The 
+property content is to be stored in member variables and Getters should be implemented.
+In the above example, the property is only one __value__, in a more general example, 
+the properties can include more than one values, but the principle remains the same. 
+
+A property can be fully implemented in the header file as the code should always be 
+quite simple (but this is of course not a requirement).
+
+\section source_task_impl SourceTask
+
+Once a new property is defined, a corresponding source task can be implemented. It must derive
+from SourceTask. This class provides a __computeProperty(SourceInterface& )__ interface, which
+must be implemented to define how the property is to be computed for a given source. Below 
+is the second part of our *minimum* example.
+
+\code{.cpp}
+#include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+
+namespace SExtractor {
+
+class ExampleSourceTask : public SourceTask {
+
+public:
+
+  virtual ~ExampleSourceTask() = default;
+
+  virtual void computeProperties(SourceInterface& source) const {
+  const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
+
+  double mean_value = 0.0;
+  for (auto value : pixel_values) {
+    mean_value += value;
+  }
+  mean_value /= pixel_values.size();
+  
+  source.setProperty<ExampleProperty>(mean_value);
+};
+
+private:
+
+}; // End of ExampleSourceTask class
+
+} // namespace SExtractor
+\endcode
+
+The computeProperty parameter is a reference to a SourceInterface. It is both an 
+input and output parameter. Any other source properties required to compute the 
+current property can be obtained from this source (interface) using the 
+__source.getProperty<"property_name">()...__ method. In our example, we retrieve 
+the pixel values. (There is no need to worry about their availability as the 
+on-demand property computation system manage this automatically.)
+
+The full list of existing source properties can be found in this documentation [page]
+(classSExtractor_1_1Property.html) which also shows which getters can be used to
+retrieve the property content.
+
+Once the new property content is computed, the new property itself must be *created 
+and attached* to the source. This is done with 
+
+> source.setProperty<ExampleProperty>(mean_value);
+
+The setProperty will actually call the constructor of the ExampleProperty class with 
+the mean_value argument, i.e., effectively calling __ExampleProperty>(mean_value)__.
+Is also directly  attached the newly created property to the source. This means that 
+this new property content can then be obtained from the source with a
+
+> source.getProperty<ExampleProperty>().getPixelMeanValue ();
+
+The PixelCentroidTask provides a slight more complex example which illutrates how 
+the source pixel coordinate can be retrieved and used. Is also shows that in a typical 
+case, the computeProperties() should be implemented in a a specific location/file 
+separated from the header file.
+
+In a more general case, a source task may produce more than one properties. 
+
+\section example_task_factory TaskFactory
+
+The purpose of the task factory is to provide a factory method to create the task 
+itself. In our first *minimum* example, the task factory code looks quite trivial. 
+Its real role and utility become more meaningful but in more complex examples (see 
+further in this tutorial or real SExtactor examples). 
+
+\code{.cpp}
+#include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/ExamplePlugin/ExampleSourceTask.h"
+
+namespace SExtractor {
+
+class ExampleTaskFactory : public TaskFactory {
+public:
+  ExampleTaskFactory() {}
+
+  /// Destructor
+  virtual ~ExampleTaskFactory() = default;
+
+  // TaskFactory implementation
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
+    return std::make_shared<ExampleSourceTask>();
+  }
+};
+
+} // namespace SExtractor
+\endcode
+
+In our case, ExampleTaskFactory extends TaskFactory and implement createTask in the 
+simplest manner. The PropertyId parameter is not used (see further), __std::make_shared__
+called the ExampleSourceTask constructor and return a shared pointer to the newly created 
+task.
+
+\section example_plugin Plugin
+
+In this tutorial, we have now implemented a new set of property - task - task factory and it 
+is time to instruct the system about the capabilities of our new code. These instructions are
+provided through an implementation of the Plugin interface. The implementation of an 
+ExamplePlugin class is displayed below as the last part of our *minimum* example.
+
+\code{.cpp}
+#include "SEFramework/Plugin/Plugin.h"
+#include "SEImplementation/Plugin/ExamplePlugin/ExampleProperty.h"
+#include "SEImplementation/Plugin/ExamplePlugin/ExampleTaskFactory.h"
+
+namespace SExtractor {
+
+class ExamplePlugin : public Plugin {
+
+public:
+
+  virtual ~ExamplePlugin() = default;
+
+  virtual void registerPlugin(PluginAPI& plugin_api) {
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<ExampleTaskFactory, ExampleProperty>();
+
+
+    plugin_api.getOutputRegistry().registerColumnConverter<ExampleProperty, double>(
+            "pixel_mean_value",
+            [](const ExampleProperty& prop){
+              return prop.getPixelMeanValue();
+            }
+    );
+
+    plugin_api.getOutputRegistry().optionalOutput<ExampleProperty>("ExampleProperty");
+  }
+
+  virtual std::string getIdString() const {
+    return "example_plugin";
+  }
+
+private:
+
+}; // End of TestPlugin class
+
+}
+\endcode
+
+The __plugin_api__ parameter of __registerPlugin(PluginAPI& )__, supplies methods which can 
+conveniently becalled to performed the required operations. The first is about the relationship 
+between task factory and properties. The method __registerTaskFactory<>()__ is templated, the 
+first parameter is the name of the task factory and the second that of the corresponding property. 
+It tells the system that ExampleTaskFactory (and hence ExampleTask too) can be used to compute 
+ExampleProperties. Note that when a task produces more that one properties, they should simply be 
+listed sidewise, such as __registerTaskFactory<ExampleTaskFactory, ExampleProperty1, ExampleProperty2>().
+
+\remark Tasks provide the __computeProperties__ used to compute Properties and the most 
+intuitive connection may be between task and property. For reasons related to the configuration 
+(which will be covered later), it is the link between __task factories__ and __properties__ which must be 
+specified. There is anyway a corresponding task - property relationship since there is a one-to-one 
+correlation between task and task factory. 
+
+The second _registerColumnConverter<>()__ method must be used to define how output catalog columns will
+be derived from the property. The arguments are (1) the name of the column ("pixel_mean_value" in 
+our example) and (2) a function which compute the column value. In our case, the function is a lambda
+function defined on-the-fly in the method argument. It takes the property as input parameter and 
+returns its value through a call to __getPixelMeanValue()__. Note that a different, specific 
+_registerColumnConverter<>()__ must be defined for each output catalog column. In general, a 
+property may lead to more than one output columns.
+
+The third method, __.optionalOutput<ExampleProperty>("ExamplePropertyArg")__, declares our 
+ExampleProperty as optional. In other words, the related column will appear in the output catalog
+only if it is requested by the user with a "--ExamplePropertyArg" command line argument. Other options
+will be covered later.
+
+A __getIdString()__ must also be implemented to provide a plugin name to the system (here "example_plugin").
+
+Finally, the following statement should appear in the plugin .cpp file. It registers our example 
+plugin as a static plugin (i.e., which must be compiled with SExtractor). Other types of plugin will
+be described later.
+
+\code{.cpp}
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/ExamplePlugin/ExamplePlugin.h"
+
+namespace SExtractor {
+  static StaticPlugin<ExamplePlugin> example_plugin;
+}
+\endcode
+
+
+*/
+}

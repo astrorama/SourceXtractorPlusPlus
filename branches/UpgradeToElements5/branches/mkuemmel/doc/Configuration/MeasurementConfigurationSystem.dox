@@ -1,0 +1,275 @@
+namespace SExtractor {
+
+/** \page configuration Configuration
+
+\tableofcontents
+
+\section introduction Introduction
+
+This document describes the configuration system for measurements in SExtractor++. In SExtractor++, many measurement images can be specified with potentially different measurements performed on them. The results of those measurements can also be combined in different ways to provide aggregated results.
+
+\subsection format Format
+
+The configuration file uses the YAML format (http://www.yaml.org/spec/1.2/spec.html)
+
+\section overview Overview
+
+Measurement configuration is done by using a measurement-group to specify image files and measurements. 
+A hierarchy of subgroups can be used to group together some image files and override measurement options.
+
+\subsection config_overview Configuration section overview
+
+Actual yaml keywords are in \b bold.
+
+- \b measurement-group (contains a description of the image files and configuration of the related measurement)
+  - \b image-files (loads one or more image files)
+    + \b path - Path to the image file. May contain wildcards or be repeated to add more files.
+    + \b keyword (keyword to be defined for those images)
+    + \b keyword-wildcard (defines keywords using wildcards in the file name)
+    + \b keyword-fits-header (defines keywords from the content of the FITS headers of the file)
+  - \b image-cube (loads a file containing multiple images as a 3d data cube)
+    + keyword related options identical to image-files
+    + default keyword for the index of the image in the cube
+  - \b image-multi-hdu (loads a multi-header fits file)
+    + keyword related options identical to image-files
+
+  + \b subgroup (defines a subgroup containing a subset of the images in the parent)
+    - \b selection (the condition used to filter the images)
+
+  + \b multigroup (defines a series of subgroups based on a keyword unique values)
+    - \b group-by (specifies a keyword, for each unique value of this keyword, a subgroup is created)
+
+  + \b measurement (lists the measurement operations to be performed)
+    - \a measurement-1 (placeholder for some generic measurement)
+      + \a parameter-1
+      + \a parameter-2
+
+\subsection input_options Input
+
+A measurement-group contains a list of images that will be used for measurements. Files can have some meta-data attached to them in the form of keyword values. Those keyword values can be specified in the configuration file, come directly from a FITS file headers or be extracted from part of the file name.
+
+\subsection grouping Grouping
+
+\image html grouping.png
+\image latex grouping.png width=10cm
+
+Subgroups can be used to group together some of the images in a measurement-group, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
+
+A subgroup creates a subset of the images at the level above it by applying a filter to them. All subgroups at the same level have access to the same images at the parent level (previously defined subgroups don't prevent the next ones from using the same images). Subgroups within a subgroup only have access to the images filtered by their parent.
+
+Subgroups can be created using selection condition (for example "keyword == value"). Multigroups allow the creation of multiple subgroups at the same time using the syntax "group-by: keyword". This will create a different subgroup for each unique value of the keyword.
+
+\section config_examples Configuration Examples
+
+\subsection example_1 Example 1
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: path/to/file.fits
+  
+  measurement:
+    aperture-photometry:
+      size: [5, 7, 9]
+\endcode
+
+We want to do circular aperture photometry on a single image, using 3 different diameters.
+
+First we define a "measurement-group" to contain our measurement. Inside it we use "image-files" to specify
+a single image.
+
+Finally, we request "aperture-photometry", specifying an array of diameters.
+
+\subsubsection output_1 Output
+
+One aperture_photometry column containing a vector of 3 values, one for each aperture size
+
+(+ associated error values following the same format, to simplify things we won't mention the error value columns anymore)
+
+\subsection example_2 Example 2
+
+\code{.yaml}
+measurement-group:
+  
+  image-files:
+    path: path/to/first_file.fits
+    path: path/to/second_file.fits
+  
+  measurement:
+    multi-aperture-photometry:
+      size: [5, 7, 9]
+\endcode
+
+A variation on the previous example. This time we specify two fits files by repeating the "path" key.
+
+\subsubsection output_2 Output
+
+1 aperture photometry column with a vector
+
+[
+
+  multi-aperture-photometry on both files using size 5
+  
+  multi-aperture-photometry on both files using size 7
+
+  multi-aperture-photometry on both files using size 9
+
+]
+
+\subsection example_3 Example 3
+
+\code{.yaml}
+measurement-group:
+  name: "g"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_g_*.fits
+
+  measurement:
+    multi-aperture-photometry:
+      size: 5
+
+measurement-group:
+  name: "r"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_r_*.fits
+
+  measurement:
+    multi-aperture-photometry:
+      size: 5
+
+measurement-group:
+  name: "i"
+  
+  image-files:
+    path: foo/bar/sim01/sim01_i_*.fits
+
+  measurement:
+    multi-aperture-photometry:
+      size: 7
+\endcode
+
+Here we have multiple exposures for 3 different bands. Note that we want a different aperture diameter for the "i" band.
+
+We define 3 completely independent "measurement-group" keys. Each contains its own image-files entry loading different files. The parameters
+for the aperture photometry are also repeated.
+
+This is a simple way to do this configuration, but it relies on repeating some of the configuration and we're going to see a more elegant way
+to do this configuration next.
+
+\subsubsection output_3 Output
+
+3 columns:
+
+aperture_photometry_g = band g aperture photometry values
+
+aperture_photometry_r = band r aperture photometry values
+
+aperture_photometry_i = band i aperture photometry values
+
+\subsection example_4 Example 4
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/sim01/sim01_(*)_*.fits
+    keyword-wildcard: "BAND"
+    
+  subgroup:
+    selection: "BAND == 'g'"
+    name: "g"
+    measurement:
+      multi-aperture-photometry:
+        size: 5
+      
+  subgroup:
+    selection: "BAND == 'r'"
+    name: "r"
+    measurement:
+      multi-aperture-photometry:
+        size: 5
+
+  subgroup:
+    selection: "BAND == 'i'"
+    name: "i"
+    measurement:
+      multi-aperture-photometry:
+        size: 7
+\endcode
+
+This reworked version of the previous example, adds the use of a wildcard keyword and subgroups.
+
+We have a single measurement-group this time. For the files specification, we use a double wild card. The first one is in between 
+parentheses to indicate that it will be used for a keyword. The keyword definition itself ("BAND") is next line.
+
+The keyword BAND is defined as the part of the file after the first underscore and until the next one. We then then define subgroups by filtering using this keyword.
+
+Each subgroup can have its own name and and measurement options. We once again use "aggregate" to combine all the images within a subgroup.
+
+\subsubsection output_4 Output
+same as previous example 
+
+\subsection example_5 Example 5
+
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/sim01/sim01_(*)_*.fits
+    keyword-wildcard: "BAND"
+      
+  multigroup:
+    group-by: "BAND"
+    
+    subgroup:
+      selection: "BAND == i"
+      override:
+        multi-aperture-photometry:
+          size: 7
+    
+    measurement:
+      multi-aperture-photometry:
+        size: 5
+\endcode
+        
+This configuration is equivalent to the previous one (if we have the same input files) but uses more advanced syntax and is more generic. 
+
+This time we use a group-by to automatically create a subgroup for each unique value of the keyword "BAND". We then request multi aperture photometry.
+
+There is just one thing left to take care of. In the previous example, we used a different aperture size for the i band.
+How can we do that this time? Using another subgroup with a selection key, we can override the aperture photometry parameter just for the i band.
+
+\subsubsection output_5 Output
+same as previous example 
+
+\subsection example_6 Example 6
+
+\code{.yaml}
+measurement-group:
+
+  image-files:
+    path: foo/bar/img_(*)_(*)_*.fits
+    keyword-wildcard: ["BAND", "DAY"]
+      
+  multigroup:
+    group-by: "BAND"
+    
+    multigroup:
+      group-by: "DAY"
+
+    measurement:
+      multi-aperture-photometry:
+          size: 5
+\endcode
+
+In this example, we group files by band, then by day and then by exposure number.
+        
+\subsubsection output_6 Output
+  A column for each band containing a vector with the multi aperture photometry values for each day.
+
+*/
+}
