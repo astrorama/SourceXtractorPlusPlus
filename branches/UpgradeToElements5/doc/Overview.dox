@@ -1,0 +1,93 @@
+namespace SExtractor {
+
+/** \page overview Architecture overview
+
+Overview
+
+The main organization of SExtractor is a pipeline system in which potential sources go through different steps of
+refinement. Some might get split into several sources, others are merged together or filtered out completely.
+At the end of the pipeline, the final sources are output.
+
+During its trip through the pipeline, a source accumulates information as properties attached to it. 
+
+Pipeline
+
+The pipeline is made of the following steps, in order:
+
+1) Segmentation
+
+The Segmentation step takes an image and detects potential sources in it. Those detected sources then enter the pipeline
+for further refinement.
+
+2) Partition
+
+The Partition step performs some refinement on a single source at a time. Its main purpose is to split sources
+ that were detected together by the Segmentation.
+
+3) SourceGrouping
+
+The SourceGrouping step holds sources to see if they should be grouped with others so as to be processed together.
+The sources will be held until there are no more incoming sources or the further processing of some sources
+is triggered early due to memory concerns. 
+
+4) Deblending
+
+The Deblending step takes a group of sources (from grouping) and perform some refinement step on them, adding or
+ removing sources if needed.
+
+5) Output
+
+The final sources that have reached the end of the pipeline are ready for the Output.
+
+SourceInterface
+
+Sources are represented by a SourceInterface. A SourceInterface contains Property objects that hold a specific aspect of
+the information about a source.
+
+Property
+
+Information about a source is stored in properties. A Property contains some related informations. Most properties are
+computed using some other existing properties as their input. Any other input is part of the Configuration system.
+
+SExtractor++ uses an on-demand computation system. This is implemented by SourceWithOnDemandProperties. 
+When a Property is requested from a source, if it's not already available then it is computed on the fly.
+
+Property instances
+
+A Source can have more than one Property of the same type. We call those Property instances. An instance has a numerical
+index starting to 0 to n, with no gaps. The index by default is zero to make it more convenient to work with properties
+that always have only one instance. 
+
+SourceWithOnDemandProperties and TaskProvider
+
+When a Property is requested from a SourceWithOnDemandProperties using getProperty(), if it already exists it will be
+returned as is. If it's not available it will need to be computed. Property computation is performed by the Task objects.
+All SourceWithOnDemandProperties receive a pointer to a TaskProvider in their constructor. The correct Task to compute
+the Property is requested and the Task's computeProperty() method is called to compute the Property. Usually, a Task
+will need to use some other Property as input for its computation. It will request those properties from the source, which
+can trigger another computation. This ensures that all prerequisite computation will be automatically done while not computing
+properties that are not needed.
+
+TaskFactory
+
+Tasks are created by a TaskFactory that will create the appropriate Task to produce a specific property. Tasks are registered
+in TaskRegistry. The TaskRegistry maps a Property type to a TaskFactory that can produce it. When TaskProvider receives
+a request to provide a Task, it will check if one already exists. If not it will request a TaskFactory from the TaskRegistry
+using the type of property, then it will use the TaskFactory to request a Task for a specific Property instance.
+
+Groups and group properties
+
+After the SourceGrouping step in the pipeline, some sources are grouped together. SourceGroupInterface is used to hold
+those sources together. If SourceWithOnDemandProperties is the SourceInterface implementation used, then
+SourceWithOnDemandProperties should be the SourceGroupInterface used.
+
+In addition of the properties belonging to a single source, the group notion adds two other kind of properties:
+- properties belonging to the group itself. They are accessed through the SourceGroupInterface
+
+- properties that are attached to a source but use group information or other sources in the group to be computed.
+Sources belonging to a group are accessed through SourceGroupInterface. Their properties are accessed normally but 
+they will contain that extra kind of properties (note that is only true when accessing them through the group).
+
+
+*/
+}

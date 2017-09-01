@@ -1,0 +1,117 @@
+/** 
+ * @file DataVsModelResiduals.icpp
+ * @date August 20, 2015
+ * @author Nikolaos Apostolakos
+ */
+
+namespace ModelFitting {
+
+template <typename DataType, typename ModelType, typename WeightType, typename Comparator>
+DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::DataVsModelResiduals(
+                      DataType data, ModelType model, WeightType weight, Comparator comparator)
+          : m_data{std::move(data)}, m_model{std::move(model)}, m_weight{std::move(weight)},
+            m_comparator(std::move(comparator)), m_residual_no{DataTraits::size(m_data)} {
+  if (DataTraits::size(m_data) != ModelTraits::size(m_model)) {
+    throw Elements::Exception() << "Data size (" << DataTraits::size(m_data)
+        << ") is different than model size (" << ModelTraits::size(m_model) << ")";
+  }
+  if (DataTraits::size(m_data) != WeightTraits::size(m_weight)) {
+    throw Elements::Exception() << "Data size (" << DataTraits::size(m_data)
+        << ") is different than weight size (" << WeightTraits::size(m_weight) << ")";
+  }
+}
+
+template <typename DataType, typename ModelType, typename WeightType, typename Comparator>
+DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::~DataVsModelResiduals() = default;
+
+template <typename DataType, typename ModelType, typename WeightType, typename Comparator>
+std::size_t DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::numberOfResiduals() const {
+  return m_residual_no;
+}
+
+template <typename DataType, typename ModelType, typename WeightType, typename Comparator>
+void DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::populateResidualBlock(IterType output_iter) {
+  auto data_iter = DataTraits::begin(m_data);
+  auto model_iter = ModelTraits::begin(m_model);
+  auto weight_iter = WeightTraits::begin(m_weight);
+//  double test = 0;
+//  static double diff = 0;
+  for (; data_iter!=DataTraits::end(m_data); ++data_iter, ++model_iter, ++weight_iter, ++output_iter) {
+    *output_iter = m_comparator(*data_iter, *model_iter, *weight_iter);
+//    test += *output_iter;
+  }
+//  std::cout << test << " -- " << test-diff << "\n";
+//  diff = test;
+}
+
+// NOTE TO DEVELOPERS:
+//
+// The following factory function looks (and is) complicated, but it greatly
+// simplifies the code using the library. For example, using the factory method,
+// the code for creating a DataVsModelResiduals looks like:
+//
+// std::vector<double> data = ...;
+// std::vector<double> model = ...;
+// std::vector<double> weights = ...;
+// auto res_prov = createDataVsModelResiduals(data, model, weights, ChiSquareComparator{});
+//
+// The equivalent command when using directly the constructor would be:
+//
+// std::vector<double> data = ...;
+// std::vector<double> model = ...;
+// std::vector<double> weights = ...;
+// unique_ptr<DataVsModelResiduals<std::vector<double>, std::vector<double>,
+//                                 std::vector<double>, ChiSquareComparator>> res_prov {
+//   new DataVsModelResiduals<std::vector<double>, std::vector<double>,
+//                            std::vector<double>, ChiSquareComparator> {
+//          y_data, model, weight, ChiSquareComparator{}
+//   }
+// };
+//
+// The above shows the importance of the existence of this factory. Here are
+// some tips, to help you understand how the function works:
+//
+// - The function perfect-forwards its parameters to the constructor, so it can
+//   be the exact equivalent with calling the constructor, regardless the
+//   r-valueness or l-valueness of the parameters. If you don't know what the
+//   perfect forwarding is, search the internet for a good explanation before
+//   you continue trying to understand this code.
+//
+// - The template parameters of the factory method are NOT the same with the ones
+//   of the DataVsModelResiduals object being created. This is a result of the
+//   use of the perfect forwarding. More precisely, the template types of the
+//   factory method are lvalue or rvalue REFERENCES (which is how perfect
+//   forwarding works), when the template types of the DataVsModelResiduals are
+//   the actual types (and no references to them).
+//
+// - The "typename std::remove_reference<...>::type" (which is used a lot bellow)
+//   simply removes any reference from the type, creating the proper template
+//   parameter for the DataVsModelResiduals class. The keyword "typename" has to
+//   be used because, during the first passage, the compiler will fail to recognize
+//   that the "std::remove_reference<...>::type" is an existing type (because
+//   it contains a template parameter itself).
+//
+// I hope the above will help you to understand how the factory method works.
+template <typename DataType, typename ModelType, typename WeightType, typename Comparator>
+std::unique_ptr<DataVsModelResiduals<typename std::remove_reference<DataType>::type,
+                                     typename std::remove_reference<ModelType>::type,
+                                     typename std::remove_reference<WeightType>::type,
+                                     typename std::remove_reference<Comparator>::type>
+               > createDataVsModelResiduals(DataType&& data, ModelType&& model,
+                                            WeightType&& weight, Comparator&& comparator) {
+  return std::unique_ptr<DataVsModelResiduals<typename std::remove_reference<DataType>::type,
+                                              typename std::remove_reference<ModelType>::type,
+                                              typename std::remove_reference<WeightType>::type,
+                                              typename std::remove_reference<Comparator>::type>
+                        > {
+    new DataVsModelResiduals<typename std::remove_reference<DataType>::type,
+                             typename std::remove_reference<ModelType>::type,
+                             typename std::remove_reference<WeightType>::type,
+                             typename std::remove_reference<Comparator>::type> {
+        std::forward<DataType>(data), std::forward<ModelType>(model),
+        std::forward<WeightType>(weight), std::forward<Comparator>(comparator)
+    }
+  };
+}
+
+} // end of namespace ModelFitting
