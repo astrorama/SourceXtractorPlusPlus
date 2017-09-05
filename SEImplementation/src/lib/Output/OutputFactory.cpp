@@ -39,20 +39,19 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
         m_table_handler = [out_file](const Euclid::Table::Table& table) {
-          CCfits::FITS fits {"!"+out_file, CCfits::RWmode::Write};
-          Euclid::Table::FitsWriter{Euclid::Table::FitsWriter::Format::BINARY}.write(fits, "CATALOG", table);
+          Euclid::Table::FitsWriter{out_file}.setHduName("CATALOG").addData(table);
         };
         break;
       case OutputConfig::OutputFileFormat::ASCII:
         m_table_handler = [out_file](const Euclid::Table::Table& table) {
           std::ofstream out_stream {out_file};
-          Euclid::Table::AsciiWriter{}.write(out_stream, table);
+          Euclid::Table::AsciiWriter{out_stream}.addData(table);
         };
         break;
     }
   } else {
     m_table_handler = [](const Euclid::Table::Table& table) {
-      Euclid::Table::AsciiWriter{}.write(std::cout, table);
+      Euclid::Table::AsciiWriter{std::cout}.addData(table);
     };
   }
 }
