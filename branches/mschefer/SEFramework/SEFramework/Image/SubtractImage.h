@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 
 namespace SExtractor {
@@ -20,7 +21,7 @@ namespace SExtractor {
  *
  */
 template <typename T>
-class SubtractImage : public Image<T> {
+class SubtractImage : public ImageBase<T> {
 
 public:
 
