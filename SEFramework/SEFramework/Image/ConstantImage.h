@@ -9,11 +9,12 @@
 #define _SEFRAMEWORK_IMAGE_CONSTANTIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 
 namespace SExtractor {
 
 template <typename T>
-class ConstantImage : public Image<T> {
+class ConstantImage : public ImageBase<T> {
 public:
 
   ConstantImage(int width, int height, T constant_value)

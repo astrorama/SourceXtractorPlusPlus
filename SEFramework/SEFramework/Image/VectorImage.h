@@ -11,6 +11,8 @@
 #include <cassert>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/ImageBase.h"
 
 namespace SExtractor {
 
@@ -29,8 +31,7 @@ namespace SExtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage : public Image<T> {
-
+class VectorImage : public ImageBase<T> {
 public:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height), m_offset(0,0) {
@@ -106,6 +107,12 @@ public:
    * @brief Destructor
    */
   virtual ~VectorImage() = default;
+
+  virtual std::unique_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    return std::unique_ptr<ImageChunk<T>>(
+        new ImageChunk<T>(&m_data[x + y * m_width], width, height, m_width, this->shared_from_this()));
+  }
+
 
 
 private:

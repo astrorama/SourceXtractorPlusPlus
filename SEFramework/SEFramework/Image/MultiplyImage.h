@@ -11,12 +11,13 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 
 namespace SExtractor {
 
 template <typename T>
-class MultiplyImage : public Image<T> {
+class MultiplyImage : public ImageBase<T> {
 
 public:
 
