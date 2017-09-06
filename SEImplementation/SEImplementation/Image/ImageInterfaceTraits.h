@@ -27,7 +27,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
   using iterator = std::vector<ImageInterfaceType::PixelType>::iterator;
 
   static ImageInterfaceTypePtr factory(std::size_t width, std::size_t height) {
-    return std::make_shared<SExtractor::VectorImage<ImageInterfaceType::PixelType>>(width, height);
+    return SExtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
   }
 
   static std::size_t width(const ImageInterfaceTypePtr& image) {

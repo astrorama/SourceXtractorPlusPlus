@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_SUITE (DetectionFramePixelValues_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelValuesFixture) {
-  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(3, 2,
+  auto image = VectorImage<DetectionImage::PixelType>::create(3, 2,
       std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});

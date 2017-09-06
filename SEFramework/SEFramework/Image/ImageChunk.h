@@ -16,13 +16,19 @@ namespace SExtractor {
 
 template <typename T>
 class ImageChunk : public Image<T>, public std::enable_shared_from_this<ImageChunk<T>> {
-public:
+protected:
   ImageChunk(const T* data, int width, int height, int stride, std::shared_ptr<const Image<T>> image = nullptr) :
       m_data(data),
       m_stride(stride),
       m_width(width),
       m_height(height),
       m_image(image) {}
+
+public:
+  static std::shared_ptr<ImageChunk<T>> create(const T* data, int width, int height,
+      int stride, std::shared_ptr<const Image<T>> image = nullptr) {
+    return std::shared_ptr<ImageChunk<T>>(new ImageChunk<T>(data, width, height, stride, image));
+  }
 
   virtual ~ImageChunk() {
   }
@@ -43,9 +49,8 @@ public:
     return m_height;
   }
 
-  virtual std::unique_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const {
-    return std::unique_ptr<ImageChunk<T>>(
-        new ImageChunk<T>(&m_data[x + y * m_stride], width, height, m_stride, this->shared_from_this()));
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    return create(&m_data[x + y * m_stride], width, height, m_stride, this->shared_from_this());
   }
 
 protected:
@@ -67,7 +72,7 @@ private:
 template <typename T>
 class UniversalImageChunk : public ImageChunk<T> {
 
-public:
+protected:
   UniversalImageChunk(std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) :
       ImageChunk<T>(nullptr, width, height, width),
       m_chunk_vector(width * height) {
@@ -79,6 +84,12 @@ public:
         m_chunk_vector[cx + cy * width] = image->getValue(x + cx, y + cy);
       }
     }
+  }
+
+public:
+  static std::shared_ptr<UniversalImageChunk<T>> create(
+      std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) {
+    return std::shared_ptr<UniversalImageChunk<T>>(new UniversalImageChunk<T>(image, x, y, width, height));
   }
 
   virtual ~UniversalImageChunk() {

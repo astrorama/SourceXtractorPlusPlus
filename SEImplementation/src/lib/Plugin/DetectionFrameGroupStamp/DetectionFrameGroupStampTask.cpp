@@ -77,10 +77,11 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   }
 
   // set the property
-  std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};
-  std::shared_ptr<DetectionImage> thresholded_stamp
-      {new VectorImage<DetectionImage::PixelType>(width, height, thresholded_data)};
-  std::shared_ptr<WeightImage> weight_stamp {new VectorImage<DetectionImage::PixelType>(width, height, weight_data)};
+  std::shared_ptr<DetectionImage> stamp = VectorImage<DetectionImage::PixelType>::create(width, height, data);
+  std::shared_ptr<DetectionImage> thresholded_stamp =
+      VectorImage<DetectionImage::PixelType>::create(width, height, thresholded_data);
+  std::shared_ptr<WeightImage> weight_stamp =
+      VectorImage<WeightImage::PixelType>::create(width, height, weight_data);
 
   group.setProperty<DetectionFrameGroupStamp>(stamp, thresholded_stamp, min, weight_stamp);
 }

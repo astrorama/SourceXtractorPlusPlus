@@ -16,7 +16,7 @@ namespace SExtractor {
 class BackgroundConvolution : public DetectionImageProcessing {
 public:
   BackgroundConvolution(std::shared_ptr<Image<SeFloat>> convolution_filter, bool must_normalize)
-    : m_convolution_filter(std::make_shared<VectorImage<SeFloat>>(*convolution_filter))
+    : m_convolution_filter(VectorImage<SeFloat>::create(*convolution_filter))
   {
     if (must_normalize) {
       normalize();

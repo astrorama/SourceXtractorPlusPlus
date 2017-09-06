@@ -15,10 +15,17 @@ namespace SExtractor {
 
 template <typename T>
 class ConstantImage : public ImageBase<T> {
-public:
+protected:
 
   ConstantImage(int width, int height, T constant_value)
       : m_width(width), m_height(height), m_constant_value(constant_value) {}
+
+
+public:
+
+  static std::shared_ptr<ConstantImage<T>> create(int width, int height, T constant_value) {
+    return std::shared_ptr<ConstantImage<T>>(new ConstantImage(width, height, constant_value));
+  }
 
   virtual ~ConstantImage() = default;
 
