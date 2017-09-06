@@ -20,13 +20,14 @@ class ImageBase : public Image<T>, public std::enable_shared_from_this<ImageBase
 public:
   virtual ~ImageBase() {}
 
-  virtual std::unique_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const {
-    return std::unique_ptr<ImageChunk<T>>(new UniversalImageChunk<T>(this->shared_from_this(), x, y, width, height));
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    return UniversalImageChunk<T>::create(this->shared_from_this(), x, y, width, height);
   }
 
 };
 
 }
+
 
 
 #endif /* _SEFRAMEWORK_IMAGE_IMAGEBASE_H_ */

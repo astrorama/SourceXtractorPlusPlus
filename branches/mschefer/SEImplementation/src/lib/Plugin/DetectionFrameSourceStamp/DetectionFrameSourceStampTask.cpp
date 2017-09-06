@@ -28,7 +28,7 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
       data[(x-min.m_x) + (y-min.m_y) * width] = detection_frame->getValue(x, y);
     }
   }
-  std::shared_ptr<DetectionImage> stamp {new VectorImage<DetectionImage::PixelType>(width, height, data)};
+  std::shared_ptr<DetectionImage> stamp = VectorImage<DetectionImage::PixelType>::create(width, height, data);
   source.setProperty<DetectionFrameSourceStamp>(stamp);
 }
 

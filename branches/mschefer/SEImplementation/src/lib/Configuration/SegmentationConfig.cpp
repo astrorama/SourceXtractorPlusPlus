@@ -66,7 +66,7 @@ void SegmentationConfig::initialize(const UserValues&) {
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter() const {
-  auto convolution_kernel = std::make_shared<VectorImage<SeFloat>>(3, 3);
+  auto convolution_kernel = VectorImage<SeFloat>::create(3, 3);
   convolution_kernel->setValue(0,0, 1);
   convolution_kernel->setValue(0,1, 2);
   convolution_kernel->setValue(0,2, 1);
@@ -147,7 +147,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   }
 
   auto kernel_height = kernel_data.size() / kernel_width;
-  auto convolution_kernel = std::make_shared<VectorImage<SeFloat>>(kernel_width, kernel_height, kernel_data);
+  auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
 }

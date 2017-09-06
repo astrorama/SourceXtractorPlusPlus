@@ -119,7 +119,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto& pixel_boundaries = original_source->getProperty<PixelBoundaries>();
 
   auto& pixel_coords = original_source->getProperty<PixelCoordinateList>().getCoordinateList();
-  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+  auto image = VectorImage<DetectionImage::PixelType>::create(
       pixel_boundaries.getWidth(), pixel_boundaries.getHeight(), pixel_boundaries.getMin());
   image->fillValue(0);
 
@@ -140,10 +140,10 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   for (unsigned int i = 1; i < m_thresholds_nb; i++) {
 
     auto threshold = detection_threshold * pow(peak_value / detection_threshold, (double) i / m_thresholds_nb);
-    SubtractImage<DetectionImage::PixelType> subtracted_image(image, threshold);
+    auto subtracted_image = SubtractImage<DetectionImage::PixelType>::create(image, threshold);
 
     LutzList lutz;
-    lutz.labelImage(subtracted_image, image->getOffset());
+    lutz.labelImage(*subtracted_image, image->getOffset());
 
     std::list<std::shared_ptr<MultiThresholdNode>> active_nodes_copy(active_nodes);
     for (auto& node : active_nodes_copy) {

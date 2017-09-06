@@ -31,7 +31,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_residual_filename = config.getModelFittingResidualFilename();
 
   if (m_model_fitting_image_filename != "" || m_residual_filename != "") {
-    m_check_image_model_fitting = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+    m_check_image_model_fitting = VectorImage<DetectionImage::PixelType>::create(
         m_detection_image->getWidth(), m_detection_image->getHeight());
   }
 }
@@ -42,8 +42,8 @@ void CheckImages::saveImages() {
   }
 
   if (m_check_image_model_fitting != nullptr && m_residual_filename != "") {
-    SubtractImage<SeFloat> residual_image(m_detection_image, m_check_image_model_fitting);
-    FitsWriter::writeFile(residual_image, m_residual_filename);
+    auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
+    FitsWriter::writeFile(*residual_image, m_residual_filename);
   }
 }
 

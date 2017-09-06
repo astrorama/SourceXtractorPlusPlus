@@ -48,11 +48,7 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
-  virtual std::unique_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const = 0;
-
-//  virtual std::unique_ptr<Image<T>> getSubImage() const = 0;
-//
-//  virtual ImageIterator<T> getIterator() const = 0;
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const = 0;
 
 }; /* End of Image class */
 
