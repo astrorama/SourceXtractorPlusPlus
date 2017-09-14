@@ -20,7 +20,7 @@ elements_add_library(ModelFitting
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
-elements_install_python_modules()
+#elements_install_python_modules()
 
 # Install the configuration files
 elements_install_conf_files()
