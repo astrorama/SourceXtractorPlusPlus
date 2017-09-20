@@ -44,7 +44,7 @@ public:
 
 
 std::shared_ptr<VectorImage<SeFloat>> convertPsf(const cv::Mat& mat) {
-  auto image = std::make_shared<VectorImage<SeFloat>>(mat.rows, mat.cols);
+  auto image = VectorImage<SeFloat>::create(mat.rows, mat.cols);
 
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_SUITE (SimpleModelFitting_test)
 
 BOOST_FIXTURE_TEST_CASE(modelfitting_test, SimpleModelFittingFixture) {
   int image_size = 50;
-  auto image = std::make_shared<VectorImage<SeFloat>>(image_size, image_size);
+  auto image = VectorImage<SeFloat>::create(image_size, image_size);
   image->fillValue(0);
 
   for (int y=0; y < psf_image->getHeight(); y++) {

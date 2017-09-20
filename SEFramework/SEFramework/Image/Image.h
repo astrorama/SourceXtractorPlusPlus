@@ -14,6 +14,10 @@
 
 namespace SExtractor {
 
+template <typename T>
+class ImageChunk;
+
+
 /**
  * @class Image
  * @brief Interface representing an image
@@ -43,6 +47,8 @@ public:
   
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
+
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const = 0;
 
 }; /* End of Image class */
 

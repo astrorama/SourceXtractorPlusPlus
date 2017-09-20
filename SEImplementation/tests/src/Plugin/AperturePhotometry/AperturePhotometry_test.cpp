@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_SUITE (PixelCentroid_test)
 BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 0, 0);
 
-  auto image = std::make_shared<VectorImage<MeasurementImage::PixelType>>(1, 1);
+  auto image = VectorImage<MeasurementImage::PixelType>::create(1, 1);
   image->setValue(0, 0, 1);
   source.setIndexedProperty<MeasurementFrame>(0, std::make_shared<DetectionImageFrame>(image));
 

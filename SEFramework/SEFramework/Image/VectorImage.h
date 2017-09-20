@@ -11,6 +11,11 @@
 #include <cassert>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/ImageBase.h"
+
+
+// FIXME get rid of offset, it was a bad idea
 
 namespace SExtractor {
 
@@ -29,9 +34,8 @@ namespace SExtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage : public Image<T> {
-
-public:
+class VectorImage : public ImageBase<T> {
+protected:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height), m_offset(0,0) {
     assert(width > 0 && height > 0);
@@ -55,6 +59,12 @@ public:
         setValue(x, y, other_image.getValue(x, y));
       }
     }
+  }
+
+public:
+  template<typename... Args>
+  static std::shared_ptr<VectorImage<T>> create(Args&&... args) {
+    return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
   }
 
   int getHeight() const override {
@@ -106,6 +116,11 @@ public:
    * @brief Destructor
    */
   virtual ~VectorImage() = default;
+
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    return ImageChunk<T>::create(&m_data[x + y * m_width], width, height, m_width, this->shared_from_this());
+  }
+
 
 
 private:

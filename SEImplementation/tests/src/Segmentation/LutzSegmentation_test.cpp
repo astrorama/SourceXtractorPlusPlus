@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
       }
   }
 
-  auto image = std::make_shared<VectorImage<DetectionImage::PixelType>>(10, 10, composite_image);
+  auto image = VectorImage<DetectionImage::PixelType>::create(10, 10, composite_image);
 
   // use Lutz to split them
   Segmentation segmentation(nullptr);
@@ -148,13 +148,13 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   // For each source that was produced by Lutz, check that it matches one of the groups we had at the start
   // and remove that group
   for (auto& source : source_observer->m_list) {
-    VectorImage<DetectionImage::PixelType> check_image(10, 10, std::vector<DetectionImage::PixelType>(100, 0.0));
+    auto check_image = VectorImage<DetectionImage::PixelType>::create(10, 10, std::vector<DetectionImage::PixelType>(100, 0.0));
     for (auto& pixel : source->getProperty<PixelCoordinateList>().getCoordinateList()) {
-      BOOST_CHECK_CLOSE(check_image.getValue(pixel), 0.0, 0.00001);
-      check_image.setValue(pixel, 1.0);
+      BOOST_CHECK_CLOSE(check_image->getValue(pixel), 0.0, 0.00001);
+      check_image->setValue(pixel, 1.0);
     }
     for (auto iter = group_images.begin(); iter != group_images.end(); iter++) {
-      if (*iter == check_image.getData()) {
+      if (*iter == check_image->getData()) {
         group_images.erase(iter);
         break;
       }

@@ -11,29 +11,38 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 
 namespace SExtractor {
 
 template <typename T>
-class MultiplyImage : public Image<T> {
+class MultiplyImage : public ImageBase<T> {
 
-public:
-
-  /**
-   * @brief Destructor
-   */
-  virtual ~MultiplyImage() = default;
-
-  MultiplyImage(std::shared_ptr<Image<T>> image, T value_to_multiply)
-      : m_image(image), m_image_to_multiply(
-          std::make_shared<ConstantImage<T>>(image->getWidth(), image->getHeight(), value_to_multiply)) {};
+protected:
 
   MultiplyImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_multiply)
       : m_image(image), m_image_to_multiply(image_to_multiply) {
     assert(m_image->getWidth() == m_image_to_multiply->getWidth());
     assert(m_image->getHeight() == m_image_to_multiply->getHeight());
   };
+
+public:
+
+  static std::shared_ptr<MultiplyImage<T>> create(
+      std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_multiply) {
+    return std::shared_ptr<MultiplyImage<T>>(new MultiplyImage<T>(image, image_to_multiply));
+  }
+
+  static std::shared_ptr<MultiplyImage<T>> create(std::shared_ptr<Image<T>> image, T value_to_multiply) {
+    return std::shared_ptr<MultiplyImage<T>>(new MultiplyImage<T>(
+        image, ConstantImage<T>::create(image->getWidth(), image->getHeight(), value_to_multiply)));
+  }
+
+  /**
+   * @brief Destructor
+   */
+  virtual ~MultiplyImage() = default;
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {

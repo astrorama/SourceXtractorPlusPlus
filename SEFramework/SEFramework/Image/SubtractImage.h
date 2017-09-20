@@ -10,6 +10,7 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 
 namespace SExtractor {
@@ -20,7 +21,15 @@ namespace SExtractor {
  *
  */
 template <typename T>
-class SubtractImage : public Image<T> {
+class SubtractImage : public ImageBase<T> {
+
+protected:
+
+  SubtractImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_subtract)
+      : m_image(image), m_image_to_subtract(image_to_subtract) {
+    assert(m_image->getWidth() == m_image_to_subtract->getWidth());
+    assert(m_image->getHeight() == m_image_to_subtract->getHeight());
+  };
 
 public:
 
@@ -29,15 +38,15 @@ public:
    */
   virtual ~SubtractImage() = default;
 
-  SubtractImage(std::shared_ptr<Image<T>> image, T value_to_subtract)
-      : m_image(image), m_image_to_subtract(
-          std::make_shared<ConstantImage<T>>(image->getWidth(), image->getHeight(), value_to_subtract)) {};
+  static std::shared_ptr<SubtractImage<T>> create(
+      std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_multiply) {
+    return std::shared_ptr<SubtractImage<T>>(new SubtractImage<T>(image, image_to_multiply));
+  }
 
-  SubtractImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_subtract)
-      : m_image(image), m_image_to_subtract(image_to_subtract) {
-    assert(m_image->getWidth() == m_image_to_subtract->getWidth());
-    assert(m_image->getHeight() == m_image_to_subtract->getHeight());
-  };
+  static std::shared_ptr<SubtractImage<T>> create(std::shared_ptr<Image<T>> image, T value_to_subtract) {
+    return std::shared_ptr<SubtractImage<T>>(new SubtractImage<T>(
+        image, ConstantImage<T>::create(image->getWidth(), image->getHeight(), value_to_subtract)));
+  }
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {

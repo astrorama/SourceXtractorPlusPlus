@@ -13,7 +13,7 @@ namespace SExtractor {
 
 std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_ptr<DetectionImage> image) const {
 
-  auto result_image = std::make_shared<VectorImage<DetectionImage::PixelType>>(image->getWidth(), image->getHeight());
+  auto result_image = VectorImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight());
 
   int hx = m_convolution_filter->getWidth() / 2;
   int hy = m_convolution_filter->getHeight() / 2;

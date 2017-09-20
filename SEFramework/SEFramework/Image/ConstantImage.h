@@ -9,15 +9,23 @@
 #define _SEFRAMEWORK_IMAGE_CONSTANTIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageBase.h"
 
 namespace SExtractor {
 
 template <typename T>
-class ConstantImage : public Image<T> {
-public:
+class ConstantImage : public ImageBase<T> {
+protected:
 
   ConstantImage(int width, int height, T constant_value)
       : m_width(width), m_height(height), m_constant_value(constant_value) {}
+
+
+public:
+
+  static std::shared_ptr<ConstantImage<T>> create(int width, int height, T constant_value) {
+    return std::shared_ptr<ConstantImage<T>>(new ConstantImage(width, height, constant_value));
+  }
 
   virtual ~ConstantImage() = default;
 

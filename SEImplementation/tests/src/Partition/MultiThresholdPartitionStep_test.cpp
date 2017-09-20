@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
-  auto detection_image = std::make_shared<VectorImage<SeFloat>>(4,1);
+  auto detection_image = VectorImage<SeFloat>::create(4,1);
   detection_image->setValue(0, 0, 2.0);
   detection_image->setValue(1, 0, 3.0);
   detection_image->setValue(2, 0, 4.0);
@@ -92,7 +92,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
 
-  auto stamp_one_source = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+  auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {2.0, 3.0, 4.0, 1.0});
   Partition partition( { attractors_step } );
   auto source_observer = std::make_shared<SourceObserver>();
@@ -104,7 +104,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
 }
 
 BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture ) {
-  auto detection_image = std::make_shared<VectorImage<SeFloat>>(4,1);
+  auto detection_image = VectorImage<SeFloat>::create(4,1);
   detection_image->setValue(0, 0, 10.0);
   detection_image->setValue(1, 0, 1.0);
   detection_image->setValue(2, 0, 1.0);
@@ -117,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
 
-  auto stamp_one_source = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+  auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {10.0, 1.0, 1.0, 10.0});
   Partition partition( { attractors_step } );
   auto source_observer = std::make_shared<SourceObserver>();
@@ -129,7 +129,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
 }
 
 BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture ) {
-  auto detection_image = std::make_shared<VectorImage<SeFloat>>(4,1);
+  auto detection_image = VectorImage<SeFloat>::create(4,1);
   detection_image->setValue(0, 0, 10.0);
   detection_image->setValue(1, 0, 1.0);
   detection_image->setValue(2, 0, 1.0);
@@ -142,7 +142,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
 
-  auto stamp_one_source = std::make_shared<VectorImage<DetectionImage::PixelType>>(
+  auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {10.0, 1.0, 1.0, 1.04});
   Partition partition( { attractors_step } );
   auto source_observer = std::make_shared<SourceObserver>();

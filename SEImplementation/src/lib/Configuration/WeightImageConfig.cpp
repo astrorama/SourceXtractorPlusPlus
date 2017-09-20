@@ -99,7 +99,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
 }
 
 std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
-  auto new_image = std::make_shared<VectorImage<WeightImage::PixelType>>(weight_image->getWidth(), weight_image->getHeight());
+  auto new_image = VectorImage<WeightImage::PixelType>::create(weight_image->getWidth(), weight_image->getHeight());
 
   switch (weight_type) {
     default:
