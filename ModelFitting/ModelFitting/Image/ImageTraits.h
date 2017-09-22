@@ -22,6 +22,8 @@ struct ImageTraits {
   
   static double& at(ImageType& image, std::size_t x, std::size_t y);
   
+  static double at(const ImageType& image, std::size_t x, std::size_t y);
+
   static iterator begin(ImageType& image);
   
   static iterator end(ImageType& image);

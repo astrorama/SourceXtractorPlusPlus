@@ -10,7 +10,7 @@
 
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
 
 namespace SExtractor {
@@ -29,16 +29,16 @@ public:
 
   void initialize(const UserValues& args) override;
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> getPsf() const {
+  std::shared_ptr<ImagePsf> getPsf() const {
     return m_psf;
   }
 
-  static std::shared_ptr<ModelFitting::OpenCvPsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale);
-  static std::shared_ptr<ModelFitting::OpenCvPsf> readPsf(const std::string& filename);
+  static std::shared_ptr<ImagePsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale);
+  static std::shared_ptr<ImagePsf> readPsf(const std::string& filename);
 
 private:
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
+  std::shared_ptr<ImagePsf> m_psf;
 };
 
 

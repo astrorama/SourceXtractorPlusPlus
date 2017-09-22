@@ -42,7 +42,8 @@ void addPointModels(ImageType& image, const std::vector<PointModel>& model_list,
   auto scale_factor = psf.getPixelScale() / pixel_scale;
   auto psf_kernel = psf.getKernel();
   for (auto& model : model_list) {
-    Traits::addImageToImage(image, psf_kernel*model.getValue(), scale_factor, model.getX(), model.getY());
+    // FIXME TMP disabled for now
+    //Traits::addImageToImage(image, psf_kernel*model.getValue(), scale_factor, model.getX(), model.getY());
   }
 }
   

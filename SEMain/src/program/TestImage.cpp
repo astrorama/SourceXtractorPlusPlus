@@ -40,6 +40,7 @@
 #include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
 
 #include "SEImplementation/Configuration/PsfConfig.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -92,15 +93,15 @@ public:
   }
 
 
-  /// Writes an OpenCv Mat to an image FITS file (prepend the filename with '!' to
+  /// Writes a VectorImage to an image FITS file (prepend the filename with '!' to
   /// override existing files)
-  void writeToFits(const cv::Mat& image, const std::string& filename) {
-    std::valarray<double> data (image.total());
-    std::copy(image.begin<double>(), image.end<double>(), begin(data));
+  void writeToFits(std::shared_ptr<VectorImage<SeFloat>> image, const std::string& filename) {
+    std::valarray<double> data (image->getWidth() * image->getHeight());
+    std::copy(image->getData().begin(), image->getData().end(), begin(data));
     long naxis = 2;
-    long naxes[2] = {image.size[1], image.size[0]};
+    long naxes[2] = {image->getWidth(), image->getHeight()};
     std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
-    pFits->pHDU().write(1, image.total(), data);
+    pFits->pHDU().write(1, data.size(), data);
   }
 
   void addExtendedSource(std::vector<ExtendedModel>& extended_models, double size, const TestImageSource& source) {
@@ -145,35 +146,35 @@ public:
     }
   }
 
-  void addBackgroundNoise(cv::Mat& image, double background_level, double background_sigma) {
+  void addBackgroundNoise(std::shared_ptr<VectorImage<SeFloat>> image, double background_level, double background_sigma) {
     // Add noise
     boost::random::normal_distribution<> bg_noise_dist(background_level, background_sigma);
-    for (int y=0; y < image.rows; y++) {
-      for (int x=0; x < image.cols; x++) {
+    for (int y=0; y < image->getHeight(); y++) {
+      for (int x=0; x < image->getWidth(); x++) {
         // background (gaussian) noise
-        image.at<double>(y, x) += bg_noise_dist(rng);
+        image->at(x, y) += bg_noise_dist(rng);
       }
     }
   }
 
-  void addPoissonNoise(cv::Mat& image, double gain) {
+  void addPoissonNoise(std::shared_ptr<VectorImage<SeFloat>> image, double gain) {
     // Add noise
     if (gain > 0.0) {
-      for (int y=0; y < image.rows; y++) {
-        for (int x=0; x < image.cols; x++) {
-          if (image.at<double>(y, x) > 0.) {
-            image.at<double>(y, x) = boost::random::poisson_distribution<>(image.at<double>(y, x) * gain)(rng) / gain;
+      for (int y=0; y < image->getHeight(); y++) {
+        for (int x=0; x < image->getWidth(); x++) {
+          if (image->at(x, y) > 0.) {
+            image->at(x, y) = boost::random::poisson_distribution<>(image->at(x, y) * gain)(rng) / gain;
           }
         }
       }
     }
   }
 
-  void saturate(cv::Mat& image, double saturation_level) {
+  void saturate(std::shared_ptr<VectorImage<SeFloat>> image, double saturation_level) {
     if (saturation_level > 0.0) {
-      for (int y=0; y < image.rows; y++) {
-        for (int x=0; x < image.cols; x++) {
-          image.at<double>(y, x) = std::min(image.at<double>(y, x), saturation_level);
+      for (int y=0; y < image->getHeight(); y++) {
+        for (int x=0; x < image->getWidth(); x++) {
+          image->at(x, y) = std::min(image->at(x, y), (float) saturation_level);
         }
       }
     }
@@ -188,7 +189,7 @@ public:
     std::vector<ExtendedModel> extended_models;
     std::vector<PointModel> point_models;
 
-    std::shared_ptr<ModelFitting::OpenCvPsf> psf;
+    std::shared_ptr<ImagePsf> psf;
     auto psf_filename = args["psf-file"].as<std::string>();
     if (psf_filename != "") {
       logger.info() << "Loading psf file: " << psf_filename;
@@ -232,7 +233,6 @@ public:
           );
     }
 
-
     logger.info("Creating source models...");
     for (const auto& source : sources) {
       addExtendedSource(extended_models, image_size, source);
@@ -240,7 +240,7 @@ public:
 
     logger.info("Rendering...");
 
-    FrameModel<OpenCvPsf, cv::Mat> frame_model {
+    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
       pixel_scale,
       image_size, image_size,
       std::move(constant_models),
@@ -260,7 +260,6 @@ public:
     auto filename = args["output"].as<std::string>();
     logger.info() << "Saving file: " << filename;
     writeToFits(image, filename);
-
 
     logger.info("All done ^__^");
     return Elements::ExitCode::OK;

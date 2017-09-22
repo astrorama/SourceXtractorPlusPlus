@@ -8,17 +8,16 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
 
-#include "SEFramework/Image/VectorImage.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
-
 #include "SEFramework/Task/GroupTask.h"
+
+#include "SEImplementation/Image/ImagePsf.h"
 
 namespace SExtractor {
 
 class SimpleModelFittingTask : public GroupTask {
 
 public:
-  SimpleModelFittingTask(std::shared_ptr<ModelFitting::OpenCvPsf> psf, unsigned int max_iterations)
+  SimpleModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations)
     : m_psf(psf),
       m_max_iterations(max_iterations) {}
 
@@ -28,7 +27,7 @@ public:
 
 private:
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
+  std::shared_ptr<ImagePsf> m_psf;
   unsigned int m_max_iterations;
 };
 

@@ -30,7 +30,7 @@ public:
         bool is_weight_absolute,
         WeightImage::PixelType weight_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
-        SeFloat gain)
+        SeFloat gain, SeFloat saturation)
           : m_image(detection_image),
             m_weight_image(weight_image),
             m_coordinate_system(coordinate_system),
@@ -41,7 +41,8 @@ public:
 
             m_is_weight_absolute(is_weight_absolute),
             m_weight_threshold(weight_threshold),
-            m_gain(gain)
+            m_gain(gain),
+            m_saturation(saturation)
             {}
 
   Frame(std::shared_ptr<T> detection_image,
@@ -56,7 +57,8 @@ public:
 
             m_is_weight_absolute(false),
             m_weight_threshold(0),
-            m_gain(0)
+            m_gain(0),
+            m_saturation(0)
             {}
 
   std::shared_ptr<T> getOriginalImage() const {
@@ -153,6 +155,10 @@ public:
     return m_gain;
   }
 
+  SeFloat getSaturation() const {
+    return m_saturation;
+  }
+
 private:
   std::shared_ptr<T> m_image;
   std::shared_ptr<T> m_filtered_image;
@@ -173,6 +179,7 @@ private:
   typename WeightImage::PixelType m_weight_threshold;
 
   SeFloat m_gain;
+  SeFloat m_saturation;
 };
 
 using DetectionImageFrame = Frame<DetectionImage>;

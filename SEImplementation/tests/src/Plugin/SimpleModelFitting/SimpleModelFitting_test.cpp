@@ -43,23 +43,23 @@ public:
 };
 
 
-std::shared_ptr<VectorImage<SeFloat>> convertPsf(const cv::Mat& mat) {
-  auto image = VectorImage<SeFloat>::create(mat.rows, mat.cols);
-
-  for (int y=0; y < image->getHeight(); y++) {
-    for (int x=0; x < image->getWidth(); x++) {
-       image->setValue(x, y, mat.at<double>(y, x));
-    }
-  }
-
-  return image;
-}
+//std::shared_ptr<VectorImage<SeFloat>> convertPsf(const cv::Mat& mat) {
+//  auto image = VectorImage<SeFloat>::create(mat.rows, mat.cols);
+//
+//  for (int y=0; y < image->getHeight(); y++) {
+//    for (int x=0; x < image->getWidth(); x++) {
+//       image->setValue(x, y, mat.at<double>(y, x));
+//    }
+//  }
+//
+//  return image;
+//}
 
 struct SimpleModelFittingFixture {
   std::shared_ptr<SimpleSource> source {new SimpleSource};
   SimpleSourceGroup group;
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> psf;
+  std::shared_ptr<ImagePsf> psf;
   std::shared_ptr<VectorImage<SeFloat>> psf_image;
   std::shared_ptr<SimpleModelFittingTask> model_fitting_task;
 
@@ -67,7 +67,7 @@ struct SimpleModelFittingFixture {
     group.addSource(source);
 
     psf = PsfConfig::generateGaussianPsf(5, 1);
-    psf_image = convertPsf(psf->getKernel());
+    //psf_image = convertPsf(psf->getKernel());
     model_fitting_task = std::make_shared<SimpleModelFittingTask>(psf, 1000);
   }
 };
@@ -93,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, SimpleModelFittingFixture) {
   source->setProperty<PixelCentroid>(psf_image->getWidth()/2 - 1, psf_image->getHeight() / 2 - 2);
   source->setProperty<PixelBoundaries>(0,0,49,49);
   source->setProperty<PeakValue>(0, 116);
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(image, nullptr, true, 10, std::make_shared<DummyCoordinateSystem>(), 0));
+  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(image, nullptr, true, 10, std::make_shared<DummyCoordinateSystem>(), 0, 0));
   group.setProperty<DetectionFrameGroupStamp>(image, image, PixelCoordinate(0,0), nullptr);
   model_fitting_task->computeProperties(group);
 

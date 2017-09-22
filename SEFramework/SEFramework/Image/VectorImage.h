@@ -34,7 +34,7 @@ namespace SExtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage : public ImageBase<T> {
+class VectorImage final : public ImageBase<T> {
 protected:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height), m_offset(0,0) {

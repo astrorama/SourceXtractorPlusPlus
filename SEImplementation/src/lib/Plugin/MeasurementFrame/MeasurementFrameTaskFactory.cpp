@@ -44,7 +44,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
 
   for (unsigned int i=0; i<measurement_images.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 0); // FIXME !!! we need weight threshold
+        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 0, 0); // FIXME !!! we need weight threshold
     // FIXME gain for measurement images
 
     SimpleBackgroundLevelAnalyzer analyzer;

@@ -35,7 +35,7 @@ static const std::string PSF_PIXELSCALE {"psf-pixelscale" };
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels. The pixel scale is read by the header keyword SCALE which
 /// must be present
-std::shared_ptr<ModelFitting::OpenCvPsf> PsfConfig::readPsf(const std::string& filename) {
+std::shared_ptr<ImagePsf> PsfConfig::readPsf(const std::string& filename) {
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS(filename)};
@@ -65,10 +65,10 @@ std::shared_ptr<ModelFitting::OpenCvPsf> PsfConfig::readPsf(const std::string& f
       // Get the data
       std::valarray<double> data {};
       image_hdu.read(data);
-      cv::Mat kernel (size, size, CV_64F);
-      std::copy(begin(data), end(data), kernel.begin<double>());
+      auto kernel = VectorImage<SeFloat>::create(size, size);
+      std::copy(begin(data), end(data), kernel->getData().begin());
       std::cout << "pixel scale: " << pixel_scale << std::endl;
-      return std::make_shared<ModelFitting::OpenCvPsf>(pixel_scale, kernel);
+      return std::make_shared<ImagePsf>(pixel_scale, kernel);
     } else {
 
       // PSFEx format
@@ -83,23 +83,21 @@ std::shared_ptr<ModelFitting::OpenCvPsf> PsfConfig::readPsf(const std::string& f
       psf_data.readKey("PSF_SAMP", pixel_scale);
       psf_data.column("PSF_MASK").read(data, 1);
 
-      cv::Mat kernel (size, size, CV_64F);
-
-      std::copy(begin(data), end(data), kernel.begin<double>());
+      auto kernel = VectorImage<SeFloat>::create(size, size);
+      std::copy(begin(data), end(data), kernel->getData().begin());
       std::cout << "pixel scale: " << pixel_scale << std::endl;
-
       //writeToFits(kernel, "testpsf.fits");
-      return std::make_shared<ModelFitting::OpenCvPsf>(pixel_scale, kernel);
+      return std::make_shared<ImagePsf>(pixel_scale, kernel);
     }
   } catch (CCfits::FitsException& e) {
     throw Elements::Exception() << "Error loading PSF file: " << e.message();
   }
 }
 
-std::shared_ptr<ModelFitting::OpenCvPsf> PsfConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
+std::shared_ptr<ImagePsf> PsfConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
   int supersample = 10;
   int size = int(fwhm / pixel_scale + 1) * 6 + 1;
-  cv::Mat kernel (size, size, CV_64F);
+  auto kernel = VectorImage<SeFloat>::create(size, size);
 
   // convert full width half maximum to standard deviation
   double sigma_squared = (fwhm / (pixel_scale * 2.355)) * (fwhm / (pixel_scale * 2.355));
@@ -119,16 +117,16 @@ std::shared_ptr<ModelFitting::OpenCvPsf> PsfConfig::generateGaussianPsf(SeFloat 
       }
       pixel_value /= (supersample * supersample);
       total += pixel_value;
-      kernel.at<double>(y, x) = pixel_value;
+      kernel->setValue(x, y, pixel_value);
     }
   }
   for (int y=0; y < size; y++) {
     for (int x=0; x < size; x++) {
-      kernel.at<double>(y, x) /= total;
+      kernel->setValue(x, y, kernel->getValue(x, y) / total);
     }
   }
 
-  return std::make_shared<ModelFitting::OpenCvPsf>(pixel_scale, kernel);
+  return std::make_shared<ImagePsf>(pixel_scale, kernel);
 }
 
 PsfConfig::PsfConfig(long manager_id) :

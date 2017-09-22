@@ -11,11 +11,10 @@
 #include <valarray>
 #include <boost/any.hpp>
 
-#include <CCfits/CCfits>
-
 #include "ElementsKernel/PathSearch.h"
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
@@ -65,6 +64,8 @@
 
 #include "SEFramework/Property/DetectionFrame.h"
 
+#include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
+
 
 namespace SExtractor {
 
@@ -113,16 +114,17 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
-SeFloat computeReducedChiSquared(const cv::Mat& image, cv::Mat& model, cv::Mat& weights) {
+SeFloat computeReducedChiSquared(
+    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
   double reduced_chi_squared = 0.0;
-  for (int y=0; y < image.rows; y++) {
-    for (int x=0; x < image.cols; x++) {
-      double tmp = image.at<double>(y, x) - model.at<double>(y, x);
-      reduced_chi_squared += tmp * tmp * weights.at<double>(y, x) * weights.at<double>(y, x);
+  for (int y=0; y < image->getHeight(); y++) {
+    for (int x=0; x < image->getWidth(); x++) {
+      double tmp = image->getValue(x, y) - model->getValue(x, y);
+      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
     }
   }
 
-  return reduced_chi_squared / (image.rows * image.cols);
+  return reduced_chi_squared / (image->getWidth() * image->getHeight());
 }
 
 void printDebugChi2(SeFloat reduced_chi_squared) {
@@ -155,22 +157,14 @@ struct SourceModel {
   EngineParameter exp_i0, exp_effective_radius, exp_aspect, exp_rot;
   double dev_i0_guess;
   EngineParameter dev_i0, dev_effective_radius, dev_aspect, dev_rot;
-//  EngineParameter exp_flux, exp_effective_radius, exp_aspect, exp_rot;
-//  EngineParameter dev_flux, dev_effective_radius, dev_aspect, dev_rot;
 
   ManualParameter exp_xs { 1 };
-//  ManualParameter exp_ys { 1 };
-//  ManualParameter exp_rot { 0 };
   ManualParameter exp_n { 1 };
 
   ManualParameter dev_xs { 1 };
-//  ManualParameter dev_ys { 1 };
-//  ManualParameter dev_rot { 0 };
   ManualParameter dev_n { 4 };
 
-//  DependentParameter<EngineParameter, EngineParameter> exp_i0;
   DependentParameter<EngineParameter> exp_k;
-//  DependentParameter<EngineParameter, EngineParameter> dev_i0;
   DependentParameter<EngineParameter> dev_k;
 
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
@@ -186,34 +180,23 @@ struct SourceModel {
 
     exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess)),
     exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
-//    exp_flux(exp_flux_guess, make_unique<ExpSigmoidConverter>(exp_flux_guess * .00001, exp_flux_guess * 10)),
     exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(exp_radius_guess * 0.001, exp_radius_guess * 100)),
     exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess)),
     dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
-//    dev_flux(dev_flux_guess, make_unique<ExpSigmoidConverter>(dev_flux_guess * .00001, dev_flux_guess * 10)),
     dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(dev_radius_guess * 0.001, dev_radius_guess * 100)),
     dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     dev_rot(-dev_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
-//    exp_i0(
-//        [](double flux, double eff_radius) { return flux * .693 * .693 / (M_PI * 2.0 * eff_radius * eff_radius); }, // flux / (pi * 2n! * Reff^2)
-//        exp_flux, exp_effective_radius),
     exp_k(
         [](double eff_radius) { return 1.7 / eff_radius; },
         exp_effective_radius),
 
-//    dev_i0(
-//        [](double flux, double eff_radius) { return flux / (500000 * eff_radius * eff_radius); }, // flux / (pi * 2n! * Reff^2)
-//        dev_flux, dev_effective_radius
-//    ),
     dev_k(
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
-        dev_effective_radius
-    )
-
+        dev_effective_radius)
   {
   }
 
@@ -255,8 +238,6 @@ struct SourceModel {
   void debugPrint() const {
     std::cout << "\tsize: " << m_size << "\n";
     std::cout << "\tx: " << x.getValue() << "\ty: " << y.getValue() << "\n";
-//    std::cout << "\texp flux: " << exp_flux.getValue()<< "\tReff: " << exp_effective_radius.getValue() << "\n";
-//    std::cout << "\tdev flux: " << dev_flux.getValue()<< "\tReff: " << dev_effective_radius.getValue() << "\n";
     std::cout << "\texp i0: " << exp_i0.getValue()<< "\tReff: " << exp_effective_radius.getValue() << "\n";
     std::cout << "\tdev i0: " << dev_i0.getValue()<< "\tReff: " << dev_effective_radius.getValue() << "\n";
   }
@@ -314,12 +295,8 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source_models.back()->registerParameters(manager);
   }
 
-////  // We add a constant background
-//    EngineParameter back {0., make_unique<NormalizedConverter>(10)};
-//    constant_models.emplace_back(back);
-
   // Full frame model with all sources
-  FrameModel<OpenCvPsf, cv::Mat> frame_model {
+  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
     pixel_scale,
     (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(),
     std::move(constant_models),
@@ -328,55 +305,47 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     *m_psf
   };
 
-  cv::Mat weight = cv::Mat::ones(group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
+  auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
-
-      if (thresholded_stamp.getValue(x, y) >= 0) {
-        weight.at<double>(y, x) = 0;
-      }
+      weight->at(x, y) = (thresholded_stamp.getValue(x, y) >= 0) ? 0 : 1;
     }
   }
+
   for (auto& source : group) {
     auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
     for (auto pixel : pixel_coordinates) {
       pixel -= stamp_top_left;
-      weight.at<double>(pixel.m_y, pixel.m_x) = 1;
+      weight->at(pixel.m_x, pixel.m_y) = 1;
     }
   }
-
 
   auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
   auto back_var = measurement_frame->getBackgroundRMS();
   back_var *= back_var; // RMS -> variance
   SeFloat gain = measurement_frame->getGain();
+  SeFloat saturation = measurement_frame->getSaturation();
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
-      //FIXME hardcoded quick n dirty test for ignoring saturated pixels
-      if (group_stamp.getValue(x, y)>64000) {
-        weight.at<double>(y, x) = 0;
-      } else   if (weight.at<double>(y, x)>0) {
+      if (saturation > 0 && group_stamp.getValue(x, y) > saturation) {
+        weight->at(x, y) = 0;
+      } else if (weight->at(x, y)>0) {
         if (gain > 0.0) {
-          weight.at<double>(y, x) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain ));
+          weight->at(x, y) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain ));
         } else {
-          weight.at<double>(y, x) = sqrt(1.0 / back_var); // infinite gain
+          weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
         }
       }
     }
   }
 
-  // FIXME for now just copy to an opencv image
-  cv::Mat image (group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
-  for (int y=0; y < group_stamp.getHeight(); y++) {
-    for (int x=0; x < group_stamp.getWidth(); x++) {
-      image.at<double>(y, x) = group_stamp.getValue(x, y);
-    }
-  }
+  //  FIXME we should be able to use the group_stamp Image interface directly
+  auto image = VectorImage<SeFloat>::create(group_stamp);
 
   auto data_vs_model =
-      createDataVsModelResiduals(image, std::move(frame_model), std::move(weight), LogChiSquareComparator{});
+      createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
 
   ResidualEstimator res_estimator {};
   res_estimator.registerBlockProvider(move(data_vs_model));
@@ -392,10 +361,6 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   auto solution = engine.solveProblem(manager, res_estimator);
 
-//  if (solution.success_flag) {
-//    std::cout << "Success!\n";
-//  }
-
   for (auto& source_model : source_models) {
     std::cout << "After:  ";
     source_model->debugPrint();
@@ -405,7 +370,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
-  cv::Mat final_stamp = cv::Mat::zeros(group_stamp.getHeight(), group_stamp.getWidth(), CV_64F);
+  auto final_stamp = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
   auto check_image = CheckImages::getInstance().getModelFittingCheckImage();
   auto source_iter = group.begin();
   for (auto& source_model : source_models) {
@@ -416,7 +381,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     std::vector<ExtendedModel> extended_models {};
     std::vector<PointModel> point_models {};
     source_model->createModels(extended_models, point_models, true);
-    FrameModel<OpenCvPsf, cv::Mat> frame_model_after {
+    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {
       1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
           std::move(extended_models), *m_psf
     };
@@ -430,14 +395,14 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
         pixel += stamp_top_left;
 
         // build final stamp
-        final_stamp.at<double>(y, x) += final_image.at<double>(y, x);
+        final_stamp->setValue(x, y, final_stamp->getValue(x, y) + final_image->getValue(x, y));
 
         // if requested, updates a check image made by adding all source models
         if (check_image) {
-          check_image->setValue(pixel, check_image->getValue(pixel) + final_image.at<double>(y, x));
+          check_image->setValue(pixel, check_image->getValue(pixel) + final_image->getValue(x, y));
         }
 
-        total_flux += final_image.at<double>(y, x);
+        total_flux += final_image->getValue(x, y);
       }
     }
 

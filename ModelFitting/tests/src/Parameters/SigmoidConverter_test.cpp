@@ -31,6 +31,10 @@ BOOST_AUTO_TEST_CASE(WithoutFixture) {
   //
   expected_result_from_python = -0.40546510810816444;
   BOOST_CHECK_CLOSE(expected_result_from_python, sc.worldToEngine(5.0), tolerance);
+
+
+  double test = 4.5;
+  BOOST_CHECK_CLOSE(test, sc.engineToWorld(sc.worldToEngine(test)), tolerance);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

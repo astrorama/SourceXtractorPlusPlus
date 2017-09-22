@@ -38,15 +38,15 @@ public:
     return m_kernel.cols;
   }
   
-  template <typename ImageType>
-  ImageType getKernel() const;
+//  template <typename ImageType>
+//  ImageType getKernel() const;
   
   cv::Mat getKernel() const {
     return m_kernel;
   }
   
-  template <typename ImageType>
-  void convolve(ImageType& image) const;
+//  template <typename ImageType>
+//  void convolve(ImageType& image) const;
   
   void convolve(cv::Mat& image) const {
     cv::filter2D(image, image, -1, m_kernel);

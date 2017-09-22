@@ -135,7 +135,7 @@ struct ImageTraits<cv::Mat> {
         float x = (x_win - x_shift) / scale_factor;
         float y = (y_win - y_shift) / scale_factor;
 
-//        at(window, x_win, y_win) = interpolate_pix(sourceptr, x, y, sourcexsize, sourceysize);
+        //at(window, x_win, y_win) = interpolate_pix(&source.getData()[0], x, y, sourcexsize, sourceysize);
       }
     }
 
