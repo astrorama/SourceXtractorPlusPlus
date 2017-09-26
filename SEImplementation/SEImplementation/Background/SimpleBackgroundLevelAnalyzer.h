@@ -19,7 +19,10 @@ public:
 
   virtual ~SimpleBackgroundLevelAnalyzer() = default;
 
-  void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const override;
+  //void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const override;
+
+  std::shared_ptr<Image<SeFloat>> analyzeBackground(
+      std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> weight, std::shared_ptr<Image<unsigned char>> mask) const override;
 
 private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;

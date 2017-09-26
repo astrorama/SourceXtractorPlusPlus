@@ -47,8 +47,9 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
         measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 0, 0); // FIXME !!! we need weight threshold
     // FIXME gain for measurement images
 
-    SimpleBackgroundLevelAnalyzer analyzer;
-    analyzer.analyzeBackground(measurement_frame);
+    // FIXME
+    //SimpleBackgroundLevelAnalyzer analyzer;
+    //analyzer.analyzeBackground(measurement_frame);
 
     m_measurement_frames.emplace_back(measurement_frame);
   }

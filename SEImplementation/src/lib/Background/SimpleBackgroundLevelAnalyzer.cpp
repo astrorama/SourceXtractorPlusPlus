@@ -8,25 +8,21 @@
 #include <memory>
 #include <algorithm>
 
+#include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
 
 namespace SExtractor {
 
+std::shared_ptr<Image<SeFloat>> SimpleBackgroundLevelAnalyzer::analyzeBackground(
+    std::shared_ptr<DetectionImage> image,
+    std::shared_ptr<WeightImage> weight, std::shared_ptr<Image<unsigned char>> mask) const {
 
-void SimpleBackgroundLevelAnalyzer::analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const {
-  frame->setBackgroundLevel(getMedian(frame));
-}
+  auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
+  std::sort(image_copy->getData().begin(), image_copy->getData().end());
 
-SeFloat SimpleBackgroundLevelAnalyzer::getMedian(std::shared_ptr<DetectionImageFrame> frame) const {
-  auto detection_image = frame->getOriginalImage();
-  if (detection_image != nullptr) {
-    auto image_copy = VectorImage<DetectionImage::PixelType>::create(*detection_image);
-    std::sort(image_copy->getData().begin(), image_copy->getData().end());
-    return image_copy->getData()[image_copy->getData().size()/2];
-  }
-  return 0;
+  return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
 }
 
 }

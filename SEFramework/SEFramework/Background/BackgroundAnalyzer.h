@@ -17,7 +17,8 @@ public:
 
   virtual ~BackgroundAnalyzer() = default;
 
-  virtual void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const = 0;
+  virtual std::shared_ptr<Image<SeFloat>> analyzeBackground(
+      std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> weight, std::shared_ptr<Image<unsigned char>> mask) const = 0;
 };
 
 }

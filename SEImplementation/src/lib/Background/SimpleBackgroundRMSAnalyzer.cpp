@@ -13,23 +13,17 @@
 
 namespace SExtractor {
 
-void SimpleBackgroundRMSAnalyzer::analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const {
-  auto rms = getRMS(frame);
-  frame->setBackgroundRMS(rms);
-}
-
-SeFloat SimpleBackgroundRMSAnalyzer::getRMS(std::shared_ptr<DetectionImageFrame> frame) const {
+std::shared_ptr<Image<SeFloat>> SimpleBackgroundRMSAnalyzer::analyzeBackground(
+    std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> weight, std::shared_ptr<Image<unsigned char>> mask) const {
 
   // Note: We compute the RMS by only taking into consideration pixels
   // below the background value.
 
-  auto detection_image = frame->getSubtractedImage();
-
   double rms = 0;
   int pixels = 0;
-  for (int y=0; y < detection_image->getHeight(); y++) {
-    for (int x=0; x < detection_image->getWidth(); x++) {
-      auto value = detection_image->getValue(x, y);
+  for (int y=0; y < image->getHeight(); y++) {
+    for (int x=0; x < image->getWidth(); x++) {
+      auto value = image->getValue(x, y);
       if (value < 0) {
         rms += value * value;
         pixels++;
@@ -39,8 +33,7 @@ SeFloat SimpleBackgroundRMSAnalyzer::getRMS(std::shared_ptr<DetectionImageFrame>
   if (pixels > 0) {
     rms /= pixels;
   }
-
-  return sqrt(rms);
+  return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), sqrt(rms));
 }
 
 }

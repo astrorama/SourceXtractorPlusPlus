@@ -182,10 +182,14 @@ public:
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
 
     auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
-    background_level_analyzer->analyzeBackground(detection_frame);
+    auto background_levels = background_level_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
+        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
+    detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
 
     auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
-    background_rms_analyzer->analyzeBackground(detection_frame);
+    auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
+        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
+    detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS: " << detection_frame->getBackgroundRMS()
