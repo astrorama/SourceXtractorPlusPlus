@@ -17,7 +17,7 @@ namespace SExtractor {
 
 std::shared_ptr<Image<SeFloat>> SimpleBackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
-    std::shared_ptr<WeightImage> weight, std::shared_ptr<Image<unsigned char>> mask) const {
+    std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
 
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
