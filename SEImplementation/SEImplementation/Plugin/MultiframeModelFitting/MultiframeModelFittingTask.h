@@ -10,7 +10,7 @@
 
 
 #include "SEFramework/Image/VectorImage.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
 #include "SEFramework/Task/GroupTask.h"
 
@@ -19,9 +19,7 @@ namespace SExtractor {
 class MultiframeModelFittingTask : public GroupTask {
 
 public:
-  MultiframeModelFittingTask(std::shared_ptr<ModelFitting::OpenCvPsf> psf, unsigned int max_iterations)
-    : m_psf(psf),
-      m_max_iterations(max_iterations) {}
+  MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations);
 
   virtual ~MultiframeModelFittingTask() = default;
 
@@ -29,8 +27,9 @@ public:
 
 private:
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
+  std::shared_ptr<ImagePsf> m_psf;
   unsigned int m_max_iterations;
+  std::vector<int> m_frame_indices;
 };
 
 }

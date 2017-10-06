@@ -73,6 +73,8 @@ using namespace ModelFitting;
 
 /////////// FIXME copypasta from ModelFitting tests, move somewhere else
 
+namespace {
+
 // Prints on the screen the info of the levmar minimization
 void printLevmarInfo(std::array<double,10> info) {
   static double total_error = 0;
@@ -143,6 +145,8 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
   std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
   std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
   std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
+}
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -250,7 +254,6 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
   //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getWeightStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
-
 
   double pixel_scale = 1;
 
