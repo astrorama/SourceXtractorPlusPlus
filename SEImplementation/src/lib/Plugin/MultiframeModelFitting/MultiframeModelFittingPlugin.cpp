@@ -89,13 +89,13 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
 ////            return prop.getPeak();
 ////          }
 ////  );
-//
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
-//          "model_fitting_iterations",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getIterations();
-//          }
-//  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
+          "model_fitting_iterations",
+          [](const MultiframeModelFitting& prop){
+            return prop.getIterations();
+          }
+  );
 
   plugin_api.getOutputRegistry().optionalOutput<MultiframeModelFitting>("MultiframeModelFitting");
 }

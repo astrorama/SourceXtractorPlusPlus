@@ -19,7 +19,7 @@ namespace SExtractor {
 class MultiframeModelFittingTask : public GroupTask {
 
 public:
-  MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations);
+  MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations, std::vector<int> frame_indices);
 
   virtual ~MultiframeModelFittingTask() = default;
 

@@ -63,6 +63,7 @@
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
+#include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 
 namespace SExtractor {
 
@@ -110,6 +111,38 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
+SeFloat computeReducedChiSquared(
+    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+  double reduced_chi_squared = 0.0;
+  for (int y=0; y < image->getHeight(); y++) {
+    for (int x=0; x < image->getWidth(); x++) {
+      double tmp = image->getValue(x, y) - model->getValue(x, y);
+      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
+    }
+  }
+
+  return reduced_chi_squared / (image->getWidth() * image->getHeight());
+}
+
+void printDebugChi2(SeFloat reduced_chi_squared) {
+  static double total = 0.0;
+  static int count = 0;
+  static std::vector<SeFloat> chi_squares;
+
+  chi_squares.push_back(reduced_chi_squared);
+  total += reduced_chi_squared;
+  count++;
+
+  std::sort(chi_squares.begin(), chi_squares.end());
+
+
+  std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
+  std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
+  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
+  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
+}
+
+
 }
 
 class SourceModel {
@@ -131,11 +164,11 @@ class SourceModel {
   DependentParameter<EngineParameter> exp_k;
   DependentParameter<EngineParameter> dev_k;
 
-  std::vector<EngineParameter> exp_i0s;
-  std::vector<EngineParameter> dev_i0s;
+  std::vector<std::unique_ptr<EngineParameter>> exp_i0s;
+  std::vector<std::unique_ptr<EngineParameter>> dev_i0s;
 
-  std::vector<DependentParameter<EngineParameter>> pixel_x;
-  std::vector<DependentParameter<EngineParameter>> pixel_y;
+  std::vector<std::unique_ptr<DependentParameter<EngineParameter>>> pixel_x;
+  std::vector<std::unique_ptr<DependentParameter<EngineParameter>>> pixel_y;
 
   ManualParameter exp_aspect {1}, exp_rot {0};
   ManualParameter dev_aspect {1}, dev_rot {0};
@@ -171,32 +204,29 @@ public:
 
   void addModelsForFrame(std::vector<ExtendedModel>& extended_models, SeFloat source_x, SeFloat source_y, int size, PixelCoordinate offset) {
     auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess);
-    exp_i0s.emplace_back(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20));
+    exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)));
 
     auto dev_i0_guess = m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess);
-    dev_i0s.emplace_back(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20));
+    dev_i0s.emplace_back(new EngineParameter(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)));
 
-
-    std::cout << "0" << " " << source_x << " " << offset.m_x << "\n";
-
-    pixel_x.emplace_back([source_x, offset](double dx) { return dx + source_x - offset.m_x; }, dx);
-    pixel_y.emplace_back([source_y, offset](double dy) { return dy + source_y - offset.m_y; }, dy);
+    pixel_x.emplace_back(new DependentParameter<EngineParameter>([source_x, offset](double dx) { return dx + source_x - offset.m_x; }, dx));
+    pixel_y.emplace_back(new DependentParameter<EngineParameter>([source_y, offset](double dy) { return dy + source_y - offset.m_y; }, dy));
 
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0s.back(), exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), *exp_i0s.back(), exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, size, size, pixel_x.back(), pixel_y.back());
+      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, size, size, *pixel_x.back(), *pixel_y.back());
     }
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0s.back(), dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *dev_i0s.back(), dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
-      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, size, size, pixel_x.back(), pixel_y.back());
+      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, size, size, *pixel_x.back(), *pixel_y.back());
     }
   }
 
@@ -208,11 +238,11 @@ public:
     manager.registerParameter(dev_effective_radius);
 
     for (auto& exp_i0 : exp_i0s) {
-      manager.registerParameter(exp_i0);
+      manager.registerParameter(*exp_i0);
     }
 
     for (auto& dev_i0 : dev_i0s) {
-      manager.registerParameter(dev_i0);
+      manager.registerParameter(*dev_i0);
     }
   }
 
@@ -229,30 +259,66 @@ public:
   }
 
   double getRadiusGuess(const SourceInterface& source) const {
-    return 5; //FIXME
+    auto& shape_parameters = source.getProperty<ShapeParameters>();
+    double radius_guess = shape_parameters.getEllipseA() / 2.0;
+
+    return radius_guess;
   }
 
 };
 
-MultiframeModelFittingTask::MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations)
+MultiframeModelFittingTask::MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations, std::vector<int> frame_indices)
   : m_psf(psf),
-    m_max_iterations(max_iterations)
+    m_max_iterations(max_iterations),
+    m_frame_indices(frame_indices)
 {
-  m_frame_indices.push_back(0); // FIXME for test use the detection image only
 }
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
   //auto& group_stamp = group.getProperty<MeasurementFrameGroupStamp>().getStamp();
+  auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>();
+  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  std::cout << "MultiframeModelFittingTask::computeProperties()\n";
 
   double pixel_scale = 1;
-  auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
 
   EngineParameterManager manager {};
   std::vector<std::unique_ptr<SourceModel>> source_models;
 
   std::vector<std::shared_ptr<MeasurementImageFrame>> frames;
+  std::vector<int> valid_frame_indices;
+  std::vector<PixelCoordinate> min_coords, max_coords;
+
   for (auto frame_index : m_frame_indices) {
-    frames.push_back(group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame());
+    auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+    auto frame_coordinates = frame->getCoordinateSystem();
+
+    auto stamp_top_left = group_stamp.getTopLeft();
+    auto top_left = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+        stamp_top_left.m_x, stamp_top_left.m_y)));
+
+    PixelCoordinate min_coord(int(top_left.m_x), int(top_left.m_y));
+    PixelCoordinate max_coord = min_coord + PixelCoordinate(group_stamp.getStamp().getWidth(), group_stamp.getStamp().getHeight());
+
+    auto frame_image = frame->getSubtractedImage();
+    auto frame_image_thresholded = frame->getThresholdedImage();
+
+    // FIXME fixed 5 pixel border for now
+    min_coord.m_x = std::max(0, min_coord.m_x - 5);
+    min_coord.m_y = std::max(0, min_coord.m_y - 5);
+    max_coord.m_x = std::min(frame_image->getWidth()-1, max_coord.m_x + 5);
+    max_coord.m_y = std::min(frame_image->getHeight()-1, max_coord.m_y + 5);
+
+    int stamp_width = max_coord.m_x - min_coord.m_x;
+    int stamp_height = max_coord.m_y - min_coord.m_y;
+
+    if (stamp_width > 0 && stamp_height > 0) {
+      valid_frame_indices.emplace_back(frame_index);
+      min_coords.emplace_back(min_coord);
+      max_coords.emplace_back(max_coord);
+      frames.push_back(frame);
+    }
   }
 
   // Setup models for all the sources
@@ -262,34 +328,19 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
   ResidualEstimator res_estimator {};
 
-  for (auto& frame_index : m_frame_indices) {
 
-    std::cout << "frame\n";
+  std::vector<std::shared_ptr<Image<SeFloat>>> images;
+  std::vector<std::shared_ptr<Image<SeFloat>>> weights;
 
-    PixelCoordinate min_coord(std::numeric_limits<int>::max(), std::numeric_limits<int>::max());
-    PixelCoordinate max_coord(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::lowest());
+  for (int i = 0; i < (int) valid_frame_indices.size(); i++) {
 
-    for (auto& source : group) {
-      auto& frame_centroid = source.getProperty<MeasurementFramePixelCentroid>(frame_index);
-      auto frame_x = (int) frame_centroid.getCentroidX();
-      auto frame_y = (int) frame_centroid.getCentroidY();
-
-      min_coord.m_x = std::min(min_coord.m_x, frame_x);
-      min_coord.m_y = std::min(min_coord.m_y, frame_y);
-      max_coord.m_x = std::max(max_coord.m_x, frame_x);
-      max_coord.m_y = std::max(max_coord.m_y, frame_y);
-    }
-
-    auto frame_image = frames[frame_index]->getSubtractedImage();
-
-    // FIXME fixed 10 pixel border for now
-    min_coord.m_x = std::max(0, min_coord.m_x - 10);
-    min_coord.m_y = std::max(0, min_coord.m_y - 10);
-    max_coord.m_x = std::min(frame_image->getWidth()-1, max_coord.m_x + 10);
-    max_coord.m_y = std::min(frame_image->getHeight()-1, max_coord.m_y + 10);
-
+    auto min_coord = min_coords[i];
+    auto max_coord = max_coords[i];
     int stamp_width = max_coord.m_x - min_coord.m_x;
     int stamp_height = max_coord.m_y - min_coord.m_y;
+
+    auto frame_image = frames[i]->getSubtractedImage();
+    auto frame_image_thresholded = frames[i]->getThresholdedImage();
 
     auto image = VectorImage<SeFloat>::create(stamp_width, stamp_height);
     for (int y=0; y<stamp_height; y++) {
@@ -299,7 +350,43 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     }
 
     auto weight = VectorImage<SeFloat>::create(stamp_width, stamp_height);
-    std::fill(weight->getData().begin(), weight->getData().end(), 1);
+    //std::fill(weight->getData().begin(), weight->getData().end(), 1);
+
+    for (int y=0; y < stamp_height; y++) {
+      for (int x=0; x < stamp_width; x++) {
+        weight->at(x, y) = (frame_image_thresholded->getValue(min_coord.m_x + x, min_coord.m_y + y) >= 0) ? 0 : 1;
+      }
+    }
+
+    for (auto& source : group) {
+      auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+      for (auto pixel : pixel_coordinates) {
+        pixel -= min_coord;
+        if (pixel.m_x >= 0 && pixel.m_y >= 0 && pixel.m_x < weight->getWidth() && pixel.m_y < weight->getHeight()) {
+          weight->at(pixel.m_x, pixel.m_y) = 1;
+        }
+      }
+    }
+
+    auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
+    auto back_var = measurement_frame->getBackgroundRMS();
+    back_var *= back_var; // RMS -> variance
+    SeFloat gain = measurement_frame->getGain();
+    SeFloat saturation = measurement_frame->getSaturation();
+
+    for (int y=0; y < stamp_height; y++) {
+      for (int x=0; x < stamp_width; x++) {
+        if (saturation > 0 && frame_image->getValue(min_coord.m_x + x, min_coord.m_y + y) > saturation) {
+          weight->at(x, y) = 0;
+        } else if (weight->at(x, y) > 0) {
+          if (gain > 0.0) {
+            weight->at(x, y) = sqrt(1.0 / (back_var + frame_image->getValue(min_coord.m_x + x, min_coord.m_y + y) / gain));
+          } else {
+            weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
+          }
+        }
+      }
+    }
 
     std::vector<ConstantModel> constant_models;
     std::vector<PointModel> point_models;
@@ -309,7 +396,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     for (auto& source_model : source_models) {
 
       std::cout << "source_model\n";
-      auto& frame_centroid = source_iterator->getProperty<MeasurementFramePixelCentroid>(frame_index);
+      auto& frame_centroid = source_iterator->getProperty<MeasurementFramePixelCentroid>(valid_frame_indices[i]);
       auto frame_x = frame_centroid.getCentroidX();
       auto frame_y = frame_centroid.getCentroidY();
 
@@ -333,6 +420,9 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     auto data_vs_model =
         createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
     res_estimator.registerBlockProvider(move(data_vs_model));
+
+    images.emplace_back(image);
+    weights.emplace_back(weight);
   }
 
   for (auto& source_model : source_models) {
@@ -363,17 +453,56 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   }
 
   printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
+  size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
+  for (int i = 0; i < (int) valid_frame_indices.size(); i++) {
+    auto stamp_width = images[i]->getWidth();
+    auto stamp_height = images[i]->getHeight();
+    //auto final_stamp = VectorImage<SeFloat>::create(stamp_width, stamp_height);
+
+    std::vector<ExtendedModel> extended_models {};
+    std::vector<PointModel> point_models {};
+    std::vector<ConstantModel> constant_models;
+
+    auto source_iter = group.begin();
+    for (auto& source_model : source_models) {
+      auto& source = *source_iter;
+
+      auto& frame_centroid = source.getProperty<MeasurementFramePixelCentroid>(valid_frame_indices[i]);
+      auto frame_x = frame_centroid.getCentroidX();
+      auto frame_y = frame_centroid.getCentroidY();
+
+      source_model->addModelsForFrame(extended_models, frame_x, frame_y, std::max(stamp_width, stamp_height), min_coords[i]);
+
+      ++source_iter;
+    }
+
+    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model_after {
+      pixel_scale,
+      (size_t) stamp_width, (size_t) stamp_height,
+      std::move(constant_models),
+      std::move(point_models),
+      std::move(extended_models),
+      *m_psf
+    };
+    auto final_stamp = frame_model_after.getImage();
+
+    SeFloat reduced_chi_squared = computeReducedChiSquared(images[i], final_stamp, weights[i]);
+    printDebugChi2(reduced_chi_squared);
+  }
 
   for (auto& source : group) {
     source.setProperty<MultiframeModelFitting>(
         99, 99,
         99, 99,
-        99, 99
+        99, iterations
 //        total_flux, iterations,
 //        0,0,0,0
         );
   }
+
+  std::cout << "...\n";
+
 }
 
 }
