@@ -46,6 +46,7 @@
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 
+#include "SEFramework/Image/FitsWriter.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -138,8 +139,8 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
 
   std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
   std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
-  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
-  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
+//  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
+//  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
 }
 
 
@@ -164,18 +165,25 @@ class SourceModel {
   DependentParameter<EngineParameter> exp_k;
   DependentParameter<EngineParameter> dev_k;
 
+  EngineParameter exp_aspect, exp_rot;
+  EngineParameter dev_aspect, dev_rot;
+
+//  double exp_i0_guess;
+//  EngineParameter exp_i0;
+//  double dev_i0_guess;
+//  EngineParameter dev_i0;
+
   std::vector<std::unique_ptr<EngineParameter>> exp_i0s;
   std::vector<std::unique_ptr<EngineParameter>> dev_i0s;
 
   std::vector<std::unique_ptr<DependentParameter<EngineParameter>>> pixel_x;
   std::vector<std::unique_ptr<DependentParameter<EngineParameter>>> pixel_y;
 
-  ManualParameter exp_aspect {1}, exp_rot {0};
-  ManualParameter dev_aspect {1}, dev_rot {0};
+//  ManualParameter exp_aspect {1}, exp_rot {0};
+//  ManualParameter dev_aspect {1}, dev_rot {0};
 
-  //  EngineParameter exp_aspect, exp_rot;
-//  EngineParameter dev_aspect, dev_rot;
-//
+
+  //
 //  // per measurement frame parameters
 //
 
@@ -198,11 +206,23 @@ public:
         exp_effective_radius),
     dev_k(
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
-        dev_effective_radius)
+        dev_effective_radius),
+
+    exp_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
+    exp_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
+    dev_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
+    dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI))
+
+//,exp_i0_guess(m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess)),
+//exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
+//dev_i0_guess(m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess)),
+//dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20))
+
   {
   }
 
-  void addModelsForFrame(std::vector<ExtendedModel>& extended_models, SeFloat source_x, SeFloat source_y, int size, PixelCoordinate offset) {
+
+  void createParamsForFrame(SeFloat source_x, SeFloat source_y, PixelCoordinate offset) {
     auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess);
     exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)));
 
@@ -211,31 +231,43 @@ public:
 
     pixel_x.emplace_back(new DependentParameter<EngineParameter>([source_x, offset](double dx) { return dx + source_x - offset.m_x; }, dx));
     pixel_y.emplace_back(new DependentParameter<EngineParameter>([source_y, offset](double dy) { return dy + source_y - offset.m_y; }, dy));
+  }
 
+  void addModelsForFrame(int frame_nb, std::vector<ExtendedModel>& extended_models, int size) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), *exp_i0s.back(), exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), *(exp_i0s[frame_nb]), exp_n, exp_k);
+      //auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, size, size, *pixel_x.back(), *pixel_y.back());
+      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, size, size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
     }
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *dev_i0s.back(), dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *(dev_i0s[frame_nb]), dev_n, dev_k);
+      //auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
-      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, size, size, *pixel_x.back(), *pixel_y.back());
+      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, size, size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
     }
   }
 
   void registerParameters(EngineParameterManager& manager) {
     manager.registerParameter(dx);
     manager.registerParameter(dy);
-
+//
     manager.registerParameter(exp_effective_radius);
     manager.registerParameter(dev_effective_radius);
+
+    manager.registerParameter(exp_aspect);
+    manager.registerParameter(dev_aspect);
+    manager.registerParameter(exp_rot);
+    manager.registerParameter(dev_rot);
+
+//    manager.registerParameter(exp_i0);
+//    manager.registerParameter(dev_i0);
 
     for (auto& exp_i0 : exp_i0s) {
       manager.registerParameter(*exp_i0);
@@ -249,6 +281,10 @@ public:
   void debugPrint() const {
     //std::cout << "\tsize: " << m_size << "\n";
     std::cout << "\tx: " << dx.getValue() << "\ty: " << dy.getValue() << "\n";
+    for (auto& exp_i0 : exp_i0s) {
+      std::cout << exp_i0->getValue() << " ";
+    }
+    std::cout << "\n";
     //std::cout << "\texp i0: " << exp_i0.getValue()<< "\tReff: " << exp_effective_radius.getValue() << "\n";
     //std::cout << "\tdev i0: " << dev_i0.getValue()<< "\tReff: " << dev_effective_radius.getValue() << "\n";
   }
@@ -265,6 +301,19 @@ public:
     return radius_guess;
   }
 
+  double getAspectGuess(const SourceInterface& source) const {
+    auto& shape_parameters = source.getProperty<ShapeParameters>();
+    double aspect_guess = shape_parameters.getEllipseB() / shape_parameters.getEllipseA();
+
+    return aspect_guess;
+  }
+
+  double getRotGuess(const SourceInterface& source) const {
+    auto& shape_parameters = source.getProperty<ShapeParameters>();
+    double rot_guess = shape_parameters.getEllipseTheta();
+
+    return -rot_guess;
+  }
 };
 
 MultiframeModelFittingTask::MultiframeModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations, std::vector<int> frame_indices)
@@ -280,6 +329,18 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
+
+
+  static std::vector<std::shared_ptr<VectorImage<SeFloat>>> debug_images;
+
+  if (debug_images.size() == 0) {
+    for (auto frame_index : m_frame_indices) {
+      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+
+      auto debug_image = VectorImage<SeFloat>::create(frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight());
+      debug_images.emplace_back(debug_image);
+    }
+  }
 
   double pixel_scale = 1;
 
@@ -350,26 +411,29 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     }
 
     auto weight = VectorImage<SeFloat>::create(stamp_width, stamp_height);
-    //std::fill(weight->getData().begin(), weight->getData().end(), 1);
+    std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
-    for (int y=0; y < stamp_height; y++) {
-      for (int x=0; x < stamp_width; x++) {
-        weight->at(x, y) = (frame_image_thresholded->getValue(min_coord.m_x + x, min_coord.m_y + y) >= 0) ? 0 : 1;
-      }
-    }
+// FIXME how to remove other sources in measurement frame since we don't have detection coordinates?
 
-    for (auto& source : group) {
-      auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
-      for (auto pixel : pixel_coordinates) {
-        pixel -= min_coord;
-        if (pixel.m_x >= 0 && pixel.m_y >= 0 && pixel.m_x < weight->getWidth() && pixel.m_y < weight->getHeight()) {
-          weight->at(pixel.m_x, pixel.m_y) = 1;
-        }
-      }
-    }
+    //    for (int y=0; y < stamp_height; y++) {
+//      for (int x=0; x < stamp_width; x++) {
+//        weight->at(x, y) = (frame_image_thresholded->getValue(min_coord.m_x + x, min_coord.m_y + y) >= 0) ? 0 : 1;
+//      }
+//    }
+//
+//    for (auto& source : group) {
+//      auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+//      for (auto pixel : pixel_coordinates) {
+//        pixel -= min_coord;
+//        if (pixel.m_x >= 0 && pixel.m_y >= 0 && pixel.m_x < weight->getWidth() && pixel.m_y < weight->getHeight()) {
+//          weight->at(pixel.m_x, pixel.m_y) = 1;
+//        }
+//      }
+//    }
 
-    auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
+    auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(valid_frame_indices[i]).getFrame();
     auto back_var = measurement_frame->getBackgroundRMS();
+    std::cout << "back_var " << back_var << "\n";
     back_var *= back_var; // RMS -> variance
     SeFloat gain = measurement_frame->getGain();
     SeFloat saturation = measurement_frame->getSaturation();
@@ -388,6 +452,12 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       }
     }
 
+//    for (int y=0; y<stamp_height; y++) {
+//      for (int x=0; x<stamp_width; x++) {
+//        debug_images[i]->at(min_coord.m_x + x, min_coord.m_y + y) =weight->at(x, y);
+//      }
+//    }
+
     std::vector<ConstantModel> constant_models;
     std::vector<PointModel> point_models;
     std::vector<ExtendedModel> extended_models;
@@ -400,7 +470,8 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto frame_x = frame_centroid.getCentroidX();
       auto frame_y = frame_centroid.getCentroidY();
 
-      source_model->addModelsForFrame(extended_models, frame_x, frame_y, std::max(stamp_width, stamp_height), min_coord);
+      source_model->createParamsForFrame(frame_x, frame_y, min_coord);
+      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height));
 
       ++source_iterator;
     }
@@ -416,6 +487,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       std::move(extended_models),
       *m_psf
     };
+
 
     auto data_vs_model =
         createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
@@ -464,17 +536,17 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     std::vector<PointModel> point_models {};
     std::vector<ConstantModel> constant_models;
 
-    auto source_iter = group.begin();
+//    auto source_iter = group.begin();
     for (auto& source_model : source_models) {
-      auto& source = *source_iter;
+//      auto& source = *source_iter;
 
-      auto& frame_centroid = source.getProperty<MeasurementFramePixelCentroid>(valid_frame_indices[i]);
-      auto frame_x = frame_centroid.getCentroidX();
-      auto frame_y = frame_centroid.getCentroidY();
+//      auto& frame_centroid = source.getProperty<MeasurementFramePixelCentroid>(valid_frame_indices[i]);
+//      auto frame_x = frame_centroid.getCentroidX();
+//      auto frame_y = frame_centroid.getCentroidY();
 
-      source_model->addModelsForFrame(extended_models, frame_x, frame_y, std::max(stamp_width, stamp_height), min_coords[i]);
+      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height));
 
-      ++source_iter;
+//      ++source_iter;
     }
 
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model_after {
@@ -486,6 +558,13 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       *m_psf
     };
     auto final_stamp = frame_model_after.getImage();
+
+    for (int x=0; x<final_stamp->getWidth(); x++) {
+      for (int y=0; y<final_stamp->getHeight(); y++) {
+        debug_images[valid_frame_indices[i]]->at(x + min_coords[i].m_x, y + min_coords[i].m_y) += final_stamp->getValue(x,y);
+      }
+    }
+
 
     SeFloat reduced_chi_squared = computeReducedChiSquared(images[i], final_stamp, weights[i]);
     printDebugChi2(reduced_chi_squared);
@@ -501,8 +580,24 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         );
   }
 
-  std::cout << "...\n";
+  int i = 0;
+  for (auto& debug_image : debug_images) {
+    std::stringstream file_name;
+    file_name << "debug_" << i << ".fits";
 
+    FitsWriter::writeFile(*debug_image, file_name.str());
+
+    auto frame = group.begin()->getProperty<MeasurementFrame>(i).getFrame();
+    auto residual_image = SubtractImage<SeFloat>::create(frame->getOriginalImage(), debug_image);
+    std::stringstream res_file_name;
+    res_file_name << "res_" << i << ".fits";
+
+    FitsWriter::writeFile(*residual_image, res_file_name.str());
+
+    i++;
+  }
+
+  std::cout << "...\n";
 }
 
 }

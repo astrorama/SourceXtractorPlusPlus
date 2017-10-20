@@ -35,8 +35,6 @@ public:
             m_weight_image(weight_image),
             m_coordinate_system(coordinate_system),
 
-            m_background_level(0),
-            m_background_rms(0),
             //m_detection_threshold(0),
 
             m_is_weight_absolute(is_weight_absolute),
@@ -51,8 +49,6 @@ public:
             m_weight_image(nullptr),
             m_coordinate_system(coordinate_system),
 
-            m_background_level(0),
-            m_background_rms(0),
             //m_detection_threshold(0),
 
             m_is_weight_absolute(false),
@@ -99,7 +95,7 @@ public:
   }
 
   typename T::PixelType getBackgroundRMS() const {
-    return m_background_rms;
+    return m_background_rms_map != nullptr ? m_background_rms_map->getValue(0,0) : 1;
   }
 
   std::shared_ptr<T> getBackgroundRMSMap() const {
@@ -107,12 +103,12 @@ public:
       return m_background_rms_map;
     } else {
       return ConstantImage<typename T::PixelType>::create(
-          m_image->getWidth(), m_image->getHeight(), m_background_rms);
+          m_image->getWidth(), m_image->getHeight(), getBackgroundRMS());
     }
   }
 
   typename T::PixelType getBackgroundLevel() const {
-    return m_background_level;
+    return m_background_level_map != nullptr ? m_background_level_map->getValue(0,0) : 0;
   }
 
   std::shared_ptr<T> getBackgroundLevelMap() const {
@@ -120,7 +116,7 @@ public:
       return m_background_level_map;
     } else {
       return ConstantImage<typename T::PixelType>::create(
-          m_image->getWidth(), m_image->getHeight(), m_background_level);
+          m_image->getWidth(), m_image->getHeight(), getBackgroundLevel());
     }
   }
 
@@ -140,14 +136,12 @@ public:
     m_detection_threshold = detection_threshold;
   }
 
-  void setBackgroundRMS(typename T::PixelType background_rms, std::shared_ptr<T> background_rms_map =  nullptr) {
-    m_background_rms = background_rms;
-    m_detection_threshold = background_rms * 1.5; // FIXME temporary
+  void setBackgroundRMS(std::shared_ptr<T> background_rms_map =  nullptr) {
     m_background_rms_map = background_rms_map;
+    m_detection_threshold = getBackgroundRMS() * 1.5; // FIXME temporary
   }
 
-  void setBackgroundLevel(typename T::PixelType background_level, std::shared_ptr<T> background_level_map = nullptr) {
-    m_background_level = background_level;
+  void setBackgroundLevel(std::shared_ptr<T> background_level_map = nullptr) {
     m_background_level_map = background_level_map;
   }
 
@@ -170,8 +164,8 @@ private:
   std::shared_ptr<WeightImage> m_weight_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
-  typename T::PixelType m_background_level;
-  typename T::PixelType m_background_rms;
+//  typename T::PixelType m_background_level;
+//  typename T::PixelType m_background_rms;
 
   typename T::PixelType m_detection_threshold;
 

@@ -184,12 +184,12 @@ public:
     auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_levels = background_level_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
-    detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
+    detection_frame->setBackgroundLevel(background_levels);
 
     auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
     auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
-    detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
+    detection_frame->setBackgroundRMS(background_rms);
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS: " << detection_frame->getBackgroundRMS()
@@ -199,7 +199,8 @@ public:
 
     // Override background level and threshold if requested by the user
     if (background_config.isBackgroundLevelAbsolute()) {
-      detection_frame->setBackgroundLevel(background_config.getBackgroundLevel());
+      detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(
+          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel()));
     }
 
     if (background_config.isDetectionThresholdAbsolute()) {
