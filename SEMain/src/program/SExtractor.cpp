@@ -43,6 +43,7 @@
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
+#include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
@@ -110,6 +111,7 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
+    config_manager.registerConfiguration<SE2BackgroundConfig>();
 
     CheckImages::getInstance().reportConfigDependencies(config_manager);
 

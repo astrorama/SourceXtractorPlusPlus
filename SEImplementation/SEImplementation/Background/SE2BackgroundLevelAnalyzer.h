@@ -5,8 +5,8 @@
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_BACKGROUND_SIMPLEBACKGROUNDANALYZER_H_
-#define _SEIMPLEMENTATION_BACKGROUND_SIMPLEBACKGROUNDANALYZER_H_
+#ifndef _SEIMPLEMENTATION_BACKGROUND_SE2BACKGROUNDANALYZER_H_
+#define _SEIMPLEMENTATION_BACKGROUND_SE2BACKGROUNDANALYZER_H_
 
 #include "SEFramework/Frame/Frame.h"
 #include "SEFramework/Image/Image.h"
@@ -14,21 +14,30 @@
 
 namespace SExtractor {
 
-class SimpleBackgroundLevelAnalyzer : public BackgroundAnalyzer {
+class SE2BackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
 
-  virtual ~SimpleBackgroundLevelAnalyzer() = default;
+  virtual ~SE2BackgroundLevelAnalyzer() = default;
+
+  SE2BackgroundLevelAnalyzer():m_cell_size(0), m_smoothing_box(0) {
+  };
 
   //void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const override;
 
   std::shared_ptr<Image<SeFloat>> analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const override;
-  virtual void setParameters(int cell_size, int smoothing_box) override {};
+  virtual void setParameters(int cell_size, int smoothing_box) {
+    m_cell_size=cell_size;
+    m_smoothing_box=smoothing_box;
+  };
 
 private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
+
+  int m_cell_size;
+  int m_smoothing_box;
 };
 
 }
 
-#endif /* _SEIMPLEMENTATION_BACKGROUND_SIMPLEBACKGROUNDANALYZER_H_ */
+#endif /* _SEIMPLEMENTATION_BACKGROUND_SE2BACKGROUNDANALYZER_H_ */

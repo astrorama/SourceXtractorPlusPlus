@@ -17,7 +17,7 @@
 #include <utility>
 #include <vector>
 
-#include "ModelFitting/ModelFitting/Image/ImageTraits.h"
+#include "ModelFitting/Image/ImageTraits.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 

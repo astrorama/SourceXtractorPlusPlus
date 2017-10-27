@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_BACKGROUND_BACKGROUNDANALYZERFACTORY_H_
 #define _SEIMPLEMENTATION_BACKGROUND_BACKGROUNDANALYZERFACTORY_H_
 
+#include "SEImplementation/Configuration/SE2BackgroundConfig.h"
+
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
 
@@ -25,6 +27,8 @@ public:
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
+  int m_cell_size;
+  int m_smoothing_box;
 
 };
 

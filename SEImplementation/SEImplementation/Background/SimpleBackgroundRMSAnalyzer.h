@@ -21,6 +21,7 @@ public:
 
   std::shared_ptr<Image<SeFloat>> analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const override;
+  virtual void setParameters(int cell_size, int smoothing_box) override {};
 
 private:
   SeFloat getRMS(std::shared_ptr<DetectionImageFrame> frame) const;

@@ -8,10 +8,15 @@
 #include <memory>
 #include <algorithm>
 
+#include <iostream>
+
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
+
+#include "SEImplementation/Background/BackgroundDefine.h"
+#include "SEImplementation/Background/BackgroundCell.h"
 
 namespace SExtractor {
 
