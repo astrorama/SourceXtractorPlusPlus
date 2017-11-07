@@ -5,8 +5,8 @@
  * Revision: $Revision$
  * Author:   $Author$
  */
+#include <iostream>
 #include  <cstdlib>
-//#include <CCfits/CCfits>
 #include "fitsio.h"
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEImplementation/Background/BackgroundDefine.h"
@@ -160,9 +160,6 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
 
 void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
 {
-  int status=0;
-  int anynul=0;
-
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
 

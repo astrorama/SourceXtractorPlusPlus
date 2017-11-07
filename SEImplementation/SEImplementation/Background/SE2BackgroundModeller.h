@@ -14,12 +14,9 @@
 #include <boost/filesystem.hpp>
 #include "fitsio.h"
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ConstantImage.h"
-#include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/SplineModel.h"
 
-//namespace SExtractor {
 class SE2BackgroundModeller {
 
 public:
@@ -30,7 +27,7 @@ public:
   void createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
   void createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
 
-  ///
+  //
   PIXTYPE* getWhtMeanVals();
   void computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* bckSigVals, PIXTYPE& sigFac, const size_t nGridPoints);
   ///
