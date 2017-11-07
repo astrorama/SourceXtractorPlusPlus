@@ -26,13 +26,12 @@ public:
 
   std::shared_ptr<Image<SeFloat>> analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const override;
-  virtual void setParameters(int cell_size, int smoothing_box) {
-    m_cell_size=cell_size;
-    m_smoothing_box=smoothing_box;
-  };
+  virtual void setParameters(int cell_size, int smoothing_box);
 
 private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
+
+  void doItAll(std::shared_ptr<DetectionImage> image) const;
 
   int m_cell_size;
   int m_smoothing_box;
