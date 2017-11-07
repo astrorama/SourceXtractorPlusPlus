@@ -23,11 +23,13 @@
 class SE2BackgroundModeller {
 
 public:
-  SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map, std::shared_ptr<SExtractor::Image<unsigned char>> mask, const int mask_type, const int weight_type_flag);
+  SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map=NULL, std::shared_ptr<SExtractor::Image<unsigned char>> mask=NULL, const int weight_type_flag=0x0001);
   SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
   void createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
+  void createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
+
   ///
   PIXTYPE* getWhtMeanVals();
   void computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* bckSigVals, PIXTYPE& sigFac, const size_t nGridPoints);
@@ -50,7 +52,11 @@ private:
   boost::filesystem::path itsInputWeightName;
   int itsWeightTypeFlag;
   int itsMaskType;
-  
+
+  std::shared_ptr<SExtractor::DetectionImage> itsImage=NULL;
+  std::shared_ptr<SExtractor::WeightImage> itsVariance=NULL;
+  std::shared_ptr<SExtractor::Image<unsigned char>> itsMask=NULL;
+
   fitsfile* itsInputMask=NULL;
   fitsfile* itsInputFits=NULL;
   fitsfile* itsInputWeight=NULL;

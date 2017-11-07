@@ -16,9 +16,19 @@
 #define SIZETSUB(X, Y)  ((X) > (Y) ? (X-Y) : (Y-X))
 using namespace std;
 
-SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map, std::shared_ptr<SExtractor::Image<unsigned char>> mask, const int mask_type, const int weight_type_flag)
+SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map, std::shared_ptr<SExtractor::Image<unsigned char>> mask, const int weight_type_flag)
 {
+  itsImage          = image;
+  itsVariance       = variance_map;
+  itsMask           = mask;
+  itsWeightTypeFlag = weight_type_flag;
 
+  // TODO: needs to be done properly!
+  itsHasWeights=false;
+  itsHasMask=false;
+
+  itsNaxes[0] = (size_t)image->getWidth();
+  itsNaxes[1] = (size_t)image->getHeight();
 }
 
 SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename, const boost::filesystem::path& mask_filename, const int mask_type, const int weight_type_flag)
@@ -148,8 +158,203 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
 {
+  int status=0;
+  int anynul=0;
+
+  size_t gridSize[2] = {0,0};
+  size_t nGridPoints=0;
+
+  long increment[2]={1,1};
+  long fpixel[2];
+  long lpixel[2];
+
+  size_t nElements=0;
+  size_t nData=0;
+  size_t subImgNaxes[2] = {0,0};
+
+  PIXTYPE* gridData=NULL;
+  PIXTYPE* weightData=NULL;
+  int* maskData=NULL;
+
+  PIXTYPE  undefNumber=-BIG;
+
+  BackgroundCell* oneCell=NULL;
+
+  PIXTYPE* bckMeanVals=NULL;
+  PIXTYPE* bckSigVals=NULL;
+  PIXTYPE* whtSigVals=NULL;
+
+  size_t gridIndex=0;
+
+  ldiv_t divResult;
+
+  PIXTYPE weightVarThreshold=0.0;
+
+  // re-scale the weight threshold
+  if (itsHasWeights){
+    rescaleThreshold(weightVarThreshold, weightThreshold);
+  }
+
+  // get the number of grid cells in x
+  divResult = std::div(long(itsNaxes[0]), long(bckCellSize[0]));
+  gridSize[0] = size_t(divResult.quot);
+  if (divResult.rem)
+    gridSize[0] += 1;
+
+  // get the number of grid cells in y
+  divResult = std::div(long(itsNaxes[1]), long(bckCellSize[1]));
+  gridSize[1] = size_t(divResult.quot);
+  if (divResult.rem)
+    gridSize[1] += 1;
+
+  // compute the number of grid points
+  nGridPoints = gridSize[0]*gridSize[1];
+
+  // create the arrays
+  bckMeanVals = new PIXTYPE[nGridPoints];
+  bckSigVals  = new PIXTYPE[nGridPoints];
+  if (itsHasWeights){
+    itsWhtMeanVals = new PIXTYPE[nGridPoints];
+    whtSigVals  = new PIXTYPE[nGridPoints];
+  }
+
+  // iterate over cells in y
+  gridIndex=0;
+  for (size_t yIndex=0; yIndex<gridSize[1]; yIndex++){
+
+    // set the boundaries in y
+    fpixel[1] = (long)yIndex*bckCellSize[1];
+    lpixel[1] = yIndex < gridSize[1]-1 ? (long)(yIndex+1)*bckCellSize[1] : (long)itsNaxes[1];
+
+    // iterate over cells in x
+    for (size_t xIndex=0; xIndex<gridSize[0]; xIndex++){
+
+      // set the boundaries in x
+      fpixel[0] = (long)xIndex*bckCellSize[0];
+      lpixel[0] = xIndex < gridSize[0]-1 ? (long)(xIndex+1)*bckCellSize[0] : (long)itsNaxes[0];
+
+      // compute the length of the cell sub-image
+      subImgNaxes[0] =(size_t)(lpixel[0]-fpixel[0]);
+      subImgNaxes[1] =(size_t)(lpixel[1]-fpixel[1]);
+
+      // compute the increments to limit the number
+      // of pixels read in, the total number of elements
+      // and the numbers read in x and y
+      getMinIncr(nElements, increment, subImgNaxes);
+
+      // define or re-define the buffers
+      if (nElements!=nData) {
+        delete [] gridData;
+        gridData = new PIXTYPE[nElements];
+        if (itsInputWeight){
+          delete [] weightData;
+          weightData = new PIXTYPE[nElements];
+        }
+        if (itsInputMask){
+          delete [] maskData;
+          maskData = new int[nElements];
+        }
+        nData=nElements;
+      }
+
+      // load in the image data
+      long pixIndex=0;
+      for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
+        for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
+          gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
+
+      // read in the data, complain if there are problems
+      /*fits_read_subset(itsInputFits, TFLOAT, fpixel, lpixel, increment, &undefNumber, gridData, &anynul, &status);
+      std::cout << "status: " << status  << std::endl;
+      if (status){
+        throw Elements::Exception() << "Problems reading background cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputFileName << "!";
+        //Utils::throwElementsException(std::string("Problems reading background cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputFileName.generic_string());
+      }
+      */
+      //throw Elements::Exception() << "Stop right now!";
+      if (itsHasWeights){
+        throw Elements::Exception() << "Not yet implemented!";
+        /*
+        fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
+        if (status){
+          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
+        }
+        // convert the weight to variance
+        ///Utils::weightToVar(weightData, nElements, itsWeightTypeFlag);
+        throw Elements::Exception() << "It should not come to here!!!! Utils::weightToVar(weightData, nElements, itsWeightTypeFlag)";
+        */
+      }
+      if (itsHasMask){
+        throw Elements::Exception() << "Not yet implemented!";
+        /*
+        fits_read_subset(itsInputMask, TINT, fpixel, lpixel, increment, &undefNumber, maskData, &anynul, &status);
+        if (status){
+          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
+          //Utils::throwElementsException(std::string("Problems reading background mask cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputMaskName.generic_string());
+        }
+        else
+          // if the pixel belongs to the mask, set it equal to -BIG
+          for (size_t idx=0;idx<nElements;idx++)
+            if (maskData[idx] & itsMaskType)
+              gridData[idx] = -BIG;
+              */
+      }
+
+      // create a background cell compute and store the values
+      // and then delete the cell again
+      oneCell = new BackgroundCell(gridData, nElements, weightData, weightVarThreshold);
+      if (itsHasWeights)
+        oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex], itsWhtMeanVals[gridIndex], whtSigVals[gridIndex]);
+      else
+        oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex]);
+      delete oneCell;
+      //std::cout <<gridIndex<<":"<<bckMeanVals[gridIndex]<<":"<<bckSigVals[gridIndex]<<" ";
+      // enhance the grid index
+      gridIndex++;
+    }
+  }
+
+
+  if (itsHasWeights && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
+
+    // compute the scaling factor
+    computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
+
+    // store the scaling factor in the weight image
+    if (storeScaleFactor){
+      storeScalingFactor(sigFac);
+    }
+ }
+  else{
+    sigFac=0.0;
+  }
+
+  // delete the previous spline object
+  if (*bckSpline)
+    delete *bckSpline;
+
+  // delete the previous spline object
+  if (*sigmaSpline)
+    delete *sigmaSpline;
+
+  // create the spline objects for sigma and background
+  *bckSpline   = new SplineModel(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  *sigmaSpline = new SplineModel(itsNaxes, bckCellSize, gridSize, bckSigVals);
+
+  // release memory
+  if (whtSigVals)
+    delete [] whtSigVals;
+  // release memory
+  if (gridData)
+    delete [] gridData;
+  if (weightData)
+    delete [] weightData;
+}
+
+void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
+  {
   int status=0;
   int anynul=0;
 
@@ -243,7 +448,7 @@ void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **
           delete [] weightData;
           weightData = new PIXTYPE[nElements];
         }
-	if (itsInputMask){
+        if (itsInputMask){
           delete [] maskData;
           maskData = new int[nElements];
         }
@@ -272,15 +477,11 @@ void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **
           throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
           //Utils::throwElementsException(std::string("Problems reading background mask cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputMaskName.generic_string());
         }
-	else
-
-      // if the pixel belongs to the mask, set it equal to -BIG
-
-	  for (size_t idx=0;idx<nElements;idx++)
-	    if (maskData[idx] & itsMaskType)
-	      gridData[idx] = -BIG;
-	
-	    
+        else
+          // if the pixel belongs to the mask, set it equal to -BIG
+          for (size_t idx=0;idx<nElements;idx++)
+            if (maskData[idx] & itsMaskType)
+              gridData[idx] = -BIG;
       }
 
       // create a background cell compute and store the values

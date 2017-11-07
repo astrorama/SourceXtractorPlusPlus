@@ -13,11 +13,10 @@
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/FitsWriter.h"
 
+#include "SEImplementation/Background/SE2BackgroundModeller.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
-
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/BackgroundCell.h"
 
 namespace SExtractor {
 
@@ -25,33 +24,14 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
 
-  //BackgroundCell* oneCell=NULL;
-  //PIXTYPE* gridData=NULL;
-  //gridData = new PIXTYPE[100];
+  auto bck_image = fromSE2Modeller(image);
+  //auto bck_image = fromMedianValue(image);
+  return bck_image;
+}
 
+std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromMedianValue(std::shared_ptr<DetectionImage> image) const {
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
-
-  /*
-  //std::cout << "\n\n\nOutput from stdout...\\n\n\n" << std::endl;
-  //std::cout << image->getWidth() << " <--> " << image->getHeight() << std::endl;
-  std::cout << "Using cell size: " << m_cell_size << std::endl;
-  std::cout << "Using smoothing box: " << m_smoothing_box << std::endl;
-  for (auto i=0; i<10; i++){
-    for (auto j=0; j<10; j++){
-      //std::cout <<  image_copy->getValue(PixelCoordinate(i,j));
-      gridData[i*10+j] = (PIXTYPE)image_copy->getValue(PixelCoordinate(i,j));
-    }
-  }
-  //oneCell = new BackgroundCell(gridData, nElements, weightData, weightVarThreshold);
-  oneCell = new BackgroundCell(gridData, 100);
-
-  delete gridData;
-  delete oneCell;
-  */
-
-  doItAll(image);
-
   return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
 }
 
@@ -70,9 +50,52 @@ void SE2BackgroundLevelAnalyzer::setParameters(int cell_size, int smoothing_box)
   m_smoothing_box=smoothing_box;
 }
 
-void SE2BackgroundLevelAnalyzer::doItAll(std::shared_ptr<DetectionImage> image) const {
-  std::cout << "Using cell size: " << m_cell_size << std::endl;
-  std::cout << "Using smoothing box: " << m_smoothing_box << std::endl;
+std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image) const {
+  //SE2BackgroundModeller* bck_modeller=NULL;
+  std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, NULL, NULL, 0x0001));
+  SplineModel* bckSpline=NULL;
+  SplineModel* sigmaSpline=NULL;
+  PIXTYPE sigFac=0.0;
+  PIXTYPE weightThreshold=0.0;
+  size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
+  PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
+  //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
+  bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold);
+
+  //boost::filesystem::path outBck {"back.fits"};
+  //boost::filesystem::path outSig {"sigma.fits"};
+  //bckSpline->gridToFits(outBck);
+  //sigmaSpline->gridToFits(outSig);
+
+  // create the empty background image
+  std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+
+  // fill the background image with values
+  for(long yIndex=0; yIndex<image->getHeight(); yIndex++)
+  {
+    // compute a background line
+    bckSpline->splineLine(back_line, yIndex, 0, image->getWidth());
+    for (long xIndex=0; xIndex<image->getWidth(); xIndex++)
+      // set the line values
+      bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
+  }
+  //std::string bbb("bbb.fits");
+  //FitsWriter::writeFile(*bck_image, bbb);
+
+  // release memory
+  if (bckSpline)
+  {
+    delete bckSpline;
+    bckSpline=NULL;
+  }
+  if (sigmaSpline)
+  {
+    delete sigmaSpline;
+    sigmaSpline= NULL;
+  }
+  delete back_line;
+
+  return bck_image;
 }
 }
