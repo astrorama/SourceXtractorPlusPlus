@@ -158,7 +158,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -313,6 +313,11 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
     }
   }
 
+  // do some filtering on the data
+  filter(bckMeanVals, bckSigVals, gridSize, filterBoxSize, filterThreshold);
+  if (itsHasWeights){
+    filter(itsWhtMeanVals, whtSigVals, gridSize, filterBoxSize, filterThreshold);
+  }
 
   if (itsHasWeights && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
 
@@ -704,6 +709,277 @@ bool SE2BackgroundModeller::checkCompatibility(fitsfile* inputWeight, const size
     //Utils::throwElementsException(std::string("The image: ")+itsInputWeightName.generic_string()+std::string(" has incompatible size in y!"));
   }
   return true;
+}
+
+void SE2BackgroundModeller::filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize, const size_t* filterSize, const float &filterThreshold)
+{
+  //logger.info() << "<<FILTERING>>";
+  // replace undefined values
+  replaceUNDEF(bckVals,  sigmaVals, gridSize);
+
+  // do a median filtering of the values
+  filterMedian(bckVals, sigmaVals, gridSize, filterSize, filterThreshold);
+
+  return;
+}
+
+void SE2BackgroundModeller::replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize)
+{
+  PIXTYPE  *back=NULL;
+  PIXTYPE  *sigma=NULL;
+  PIXTYPE  *backMod=NULL;
+  PIXTYPE   val;
+  PIXTYPE   sval;
+  float     dist=0.;
+  float     distMin=0;
+  size_t    iAct,jAct, nx,ny, nmin;
+  size_t    np;
+  bool      hasHoles=false;
+
+  // take the sizing information
+  nx = gridSize[0];
+  ny = gridSize[1];
+  np = gridSize[0]*gridSize[1];
+
+  // check whether something needs to be done
+  for (size_t index=0; index< np; index++)
+  {
+    if (bckVals[index]<=-BIG)
+    {
+      hasHoles=true;
+      break;
+    }
+  }
+
+  // nothing to do,
+  // just go back
+  if (!hasHoles)
+    return;
+
+  // give some feedback that undefined data is replaced
+  //Utils::generalLogger("Replacing undefined data!");
+  std::cout << "Replacing undefined data!" << std::endl;
+
+  // vector for the final
+  // background values
+  backMod = new PIXTYPE[np];
+
+  // go to the array start
+  back  = bckVals;
+  sigma = sigmaVals;
+
+  // look for `bad' meshes and interpolate them if necessary
+  val  = 0.0;
+  sval = 0.0;
+  iAct=0;
+  for (size_t py=0; py<ny; py++)
+  {
+    for (size_t px=0; px<nx; px++)
+    {
+      // compute the current index
+      iAct = py*nx+px;
+
+      // transfer the value
+      backMod[iAct]=back[iAct];
+
+      // check for undefined data
+      if (back[iAct]<=-BIG)
+      {
+
+        // seek the closest data points,
+        // search over the  entire array
+        distMin = BIG;
+        nmin    = 0;
+        for (size_t y=0; y<ny; y++)
+        {
+          for (size_t x=0; x<nx; x++)
+          {
+            // compute the current index
+            jAct = y*nx+x;
+
+            if (back[jAct]>-BIG)
+            {
+              // compute the pixel distance
+              dist = (float)SIZETSUB(x,px)*SIZETSUB(x,px)+SIZETSUB(y,py)*SIZETSUB(y,py);
+
+              // check for a new minimum distance
+              if (dist<distMin)
+              {
+                // start new average values
+                val = back[jAct];
+                sval = sigma[jAct];
+                nmin = 1;
+                distMin = dist;
+              }
+              else if (fabs(dist-distMin)<1e-05)
+              {
+                // add equal distance pixel for averaging
+                val += back[jAct];
+                sval += sigma[jAct];
+                nmin++;
+              }
+            }
+          }
+        }
+        // take the mean of the closest
+        // defined data points
+        backMod[iAct] = nmin ? val/nmin: 0.0;
+        sigma[iAct]   = nmin ? sval/nmin: 1.0;
+      }
+    }
+  }
+
+  // push the modified values back
+  for (size_t index=0; index< np; index++)
+  {
+    bckVals[index] =backMod[index];
+  }
+
+  // release the memory
+  if (backMod)
+    delete [] backMod;
+
+  return;
+}
+
+void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, const size_t* gridSize, const size_t* filterSize, const float filterThresh)
+{
+  PIXTYPE  *back, *sigma, *sigmat;
+  PIXTYPE* backFilt=NULL;
+  PIXTYPE* sigmaFilt=NULL;
+  PIXTYPE* bmask=NULL;
+  PIXTYPE* smask=NULL;
+  PIXTYPE allBckMed, allSigmaMed, median;
+  int    i,nx,ny,npx,npx2,npy,npy2,x,y;
+  int np;
+
+  // check whether something needs to be done at all
+  // note that the code would run nevertheless
+  if (filterSize[0]<2 && filterSize[1]<2)
+    return;
+
+  // give some feedback
+  std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
+
+  // Note: I am converting the "size_t" to int's since
+  //       there are computations done down.
+
+  // take the sizing information
+  nx = (int)gridSize[0];
+  ny = (int)gridSize[1];
+  np = nx*ny;
+
+  // store the filter size
+  npx = (int)filterSize[0]/2;
+  npy = (int)filterSize[1]/2;
+  npy *= nx;
+
+  // allocate space for the work area
+  bmask  = new PIXTYPE[(2*npx+1)*(2*npy+1)];
+  smask  = new PIXTYPE[(2*npx+1)*(2*npy+1)];
+
+  // allocate space for filtered arrays
+  backFilt  = new PIXTYPE[np];
+  sigmaFilt = new PIXTYPE[np];
+
+  // store the arrays locally
+  back  = bckVals;
+  sigma = sigmaVals;
+
+  // go over all y
+  for (int py=0; py<np; py+=nx)
+  {
+    // limit the filter box in y
+    npy2 = np - py - nx;
+    if (npy2>npy)
+      npy2 = npy;
+    if (npy2>py)
+      npy2 = py;
+
+    // go over all x
+    for (int px=0; px<nx; px++)
+    {
+      // limit the filter box in x
+      npx2 = nx - px - 1;
+      if (npx2>npx)
+        npx2 = npx;
+      if (npx2>px)
+        npx2 = px;
+
+      // store all values in the box
+      // in an array
+      i=0;
+      for (int dpy = -npy2; dpy<=npy2; dpy+=nx)
+      {
+        y = py+dpy;
+        for (int dpx = -npx2; dpx <= npx2; dpx++)
+        {
+          x = px+dpx;
+          bmask[i] = back[x+y];
+          smask[i++] = sigma[x+y];
+        }
+      }
+
+      // compute the median, check
+      // whether the median is above the threshold
+      median = SplineModel::fqMedian(bmask, i);
+      if (fabs((median-back[px+py]))>=(PIXTYPE)filterThresh)
+      {
+        // use the median values
+        backFilt[px+py] = median;
+        sigmaFilt[px+py] = SplineModel::fqMedian(smask, i);
+      }
+      else
+      {
+        // use the original value
+        backFilt[px+py] = back[px+py];
+        sigmaFilt[px+py] = sigma[px+py];
+      }
+    }
+  }
+
+  // transfer the filtered background values back
+  for (int index=0; index<np; index++)
+    back[index] = backFilt[index];
+
+  // transfer the filtered sigma values back
+  for (int index=0; index<np; index++)
+    sigma[index] = sigmaFilt[index];
+
+  // compute the median values for the background
+  // and the sigma
+  allBckMed   = SplineModel::fqMedian(backFilt, np);
+  allSigmaMed = SplineModel::fqMedian(sigmaFilt, np);
+
+  // NOTE: I don't understand what that does.
+  //       Why should the median sigma be <.0?
+  if (allSigmaMed<=0.0)
+  {
+    sigmat = sigmaFilt+np;
+    for (i=np; i-- && *(--sigmat)>0.0;);
+    if (i>=0 && i<(np-1))
+      allSigmaMed = SplineModel::fqMedian(sigmat+1, np-1-i);
+    else
+    {
+      //if (field->flags&(DETECT_FIELD|MEASURE_FIELD))
+      //  warning("Image contains mainly constant data; ",
+      //      "I'll try to cope with that...");
+      //field->backsig = 1.0;
+      allSigmaMed = 1.0;
+    }
+  }
+
+  // release memory
+  if (sigmaFilt)
+    delete [] sigmaFilt;
+  if (backFilt)
+    delete [] backFilt;
+  if (bmask)
+    delete [] bmask;
+  if (smask)
+    delete [] smask;
+
+  return;
 }
 
 void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* bckSigVals, PIXTYPE& sigFac, const size_t nGridPoints)

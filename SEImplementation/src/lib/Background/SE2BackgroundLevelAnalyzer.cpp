@@ -57,10 +57,11 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   PIXTYPE sigFac=0.0;
   PIXTYPE weightThreshold=0.0;
   size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
+  size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
   PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
   //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
-  bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold);
+  bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
 
   //boost::filesystem::path outBck {"back.fits"};
   //boost::filesystem::path outSig {"sigma.fits"};
