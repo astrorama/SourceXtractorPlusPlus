@@ -23,10 +23,19 @@ SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<SExtractor::Detecti
   itsMask           = mask;
   itsWeightTypeFlag = weight_type_flag;
 
-  // TODO: needs to be done properly!
-  itsHasWeights=false;
-  itsHasMask=false;
+  //check for variance
+  if (variance_map!=nullptr)
+    itsHasWeights=true;
+  else
+    itsHasWeights=false;
 
+  //check for mask
+  if (mask!=nullptr)
+    itsHasMask=true;
+  else
+    itsHasMask=false;
+
+  // store the image size
   itsNaxes[0] = (size_t)image->getWidth();
   itsNaxes[1] = (size_t)image->getHeight();
 }
@@ -272,7 +281,7 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
       */
       //throw Elements::Exception() << "Stop right now!";
       if (itsHasWeights){
-        throw Elements::Exception() << "Not yet implemented!";
+        throw Elements::Exception() << " Weights not yet implemented!";
         /*
         fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
         if (status){
@@ -284,7 +293,14 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
         */
       }
       if (itsHasMask){
-        throw Elements::Exception() << "Not yet implemented!";
+        // load in the image data
+        long pixIndex=0;
+        for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
+          for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0], pixIndex++)
+            if (!itsMask->getValue(int(xIndex), int(yIndex)))
+              gridData[pixIndex] = -BIG;
+
+        //throw Elements::Exception() << "Not yet implemented!";
         /*
         fits_read_subset(itsInputMask, TINT, fpixel, lpixel, increment, &undefNumber, maskData, &anynul, &status);
         if (status){

@@ -20,7 +20,7 @@
 class SE2BackgroundModeller {
 
 public:
-  SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map=NULL, std::shared_ptr<SExtractor::Image<unsigned char>> mask=NULL, const int weight_type_flag=0x0001);
+  SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map=nullptr, std::shared_ptr<SExtractor::Image<unsigned char>> mask=nullptr, const int weight_type_flag=0x0001);
   SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
@@ -50,9 +50,9 @@ private:
   int itsWeightTypeFlag;
   int itsMaskType;
 
-  std::shared_ptr<SExtractor::DetectionImage> itsImage=NULL;
-  std::shared_ptr<SExtractor::WeightImage> itsVariance=NULL;
-  std::shared_ptr<SExtractor::Image<unsigned char>> itsMask=NULL;
+  std::shared_ptr<SExtractor::DetectionImage> itsImage=nullptr;
+  std::shared_ptr<SExtractor::WeightImage> itsVariance=nullptr;
+  std::shared_ptr<SExtractor::Image<unsigned char>> itsMask=nullptr;
 
   fitsfile* itsInputMask=NULL;
   fitsfile* itsInputFits=NULL;

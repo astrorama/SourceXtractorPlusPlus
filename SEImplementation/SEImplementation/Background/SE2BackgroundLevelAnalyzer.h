@@ -31,7 +31,7 @@ public:
 private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
 
-  std::shared_ptr<Image<SeFloat>> fromSE2Modeller(std::shared_ptr<DetectionImage> image) const;
+  std::shared_ptr<Image<SeFloat>> fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const;
   std::shared_ptr<Image<SeFloat>> fromMedianValue(std::shared_ptr<DetectionImage> image) const;
 
   int m_cell_size;

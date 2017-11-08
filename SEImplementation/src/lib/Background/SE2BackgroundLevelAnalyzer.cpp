@@ -23,7 +23,21 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
 
-  auto bck_image = fromSE2Modeller(image);
+  /*if (mask)
+  {
+    std::string bbb("mask.fits");
+    FitsWriter::writeFile(*mask, bbb);
+    std::cout << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
+  }
+  if (variance_map)
+  {
+  //std::string bbb("variance.fits");
+  //FitsWriter::writeFile(*variance_map, bbb);
+  std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
+  }
+  */
+
+  auto bck_image = fromSE2Modeller(image, variance_map, mask);
   //auto bck_image = fromMedianValue(image);
   return bck_image;
 }
@@ -49,9 +63,9 @@ void SE2BackgroundLevelAnalyzer::setParameters(int cell_size, int smoothing_box)
   m_smoothing_box=smoothing_box;
 }
 
-std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image) const {
+std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
   //SE2BackgroundModeller* bck_modeller=NULL;
-  std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, NULL, NULL, 0x0001));
+  std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   SplineModel* bckSpline=NULL;
   SplineModel* sigmaSpline=NULL;
   PIXTYPE sigFac=0.0;
