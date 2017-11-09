@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "ElementsKernel/Exception.h"       // for Elements Exception
+#include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/FitsWriter.h"
@@ -19,23 +20,29 @@
 
 namespace SExtractor {
 
+static Elements::Logging se2BckLog = Elements::Logging::getLogger("SE2Background");
+
+
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
 
-  /*if (mask)
+  if (mask!=nullptr)
   {
-    std::string bbb("mask.fits");
-    FitsWriter::writeFile(*mask, bbb);
-    std::cout << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
+    //std::string bbb("mask.fits");
+    //FitsWriter::writeFile(*mask, bbb);
+    //std::cout << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
+    //se2BckLog.info() << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
+    se2BckLog.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
   }
-  if (variance_map)
+  if (variance_map!=nullptr)
   {
   //std::string bbb("variance.fits");
   //FitsWriter::writeFile(*variance_map, bbb);
-  std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
+  //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
+  se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
   }
-  */
+
 
   auto bck_image = fromSE2Modeller(image, variance_map, mask);
   //auto bck_image = fromMedianValue(image);

@@ -13,6 +13,8 @@
 #include "SEImplementation/Background/BackgroundHistogram.h"
 #include "SEImplementation/Background/BackgroundCell.h"
 
+namespace SExtractor {
+
 BackgroundCell::BackgroundCell(const PIXTYPE* cellData, const size_t ndata, const PIXTYPE* cellWeight, const PIXTYPE weightThresh)
 {
   itsCellData=cellData;
@@ -334,3 +336,4 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   weightSigma = weightSigma/statNWeight - weightMean*weightMean;
   weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
 }
+} // end of namespace SExtractor

@@ -17,10 +17,12 @@
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/SplineModel.h"
 
+namespace SExtractor {
+
 class SE2BackgroundModeller {
 
 public:
-  SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map=nullptr, std::shared_ptr<SExtractor::Image<unsigned char>> mask=nullptr, const int weight_type_flag=0x0001);
+  SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map=nullptr, std::shared_ptr<Image<unsigned char>> mask=nullptr, const unsigned char mask_type_flag=0x0001);
   SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
@@ -48,11 +50,11 @@ private:
   boost::filesystem::path itsInputFileName;
   boost::filesystem::path itsInputWeightName;
   int itsWeightTypeFlag;
-  int itsMaskType;
+  unsigned char itsMaskType;
 
-  std::shared_ptr<SExtractor::DetectionImage> itsImage=nullptr;
-  std::shared_ptr<SExtractor::WeightImage> itsVariance=nullptr;
-  std::shared_ptr<SExtractor::Image<unsigned char>> itsMask=nullptr;
+  std::shared_ptr<DetectionImage> itsImage=nullptr;
+  std::shared_ptr< WeightImage> itsVariance=nullptr;
+  std::shared_ptr< Image<unsigned char>> itsMask=nullptr;
 
   fitsfile* itsInputMask=NULL;
   fitsfile* itsInputFits=NULL;
@@ -67,6 +69,8 @@ private:
   int itsNaxis=0;
   size_t itsNaxes[2]={0,0};
 };
+
+} // end of namespace SExtractor
 
 #endif	// BACKGROUNDMODELLER_H
 

@@ -9,6 +9,8 @@
 #ifndef BACKGROUNDDEFINE_H
 #define	BACKGROUNDDEFINE_H
 
+namespace SExtractor {
+
 typedef float PIXTYPE;
 
 #define BIG     1e+30   // a huge number
@@ -43,5 +45,7 @@ typedef float PIXTYPE;
 #ifndef PI
 #define PI      3.1415926535898 // just for sure, maybe it is in C++??
 #endif
+
+} // end of namespace SExtractor
 
 #endif	/* BACKGROUNDDEFINE_H */

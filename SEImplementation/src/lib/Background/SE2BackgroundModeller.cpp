@@ -16,12 +16,15 @@
 #define SIZETSUB(X, Y)  ((X) > (Y) ? (X-Y) : (Y-X))
 using namespace std;
 
-SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<SExtractor::DetectionImage> image, std::shared_ptr<SExtractor::WeightImage> variance_map, std::shared_ptr<SExtractor::Image<unsigned char>> mask, const int weight_type_flag)
+namespace SExtractor {
+
+SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, const unsigned char mask_type_flag)
 {
   itsImage          = image;
   itsVariance       = variance_map;
   itsMask           = mask;
-  itsWeightTypeFlag = weight_type_flag;
+  itsMaskType       = mask_type_flag;
+  //itsWeightTypeFlag = weight_type_flag;
 
   //check for variance
   if (variance_map!=nullptr)
@@ -297,8 +300,11 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
         long pixIndex=0;
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0], pixIndex++)
-            if (!itsMask->getValue(int(xIndex), int(yIndex)))
-              gridData[pixIndex] = -BIG;
+            //if (!itsMask->getValue(int(xIndex), int(yIndex)))
+              if (itsMask->getValue(int(xIndex), int(yIndex) & itsMaskType)){
+                gridData[pixIndex] = -BIG;
+                std::cout << "Replacing data value ";
+              }
 
         //throw Elements::Exception() << "Not yet implemented!";
         /*
@@ -876,7 +882,8 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
   // give some feedback
   std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
-
+  // this does *not* work:
+  //SExtractor::se2BckLog.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // Note: I am converting the "size_t" to int's since
   //       there are computations done down.
 
@@ -1155,3 +1162,4 @@ PIXTYPE *SE2BackgroundModeller::getWhtMeanVals()
 {
   return itsWhtMeanVals;
 }
+} // end of namespace SExtractor

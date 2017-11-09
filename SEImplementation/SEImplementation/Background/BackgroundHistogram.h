@@ -11,6 +11,8 @@
 
 #include <cstddef>
 
+namespace SExtractor {
+
 class BackgroundHistogram {
 
 public:
@@ -36,6 +38,8 @@ private:
   int* itsHisto=NULL;
   size_t itsNLevels=0;
 };
+
+} // end of namespace SExtractor
 
 
 #endif	/* BACKGROUNDHISTOGRAM_H */
