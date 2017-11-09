@@ -14,12 +14,15 @@
 #include <boost/range/adaptors.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <yaml-cpp/yaml.h>
+
 #include "SEFramework/Image/FitsReader.h"
-#include "SEImplementation/Configuration/MeasurementConfig.h"
+#include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
-#include <yaml-cpp/yaml.h>
+#include "SEImplementation/Configuration/MeasurementConfig.h"
+
 
 using namespace Euclid::Configuration;
 
@@ -91,25 +94,32 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
 
   std::vector<std::string> image_filenames;
   std::vector<std::string> weight_filenames;
+  std::vector<std::string> psf_filenames;
 
   for (auto node : image_group) {
     if (node.first.as<std::string>() == "path") {
       auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
       image_filenames.insert(image_filenames.end(), file_paths.begin(), file_paths.end());
-    }
-    if (node.first.as<std::string>() == "weight-image-path") {
+    } else if (node.first.as<std::string>() == "weight-image-path") {
       auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
       weight_filenames.insert(weight_filenames.end(), file_paths.begin(), file_paths.end());
+    } else if (node.first.as<std::string>() == "psf-path") {
+      auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
+      psf_filenames.insert(psf_filenames.end(), file_paths.begin(), file_paths.end());
+    } else {
+      std::cout << "Unknown node: " << node.first.as<std::string>() << "\n";
     }
   }
 
   auto weight_iter = weight_filenames.begin();
+  auto psf_iter = psf_filenames.begin();
 
   for (auto path : image_filenames) {
     std::cout << path << std::endl;
 
     std::string weight_path = (weight_iter != weight_filenames.end()) ? *(weight_iter++) : "";
-    auto image = addImage(path, weight_path);
+    std::string psf_path = (psf_iter != psf_filenames.end()) ? *(psf_iter++) : "";
+    auto image = addImage(path, weight_path, psf_path);
     images.insert(image);
   }
 
@@ -144,8 +154,8 @@ std::vector<std::string> MeasurementConfig::getFilenamesFromPath(const std::stri
   return file_paths;
 }
 
-unsigned int MeasurementConfig::addImage(const std::string filename, const std::string weight_filename) {
-  std::cout << "adding: " << filename << " weight: " << weight_filename << std::endl;
+unsigned int MeasurementConfig::addImage(const std::string filename, const std::string weight_filename, const std::string psf_filename) {
+  std::cout << "adding: " << filename << " weight: " << weight_filename << " psf: " << psf_filename << std::endl;
   auto iter = m_loaded_images.find(filename);
 
   if (iter != m_loaded_images.end()) {
@@ -164,9 +174,12 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
       weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
     }
 
+    std::shared_ptr<ImagePsf> psf = psf_filename.size() > 0 ? PsfConfig::readPsf(psf_filename) : nullptr;
+
     m_measurement_images.push_back(std::move(image));
     m_coordinate_systems.push_back(coordinate_system);
     m_weight_images.push_back(std::move(weight_map));
+    m_psfs.push_back(std::move(psf));
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 
     unsigned int image_index = m_measurement_images.size() - 1;

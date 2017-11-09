@@ -16,6 +16,8 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
+#include "SEImplementation/Image/ImagePsf.h"
+
 namespace SExtractor {
 
 class MeasurementConfig : public Euclid::Configuration::Configuration {
@@ -94,6 +96,10 @@ public:
     return m_weight_images;
   }
 
+  const std::vector<std::shared_ptr<ImagePsf>>& getPsfs() const {
+    return m_psfs;
+  }
+
   const std::vector<bool>& getAbsoluteWeights() const {
     return m_absolute_weights;
   }
@@ -102,7 +108,7 @@ public:
     return m_groups;
   }
 
-  unsigned int addImage(const std::string filename, const std::string weight_filename);
+  unsigned int addImage(const std::string filename, const std::string weight_filename, const std::string psf_filename);
 
 private:
   std::vector<std::string> getFilenamesFromPath(const std::string& path) const;
@@ -114,6 +120,8 @@ private:
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
+  std::vector<std::shared_ptr<ImagePsf>> m_psfs;
+
   std::vector<bool> m_absolute_weights;
   std::map<std::string, unsigned int> m_loaded_images;
 };

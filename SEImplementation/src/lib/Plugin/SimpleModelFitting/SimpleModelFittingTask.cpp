@@ -147,8 +147,6 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
   std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
 }
 
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 
 
@@ -247,6 +245,8 @@ struct SourceModel {
   }
 };
 
+}
+
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
 
@@ -336,7 +336,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
         weight->at(x, y) = 0;
       } else if (weight->at(x, y)>0) {
         if (gain > 0.0) {
-          weight->at(x, y) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain ));
+          weight->at(x, y) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain));
         } else {
           weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
         }
