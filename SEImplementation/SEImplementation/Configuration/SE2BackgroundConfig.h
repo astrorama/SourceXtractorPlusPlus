@@ -23,17 +23,17 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  int getCellSize() const {
+  std::string getCellSize() const {
     return m_cell_size;
   }
 
-  int getSmoothingBox() const {
+  std::string getSmoothingBox() const {
     return m_smoothing_box;
   }
 
 private:
-  int m_cell_size;
-  int m_smoothing_box;
+  std::string m_cell_size;
+  std::string m_smoothing_box;
 
 };
 

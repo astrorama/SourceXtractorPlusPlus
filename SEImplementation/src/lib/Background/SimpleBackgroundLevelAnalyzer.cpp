@@ -15,9 +15,6 @@
 
 #include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
 
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/BackgroundCell.h"
-
 namespace SExtractor {
 
 std::shared_ptr<Image<SeFloat>> SimpleBackgroundLevelAnalyzer::analyzeBackground(
@@ -26,7 +23,7 @@ std::shared_ptr<Image<SeFloat>> SimpleBackgroundLevelAnalyzer::analyzeBackground
 
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
-
+  std::cout << "Using the SimpleBackgroundLeverAnalyzer" << std::endl<< std::endl<< std::endl;
   return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
 }
 
