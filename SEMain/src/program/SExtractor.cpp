@@ -189,7 +189,7 @@ public:
     detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
 
     auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
-    auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
+    auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getSubtractedImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
     detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
 

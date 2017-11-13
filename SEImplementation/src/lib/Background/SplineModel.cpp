@@ -6,6 +6,8 @@
  * Revision: $Revision$
  * Author:   $Author$
  */
+
+#include <math.h>
 #include <boost/filesystem.hpp>             // for boost path type
 #include "fitsio.h"
 #include "ElementsKernel/Exception.h"       // for Elements Exception
