@@ -16,8 +16,8 @@ static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-value" };
 
 SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
     Configuration(manager_id),
-    m_cell_size(0),
-    m_smoothing_box(0) {
+    m_cell_size(),
+    m_smoothing_box() {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig::getProgramOptions() {
