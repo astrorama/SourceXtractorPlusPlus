@@ -27,8 +27,8 @@ public:
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  int m_cell_size;
-  int m_smoothing_box;
+  std::string m_cell_size;
+  std::string m_smoothing_box;
 
 };
 

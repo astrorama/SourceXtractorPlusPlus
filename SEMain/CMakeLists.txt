@@ -78,3 +78,4 @@ elements_add_executable(TestImage src/program/TestImage.cpp
 # Examples:
 #          elements_install_conf_files()
 #===============================================================================
+elements_install_conf_files()

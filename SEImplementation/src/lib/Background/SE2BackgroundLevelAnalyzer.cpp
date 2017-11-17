@@ -10,6 +10,7 @@
 
 #include <iostream>
 
+#include <boost/lexical_cast.hpp>
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEFramework/Image/ConstantImage.h"
@@ -55,8 +56,9 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromMedianValue(std:
   return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
 }
 
-void SE2BackgroundLevelAnalyzer::setParameters(int cell_size, int smoothing_box) {
+void SE2BackgroundLevelAnalyzer::setParameters(std::string cell_size, std::string smoothing_box) {
 
+    /*
   // make sure that the inut values are reasonable
   if (cell_size <2){
     throw Elements::Exception() << "Can not accept value <2 for --cellsize-value=" << cell_size << "!";
@@ -64,10 +66,12 @@ void SE2BackgroundLevelAnalyzer::setParameters(int cell_size, int smoothing_box)
   if (smoothing_box <0){
     throw Elements::Exception() << "Can not accept value <0 for --smoothing-box-value=" << smoothing_box << "!";
   }
-
+*/
+  m_cell_size = stringToIntVec(cell_size, std::string(","));
+  m_smoothing_box=stringToIntVec(smoothing_box,  std::string(","));
   // set the values
-  m_cell_size=cell_size;
-  m_smoothing_box=smoothing_box;
+  //m_cell_size=cell_size;
+  //m_smoothing_box=smoothing_box;
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
@@ -77,8 +81,10 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   SplineModel* sigmaSpline=NULL;
   PIXTYPE sigFac=0.0;
   PIXTYPE weightThreshold=0.0;
-  size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
-  size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
+  //size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
+  //size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
+  size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[0])};
+  size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[0])};
   PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
   //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
@@ -119,4 +125,68 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
 
   return bck_image;
 }
+
+std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)
+{
+  std::vector<int> result;
+  int anInt=0;
+  std::size_t first;
+  std::size_t last;
+
+  // convert the input string to a vector of strings along the commas
+  std::vector<std::string> stringVec=stringSplit(inString, delimiters);
+
+  // go over all members
+  for (size_t index=0; index<stringVec.size(); index++)
+  {
+    // prepare trimming
+    first = stringVec[index].find_first_not_of(' ');
+    last  = stringVec[index].find_last_not_of(' ');
+
+    try
+    {
+      // try converting to int and append to result vector
+      anInt = boost::lexical_cast<size_t>(stringVec[index].substr(first, last-first+1));
+      result.push_back(anInt);
+    }
+    catch ( const boost::bad_lexical_cast &exc ) // conversion failed, exception thrown by lexical_cast and caught
+    {
+      throw Elements::Exception() << "Can not convert to 'int': '" << stringVec[index].substr(first, last-first+1) << "'!";
+    }
+  }
+
+  return result;
+}
+
+std::vector<std::string> SE2BackgroundLevelAnalyzer::stringSplit(const std::string inString, const std::string delimiters)
+{
+  std::vector<std::string> result;
+  std::string trimString;
+  size_t current;
+  size_t next = -1;
+  size_t first=0;
+  size_t last=0;
+
+  // trim blanks from both sides;
+  // return the empty vector if there
+  // are only blanks
+  first = inString.find_first_not_of(' ');
+  if (first == std::string::npos)
+    return result;
+  last  = inString.find_last_not_of(' ');
+  trimString = inString.substr(first, last-first+1);
+
+  do
+  { // split along the delimiter
+    // and add to the result vector
+    current = next + 1;
+    next = trimString.find_first_of( delimiters, current );
+    result.push_back(trimString.substr( current, next - current ));
+  }
+  while (next != std::string::npos);
+
+  return result;
+}
+
+
 }
