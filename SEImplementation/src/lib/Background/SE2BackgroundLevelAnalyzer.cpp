@@ -23,6 +23,12 @@ namespace SExtractor {
 
 static Elements::Logging se2BckLog = Elements::Logging::getLogger("SE2Background");
 
+SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box)
+{
+  // initialize the parameters
+  m_cell_size = stringToIntVec(cell_size, std::string(","));
+  m_smoothing_box=stringToIntVec(smoothing_box,  std::string(","));
+}
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
@@ -54,24 +60,6 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromMedianValue(std:
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
   return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
-}
-
-void SE2BackgroundLevelAnalyzer::setParameters(std::string cell_size, std::string smoothing_box) {
-
-    /*
-  // make sure that the inut values are reasonable
-  if (cell_size <2){
-    throw Elements::Exception() << "Can not accept value <2 for --cellsize-value=" << cell_size << "!";
-  }
-  if (smoothing_box <0){
-    throw Elements::Exception() << "Can not accept value <0 for --smoothing-box-value=" << smoothing_box << "!";
-  }
-*/
-  m_cell_size = stringToIntVec(cell_size, std::string(","));
-  m_smoothing_box=stringToIntVec(smoothing_box,  std::string(","));
-  // set the values
-  //m_cell_size=cell_size;
-  //m_smoothing_box=smoothing_box;
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {

@@ -19,7 +19,6 @@ public:
 
   virtual std::shared_ptr<Image<SeFloat>> analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const = 0;
-  virtual void setParameters(std::string cell_size, std::string smoothing_box) = 0;
 };
 }
 

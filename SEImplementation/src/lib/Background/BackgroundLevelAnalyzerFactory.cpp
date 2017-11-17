@@ -14,8 +14,7 @@
 namespace SExtractor {
 
 std::shared_ptr<BackgroundAnalyzer> BackgroundLevelAnalyzerFactory::createBackgroundAnalyzer() const {
-  auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>();
-  background_level->setParameters(m_cell_size, m_smoothing_box);
+  auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
   return background_level;
 }
 

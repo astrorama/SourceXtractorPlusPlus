@@ -17,16 +17,12 @@ namespace SExtractor {
 class SE2BackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
 
+  SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box);
+
   virtual ~SE2BackgroundLevelAnalyzer() = default;
-
-  SE2BackgroundLevelAnalyzer() {
-  };
-
-  //void analyzeBackground(std::shared_ptr<DetectionImageFrame> frame) const override;
 
   std::shared_ptr<Image<SeFloat>> analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const override;
-  virtual void setParameters(std::string cell_size, std::string smoothing_box);
 
 private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
