@@ -229,6 +229,9 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
     whtSigVals  = new PIXTYPE[nGridPoints];
   }
 
+  // give some feedback on the cell size
+  std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
+
   // iterate over cells in y
   gridIndex=0;
   for (size_t yIndex=0; yIndex<gridSize[1]; yIndex++){

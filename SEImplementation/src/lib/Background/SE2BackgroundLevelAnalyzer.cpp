@@ -83,8 +83,8 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   PIXTYPE weightThreshold=0.0;
   //size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
   //size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
-  size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[0])};
-  size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[0])};
+  size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[1])};
+  size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[1])};
   PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
   //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
