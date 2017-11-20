@@ -14,7 +14,7 @@
 
 namespace SExtractor {
 
-static StaticPlugin<SimpleModelFittingPlugin> shape_parameters_plugin;
+static StaticPlugin<SimpleModelFittingPlugin> simple_modelfitting_plugin;
 
 void SimpleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<SimpleModelFittingTaskFactory, SimpleModelFitting>();

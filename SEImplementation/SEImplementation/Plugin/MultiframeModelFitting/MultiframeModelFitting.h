@@ -19,25 +19,14 @@ public:
   virtual ~MultiframeModelFitting() = default;
 
   MultiframeModelFitting(
-      SeFloat x, SeFloat y,
       SeFloat wc_alpha, SeFloat wc_delta,
       SeFloat total_flux, unsigned int iterations) :
-    m_x(x),
-    m_y(y),
     m_wc_alpha(wc_alpha),
     m_wc_delta(wc_delta),
     m_total_flux(total_flux),
     m_iterations(iterations) {}
 
-  SeFloat getX() const {
-    return m_x;
-  }
-
-  SeFloat getY() const {
-    return m_y;
-  }
-
-    SeFloat getAlpha() const {
+  SeFloat getAlpha() const {
     return m_wc_alpha;
   }
 
@@ -54,7 +43,6 @@ public:
   }
 
 private:
-  SeFloat m_x, m_y; // pixel coordinates on detection frame
   SeFloat m_wc_alpha, m_wc_delta; // world coordinate position
 
   SeFloat m_total_flux;

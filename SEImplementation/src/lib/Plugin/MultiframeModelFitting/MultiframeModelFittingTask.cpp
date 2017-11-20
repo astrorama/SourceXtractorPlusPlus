@@ -116,16 +116,20 @@ void printLevmarInfo(std::array<double,10> info) {
 }
 
 SeFloat computeReducedChiSquared(
-    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int nb_of_free_params) {
   double reduced_chi_squared = 0.0;
+  int data_points = 0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
       double tmp = image->getValue(x, y) - model->getValue(x, y);
       reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
+      if (weights->getValue(x, y) > 0) {
+        data_points++;
+      }
     }
   }
 
-  return reduced_chi_squared / (image->getWidth() * image->getHeight());
+  return reduced_chi_squared / (data_points - nb_of_free_params);
 }
 
 void printDebugChi2(SeFloat reduced_chi_squared) {
@@ -181,6 +185,8 @@ class SourceModel {
 
   std::vector<int> m_band_nb;
 
+  int m_number_of_parameters;
+
 //  ManualParameter exp_aspect {1}, exp_rot {0};
 //  ManualParameter dev_aspect {1}, dev_rot {0};
 
@@ -213,7 +219,9 @@ public:
     exp_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
     exp_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
     dev_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
-    dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI))
+    dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
+
+    m_number_of_parameters(0)
 
 //,exp_i0_guess(m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess)),
 //exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
@@ -232,10 +240,10 @@ public:
         m_band_nb.emplace_back(m_band_nb.back()+1);
       }
       auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess);
-      exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)));
+      exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 100)));
 
       auto dev_i0_guess = m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess);
-      dev_i0s.emplace_back(new EngineParameter(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)));
+      dev_i0s.emplace_back(new EngineParameter(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 100)));
     } else {
       m_band_nb.emplace_back(m_band_nb.back());
     }
@@ -268,7 +276,6 @@ public:
   void registerParameters(EngineParameterManager& manager) {
     manager.registerParameter(dx);
     manager.registerParameter(dy);
-
     manager.registerParameter(exp_effective_radius);
     manager.registerParameter(dev_effective_radius);
 
@@ -277,15 +284,19 @@ public:
     manager.registerParameter(exp_rot);
     manager.registerParameter(dev_rot);
 
+    m_number_of_parameters += 8;
+
 //    manager.registerParameter(exp_i0);
 //    manager.registerParameter(dev_i0);
 
     for (auto& exp_i0 : exp_i0s) {
       manager.registerParameter(*exp_i0);
+      m_number_of_parameters++;
     }
 
     for (auto& dev_i0 : dev_i0s) {
       manager.registerParameter(*dev_i0);
+      m_number_of_parameters++;
     }
   }
 
@@ -325,6 +336,11 @@ public:
 
     return -rot_guess;
   }
+
+  int getNumberOfParameters() const {
+    return m_number_of_parameters;
+  }
+
 };
 
 }
@@ -443,10 +459,11 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto frame_image_thresholded = frame->getThresholdedImage();
 
       // FIXME fixed 5 pixel border for now
-      min_coord.m_x = std::max(0, min_coord.m_x);
-      min_coord.m_y = std::max(0, min_coord.m_y);
-      max_coord.m_x = std::min(frame_image->getWidth()-1, max_coord.m_x);
-      max_coord.m_y = std::min(frame_image->getHeight()-1, max_coord.m_y);
+      int border = 0;//fixme
+      min_coord.m_x = std::max(0, min_coord.m_x - border);
+      min_coord.m_y = std::max(0, min_coord.m_y - border);
+      max_coord.m_x = std::min(frame_image->getWidth()-1, max_coord.m_x + border);
+      max_coord.m_y = std::min(frame_image->getHeight()-1, max_coord.m_y + border);
 
       int stamp_width = max_coord.m_x - min_coord.m_x;
       int stamp_height = max_coord.m_y - min_coord.m_y;
@@ -503,7 +520,8 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto frame_y = frame_centroid.getCentroidY();
 
       source_model->createParamsForFrame(frame_x, frame_y, min_coord, first_frames[i]);
-      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height));
+      double size_factor = 2;
+      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height)* size_factor);
 
       ++source_iterator;
     }
@@ -519,7 +537,6 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       std::move(extended_models),
       *psfs[i]
     };
-
 
     auto data_vs_model =
         createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
@@ -568,8 +585,11 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     std::vector<PointModel> point_models {};
     std::vector<ConstantModel> constant_models;
 
+
+    int nb_of_params = 0;
     for (auto& source_model : source_models) {
-      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height));
+      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height) * 2);
+      nb_of_params += source_model->getNumberOfParameters();
     }
 
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model_after {
@@ -588,13 +608,21 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       }
     }
 
-    SeFloat reduced_chi_squared = computeReducedChiSquared(images[i], final_stamp, weights[i]);
+    SeFloat reduced_chi_squared = computeReducedChiSquared(images[i], final_stamp, weights[i], nb_of_params);
     printDebugChi2(reduced_chi_squared);
   }
 
-  for (auto& source : group) {
+  auto source_iter = group.begin();
+  for (auto& source_model : source_models) {
+    auto& source = *source_iter;
+    ++source_iter;
+
+//    SeFloat x = stamp_top_left.m_x + source_model->getXValue();
+//    SeFloat y = stamp_top_left.m_y + source_model->getYValue();
+//    ImageCoordinate image_coordinate(x, y);
+//    auto world_coordinate = coordinate_system->imageToWorld(image_coordinate);
+
     source.setProperty<MultiframeModelFitting>(
-        99, 99,
         99, 99,
         99, iterations
 //        total_flux, iterations,
