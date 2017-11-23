@@ -30,10 +30,18 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
   m_smoothing_box=stringToIntVec(smoothing_box,  std::string(","));
 
   // double a single paramter if necessary
-  if (m_cell_size.size()<2)
+  if (m_cell_size.size()<1){
+    throw Elements::Exception() << "Can not convert to 'int': '" << cell_size << "'!";
+  }
+  else if (m_cell_size.size()<2){
     m_cell_size.push_back(m_cell_size[0]);
-  if (m_smoothing_box.size()<2)
+  }
+  if (m_cell_size.size()<1){
+    throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box << "'!";
+  }
+  else if (m_smoothing_box.size()<2){
     m_smoothing_box.push_back(m_smoothing_box[0]);
+  }
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(

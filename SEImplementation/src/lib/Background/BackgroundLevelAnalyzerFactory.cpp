@@ -14,8 +14,17 @@
 namespace SExtractor {
 
 std::shared_ptr<BackgroundAnalyzer> BackgroundLevelAnalyzerFactory::createBackgroundAnalyzer() const {
-  auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
-  return background_level;
+
+  // make a SE2 background if cell size and smoothing box are given
+  if (m_cell_size.size()>0 && m_smoothing_box.size() >0){
+    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
+    return background_level;
+  }
+  else {
+    // make a simple background
+    auto background_level =  std::make_shared<SimpleBackgroundLevelAnalyzer>();
+    return background_level;
+  }
 }
 
 void BackgroundLevelAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
