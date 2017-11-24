@@ -87,7 +87,7 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   //size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
   size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[1])};
   size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[1])};
-  PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
+  //PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
   //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
   bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
@@ -98,20 +98,21 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   //sigmaSpline->gridToFits(outSig);
 
   // create the empty background image
-  std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+  std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(*bckSpline);
 
   // fill the background image with values
-  for(long yIndex=0; yIndex<image->getHeight(); yIndex++)
-  {
-    // compute a background line
-    bckSpline->splineLine(back_line, yIndex, 0, image->getWidth());
-    for (long xIndex=0; xIndex<image->getWidth(); xIndex++)
-      // set the line values
-      bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
-  }
+  //for(long yIndex=0; yIndex<image->getHeight(); yIndex++)
+  //{
+  //  // compute a background line
+  //  bckSpline->splineLine(back_line, yIndex, 0, image->getWidth());
+  //  for (long xIndex=0; xIndex<image->getWidth(); xIndex++)
+  //    // set the line values
+  //    bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
+  //}
   std::string bbb("bbb.fits");
-  //FitsWriter::writeFile(*bck_image, bbb);
-  FitsWriter::writeFile(*bckSpline, bbb);
+  FitsWriter::writeFile(*bck_image, bbb);
+  //FitsWriter::writeFile(*bckSpline, bbb);
 
   // release memory
   if (bckSpline)
@@ -124,7 +125,7 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
     delete sigmaSpline;
     sigmaSpline= NULL;
   }
-  delete back_line;
+  //delete back_line;
 
   return bck_image;
 }

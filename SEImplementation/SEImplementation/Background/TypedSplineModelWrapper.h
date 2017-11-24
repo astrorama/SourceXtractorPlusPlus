@@ -35,12 +35,21 @@ public:
     }
   };
 
+  //static std::shared_ptr<TypedSplineModelWrapper<T>> create(Args&&... args) {
+  //  return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(std::forward<Args>(args)...));
+  //}
+  static std::shared_ptr<TypedSplineModelWrapper<T>> create(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData) {
+    return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(naxes, gridCellSize, nGrid, gridData));
+  }
+
   void splineLine(PIXTYPE *line, const size_t y, const size_t xStart, const size_t width) const {
     return m_spline_model->splineLine(line,  y, xStart, width);
   };
 
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const override {
+    // TODO: push the buffering into SplineModel
+
     T rValue;
     PIXTYPE* back_line = new PIXTYPE[getWidth()];
 

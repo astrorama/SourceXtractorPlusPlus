@@ -372,7 +372,11 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
   *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
   *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
-  // release memory
+  // TODO: results in a memory corruption if switched on
+  //std::shared_ptr<TypedSplineModelWrapper<SeFloat>> bck_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  //std::shared_ptr<TypedSplineModelWrapper<SeFloat>> sig_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
+
+   // release memory
   if (whtSigVals)
     delete [] whtSigVals;
   // release memory

@@ -606,13 +606,4 @@ PIXTYPE SplineModel::computeMedian (PIXTYPE* itsGridData, const size_t nGridPoin
   return median;
 }
 
-/*template <typename T>
-PIXTYPE SplineModel::fqMedian(PIXTYPE *ra, size_t n)
-{
-  qsort(ra, n, sizeof(PIXTYPE), fqCmp);
-  if (n<2)
-    return *ra;
-  else
-    return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
-}*/
 } // end of namespace SExtractor
