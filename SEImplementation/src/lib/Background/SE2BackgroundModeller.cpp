@@ -8,8 +8,10 @@
 #include <iostream>
 #include  <cstdlib>
 #include "fitsio.h"
+//#include "SEUtils/Types.h"
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEImplementation/Background/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SplineModel.h"
 #include "SEImplementation/Background/BackgroundCell.h"
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
@@ -948,12 +950,12 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
       // compute the median, check
       // whether the median is above the threshold
-      median = SplineModel::fqMedian(bmask, i);
+      median = SE2BackgroundUtils::fqMedian(bmask, i);
       if (fabs((median-back[px+py]))>=(PIXTYPE)filterThresh)
       {
         // use the median values
         backFilt[px+py] = median;
-        sigmaFilt[px+py] = SplineModel::fqMedian(smask, i);
+        sigmaFilt[px+py] = SE2BackgroundUtils::fqMedian(smask, i);
       }
       else
       {
@@ -974,8 +976,8 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
   // compute the median values for the background
   // and the sigma
-  allBckMed   = SplineModel::fqMedian(backFilt, np);
-  allSigmaMed = SplineModel::fqMedian(sigmaFilt, np);
+  allBckMed   = SE2BackgroundUtils::fqMedian(backFilt, np);
+  allSigmaMed = SE2BackgroundUtils::fqMedian(sigmaFilt, np);
 
   // NOTE: I don't understand what that does.
   //       Why should the median sigma be <.0?
@@ -984,7 +986,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
     sigmat = sigmaFilt+np;
     for (i=np; i-- && *(--sigmat)>0.0;);
     if (i>=0 && i<(np-1))
-      allSigmaMed = SplineModel::fqMedian(sigmat+1, np-1-i);
+      allSigmaMed = SE2BackgroundUtils::fqMedian(sigmat+1, np-1-i);
     else
     {
       //if (field->flags&(DETECT_FIELD|MEASURE_FIELD))
@@ -1035,7 +1037,7 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
   }
 
   // use the median ratio as scaling factor
-  sigFac = SplineModel::fqMedian(ratio, nr);
+  sigFac = SE2BackgroundUtils::fqMedian(ratio, nr);
 
   // count leading 0.0 values in the list
   for (lowIndex=0; lowIndex<nr && ratio[lowIndex]<=0.0; lowIndex++);
@@ -1049,7 +1051,7 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
       // make a log message
       //Utils::generalLogger(std::string("Re-calculating the scaling due to leading zeros!"));
       std::cout << "Re-calculating the scaling due to leading zeros!" << std::endl;
-      sigFac = SplineModel::fqMedian(ratio+lowIndex, nr-lowIndex);
+      sigFac = SE2BackgroundUtils::fqMedian(ratio+lowIndex, nr-lowIndex);
     }
     else {
       //warning("Null or negative global weighting factor:","defaulted to 1");

@@ -19,6 +19,7 @@ class SplineModel {
 public:
 
   SplineModel(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData);
+
   SplineModel(const boost::filesystem::path modelFile);
   virtual ~SplineModel();
 
@@ -32,13 +33,13 @@ public:
   size_t*  getNGrid();
   size_t*  getNaxes();
   size_t  getNGridPoints();
-  static PIXTYPE  fqMedian(PIXTYPE *ra, size_t n);
-  static int fqCmp(const void *p1, const void *p2)
-  {
-    PIXTYPE f1=*((float *)p1);
-    PIXTYPE f2=*((float *)p2);
-    return f1>f2? 1 : (f1<f2? -1 : 0);
-  };
+  //static PIXTYPE  fqMedian(PIXTYPE *ra, size_t n);
+  //static int fqCmp(const void *p1, const void *p2)
+  //{
+  //  PIXTYPE f1=*((float *)p1);
+  //  PIXTYPE f2=*((float *)p2);
+  //  return f1>f2? 1 : (f1<f2? -1 : 0);
+  //};
 private:
   PIXTYPE* makeSplineDeriv(const size_t* nGrid, PIXTYPE* gridData);
   PIXTYPE* loadModelFromFits(const boost::filesystem::path);

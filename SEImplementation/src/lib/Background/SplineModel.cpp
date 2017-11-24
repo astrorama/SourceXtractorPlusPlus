@@ -15,6 +15,7 @@
 //#include "BackgroundModule/UtilFunctions.h"
 //#include "BackgroundModule/SplineModel.h"
 #include "SEImplementation/Background/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SplineModel.h"
 #include <iostream>
 //////////
@@ -48,12 +49,15 @@ SplineModel::SplineModel (const boost::filesystem::path modelFile) {
 size_t* SplineModel::getGridCellSize () {
   return itsGridCellSize;
 }
+
 size_t * SplineModel::getNGrid () {
   return itsNGrid;
 }
+
 size_t SplineModel::getNGridPoints () {
   return itsNGridPoints;
 }
+
 size_t* SplineModel::getNaxes () {
   return itsNaxes;
 }
@@ -61,6 +65,7 @@ size_t* SplineModel::getNaxes () {
 PIXTYPE& SplineModel::getMedian () {
   return itsMedianValue;
 }
+
 PIXTYPE* SplineModel::getData () {
   return itsGridData;
 }
@@ -588,7 +593,7 @@ PIXTYPE SplineModel::computeMedian (PIXTYPE* itsGridData, const size_t nGridPoin
   }
 
   // compute the median
-  median = fqMedian(tmpArray, nGridPoints);
+  median = SE2BackgroundUtils::fqMedian(tmpArray, nGridPoints);
 
   // the median can not be NaN, throw an Exception
   if (::isnan((double) median)) {
@@ -601,6 +606,7 @@ PIXTYPE SplineModel::computeMedian (PIXTYPE* itsGridData, const size_t nGridPoin
   return median;
 }
 
+/*template <typename T>
 PIXTYPE SplineModel::fqMedian(PIXTYPE *ra, size_t n)
 {
   qsort(ra, n, sizeof(PIXTYPE), fqCmp);
@@ -608,5 +614,5 @@ PIXTYPE SplineModel::fqMedian(PIXTYPE *ra, size_t n)
     return *ra;
   else
     return n&1? ra[n/2] : (ra[n/2-1]+ra[n/2])/2.0;
-}
+}*/
 } // end of namespace SExtractor
