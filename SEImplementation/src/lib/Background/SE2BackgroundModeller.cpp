@@ -12,7 +12,7 @@
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/SE2BackgroundUtils.h"
-#include "SEImplementation/Background/SplineModel.h"
+#include "SEImplementation/Background/TypedSplineModelWrapper.h"
 #include "SEImplementation/Background/BackgroundCell.h"
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
 #define SIZETSUB(X, Y)  ((X) > (Y) ? (X-Y) : (Y-X))
@@ -172,7 +172,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -369,8 +369,8 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
     delete *sigmaSpline;
 
   // create the spline objects for sigma and background
-  *bckSpline   = new SplineModel(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  *sigmaSpline = new SplineModel(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
   // release memory
   if (whtSigVals)
@@ -382,7 +382,7 @@ void SE2BackgroundModeller::createSE2Models(SplineModel **bckSpline, SplineModel
     delete [] weightData;
 }
 
-void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createModels(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
   {
   int status=0;
   int anynul=0;
@@ -552,8 +552,8 @@ void SE2BackgroundModeller::createModels(SplineModel **bckSpline, SplineModel **
     delete *sigmaSpline;
 
   // create the spline objects for sigma and background
-  *bckSpline   = new SplineModel(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  *sigmaSpline = new SplineModel(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
   // make a log message
   //std::string logMessage = std::string("Median value of sigma spline==")+tostr((*sigmaSpline)->getMedian());

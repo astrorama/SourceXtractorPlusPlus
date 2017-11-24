@@ -79,8 +79,8 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromMedianValue(std:
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
   //SE2BackgroundModeller* bck_modeller=NULL;
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
-  SplineModel* bckSpline=NULL;
-  SplineModel* sigmaSpline=NULL;
+  TypedSplineModelWrapper<SeFloat> *bckSpline=NULL;
+  TypedSplineModelWrapper<SeFloat> *sigmaSpline=NULL;
   PIXTYPE sigFac=0.0;
   PIXTYPE weightThreshold=0.0;
   //size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
@@ -109,8 +109,9 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
       // set the line values
       bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
   }
-  //std::string bbb("bbb.fits");
+  std::string bbb("bbb.fits");
   //FitsWriter::writeFile(*bck_image, bbb);
+  FitsWriter::writeFile(*bckSpline, bbb);
 
   // release memory
   if (bckSpline)

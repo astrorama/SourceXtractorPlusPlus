@@ -15,7 +15,7 @@
 #include "fitsio.h"
 #include "SEFramework/Image/Image.h"
 #include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/SplineModel.h"
+#include "SEImplementation/Background/TypedSplineModelWrapper.h"
 
 namespace SExtractor {
 
@@ -26,8 +26,8 @@ public:
   SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
-  void createModels(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
-  void createSE2Models(SplineModel **bckSpline, SplineModel **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
+  void createModels(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
+  void createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
 
   //
   PIXTYPE* getWhtMeanVals();
