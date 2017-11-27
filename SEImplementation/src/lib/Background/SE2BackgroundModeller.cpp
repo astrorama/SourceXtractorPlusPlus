@@ -161,7 +161,8 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+//void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -191,6 +192,8 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
   ldiv_t divResult;
 
   PIXTYPE weightVarThreshold=0.0;
+
+  std::vector<std::shared_ptr<TypedSplineModelWrapper<SeFloat>>> retVec(2);
 
   // re-scale the weight threshold
   if (itsHasWeights){
@@ -364,8 +367,21 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
   *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
   // TODO: results in a memory corruption if switched on
-  //std::shared_ptr<TypedSplineModelWrapper<SeFloat>> bck_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  //std::shared_ptr<TypedSplineModelWrapper<SeFloat>> sig_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  PIXTYPE *bckMeanValsCopy = new PIXTYPE[nGridPoints];
+  PIXTYPE *bckSigValsCopy  = new PIXTYPE[nGridPoints];
+  for (auto ii=0; ii<nGridPoints; ii++){
+    bckMeanValsCopy[ii] = bckMeanVals[ii];
+    bckSigValsCopy[ii] = bckSigVals[ii];
+  }
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> bck_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanValsCopy);
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> sig_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigValsCopy);
+  std::cout << "WWidth: " << bck_image->getWidth() << " HHeight: " << bck_image->getHeight() << std::endl;
+  //retVec.push_back(bck_image);
+  //retVec.push_back(sig_image);
+  //for(auto iii=retVec.begin(); iii!=retVec.end(); ++iii)
+  //  //std::cout<<(*i)<<std::endl;
+  //  //std::cout << "WWWidth: " << retVec[0]->getWidth() << " HHHeight: " << retVec[0]->getHeight() << std::endl;
+  //  std::cout << "WWWidth: " << (*iii)->getWidth()<< " HHHeight: " << (*iii)->getHeight() << std::endl;
 
    // release memory
   if (whtSigVals)
@@ -375,6 +391,9 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
     delete [] gridData;
   if (weightData)
     delete [] weightData;
+
+  //return retVec;
+  return bck_image;
 }
 
 void SE2BackgroundModeller::createModels(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)

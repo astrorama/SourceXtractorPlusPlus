@@ -27,7 +27,8 @@ public:
   virtual ~SE2BackgroundModeller();
 
   void createModels(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const bool &storeScaleFactor=false);
-  void createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
+  //void createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
 
   //
   PIXTYPE* getWhtMeanVals();
