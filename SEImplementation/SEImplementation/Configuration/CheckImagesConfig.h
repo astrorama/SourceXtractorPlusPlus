@@ -33,10 +33,16 @@ public:
     return m_model_fitting_residual_filename;
   }
 
+  const std::string& getModelBackgroundFilename() const {
+    return m_model_background_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
   std::string m_model_fitting_residual_filename;
+  std::string m_model_background_filename;
+
 
 
 };

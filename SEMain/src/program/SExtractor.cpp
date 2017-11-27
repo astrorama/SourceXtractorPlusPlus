@@ -187,6 +187,7 @@ public:
     auto background_levels = background_level_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false));
     detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
+    CheckImages::getInstance().setBackgroundCheckImage(background_levels->getValue(0,0), background_levels);
 
     auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
     auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getSubtractedImage(), detection_frame->getWeightImage(),
@@ -202,6 +203,7 @@ public:
     // Override background level and threshold if requested by the user
     if (background_config.isBackgroundLevelAbsolute()) {
       detection_frame->setBackgroundLevel(background_config.getBackgroundLevel());
+      CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
     }
 
     if (background_config.isDetectionThresholdAbsolute()) {

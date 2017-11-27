@@ -26,6 +26,15 @@ public:
     return m_check_image_model_fitting;
   }
 
+  void setBackgroundCheckImage(SeFloat background_value, std::shared_ptr<Image<SeFloat>> background_image=nullptr) {
+    if (background_image!=nullptr)
+      // if available, copy the pointer
+      m_background_image = background_image;
+    else
+      // create a constant image at the given level
+      m_background_image = ConstantImage<SeFloat>::create(m_detection_image->getWidth(), m_detection_image->getHeight(), background_value);
+  }
+
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
@@ -46,9 +55,12 @@ private:
   // check image
   std::shared_ptr<VectorImage<DetectionImage::PixelType>> m_check_image_model_fitting;
   std::shared_ptr<DetectionImage> m_detection_image;
+  std::shared_ptr<Image<SeFloat>> m_background_image;
 
   std::string m_model_fitting_image_filename;
   std::string m_residual_filename;
+  std::string m_model_background_filename;
+
 };
 
 }

@@ -110,8 +110,8 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   //    // set the line values
   //    bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
   //}
-  std::string bbb("bbb.fits");
-  FitsWriter::writeFile(*bck_image, bbb);
+  //std::string bbb("bbb.fits");
+  //FitsWriter::writeFile(*bck_image, bbb);
   //FitsWriter::writeFile(*bckSpline, bbb);
 
   // release memory

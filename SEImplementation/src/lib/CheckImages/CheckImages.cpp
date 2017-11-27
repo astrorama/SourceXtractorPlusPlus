@@ -29,6 +29,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
+  m_model_background_filename = config.getModelBackgroundFilename();
 
   if (m_model_fitting_image_filename != "" || m_residual_filename != "") {
     m_check_image_model_fitting = VectorImage<DetectionImage::PixelType>::create(
@@ -37,10 +38,17 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 }
 
 void CheckImages::saveImages() {
+  // if possible, save the model image
   if (m_check_image_model_fitting != nullptr && m_model_fitting_image_filename != "") {
     FitsWriter::writeFile(*m_check_image_model_fitting, m_model_fitting_image_filename);
   }
 
+  // if possible, save the background image
+  if (m_background_image != nullptr && m_model_background_filename != "") {
+    FitsWriter::writeFile(*m_background_image, m_model_background_filename);
+  }
+
+  // if possible, create and save the residual image
   if (m_check_image_model_fitting != nullptr && m_residual_filename != "") {
     auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
     FitsWriter::writeFile(*residual_image, m_residual_filename);
