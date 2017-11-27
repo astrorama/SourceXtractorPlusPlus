@@ -28,7 +28,6 @@ private:
   SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
 
   std::shared_ptr<Image<SeFloat>> fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const;
-  std::shared_ptr<Image<SeFloat>> fromMedianValue(std::shared_ptr<DetectionImage> image) const;
   std::vector<int>                stringToIntVec(const std::string inString, const std::string delimiters);
   std::vector<std::string>        stringSplit(const std::string inString, const std::string delimiters);
 

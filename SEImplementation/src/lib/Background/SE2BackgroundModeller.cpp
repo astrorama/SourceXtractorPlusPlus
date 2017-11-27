@@ -7,9 +7,10 @@
  */
 #include <iostream>
 #include  <cstdlib>
+
 #include "fitsio.h"
-//#include "SEUtils/Types.h"
-#include "ElementsKernel/Exception.h"       // for Elements Exception
+
+#include "ElementsKernel/Exception.h"
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/TypedSplineModelWrapper.h"
@@ -61,7 +62,6 @@ SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits
   fits_open_image(&itsInputFits, itsInputFileName.generic_string().c_str(), READONLY, &status);
   if (status){
     throw Elements::Exception() << "Problem opening the image: " << itsInputFileName << "!";
-    //Utils::throwElementsException(std::string("Problem opening the image: ")+itsInputFileName.generic_string()+std::string("!"));
   }
 
   // open the mask file and store the pointer; give some logger info
@@ -69,7 +69,6 @@ SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits
     fits_open_image(&itsInputMask, itsInputMaskName.generic_string().c_str(), READONLY, &status);
     if (status){
       throw Elements::Exception() << "Problem opening the mask image: " << itsInputMaskName << "!";
-      //Utils::throwElementsException(std::string("Problem opening the mask image: ")+itsInputMaskName.generic_string()+std::string("!"));
     }
     itsHasMask=true;
   }
@@ -96,10 +95,7 @@ SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits
  
       //char error[80];
       //fits_get_errstatus(status, error);
-      //Utils::throwElementsException(std::string("Problem opening the weight image: ")+itsInputWeightName.generic_string()+std::string(error)+std::string("!")+tostr(status));
-      //throw Elements::Exception() << "Problem opening the weight image: " << itsInputWeightName << "!";
       throw Elements::Exception() << "Problem opening the weight image: " << itsInputWeightName << "!";
-      //Utils::throwElementsException(std::string("Problem opening the weight image: ")+itsInputWeightName.generic_string()+std::string("!"));
     }
     itsHasWeights=true;
   }
@@ -109,11 +105,9 @@ SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits
   fits_get_img_param(itsInputFits, 2,  &itsBitpix, &itsNaxis, naxes, &status);
   if (status){
     throw Elements::Exception() << "Problem reading parameters from image: " << itsInputFileName << "!";
-    //Utils::throwElementsException(std::string("Problem reading parameters from image: ")+itsInputFileName.generic_string()+std::string("!"));
   }
   if (itsNaxis!=2){
     throw Elements::Exception() << "The image: " << itsInputFileName << " has " << itsNaxis <<"!=2 dimensions!";
-    //Utils::throwElementsException(std::string("The image: ")+itsInputFileName.generic_string()+std::string(" has ")+tostr(itsNaxis)+std::string("!=2 dimensions!)"));
   }
   itsNaxes[0] = (size_t)naxes[0];
   itsNaxes[1] = (size_t)naxes[1];
@@ -136,7 +130,6 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
     fits_close_file(itsInputFits, &status);
     if (status){
       throw Elements::Exception() << "Problem closing the image: " << itsInputFileName << "!";
-      //Utils::throwElementsException(std::string("Problem closing the image: ")+itsInputFileName.generic_string()+std::string("!"));
     }
   }
   itsInputFits=NULL;
@@ -147,9 +140,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
     if (status){
       char fitsErrorChar[1028];
       fits_get_errstatus(status, fitsErrorChar);
-      //Utils::throwElementsException(std::string(fitsErrorChar));
       throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-      //Utils::throwElementsException(std::string("Problem closing the image: ")+itsInputWeightName.generic_string()+std::string("!"));
     }
   }
   itsInputWeight=NULL;
@@ -160,9 +151,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
     if (status){
       char fitsErrorChar[1028];
       fits_get_errstatus(status, fitsErrorChar);
-      //Utils::throwElementsException(std::string(fitsErrorChar));
       throw Elements::Exception() << "Problem closing the image: " << itsInputMaskName << "!";
-      //Utils::throwElementsException(std::string("Problem closing the image: ")+itsInputMaskName.generic_string()+std::string("!"));
     }
   }
   itsInputMask=NULL;
@@ -232,7 +221,8 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
   }
 
   // give some feedback on the cell size
-  std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
+  //std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
+  bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
 
   // iterate over cells in y
   gridIndex=0;
@@ -308,7 +298,8 @@ void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **b
             //if (!itsMask->getValue(int(xIndex), int(yIndex)))
               if (itsMask->getValue(int(xIndex), int(yIndex) & itsMaskType)){
                 gridData[pixIndex] = -BIG;
-                std::cout << "Replacing data value ";
+                //std::cout << "Replacing data value ";
+                bck_model_logger.info() << "Replacing data value";
               }
 
         //throw Elements::Exception() << "Not yet implemented!";
@@ -789,7 +780,8 @@ void SE2BackgroundModeller::replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,co
 
   // give some feedback that undefined data is replaced
   //Utils::generalLogger("Replacing undefined data!");
-  std::cout << "Replacing undefined data!" << std::endl;
+  //std::cout << "Replacing undefined data!" << std::endl;
+  bck_model_logger.info() << "Replacing undefined data!";
 
   // vector for the final
   // background values
@@ -890,7 +882,8 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
     return;
 
   // give some feedback
-  std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
+  //std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
+  bck_model_logger.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // this does *not* work:
   //SExtractor::se2BckLog.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // Note: I am converting the "size_t" to int's since
@@ -1053,14 +1046,14 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
   if (lowIndex>0){
     if (lowIndex<nr){
       // make a log message
-      //Utils::generalLogger(std::string("Re-calculating the scaling due to leading zeros!"));
-      std::cout << "Re-calculating the scaling due to leading zeros!" << std::endl;
+      //std::cout << "Re-calculating the scaling due to leading zeros!" << std::endl;
+      bck_model_logger.info() << "Re-calculating the scaling due to leading zeros!";
       sigFac = SE2BackgroundUtils::fqMedian(ratio+lowIndex, nr-lowIndex);
     }
     else {
       //warning("Null or negative global weighting factor:","defaulted to 1");
-      std::cout << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
-      //Utils::generalLogger(std::string("Null or negative global weighting factor:") + tostr(sigFac) + std::string(" | ") + tostr(lowIndex) + std::string("defaulted to 1 ") + tostr(nr));
+      //std::cout << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
+      bck_model_logger.info() << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
       sigFac = 1.0;
     }
   }

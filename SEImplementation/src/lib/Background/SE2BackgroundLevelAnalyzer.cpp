@@ -16,12 +16,11 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/FitsWriter.h"
+#include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
 
 namespace SExtractor {
-
-static Elements::Logging se2BckLog = Elements::Logging::getLogger("SE2Background");
 
 SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box)
 {
@@ -54,26 +53,23 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     //FitsWriter::writeFile(*mask, bbb);
     //std::cout << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
     //se2BckLog.info() << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
-    se2BckLog.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    //se2BckLog.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    bck_model_logger.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
   }
   if (variance_map!=nullptr)
   {
   //std::string bbb("variance.fits");
   //FitsWriter::writeFile(*variance_map, bbb);
   //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
-  se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    //se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    bck_model_logger.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
   }
 
-
+  // create the background model
   auto bck_image = fromSE2Modeller(image, variance_map, mask);
-  //auto bck_image = fromMedianValue(image);
-  return bck_image;
-}
 
-std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromMedianValue(std::shared_ptr<DetectionImage> image) const {
-  auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
-  std::sort(image_copy->getData().begin(), image_copy->getData().end());
-  return ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), image_copy->getData()[image_copy->getData().size()/2]);
+  // return model
+  return bck_image;
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
