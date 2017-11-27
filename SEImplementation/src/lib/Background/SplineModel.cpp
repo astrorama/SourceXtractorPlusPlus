@@ -11,9 +11,6 @@
 #include <boost/filesystem.hpp>             // for boost path type
 #include "fitsio.h"
 #include "ElementsKernel/Exception.h"       // for Elements Exception
-//#include "BackgroundModule/BackgroundDefine.h"
-//#include "BackgroundModule/UtilFunctions.h"
-//#include "BackgroundModule/SplineModel.h"
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SplineModel.h"
@@ -37,6 +34,8 @@ SplineModel::SplineModel (const size_t* naxes, const size_t* gridCellSize, const
 
   itsGridData = gridData;
   itsDerivData = makeSplineDeriv(itsNGrid, gridData);
+
+  itsBackLine = new PIXTYPE[itsNaxes[0]];
 
   itsMedianValue = computeMedian(itsGridData, itsNGridPoints);
 }
@@ -80,6 +79,11 @@ SplineModel::~SplineModel () {
   if (itsDerivData)
     delete[] itsDerivData;
   itsDerivData = NULL;
+
+  // delete the line data
+  if (itsBackLine)
+    delete[] itsBackLine;
+  itsBackLine=NULL;
 }
 
 void SplineModel::gridToFits (boost::filesystem::path& fitsName, const bool overwrite) {
@@ -253,13 +257,22 @@ void SplineModel::toFits (boost::filesystem::path& fitsName, const bool overwrit
     delete[] pixBuffer;
 }
 
+PIXTYPE  SplineModel::getValue(size_t x, size_t y){
+  PIXTYPE rValue;
+  if (itsBackLineY!=y){
+    splineLine (itsBackLine, y, 0, itsNaxes[0]);
+    itsBackLineY=y;
+  }
+  rValue = itsBackLine[x];
+  return rValue;
+}
+
 void SplineModel::splineLine (PIXTYPE *line, const size_t y, const size_t xStart, const size_t width) {
   int i, j, x, yl, nbx, nbxm1, nby, nx, ystep, changepoint;
   float dx, dx0, dy, dy3, cdx, cdy, cdy3, temp, xstep, *node, *nodep, *dnode, *blo, *bhi, *dblo, *dbhi, *u;
   PIXTYPE *backline;
 
   backline = line;
-  //Utils::generalLogger(std::string("working on row:") + tostr(y));
 
   nbx = itsNGrid[0];
   nbxm1 = nbx - 1;

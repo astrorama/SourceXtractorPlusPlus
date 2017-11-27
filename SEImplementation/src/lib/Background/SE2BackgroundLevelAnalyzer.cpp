@@ -88,16 +88,12 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
   bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
 
-  //boost::filesystem::path outBck {"back.fits"};
-  //boost::filesystem::path outSig {"sigma.fits"};
-  //bckSpline->gridToFits(outBck);
-  //sigmaSpline->gridToFits(outSig);
-
-  // create the empty background image
-  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+  // create the background image from the typed spline
   std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(*bckSpline);
 
+  // create the empty background image
   // fill the background image with values
+  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
   //for(long yIndex=0; yIndex<image->getHeight(); yIndex++)
   //{
   //  // compute a background line

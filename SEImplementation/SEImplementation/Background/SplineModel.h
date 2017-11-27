@@ -25,7 +25,8 @@ public:
 
   void gridToFits(boost::filesystem::path& fitsName, const bool overwrite=true);
   void toFits(boost::filesystem::path& fitsName, const bool overwrite=true);
-  void splineLine(PIXTYPE *line, const size_t y, const size_t xStart, const size_t width);
+  PIXTYPE  getValue(size_t x, size_t y);
+  //void splineLine(PIXTYPE *line, const size_t y, const size_t xStart, const size_t width);
   PIXTYPE& getMedian();
   PIXTYPE * getData();
   PIXTYPE * getDeriv();
@@ -34,6 +35,7 @@ public:
   size_t*  getNaxes();
   size_t  getNGridPoints();
 private:
+  void splineLine(PIXTYPE *line, const size_t y, const size_t xStart, const size_t width);
   PIXTYPE* makeSplineDeriv(const size_t* nGrid, PIXTYPE* gridData);
   PIXTYPE* loadModelFromFits(const boost::filesystem::path);
   PIXTYPE  computeMedian(PIXTYPE* gridData, const size_t nGridPoints);
@@ -45,6 +47,9 @@ private:
 
   PIXTYPE* itsGridData=NULL;
   PIXTYPE* itsDerivData=NULL;
+
+  PIXTYPE* itsBackLine=NULL;
+  size_t itsBackLineY=-1;
 
   PIXTYPE itsMedianValue=0.0;
 };
