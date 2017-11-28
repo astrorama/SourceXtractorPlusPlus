@@ -14,7 +14,7 @@
 namespace SExtractor {
 
 std::shared_ptr<Image<SeFloat>> SimpleBackgroundRMSAnalyzer::analyzeBackground(
-    std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
+    std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
 
   // Note: We compute the RMS by only taking into consideration pixels
   // below the background value.

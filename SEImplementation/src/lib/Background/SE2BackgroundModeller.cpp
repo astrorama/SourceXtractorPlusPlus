@@ -161,7 +161,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const WeightImage::PixelType varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -192,10 +192,11 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
 
   PIXTYPE weightVarThreshold=0.0;
 
+  // not necessary, since all is in variance
   // re-scale the weight threshold
-  if (itsHasWeights){
-    rescaleThreshold(weightVarThreshold, weightThreshold);
-  }
+  //if (itsHasWeights){
+  //  rescaleThreshold(weightVarThreshold, weightThreshold);
+  //}
 
   // get the number of grid cells in x
   divResult = std::div(long(itsNaxes[0]), long(bckCellSize[0]));
@@ -279,6 +280,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       */
       //throw Elements::Exception() << "Stop right now!";
       if (itsHasWeights){
+        bck_model_logger.info() << "The variance threshold is: "<< varianceThreshold;
         throw Elements::Exception() << " Weights not yet implemented!";
         /*
         fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
@@ -360,7 +362,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     delete [] weightData;
 }
 
-void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
   {
   int status=0;
   int anynul=0;
@@ -397,7 +399,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
 
   // re-scale the weight threshold
   if (itsHasWeights){
-    rescaleThreshold(weightVarThreshold, weightThreshold);
+    rescaleThreshold(weightVarThreshold, varianceThreshold);
   }
 
   // get the number of grid cells in x

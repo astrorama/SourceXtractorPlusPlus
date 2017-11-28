@@ -26,8 +26,8 @@ public:
   SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
-  void createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
-  void createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0, const bool &storeScaleFactor=false);
+  void createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0);
+  void createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize,  const WeightImage::PixelType varianceThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0);
 
   //
   PIXTYPE* getWhtMeanVals();

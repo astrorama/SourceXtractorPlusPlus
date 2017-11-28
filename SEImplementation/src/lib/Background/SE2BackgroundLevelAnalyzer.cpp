@@ -45,7 +45,8 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
-    std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
+    std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask,
+    WeightImage::PixelType variance_threshold) const {
 
   if (mask!=nullptr)
   {
@@ -55,36 +56,53 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
     //se2BckLog.info() << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
     //se2BckLog.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
     bck_model_logger.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+
+    // make sure the dimensions are the same
+    if (image->getWidth()!=mask->getWidth())
+      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " mask=" << mask->getWidth() << "!";
+    if (image->getHeight()!=mask->getHeight())
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask=" << mask->getHeight() << "!";
   }
+
   if (variance_map!=nullptr)
   {
   //std::string bbb("variance.fits");
   //FitsWriter::writeFile(*variance_map, bbb);
   //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
     //se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
-    bck_model_logger.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    bck_model_logger.info() << "Variance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")!";
+    bck_model_logger.info() << variance_map->getValue(0,0) << " " << variance_map->getValue(10,10);
+    bck_model_logger.info() << "Threshold: " << variance_threshold;
+    // make sure the dimensions are the same
+    if (image->getWidth()!=variance_map->getWidth())
+      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth() << "!";
+    if (image->getHeight()!=variance_map->getHeight())
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight() << "!";
   }
 
   // create the background model
-  auto bck_image = fromSE2Modeller(image, variance_map, mask);
+  auto bck_image = fromSE2Modeller(image, variance_map, mask, variance_threshold);
 
   // return model
   return bck_image;
 }
 
-std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
+std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelSigPtr;
 
   PIXTYPE sigFac=0.0;
-  PIXTYPE weightThreshold=0.0;
+  //PIXTYPE weightThreshold=0.0;
 
   size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[1])};
   size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[1])};
 
   // create the background model and the rms model
-  bck_modeller->createSE2Models(splModelBckPtr, splModelSigPtr, sigFac, bckCellSize, weightThreshold, filterBoxSize);
+  bck_modeller->createSE2Models(splModelBckPtr, splModelSigPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
+
+  bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << ")!";
+  bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << ")!";
 
   // return the background
   return splModelBckPtr;

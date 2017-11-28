@@ -51,6 +51,11 @@ public:
     return (int)(m_spline_model->getNaxes())[1];
   };
 
+  /// Returns the median of the spline
+  T getMedian() const {
+    return (T)m_spline_model->getMedian();
+  };
+
 
 private:
   TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
