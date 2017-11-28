@@ -22,9 +22,9 @@ class TypedSplineModelWrapper final : public ImageBase<T> {
 
 public:
 
-  TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
-    m_spline_model = new SplineModel(naxes, gridCellSize, nGrid, gridData);
-  };
+  //TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
+  //  m_spline_model = new SplineModel(naxes, gridCellSize, nGrid, gridData);
+  //};
 
   virtual ~TypedSplineModelWrapper(){
     if (m_spline_model){
@@ -32,16 +32,9 @@ public:
     }
   };
 
-  //static std::shared_ptr<TypedSplineModelWrapper<T>> create(Args&&... args) {
-  //  return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(std::forward<Args>(args)...));
-  //}
   static std::shared_ptr<TypedSplineModelWrapper<T>> create(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData) {
     return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(naxes, gridCellSize, nGrid, gridData));
   }
-
-  //void splineLine(PIXTYPE *line, const size_t y, const size_t xStart, const size_t width) const {
-  //  return m_spline_model->splineLine(line,  y, xStart, width);
-  //};
 
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const override {
@@ -58,15 +51,12 @@ public:
     return (int)(m_spline_model->getNaxes())[1];
   };
 
-  //virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height){
-  //  m_chunk_data.resize(height*width, (T)0.0);
-  //  //return ImageChunk<T>::create(&m_data[x + y * m_width], width, height, m_width, this->shared_from_this());
-  //  return ImageChunk<T>::create(&m_chunk_data[0], width, height, 1, this->shared_from_this());
-  //};
 
 private:
+  TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
+    m_spline_model = new SplineModel(naxes, gridCellSize, nGrid, gridData);
+  };
   SplineModel* m_spline_model=nullptr;
-  //std::vector<T> m_chunk_data;
 };
 
 } // end of namespace SExtractor

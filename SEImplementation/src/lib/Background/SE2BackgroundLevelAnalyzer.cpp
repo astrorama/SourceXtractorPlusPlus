@@ -73,60 +73,21 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask) const {
-  //SE2BackgroundModeller* bck_modeller=NULL;
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
-  TypedSplineModelWrapper<SeFloat> *bckSpline=NULL;
-  TypedSplineModelWrapper<SeFloat> *sigmaSpline=NULL;
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelSigPtr;
+
   PIXTYPE sigFac=0.0;
   PIXTYPE weightThreshold=0.0;
-  //size_t bckCellSize[2] = {size_t(m_cell_size),size_t(m_cell_size)};
-  //size_t filterBoxSize[2] = {size_t(m_smoothing_box),size_t(m_smoothing_box)};
+
   size_t bckCellSize[2] = {size_t(m_cell_size[0]),size_t(m_cell_size[1])};
   size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[1])};
-  //PIXTYPE* back_line = new PIXTYPE[image->getWidth()];
 
-  //bck_modeller = new SE2BackgroundModeller(image, NULL, NULL, 0x0001);
-  //bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
-  //std::vector<std::shared_ptr<TypedSplineModelWrapper<SeFloat>>> returnSplines = bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
-  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> returnSplines = bck_modeller->createSE2Models(&bckSpline, &sigmaSpline, sigFac, bckCellSize, weightThreshold, filterBoxSize);
-  //std::cout << "Width: " << returnSplines[0]->getWidth() << " Height: " << returnSplines[0]->getHeight() << std::endl;
+  // create the background model and the rms model
+  bck_modeller->createSE2Models(splModelBckPtr, splModelSigPtr, sigFac, bckCellSize, weightThreshold, filterBoxSize);
 
-
-  // create the background image from the typed spline
-  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(*bckSpline);
-  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(*(returnSplines[0]));
-  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(*(returnSplines));
-
-  // create the empty background image
-  // fill the background image with values
-  //std::shared_ptr<VectorImage<SeFloat>> bck_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
-  //for(long yIndex=0; yIndex<image->getHeight(); yIndex++)
-  //{
-  //  // compute a background line
-  //  bckSpline->splineLine(back_line, yIndex, 0, image->getWidth());
-  //  for (long xIndex=0; xIndex<image->getWidth(); xIndex++)
-  //    // set the line values
-  //    bck_image->setValue((int)xIndex, (int)yIndex, (SeFloat)back_line[xIndex]);
-  //}
-  //std::string bbb("bbb.fits");
-  //FitsWriter::writeFile(*bck_image, bbb);
-  //FitsWriter::writeFile(*bckSpline, bbb);
-
-  // release memory
-  if (bckSpline)
-  {
-    delete bckSpline;
-    bckSpline=NULL;
-  }
-  if (sigmaSpline)
-  {
-    delete sigmaSpline;
-    sigmaSpline= NULL;
-  }
-  //delete back_line;
-
-  //return bck_image;
-  return returnSplines;
+  // return the background
+  return splModelBckPtr;
 }
 
 std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)

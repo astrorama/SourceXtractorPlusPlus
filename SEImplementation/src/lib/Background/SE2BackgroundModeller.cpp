@@ -161,8 +161,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-//void SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
-std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createSE2Models(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -192,8 +191,6 @@ std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createS
   ldiv_t divResult;
 
   PIXTYPE weightVarThreshold=0.0;
-
-  std::vector<std::shared_ptr<TypedSplineModelWrapper<SeFloat>>> retVec(2);
 
   // re-scale the weight threshold
   if (itsHasWeights){
@@ -328,7 +325,7 @@ std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createS
       else
         oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex]);
       delete oneCell;
-      //std::cout <<gridIndex<<":"<<bckMeanVals[gridIndex]<<":"<<bckSigVals[gridIndex]<<" ";
+
       // enhance the grid index
       gridIndex++;
     }
@@ -345,43 +342,13 @@ std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createS
     // compute the scaling factor
     computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
 
-    // store the scaling factor in the weight image
-    if (storeScaleFactor){
-      storeScalingFactor(sigFac);
-    }
- }
+  }
   else{
     sigFac=0.0;
   }
 
-  // delete the previous spline object
-  if (*bckSpline)
-    delete *bckSpline;
-
-  // delete the previous spline object
-  if (*sigmaSpline)
-    delete *sigmaSpline;
-
-  // create the spline objects for sigma and background
-  *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
-
-  // TODO: results in a memory corruption if switched on
-  PIXTYPE *bckMeanValsCopy = new PIXTYPE[nGridPoints];
-  PIXTYPE *bckSigValsCopy  = new PIXTYPE[nGridPoints];
-  for (auto ii=0; ii<nGridPoints; ii++){
-    bckMeanValsCopy[ii] = bckMeanVals[ii];
-    bckSigValsCopy[ii] = bckSigVals[ii];
-  }
-  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> bck_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanValsCopy);
-  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> sig_image = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigValsCopy);
-  std::cout << "WWidth: " << bck_image->getWidth() << " HHeight: " << bck_image->getHeight() << std::endl;
-  //retVec.push_back(bck_image);
-  //retVec.push_back(sig_image);
-  //for(auto iii=retVec.begin(); iii!=retVec.end(); ++iii)
-  //  //std::cout<<(*i)<<std::endl;
-  //  //std::cout << "WWWidth: " << retVec[0]->getWidth() << " HHHeight: " << retVec[0]->getHeight() << std::endl;
-  //  std::cout << "WWWidth: " << (*iii)->getWidth()<< " HHHeight: " << (*iii)->getHeight() << std::endl;
+  bckPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  sigPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
    // release memory
   if (whtSigVals)
@@ -391,12 +358,9 @@ std::shared_ptr<TypedSplineModelWrapper<SeFloat>> SE2BackgroundModeller::createS
     delete [] gridData;
   if (weightData)
     delete [] weightData;
-
-  //return retVec;
-  return bck_image;
 }
 
-void SE2BackgroundModeller::createModels(TypedSplineModelWrapper<SeFloat> **bckSpline, TypedSplineModelWrapper<SeFloat> **sigmaSpline, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const bool &storeScaleFactor)
+void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE weightThreshold, const size_t *filterBoxSize, const float &filterThreshold, const bool &storeScaleFactor)
   {
   int status=0;
   int anynul=0;
@@ -547,16 +511,13 @@ void SE2BackgroundModeller::createModels(TypedSplineModelWrapper<SeFloat> **bckS
     // compute the scaling factor
     computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
 
-    // store the scaling factor in the weight image
-    if (storeScaleFactor){
-      storeScalingFactor(sigFac);
-    }
  }
   else{
     sigFac=0.0;
   }
 
 
+  /*
   // delete the previous spline object
   if (*bckSpline)
     delete *bckSpline;
@@ -564,10 +525,13 @@ void SE2BackgroundModeller::createModels(TypedSplineModelWrapper<SeFloat> **bckS
   // delete the previous spline object
   if (*sigmaSpline)
     delete *sigmaSpline;
-
   // create the spline objects for sigma and background
   *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
   *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  */
+
+  bckPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
+  sigPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
   // make a log message
   //std::string logMessage = std::string("Median value of sigma spline==")+tostr((*sigmaSpline)->getMedian());
@@ -1120,65 +1084,6 @@ void SE2BackgroundModeller::rescaleThreshold(PIXTYPE &weightVarThreshold, const 
   return;
 }
 
-void SE2BackgroundModeller::storeScalingFactor(PIXTYPE &sigFac)
-{
-  fitsfile *ioFits=NULL;
-  int status=0;
-
-  // close the READONLY FITS file
-  fits_close_file(itsInputWeight, &status);
-  if (status){
-    throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-    //Utils::throwElementsException(std::string("Problem closing the image: ")+itsInputWeightName.generic_string()+std::string("!"));
-  }
-
-  // open the FITS file now in READWRITE mode
-  fits_open_image(&ioFits, itsInputWeightName.generic_string().c_str(), READWRITE, &status);
-  if (status){
-    throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-    //Utils::throwElementsException(std::string("Problem opening the image: ")+itsInputWeightName.generic_string()+std::string(" in READWRITE mode!"));
-  }
-
-  // write the scaling factor to the weight image
-  fits_update_key(ioFits, TFLOAT, "SIGFAC", &sigFac, "scaling factor for the weight (in variance)", &status);
-  if (status){
-    char fitsErrorChar[MAXCHAR];
-    fits_get_errstatus(status, fitsErrorChar);
-    std::cout << std::string(fitsErrorChar);
-    throw Elements::Exception() << "Problems writing keyword 'SIGFAC' to the FITS file: " << itsInputWeightName << "!";
-    //Utils::generalLogger(std::string(fitsErrorChar));
-    //Utils::throwElementsException(std::string("Problems writing keyword 'SIGFAC' to the FITS file: ")+itsInputWeightName.generic_string()+std::string("!"));
-  }
-
-  // write down the name of the 'root' image for computing the scale factor
-  fits_update_key(ioFits, TSTRING, "SIGROOT", (void*)itsInputFileName.generic_string().c_str(), "image used to compute scaling", &status);
-  if (status){
-    char fitsErrorChar[MAXCHAR];
-    fits_get_errstatus(status, fitsErrorChar);
-    std::cout << std::string(fitsErrorChar);
-    throw Elements::Exception() << "Problems writing keyword 'SIGROOT' to the FITS file: " << itsInputWeightName << "!";
-    //Utils::generalLogger(std::string(fitsErrorChar));
-    //Utils::throwElementsException(std::string("Problems writing keyword 'SIGROOT' to the FITS file: ")+itsInputWeightName.generic_string()+std::string("!"));
-  }
-
-  // close the READWRITE image now
-  fits_close_file(ioFits, &status);
-  if (status){
-    throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-    //Utils::throwElementsException(std::string("Problem closing the image: ")+itsInputWeightName.generic_string()+std::string("!"));
-  }
-
-  // go back to the initial state: open the image in READONLY mode, store the pointer
-  fits_open_image(&itsInputWeight, itsInputWeightName.generic_string().c_str(), READONLY, &status);
-  if (status){
-    throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-    //Utils::throwElementsException(std::string("Problem opening the image: ")+itsInputWeightName.generic_string()+std::string(" in READONLY mode!"));
-  }
-
-  // give some feedback
-  std::cout << "Scaling factor stored in the weight file!";
-  //Utils::generalLogger(std::string("Scaling factor stored in the weight file!"));
-}
 PIXTYPE *SE2BackgroundModeller::getWhtMeanVals()
 {
   return itsWhtMeanVals;
