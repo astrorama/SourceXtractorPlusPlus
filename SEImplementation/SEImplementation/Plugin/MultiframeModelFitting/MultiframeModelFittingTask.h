@@ -31,16 +31,16 @@ private:
   std::shared_ptr<VectorImage<SeFloat>> createWeightImage(
       SourceGroupInterface& group, int width, int height, PixelCoordinate offset, int frame_index) const;
 
+  void setup() const;
+  void minimize() const;
+  void getResults() const;
 
+  // Task configuration
   unsigned int m_max_iterations;
-
-  //std::vector<int> m_frame_indices;
   std::vector<std::vector<int>> m_frame_indices_per_band;
   std::vector<std::shared_ptr<ImagePsf>> m_psfs;
 };
 
 }
-
-
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGTASK_H_ */

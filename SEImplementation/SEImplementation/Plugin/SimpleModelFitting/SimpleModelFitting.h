@@ -60,7 +60,7 @@ public:
 
   // exponential model parameters
   SeFloat getExponentialRatio() const {
-    return m_exp_angle;
+    return m_exp_ratio;
   }
 
   SeFloat getExponentialAngle() const {
@@ -69,11 +69,11 @@ public:
 
   // devaucouleurs model parameters
   SeFloat getDevaucouleursRatio() const {
-    return m_exp_angle;
+    return m_dev_ratio;
   }
 
   SeFloat getDevaucouleursAngle() const {
-    return m_exp_angle;
+    return m_dev_angle;
   }
 
 private:

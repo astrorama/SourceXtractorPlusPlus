@@ -4,10 +4,10 @@ measurements-group:
   image-files:
     path: "simnb01_g_01.fits"
     psf-path: "sim01_g_01.psf"
-    path: "simnb01_g_02.fits"
-    psf-path: "sim01_g_02.psf"
-    path: "simnb01_g_03.fits"
-    psf-path: "sim01_g_03.psf"
+#    path: "simnb01_g_02.fits"
+#    psf-path: "sim01_g_02.psf"
+#    path: "simnb01_g_03.fits"
+#    psf-path: "sim01_g_03.psf"
 
 #measurements-group:
 #  name: "r"

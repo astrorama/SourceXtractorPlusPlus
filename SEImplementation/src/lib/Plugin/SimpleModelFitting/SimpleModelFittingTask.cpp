@@ -237,6 +237,19 @@ struct SourceModel {
     }
   }
 
+  double getTotalFlux() const {
+    double total_flux = 0;
+
+    auto exp_radius = exp_effective_radius.getValue();
+    auto dev_radius = dev_effective_radius.getValue();
+
+    total_flux += exp_i0.getValue() * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
+    total_flux += dev_i0.getValue() * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
+
+    return total_flux;
+  }
+
+
   void debugPrint() const {
     std::cout << "\tsize: " << m_size << "\n";
     std::cout << "\tx: " << x.getValue() << "\ty: " << y.getValue() << "\n";
@@ -309,6 +322,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
+  //std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
@@ -420,7 +434,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
         x, y,
         world_coordinate.m_alpha, world_coordinate.m_delta,
         total_flux, iterations,
-        0,0,0,0
+        source_model->getTotalFlux(),99,99,99
         );
   }
 

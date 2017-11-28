@@ -21,76 +21,67 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<MultiframeModelFittingTaskFactory, MultiframeModelFitting>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_wc_alpha",
+          "multi_model_fitting_x",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getX();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
+          "multi_model_fitting_y",
           [](const MultiframeModelFitting& prop){
+            return prop.getY();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
+          "multi_model_fitting_wc_alpha",
+          [](const MultiframeModelFitting& prop) {
             return prop.getAlpha();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
           "multi_model_fitting_wc_delta",
-          [](const MultiframeModelFitting& prop){
+          [](const MultiframeModelFitting& prop) {
             return prop.getDelta();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
           "multi_model_fitting_iterations",
-          [](const MultiframeModelFitting& prop){
+          [](const MultiframeModelFitting& prop) {
             return prop.getIterations();
           }
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
+          "multi_model_fitting_fluxes",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getFluxes();
+          }
+  );
 
-  //  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "multi_model_fitting_exp_re",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.get();
-//          }
-//  );
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
+          "multi_model_fitting_exp_radius",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getExpRadius();
+          }
+  );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
+          "multi_model_fitting_dev_radius",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getDevRadius();
+          }
+  );
 
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "model_fitting_exponential_ratio",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getExponentialRatio();
-//          }
-//  );
-//
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "model_fitting_exponential_angle",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getExponentialAngle() * 180.0 / M_PI;
-//          }
-//  );
-//
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "model_fitting_devaucouleurs_ratio",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getDevaucouleursRatio();
-//          }
-//  );
-//
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "model_fitting_devaucouleurs_angle",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getDevaucouleursAngle() * 180.0 / M_PI;
-//          }
-//  );
-//
-//  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-//          "model_fitting_flux",
-//          [](const MultiframeModelFitting& prop){
-//            return prop.getTotalFlux();
-//          }
-//  );
-//
-////  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-////          "model_fitting_peak",
-////          [](const MultiframeModelFitting& prop){
-////            return prop.getPeak();
-////          }
-////  );
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
+          "multi_model_fitting_reduced_chi_2",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getReducedChiSquared();
+          }
+  );
 
   plugin_api.getOutputRegistry().optionalOutput<MultiframeModelFitting>("MultiframeModelFitting");
 }
