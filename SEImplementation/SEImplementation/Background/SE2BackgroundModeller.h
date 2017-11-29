@@ -48,7 +48,7 @@ private:
   boost::filesystem::path itsInputMaskName;
   boost::filesystem::path itsInputFileName;
   boost::filesystem::path itsInputWeightName;
-  int itsWeightTypeFlag;
+  int itsWeightTypeFlag=0;
   unsigned char itsMaskType;
 
   std::shared_ptr<DetectionImage> itsImage=nullptr;

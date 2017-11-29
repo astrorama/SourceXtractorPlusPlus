@@ -221,8 +221,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     whtSigVals  = new PIXTYPE[nGridPoints];
   }
 
-  // give some feedback on the cell size
-  //std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
+  // give some feedback on the parameters
   bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
   bck_model_logger.info() << "Filter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")!";
   bck_model_logger.info() << "The variance threshold is: "<< weightVarThreshold << "!";
@@ -345,11 +344,10 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     filter(itsWhtMeanVals, whtSigVals, gridSize, filterBoxSize, filterThreshold);
   }
 
-  if (itsHasVariance && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
-
+  if (itsHasVariance){
+  //if (itsHasVariance && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
     // compute the scaling factor
     computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
-
   }
   else{
     sigFac=0.0;

@@ -101,11 +101,20 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   // create the background model and the rms model
   bck_modeller->createSE2Models(splModelBckPtr, splModelSigPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
 
-  bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << ")!";
-  bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << ")!";
+  bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << "!";
+  bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << "!";
+  bck_model_logger.info() << "Scaling value: "<< sigFac << "!";
 
+  // possibly write out the rms image
   //std::string bbb("rms.fits");
   //FitsWriter::writeFile(*splModelSigPtr, bbb);
+
+  // TODO: - push the modelled rms image 'splModelSigPtr' to the calling program
+  //         (SExtractor.cpp) such that it can be set to the background rms image;
+  //       - push the scaling value 'sigFac' to the callig program (SExtractor.cpp),
+  //         then it can be used there to apply the scaling (or set the value)
+  //         for the detection;
+  //       - note that the decision on the scaling will be done elsewhere
 
   // return the background
   return splModelBckPtr;
