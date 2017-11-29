@@ -104,6 +104,9 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << ")!";
   bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << ")!";
 
+  //std::string bbb("rms.fits");
+  //FitsWriter::writeFile(*splModelSigPtr, bbb);
+
   // return the background
   return splModelBckPtr;
 }

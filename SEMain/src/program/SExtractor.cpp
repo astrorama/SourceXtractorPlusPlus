@@ -193,6 +193,7 @@ public:
     auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getSubtractedImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true), detection_frame->getWeightThreshold());
     detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
+    CheckImages::getInstance().setVarianceCheckImage(background_rms->getValue(0,0), background_rms);
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS: " << detection_frame->getBackgroundRMS()

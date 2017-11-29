@@ -30,6 +30,8 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
   m_model_background_filename = config.getModelBackgroundFilename();
+  m_model_background_filename = config.getModelBackgroundFilename();
+  m_model_variance_filename =  config.getModelVarianceFilename();
 
   if (m_model_fitting_image_filename != "" || m_residual_filename != "") {
     m_check_image_model_fitting = VectorImage<DetectionImage::PixelType>::create(
@@ -46,6 +48,11 @@ void CheckImages::saveImages() {
   // if possible, save the background image
   if (m_background_image != nullptr && m_model_background_filename != "") {
     FitsWriter::writeFile(*m_background_image, m_model_background_filename);
+  }
+
+  // if possible, save the variance image
+  if (m_variance_image != nullptr && m_model_variance_filename != "") {
+    FitsWriter::writeFile(*m_variance_image, m_model_variance_filename);
   }
 
   // if possible, create and save the residual image

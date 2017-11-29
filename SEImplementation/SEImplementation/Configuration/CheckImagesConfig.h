@@ -37,11 +37,16 @@ public:
     return m_model_background_filename;
   }
 
+  const std::string& getModelVarianceFilename() const {
+    return m_model_variance_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
   std::string m_model_fitting_residual_filename;
   std::string m_model_background_filename;
+  std::string m_model_variance_filename;
 
 
 
