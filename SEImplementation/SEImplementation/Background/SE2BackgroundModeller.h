@@ -58,7 +58,7 @@ private:
   fitsfile* itsInputMask=NULL;
   fitsfile* itsInputFits=NULL;
   fitsfile* itsInputWeight=NULL;
-  bool itsHasWeights=false;
+  bool itsHasVariance=false;
   bool itsHasMask=false;
   //
   PIXTYPE* itsWhtMeanVals=NULL;

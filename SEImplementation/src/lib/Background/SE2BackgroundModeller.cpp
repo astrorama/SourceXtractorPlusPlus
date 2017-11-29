@@ -31,9 +31,9 @@ SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<DetectionImage> ima
 
   //check for variance
   if (variance_map!=nullptr)
-    itsHasWeights=true;
+    itsHasVariance=true;
   else
-    itsHasWeights=false;
+    itsHasVariance=false;
 
   //check for mask
   if (mask!=nullptr)
@@ -97,7 +97,7 @@ SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits
       //fits_get_errstatus(status, error);
       throw Elements::Exception() << "Problem opening the weight image: " << itsInputWeightName << "!";
     }
-    itsHasWeights=true;
+    itsHasVariance=true;
   }
 
   // get the basic image information;
@@ -190,11 +190,11 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
 
   ldiv_t divResult;
 
-  PIXTYPE weightVarThreshold=0.0;
+  PIXTYPE weightVarThreshold=(PIXTYPE)varianceThreshold;
 
   // not necessary, since all is in variance
   // re-scale the weight threshold
-  //if (itsHasWeights){
+  //if (itsHasVariance){
   //  rescaleThreshold(weightVarThreshold, weightThreshold);
   //}
 
@@ -216,7 +216,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   // create the arrays
   bckMeanVals = new PIXTYPE[nGridPoints];
   bckSigVals  = new PIXTYPE[nGridPoints];
-  if (itsHasWeights){
+  if (itsHasVariance){
     itsWhtMeanVals = new PIXTYPE[nGridPoints];
     whtSigVals  = new PIXTYPE[nGridPoints];
   }
@@ -224,6 +224,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   // give some feedback on the cell size
   //std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
   bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
+  bck_model_logger.info() << "The variance threshold is: "<< varianceThreshold << " locally: " << weightVarThreshold;
 
   // iterate over cells in y
   gridIndex=0;
@@ -253,7 +254,8 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       if (nElements!=nData) {
         delete [] gridData;
         gridData = new PIXTYPE[nElements];
-        if (itsInputWeight){
+        //if (itsInputWeight){
+        if (itsHasVariance){
           delete [] weightData;
           weightData = new PIXTYPE[nElements];
         }
@@ -279,9 +281,12 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       }
       */
       //throw Elements::Exception() << "Stop right now!";
-      if (itsHasWeights){
-        bck_model_logger.info() << "The variance threshold is: "<< varianceThreshold;
-        throw Elements::Exception() << " Weights not yet implemented!";
+      if (itsHasVariance){
+        //throw Elements::Exception() << " Weights not yet implemented!";
+        long pixIndex=0;
+        for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
+          for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
+            weightData[pixIndex++] = (PIXTYPE)itsVariance->getValue(int(xIndex), int(yIndex));
         /*
         fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
         if (status){
@@ -322,7 +327,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       // create a background cell compute and store the values
       // and then delete the cell again
       oneCell = new BackgroundCell(gridData, nElements, weightData, weightVarThreshold);
-      if (itsHasWeights)
+      if (itsHasVariance)
         oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex], itsWhtMeanVals[gridIndex], whtSigVals[gridIndex]);
       else
         oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex]);
@@ -335,11 +340,11 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
 
   // do some filtering on the data
   filter(bckMeanVals, bckSigVals, gridSize, filterBoxSize, filterThreshold);
-  if (itsHasWeights){
+  if (itsHasVariance){
     filter(itsWhtMeanVals, whtSigVals, gridSize, filterBoxSize, filterThreshold);
   }
 
-  if (itsHasWeights && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
+  if (itsHasVariance && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
 
     // compute the scaling factor
     computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
@@ -398,7 +403,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
   PIXTYPE weightVarThreshold=0.0;
 
   // re-scale the weight threshold
-  if (itsHasWeights){
+  if (itsHasVariance){
     rescaleThreshold(weightVarThreshold, varianceThreshold);
   }
 
@@ -420,7 +425,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
   // create the arrays
   bckMeanVals = new PIXTYPE[nGridPoints];
   bckSigVals  = new PIXTYPE[nGridPoints];
-  if (itsHasWeights){
+  if (itsHasVariance){
     itsWhtMeanVals = new PIXTYPE[nGridPoints];
     whtSigVals  = new PIXTYPE[nGridPoints];
   }
@@ -470,7 +475,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
         throw Elements::Exception() << "Problems reading background cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputFileName << "!";
         //Utils::throwElementsException(std::string("Problems reading background cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputFileName.generic_string());
       }
-      if (itsHasWeights){
+      if (itsHasVariance){
         fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
         if (status){
           throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
@@ -496,7 +501,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
       // create a background cell compute and store the values
       // and then delete the cell again
       oneCell = new BackgroundCell(gridData, nElements, weightData, weightVarThreshold);
-      if (itsHasWeights)
+      if (itsHasVariance)
         oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex], itsWhtMeanVals[gridIndex], whtSigVals[gridIndex]);
       else
         oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex]);
@@ -508,7 +513,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
   }
 
 
-  if (itsHasWeights && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
+  if (itsHasVariance && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
 
     // compute the scaling factor
     computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
