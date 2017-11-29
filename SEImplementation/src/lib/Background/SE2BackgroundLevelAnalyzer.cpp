@@ -71,8 +71,8 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
   //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
     //se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
     bck_model_logger.info() << "Variance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")!";
-    bck_model_logger.info() << variance_map->getValue(0,0) << " " << variance_map->getValue(10,10);
-    bck_model_logger.info() << "Threshold: " << variance_threshold;
+    //bck_model_logger.info() << variance_map->getValue(0,0) << " " << variance_map->getValue(10,10);
+    //bck_model_logger.info() << "Threshold: " << variance_threshold;
     // make sure the dimensions are the same
     if (image->getWidth()!=variance_map->getWidth())
       throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth() << "!";

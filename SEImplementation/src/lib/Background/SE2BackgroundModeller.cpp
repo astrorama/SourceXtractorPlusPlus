@@ -224,7 +224,8 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   // give some feedback on the cell size
   //std::cout << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!" << std::endl;
   bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
-  bck_model_logger.info() << "The variance threshold is: "<< varianceThreshold << " locally: " << weightVarThreshold;
+  bck_model_logger.info() << "Filter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")!";
+  bck_model_logger.info() << "The variance threshold is: "<< weightVarThreshold << "!";
 
   // iterate over cells in y
   gridIndex=0;
@@ -873,7 +874,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
   // give some feedback
   //std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
-  bck_model_logger.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
+  //bck_model_logger.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // this does *not* work:
   //SExtractor::se2BckLog.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // Note: I am converting the "size_t" to int's since
