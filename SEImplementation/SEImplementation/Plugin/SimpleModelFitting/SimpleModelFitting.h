@@ -20,19 +20,21 @@ public:
 
   SimpleModelFitting(
       SeFloat x, SeFloat y, SeFloat wc_alpha, SeFloat wc_delta,
-      SeFloat total_flux, unsigned int iterations,
+      SeFloat total_flux,
+      SeFloat exp_flux, SeFloat dev_flux,
       SeFloat exp_ratio, SeFloat exp_angle,
-      SeFloat dev_ratio, SeFloat dev_angle ) :
+      SeFloat dev_ratio, SeFloat dev_angle,
+      unsigned int iterations) :
     m_x(x),
     m_y(y),
     m_wc_alpha(wc_alpha),
     m_wc_delta(wc_delta),
     m_total_flux(total_flux),
-    m_iterations(iterations),
     m_exp_ratio(exp_ratio),
     m_exp_angle(exp_angle),
     m_dev_ratio(dev_ratio),
-    m_dev_angle(dev_angle) {}
+    m_dev_angle(dev_angle),
+    m_iterations(iterations) {}
 
   SeFloat getX() const {
     return m_x;
@@ -52,6 +54,14 @@ public:
 
   SeFloat getTotalFlux() const {
     return m_total_flux;
+  }
+
+  SeFloat getDevFlux() const {
+    return m_dev_flux;
+  }
+
+  SeFloat getExpFlux() const {
+    return m_exp_flux;
   }
 
   SeFloat getIterations() const {
@@ -81,7 +91,7 @@ private:
   SeFloat m_wc_alpha, m_wc_delta; // world coordinate position
 
   SeFloat m_total_flux;
-  unsigned int m_iterations;
+  SeFloat m_dev_flux, m_exp_flux;
 
   // exponential model parameters
   SeFloat m_exp_ratio;
@@ -90,6 +100,8 @@ private:
   // devaucouleurs model parameters
   SeFloat m_dev_ratio;
   SeFloat m_dev_angle;
+
+  unsigned int m_iterations;
 };
 
 }

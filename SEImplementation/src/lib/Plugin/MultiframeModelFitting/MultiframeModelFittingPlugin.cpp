@@ -48,13 +48,6 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
-          "multi_model_fitting_iterations",
-          [](const MultiframeModelFitting& prop) {
-            return prop.getIterations();
-          }
-  );
-
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
           "multi_model_fitting_fluxes",
           [](const MultiframeModelFitting& prop) {
@@ -80,6 +73,13 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           "multi_model_fitting_reduced_chi_2",
           [](const MultiframeModelFitting& prop) {
             return prop.getReducedChiSquared();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
+          "multi_model_fitting_iterations",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getIterations();
           }
   );
 

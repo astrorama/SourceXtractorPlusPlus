@@ -237,18 +237,35 @@ struct SourceModel {
     }
   }
 
-  double getTotalFlux() const {
-    double total_flux = 0;
-
+  double getExpFlux() const {
     auto exp_radius = exp_effective_radius.getValue();
-    auto dev_radius = dev_effective_radius.getValue();
-
-    total_flux += exp_i0.getValue() * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
-    total_flux += dev_i0.getValue() * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
-
-    return total_flux;
+    return exp_i0.getValue() * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
   }
 
+  double getDevFlux() const {
+    auto dev_radius = dev_effective_radius.getValue();
+    return dev_i0.getValue() * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
+  }
+
+  double getTotalFlux() const {
+    return getExpFlux() + getDevFlux();
+  }
+
+  double getExpRatio() const {
+    return exp_aspect.getValue();
+  }
+
+  double getExpAngle() const {
+    return exp_rot.getValue();
+  }
+
+  double getDevRatio() const {
+    return dev_aspect.getValue();
+  }
+
+  double getDevAngle() const {
+    return dev_rot.getValue();
+  }
 
   void debugPrint() const {
     std::cout << "\tsize: " << m_size << "\n";
@@ -379,7 +396,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto solution = engine.solveProblem(manager, res_estimator);
 
   for (auto& source_model : source_models) {
-    std::cout << "After:  ";
+    std::cout << "After: ";
     source_model->debugPrint();
   }
 
@@ -433,9 +450,11 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source.setProperty<SimpleModelFitting>(
         x, y,
         world_coordinate.m_alpha, world_coordinate.m_delta,
-        total_flux, iterations,
-        source_model->getTotalFlux(),99,99,99
-        );
+        total_flux, source_model->getExpFlux(), source_model->getDevFlux(),
+        source_model->getExpRatio(), source_model->getExpAngle(),
+        source_model->getDevRatio(), source_model->getDevAngle(),
+        iterations
+    );
   }
 
   SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
