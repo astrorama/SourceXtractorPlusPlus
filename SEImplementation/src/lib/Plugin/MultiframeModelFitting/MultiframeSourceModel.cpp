@@ -35,6 +35,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     m_ref_coordinate_system(getRefCoordinateSystem(source)),
 
     m_radius_guess(getRadiusGuess(source)),
+    m_aspect_guess(getAspectGuess(source)),
     m_exp_flux_guess(getFluxGuess(source)),
     m_dev_flux_guess(getFluxGuess(source)),
 
@@ -51,9 +52,9 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
         dev_effective_radius),
 
-    exp_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
+    exp_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     exp_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
-    dev_aspect(getAspectGuess(source), make_unique<SigmoidConverter>(0, 1.01)),
+    dev_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     m_number_of_parameters(0)
@@ -67,10 +68,10 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
       } else {
         m_band_nb.emplace_back(m_band_nb.back()+1);
       }
-      auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess);
+      auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess * m_aspect_guess);
       exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)));
 
-      auto dev_i0_guess = m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess);
+      auto dev_i0_guess = m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess * m_aspect_guess);
       dev_i0s.emplace_back(new EngineParameter(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)));
     } else {
       m_band_nb.emplace_back(m_band_nb.back());
@@ -163,7 +164,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
 
   double MultiframeSourceModel::getAspectGuess(const SourceInterface& source) const {
     auto& shape_parameters = source.getProperty<ShapeParameters>();
-    double aspect_guess = shape_parameters.getEllipseB() / shape_parameters.getEllipseA();
+    double aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
 
     return aspect_guess;
   }

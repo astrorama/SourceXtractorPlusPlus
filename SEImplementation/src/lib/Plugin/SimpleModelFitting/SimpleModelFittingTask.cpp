@@ -180,13 +180,13 @@ struct SourceModel {
     x([x_guess](double dx) { return dx + x_guess; }, dx),
     y([y_guess](double dy) { return dy + y_guess; }, dy),
 
-    exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess)),
+    exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
     exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
     exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(exp_radius_guess * 0.001, exp_radius_guess * 100)),
     exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
-    dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess)),
+    dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess * dev_aspect_guess)),
     dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
     dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(dev_radius_guess * 0.001, dev_radius_guess * 100)),
     dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
@@ -298,8 +298,6 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     auto& pixel_centroid = source.getProperty<PixelCentroid>();
     auto& shape_parameters = source.getProperty<ShapeParameters>();
     auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
-    auto& half_maximum_boundaries = source.getProperty<PixelBoundariesHalfMaximum>();
-    auto peak_value = source.getProperty<PeakValue>().getMaxValue();
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
     double size_factor = 2;
@@ -313,7 +311,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
     double exp_flux_guess = iso_flux / 2.0;
     double exp_reff_guess = radius_guess;
-    double exp_aspect_guess = shape_parameters.getEllipseB() / shape_parameters.getEllipseA();
+    double exp_aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
     double exp_rot_guess = shape_parameters.getEllipseTheta();
     double dev_flux_guess = iso_flux / 2.0;
     double dev_reff_guess = radius_guess;

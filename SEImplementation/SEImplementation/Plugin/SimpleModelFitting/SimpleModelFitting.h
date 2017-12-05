@@ -30,6 +30,8 @@ public:
     m_wc_alpha(wc_alpha),
     m_wc_delta(wc_delta),
     m_total_flux(total_flux),
+    m_exp_flux(exp_flux),
+    m_dev_flux(dev_flux),
     m_exp_ratio(exp_ratio),
     m_exp_angle(exp_angle),
     m_dev_ratio(dev_ratio),

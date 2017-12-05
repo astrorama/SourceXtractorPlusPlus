@@ -22,7 +22,7 @@ namespace SExtractor {
 class MultiframeSourceModel {
 
   double m_center_x, m_center_y;
-  double m_radius_guess, m_exp_flux_guess, m_dev_flux_guess;
+  double m_radius_guess, m_aspect_guess, m_exp_flux_guess, m_dev_flux_guess;
 
   std::shared_ptr<CoordinateSystem> m_ref_coordinate_system;
 
