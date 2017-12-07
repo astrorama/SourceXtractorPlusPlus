@@ -21,7 +21,7 @@ public:
 
   virtual ~SE2BackgroundLevelAnalyzer() = default;
 
-  std::shared_ptr<Image<SeFloat>> analyzeBackground(
+  BackgroundModel analyzeBackground(
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const override;
 
 private:

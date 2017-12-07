@@ -12,6 +12,7 @@
 
 #include <iomanip>
 
+#include "SEImplementation/SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
@@ -37,9 +38,6 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
-
-#include "SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
-#include "SEImplementation/Background/BackgroundRMSAnalyzerFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
@@ -97,9 +95,7 @@ class SEMain : public Elements::Program {
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
   DeblendingFactory deblending_factory {source_factory};
-  BackgroundLevelAnalyzerFactory background_level_analyzer_factory {};
-  BackgroundRMSAnalyzerFactory background_rms_analyzer_factory {};
-
+  BackgroundAnalyzerFactory background_level_analyzer_factory {};
 
 public:
   
@@ -123,7 +119,6 @@ public:
     deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
-    background_rms_analyzer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -157,7 +152,6 @@ public:
     deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
-    background_rms_analyzer_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
@@ -183,18 +177,27 @@ public:
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
 
-    auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
-    auto background_levels = background_level_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getWeightThreshold());
-    detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
-    CheckImages::getInstance().setBackgroundCheckImage(background_levels->getValue(0,0), background_levels);
 
-    auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
-    auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getSubtractedImage(), detection_frame->getWeightImage(),
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true), detection_frame->getWeightThreshold());
-    detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
-    //CheckImages::getInstance().setVarianceCheckImage(background_rms->getValue(0,0), background_rms);
-    CheckImages::getInstance().setVarianceCheckImage(0.0,detection_frame->getBackgroundRMSMap());
+    auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
+        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getWeightThreshold());
+
+    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getRMSMap());
+
+    detection_frame->setBackgroundLevel(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+
+    if (weight_image != nullptr) {
+      if (is_weight_absolute) {
+        detection_frame->setBackgroundRMS(weight_image->getValue(0,0), weight_image);
+      } else {
+        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
+        detection_frame->setBackgroundRMS(scaled_image->getValue(0,0), scaled_image);
+      }
+    } else {
+      detection_frame->setBackgroundRMS(background_model.getRMSMap()->getValue(0,0), background_model.getRMSMap());
+    }
+
     // TODO: The rms image from the SE2Modelling must become available here
     //       and be set to the 'backgroundRMSMap()'. Similarly the scaling
     //       factor determined from comparing the measured rms and the

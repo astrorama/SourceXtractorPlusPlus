@@ -11,7 +11,8 @@
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
-#include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
+
+#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 
 namespace SExtractor {
 

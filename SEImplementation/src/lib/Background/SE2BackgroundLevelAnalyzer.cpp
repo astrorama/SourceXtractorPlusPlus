@@ -20,6 +20,9 @@
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
 
+#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
+
+
 namespace SExtractor {
 
 SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box)
@@ -43,7 +46,7 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
   }
 }
 
-std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
+BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask,
     WeightImage::PixelType variance_threshold) const {
@@ -83,8 +86,14 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::analyzeBackground(
   // create the background model
   auto bck_image = fromSE2Modeller(image, variance_map, mask, variance_threshold);
 
+
+  // FIXME temporary RMS using SimplebackgroundAnalyzer
+  auto subtracted_image = SubtractImage<SeFloat>::create(image, bck_image);
+  auto background_rms = SimpleBackgroundAnalyzer::getRMSLevel(subtracted_image);
+  auto background_rms_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_rms);
+
   // return model
-  return bck_image;
+  return BackgroundModel(bck_image, background_rms_map, 1); // FIXME provide correct scaling factor
 }
 
 std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
