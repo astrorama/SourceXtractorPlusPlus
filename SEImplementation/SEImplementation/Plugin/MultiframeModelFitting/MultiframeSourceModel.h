@@ -88,8 +88,12 @@ public:
 
   ImageCoordinate getFittedCoordinate() const;
 
-  double getFluxForBand(int band_nb) const;
+  double getExpFluxForBand(int band_nb) const;
+  double getDevFluxForBand(int band_nb) const;
+
   std::vector<double> getFluxes() const;
+  std::vector<double> getExpFluxes() const;
+  std::vector<double> getDevFluxes() const;
 
   SeFloat getExpRadius() const;
   SeFloat getDevRadius() const;

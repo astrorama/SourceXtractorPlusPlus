@@ -22,8 +22,8 @@ public:
       SeFloat x, SeFloat y, SeFloat wc_alpha, SeFloat wc_delta,
       SeFloat total_flux,
       SeFloat exp_flux, SeFloat dev_flux,
-      SeFloat exp_ratio, SeFloat exp_angle,
-      SeFloat dev_ratio, SeFloat dev_angle,
+      SeFloat exp_ratio, SeFloat exp_angle, SeFloat exp_radius,
+      SeFloat dev_ratio, SeFloat dev_angle, SeFloat dev_radius,
       unsigned int iterations) :
     m_x(x),
     m_y(y),
@@ -34,8 +34,10 @@ public:
     m_dev_flux(dev_flux),
     m_exp_ratio(exp_ratio),
     m_exp_angle(exp_angle),
+    m_exp_radius(exp_radius),
     m_dev_ratio(dev_ratio),
     m_dev_angle(dev_angle),
+    m_dev_radius(dev_radius),
     m_iterations(iterations) {}
 
   SeFloat getX() const {
@@ -88,6 +90,15 @@ public:
     return m_dev_angle;
   }
 
+  SeFloat getExponentialRadius() const {
+    return m_exp_radius;
+  }
+
+  SeFloat getDevaucouleursRadius() const {
+    return m_dev_radius;
+  }
+
+
 private:
   SeFloat m_x, m_y;
   SeFloat m_wc_alpha, m_wc_delta; // world coordinate position
@@ -98,10 +109,12 @@ private:
   // exponential model parameters
   SeFloat m_exp_ratio;
   SeFloat m_exp_angle;
+  SeFloat m_exp_radius;
 
   // devaucouleurs model parameters
   SeFloat m_dev_ratio;
   SeFloat m_dev_angle;
+  SeFloat m_dev_radius;
 
   unsigned int m_iterations;
 };

@@ -203,16 +203,21 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     return ImageCoordinate(m_center_x + dx.getValue(), m_center_y + dy.getValue());
   }
 
-  double MultiframeSourceModel::getFluxForBand(int band_nb) const {
+  double MultiframeSourceModel::getExpFluxForBand(int band_nb) const {
     double total_flux = 0;
 
     auto exp_i0 = exp_i0s[band_nb]->getValue();
-    auto dev_i0 = dev_i0s[band_nb]->getValue();
-
     auto exp_radius = exp_effective_radius.getValue();
-    auto dev_radius = dev_effective_radius.getValue();
-
     total_flux += exp_i0 * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
+
+    return total_flux;
+  }
+
+  double MultiframeSourceModel::getDevFluxForBand(int band_nb) const {
+    double total_flux = 0;
+
+    auto dev_i0 = dev_i0s[band_nb]->getValue();
+    auto dev_radius = dev_effective_radius.getValue();
     total_flux += dev_i0 * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
 
     return total_flux;
@@ -221,8 +226,28 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   std::vector<double> MultiframeSourceModel::getFluxes() const {
     std::vector<double> fluxes;
 
-    for (int i=0; i<exp_i0s.size(); i++) {
-      fluxes.push_back(getFluxForBand(i));
+    for (unsigned int i=0; i<exp_i0s.size(); i++) {
+      fluxes.push_back(getExpFluxForBand(i)+getDevFluxForBand(i));
+    }
+
+    return fluxes;
+  }
+
+  std::vector<double> MultiframeSourceModel::getExpFluxes() const {
+    std::vector<double> fluxes;
+
+    for (unsigned int i=0; i<exp_i0s.size(); i++) {
+      fluxes.push_back(getExpFluxForBand(i));
+    }
+
+    return fluxes;
+  }
+
+  std::vector<double> MultiframeSourceModel::getDevFluxes() const {
+    std::vector<double> fluxes;
+
+    for (unsigned int i=0; i<exp_i0s.size(); i++) {
+      fluxes.push_back(getDevFluxForBand(i));
     }
 
     return fluxes;

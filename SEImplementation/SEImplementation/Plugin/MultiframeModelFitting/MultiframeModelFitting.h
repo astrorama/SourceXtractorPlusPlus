@@ -24,7 +24,8 @@ public:
       SeFloat x, SeFloat y,
       SeFloat wc_alpha, SeFloat wc_delta,
       SeFloat exp_radius, SeFloat dev_radius,
-      std::vector<double> fluxes, unsigned int iterations, SeFloat chi_squared) :
+      std::vector<double> fluxes, std::vector<double> exp_fluxes, std::vector<double> dev_fluxes,
+      unsigned int iterations, SeFloat chi_squared) :
     m_x(x),
     m_y(y),
     m_wc_alpha(wc_alpha),
@@ -32,6 +33,8 @@ public:
     m_exp_radius(exp_radius),
     m_dev_radius(dev_radius),
     m_fluxes(fluxes),
+    m_exp_fluxes(exp_fluxes),
+    m_dev_fluxes(dev_fluxes),
     m_iterations(iterations),
     m_chi_squared(chi_squared) {}
 
@@ -67,6 +70,14 @@ public:
     return m_fluxes;
   }
 
+  std::vector<double> getExpFluxes() const {
+    return m_exp_fluxes;
+  }
+
+  std::vector<double> getDevFluxes() const {
+    return m_dev_fluxes;
+  }
+
   unsigned int getIterations() const {
     return m_iterations;
   }
@@ -80,7 +91,7 @@ private:
   SeFloat m_wc_alpha, m_wc_delta; // world coordinate position
   SeFloat m_exp_radius, m_dev_radius;
 
-  std::vector<double> m_fluxes;
+  std::vector<double> m_fluxes, m_exp_fluxes, m_dev_fluxes;
   unsigned int m_iterations;
   SeFloat m_chi_squared;
 };

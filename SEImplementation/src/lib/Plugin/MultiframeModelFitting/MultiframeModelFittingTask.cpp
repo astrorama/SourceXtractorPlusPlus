@@ -395,7 +395,8 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         ic.m_x, ic.m_y,
         wc.m_alpha, wc.m_delta,
         source_model->getExpRadius(), source_model->getDevRadius(),
-        source_model->getFluxes(), iterations, avg_reduced_chi_squared
+        source_model->getFluxes(), source_model->getExpFluxes(), source_model->getDevFluxes(),
+        iterations, avg_reduced_chi_squared
         );
   }
 

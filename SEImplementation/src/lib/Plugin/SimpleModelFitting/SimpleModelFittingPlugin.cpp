@@ -20,91 +20,105 @@ void SimpleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<SimpleModelFittingTaskFactory, SimpleModelFitting>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_x",
+          "smf_x",
           [](const SimpleModelFitting& prop) {
             return prop.getX();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_y",
+          "smf_y",
           [](const SimpleModelFitting& prop) {
             return prop.getY();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_wc_alpha",
+          "smf_alpha",
           [](const SimpleModelFitting& prop) {
             return prop.getAlpha();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_wc_delta",
+          "smf_delta",
           [](const SimpleModelFitting& prop) {
             return prop.getDelta();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_exponential_ratio",
+          "smf_exp_radius",
+          [](const SimpleModelFitting& prop) {
+            return prop.getExponentialRadius();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
+          "smf_exp_ratio",
           [](const SimpleModelFitting& prop) {
             return prop.getExponentialRatio();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_exponential_angle",
+          "smf_exp_angle",
           [](const SimpleModelFitting& prop) {
             return prop.getExponentialAngle() * 180.0 / M_PI;
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_devaucouleurs_ratio",
+          "smf_dev_radius",
+          [](const SimpleModelFitting& prop) {
+            return prop.getDevaucouleursRadius();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
+          "smf_dev_ratio",
           [](const SimpleModelFitting& prop) {
             return prop.getDevaucouleursRatio();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_devaucouleurs_angle",
+          "smf_dev_angle",
           [](const SimpleModelFitting& prop) {
             return prop.getDevaucouleursAngle() * 180.0 / M_PI;
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_flux",
+          "smf_total_flux",
           [](const SimpleModelFitting& prop) {
             return prop.getTotalFlux();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_exp_flux",
+          "smf_exp_flux",
           [](const SimpleModelFitting& prop) {
             return prop.getExpFlux();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_dev_flux",
+          "smf_dev_flux",
           [](const SimpleModelFitting& prop) {
             return prop.getDevFlux();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, double>(
-          "model_fitting_bulge_total_ratio",
+          "smf_bt_ratio",
           [](const SimpleModelFitting& prop) {
             return prop.getDevFlux() / (prop.getDevFlux() + prop.getExpFlux());
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<SimpleModelFitting, int>(
-          "model_fitting_iterations",
+          "smf_iter",
           [](const SimpleModelFitting& prop){
             return prop.getIterations();
           }

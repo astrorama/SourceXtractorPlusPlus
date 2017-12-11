@@ -182,14 +182,14 @@ struct SourceModel {
 
     exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
     exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
-    exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(exp_radius_guess * 0.001, exp_radius_guess * 100)),
-    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(0.01, exp_radius_guess * 10)),
+    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess * dev_aspect_guess)),
     dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
-    dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(dev_radius_guess * 0.001, dev_radius_guess * 100)),
-    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(0.01, dev_radius_guess * 10)),
+    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     dev_rot(-dev_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     exp_k(
@@ -222,7 +222,7 @@ struct SourceModel {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, x, y);
@@ -230,7 +230,7 @@ struct SourceModel {
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
       extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, x, y);
@@ -265,6 +265,14 @@ struct SourceModel {
 
   double getDevAngle() const {
     return dev_rot.getValue();
+  }
+
+  double getExpRadius() const {
+    return exp_effective_radius.getValue();
+  }
+
+  double getDevRadius() const {
+    return dev_effective_radius.getValue();
   }
 
   void debugPrint() const {
@@ -449,8 +457,8 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
         x, y,
         world_coordinate.m_alpha, world_coordinate.m_delta,
         total_flux, source_model->getExpFlux(), source_model->getDevFlux(),
-        source_model->getExpRatio(), source_model->getExpAngle(),
-        source_model->getDevRatio(), source_model->getDevAngle(),
+        source_model->getExpRatio(), source_model->getExpAngle(), source_model->getExpRadius(),
+        source_model->getDevRatio(), source_model->getDevAngle(), source_model->getDevRadius(),
         iterations
     );
   }

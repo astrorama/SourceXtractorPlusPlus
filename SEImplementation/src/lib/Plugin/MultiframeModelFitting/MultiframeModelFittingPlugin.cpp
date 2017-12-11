@@ -55,6 +55,20 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
+          "multi_model_fitting_exp_fluxes",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getExpFluxes();
+          }
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
+          "multi_model_fitting_dev_fluxes",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getDevFluxes();
+          }
+  );
+
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
           "multi_model_fitting_exp_radius",
           [](const MultiframeModelFitting& prop) {
