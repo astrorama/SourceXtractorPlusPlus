@@ -17,6 +17,8 @@ static const std::string CHECK_MODEL_FITTING { "checkimage-modelfitting" };
 static const std::string CHECK_RESIDUAL { "checkimage-residual" };
 static const std::string CHECK_MODEL_BACKGROUND { "checkimage-background" };
 static const std::string CHECK_MODEL_VARIANCE { "checkimage-variance" };
+static const std::string CHECK_SEGMENTATION { "checkimage-segmentation" };
+static const std::string CHECK_PARTITION { "checkimage-partition" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -30,7 +32,12 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
       {CHECK_MODEL_BACKGROUND.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the background check image"},
       {CHECK_MODEL_VARIANCE.c_str(), po::value<std::string>()->default_value(""),
-        "Path to save the variance check image"}  }}};
+        "Path to save the variance check image"},
+      {CHECK_SEGMENTATION.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the segmentation check image"},
+      {CHECK_PARTITION.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the partition check image"},
+  }}};
 }
 
 void CheckImagesConfig::initialize(const UserValues& args) {
@@ -38,6 +45,8 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_model_fitting_residual_filename = args.find(CHECK_RESIDUAL)->second.as<string>();
   m_model_background_filename = args.find(CHECK_MODEL_BACKGROUND)->second.as<string>();
   m_model_variance_filename = args.find(CHECK_MODEL_VARIANCE)->second.as<string>();
+  m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<string>();
+  m_partition_filename = args.find(CHECK_PARTITION)->second.as<string>();
 }
 
 } // SExtractor namespace

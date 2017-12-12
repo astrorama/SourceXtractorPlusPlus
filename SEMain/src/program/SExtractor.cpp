@@ -12,7 +12,8 @@
 
 #include <iomanip>
 
-#include "SEImplementation/SEImplementation/Background/BackgroundAnalyzerFactory.h"
+#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
@@ -46,7 +47,6 @@
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
-
 #include "SEMain/SExtractorConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -174,9 +174,18 @@ public:
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
 
+    // Add observers for CheckImages
+    if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
+      segmentation->addObserver(
+          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+    }
+    if (CheckImages::getInstance().getPartitionImage() != nullptr) {
+      partition->addObserver(
+          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+    }
+
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
-
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
