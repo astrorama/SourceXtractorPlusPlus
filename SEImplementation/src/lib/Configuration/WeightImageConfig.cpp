@@ -39,7 +39,7 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
       {WEIGHT_ABSOLUTE.c_str(), po::value<bool>()->default_value(false),
           "Is the weight map provided as absolute values or relative to background."},
       {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("NONE"),
-          "Weight image type."},
+          "Weight image type [background|rms|variance|weight]."},
       {WEIGHT_SCALING.c_str(), po::value<double>()->default_value(1.0),
           "Weight map scaling factor."},
       {WEIGHT_THRESHOLD.c_str(), po::value<double>(),
@@ -90,7 +90,10 @@ void WeightImageConfig::initialize(const UserValues& args) {
         m_weight_threshold = threshold;
         break;
       case WeightType::WEIGHT_TYPE_WEIGHT:
-        m_weight_threshold = 1.0 / threshold;
+        if (threshold>0)
+          m_weight_threshold = 1.0 / threshold;
+        else
+          m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
         break;
     }
   } else {
