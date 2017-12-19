@@ -84,19 +84,19 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // create the background model
-  auto bck_image = fromSE2Modeller(image, variance_map, mask, variance_threshold);
+  auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold);
 
 
   // FIXME temporary RMS using SimplebackgroundAnalyzer
-  auto subtracted_image = SubtractImage<SeFloat>::create(image, bck_image);
-  auto background_rms = SimpleBackgroundAnalyzer::getRMSLevel(subtracted_image);
-  auto background_rms_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_rms);
+  //auto subtracted_image = SubtractImage<SeFloat>::create(image, bck_image);
+  //auto background_rms = SimpleBackgroundAnalyzer::getRMSLevel(subtracted_image);
+  //auto background_rms_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_rms);
 
   // return model
-  return BackgroundModel(bck_image, background_rms_map, 1); // FIXME provide correct scaling factor
+  return bck_model;
 }
 
-std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
+BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelSigPtr;
@@ -114,19 +114,12 @@ std::shared_ptr<Image<SeFloat>> SE2BackgroundLevelAnalyzer::fromSE2Modeller(std:
   bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << "!";
   bck_model_logger.info() << "Scaling value: "<< sigFac << "!";
 
-  // possibly write out the rms image
+  // possibly write out the rms image (for testing and so on)
   //std::string bbb("rms.fits");
   //FitsWriter::writeFile(*splModelSigPtr, bbb);
 
-  // TODO: - push the modelled rms image 'splModelSigPtr' to the calling program
-  //         (SExtractor.cpp) such that it can be set to the background rms image;
-  //       - push the scaling value 'sigFac' to the callig program (SExtractor.cpp),
-  //         then it can be used there to apply the scaling (or set the value)
-  //         for the detection;
-  //       - note that the decision on the scaling will be done elsewhere
-
-  // return the background
-  return splModelBckPtr;
+  // return the background model
+  return BackgroundModel(splModelBckPtr, splModelSigPtr, sigFac);
 }
 
 std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)
