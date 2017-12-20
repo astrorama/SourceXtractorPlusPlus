@@ -1014,7 +1014,8 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
 
   for (size_t index=0; index<nGridPoints; index++){
     if (whtMeanVals[index]>0.0){
-      actRatio = bckSigVals[index] / sqrt(whtMeanVals[index]);
+      //actRatio = bckSigVals[index] / sqrt(whtMeanVals[index]);
+      actRatio = bckSigVals[index] * bckSigVals[index] / whtMeanVals[index]; // scaling factor for the variance image
       if (actRatio>0.0){
         ratio[nr]=actRatio;
         nr++;
