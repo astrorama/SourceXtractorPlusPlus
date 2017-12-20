@@ -191,8 +191,8 @@ public:
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getWeightThreshold());
 
-    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getRMSMap());
+    //CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+    //CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getRMSMap());
 
     detection_frame->setBackgroundLevel(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
 
@@ -207,12 +207,6 @@ public:
       detection_frame->setBackgroundRMS(background_model.getRMSMap()->getValue(0,0), background_model.getRMSMap());
     }
 
-    // TODO: The rms image from the SE2Modelling must become available here
-    //       and be set to the 'backgroundRMSMap()'. Similarly the scaling
-    //       factor determined from comparing the measured rms and the
-    //       variance image must become available and be set, depending on
-    //       the parameters.
-
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
         << " RMS: " << detection_frame->getBackgroundRMS()
         << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
@@ -224,6 +218,11 @@ public:
       detection_frame->setBackgroundLevel(background_config.getBackgroundLevel());
       CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
     }
+    else{
+      CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+    }
+
+    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getBackgroundRMSMap());
 
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
