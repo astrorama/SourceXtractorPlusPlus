@@ -208,7 +208,7 @@ public:
     }
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS: " << detection_frame->getBackgroundRMS()
+        << " Variance: " << detection_frame->getBackgroundRMS()
         << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();

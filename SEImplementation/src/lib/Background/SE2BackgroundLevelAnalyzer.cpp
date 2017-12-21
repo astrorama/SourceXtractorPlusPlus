@@ -99,7 +99,7 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
 BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
-  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelSigPtr;
+  std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelVarPtr;
 
   PIXTYPE sigFac=0.0;
   //PIXTYPE weightThreshold=0.0;
@@ -108,10 +108,10 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   size_t filterBoxSize[2] = {size_t(m_smoothing_box[0]),size_t(m_smoothing_box[1])};
 
   // create the background model and the rms model
-  bck_modeller->createSE2Models(splModelBckPtr, splModelSigPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
+  bck_modeller->createSE2Models(splModelBckPtr, splModelVarPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
 
   bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << "!";
-  bck_model_logger.info() << "Median rms value: "<< splModelSigPtr->getMedian() << "!";
+  bck_model_logger.info() << "Median variance value: "<< splModelVarPtr->getMedian() << "!";
   bck_model_logger.info() << "Scaling value: "<< sigFac << "!";
 
   // possibly write out the rms image (for testing and so on)
@@ -119,7 +119,7 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   //FitsWriter::writeFile(*splModelSigPtr, bbb);
 
   // return the background model
-  return BackgroundModel(splModelBckPtr, splModelSigPtr, sigFac);
+  return BackgroundModel(splModelBckPtr, splModelVarPtr, sigFac);
 }
 
 std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)
