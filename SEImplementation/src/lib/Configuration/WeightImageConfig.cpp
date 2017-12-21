@@ -94,6 +94,14 @@ void WeightImageConfig::initialize(const UserValues& args) {
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
   }
+
+  // some safeguards that the user provides reasonable input and gets defined results
+  if (weight_image_filename != "" && m_weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
+    throw Elements::Exception() << "Please give an appropriate weight type for image: " << weight_image_filename;
+  if (m_absolute_weight && m_weight_scaling!=1.0)
+    throw Elements::Exception() << "Setting absolute weight *and* providing a weight scaling=" << m_weight_scaling << " does not make sense.";
+  if (m_absolute_weight && weight_image_filename == "")
+    throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
 }
 
 std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {

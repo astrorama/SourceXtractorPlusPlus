@@ -191,9 +191,6 @@ public:
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getWeightThreshold());
 
-    //CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    //CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getRMSMap());
-
     detection_frame->setBackgroundLevel(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
 
     if (weight_image != nullptr) {
