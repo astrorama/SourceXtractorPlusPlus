@@ -69,8 +69,8 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
 
   if (variance_map!=nullptr)
   {
-  std::string bbb("variance.fits");
-  FitsWriter::writeFile(*variance_map, bbb);
+  //std::string bbb("variance.fits");
+  //FitsWriter::writeFile(*variance_map, bbb);
   //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
     //se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
     bck_model_logger.info() << "Variance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")!";
