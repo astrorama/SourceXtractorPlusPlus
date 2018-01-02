@@ -20,6 +20,7 @@
 #include "ModelFitting/Image/ImageTraits.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/MultiplyImage.h"
 
 namespace ModelFitting {
 
@@ -81,6 +82,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     // Create the scaled and shifted window
     auto window = factory(window_width, window_height);
 
+    //shiftResize(image2, window, scale_factor, x_shift, y_shift);
     shiftResizeLancszos(image2, window, scale_factor, x_shift, y_shift);
 
     // We need to correct the window for the scaling, so it has the same integral
@@ -303,10 +305,13 @@ struct ImageTraits<ImageInterfaceTypePtr> {
         *kernel *= val;
       }
     }
-
   }
-
 }; // end of class ImageTraits<ImageInterfaceTypePtr>
+
+//ImageInterfaceTypePtr operator*(std::shared_ptr<const Image<ImageInterfaceType::PixelType>> image, ImageInterfaceType::PixelType factor) {
+//  auto mult_image = SExtractor::MultiplyImage<ImageInterfaceType::PixelType>::create(image, factor);
+//  return ImageInterfaceType::create(*mult_image);
+//}
 
 } // end of namespace ModelFitting
 

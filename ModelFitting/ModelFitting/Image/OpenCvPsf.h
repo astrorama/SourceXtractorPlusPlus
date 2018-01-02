@@ -44,7 +44,11 @@ public:
   cv::Mat getKernel() const {
     return m_kernel;
   }
-  
+
+  cv::Mat getScaledKernel(double scale) const {
+    return m_kernel * scale;
+  }
+
 //  template <typename ImageType>
 //  void convolve(ImageType& image) const;
   

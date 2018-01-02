@@ -155,10 +155,11 @@ struct SourceModel {
   EngineParameter dx, dy;
   DependentParameter<EngineParameter> x, y;
 
-  double exp_i0_guess;
-  EngineParameter exp_i0, exp_effective_radius, exp_aspect, exp_rot;
-  double dev_i0_guess;
-  EngineParameter dev_i0, dev_effective_radius, dev_aspect, dev_rot;
+  //double exp_i0_guess;
+  //EngineParameter exp_i0, exp_effective_radius, exp_aspect, exp_rot;
+  EngineParameter exp_flux, exp_effective_radius, exp_aspect, exp_rot;
+  //double dev_i0_guess;
+  EngineParameter dev_flux, dev_effective_radius, dev_aspect, dev_rot;
 
   ManualParameter exp_xs { 1 };
   ManualParameter exp_n { 1 };
@@ -168,6 +169,9 @@ struct SourceModel {
 
   DependentParameter<EngineParameter> exp_k;
   DependentParameter<EngineParameter> dev_k;
+
+  DependentParameter<EngineParameter, EngineParameter, EngineParameter> exp_i0;
+  DependentParameter<EngineParameter, EngineParameter, EngineParameter> dev_i0;
 
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
       double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess,
@@ -180,14 +184,16 @@ struct SourceModel {
     x([x_guess](double dx) { return dx + x_guess; }, dx),
     y([y_guess](double dy) { return dy + y_guess; }, dy),
 
-    exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
-    exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
+    //exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
+    //exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
+    exp_flux(exp_flux_guess, make_unique<ExpSigmoidConverter>(exp_flux_guess * .00001, exp_flux_guess * 20)),
     exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(0.01, exp_radius_guess * 10)),
     exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
-    dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess * dev_aspect_guess)),
-    dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
+    //dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess * dev_aspect_guess)),
+    //dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
+    dev_flux(dev_flux_guess, make_unique<ExpSigmoidConverter>(dev_flux_guess * .00001, dev_flux_guess * 20)),
     dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(0.01, dev_radius_guess * 10)),
     dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     dev_rot(-dev_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
@@ -198,7 +204,14 @@ struct SourceModel {
 
     dev_k(
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
-        dev_effective_radius)
+        dev_effective_radius),
+
+    exp_i0(
+        [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+        exp_flux, exp_effective_radius, exp_aspect),
+    dev_i0(
+        [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+        dev_flux, dev_effective_radius, dev_aspect)
   {
   }
 
@@ -206,19 +219,19 @@ struct SourceModel {
     manager.registerParameter(dx);
     manager.registerParameter(dy);
 
-    manager.registerParameter(exp_i0);
+//    manager.registerParameter(exp_i0);
+    manager.registerParameter(exp_flux);
     manager.registerParameter(exp_effective_radius);
     manager.registerParameter(exp_aspect);
     manager.registerParameter(exp_rot);
 
-    manager.registerParameter(dev_i0);
+    manager.registerParameter(dev_flux);
     manager.registerParameter(dev_effective_radius);
     manager.registerParameter(dev_aspect);
     manager.registerParameter(dev_rot);
   }
 
   void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models, bool test = false) {
-
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
@@ -381,7 +394,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     }
   }
 
-  //  FIXME we should be able to use the group_stamp Image interface directly
+  // FIXME we should be able to use the group_stamp Image interface directly
   auto image = VectorImage<SeFloat>::create(group_stamp);
 
   auto data_vs_model =
@@ -392,6 +405,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   // Perform the minimization
 
+  //LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
 
   for (auto& source_model : source_models) {

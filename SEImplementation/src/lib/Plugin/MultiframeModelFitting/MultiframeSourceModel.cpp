@@ -42,8 +42,8 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     dx(0, make_unique<SigmoidConverter>(-m_radius_guess, m_radius_guess)),
     dy(0, make_unique<SigmoidConverter>(-m_radius_guess, m_radius_guess)),
 
-    exp_effective_radius(m_radius_guess, make_unique<ExpSigmoidConverter>(m_radius_guess * 0.001, m_radius_guess * 100)),
-    dev_effective_radius(m_radius_guess, make_unique<ExpSigmoidConverter>(m_radius_guess * 0.001, m_radius_guess * 100)),
+    exp_effective_radius(m_radius_guess, make_unique<ExpSigmoidConverter>(0.01, m_radius_guess * 10)),
+    dev_effective_radius(m_radius_guess, make_unique<ExpSigmoidConverter>(0.01, m_radius_guess * 10)),
 
     exp_k(
         [](double eff_radius) { return 1.7 / eff_radius; },
@@ -95,7 +95,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), *exp_i0s[m_band_nb[frame_nb]], exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *exp_i0s[m_band_nb[frame_nb]], exp_n, exp_k);
       //auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
@@ -104,7 +104,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *dev_i0s[m_band_nb[frame_nb]], dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *dev_i0s[m_band_nb[frame_nb]], dev_n, dev_k);
       //auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));

@@ -21,6 +21,9 @@
 
 #include <CCfits/CCfits>
 
+#include "SEFramework/Image/SubtractImage.h"
+
+
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 #include "ModelFitting/utils.h"
@@ -123,7 +126,7 @@ public:
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param);
@@ -144,6 +147,14 @@ public:
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param);
     }
+  }
+
+  void addPointSource(std::vector<PointModel>& point_models, double x, double y, double flux) {
+    ManualParameter x_param (x);
+    ManualParameter y_param (y);
+    ManualParameter flux_param (flux);
+
+    point_models.emplace_back(x_param, y_param, flux_param);
   }
 
   void addBackgroundNoise(std::shared_ptr<VectorImage<SeFloat>> image, double background_level, double background_sigma) {
@@ -198,7 +209,7 @@ public:
       psf = PsfConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
     }
 
-
+/*
     //addExtendedSource(extended_models, image_size / 2.0, image_size / 2.0, 150000, 2.0, 1, 0,  100000, .1);
 //    boost::random::uniform_real_distribution<> random_i0(point_min_i0, point_max_i0);
 //    for (int i = 0; i<point_sources_nb; i++) {
@@ -260,9 +271,57 @@ public:
     auto filename = args["output"].as<std::string>();
     logger.info() << "Saving file: " << filename;
     writeToFits(image, filename);
+    */
+
+    Test(image_size, psf, args["output"].as<std::string>());
 
     logger.info("All done ^__^");
     return Elements::ExitCode::OK;
+  }
+
+  void Test(double image_size, std::shared_ptr<ImagePsf> psf, std::string filename) {
+    Elements::Logging logger = Elements::Logging::getLogger("Test!!!");
+
+    std::vector<ConstantModel> constant_models;
+    std::vector<ExtendedModel> extended_models;
+    std::vector<PointModel> point_models;
+
+    std::vector<TestImageSource> sources;
+
+    sources.push_back({
+       image_size / 2.0, image_size / 2.0, //double x, y;
+       10000, .25, 1, 0,//double exp_flux, exp_rad, exp_aspect, exp_rot;
+       0, 1, 1, 0//double dev_flux, dev_rad, dev_aspect, dev_rot
+    });
+
+
+    logger.info("Creating source models...");
+    for (const auto& source : sources) {
+      addExtendedSource(extended_models, image_size, source);
+    }
+
+    addPointSource(point_models, image_size / 2.0 + 100, image_size / 2.0, 10000);
+
+
+    logger.info("Rendering...");
+
+    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
+      pixel_scale,
+      image_size, image_size,
+      std::move(constant_models),
+      std::move(point_models),
+      std::move(extended_models),
+      *psf
+    };
+
+    auto image = frame_model.getImage();
+
+    //addPoissonNoise(image, 1);
+    addBackgroundNoise(image, 0, 1);
+
+    logger.info() << "Saving file: " << filename;
+    writeToFits(image, filename);
+    //writeToFits(VectorImage<SeFloat>::create(*SubtractImage<SeFloat>::create(image_1, image_2)), filename);
   }
 
 private:
