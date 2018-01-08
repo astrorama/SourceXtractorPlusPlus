@@ -161,7 +161,7 @@ SE2BackgroundModeller::~SE2BackgroundModeller(){
   //
 }
 
-void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const WeightImage::PixelType varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
+void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const WeightImage::PixelType varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
 {
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
@@ -353,8 +353,13 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     sigFac=0.0;
   }
 
+  // convert the grid of rms values to variance
+  for (auto index=0; index<nGridPoints; index++)
+    bckSigVals[index] *= bckSigVals[index];
+
+  // create the splined interpolation images for background and variance
   bckPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  sigPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  varPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
    // release memory
   if (whtSigVals)
@@ -366,7 +371,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     delete [] weightData;
 }
 
-void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
+void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
   {
   int status=0;
   int anynul=0;
@@ -537,7 +542,7 @@ void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper
   */
 
   bckPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  sigPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
+  varPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
   // make a log message
   //std::string logMessage = std::string("Median value of sigma spline==")+tostr((*sigmaSpline)->getMedian());
@@ -1014,7 +1019,8 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
 
   for (size_t index=0; index<nGridPoints; index++){
     if (whtMeanVals[index]>0.0){
-      actRatio = bckSigVals[index] / sqrt(whtMeanVals[index]);
+      //actRatio = bckSigVals[index] / sqrt(whtMeanVals[index]);
+      actRatio = bckSigVals[index] * bckSigVals[index] / whtMeanVals[index]; // scaling factor for the variance image
       if (actRatio>0.0){
         ratio[nr]=actRatio;
         nr++;
