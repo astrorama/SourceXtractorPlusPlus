@@ -303,6 +303,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
+  auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
   //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getWeightStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
 
@@ -374,14 +375,13 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     }
   }
 
-  auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
-  auto back_var = measurement_frame->getBackgroundRMS();
-  back_var *= back_var; // RMS -> variance
-  SeFloat gain = measurement_frame->getGain();
-  SeFloat saturation = measurement_frame->getSaturation();
+  auto frame = group.begin()->getProperty<DetectionFrame>().getFrame();
+  SeFloat gain = frame->getGain();
+  SeFloat saturation = frame->getSaturation();
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
+      auto back_var = variance_stamp.getValue(x, y);
       if (saturation > 0 && group_stamp.getValue(x, y) > saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y)>0) {

@@ -188,27 +188,27 @@ public:
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
-    auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getWeightThreshold());
+    auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
+        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
     CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getRMSMap());
+    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getVarianceMap());
 
     detection_frame->setBackgroundLevel(background_model.getLevelMap());
 
     if (weight_image != nullptr) {
       if (is_weight_absolute) {
-        detection_frame->setBackgroundRMS(weight_image);
+        detection_frame->setVarianceMap(weight_image);
       } else {
         auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
-        detection_frame->setBackgroundRMS(scaled_image);
+        detection_frame->setVarianceMap(scaled_image);
       }
     } else {
-      detection_frame->setBackgroundRMS(background_model.getRMSMap());
+      detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " Variance: " << detection_frame->getBackgroundRMS()
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
         << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
@@ -220,17 +220,18 @@ public:
       CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
     }
     else{
-      CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+      CheckImages::getInstance().setBackgroundCheckImage(
+          background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
     }
 
-    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getBackgroundRMSMap());
+    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getVarianceMap());
 
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
 
     std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
-          << " RMS: " << detection_frame->getBackgroundRMS()
+          << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
           << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image

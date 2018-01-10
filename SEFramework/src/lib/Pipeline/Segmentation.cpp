@@ -14,7 +14,7 @@ Segmentation::Segmentation(std::shared_ptr<DetectionImageProcessing> image_proce
 
 void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) const {
   if (m_filter_image_processing != nullptr) {
-    frame->applyFilter(*m_filter_image_processing);
+    frame->setFilter(m_filter_image_processing);
   }
 
   if (m_labelling != nullptr) {

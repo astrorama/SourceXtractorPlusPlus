@@ -55,7 +55,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
         ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
             measurement_images[i]->getHeight(), true), 1.5);
 
-    measurement_frame->setBackgroundRMS(background_model.getRMSMap());
+    measurement_frame->setVarianceMap(background_model.getVarianceMap());
 
     // FIXME gain/saturation for measurement images
 

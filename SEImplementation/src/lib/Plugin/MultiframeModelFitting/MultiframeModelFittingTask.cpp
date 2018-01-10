@@ -133,6 +133,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
   auto frame_image_thresholded = frame->getThresholdedImage();
+  auto variance_map = frame->getVarianceMap();
 
   auto weight = VectorImage<SeFloat>::create(width, height);
   std::fill(weight->getData().begin(), weight->getData().end(), 1);
@@ -157,14 +158,16 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
 //  }
 
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto back_var = measurement_frame->getBackgroundRMS();
-  std::cout << "back_var " << back_var << "\n";
-  back_var *= back_var; // RMS -> variance
+  //auto back_var = measurement_frame->getBackgroundRMS();
+  //std::cout << "back_var " << back_var << "\n";
+  //back_var *= back_var; // RMS -> variance
+
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
 
   for (int y=0; y < height; y++) {
     for (int x=0; x < width; x++) {
+      auto back_var = variance_map->getValue(offset.m_x + x, offset.m_y + y);
       if (saturation > 0 && frame_image->getValue(offset.m_x + x, offset.m_y + y) > saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y) > 0) {

@@ -31,34 +31,34 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
 
   auto subtracted_image = SubtractImage<SeFloat>::create(image, background_level_map);
 
-  auto background_rms = getRMSLevel(subtracted_image);
-  auto background_rms_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_rms);
+  auto background_variance = getVariance(subtracted_image);
+  auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_variance);
 
-  return BackgroundModel(background_level_map, background_rms_map, 99999); // FIXME
+  return BackgroundModel(background_level_map, background_variance_map, 99999); // FIXME
 }
 
 
-SeFloat SimpleBackgroundAnalyzer::getRMSLevel(std::shared_ptr<DetectionImage> image) {
+SeFloat SimpleBackgroundAnalyzer::getVariance(std::shared_ptr<DetectionImage> image) {
   // Note: We compute the RMS by only taking into consideration pixels
   // below the background value.
 
-  double rms = 0;
+  double variance = 0;
   int pixels = 0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
       auto value = image->getValue(x, y);
       if (value < 0) {
-        rms += value * value;
+        variance += value * value;
         pixels++;
       }
     }
   }
 
   if (pixels > 0) {
-    rms /= pixels;
+    variance /= pixels;
   }
 
-  return sqrt(rms);
+  return variance;
 }
 
 }

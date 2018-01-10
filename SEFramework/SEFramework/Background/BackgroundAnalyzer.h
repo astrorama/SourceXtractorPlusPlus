@@ -16,10 +16,10 @@ namespace SExtractor {
 class BackgroundModel {
 public:
 
-  BackgroundModel(std::shared_ptr<Image<SeFloat>> background_level, std::shared_ptr<Image<SeFloat>> background_rms,
+  BackgroundModel(std::shared_ptr<Image<SeFloat>> background_level, std::shared_ptr<Image<SeFloat>> background_variance,
       SeFloat scaling_factor) :
         m_background_level(background_level),
-        m_background_rms(background_rms),
+        m_background_variance(background_variance),
         m_scaling_factor(scaling_factor)
       {}
 
@@ -27,8 +27,8 @@ public:
     return m_background_level;
   }
 
-  std::shared_ptr<Image<SeFloat>> getRMSMap() const {
-    return m_background_rms;
+  std::shared_ptr<Image<SeFloat>> getVarianceMap() const {
+    return m_background_variance;
   }
 
   SeFloat getScalingFactor() const {
@@ -37,7 +37,7 @@ public:
 
 private:
   std::shared_ptr<Image<SeFloat>> m_background_level;
-  std::shared_ptr<Image<SeFloat>> m_background_rms;
+  std::shared_ptr<Image<SeFloat>> m_background_variance;
   SeFloat m_scaling_factor;
 };
 

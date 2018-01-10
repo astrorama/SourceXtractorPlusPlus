@@ -22,9 +22,9 @@ public:
 
   DetectionFrameGroupStamp(std::shared_ptr<DetectionImage> stamp,
       std::shared_ptr<DetectionImage> thresholded_stamp, PixelCoordinate top_left,
-      std::shared_ptr<WeightImage> weight_stamp) :
+      std::shared_ptr<WeightImage> variance_stamp) :
         m_stamp(stamp), m_thresholded_stamp(thresholded_stamp),
-        m_weight_stamp(weight_stamp), m_top_left(top_left) {}
+        m_variance_stamp(variance_stamp), m_top_left(top_left) {}
 
   // Returns the stamp image
   const DetectionImage& getStamp() const {
@@ -36,8 +36,8 @@ public:
   }
 
   // Returns the stamp's associated weight image
-  const DetectionImage& getWeightStamp() const {
-    return *m_weight_stamp;
+  const DetectionImage& getVarianceStamp() const {
+    return *m_variance_stamp;
   }
 
   PixelCoordinate getTopLeft() const {
@@ -46,7 +46,7 @@ public:
 
 private:
   std::shared_ptr<DetectionImage> m_stamp, m_thresholded_stamp;
-  std::shared_ptr<WeightImage> m_weight_stamp;
+  std::shared_ptr<WeightImage> m_variance_stamp;
   PixelCoordinate m_top_left;
 
 };

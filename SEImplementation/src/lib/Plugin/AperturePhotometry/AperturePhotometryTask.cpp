@@ -25,8 +25,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame();
 
   auto measurement_image = measurement_frame->getSubtractedImage();
-  auto weight_image = measurement_frame->getWeightImage();
-  auto weight_threshold = measurement_frame->getWeightThreshold();
+  auto variance_map = measurement_frame->getVarianceMap();
+  auto variance_threshold = measurement_frame->getVarianceThreshold();
 
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_image_instance);
 
@@ -36,9 +36,6 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
 
-  auto rms = measurement_frame->getBackgroundRMS();
-  SeFloat background_variance = (weight_image != nullptr && measurement_frame->isWeightAbsolute()) ? 1 : rms * rms;
-
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
       MeasurementImage::PixelType value = 0;
@@ -46,15 +43,15 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 
       if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_image->getWidth() && pixel_y < measurement_image->getHeight()) {
 
-        pixel_variance = weight_image ? weight_image->getValue(pixel_x, pixel_y) : 1;
-        if (pixel_variance < weight_threshold) {
+        pixel_variance = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
+        if (pixel_variance < variance_threshold) {
           value = measurement_image->getValue(pixel_x, pixel_y);
         } else if (m_use_symmetry) {
           auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
           auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
           if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_image->getWidth() && mirror_y < measurement_image->getHeight()) {
             value = measurement_image->getValue(mirror_x, mirror_y);
-            pixel_variance = weight_image ? weight_image->getValue(mirror_x, mirror_y) : 1;
+            pixel_variance = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
           }
         }
       }
@@ -67,7 +64,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 //      }
 
       total_flux += value * area;
-      total_variance +=  pixel_variance * background_variance * area;
+      total_variance +=  pixel_variance * area;
     }
   }
 
