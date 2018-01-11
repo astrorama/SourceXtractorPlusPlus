@@ -110,10 +110,12 @@ public:
 //  }
 
   typename T::PixelType getDetectionThreshold() const {
-    return m_detection_threshold;
+    return sqrt(m_variance_map->getValue(0,0)) * 1.5;
+    //return m_detection_threshold; // FIXME!!!!!!
   }
 
   void setDetectionThreshold(typename T::PixelType detection_threshold) {
+    // FIXME this does nothing currently
     m_detection_threshold = detection_threshold;
   }
 
