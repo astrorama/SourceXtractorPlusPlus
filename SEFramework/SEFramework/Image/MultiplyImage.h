@@ -21,7 +21,7 @@ class MultiplyImage : public ImageBase<T> {
 
 protected:
 
-  MultiplyImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_multiply)
+  MultiplyImage(std::shared_ptr<const Image<T>> image, std::shared_ptr<const Image<T>> image_to_multiply)
       : m_image(image), m_image_to_multiply(image_to_multiply) {
     assert(m_image->getWidth() == m_image_to_multiply->getWidth());
     assert(m_image->getHeight() == m_image_to_multiply->getHeight());
@@ -30,11 +30,11 @@ protected:
 public:
 
   static std::shared_ptr<MultiplyImage<T>> create(
-      std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> image_to_multiply) {
+      std::shared_ptr<const Image<T>> image, std::shared_ptr<const Image<T>> image_to_multiply) {
     return std::shared_ptr<MultiplyImage<T>>(new MultiplyImage<T>(image, image_to_multiply));
   }
 
-  static std::shared_ptr<MultiplyImage<T>> create(std::shared_ptr<Image<T>> image, T value_to_multiply) {
+  static std::shared_ptr<MultiplyImage<T>> create(std::shared_ptr<const Image<T>> image, T value_to_multiply) {
     return std::shared_ptr<MultiplyImage<T>>(new MultiplyImage<T>(
         image, ConstantImage<T>::create(image->getWidth(), image->getHeight(), value_to_multiply)));
   }
@@ -58,7 +58,7 @@ public:
   }
 
 private:
-  std::shared_ptr<Image<T>> m_image, m_image_to_multiply;
+  std::shared_ptr<const Image<T>> m_image, m_image_to_multiply;
 
 };
 

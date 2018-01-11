@@ -11,6 +11,7 @@
 #include "ElementsKernel/Exception.h"
 
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/MultiplyImage.h"
 
 #include <opencv2/opencv.hpp>
 
@@ -45,6 +46,10 @@ public:
 
   std::shared_ptr<const Image<SExtractor::SeFloat>> getKernel() const {
     return m_image;
+  }
+
+  std::shared_ptr<VectorImage<SExtractor::SeFloat>> getScaledKernel(SeFloat scale) const {
+    return VectorImage<SeFloat>::create(*MultiplyImage<SExtractor::SeFloat>::create(m_image, scale));
   }
 
   void convolve(std::shared_ptr<VectorImage<SExtractor::SeFloat>>& image) const {

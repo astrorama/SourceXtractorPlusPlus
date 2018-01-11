@@ -5,13 +5,16 @@
  *      Author: mschefer
  */
 
+#include <iostream>
+
 #include "SEImplementation/Configuration/MeasurementConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
+#include "SEFramework/Image/ConstantImage.h"
+#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
-#include "SEImplementation/Background/SimpleBackgroundLevelAnalyzer.h"
 
 namespace SExtractor {
 
@@ -42,14 +45,19 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
   const auto& absolute_weights = manager.getConfiguration<MeasurementConfig>().getAbsoluteWeights();
 
+  SimpleBackgroundAnalyzer analyzer;
+
   for (unsigned int i=0; i<measurement_images.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 0, 0); // FIXME !!! we need weight threshold
-    // FIXME gain for measurement images
+        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 1, 65000); // FIXME !!! we need weight threshold
 
-    // FIXME
-    //SimpleBackgroundLevelAnalyzer analyzer;
-    //analyzer.analyzeBackground(measurement_frame);
+    auto background_model = analyzer.analyzeBackground(measurement_images[i], weight_images[i],
+        ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
+            measurement_images[i]->getHeight(), true), 1.5);
+
+    measurement_frame->setVarianceMap(background_model.getVarianceMap());
+
+    // FIXME gain/saturation for measurement images
 
     m_measurement_frames.emplace_back(measurement_frame);
   }

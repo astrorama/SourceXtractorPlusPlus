@@ -27,7 +27,7 @@ static const std::string WEIGHT_THRESHOLD {"weight-threshold" };
 
 WeightImageConfig::WeightImageConfig(long manager_id) :
     Configuration(manager_id),
-    m_weight_type(WeightType::WEIGHT_TYPE_NONE),
+    m_weight_type(WeightType::WEIGHT_TYPE_FROM_BACKGROUND),
     m_absolute_weight(false),
     m_weight_scaling(1),
     m_weight_threshold(0) {}
@@ -38,8 +38,8 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
           "Path to a fits format image to be used as weight image."},
       {WEIGHT_ABSOLUTE.c_str(), po::value<bool>()->default_value(false),
           "Is the weight map provided as absolute values or relative to background."},
-      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("NONE"),
-          "Weight image type."},
+      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("background"),
+          "Weight image type [background|rms|variance|weight]."},
       {WEIGHT_SCALING.c_str(), po::value<double>()->default_value(1.0),
           "Weight map scaling factor."},
       {WEIGHT_THRESHOLD.c_str(), po::value<double>(),
@@ -55,9 +55,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
   }
 
   auto weight_type_name = boost::to_upper_copy(args.at(WEIGHT_TYPE).as<std::string>());
-  if (weight_type_name == "NONE") {
-    m_weight_type = WeightType::WEIGHT_TYPE_NONE;
-  } else if (weight_type_name == "BACKGROUND") {
+  if (weight_type_name == "BACKGROUND") {
     m_weight_type = WeightType::WEIGHT_TYPE_FROM_BACKGROUND;
   } else if (weight_type_name == "RMS") {
     m_weight_type = WeightType::WEIGHT_TYPE_RMS;
@@ -79,9 +77,6 @@ void WeightImageConfig::initialize(const UserValues& args) {
     auto threshold = args.find(WEIGHT_THRESHOLD)->second.as<double>();
     switch (m_weight_type) {
       default:
-      case WeightType::WEIGHT_TYPE_NONE:
-        m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
-        break;
       case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
       case WeightType::WEIGHT_TYPE_RMS:
         m_weight_threshold = threshold * threshold;
@@ -90,12 +85,23 @@ void WeightImageConfig::initialize(const UserValues& args) {
         m_weight_threshold = threshold;
         break;
       case WeightType::WEIGHT_TYPE_WEIGHT:
-        m_weight_threshold = 1.0 / threshold;
+        if (threshold>0)
+          m_weight_threshold = 1.0 / threshold;
+        else
+          m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
         break;
     }
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
   }
+
+  // some safeguards that the user provides reasonable input and gets defined results
+  if (weight_image_filename != "" && m_weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
+    throw Elements::Exception() << "Please give an appropriate weight type for image: " << weight_image_filename;
+  if (m_absolute_weight && m_weight_scaling!=1.0)
+    throw Elements::Exception() << "Setting absolute weight *and* providing a weight scaling=" << m_weight_scaling << " does not make sense.";
+  if (m_absolute_weight && weight_image_filename == "")
+    throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
 }
 
 std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
@@ -103,7 +109,6 @@ std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr
 
   switch (weight_type) {
     default:
-    case WeightType::WEIGHT_TYPE_NONE:
     case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
       return nullptr;
     case WeightType::WEIGHT_TYPE_RMS:

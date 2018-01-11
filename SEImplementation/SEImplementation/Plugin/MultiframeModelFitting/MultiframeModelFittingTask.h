@@ -10,7 +10,7 @@
 
 
 #include "SEFramework/Image/VectorImage.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
 #include "SEFramework/Task/GroupTask.h"
 
@@ -19,9 +19,8 @@ namespace SExtractor {
 class MultiframeModelFittingTask : public GroupTask {
 
 public:
-  MultiframeModelFittingTask(std::shared_ptr<ModelFitting::OpenCvPsf> psf, unsigned int max_iterations)
-    : m_psf(psf),
-      m_max_iterations(max_iterations) {}
+  MultiframeModelFittingTask(unsigned int max_iterations,
+      std::vector<std::vector<int>> frame_indices_per_band, std::vector<std::shared_ptr<ImagePsf>> psfs);
 
   virtual ~MultiframeModelFittingTask() = default;
 
@@ -29,12 +28,19 @@ public:
 
 private:
 
-  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
+  std::shared_ptr<VectorImage<SeFloat>> createWeightImage(
+      SourceGroupInterface& group, int width, int height, PixelCoordinate offset, int frame_index) const;
+
+  void setup() const;
+  void minimize() const;
+  void getResults() const;
+
+  // Task configuration
   unsigned int m_max_iterations;
+  std::vector<std::vector<int>> m_frame_indices_per_band;
+  std::vector<std::shared_ptr<ImagePsf>> m_psfs;
 };
 
 }
-
-
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGTASK_H_ */

@@ -12,6 +12,8 @@
 
 #include <iomanip>
 
+#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
@@ -38,16 +40,13 @@
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 
-#include "SEImplementation/Background/BackgroundLevelAnalyzerFactory.h"
-#include "SEImplementation/Background/BackgroundRMSAnalyzerFactory.h"
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
+#include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
-
 #include "SEMain/SExtractorConfig.h"
 
 #include "Configuration/ConfigManager.h"
@@ -96,9 +95,7 @@ class SEMain : public Elements::Program {
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
   DeblendingFactory deblending_factory {source_factory};
-  BackgroundLevelAnalyzerFactory background_level_analyzer_factory {};
-  BackgroundRMSAnalyzerFactory background_rms_analyzer_factory {};
-
+  BackgroundAnalyzerFactory background_level_analyzer_factory {};
 
 public:
   
@@ -110,6 +107,7 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
+    config_manager.registerConfiguration<SE2BackgroundConfig>();
 
     CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -121,7 +119,6 @@ public:
     deblending_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
-    background_rms_analyzer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -155,7 +152,6 @@ public:
     deblending_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
-    background_rms_analyzer_factory.configure(config_manager);
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
@@ -178,36 +174,64 @@ public:
     source_grouping->addObserver(deblending);
     deblending->addObserver(output);
 
+    // Add observers for CheckImages
+    if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
+      segmentation->addObserver(
+          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+    }
+    if (CheckImages::getInstance().getPartitionImage() != nullptr) {
+      partition->addObserver(
+          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+    }
+
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
 
-    auto background_level_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
-    auto background_levels = background_level_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
-    detection_frame->setBackgroundLevel(background_levels->getValue(0,0), background_levels);
+    auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
+        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
-    auto background_rms_analyzer = background_rms_analyzer_factory.createBackgroundAnalyzer();
-    auto background_rms = background_rms_analyzer->analyzeBackground(detection_frame->getOriginalImage(), detection_frame->getWeightImage(),
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), true));
-    detection_frame->setBackgroundRMS(background_rms->getValue(0,0), background_rms);
+    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getVarianceMap());
+
+    detection_frame->setBackgroundLevel(background_model.getLevelMap());
+
+    if (weight_image != nullptr) {
+      if (is_weight_absolute) {
+        detection_frame->setVarianceMap(weight_image);
+      } else {
+        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
+        detection_frame->setVarianceMap(scaled_image);
+      }
+    } else {
+      detection_frame->setVarianceMap(background_model.getVarianceMap());
+    }
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS: " << detection_frame->getBackgroundRMS()
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
         << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
     // Override background level and threshold if requested by the user
     if (background_config.isBackgroundLevelAbsolute()) {
-      detection_frame->setBackgroundLevel(background_config.getBackgroundLevel());
+      detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(
+          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel()));
+      CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
     }
+    else{
+      CheckImages::getInstance().setBackgroundCheckImage(
+          background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
+    }
+
+    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getVarianceMap());
 
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
 
     std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
-          << " RMS: " << detection_frame->getBackgroundRMS()
+          << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
           << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image

@@ -73,6 +73,8 @@ using namespace ModelFitting;
 
 /////////// FIXME copypasta from ModelFitting tests, move somewhere else
 
+namespace {
+
 // Prints on the screen the info of the levmar minimization
 void printLevmarInfo(std::array<double,10> info) {
   static double total_error = 0;
@@ -153,10 +155,11 @@ struct SourceModel {
   EngineParameter dx, dy;
   DependentParameter<EngineParameter> x, y;
 
-  double exp_i0_guess;
-  EngineParameter exp_i0, exp_effective_radius, exp_aspect, exp_rot;
-  double dev_i0_guess;
-  EngineParameter dev_i0, dev_effective_radius, dev_aspect, dev_rot;
+  //double exp_i0_guess;
+  //EngineParameter exp_i0, exp_effective_radius, exp_aspect, exp_rot;
+  EngineParameter exp_flux, exp_effective_radius, exp_aspect, exp_rot;
+  //double dev_i0_guess;
+  EngineParameter dev_flux, dev_effective_radius, dev_aspect, dev_rot;
 
   ManualParameter exp_xs { 1 };
   ManualParameter exp_n { 1 };
@@ -166,6 +169,9 @@ struct SourceModel {
 
   DependentParameter<EngineParameter> exp_k;
   DependentParameter<EngineParameter> dev_k;
+
+  DependentParameter<EngineParameter, EngineParameter, EngineParameter> exp_i0;
+  DependentParameter<EngineParameter, EngineParameter, EngineParameter> dev_i0;
 
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
       double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess,
@@ -178,16 +184,18 @@ struct SourceModel {
     x([x_guess](double dx) { return dx + x_guess; }, dx),
     y([y_guess](double dy) { return dy + y_guess; }, dy),
 
-    exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess)),
-    exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
-    exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(exp_radius_guess * 0.001, exp_radius_guess * 100)),
-    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    //exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
+    //exp_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)),
+    exp_flux(exp_flux_guess, make_unique<ExpSigmoidConverter>(exp_flux_guess * .00001, exp_flux_guess * 20)),
+    exp_effective_radius(exp_radius_guess, make_unique<ExpSigmoidConverter>(0.01, exp_radius_guess * 10)),
+    exp_aspect(exp_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     exp_rot(-exp_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
-    dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess)),
-    dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
-    dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(dev_radius_guess * 0.001, dev_radius_guess * 100)),
-    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    //dev_i0_guess(dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * dev_radius_guess * dev_radius_guess * dev_aspect_guess)),
+    //dev_i0(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)),
+    dev_flux(dev_flux_guess, make_unique<ExpSigmoidConverter>(dev_flux_guess * .00001, dev_flux_guess * 20)),
+    dev_effective_radius(dev_radius_guess, make_unique<ExpSigmoidConverter>(0.01, dev_radius_guess * 10)),
+    dev_aspect(dev_aspect_guess, make_unique<SigmoidConverter>(0.01, 1.0)),
     dev_rot(-dev_rot_guess, make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     exp_k(
@@ -196,7 +204,14 @@ struct SourceModel {
 
     dev_k(
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
-        dev_effective_radius)
+        dev_effective_radius),
+
+    exp_i0(
+        [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+        exp_flux, exp_effective_radius, exp_aspect),
+    dev_i0(
+        [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+        dev_flux, dev_effective_radius, dev_aspect)
   {
   }
 
@@ -204,23 +219,23 @@ struct SourceModel {
     manager.registerParameter(dx);
     manager.registerParameter(dy);
 
-    manager.registerParameter(exp_i0);
+//    manager.registerParameter(exp_i0);
+    manager.registerParameter(exp_flux);
     manager.registerParameter(exp_effective_radius);
     manager.registerParameter(exp_aspect);
     manager.registerParameter(exp_rot);
 
-    manager.registerParameter(dev_i0);
+    manager.registerParameter(dev_flux);
     manager.registerParameter(dev_effective_radius);
     manager.registerParameter(dev_aspect);
     manager.registerParameter(dev_rot);
   }
 
   void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models, bool test = false) {
-
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, x, y);
@@ -228,11 +243,49 @@ struct SourceModel {
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
       extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, x, y);
     }
+  }
+
+  double getExpFlux() const {
+    auto exp_radius = exp_effective_radius.getValue();
+    return exp_i0.getValue() * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
+  }
+
+  double getDevFlux() const {
+    auto dev_radius = dev_effective_radius.getValue();
+    return dev_i0.getValue() * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
+  }
+
+  double getTotalFlux() const {
+    return getExpFlux() + getDevFlux();
+  }
+
+  double getExpRatio() const {
+    return exp_aspect.getValue();
+  }
+
+  double getExpAngle() const {
+    return exp_rot.getValue();
+  }
+
+  double getDevRatio() const {
+    return dev_aspect.getValue();
+  }
+
+  double getDevAngle() const {
+    return dev_rot.getValue();
+  }
+
+  double getExpRadius() const {
+    return exp_effective_radius.getValue();
+  }
+
+  double getDevRadius() const {
+    return dev_effective_radius.getValue();
   }
 
   void debugPrint() const {
@@ -243,14 +296,16 @@ struct SourceModel {
   }
 };
 
+}
+
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
 
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
+  auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
   //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getWeightStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
-
 
   double pixel_scale = 1;
 
@@ -265,8 +320,6 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     auto& pixel_centroid = source.getProperty<PixelCentroid>();
     auto& shape_parameters = source.getProperty<ShapeParameters>();
     auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
-    auto& half_maximum_boundaries = source.getProperty<PixelBoundariesHalfMaximum>();
-    auto peak_value = source.getProperty<PeakValue>().getMaxValue();
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
     double size_factor = 2;
@@ -280,7 +333,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
     double exp_flux_guess = iso_flux / 2.0;
     double exp_reff_guess = radius_guess;
-    double exp_aspect_guess = shape_parameters.getEllipseB() / shape_parameters.getEllipseA();
+    double exp_aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
     double exp_rot_guess = shape_parameters.getEllipseTheta();
     double dev_flux_guess = iso_flux / 2.0;
     double dev_reff_guess = radius_guess;
@@ -306,6 +359,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
+  //std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
@@ -321,19 +375,18 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     }
   }
 
-  auto measurement_frame = group.begin()->getProperty<DetectionFrame>().getFrame();
-  auto back_var = measurement_frame->getBackgroundRMS();
-  back_var *= back_var; // RMS -> variance
-  SeFloat gain = measurement_frame->getGain();
-  SeFloat saturation = measurement_frame->getSaturation();
+  auto frame = group.begin()->getProperty<DetectionFrame>().getFrame();
+  SeFloat gain = frame->getGain();
+  SeFloat saturation = frame->getSaturation();
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
+      auto back_var = variance_stamp.getValue(x, y);
       if (saturation > 0 && group_stamp.getValue(x, y) > saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y)>0) {
         if (gain > 0.0) {
-          weight->at(x, y) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain ));
+          weight->at(x, y) = sqrt(1.0 / (back_var + group_stamp.getValue(x, y) / gain));
         } else {
           weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
         }
@@ -341,7 +394,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     }
   }
 
-  //  FIXME we should be able to use the group_stamp Image interface directly
+  // FIXME we should be able to use the group_stamp Image interface directly
   auto image = VectorImage<SeFloat>::create(group_stamp);
 
   auto data_vs_model =
@@ -352,6 +405,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   // Perform the minimization
 
+  //LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
 
   for (auto& source_model : source_models) {
@@ -362,7 +416,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto solution = engine.solveProblem(manager, res_estimator);
 
   for (auto& source_model : source_models) {
-    std::cout << "After:  ";
+    std::cout << "After: ";
     source_model->debugPrint();
   }
 
@@ -416,9 +470,11 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source.setProperty<SimpleModelFitting>(
         x, y,
         world_coordinate.m_alpha, world_coordinate.m_delta,
-        total_flux, iterations,
-        0,0,0,0
-        );
+        total_flux, source_model->getExpFlux(), source_model->getDevFlux(),
+        source_model->getExpRatio(), source_model->getExpAngle(), source_model->getExpRadius(),
+        source_model->getDevRatio(), source_model->getDevAngle(), source_model->getDevRadius(),
+        iterations
+    );
   }
 
   SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);

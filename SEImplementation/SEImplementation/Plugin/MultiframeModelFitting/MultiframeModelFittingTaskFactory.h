@@ -31,7 +31,9 @@ public:
 
 private:
   unsigned int m_max_iterations {0};
-  std::shared_ptr<ModelFitting::OpenCvPsf> m_psf;
+  //std::shared_ptr<ImagePsf> m_psf;
+  std::vector<std::vector<int>> m_frame_indices_per_band;
+  std::vector<std::shared_ptr<ImagePsf>> m_psfs;
 };
 
 }

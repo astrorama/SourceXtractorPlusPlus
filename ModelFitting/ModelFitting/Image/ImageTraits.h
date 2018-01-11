@@ -28,8 +28,8 @@ struct ImageTraits {
   
   static iterator end(ImageType& image);
   
-  static void addImageToImage(ImageType& image1, double scale1,
-                              const ImageType& image2, double scale2,
+  static void addImageToImage(ImageType& image1,
+                              const ImageType& image2, double scale,
                               double x, double y);
   
 }; // end of class ImageTraits

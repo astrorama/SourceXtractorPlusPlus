@@ -29,21 +29,58 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
+  m_model_background_filename = config.getModelBackgroundFilename();
+  m_model_background_filename = config.getModelBackgroundFilename();
+  m_model_variance_filename =  config.getModelVarianceFilename();
+  m_segmentation_filename =  config.getSegmentationFilename();
+  m_partition_filename =  config.getPartitionFilename();
 
   if (m_model_fitting_image_filename != "" || m_residual_filename != "") {
     m_check_image_model_fitting = VectorImage<DetectionImage::PixelType>::create(
         m_detection_image->getWidth(), m_detection_image->getHeight());
   }
+
+  if (m_segmentation_filename != "") {
+    m_segmentation_image = VectorImage<unsigned int>::create(
+        m_detection_image->getWidth(), m_detection_image->getHeight());
+  }
+
+  if (m_partition_filename != "") {
+    m_partition_image = VectorImage<unsigned int>::create(
+        m_detection_image->getWidth(), m_detection_image->getHeight());
+  }
 }
 
 void CheckImages::saveImages() {
+  // if possible, save the model image
   if (m_check_image_model_fitting != nullptr && m_model_fitting_image_filename != "") {
     FitsWriter::writeFile(*m_check_image_model_fitting, m_model_fitting_image_filename);
   }
 
+  // if possible, save the background image
+  if (m_background_image != nullptr && m_model_background_filename != "") {
+    FitsWriter::writeFile(*m_background_image, m_model_background_filename);
+  }
+
+  // if possible, save the variance image
+  if (m_variance_image != nullptr && m_model_variance_filename != "") {
+    FitsWriter::writeFile(*m_variance_image, m_model_variance_filename);
+  }
+
+  // if possible, create and save the residual image
   if (m_check_image_model_fitting != nullptr && m_residual_filename != "") {
     auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
     FitsWriter::writeFile(*residual_image, m_residual_filename);
+  }
+
+  // if possible, save the segmentation image
+  if (m_segmentation_image != nullptr && m_segmentation_filename != "") {
+    FitsWriter::writeFile(*m_segmentation_image, m_segmentation_filename);
+  }
+
+  // if possible, save the partition image
+  if (m_partition_image != nullptr && m_partition_filename != "") {
+    FitsWriter::writeFile(*m_partition_image, m_partition_filename);
   }
 }
 

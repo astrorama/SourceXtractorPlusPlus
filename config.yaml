@@ -2,24 +2,21 @@ measurements-group:
   name: "g"
   
   image-files:
-    #path: "simnb01_g_01.fits"
-    path: "simnb01_r.fits"
-    weight-image-path: "simnb01_r.weight.fits"
-
-  aperture-photometry:
-    #size: [5, 7]
-    size:
-      - 5
-      - 7
+    path: "simnb01_g_01.fits"
+    psf-path: "sim01_g_01.psf"
+#    path: "simnb01_g_02.fits"
+#    psf-path: "sim01_g_02.psf"
+#    path: "simnb01_g_03.fits"
+#    psf-path: "sim01_g_03.psf"
 
 #measurements-group:
 #  name: "r"
-  
+#
 #  image-files:
 #    path: "simnb01_r_01.fits"
-
-#  aperture-photometry:
-#    size:
-#      - 1
-#      - 2
-#      - 3
+#    psf-path: "sim01_r_01.psf"
+##    path: "simnb01_r_02.fits"
+##    psf-path: "sim01_r_02.psf"
+###    path: "simnb01_r_03.fits"
+## 
+###

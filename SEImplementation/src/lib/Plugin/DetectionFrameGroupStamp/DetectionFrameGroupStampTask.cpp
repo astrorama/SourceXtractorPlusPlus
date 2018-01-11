@@ -23,7 +23,7 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   auto detection_frame = group.cbegin()->getProperty<DetectionFrame>().getFrame();
   auto subtracted_image = detection_frame->getSubtractedImage();
   auto thresholded_image = detection_frame->getThresholdedImage();
-  auto weight_image =detection_frame->getWeightImage();
+  auto variance_map = detection_frame->getVarianceMap();
 
   //////////////// FIXME move to its own property?
   int min_x = INT_MAX;
@@ -64,7 +64,7 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
 
   std::vector<DetectionImage::PixelType> data (width * height);
   std::vector<DetectionImage::PixelType> thresholded_data (width * height);
-  std::vector<DetectionImage::PixelType> weight_data (width * height);
+  std::vector<DetectionImage::PixelType> variance_data (width * height);
 
   // copy the data
   for (auto x = min.m_x; x <= max.m_x; ++x) {
@@ -72,7 +72,7 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
       auto index = (x-min.m_x) + (y-min.m_y) * width;
       data[index] = subtracted_image->getValue(x, y);
       thresholded_data[index] = thresholded_image->getValue(x, y);
-      weight_data[index] = weight_image != nullptr ? weight_image->getValue(x, y) : 1;
+      variance_data[index] = variance_map->getValue(x, y);
     }
   }
 
@@ -80,10 +80,10 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   std::shared_ptr<DetectionImage> stamp = VectorImage<DetectionImage::PixelType>::create(width, height, data);
   std::shared_ptr<DetectionImage> thresholded_stamp =
       VectorImage<DetectionImage::PixelType>::create(width, height, thresholded_data);
-  std::shared_ptr<WeightImage> weight_stamp =
-      VectorImage<WeightImage::PixelType>::create(width, height, weight_data);
+  std::shared_ptr<WeightImage> variance_stamp =
+      VectorImage<WeightImage::PixelType>::create(width, height, variance_data);
 
-  group.setProperty<DetectionFrameGroupStamp>(stamp, thresholded_stamp, min, weight_stamp);
+  group.setProperty<DetectionFrameGroupStamp>(stamp, thresholded_stamp, min, variance_stamp);
 }
 
 } // SEImplementation namespace
