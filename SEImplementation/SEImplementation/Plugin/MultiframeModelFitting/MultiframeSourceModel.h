@@ -21,6 +21,7 @@ namespace SExtractor {
 
 class MultiframeSourceModel {
 
+  int m_size;
   double m_center_x, m_center_y;
   double m_radius_guess, m_aspect_guess, m_exp_flux_guess, m_dev_flux_guess;
 
@@ -44,8 +45,15 @@ class MultiframeSourceModel {
   ModelFitting::EngineParameter exp_aspect, exp_rot;
   ModelFitting::EngineParameter dev_aspect, dev_rot;
 
-  std::vector<std::unique_ptr<ModelFitting::EngineParameter>> exp_i0s;
-  std::vector<std::unique_ptr<ModelFitting::EngineParameter>> dev_i0s;
+  std::vector<std::unique_ptr<ModelFitting::EngineParameter>> exp_fluxes;
+  std::vector<std::unique_ptr<ModelFitting::EngineParameter>> dev_fluxes;
+
+  std::vector<std::unique_ptr<
+      ModelFitting::DependentParameter<
+          ModelFitting::EngineParameter, ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> exp_i0s;
+  std::vector<std::unique_ptr<
+      ModelFitting::DependentParameter<
+          ModelFitting::EngineParameter, ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> dev_i0s;
 
   std::vector<std::unique_ptr<
       ModelFitting::DependentParameter<ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> pixel_x;
@@ -67,10 +75,12 @@ public:
   MultiframeSourceModel(const SourceInterface& source);
 
   void createParamsForFrame(std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset, bool first_frame_of_band);
-  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models, int size);
+  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models);
   void registerParameters(ModelFitting::EngineParameterManager& manager);
 
   void debugPrint() const;
+
+  int getSize(const SourceInterface& source) const;
 
   double getFluxGuess(const SourceInterface& source) const;
 

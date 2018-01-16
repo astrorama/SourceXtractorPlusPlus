@@ -22,6 +22,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeSourceModel.h"
 
@@ -30,6 +31,7 @@ namespace SExtractor {
 using namespace ModelFitting;
 
 MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
+    m_size(getSize(source)),
     m_center_x(getCenterX(source)),
     m_center_y(getCenterY(source)),
     m_ref_coordinate_system(getRefCoordinateSystem(source)),
@@ -52,9 +54,9 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
         [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
         dev_effective_radius),
 
-    exp_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    exp_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.0)),
     exp_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
-    dev_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.01)),
+    dev_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.0)),
     dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     m_number_of_parameters(0)
@@ -68,11 +70,18 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
       } else {
         m_band_nb.emplace_back(m_band_nb.back()+1);
       }
-      auto exp_i0_guess = m_exp_flux_guess / (M_PI * 2.0 * 0.346 * m_radius_guess * m_radius_guess * m_aspect_guess);
-      exp_i0s.emplace_back(new EngineParameter(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 20)));
 
-      auto dev_i0_guess = m_dev_flux_guess * pow(10, 3.33) / (7.2 * M_PI * m_radius_guess * m_radius_guess * m_aspect_guess);
-      dev_i0s.emplace_back(new EngineParameter(dev_i0_guess, make_unique<ExpSigmoidConverter>(dev_i0_guess * .00001, dev_i0_guess * 20)));
+      exp_fluxes.emplace_back(new EngineParameter(m_exp_flux_guess, make_unique<ExpSigmoidConverter>(m_exp_flux_guess * .00001, m_exp_flux_guess * 20)));
+      dev_fluxes.emplace_back(new EngineParameter(m_dev_flux_guess, make_unique<ExpSigmoidConverter>(m_dev_flux_guess * .00001, m_dev_flux_guess * 20)));
+
+      exp_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+          [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+          *exp_fluxes.back(), exp_effective_radius, exp_aspect));
+      dev_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+          [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+          *dev_fluxes.back(), dev_effective_radius, dev_aspect));
+
+
     } else {
       m_band_nb.emplace_back(m_band_nb.back());
     }
@@ -91,24 +100,22 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
         }, dx, dy));
   }
 
-  void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ExtendedModel>& extended_models, int size) {
+  void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ExtendedModel>& extended_models) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *exp_i0s[m_band_nb[frame_nb]], exp_n, exp_k);
-      //auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *exp_i0s[m_band_nb[frame_nb]], exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, size, size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
+      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
     }
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), *dev_i0s[m_band_nb[frame_nb]], dev_n, dev_k);
-      //auto dev = make_unique<SersicModelComponent>(make_unique<AutoSharp>(), dev_i0, dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *dev_i0s[m_band_nb[frame_nb]], dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
-      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, size, size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
+      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
     }
   }
 
@@ -125,16 +132,13 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
 
     m_number_of_parameters += 8;
 
-//    manager.registerParameter(exp_i0);
-//    manager.registerParameter(dev_i0);
-
-    for (auto& exp_i0 : exp_i0s) {
-      manager.registerParameter(*exp_i0);
+    for (auto& exp_flux : exp_fluxes) {
+      manager.registerParameter(*exp_flux);
       m_number_of_parameters++;
     }
 
-    for (auto& dev_i0 : dev_i0s) {
-      manager.registerParameter(*dev_i0);
+    for (auto& dev_flux : dev_fluxes) {
+      manager.registerParameter(*dev_flux);
       m_number_of_parameters++;
     }
   }
@@ -142,12 +146,16 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   void MultiframeSourceModel::debugPrint() const {
     //std::cout << "\tsize: " << m_size << "\n";
     std::cout << "\tx: " << dx.getValue() << "\ty: " << dy.getValue() << "\n";
-    for (auto& exp_i0 : exp_i0s) {
-      std::cout << exp_i0->getValue() << " ";
+    for (auto& exp_flux : exp_fluxes) {
+      std::cout << exp_flux->getValue() << " ";
     }
     std::cout << "\n";
-    //std::cout << "\texp i0: " << exp_i0.getValue()<< "\tReff: " << exp_effective_radius.getValue() << "\n";
-    //std::cout << "\tdev i0: " << dev_i0.getValue()<< "\tReff: " << dev_effective_radius.getValue() << "\n";
+  }
+
+  int MultiframeSourceModel::getSize(const SourceInterface& source) const {
+    auto& boundaries = source.getProperty<PixelBoundaries>();
+    int size = std::max(boundaries.getWidth(), boundaries.getHeight());
+    return size*2;
   }
 
   double MultiframeSourceModel::getFluxGuess(const SourceInterface& source) const {
@@ -204,30 +212,18 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   }
 
   double MultiframeSourceModel::getExpFluxForBand(int band_nb) const {
-    double total_flux = 0;
-
-    auto exp_i0 = exp_i0s[band_nb]->getValue();
-    auto exp_radius = exp_effective_radius.getValue();
-    total_flux += exp_i0 * (M_PI * 2.0 * 0.346 * exp_radius * exp_radius * exp_aspect.getValue());
-
-    return total_flux;
+    return exp_fluxes[band_nb]->getValue();
   }
 
   double MultiframeSourceModel::getDevFluxForBand(int band_nb) const {
-    double total_flux = 0;
-
-    auto dev_i0 = dev_i0s[band_nb]->getValue();
-    auto dev_radius = dev_effective_radius.getValue();
-    total_flux += dev_i0 * (7.2 * M_PI * dev_radius * dev_radius * dev_aspect.getValue()) / pow(10, 3.33);
-
-    return total_flux;
+    return dev_fluxes[band_nb]->getValue();
   }
 
   std::vector<double> MultiframeSourceModel::getFluxes() const {
     std::vector<double> fluxes;
 
-    for (unsigned int i=0; i<exp_i0s.size(); i++) {
-      fluxes.push_back(getExpFluxForBand(i)+getDevFluxForBand(i));
+    for (unsigned int i=0; i<exp_fluxes.size(); i++) {
+      fluxes.push_back(getExpFluxForBand(i) + getDevFluxForBand(i));
     }
 
     return fluxes;
@@ -236,7 +232,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   std::vector<double> MultiframeSourceModel::getExpFluxes() const {
     std::vector<double> fluxes;
 
-    for (unsigned int i=0; i<exp_i0s.size(); i++) {
+    for (unsigned int i=0; i<exp_fluxes.size(); i++) {
       fluxes.push_back(getExpFluxForBand(i));
     }
 
@@ -246,7 +242,7 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   std::vector<double> MultiframeSourceModel::getDevFluxes() const {
     std::vector<double> fluxes;
 
-    for (unsigned int i=0; i<exp_i0s.size(); i++) {
+    for (unsigned int i=0; i<dev_fluxes.size(); i++) {
       fluxes.push_back(getDevFluxForBand(i));
     }
 

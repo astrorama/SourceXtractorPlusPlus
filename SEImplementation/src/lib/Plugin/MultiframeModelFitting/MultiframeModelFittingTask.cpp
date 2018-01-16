@@ -107,7 +107,6 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
 
   std::sort(chi_squares.begin(), chi_squares.end());
 
-
   std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
   std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
 //  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
@@ -291,8 +290,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     auto source_iterator = group.begin();
     for (auto& source_model : source_models) {
       source_model->createParamsForFrame(frames[valid_frame_indices[i]]->getCoordinateSystem(), min_coord, first_frames[i]);
-      double size_factor = 2;
-      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height)* size_factor);
+      source_model->addModelsForFrame(i, extended_models);
 
       ++source_iterator;
     }
@@ -335,10 +333,6 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
   auto solution = engine.solveProblem(manager, res_estimator);
 
-//  if (solution.success_flag) {
-//    std::cout << "Success!\n";
-//  }
-
   for (auto& source_model : source_models) {
     std::cout << "After:  ";
     source_model->debugPrint();
@@ -351,6 +345,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   for (int i = 0; i < (int) valid_frame_indices.size(); i++) {
     auto stamp_width = images[i]->getWidth();
     auto stamp_height = images[i]->getHeight();
+
     //auto final_stamp = VectorImage<SeFloat>::create(stamp_width, stamp_height);
 
     std::vector<ExtendedModel> extended_models {};
@@ -360,7 +355,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
     int nb_of_params = 0;
     for (auto& source_model : source_models) {
-      source_model->addModelsForFrame(i, extended_models, std::max(stamp_width, stamp_height) * 2);
+      source_model->addModelsForFrame(i, extended_models);
       nb_of_params += source_model->getNumberOfParameters();
     }
 
