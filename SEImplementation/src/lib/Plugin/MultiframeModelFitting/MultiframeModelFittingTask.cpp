@@ -246,7 +246,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       if (stamp_width > 0 && stamp_height > 0) {
         valid_frame_indices.emplace_back(frame_index);
         psfs.emplace_back(m_psfs[i++]);
-        first_frames.emplace_back(first_frame_of_band);
+        first_frames.push_back(first_frame_of_band);
         first_frame_of_band = false;
 
         min_coords.emplace_back(min_coord);
