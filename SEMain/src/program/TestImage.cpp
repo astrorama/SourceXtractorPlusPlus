@@ -9,6 +9,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include <tuple>
 #include <vector>
 #include <valarray>
