@@ -69,8 +69,7 @@ public:
   }
 
   std::shared_ptr<T> getThresholdedImage() const {
-    return SubtractImage<typename T::PixelType>::create(getFilteredImage(), 35);
-    //return ThresholdedImage<typename T::PixelType>::create(getFilteredImage(), getVarianceMap(), 1.5);
+    return ThresholdedImage<typename T::PixelType>::create(getFilteredImage(), getVarianceMap(), 1.5);
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
