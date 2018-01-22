@@ -21,77 +21,77 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<MultiframeModelFittingTaskFactory, MultiframeModelFitting>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_x",
+          "mmf_x",
           [](const MultiframeModelFitting& prop) {
             return prop.getX();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_y",
+          "mmf_y",
           [](const MultiframeModelFitting& prop){
             return prop.getY();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_wc_alpha",
+          "mmf_alpha",
           [](const MultiframeModelFitting& prop) {
             return prop.getAlpha();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_wc_delta",
+          "mmf_delta",
           [](const MultiframeModelFitting& prop) {
             return prop.getDelta();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
-          "multi_model_fitting_fluxes",
+          "mmf_fluxes",
           [](const MultiframeModelFitting& prop) {
             return prop.getFluxes();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
-          "multi_model_fitting_exp_fluxes",
+          "mmf_exp_fluxes",
           [](const MultiframeModelFitting& prop) {
             return prop.getExpFluxes();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, std::vector<double>>(
-          "multi_model_fitting_dev_fluxes",
+          "mmf_dev_fluxes",
           [](const MultiframeModelFitting& prop) {
             return prop.getDevFluxes();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_exp_radius",
+          "mmf_exp_radius",
           [](const MultiframeModelFitting& prop) {
             return prop.getExpRadius();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_dev_radius",
+          "mmf_dev_radius",
           [](const MultiframeModelFitting& prop) {
             return prop.getDevRadius();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, double>(
-          "multi_model_fitting_reduced_chi_2",
+          "mmf_reduced_chi_2",
           [](const MultiframeModelFitting& prop) {
             return prop.getReducedChiSquared();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
-          "multi_model_fitting_iterations",
+          "mmf_iterations",
           [](const MultiframeModelFitting& prop) {
             return prop.getIterations();
           }
@@ -105,5 +105,3 @@ std::string MultiframeModelFittingPlugin::getIdString() const {
 }
 
 }
-
-

@@ -130,7 +130,7 @@ std::shared_ptr<ImagePsf> PsfConfig::generateGaussianPsf(SeFloat fwhm, SeFloat p
 }
 
 PsfConfig::PsfConfig(long manager_id) :
-    Configuration(manager_id) {}
+    Configuration(manager_id), m_psf(nullptr) {}
 
 std::map<std::string, Configuration::OptionDescriptionList> PsfConfig::getProgramOptions() {
   return { {"PSF", {

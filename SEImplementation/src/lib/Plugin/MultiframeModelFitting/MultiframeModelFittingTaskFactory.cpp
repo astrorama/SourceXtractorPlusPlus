@@ -21,9 +21,6 @@ namespace SExtractor {
 
 std::shared_ptr<Task> MultiframeModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<MultiframeModelFitting>()) {
-//    if (m_psf == nullptr) {
-//      throw Elements::Exception() << "Model fitting requested but no PSF provided";
-//    }
     return std::make_shared<MultiframeModelFittingTask>(m_max_iterations, m_frame_indices_per_band, m_psfs);
   } else {
     return nullptr;
@@ -56,9 +53,12 @@ void MultiframeModelFittingTaskFactory::configure(Euclid::Configuration::ConfigM
       if (psfs[image_index] != nullptr) {
         m_psfs.emplace_back(psfs[image_index]);
       } else {
-        m_psfs.emplace_back(default_psf);
+        if (default_psf != nullptr) {
+          m_psfs.emplace_back(default_psf);
+        } else {
+          throw Elements::Exception() << "Model fitting requested but no PSF provided";
+        }
       }
-
     }
   }
 }
