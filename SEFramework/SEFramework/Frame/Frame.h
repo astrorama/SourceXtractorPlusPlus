@@ -37,6 +37,7 @@ public:
             m_coordinate_system(coordinate_system),
             m_gain(gain),
             m_saturation(saturation),
+            m_detection_threshold(0),
             m_variance_threshold(variance_threshold)
             {}
 
@@ -47,6 +48,7 @@ public:
             m_coordinate_system(coordinate_system),
             m_gain(0),
             m_saturation(0),
+            m_detection_threshold(0),
             m_variance_threshold(0)
             {}
 
@@ -69,7 +71,7 @@ public:
   }
 
   std::shared_ptr<T> getThresholdedImage() const {
-    return ThresholdedImage<typename T::PixelType>::create(getFilteredImage(), getVarianceMap(), 1.5);
+    return ThresholdedImage<typename T::PixelType>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
@@ -109,12 +111,10 @@ public:
 //  }
 
   typename T::PixelType getDetectionThreshold() const {
-    return sqrt(m_variance_map->getValue(0,0)) * 1.5;
-    //return m_detection_threshold; // FIXME!!!!!!
+		return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
   }
 
   void setDetectionThreshold(typename T::PixelType detection_threshold) {
-    // FIXME this does nothing currently
     m_detection_threshold = detection_threshold;
   }
 

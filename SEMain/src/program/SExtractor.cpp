@@ -208,8 +208,8 @@ public:
     }
 
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-        << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
+    //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 

@@ -26,7 +26,7 @@ std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::ge
   return { {"Detection image", {
       {BACKGROUND_VALUE.c_str(), po::value<SeFloat>(),
           "Background value to be subtracted from the detection image."},
-      {THRESHOLD_VALUE.c_str(), po::value<SeFloat>(),
+      {THRESHOLD_VALUE.c_str(), po::value<SeFloat>()->default_value((1.5)),
           "Detection threshold above the background."},
   }}};
 }
