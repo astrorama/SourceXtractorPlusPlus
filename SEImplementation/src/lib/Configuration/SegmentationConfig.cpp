@@ -83,7 +83,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter()
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const std::string& filename) const {
-
+  //std::cout << "\n\nloading file: " << filename << std::endl;
   std::ifstream file;
   file.open(filename);
 
@@ -101,17 +101,30 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-    line = std::regex_replace(line, std::regex("\\s+#.*"), std::string(""));
-    line = std::regex_replace(line, std::regex("\\s+$"), std::string(""));
-    if (line.size() == 0) {
+    //std::cout << "current line: " << line<< std::endl;
+    //line = std::regex_replace(line, std::regex("\\s+#.*"), std::string(""));
+    //std::cout << "reg1 line: " << line<< std::endl;
+    //line = std::regex_replace(line, std::regex("\\s+$"), std::string(""));
+    //std::cout << "reg2 line: " << line<< " length: "<< line.size() << std::endl;
+    //if (line.size() == 0) {
+    //  continue;
+    //}
+    // TODO: mandate the # at the beginning of the line
+    //if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
+    if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
+      //std::cout << "skipping line: " << line<< std::endl;
       continue;
     }
+    //if (line.size() == 0) {
+    //  continue;
+    //}
 
     std::stringstream line_stream(line);
 
     switch (state) {
       case LoadState::STATE_START:
         {
+          //std::cout << "STATE_START: " << line<< std::endl;
           std::string conv, norm_type;
           line_stream >> conv >> norm_type;
           if (conv != "CONV") {
@@ -128,15 +141,18 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
         }
         break;
       case LoadState::STATE_FIRST_LINE:
+        //std::cout << "STATE_FIRST_LINE: " << line<< std::endl;
         while (line_stream.good()) {
           SeFloat value;
           line_stream >> value;
+          //std::cout << " value: " << value;
           kernel_data.push_back(value);
         }
         kernel_width = kernel_data.size();
         state = LoadState::STATE_OTHER_LINES;
         break;
       case LoadState::STATE_OTHER_LINES:
+        //std::cout << "STATE_OTHER_LINES: " << line<< std::endl;
         while (line_stream.good()) {
           SeFloat value;
           line_stream >> value;
@@ -147,6 +163,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   }
 
   auto kernel_height = kernel_data.size() / kernel_width;
+  //std::cout << " height: " << kernel_height << " width: " << kernel_width << " size: " << kernel_data.size() << std::endl;
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
