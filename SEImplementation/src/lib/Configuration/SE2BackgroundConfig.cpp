@@ -22,7 +22,7 @@ SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
 
 std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig::getProgramOptions() {
   return { {"Background modelling", {
-      {CELLSIZE_VALUE.c_str(), po::value<std::string>()->default_value(std::string("10")),
+      {CELLSIZE_VALUE.c_str(), po::value<std::string>()->default_value(std::string("64")),
           "Background mesh cell size to determine a value."},
       {SMOOTHINGBOX_VALUE.c_str(), po::value<std::string>()->default_value(std::string("3")),
           "Background median filter size"},
