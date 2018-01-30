@@ -55,6 +55,8 @@ public:
 private:
   std::shared_ptr<DetectionImageProcessing> getDefaultFilter() const;
   std::shared_ptr<DetectionImageProcessing> loadFilter(const std::string& filename) const;
+  std::shared_ptr<DetectionImageProcessing> loadFITSFilter(const std::string& filename) const;
+  std::shared_ptr<DetectionImageProcessing> loadASCIIFilter(const std::string& filename) const;
 
   Algorithm m_selected_algorithm;
   bool m_filtering_enabled;

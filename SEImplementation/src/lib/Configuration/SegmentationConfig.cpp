@@ -14,6 +14,7 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
+//#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
@@ -54,6 +55,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     auto filter_filename = args.at(SEGMENTATION_FILTER).as<std::string>();
     if (filter_filename != "") {
       m_filter = loadFilter(filter_filename);
+      if (m_filter == nullptr)
+        throw Elements::Exception() << "Can not load filter: " << filter_filename;
     } else {
       m_filter = getDefaultFilter();
     }
@@ -66,6 +69,7 @@ void SegmentationConfig::initialize(const UserValues&) {
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter() const {
+  std::cout << "Using the default segmentation filter." << std::endl;
   auto convolution_kernel = VectorImage<SeFloat>::create(3, 3);
   convolution_kernel->setValue(0,0, 1);
   convolution_kernel->setValue(0,1, 2);
@@ -83,9 +87,39 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter()
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const std::string& filename) const {
-  //std::cout << "\n\nloading file: " << filename << std::endl;
+  // check for the extension ".fits"
+  std::string fits_ending(".fits");
+  if (filename.length() >= fits_ending.length()
+      && filename.compare (filename.length() - fits_ending.length(), fits_ending.length(), fits_ending)==0) {
+    // load a FITS filter
+    return loadFITSFilter(filename);
+  }
+  else{
+    // load an ASCII filter
+    return loadASCIIFilter(filename);
+  }
+}
+
+std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFITSFilter(const std::string& filename) const {
+
+  // read in the FITS file
+  auto convolution_kernel = FitsReader<SeFloat>::readFile(filename);
+
+  // give some feedback on the filter
+  std::cout << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth() << std::endl;
+
+  // return the correct object
+  return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
+}
+
+std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(const std::string& filename) const {
   std::ifstream file;
+
+  // open the file and check
   file.open(filename);
+  if (!file.good() || !file.is_open()){
+    throw Elements::Exception() << "Can not load filter: " << filename;
+  }
 
   enum class LoadState {
     STATE_START,
@@ -101,23 +135,13 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-    //std::cout << "current line: " << line<< std::endl;
-    //line = std::regex_replace(line, std::regex("\\s+#.*"), std::string(""));
-    //std::cout << "reg1 line: " << line<< std::endl;
-    //line = std::regex_replace(line, std::regex("\\s+$"), std::string(""));
-    //std::cout << "reg2 line: " << line<< " length: "<< line.size() << std::endl;
-    //if (line.size() == 0) {
-    //  continue;
-    //}
+
     // TODO: mandate the # at the beginning of the line
     //if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
     if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
       //std::cout << "skipping line: " << line<< std::endl;
       continue;
     }
-    //if (line.size() == 0) {
-    //  continue;
-    //}
 
     std::stringstream line_stream(line);
 
@@ -162,10 +186,14 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
       }
   }
 
+  // compute the dimensions and create the kernel
   auto kernel_height = kernel_data.size() / kernel_width;
-  //std::cout << " height: " << kernel_height << " width: " << kernel_width << " size: " << kernel_data.size() << std::endl;
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
+  // give some feedback on the filter
+  std::cout << "Loaded segmentation filter: " << filename << " height: " << kernel_height << " width: " << kernel_width << std::endl;
+
+  // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
 }
 
