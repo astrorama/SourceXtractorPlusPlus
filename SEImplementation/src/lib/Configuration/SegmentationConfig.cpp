@@ -14,7 +14,7 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
-//#include "SEFramework/Image/FitsReader.h"
+#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
