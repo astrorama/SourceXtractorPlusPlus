@@ -28,12 +28,21 @@ public:
 
 private:
 
-  std::shared_ptr<VectorImage<SeFloat>> createWeightImage(
-      SourceGroupInterface& group, int width, int height, PixelCoordinate offset, int frame_index) const;
+  struct StampRectangle {
+    PixelCoordinate m_min_coord, m_max_coord;
 
-  void setup() const;
-  void minimize() const;
-  void getResults() const;
+    StampRectangle() {}
+    StampRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord) : m_min_coord(min_coord), m_max_coord(max_coord) {}
+
+    int getWidth() const { return m_max_coord.m_x - m_min_coord.m_x; }
+    int getHeight() const { return m_max_coord.m_y - m_min_coord.m_y; }
+  };
+
+  std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceGroupInterface& group, int frame_index) const;
+  std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceGroupInterface& group, int frame_index) const;
+
+  StampRectangle getStampRectangle(SourceGroupInterface& group, int frame_index) const;
+  bool isFrameValid(SourceGroupInterface& group, int frame_index) const;
 
   // Task configuration
   unsigned int m_max_iterations;

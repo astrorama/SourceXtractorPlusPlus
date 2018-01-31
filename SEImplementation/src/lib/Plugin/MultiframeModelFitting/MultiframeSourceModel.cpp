@@ -63,28 +63,28 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   {
   }
 
-  void MultiframeSourceModel::createParamsForFrame(std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset, bool first_frame_of_band) {
-    if (first_frame_of_band) {
-      if (m_band_nb.size()==0) {
-        m_band_nb.emplace_back(0);
-      } else {
-        m_band_nb.emplace_back(m_band_nb.back()+1);
-      }
+void MultiframeSourceModel::createPlaceholderForInactiveBand() {
+  exp_fluxes.emplace_back(nullptr);
+  dev_fluxes.emplace_back(nullptr);
+  exp_i0s.emplace_back(nullptr);
+  dev_i0s.emplace_back(nullptr);
+}
 
-      exp_fluxes.emplace_back(new EngineParameter(m_exp_flux_guess, make_unique<ExpSigmoidConverter>(m_exp_flux_guess * .00001, m_exp_flux_guess * 20)));
-      dev_fluxes.emplace_back(new EngineParameter(m_dev_flux_guess, make_unique<ExpSigmoidConverter>(m_dev_flux_guess * .00001, m_dev_flux_guess * 20)));
+void MultiframeSourceModel::createParamsForBand() {
+    exp_fluxes.emplace_back(new EngineParameter(m_exp_flux_guess, make_unique<ExpSigmoidConverter>(m_exp_flux_guess * .00001, m_exp_flux_guess * 20)));
+    dev_fluxes.emplace_back(new EngineParameter(m_dev_flux_guess, make_unique<ExpSigmoidConverter>(m_dev_flux_guess * .00001, m_dev_flux_guess * 20)));
 
-      exp_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
-          [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
-          *exp_fluxes.back(), exp_effective_radius, exp_aspect));
-      dev_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
-          [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
-          *dev_fluxes.back(), dev_effective_radius, dev_aspect));
+    exp_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+       [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+       *exp_fluxes.back(), exp_effective_radius, exp_aspect));
+    dev_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+       [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+       *dev_fluxes.back(), dev_effective_radius, dev_aspect));
+  }
 
-
-    } else {
-      m_band_nb.emplace_back(m_band_nb.back());
-    }
+  void MultiframeSourceModel::createParamsForFrame(int band_nb, int frame_nb, std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) {
+    m_frame_map[frame_nb] = pixel_x.size();
+    m_frame_band_map[frame_nb] = band_nb;
 
     auto cx = m_center_x;
     auto cy = m_center_y;
@@ -100,22 +100,24 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
         }, dx, dy));
   }
 
-  void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ExtendedModel>& extended_models) {
+  void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *exp_i0s[m_band_nb[frame_nb]], exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *(exp_i0s[m_frame_band_map[frame_nb]]), exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
+      extended_models.emplace_back(
+          std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]));
     }
     // devaucouleurs
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *dev_i0s[m_band_nb[frame_nb]], dev_n, dev_k);
+      auto dev = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *(dev_i0s[m_frame_band_map[frame_nb]]), dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(dev));
-      extended_models.emplace_back(std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, *(pixel_x[frame_nb]), *(pixel_y[frame_nb]));
+      extended_models.emplace_back(
+          std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]));
     }
   }
 
@@ -133,13 +135,17 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     m_number_of_parameters += 8;
 
     for (auto& exp_flux : exp_fluxes) {
-      manager.registerParameter(*exp_flux);
-      m_number_of_parameters++;
+      if (exp_flux != nullptr) {
+        manager.registerParameter(*exp_flux);
+        m_number_of_parameters++;
+      }
     }
 
     for (auto& dev_flux : dev_fluxes) {
-      manager.registerParameter(*dev_flux);
-      m_number_of_parameters++;
+      if (dev_flux != nullptr) {
+        manager.registerParameter(*dev_flux);
+        m_number_of_parameters++;
+      }
     }
   }
 
@@ -147,7 +153,9 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
     //std::cout << "\tsize: " << m_size << "\n";
     std::cout << "\tx: " << dx.getValue() << "\ty: " << dy.getValue() << "\n";
     for (auto& exp_flux : exp_fluxes) {
-      std::cout << exp_flux->getValue() << " ";
+      if (exp_flux != nullptr) {
+        std::cout << exp_flux->getValue() << " ";
+      }
     }
     std::cout << "\n";
   }
@@ -212,11 +220,11 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
   }
 
   double MultiframeSourceModel::getExpFluxForBand(int band_nb) const {
-    return exp_fluxes[band_nb]->getValue();
+    return exp_fluxes[band_nb] != nullptr ? exp_fluxes[band_nb]->getValue() : nan("");
   }
 
   double MultiframeSourceModel::getDevFluxForBand(int band_nb) const {
-    return dev_fluxes[band_nb]->getValue();
+    return dev_fluxes[band_nb] != nullptr ? dev_fluxes[band_nb]->getValue() : nan("");
   }
 
   std::vector<double> MultiframeSourceModel::getFluxes() const {
