@@ -28,8 +28,8 @@ protected:
 
   ThresholdedImage(std::shared_ptr<const Image<T>> image, std::shared_ptr<const Image<T>> variance_map, T threshold_multiplier)
       : m_image(image), m_variance_map(variance_map), m_threshold_multiplier(threshold_multiplier) {
-    assert(m_image->getWidth() == m_image_to_subtract->getWidth());
-    assert(m_image->getHeight() == m_image_to_subtract->getHeight());
+    assert(m_image->getWidth() == m_variance_map->getWidth());
+    assert(m_image->getHeight() == m_variance_map->getHeight());
   };
 
 public:
