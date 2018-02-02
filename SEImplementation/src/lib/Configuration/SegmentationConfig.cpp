@@ -10,6 +10,7 @@
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
+#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
@@ -24,6 +25,8 @@ using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
 namespace SExtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("SegmentationConfig");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
@@ -69,7 +72,7 @@ void SegmentationConfig::initialize(const UserValues&) {
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter() const {
-  std::cout << "Using the default segmentation filter." << std::endl;
+  logger.info() << "Using the default segmentation (3x3) filter.";
   auto convolution_kernel = VectorImage<SeFloat>::create(3, 3);
   convolution_kernel->setValue(0,0, 1);
   convolution_kernel->setValue(0,1, 2);
@@ -106,7 +109,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFITSFilter(con
   auto convolution_kernel = FitsReader<SeFloat>::readFile(filename);
 
   // give some feedback on the filter
-  std::cout << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth() << std::endl;
+  logger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
 
   // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
@@ -191,7 +194,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
   // give some feedback on the filter
-  std::cout << "Loaded segmentation filter: " << filename << " height: " << kernel_height << " width: " << kernel_width << std::endl;
+  logger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
 
   // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
