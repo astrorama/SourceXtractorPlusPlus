@@ -6,6 +6,10 @@
 
 #include <iostream>
 #include <regex>
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
 #include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -139,10 +143,12 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
     std::string line;
     std::getline(file, line);
 
-    // TODO: mandate the # at the beginning of the line
-    //if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
-    if (line.size() == 0 || std::regex_match(line, std::regex("(#)(.*)"))){
-      //std::cout << "skipping line: " << line<< std::endl;
+    line = regex_replace(line, regex("\\s+#.*"), std::string(""));
+    line = regex_replace(line, regex("\\s+$"), std::string(""));
+
+    // TODO: mandate the # at the beginning of the line??
+    if (line.size() == 0 || regex_match(line, regex("(#)(.*)"))){
+      //segConfigLogger.info() << "skipping line: " << line;
       continue;
     }
 
@@ -168,19 +174,17 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
         }
         break;
       case LoadState::STATE_FIRST_LINE:
-        line_stream >> value;
         while (line_stream.good()) {
-           kernel_data.push_back(value);
           line_stream >> value;
+          kernel_data.push_back(value);
         }
         kernel_width = kernel_data.size();
         state = LoadState::STATE_OTHER_LINES;
         break;
       case LoadState::STATE_OTHER_LINES:
-        line_stream >> value;
         while (line_stream.good()) {
-          kernel_data.push_back(value);
           line_stream >> value;
+          kernel_data.push_back(value);
         }
         break;
       }
@@ -191,7 +195,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
   // give some feedback on the filter
-  segConfigLogger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
+  segConfigLogger.info() << "Loaded segmentation filter: " << filename << " width: " << convolution_kernel->getWidth() << " height: " << convolution_kernel->getHeight();
 
   // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
