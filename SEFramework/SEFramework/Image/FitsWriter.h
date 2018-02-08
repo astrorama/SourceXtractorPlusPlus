@@ -10,8 +10,11 @@
 
 #include <CCfits/CCfits>
 #include "SEFramework/Image/Image.h"
+#include "ElementsKernel/ProgramHeaders.h"
 
 namespace SExtractor {
+
+static Elements::Logging fitsWriterLogger = Elements::Logging::getLogger("FitsWriter");
 
 /**
  * @class FitsWriter
@@ -44,7 +47,7 @@ public:
     long naxes[2] = { image.getWidth(), image.getHeight() };
     std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
     pFits->pHDU().write(1, total, data);
-    std::cout << "Created file " << filename << '\n';
+    fitsWriterLogger.info() << "Created file " << filename;
   }
 
 }; /* End of FitsReader class */

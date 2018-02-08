@@ -26,7 +26,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static Elements::Logging logger = Elements::Logging::getLogger("SegmentationConfig");
+static Elements::Logging segConfigLogger = Elements::Logging::getLogger("SegmentationConfig");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
@@ -72,7 +72,7 @@ void SegmentationConfig::initialize(const UserValues&) {
 }
 
 std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter() const {
-  logger.info() << "Using the default segmentation (3x3) filter.";
+  segConfigLogger.info() << "Using the default segmentation (3x3) filter.";
   auto convolution_kernel = VectorImage<SeFloat>::create(3, 3);
   convolution_kernel->setValue(0,0, 1);
   convolution_kernel->setValue(0,1, 2);
@@ -109,7 +109,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFITSFilter(con
   auto convolution_kernel = FitsReader<SeFloat>::readFile(filename);
 
   // give some feedback on the filter
-  logger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
+  segConfigLogger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
 
   // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
@@ -149,9 +149,9 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
     std::stringstream line_stream(line);
 
     switch (state) {
+      SeFloat value;
       case LoadState::STATE_START:
         {
-          //std::cout << "STATE_START: " << line<< std::endl;
           std::string conv, norm_type;
           line_stream >> conv >> norm_type;
           if (conv != "CONV") {
@@ -168,22 +168,19 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
         }
         break;
       case LoadState::STATE_FIRST_LINE:
-        //std::cout << "STATE_FIRST_LINE: " << line<< std::endl;
+        line_stream >> value;
         while (line_stream.good()) {
-          SeFloat value;
+           kernel_data.push_back(value);
           line_stream >> value;
-          //std::cout << " value: " << value;
-          kernel_data.push_back(value);
         }
         kernel_width = kernel_data.size();
         state = LoadState::STATE_OTHER_LINES;
         break;
       case LoadState::STATE_OTHER_LINES:
-        //std::cout << "STATE_OTHER_LINES: " << line<< std::endl;
+        line_stream >> value;
         while (line_stream.good()) {
-          SeFloat value;
-          line_stream >> value;
           kernel_data.push_back(value);
+          line_stream >> value;
         }
         break;
       }
@@ -194,7 +191,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 
   // give some feedback on the filter
-  logger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
+  segConfigLogger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
 
   // return the correct object
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);

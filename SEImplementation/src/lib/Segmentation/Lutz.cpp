@@ -50,7 +50,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
 
   std::unordered_map<int, PixelGroup> inc_group_map;
 
-  std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
+  //std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
 
   for (int y=0; y<image.getHeight(); y++) {
     LutzStatus ps = LutzStatus::COMPLETE;
@@ -66,7 +66,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
       bool in_object = value > 0.0;
       if (in_object) {
         // We have an object pixel
-        check_image->setValue(x, y, 1);
+        //check_image->setValue(x, y, 1);
         if (cs != LutzStatus::OBJECT) {
           // Previous pixel not object, start new segment
 
@@ -196,7 +196,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
     }
   }
 
-  FitsWriter::writeFile<unsigned int>(*check_image, "segCheck.fits");
+  //FitsWriter::writeFile<unsigned int>(*check_image, "segCheck.fits");
   // Process the pixel groups left in the inc_group_map
   for (auto& group : inc_group_map) {
     listener.publishGroup(group.second);
