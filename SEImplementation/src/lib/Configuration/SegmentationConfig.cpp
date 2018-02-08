@@ -5,7 +5,14 @@
  */
 
 #include <iostream>
-#include <regex>
+
+//#include <regex>
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
+
+
 #include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -101,8 +108,8 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-    line = std::regex_replace(line, std::regex("\\s+#.*"), std::string(""));
-    line = std::regex_replace(line, std::regex("\\s+$"), std::string(""));
+    line = regex_replace(line, regex("\\s+#.*"), std::string(""));
+    line = regex_replace(line, regex("\\s+$"), std::string(""));
     if (line.size() == 0) {
       continue;
     }
