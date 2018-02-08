@@ -22,7 +22,7 @@ public:
   MultiframeModelFittingTask(unsigned int max_iterations,
       std::vector<std::vector<int>> frame_indices_per_band, std::vector<std::shared_ptr<ImagePsf>> psfs);
 
-  virtual ~MultiframeModelFittingTask() = default;
+  virtual ~MultiframeModelFittingTask();
 
   virtual void computeProperties(SourceGroupInterface& group) const override;
 
@@ -48,6 +48,9 @@ private:
   unsigned int m_max_iterations;
   std::vector<std::vector<int>> m_frame_indices_per_band;
   std::vector<std::shared_ptr<ImagePsf>> m_psfs;
+
+  std::map<int, std::shared_ptr<VectorImage<SeFloat>>> m_debug_images;
+  std::map<int, std::shared_ptr<Image<SeFloat>>> m_residual_images;
 };
 
 }

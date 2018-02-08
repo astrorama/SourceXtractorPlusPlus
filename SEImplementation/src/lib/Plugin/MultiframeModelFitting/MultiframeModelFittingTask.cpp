@@ -227,14 +227,13 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
 
   // Pepare debug images
-  static std::map<int, std::shared_ptr<VectorImage<SeFloat>>> debug_images;
-  if (debug_images.size() == 0) {
+  if (m_debug_images.size() == 0) {
     for (auto& frame_indices : m_frame_indices_per_band) {
       for (auto frame_index : frame_indices) {
         auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
         auto debug_image = VectorImage<SeFloat>::create(frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight());
-        debug_images[frame_index] = debug_image;
+        const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index] = debug_image;
       }
     }
   }
@@ -254,6 +253,24 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         validated_frame_indices_per_band.back().emplace_back(frame_index);
       }
     }
+  }
+
+  if (total_nb_of_valid_frames == 0) {
+    // Can't do model fitting as no measurement frame overlaps the detected source
+    // We still need to provide a property
+    for (auto& source : group) {
+      source.setProperty<MultiframeModelFitting>(
+          nan(""), nan(""),
+          nan(""), nan(""),
+          nan(""), nan(""),
+          std::vector<double>(m_frame_indices_per_band.size(), nan("")),
+          std::vector<double>(m_frame_indices_per_band.size(), nan("")),
+          std::vector<double>(m_frame_indices_per_band.size(), nan("")),
+          0, nan("")
+          );
+    }
+
+    return;
   }
 
   // Setup models for all the sources
@@ -366,10 +383,15 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {
-          debug_images[frame_index]->at(
+          const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]->at(
               stamp_rect.m_min_coord.m_x + x, stamp_rect.m_min_coord.m_y + y) += final_stamp->getValue(x,y);
         }
       }
+
+      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+      auto residual_image = SubtractImage<SeFloat>::create(frame->getOriginalImage(),
+            const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]);
+      const_cast<MultiframeModelFittingTask*>(this)->m_residual_images[frame_index] = residual_image;
 
       SeFloat reduced_chi_squared = computeReducedChiSquared(
           images[image_nb], final_stamp, weights[image_nb], nb_of_params);
@@ -399,26 +421,32 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         );
   }
 
+  std::cout << "...\n";
+}
+
+MultiframeModelFittingTask::~MultiframeModelFittingTask() {
+  std::cout << "Writing output images\n";
+
   // Output debug images
   {
-    for (auto& frame_indices : m_frame_indices_per_band) {
+    for (int band_nb=0; band_nb < m_frame_indices_per_band.size(); band_nb++) {
+      auto& frame_indices = m_frame_indices_per_band[band_nb];
       for (auto frame_index : frame_indices) {
         std::stringstream file_name;
-        file_name << "debug_" << frame_index << ".fits";
+        file_name << "debug_" << band_nb << "_" << frame_index << ".fits";
+        FitsWriter::writeFile(*(m_debug_images[frame_index]), file_name.str());
 
-        FitsWriter::writeFile(*(debug_images[frame_index]), file_name.str());
-
-        auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-        auto residual_image = SubtractImage<SeFloat>::create(frame->getOriginalImage(), debug_images[frame_index]);
-        std::stringstream res_file_name;
-        res_file_name << "res_" << frame_index << ".fits";
-
-        FitsWriter::writeFile(*residual_image, res_file_name.str());
+        if (m_residual_images[frame_index] != nullptr) {
+          std::stringstream res_file_name;
+          res_file_name << "res_" << band_nb << "_" << frame_index << ".fits";
+          FitsWriter::writeFile(*m_residual_images[frame_index], res_file_name.str());
+        }
       }
     }
   }
 
-  std::cout << "...\n";
+
 }
+
 
 }
