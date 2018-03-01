@@ -20,6 +20,7 @@
 
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"

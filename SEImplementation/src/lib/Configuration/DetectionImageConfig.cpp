@@ -6,6 +6,9 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
+#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/Image/BufferedImage.h"
+
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
@@ -35,7 +38,13 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  m_detection_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
+  //m_detection_image = FitsReader<DetectionImage::PixelType>::readFile();
+
+  // FIXME streamline the syntax
+  auto detection_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(
+        args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_detection_image = BufferedImage<DetectionImage::PixelType>::create(detection_image_source);
+
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
   m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
   m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
