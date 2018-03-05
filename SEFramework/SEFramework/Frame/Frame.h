@@ -140,7 +140,7 @@ private:
 
   void applyFilter() {
     if (m_filter != nullptr) {
-      m_filtered_image = m_filter->processImage(getSubtractedImage());
+      m_filtered_image = m_filter->processImage(getSubtractedImage(), getVarianceMap(), getVarianceThreshold());
     } else {
       m_filtered_image = getSubtractedImage();
     }

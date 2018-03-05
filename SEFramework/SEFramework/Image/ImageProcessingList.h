@@ -31,6 +31,14 @@ public:
 
     return processed_image;
   }
+  virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> variance, T threshold) const override {
+    auto processed_image = image;
+    for (auto& processing_step : m_processing_list) {
+      processed_image = processing_step->processImage(processed_image, variance, threshold);
+    }
+
+    return processed_image;
+  }
 
 private:
   std::vector<std::shared_ptr<ImageProcessing<T>>> m_processing_list;

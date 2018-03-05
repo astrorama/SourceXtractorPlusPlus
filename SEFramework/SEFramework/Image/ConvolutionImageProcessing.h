@@ -32,6 +32,7 @@ public:
       for (int x = 0; x < image->getWidth(); x++) {
 
         T total = 0;
+        T conv_weight=0;
 
         for (int cy = 0; cy < m_kernel->getHeight(); cy++) {
           for (int cx = 0; cx < m_kernel->getWidth(); cx++) {
@@ -41,11 +42,11 @@ public:
 
             if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
               total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
+              conv_weight += m_kernel->getValue(cx, cy);
             }
-
-            result_image->setValue(x, y, total);
           }
         }
+        result_image->setValue(x, y, total/conv_weight);
       }
     }
 

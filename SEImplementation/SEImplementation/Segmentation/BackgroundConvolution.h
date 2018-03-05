@@ -24,6 +24,7 @@ public:
   }
 
   virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image) const override;
+  virtual std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance, SeFloat threshold) const override;
 
 private:
   void normalize();
