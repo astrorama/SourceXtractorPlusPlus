@@ -8,41 +8,68 @@
 #ifndef _SEFRAMEWORK_IMAGE_TILEMANAGER_H_
 #define _SEFRAMEWORK_IMAGE_TILEMANAGER_H_
 
+#include <iostream>
+
 #include <list>
-#include <map>
+#include <unordered_map>
 
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/ImageSource.h"
 
 namespace SExtractor {
 
+struct TileKey {
+  std::shared_ptr<const ImageSourceBase> m_source;
+  int m_tile_x, m_tile_y;
+
+  bool operator==(const TileKey& other) const {
+    return m_source == other.m_source && m_tile_x == other.m_tile_x && m_tile_y == other.m_tile_y;
+  }
+};
+
+}
+
+namespace std {
+
+template <>
+struct hash<SExtractor::TileKey>
+{
+  std::size_t operator()(const SExtractor::TileKey& key) const {
+    std::size_t hash = 0;
+    boost::hash_combine(hash, key.m_source);
+    boost::hash_combine(hash, key.m_tile_x);
+    boost::hash_combine(hash, key.m_tile_y);
+    return hash;
+  }
+};
+
+}
+
+namespace SExtractor {
+
 class TileManager {
 public:
 
-  struct TileKey {
-    unsigned int m_source_id;
-    int m_tile_x, m_tile_y;
-
-    bool operator<(const TileKey& other) const {
-      return m_source_id < other.m_source_id || (m_source_id == other.m_source_id && m_tile_x < other.m_tile_x)
-          || (m_source_id == other.m_source_id && m_tile_x == other.m_tile_x && m_tile_y < other.m_tile_y);
-    }
-  };
-
-  TileManager() : m_tile_width(64), m_tile_height(64) {
+  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(1000*1024L*1024L), m_total_memory_used(0) {
   }
 
   virtual ~TileManager() = default;
 
   template <typename T>
-  std::shared_ptr<ImageTile<T>> getTileForPixel(int x, int y, const ImageSource<T>& source) {
-    TileKey key {source.getId(), x, y};
+  std::shared_ptr<ImageTile<T>> getTileForPixel(int x, int y, std::shared_ptr<const ImageSource<T>> source) {
+    x = x / m_tile_width * m_tile_width;
+    y = y / m_tile_height * m_tile_height;
+
+    TileKey key {std::static_pointer_cast<const ImageSourceBase>(source), x, y};
     auto it = m_tile_map.find(key);
     if (it != m_tile_map.end()) {
+      //std::cout << "Found in cache!\n";
       return std::dynamic_pointer_cast<ImageTile<T>>(it->second);
     } else {
-      auto tile = source.getImageTile(x, y, m_tile_width, m_tile_height);
-      m_tile_map[key] = std::static_pointer_cast<ImageTileBase>(tile);
+      auto tile = source->getImageTile(x, y,
+          std::min(m_tile_width, source->getWidth()-x), std::min(m_tile_height, source->getHeight()-y));
+      addTile(key, std::static_pointer_cast<ImageTileBase>(tile));
+      removeExtraTiles();
       return tile;
     }
   }
@@ -55,13 +82,36 @@ public:
   }
 
 private:
+
+  void removeExtraTiles() {
+    std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n";
+    while (m_total_memory_used > m_max_memory) {
+      auto tile_to_remove = m_tile_list.back();
+      m_total_memory_used -= tile_to_remove.second->getTileSize();
+      m_tile_map.erase(tile_to_remove.first);
+      m_tile_list.pop_back();
+      std::cout << "removing tile...\n";
+    }
+    std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n\n";
+  }
+
+  void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {
+    m_tile_map[key] = tile;
+    m_tile_list.push_front({key, tile});
+    m_total_memory_used += tile->getTileSize();
+  }
+
   int m_tile_width, m_tile_height;
-  std::map<TileKey, std::shared_ptr<ImageTileBase>> m_tile_map;
-  std::list<std::shared_ptr<ImageTileBase>> m_tile_list;
+  long m_max_memory;
+  long m_total_memory_used;
+
+  std::unordered_map<TileKey, std::shared_ptr<ImageTileBase>> m_tile_map;
+  std::list<std::pair<TileKey, std::shared_ptr<ImageTileBase>>> m_tile_list;
 
   static std::shared_ptr<TileManager> s_instance;
 };
 
 }
+
 
 #endif /* _SEFRAMEWORK_IMAGE_TILEMANAGER_H_ */

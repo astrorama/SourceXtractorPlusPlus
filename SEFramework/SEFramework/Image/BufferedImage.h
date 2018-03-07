@@ -22,23 +22,24 @@ template <typename T>
 class BufferedImage : public ImageBase<T> {
 protected:
 
-  BufferedImage(std::shared_ptr<ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager)
+  BufferedImage(std::shared_ptr<const ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager)
       : m_source(source), m_tile_manager(tile_manager) {}
 
 public:
   virtual ~BufferedImage() = default;
 
-  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<ImageSource<T>> source,
+  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<const ImageSource<T>> source,
       std::shared_ptr<TileManager> tile_manager = TileManager::getInstance()) {
     return std::shared_ptr<BufferedImage<T>>(new BufferedImage<T>(source, tile_manager));
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const {
+    //std::cout << "BufferedImage::getValue() " << x << " " << y << "\n";
     assert(x >= 0 && y >=0 && x < m_source->getWidth() && y < m_source->getHeight());
 
     if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
-      const_cast<BufferedImage<T>*>(this)->m_current_tile = m_tile_manager->getTileForPixel(x, y, *m_source);
+      const_cast<BufferedImage<T>*>(this)->m_current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
     }
 
     return m_current_tile->getValue(x, y);
@@ -55,7 +56,7 @@ public:
   }
 
 private:
-  std::shared_ptr<ImageSource<T>> m_source;
+  std::shared_ptr<const ImageSource<T>> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
   std::shared_ptr<ImageTile<T>> m_current_tile;
 };

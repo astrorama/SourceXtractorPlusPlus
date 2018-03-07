@@ -17,6 +17,8 @@ class ImageTileBase {
 public:
   virtual ~ImageTileBase() = default;
 
+  virtual int getTileSize() const = 0;
+
 private:
 };
 
@@ -36,6 +38,15 @@ public:
 
     return m_tile_image->getValue(x-m_x, y-m_y);
   }
+
+  std::shared_ptr<VectorImage<T>> getImage() {
+    return m_tile_image;
+  }
+
+  int getTileSize() const override {
+    return (m_max_x-m_x) * (m_max_y-m_y) * sizeof(T);
+  }
+
 
 private:
   int m_x, m_y;

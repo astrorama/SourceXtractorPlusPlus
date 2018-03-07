@@ -13,8 +13,13 @@
 
 namespace SExtractor {
 
+class ImageSourceBase {
+public:
+  virtual ~ImageSourceBase() = default;
+};
+
 template <typename T>
-class ImageSource {
+class ImageSource : public ImageSourceBase {
 public:
 
   ImageSource() {}
@@ -28,10 +33,6 @@ public:
 
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
-
-  virtual int getId() const {
-    return 0; // FIXME
-  }
 
 private:
 
