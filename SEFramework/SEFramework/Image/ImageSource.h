@@ -28,6 +28,8 @@ public:
 
   virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const = 0;
 
+  virtual void saveTile(ImageTile<T>& tile) = 0;
+
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
 

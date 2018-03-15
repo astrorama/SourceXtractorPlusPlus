@@ -12,7 +12,7 @@ void SourceIdCheckImage::handleMessage(const std::shared_ptr<SourceInterface>& s
     auto coordinates = source->getProperty<PixelCoordinateList>();
 
     for (auto& coord : coordinates.getCoordinateList()) {
-      m_check_image->setValue(coord, m_object_id);
+      m_check_image->setValue(coord.m_x, coord.m_y, m_object_id);
     }
     m_object_id++;
   }

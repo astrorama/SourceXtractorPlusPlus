@@ -10,6 +10,8 @@
 
 #include <CCfits/CCfits>
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/Image/WriteableBufferedImage.h"
 
 namespace SExtractor {
 
@@ -46,6 +48,13 @@ public:
     pFits->pHDU().write(1, total, data);
     std::cout << "Created file " << filename << '\n';
   }
+
+  template <typename T>
+  static std::shared_ptr<WriteableImage<T>> newImage(const std::string& filename, int width, int height) {
+    auto image_source = std::make_shared<FitsImageSource<T>>(filename, width, height);
+    return WriteableBufferedImage<T>::create(image_source);
+  }
+
 
 }; /* End of FitsReader class */
 

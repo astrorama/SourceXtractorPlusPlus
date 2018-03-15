@@ -12,6 +12,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/WriteableImage.h"
 
 
 namespace SExtractor {
@@ -24,15 +25,15 @@ public:
 
   void saveImages();
 
-  std::shared_ptr<VectorImage<DetectionImage::PixelType>> getModelFittingCheckImage() const {
+  std::shared_ptr<WriteableImage<DetectionImage::PixelType>> getModelFittingCheckImage() const {
     return m_check_image_model_fitting;
   }
 
-  std::shared_ptr<VectorImage<unsigned int>> getSegmentationImage() const {
+  std::shared_ptr<WriteableImage<unsigned int>> getSegmentationImage() const {
     return m_segmentation_image;
   }
 
-  std::shared_ptr<VectorImage<unsigned int>> getPartitionImage() const {
+  std::shared_ptr<WriteableImage<unsigned int>> getPartitionImage() const {
     return m_partition_image;
   }
 
@@ -74,12 +75,12 @@ private:
   static std::unique_ptr<CheckImages> m_instance;
 
   // check image
-  std::shared_ptr<VectorImage<DetectionImage::PixelType>> m_check_image_model_fitting;
+  std::shared_ptr<WriteableImage<DetectionImage::PixelType>> m_check_image_model_fitting;
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<WeightImage> m_variance_image;
-  std::shared_ptr<VectorImage<unsigned int>> m_segmentation_image;
-  std::shared_ptr<VectorImage<unsigned int>> m_partition_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
 
   std::string m_model_fitting_image_filename;
   std::string m_residual_filename;

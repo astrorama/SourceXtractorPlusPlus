@@ -241,7 +241,9 @@ public:
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
-    CheckImages::getInstance().saveImages();
+    //CheckImages::getInstance().saveImages();
+
+    TileManager::getInstance()->saveAllTiles();
 
     return Elements::ExitCode::OK;
   }

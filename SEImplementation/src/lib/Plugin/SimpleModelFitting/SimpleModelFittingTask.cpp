@@ -453,7 +453,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
         // if requested, updates a check image made by adding all source models
         if (check_image) {
-          check_image->setValue(pixel, check_image->getValue(pixel) + final_image->getValue(x, y));
+          check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
         }
 
         total_flux += final_image->getValue(x, y);

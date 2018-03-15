@@ -50,10 +50,13 @@ namespace SExtractor {
 class TileManager {
 public:
 
-  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(1000*1024L*1024L), m_total_memory_used(0) {
+  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(2*1024L*1024L), m_total_memory_used(0) {
   }
 
-  virtual ~TileManager() = default;
+  virtual ~TileManager() {
+    std::cout << "~TileManager()\n";
+    saveAllTiles();
+  }
 
   template <typename T>
   std::shared_ptr<ImageTile<T>> getTileForPixel(int x, int y, std::shared_ptr<const ImageSource<T>> source) {
@@ -81,23 +84,39 @@ public:
     return s_instance;
   }
 
+  void saveAllTiles() {
+    std::cout << "saveAllTiles()\n";
+    for (auto tile_key : m_tile_list) {
+      m_tile_map.at(tile_key)->saveIfModified();
+    }
+  }
+
 private:
+
+  void removeTile(TileKey tile_key) {
+    std::cout << "removing tile...\n";
+
+    auto& tile = m_tile_map.at(tile_key);
+
+    tile->saveIfModified();
+    m_total_memory_used -= tile->getTileSize();
+
+    m_tile_map.erase(tile_key);
+  }
 
   void removeExtraTiles() {
     std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n";
     while (m_total_memory_used > m_max_memory) {
       auto tile_to_remove = m_tile_list.back();
-      m_total_memory_used -= tile_to_remove.second->getTileSize();
-      m_tile_map.erase(tile_to_remove.first);
+      removeTile(tile_to_remove);
       m_tile_list.pop_back();
-      std::cout << "removing tile...\n";
     }
     std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n\n";
   }
 
   void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {
     m_tile_map[key] = tile;
-    m_tile_list.push_front({key, tile});
+    m_tile_list.push_front(key);
     m_total_memory_used += tile->getTileSize();
   }
 
@@ -106,7 +125,7 @@ private:
   long m_total_memory_used;
 
   std::unordered_map<TileKey, std::shared_ptr<ImageTileBase>> m_tile_map;
-  std::list<std::pair<TileKey, std::shared_ptr<ImageTileBase>>> m_tile_list;
+  std::list<TileKey> m_tile_list;
 
   static std::shared_ptr<TileManager> s_instance;
 };

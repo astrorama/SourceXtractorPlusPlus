@@ -34,7 +34,7 @@ public:
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
-  virtual T getValue(int x, int y) const {
+  virtual T getValue(int x, int y) const override {
     //std::cout << "BufferedImage::getValue() " << x << " " << y << "\n";
     assert(x >= 0 && y >=0 && x < m_source->getWidth() && y < m_source->getHeight());
 
@@ -46,16 +46,16 @@ public:
   }
 
   /// Returns the width of the image in pixels
-  virtual int getWidth() const {
+  virtual int getWidth() const override {
     return m_source->getWidth();
   }
 
   /// Returns the height of the image in pixels
-  virtual int getHeight() const {
+  virtual int getHeight() const override {
     return m_source->getHeight();
   }
 
-private:
+protected:
   std::shared_ptr<const ImageSource<T>> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
   std::shared_ptr<ImageTile<T>> m_current_tile;

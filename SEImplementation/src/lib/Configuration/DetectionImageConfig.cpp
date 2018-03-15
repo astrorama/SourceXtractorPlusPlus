@@ -37,7 +37,6 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 
 void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image = FitsReader<DetectionImage::PixelType>::readFile(args.find(DETECTION_IMAGE)->second.as<std::string>());
-
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
   m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
   m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
