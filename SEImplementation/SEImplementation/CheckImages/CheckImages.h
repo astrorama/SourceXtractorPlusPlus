@@ -37,24 +37,12 @@ public:
     return m_partition_image;
   }
 
-  void setBackgroundCheckImage(SeFloat background_value, std::shared_ptr<Image<SeFloat>> background_image=nullptr) {
-    if (background_image!=nullptr) {
-      // if available, copy the pointer
+  void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
       m_background_image = background_image;
-    } else {
-      // create a constant image at the given level
-      m_background_image = ConstantImage<SeFloat>::create(m_detection_image->getWidth(), m_detection_image->getHeight(), background_value);
-    }
   }
 
-  void setVarianceCheckImage(SeFloat variance_value, std::shared_ptr<Image<SeFloat>> variance_image=nullptr) {
-    if (variance_image!=nullptr) {
-      // if available, copy the pointer
+  void setVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
       m_variance_image = variance_image;
-    } else {
-      // create a constant image at the given level
-      m_background_image = ConstantImage<SeFloat>::create(m_detection_image->getWidth(), m_detection_image->getHeight(), variance_value);
-    }
   }
 
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
@@ -76,11 +64,12 @@ private:
 
   // check image
   std::shared_ptr<WriteableImage<DetectionImage::PixelType>> m_check_image_model_fitting;
+  std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
+
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<WeightImage> m_variance_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
 
   std::string m_model_fitting_image_filename;
   std::string m_residual_filename;
@@ -88,7 +77,6 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
-
 };
 
 }
