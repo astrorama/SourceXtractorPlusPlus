@@ -46,6 +46,7 @@
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
+#include "SEImplementation/Configuration/MemoryConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
@@ -109,6 +110,7 @@ public:
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
     config_manager.registerConfiguration<SE2BackgroundConfig>();
+    config_manager.registerConfiguration<MemoryConfig>();
 
     CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -142,6 +144,15 @@ public:
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
+
+    //FIXME not working as files are loaded from configurations
+
+//    // Configure TileManager
+//    auto memory_config = config_manager.getConfiguration<MemoryConfig>();
+//    auto tile_manager = std::make_shared<TileManager>(memory_config.getTileSize(),
+//        memory_config.getTileSize(), memory_config.getTileMaxMemory());
+//    TileManager::setInstance(tile_manager);
+
 
     CheckImages::getInstance().configure(config_manager);
 
@@ -237,8 +248,7 @@ public:
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
-    //CheckImages::getInstance().saveImages();
-
+    CheckImages::getInstance().saveImages();
     TileManager::getInstance()->saveAllTiles();
 
     return Elements::ExitCode::OK;

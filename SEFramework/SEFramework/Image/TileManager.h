@@ -50,7 +50,13 @@ namespace SExtractor {
 class TileManager {
 public:
 
-  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(2*1024L*1024L), m_total_memory_used(0) {
+  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(100*1024L*1024L), m_total_memory_used(0) {
+    std::cout << "TileManager() 1\n";
+  }
+
+  TileManager(int tile_width, int tile_height, int max_memory)
+      : m_tile_width(tile_width), m_tile_height(tile_height), m_max_memory(max_memory*1024L*1024L), m_total_memory_used(0) {
+    std::cout << "TileManager() 2\n";
   }
 
   virtual ~TileManager() {
@@ -82,6 +88,10 @@ public:
       s_instance = std::make_shared<TileManager>();
     }
     return s_instance;
+  }
+
+  static void setInstance(std::shared_ptr<TileManager> instance) {
+    s_instance = instance;
   }
 
   void saveAllTiles() {

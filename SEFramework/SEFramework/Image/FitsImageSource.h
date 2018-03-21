@@ -9,10 +9,13 @@
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
 #include <iostream>
+#include <type_traits>
+
 #include "fitsio.h"
 #include "SEFramework/Image/ImageSource.h"
 
 namespace SExtractor {
+
 
 template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
@@ -41,12 +44,12 @@ public:
     long naxes[2] = {width, height};
 
     fits_create_file(&m_fptr, ("!"+filename).c_str(), &status);
-    fits_create_img(m_fptr, DOUBLE_IMG, 2, naxes, &status);
+    fits_create_img(m_fptr, getImageType(), 2, naxes, &status);
 
-    std::vector<double> buffer(width);
+    std::vector<T> buffer(width);
     for (int i = 0; i<height; i++) {
       long first_pixel[2] = {1, i+1};
-      fits_write_pix(m_fptr, TDOUBLE, first_pixel, width, &buffer[0], &status);
+      fits_write_pix(m_fptr, getDataType(), first_pixel, width, &buffer[0], &status);
     }
     fits_close_file(m_fptr, &status);
 
@@ -70,17 +73,9 @@ public:
     long increment[2] = {1, 1};
     int status = 0;
 
-    // FIXME
-    std::vector<double> buffer(width*height);
-    fits_read_subset(m_fptr, TDOUBLE, first_pixel, last_pixel, increment,
-                 nullptr, &buffer[0], nullptr, &status);
-
     auto image = tile->getImage();
-    for (int j=0; j<height; j++) {
-      for (int i=0; i<width; i++) {
-        image->setValue(i,j, buffer[i+j*width]);
-      }
-    }
+    fits_read_subset(m_fptr, getDataType(), first_pixel, last_pixel, increment,
+                 nullptr, &image->getData()[0], nullptr, &status);
 
     return tile;
   }
@@ -110,19 +105,15 @@ public:
     long last_pixel[2] = {x+width, y+height};
     int status = 0;
 
-    // FIXME
-    std::vector<double> buffer(width*height);
-    for (int j=0; j<height; j++) {
-      for (int i=0; i<width; i++) {
-        buffer[i+j*width] = image->getValue(i,j);
-      }
-    }
-
-    fits_write_subset(m_fptr, TDOUBLE, first_pixel, last_pixel, &buffer[0], &status);
+    fits_write_subset(m_fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
   }
 
 
 private:
+
+  int getDataType() const;
+  int getImageType() const;
+
   int m_width;
   int m_height;
 
