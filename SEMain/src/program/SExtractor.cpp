@@ -145,14 +145,10 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
-    //FIXME not working as files are loaded from configurations
-
-//    // Configure TileManager
-//    auto memory_config = config_manager.getConfiguration<MemoryConfig>();
-//    auto tile_manager = std::make_shared<TileManager>(memory_config.getTileSize(),
-//        memory_config.getTileSize(), memory_config.getTileMaxMemory());
-//    TileManager::setInstance(tile_manager);
-
+    // Configure TileManager
+    auto memory_config = config_manager.getConfiguration<MemoryConfig>();
+    TileManager::getInstance()->setOptions(memory_config.getTileSize(),
+        memory_config.getTileSize(), memory_config.getTileMaxMemory());
 
     CheckImages::getInstance().configure(config_manager);
 

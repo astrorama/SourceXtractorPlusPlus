@@ -54,14 +54,20 @@ public:
     std::cout << "TileManager() 1\n";
   }
 
-  TileManager(int tile_width, int tile_height, int max_memory)
-      : m_tile_width(tile_width), m_tile_height(tile_height), m_max_memory(max_memory*1024L*1024L), m_total_memory_used(0) {
-    std::cout << "TileManager() 2\n";
-  }
-
   virtual ~TileManager() {
     std::cout << "~TileManager()\n";
     saveAllTiles();
+  }
+
+  void setOptions(int tile_width, int tile_height, int max_memory) {
+    // empty anything still stored in cache
+    saveAllTiles();
+    m_tile_list.clear();
+    m_tile_map.clear();
+
+    m_tile_width = tile_width;
+    m_tile_height = tile_height;
+    m_max_memory = max_memory*1024L*1024L;
   }
 
   template <typename T>
@@ -88,10 +94,6 @@ public:
       s_instance = std::make_shared<TileManager>();
     }
     return s_instance;
-  }
-
-  static void setInstance(std::shared_ptr<TileManager> instance) {
-    s_instance = instance;
   }
 
   void saveAllTiles() {
