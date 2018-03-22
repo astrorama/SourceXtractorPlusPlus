@@ -6,6 +6,7 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
+
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"

@@ -44,6 +44,7 @@ elements_add_library(SEFramework
                      src/lib/Task/*.cpp
                      src/lib/Output/*.cpp
                      src/lib/Plugin/*.cpp
+                     src/lib/Image/*.cpp
                      LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration
                      INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)

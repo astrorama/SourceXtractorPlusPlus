@@ -5,6 +5,9 @@
  *      Author: mschefer
  */
 
+#include <string>
+#include <boost/program_options.hpp>
+
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 #include "SEFramework/Image/FitsReader.h"
 
@@ -41,12 +44,12 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
 }
 
 void CheckImagesConfig::initialize(const UserValues& args) {
-  m_model_fitting_filename = args.find(CHECK_MODEL_FITTING)->second.as<string>();
-  m_model_fitting_residual_filename = args.find(CHECK_RESIDUAL)->second.as<string>();
-  m_model_background_filename = args.find(CHECK_MODEL_BACKGROUND)->second.as<string>();
-  m_model_variance_filename = args.find(CHECK_MODEL_VARIANCE)->second.as<string>();
-  m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<string>();
-  m_partition_filename = args.find(CHECK_PARTITION)->second.as<string>();
+  m_model_fitting_filename = args.find(CHECK_MODEL_FITTING)->second.as<std::string>();
+  m_model_fitting_residual_filename = args.find(CHECK_RESIDUAL)->second.as<std::string>();
+  m_model_background_filename = args.find(CHECK_MODEL_BACKGROUND)->second.as<std::string>();
+  m_model_variance_filename = args.find(CHECK_MODEL_VARIANCE)->second.as<std::string>();
+  m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<std::string>();
+  m_partition_filename = args.find(CHECK_PARTITION)->second.as<std::string>();
 }
 
 } // SExtractor namespace

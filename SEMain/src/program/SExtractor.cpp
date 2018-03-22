@@ -20,6 +20,7 @@
 
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
@@ -45,6 +46,7 @@
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
+#include "SEImplementation/Configuration/MemoryConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
@@ -108,6 +110,7 @@ public:
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
     config_manager.registerConfiguration<SE2BackgroundConfig>();
+    config_manager.registerConfiguration<MemoryConfig>();
 
     CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -142,6 +145,11 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
+    // Configure TileManager
+    auto memory_config = config_manager.getConfiguration<MemoryConfig>();
+    TileManager::getInstance()->setOptions(memory_config.getTileSize(),
+        memory_config.getTileSize(), memory_config.getTileMaxMemory());
+
     CheckImages::getInstance().configure(config_manager);
 
     task_factory_registry->configure(config_manager);
@@ -159,7 +167,7 @@ public:
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
     auto detection_image_gain = config_manager.getConfiguration<DetectionImageConfig>().getGain();
-    auto detection_image_saturation= config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
+    auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
@@ -191,8 +199,8 @@ public:
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
-    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getVarianceMap());
+    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
+    CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
 
     detection_frame->setBackgroundLevel(background_model.getLevelMap());
 
@@ -215,16 +223,12 @@ public:
 
     // Override background level and threshold if requested by the user
     if (background_config.isBackgroundLevelAbsolute()) {
-      detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(
-          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel()));
-      CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
-    }
-    else{
-      CheckImages::getInstance().setBackgroundCheckImage(
-          background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    }
+      auto background = ConstantImage<DetectionImage::PixelType>::create(
+          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getVarianceMap());
+      detection_frame->setBackgroundLevel(background);
+      CheckImages::getInstance().setBackgroundCheckImage(background);
+    }
 
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
@@ -241,6 +245,7 @@ public:
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
     CheckImages::getInstance().saveImages();
+    TileManager::getInstance()->saveAllTiles();
 
     return Elements::ExitCode::OK;
   }

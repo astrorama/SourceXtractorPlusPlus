@@ -10,12 +10,13 @@
 
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Image/ImageChunk.h"
 
 namespace SExtractor {
 
 template <typename T>
-class ImageBase : public Image<T>, public std::enable_shared_from_this<ImageBase<T>> {
+class ImageBase : public virtual Image<T>, public std::enable_shared_from_this<ImageBase<T>> {
 
 public:
   virtual ~ImageBase() {}

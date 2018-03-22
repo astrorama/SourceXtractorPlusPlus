@@ -11,6 +11,8 @@
 #include <cassert>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/WriteableImage.h"
+
 #include "SEFramework/Image/ImageChunk.h"
 #include "SEFramework/Image/ImageBase.h"
 
@@ -34,7 +36,7 @@ namespace SExtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage final : public ImageBase<T> {
+class VectorImage final : public ImageBase<T>, public WriteableImage<T> {
 protected:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height), m_offset(0,0) {
@@ -80,7 +82,7 @@ public:
     return const_cast<VectorImage<T>*>(this)->at(x, y);
   }
   
-  void setValue(int x, int y, T value) {
+  void setValue(int x, int y, T value) override {
     at(x,y) = value;
   }
 

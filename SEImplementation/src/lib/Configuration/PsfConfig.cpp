@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <CCfits/CCfits>
 
 #include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEFramework/Image/FitsReader.h"

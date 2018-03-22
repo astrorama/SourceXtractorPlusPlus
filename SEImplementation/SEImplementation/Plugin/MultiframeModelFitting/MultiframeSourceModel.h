@@ -48,6 +48,7 @@ class MultiframeSourceModel {
   std::vector<std::unique_ptr<ModelFitting::EngineParameter>> exp_fluxes;
   std::vector<std::unique_ptr<ModelFitting::EngineParameter>> dev_fluxes;
 
+  // per band
   std::vector<std::unique_ptr<
       ModelFitting::DependentParameter<
           ModelFitting::EngineParameter, ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> exp_i0s;
@@ -55,12 +56,14 @@ class MultiframeSourceModel {
       ModelFitting::DependentParameter<
           ModelFitting::EngineParameter, ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> dev_i0s;
 
+  // per frame
   std::vector<std::unique_ptr<
       ModelFitting::DependentParameter<ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> pixel_x;
   std::vector<std::unique_ptr<
       ModelFitting::DependentParameter<ModelFitting::EngineParameter, ModelFitting::EngineParameter>>> pixel_y;
 
-  std::vector<int> m_band_nb;
+  std::map<int, int> m_frame_map;
+  std::map<int, int> m_frame_band_map;
 
   int m_number_of_parameters;
 
@@ -74,8 +77,12 @@ public:
 
   MultiframeSourceModel(const SourceInterface& source);
 
-  void createParamsForFrame(std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset, bool first_frame_of_band);
+  void createPlaceholderForInactiveBand();
+  void createParamsForBand();
+
+  void createParamsForFrame(int band_nb, int frame_nb, std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset);
   void addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models);
+
   void registerParameters(ModelFitting::EngineParameterManager& manager);
 
   void debugPrint() const;
