@@ -40,7 +40,6 @@ void MultiframeModelFittingTaskFactory::configure(Euclid::Configuration::ConfigM
   auto default_psf = manager.getConfiguration<PsfConfig>().getPsf();
 
   auto& groups = measurement_config.getImageGroups();
-  auto& images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
   auto& psfs = manager.getConfiguration<MeasurementConfig>().getPsfs();
 
   for (auto& group : groups) {

@@ -28,7 +28,6 @@ public:
 
   Frame(std::shared_ptr<T> detection_image,
         std::shared_ptr<WeightImage> variance_map,
-        bool is_weight_absolute,
         WeightImage::PixelType variance_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
         SeFloat gain, SeFloat saturation)
@@ -40,15 +39,21 @@ public:
             m_variance_threshold(variance_threshold)
             {}
 
+  // FIXME: this simplified version is used in unit tests, get rid of it
   Frame(std::shared_ptr<T> detection_image,
-        std::shared_ptr<CoordinateSystem> coordinate_system = nullptr)
+        std::shared_ptr<CoordinateSystem> coordinate_system = nullptr,
+        std::shared_ptr<WeightImage> variance_map = nullptr)
           : m_image(detection_image),
-            m_variance_map(nullptr),
+            m_variance_map(variance_map),
             m_coordinate_system(coordinate_system),
             m_gain(0),
             m_saturation(0),
-            m_variance_threshold(0)
-            {}
+            m_variance_threshold(1e6)
+            {
+              if (variance_map==nullptr) {
+                m_variance_map = ConstantImage<WeightImage::PixelType>::create(detection_image->getWidth(), detection_image->getHeight(), .0001);
+              }
+            }
 
   // Just the original image
   std::shared_ptr<T> getOriginalImage() const {
@@ -88,17 +93,23 @@ public:
     return m_variance_threshold;
   }
 
-  typename T::PixelType getBackgroundLevel() const {
-    return m_background_level_map != nullptr ? m_background_level_map->getValue(0,0) : 0;
+  void setVarianceThreshold(WeightImage::PixelType threshold) {
+    m_variance_threshold = threshold;
   }
 
   std::shared_ptr<T> getBackgroundLevelMap() const {
     if (m_background_level_map != nullptr) {
       return m_background_level_map;
     } else {
+      // background level = 0 by default
       return ConstantImage<typename T::PixelType>::create(
-          m_image->getWidth(), m_image->getHeight(), getBackgroundLevel());
+          m_image->getWidth(), m_image->getHeight(), 0);
     }
+  }
+
+  void setBackgroundLevel(std::shared_ptr<T> background_level_map) {
+    m_background_level_map = background_level_map;
+    m_filtered_image = nullptr;
   }
 
 //  std::shared_ptr<T> getThresholdMap() const {
@@ -108,20 +119,15 @@ public:
 //        m_image->getWidth(), m_image->getHeight(), 1.5 * sqrt(m_variance_map->getValue(0,0))); //FIXME tmp
 //  }
 
-  typename T::PixelType getDetectionThreshold() const {
-    return sqrt(m_variance_map->getValue(0,0)) * 1.5;
-    //return m_detection_threshold; // FIXME!!!!!!
-  }
+//  typename T::PixelType getDetectionThreshold() const {
+//    return sqrt(m_variance_map->getValue(0,0)) * 1.5;
+//    //return m_detection_threshold; // FIXME!!!!!!
+//  }
 
-  void setDetectionThreshold(typename T::PixelType detection_threshold) {
-    // FIXME this does nothing currently
-    m_detection_threshold = detection_threshold;
-  }
-
-  void setBackgroundLevel(std::shared_ptr<T> background_level_map) {
-    m_background_level_map = background_level_map;
-    m_filtered_image = nullptr;
-  }
+//  void setDetectionThreshold(typename T::PixelType detection_threshold) {
+//    // FIXME this does nothing currently
+//    m_detection_threshold = detection_threshold;
+//  }
 
   SeFloat getGain() const {
     return m_gain;

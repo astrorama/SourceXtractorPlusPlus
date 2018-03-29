@@ -31,14 +31,10 @@
 #include "ModelFitting/Models/RotatedModelComponent.h"
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
-#include "ModelFitting/Image/OpenCvMatImageTraits.h"
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
-
-#include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
 
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/ChiSquareComparator.h"
@@ -231,7 +227,7 @@ struct SourceModel {
     manager.registerParameter(dev_rot);
   }
 
-  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& point_models, bool test = false) {
+  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
@@ -434,7 +430,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     // renders an image of the model for a single source with the final parameters
     std::vector<ExtendedModel> extended_models {};
     std::vector<PointModel> point_models {};
-    source_model->createModels(extended_models, point_models, true);
+    source_model->createModels(extended_models, point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {
       1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
           std::move(extended_models), *m_psf

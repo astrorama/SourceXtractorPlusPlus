@@ -406,7 +406,7 @@ public:
 
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
       pixel_scale,
-      image_size, image_size,
+      (std::size_t) image_size, (std::size_t) image_size,
       std::move(constant_models),
       std::move(point_models),
       std::move(extended_models),
@@ -443,7 +443,8 @@ public:
     sources.push_back({
        image_size / 2.0, image_size / 2.0, //double x, y;
        10000, .25, 1, 0, //double exp_flux, exp_rad, exp_aspect, exp_rot;
-       0, 1, 1, 0 //double dev_flux, dev_rad, dev_aspect, dev_rot
+       0, 1, 1, 0, //double dev_flux, dev_rad, dev_aspect, dev_rot
+       0 // point_flux
     });
 
 
@@ -459,7 +460,7 @@ public:
 
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
       pixel_scale,
-      image_size, image_size,
+      (std::size_t) image_size, (std::size_t) image_size,
       std::move(constant_models),
       std::move(point_models),
       std::move(extended_models),
@@ -477,7 +478,7 @@ public:
   }
 
 private:
-  boost::random::mt19937 m_rng { time(NULL) } ;
+  boost::random::mt19937 m_rng { (unsigned int) time(NULL) } ;
   double m_zero_point;
 
 };

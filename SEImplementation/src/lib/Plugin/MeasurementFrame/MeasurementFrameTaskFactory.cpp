@@ -43,13 +43,12 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
   const auto& coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
   const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
-  const auto& absolute_weights = manager.getConfiguration<MeasurementConfig>().getAbsoluteWeights();
 
   SimpleBackgroundAnalyzer analyzer;
 
   for (unsigned int i=0; i<measurement_images.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], absolute_weights[i], 9999999, coordinate_systems[i], 1, 65000); // FIXME !!! we need weight threshold
+        measurement_images[i], weight_images[i], 9999999, coordinate_systems[i], 1, 65000); // FIXME !!! we need weight threshold
 
     auto background_model = analyzer.analyzeBackground(measurement_images[i], weight_images[i],
         ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),

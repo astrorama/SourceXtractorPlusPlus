@@ -124,7 +124,6 @@ public:
   }
 
 
-
 private:
 
   int m_width;

@@ -103,6 +103,14 @@ public:
     }
   }
 
+  int getTileWidth() const {
+    return m_tile_width;
+  }
+
+  int getTileHeight() const {
+    return m_tile_height;
+  }
+
 private:
 
   void removeTile(TileKey tile_key) {

@@ -55,6 +55,22 @@ public:
     return m_source->getHeight();
   }
 
+  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    int tile_width = m_tile_manager->getTileWidth();
+    int tile_height = m_tile_manager->getTileHeight();
+
+    if (width == tile_width && height == tile_height && (x % tile_width) == 0 && (y % tile_height) == 0) {
+      // the tile image is going to be kept in memory as long as the chunk exists, but it could be unloaded
+      // from TileManager and even reloaded again, wasting memory,
+      // however image chunks are normally short lived so it's probably OK
+      auto tile = m_tile_manager->getTileForPixel(x, y, m_source);
+      return ImageChunk<T>::create(&tile->getImage()->getData()[0], width, height, width, tile->getImage());
+    } else {
+      // TODO implement optimized version of getting chunks that are not aligned with tiles
+      return UniversalImageChunk<T>::create(this->shared_from_this(), x, y, width, height);
+    }
+  }
+
 protected:
   std::shared_ptr<const ImageSource<T>> m_source;
   std::shared_ptr<TileManager> m_tile_manager;

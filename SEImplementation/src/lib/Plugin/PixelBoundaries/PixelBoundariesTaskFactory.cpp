@@ -11,9 +11,10 @@
 namespace SExtractor {
 
 std::shared_ptr<Task> PixelBoundariesTaskFactory::createTask(const PropertyId& property_id) const {
-  if (property_id == PropertyId::create<PixelBoundaries>() ||
-      property_id == PropertyId::create<PixelBoundariesHalfMaximum>()) {
+  if (property_id == PropertyId::create<PixelBoundaries>()) {
     return std::make_shared<PixelBoundariesTask>();
+  } else if (property_id == PropertyId::create<PixelBoundariesHalfMaximum>()) {
+    return std::make_shared<PixelBoundariesTaskHalfMaximum>();
   } else {
     return nullptr;
   }

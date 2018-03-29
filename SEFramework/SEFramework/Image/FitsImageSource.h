@@ -40,7 +40,6 @@ public:
     m_height = height;
 
     int status = 0;
-    int bitpix, naxis;
     long naxes[2] = {width, height};
 
     fits_create_file(&m_fptr, ("!"+filename).c_str(), &status);

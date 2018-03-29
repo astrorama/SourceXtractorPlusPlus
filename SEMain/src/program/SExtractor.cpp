@@ -192,7 +192,7 @@ public:
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
-    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
+    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
@@ -215,9 +215,10 @@ public:
       detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-        << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    // FIXME we should use average or median rather than value at coordinate 0,0
+    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+        //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
@@ -231,12 +232,13 @@ public:
     }
 
     if (background_config.isDetectionThresholdAbsolute()) {
-      detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
+      // FIXME Absolute detection threshold not working
+      //detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
 
-    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
-          << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-          << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+            << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+          //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image
     segmentation->processFrame(detection_frame);

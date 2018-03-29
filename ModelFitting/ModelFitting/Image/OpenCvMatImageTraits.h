@@ -127,6 +127,7 @@ struct ImageTraits<cv::Mat> {
 
   }
 
+  /*
   static void shiftResizeLancszos(const cv::Mat& source, cv::Mat& window, double scale_factor, double x_shift, double y_shift) {
     int window_width = width(window);
     int window_height = height(window);
@@ -138,8 +139,8 @@ struct ImageTraits<cv::Mat> {
         //at(window, x_win, y_win) = interpolate_pix(&source.getData()[0], x, y, sourcexsize, sourceysize);
       }
     }
-
   }
+*/
 
   static float interpolate_pix(float *pix, float x, float y,
 			int xsize, int ysize, interpenum interptype) {

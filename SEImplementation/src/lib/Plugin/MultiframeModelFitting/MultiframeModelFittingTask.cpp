@@ -282,7 +282,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   std::vector<std::shared_ptr<Image<SeFloat>>> images;
   std::vector<std::shared_ptr<Image<SeFloat>>> weights;
 
-  for (int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
+  for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
     if (frame_indices.size() == 0) {
       for (auto& source_model : source_models) {
@@ -351,7 +351,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
   double avg_reduced_chi_squared = 0;
   int image_nb = 0;
-  for (int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
+  for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
     for (auto frame_index : frame_indices) {
       auto stamp_width = images[image_nb]->getWidth();
@@ -429,7 +429,7 @@ MultiframeModelFittingTask::~MultiframeModelFittingTask() {
 
   // Output debug images
   {
-    for (int band_nb=0; band_nb < m_frame_indices_per_band.size(); band_nb++) {
+    for (unsigned int band_nb=0; band_nb < m_frame_indices_per_band.size(); band_nb++) {
       auto& frame_indices = m_frame_indices_per_band[band_nb];
       for (auto frame_index : frame_indices) {
         std::stringstream file_name;
