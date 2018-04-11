@@ -22,6 +22,9 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> /*variance_map*/, std::shared_ptr<Image<unsigned char>> /*mask*/,
     WeightImage::PixelType /*variance_threshold*/) const {
+
+  // FIXME we use a VectorImage the same size as input which won't allow larger than memory images to be processed
+
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
   std::cout << "Using the SimpleBackgroundLeverAnalyzer" << std::endl<< std::endl<< std::endl;
