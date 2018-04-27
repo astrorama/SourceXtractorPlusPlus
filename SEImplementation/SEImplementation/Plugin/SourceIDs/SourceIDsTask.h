@@ -25,6 +25,7 @@
 
 #include "SourceIDs.h"
 #include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Property/SourceId.h"
 
 namespace SExtractor {
 class SourceIDsTask : public SourceTask {
@@ -36,8 +37,13 @@ public:
   //SourceIDsTask() {}
 
   virtual void computeProperties(SourceInterface& source) const {
-    // there should be the code
-    source.setProperty<SourceIDs>(299);
+
+     // get the two properties
+    const auto& source_id = source.getProperty<SourceId>().getSourceId();
+    const auto& detect_id = source.getProperty<SourceId>().getDetectionId();
+
+    // set plugin objects
+    source.setProperty<SourceIDs>(source_id, detect_id);
   }
 
 private:

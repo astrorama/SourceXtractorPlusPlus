@@ -38,10 +38,17 @@ public:
 
   virtual void registerPlugin(PluginAPI& plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceIDsTaskFactory, SourceIDs>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long int>(
-            "source_IDs",
+    //TODO: "unsigned int" seems not to work as column
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long>(
+            "source_id",
             [](const SourceIDs& prop){
-              return prop.getPartID();
+              return prop.getSourceID();
+            }
+    );
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long>(
+            "detect_id",
+            [](const SourceIDs& prop){
+              return prop.getDetectID();
             }
     );
     plugin_api.getOutputRegistry().optionalOutput<SourceIDs>("SourceIDs");

@@ -13,41 +13,19 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/*
- * SourcesIDs.h
+/**
+ * @file SourceIDsPlugin.cpp
  *
- *  Created on: Apr 27, 2018
- *      Author: mkuemmel@usm.lmu.de
+ * @date Apr 27, 2018
+ * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDS_H_
-#define _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDS_H_
 
-#include "SEFramework/Property/Property.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceIDsTaskFactory.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceIDsPlugin.h"
+
+#include "SEFramework/Plugin/StaticPlugin.h"
 
 namespace SExtractor {
-/**
- * @class SourceIDs
- * @brief SourceIDs segmentation ID partition ID
- */
-class SourceIDs : public Property {
-public:
-  virtual ~SourceIDs() = default;
-  SourceIDs(long part_ID) : m_part_ID(part_ID), m_segm_ID(part_ID) {}
-
-  long getPartID() const {
-    return m_part_ID;
-  }
-
-  long getSegmID() const {
-    return m_segm_ID;
-  }
-
-private:
-  long m_part_ID;
-  long m_segm_ID;
-};
-
-} /* namespace SExtractor */
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_SOURCESIDS_SOURCESIDS_H_ */
+  static StaticPlugin<SourceIDsPlugin> source_IDs_plugin;
+}
