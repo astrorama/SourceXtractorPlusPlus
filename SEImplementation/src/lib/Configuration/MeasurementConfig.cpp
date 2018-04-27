@@ -161,7 +161,11 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
   if (iter != m_loaded_images.end()) {
     return iter->second;
   } else {
-    auto image = FitsReader<MeasurementImage::PixelType>::readFile(filename);
+    //auto image = FitsReader<MeasurementImage::PixelType>::readFile(filename);
+
+    auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(filename);
+    auto image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+
     auto coordinate_system = std::make_shared<WCS>(filename);
 
     std::cout << "w: " << image->getWidth() << " h: " << image->getHeight() << std::endl;
@@ -181,6 +185,15 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_weight_images.push_back(std::move(weight_map));
     m_psfs.push_back(std::move(psf));
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
+
+    double measurement_image_gain = 0, measurement_image_saturate = 0;
+    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
+    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
+
+    //FIXME provide a way to override those values
+
+    m_gains.push_back(measurement_image_gain);
+    m_saturation_levels.push_back(measurement_image_saturate);
 
     unsigned int image_index = m_measurement_images.size() - 1;
 

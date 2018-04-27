@@ -51,11 +51,9 @@ class TileManager {
 public:
 
   TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(100*1024L*1024L), m_total_memory_used(0) {
-    std::cout << "TileManager() 1\n";
   }
 
   virtual ~TileManager() {
-    std::cout << "~TileManager()\n";
     saveAllTiles();
   }
 
@@ -97,7 +95,6 @@ public:
   }
 
   void saveAllTiles() {
-    std::cout << "saveAllTiles()\n";
     for (auto tile_key : m_tile_list) {
       m_tile_map.at(tile_key)->saveIfModified();
     }
@@ -114,8 +111,6 @@ public:
 private:
 
   void removeTile(TileKey tile_key) {
-    std::cout << "removing tile...\n";
-
     auto& tile = m_tile_map.at(tile_key);
 
     tile->saveIfModified();
@@ -125,13 +120,11 @@ private:
   }
 
   void removeExtraTiles() {
-    std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n";
     while (m_total_memory_used > m_max_memory) {
       auto tile_to_remove = m_tile_list.back();
       removeTile(tile_to_remove);
       m_tile_list.pop_back();
     }
-    std::cout << m_tile_list.size() << " tiles " << m_total_memory_used / (1024.0*1024.0) << "M / " << m_max_memory / (1024.0*1024.0) << "M\n\n";
   }
 
   void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {

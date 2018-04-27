@@ -16,7 +16,7 @@ namespace SExtractor {
 std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundAnalyzer() const {
 
   // make a SE2 background if cell size and smoothing box are given
-  if (m_cell_size.size()>0 && m_smoothing_box.size() >0){
+  if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0){
     auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
     return background_level;
   }

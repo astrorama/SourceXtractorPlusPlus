@@ -55,6 +55,8 @@
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
 
+
+
 namespace po = boost::program_options;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
@@ -165,6 +167,7 @@ public:
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
+
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
     auto detection_image_gain = config_manager.getConfiguration<DetectionImageConfig>().getGain();
     auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
@@ -192,8 +195,10 @@ public:
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
+    auto use_interpolation = config_manager.getConfiguration<DetectionImageConfig>().shouldInterpolate();
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
-        weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
+        weight_threshold, detection_image_coordinate_system, detection_image_gain,
+        detection_image_saturation, use_interpolation);
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,

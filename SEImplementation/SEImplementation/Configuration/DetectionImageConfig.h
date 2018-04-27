@@ -38,12 +38,15 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   
   double getGain() const { return m_gain; }
   double getSaturation() const { return m_saturation; }
+  bool shouldInterpolate() const { return m_interpolate; }
 
 private:
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
   double m_gain;
   double m_saturation;
+
+  bool m_interpolate;
 
 }; /* End of DetectionImageConfig class */
 

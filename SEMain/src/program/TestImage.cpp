@@ -81,6 +81,7 @@ public:
     // Add the specific program options
     config_options.add_options()
         ("output", po::value<string>()->required(), "filename to save the created test image")
+        ("output-weight", po::value<string>()->default_value(""), "filename to save the created weight map image")
         ("size", po::value<double>()->default_value(512.0), "image size")
         ("bg-sigma", po::value<double>()->default_value(20.0), "standard deviation of background gaussian noise")
         ("gain", po::value<double>()->default_value(0.0), "gain in e-/adu, 0 for infinite gain")
@@ -88,14 +89,14 @@ public:
         ("psf-file", po::value<string>()->default_value(""), "Psf file for convolution")
         ("psf-fwhm", po::value<double>()->default_value(5.0),
             "Full width half maximum for generated gaussian psf (used when no psf file is provided)")
-        ("psf-scale", po::value<double>()->default_value(0.2),
-            "Pixel scale for generated gaussian psf")
-        ("random-sources", po::value<int>()->default_value(0),
-            "Nb of random sources to add")
+        ("psf-scale", po::value<double>()->default_value(0.2), "Pixel scale for generated gaussian psf")
+        ("random-sources", po::value<int>()->default_value(0), "Nb of random sources to add")
         ("source-list", po::value<string>()->default_value(""), "Use sources from file")
         ("source-catalog", po::value<string>()->default_value(""), "Use sources from file (skymaker format)")
         ("zero-point", po::value<double>()->default_value(0.0), "zero point for magnitudes in catalog")
         ("save-sources", po::value<string>()->default_value(""), "Filename to save final list of sources")
+        ("bad-pixels", po::value<double>()->default_value(0.0), "Probability for a pixel to be a bad pixel")
+        ("bad-columns", po::value<double>()->default_value(0.0), "Probability for a column of pixels to be bad")
         ;
 
     return config_options;
@@ -197,6 +198,30 @@ public:
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
           image->at(x, y) = std::min(image->at(x, y), (float) saturation_level);
+        }
+      }
+    }
+  }
+
+  void addBadPixels(std::shared_ptr<VectorImage<SeFloat>> weight_map, double probability) {
+    if (probability>0) {
+      for (int y=0; y < weight_map->getHeight(); y++) {
+        for (int x=0; x < weight_map->getWidth(); x++) {
+          if (boost::random::uniform_01<double>()(m_rng) < probability) {
+            weight_map->at(x, y) = 0;
+          }
+        }
+      }
+    }
+  }
+
+  void addBadColumns(std::shared_ptr<VectorImage<SeFloat>> weight_map, double probability) {
+    if (probability>0) {
+      for (int x=0; x < weight_map->getWidth(); x++) {
+        if (boost::random::uniform_01<double>()(m_rng) < probability) {
+          for (int y=0; y < weight_map->getHeight(); y++) {
+            weight_map->at(x, y) = 0;
+          }
         }
       }
     }
@@ -419,11 +444,40 @@ public:
 
     addPoissonNoise(image, args["gain"].as<double>());
     addBackgroundNoise(image, 0, args["bg-sigma"].as<double>());
-    saturate(image, args["saturation"].as<double>());
+
+    logger.info("Adding saturation...");
+
+    auto saturation_level = args["saturation"].as<double>();
+    saturate(image, saturation_level);
+
+    logger.info("Creating weight map...");
+
+    auto weight_map = VectorImage<SeFloat>::create(image_size, image_size);
+    weight_map->fillValue(1);
+
+
+    logger.info("Adding bad pixels...");
+
+    addBadPixels(weight_map, args["bad-pixels"].as<double>());
+    addBadColumns(weight_map, args["bad-columns"].as<double>());
+
+    for (int y=0; y < image->getHeight(); y++) {
+      for (int x=0; x < image->getWidth(); x++) {
+        if (weight_map->at(x, y) == 0) {
+          image->at(x, y) = saturation_level;
+        }
+      }
+    }
 
     auto filename = args["output"].as<std::string>();
     logger.info() << "Saving file: " << filename;
     writeToFits(image, filename);
+
+    auto weight_filename = args["output-weight"].as<std::string>();
+    if (weight_filename != "") {
+      logger.info() << "Saving weight map file: " << weight_filename;
+      writeToFits(weight_map, weight_filename);
+    }
 
     //Test(image_size, psf, args["output"].as<std::string>());
 

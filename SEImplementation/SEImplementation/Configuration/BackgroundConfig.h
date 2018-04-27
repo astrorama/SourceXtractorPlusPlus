@@ -45,7 +45,6 @@ private:
 
   bool m_detection_threshold_absolute;
   SeFloat m_detection_threshold;
-
 };
 
 } /* namespace SExtractor */
