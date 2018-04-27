@@ -33,19 +33,19 @@ namespace SExtractor {
 class SourceIDs : public Property {
 public:
   virtual ~SourceIDs() = default;
-  SourceIDs(long int part_ID) : m_part_ID(part_ID), m_segm_ID(part_ID) {}
+  SourceIDs(long part_ID) : m_part_ID(part_ID), m_segm_ID(part_ID) {}
 
-  long int getPartID() const {
+  long getPartID() const {
     return m_part_ID;
   }
 
-  long int getSegmID() const {
+  long getSegmID() const {
     return m_segm_ID;
   }
 
 private:
-  long int m_part_ID;
-  long int m_segm_ID;
+  long m_part_ID;
+  long m_segm_ID;
 };
 
 } /* namespace SExtractor */

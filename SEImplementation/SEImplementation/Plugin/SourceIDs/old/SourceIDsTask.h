@@ -14,40 +14,35 @@
  */
 
 /*
- * SourcesIDs.h
+ * SourceIDsTask.h
  *
  *  Created on: Apr 27, 2018
  *      Author: mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDS_H_
-#define _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDS_H_
+#ifndef __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSTASK_H_
+#define __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSTASK_H_
 
-#include "SEFramework/Property/Property.h"
+#include "SourceIDs.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {
-/**
- * @class SourceIDs
- * @brief SourceIDs segmentation ID partition ID
- */
-class SourceIDs : public Property {
+class SourceIDsTask : public SourceTask {
 public:
-  virtual ~SourceIDs() = default;
-  SourceIDs(long int part_ID) : m_part_ID(part_ID), m_segm_ID(part_ID) {}
+  /// Destructor
+  virtual ~SourceIDsTask() = default;
 
-  long int getPartID() const {
-    return m_part_ID;
-  }
+  // Constructor
+  //SourceIDsTask() {}
 
-  long int getSegmID() const {
-    return m_segm_ID;
+  virtual void computeProperties(SourceInterface& source){
+    // there should be the code
+    source.setProperty<SourceIDs>(199);
   }
 
 private:
-  long int m_part_ID;
-  long int m_segm_ID;
 };
 
-} /* namespace SExtractor */
+}
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_SOURCESIDS_SOURCESIDS_H_ */
+#endif /* __SEIMPLEMENTATION_PLUGIN_SOURCESIDS_SOURCESIDSTASK_H_ */

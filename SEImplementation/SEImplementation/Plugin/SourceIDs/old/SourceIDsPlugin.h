@@ -38,7 +38,7 @@ public:
 
   virtual void registerPlugin(PluginAPI& plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceIDsTaskFactory, SourceIDs>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long int>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long>(
             "source_IDs",
             [](const SourceIDs& prop){
               return prop.getPartID();

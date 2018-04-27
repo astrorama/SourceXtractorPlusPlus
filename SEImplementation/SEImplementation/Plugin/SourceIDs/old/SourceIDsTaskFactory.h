@@ -23,21 +23,22 @@
 #ifndef __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSTASKFACTORY_H_
 #define __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSTASKFACTORY_H_
 
+#include "old/SourceIDsTask.h"
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/SourceIDs/SourceIDsTask.h"
+//#include "SEImplementation/Plugin/SourceIDs/SourceIDs.h"
 
-// not working
 namespace SExtractor {
 class SourceIDsTaskFactory : public TaskFactory {
 public:
   SourceIDsTaskFactory() {}
+  /// Destructor
   virtual ~SourceIDsTaskFactory() = default;
 
   //void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   //void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
+  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) {
     //  if (property_id == PropertyId::create<PartitionID>()) {
     return std::make_shared<SourceIDsTask>();
   //} else {
