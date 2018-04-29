@@ -23,8 +23,8 @@
 #ifndef __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_
 #define __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_
 
-#include "old/SourceIDs.h"
-#include "old/SourceIDsTaskFactory.h"
+#include "SourceIDs.h"
+#include "SourceIDsTaskFactory.h"
 #include "SEFramework/Plugin/Plugin.h"
 
 namespace SExtractor {
@@ -59,5 +59,5 @@ public:
   }
 private:
 };
-}
+} /* namespace SExtractor */
 #endif /* __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_ */

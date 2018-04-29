@@ -18,19 +18,13 @@ class SourceIdCheckImage : public Observer<std::shared_ptr<SourceInterface>> {
 public:
 
   SourceIdCheckImage(std::shared_ptr<WriteableImage<unsigned int>> check_image) :
-      m_check_image(check_image),
-      m_object_id(1)
-  {}
+      m_check_image(check_image)
+      {}
 
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source);
 
 private:
   std::shared_ptr<WriteableImage<unsigned int>> m_check_image;
-  unsigned int m_object_id;
-
 };
-
-}
-
-
+} /* namespace SExtractor */
 #endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_CHECKIMAGES_SEGMENTATIONCHECKIMAGE_H_ */

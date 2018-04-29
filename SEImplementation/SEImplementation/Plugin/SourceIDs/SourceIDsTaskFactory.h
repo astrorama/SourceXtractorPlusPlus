@@ -32,20 +32,11 @@ class SourceIDsTaskFactory : public TaskFactory {
 public:
   SourceIDsTaskFactory() {}
   virtual ~SourceIDsTaskFactory() = default;
-
-  //void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  //void configure(Euclid::Configuration::ConfigManager& manager) override;
-
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
     //  if (property_id == PropertyId::create<PartitionID>()) {
     return std::make_shared<SourceIDsTask>();
-  //} else {
-  //  return nullptr;
   }
-
-  //void registerPropertyInstances(OutputRegistry&) override;
-
 private:
 };
 

@@ -47,7 +47,5 @@ private:
   unsigned int m_source_id;
   unsigned int m_detect_id;
 };
-
 } /* namespace SExtractor */
-
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCESIDS_SOURCESIDS_H_ */
