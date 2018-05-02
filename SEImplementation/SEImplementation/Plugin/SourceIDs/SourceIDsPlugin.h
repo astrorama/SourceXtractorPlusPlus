@@ -59,5 +59,5 @@ public:
   }
 private:
 };
-}
+} /* namespace SExtractor */
 #endif /* __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_ */

@@ -33,22 +33,17 @@ public:
   /// Destructor
   virtual ~SourceIDsTask() = default;
 
-  // Constructor
-  //SourceIDsTask() {}
-
   virtual void computeProperties(SourceInterface& source) const {
 
      // get the two properties
     const auto& source_id = source.getProperty<SourceId>().getSourceId();
     const auto& detect_id = source.getProperty<SourceId>().getDetectionId();
 
-    // set plugin objects
+    // set the source property
     source.setProperty<SourceIDs>(source_id, detect_id);
   }
 
 private:
 };
-
-}
-
+} /* namespace SExtractor */
 #endif /* __SEIMPLEMENTATION_PLUGIN_SOURCESIDS_SOURCESIDSTASK_H_ */
