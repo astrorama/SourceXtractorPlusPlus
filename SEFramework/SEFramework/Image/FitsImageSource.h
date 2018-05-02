@@ -41,6 +41,12 @@ public:
 
     m_width = naxes[0];
     m_height = naxes[1];
+
+//    // Read FITS keywords
+//    double gain = 1, saturate = 0, flux_scale = 1;
+//    readFitsKeyword("GAIN", gain);
+//    readFitsKeyword("SATURATE", saturate);
+//    readFitsKeyword("FLXSCALE", flux_scale);
   }
 
   FitsImageSource(const std::string& filename, int width, int height) : m_fptr(nullptr) {
@@ -128,6 +134,19 @@ public:
       throw Elements::Exception() << "Error saving image tile to FITS file.";
     }
 
+  }
+
+  template <typename TT>
+  bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
+    double keyword_value;
+    int status = 0;
+    fits_read_key(m_fptr, TDOUBLE, header_keyword.c_str(), &keyword_value, nullptr, &status);
+    if (status == 0) {
+      out_value = keyword_value;
+      return true;
+    } else {
+      return false;
+    }
   }
 
 

@@ -226,7 +226,7 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
 
-  // Pepare debug images
+  // Prepare debug images
   if (m_debug_images.size() == 0) {
     for (auto& frame_indices : m_frame_indices_per_band) {
       for (auto frame_index : frame_indices) {

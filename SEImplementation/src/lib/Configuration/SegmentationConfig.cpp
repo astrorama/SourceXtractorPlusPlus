@@ -108,8 +108,8 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-    line = regex_replace(line, regex("\\s+#.*"), std::string(""));
-    line = regex_replace(line, regex("\\s+$"), std::string(""));
+    line = regex_replace(line, regex("\\s*#.*"), std::string(""));
+    line = regex_replace(line, regex("\\s*$"), std::string(""));
     if (line.size() == 0) {
       continue;
     }
