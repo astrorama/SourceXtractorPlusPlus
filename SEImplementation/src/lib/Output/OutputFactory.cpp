@@ -39,7 +39,7 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
         m_table_handler = [out_file](const Euclid::Table::Table& table) {
-          Euclid::Table::FitsWriter{out_file}.setHduName("CATALOG").addData(table);
+          Euclid::Table::FitsWriter{out_file, true}.setHduName("CATALOG").addData(table);
         };
         break;
       case OutputConfig::OutputFileFormat::ASCII:
