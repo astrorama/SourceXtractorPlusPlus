@@ -243,8 +243,7 @@ public:
     }
 
     if (background_config.isDetectionThresholdAbsolute()) {
-      // FIXME Absolute detection threshold not working
-      //detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
+      detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
 
     std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
