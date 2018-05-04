@@ -23,8 +23,7 @@
 #ifndef __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_
 #define __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_
 
-#include "SourceIDs.h"
-#include "SourceIDsTaskFactory.h"
+#include "SEImplementation/Property/SourceId.h"
 #include "SEFramework/Plugin/Plugin.h"
 
 namespace SExtractor {
@@ -37,21 +36,20 @@ public:
   virtual ~SourceIDsPlugin() = default;
 
   virtual void registerPlugin(PluginAPI& plugin_api) {
-    plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceIDsTaskFactory, SourceIDs>();
     //TODO: "unsigned int" seems not to work as column
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceId, long>(
             "source_id",
-            [](const SourceIDs& prop){
-              return prop.getSourceID();
+            [](const SourceId& prop){
+              return prop.getSourceId();
             }
     );
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceIDs, long>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceId, long>(
             "detect_id",
-            [](const SourceIDs& prop){
-              return prop.getDetectID();
+            [](const SourceId& prop){
+              return prop.getDetectionId();
             }
     );
-    plugin_api.getOutputRegistry().optionalOutput<SourceIDs>("SourceIDs");
+    plugin_api.getOutputRegistry().optionalOutput<SourceId>("SourceIDs");
   }
 
   virtual std::string getIdString() const {
