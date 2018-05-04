@@ -30,7 +30,10 @@ BOOST_AUTO_TEST_SUITE (PixelCentroid_test)
 BOOST_FIXTURE_TEST_CASE( one_pixel_test, PixelCentroidFixture ) {
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}});
   source.setProperty<PixelBoundaries>(0,0,0,0);
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>(), std::vector<DetectionImage::PixelType>( { 1.0 } ));
+  source.setProperty<DetectionFramePixelValues>(
+      std::vector<DetectionImage::PixelType>(),
+      std::vector<DetectionImage::PixelType>( { 1.0 } ),
+      std::vector<WeightImage::PixelType>( { 0.01 } ));
 
   pixel_centroid_task.computeProperties(source);
 
@@ -44,7 +47,10 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, PixelCentroidFixture ) {
 BOOST_FIXTURE_TEST_CASE( multiple_pixels_test, PixelCentroidFixture ) {
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{1,3}, {8,4}});
   source.setProperty<PixelBoundaries>(1,3,8,4);
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>(), std::vector<DetectionImage::PixelType>( { 6.0, 4.0 } ));
+  source.setProperty<DetectionFramePixelValues>(
+      std::vector<DetectionImage::PixelType>(),
+      std::vector<DetectionImage::PixelType>( { 6.0, 4.0 } ),
+      std::vector<WeightImage::PixelType>( { 0.01, 0.01 } ));
 
   pixel_centroid_task.computeProperties(source);
 

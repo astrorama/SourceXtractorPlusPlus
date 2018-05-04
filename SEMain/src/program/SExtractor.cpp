@@ -20,6 +20,7 @@
 
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
@@ -45,6 +46,7 @@
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
+#include "SEImplementation/Configuration/MemoryConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
@@ -52,6 +54,8 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
+
+
 
 namespace po = boost::program_options;
 using namespace SExtractor;
@@ -108,6 +112,7 @@ public:
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
     config_manager.registerConfiguration<SE2BackgroundConfig>();
+    config_manager.registerConfiguration<MemoryConfig>();
 
     CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -142,6 +147,11 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
+    // Configure TileManager
+    auto memory_config = config_manager.getConfiguration<MemoryConfig>();
+    TileManager::getInstance()->setOptions(memory_config.getTileSize(),
+        memory_config.getTileSize(), memory_config.getTileMaxMemory());
+
     CheckImages::getInstance().configure(config_manager);
 
     task_factory_registry->configure(config_manager);
@@ -157,9 +167,10 @@ public:
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
+
     auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
     auto detection_image_gain = config_manager.getConfiguration<DetectionImageConfig>().getGain();
-    auto detection_image_saturation= config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
+    auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
@@ -184,15 +195,17 @@ public:
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
-    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image, is_weight_absolute,
-        weight_threshold, detection_image_coordinate_system, detection_image_gain, detection_image_saturation);
+    auto use_interpolation = config_manager.getConfiguration<DetectionImageConfig>().shouldInterpolate();
+    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
+        weight_threshold, detection_image_coordinate_system, detection_image_gain,
+        detection_image_saturation, use_interpolation);
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
-    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    CheckImages::getInstance().setVarianceCheckImage(0.0, background_model.getVarianceMap());
+    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
+    CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
 
     detection_frame->setBackgroundLevel(background_model.getLevelMap());
 
@@ -207,32 +220,36 @@ public:
       detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
-    //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    //<<<<<<< HEAD
+    //std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
+    //    << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
+    ////<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    //=======
+    // FIXME we should use average or median rather than value at coordinate 0,0
+    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+        //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    //>>>>>>> refs/heads/for_merging
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
     // Override background level and threshold if requested by the user
     if (background_config.isBackgroundLevelAbsolute()) {
-      detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(
-          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel()));
-      CheckImages::getInstance().setBackgroundCheckImage(background_config.getBackgroundLevel());
-    }
-    else{
-      CheckImages::getInstance().setBackgroundCheckImage(
-          background_model.getLevelMap()->getValue(0,0), background_model.getLevelMap());
-    }
+      auto background = ConstantImage<DetectionImage::PixelType>::create(
+          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-    CheckImages::getInstance().setVarianceCheckImage(0.0, detection_frame->getVarianceMap());
+      detection_frame->setBackgroundLevel(background);
+      CheckImages::getInstance().setBackgroundCheckImage(background);
+    }
 
     if (background_config.isDetectionThresholdAbsolute()) {
-      detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
+      // FIXME Absolute detection threshold not working
+      //detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
 
-    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevel()
-          << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-          << " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+            << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+          //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
     // Process the image
     segmentation->processFrame(detection_frame);
@@ -241,6 +258,7 @@ public:
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
     CheckImages::getInstance().saveImages();
+    TileManager::getInstance()->saveAllTiles();
 
     return Elements::ExitCode::OK;
   }

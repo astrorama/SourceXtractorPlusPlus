@@ -19,9 +19,10 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTaskFactory.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValueTaskFactory.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
@@ -30,6 +31,7 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTaskFactory.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
+#include "SEImplementation/Property/SourceId.h"
 
 using namespace SExtractor;
 
@@ -49,8 +51,8 @@ struct MultiThresholdPartitionFixture {
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry {new TaskFactoryRegistry};
   std::shared_ptr<TaskProvider> task_provider {new TaskProvider(task_factory_registry)};
   std::shared_ptr<SourceWithOnDemandProperties> source {new SourceWithOnDemandProperties(task_provider)};
-  std::shared_ptr<MultiThresholdPartitionStep> attractors_step {
-    new MultiThresholdPartitionStep(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider), 0.005, 32, 3)
+  std::shared_ptr<MultiThresholdPartitionStep> multithreshold_step {
+    new MultiThresholdPartitionStep(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider), 0.005, 32, 1)
   };
 
   MultiThresholdPartitionFixture() {
@@ -58,6 +60,7 @@ struct MultiThresholdPartitionFixture {
     task_factory_registry->registerTaskFactory<PixelCentroidTaskFactory, PixelCentroid>();
     task_factory_registry->registerTaskFactory<DetectionFramePixelValuesTaskFactory, DetectionFramePixelValues>();
     task_factory_registry->registerTaskFactory<PeakValueTaskFactory, PeakValue>();
+    task_factory_registry->registerTaskFactory<PixelBoundariesTaskFactory, PixelBoundaries>();
   }
 };
 
@@ -74,7 +77,7 @@ using namespace SExtractor;
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
+BOOST_AUTO_TEST_SUITE (MultiThresholdPartitionStep_test)
 
 //-----------------------------------------------------------------------------
 
@@ -85,6 +88,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   detection_image->setValue(2, 0, 4.0);
   detection_image->setValue(3, 0, 1.0);
 
+  source->setProperty<SourceId>();
   source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
       detection_image, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 4.0);
@@ -94,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
 
   auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {2.0, 3.0, 4.0, 1.0});
-  Partition partition( { attractors_step } );
+  Partition partition( { multithreshold_step } );
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
@@ -110,6 +114,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   detection_image->setValue(2, 0, 1.0);
   detection_image->setValue(3, 0, 10.0);
 
+  source->setProperty<SourceId>();
   source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
       detection_image, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 10.0);
@@ -119,7 +124,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
 
   auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {10.0, 1.0, 1.0, 10.0});
-  Partition partition( { attractors_step } );
+  Partition partition( { multithreshold_step } );
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
@@ -135,8 +140,9 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   detection_image->setValue(2, 0, 1.0);
   detection_image->setValue(3, 0, 1.04);
 
+  source->setProperty<SourceId>();
   source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-      detection_image,std::make_shared<DummyCoordinateSystem>()));
+      detection_image, std::make_shared<DummyCoordinateSystem>()));
   source->setProperty<PeakValue>(1.0, 10.0);
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
@@ -144,7 +150,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
 
   auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {10.0, 1.0, 1.0, 1.04});
-  Partition partition( { attractors_step } );
+  Partition partition( { multithreshold_step } );
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 

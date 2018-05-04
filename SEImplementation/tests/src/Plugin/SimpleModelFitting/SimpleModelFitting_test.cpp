@@ -93,7 +93,7 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, SimpleModelFittingFixture) {
   source->setProperty<PixelCentroid>(psf_image->getWidth()/2 - 1, psf_image->getHeight() / 2 - 2);
   source->setProperty<PixelBoundaries>(0,0,49,49);
   source->setProperty<PeakValue>(0, 116);
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(image, nullptr, true, 10, std::make_shared<DummyCoordinateSystem>(), 0, 0));
+  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(image, nullptr, 10, std::make_shared<DummyCoordinateSystem>(), 0, 0, false));
   group.setProperty<DetectionFrameGroupStamp>(image, image, PixelCoordinate(0,0), nullptr);
   model_fitting_task->computeProperties(group);
 

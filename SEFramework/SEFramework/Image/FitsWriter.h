@@ -8,9 +8,10 @@
 #ifndef _SEFRAMEWORK_IMAGE_FITSWRITER_H_
 #define _SEFRAMEWORK_IMAGE_FITSWRITER_H_
 
-#include <CCfits/CCfits>
+#include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/Image.h"
-#include "ElementsKernel/ProgramHeaders.h"
+#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/Image/WriteableBufferedImage.h"
 
 namespace SExtractor {
 
@@ -32,23 +33,23 @@ public:
 
   template <typename T>
   static void writeFile(const Image<T>& image, const std::string& filename) {
-    auto total = image.getHeight() * image.getWidth();
-    std::valarray<double> data (total);
+    auto target_image = newImage<T>(filename, image.getWidth(), image.getHeight());
 
-    //std::copy(ModelFitting::ImageTraits<T>::begin(image), ModelFitting::ImageTraits<T>::end(image), begin(data));
-
+    // FIXME optimize the copy by using tile boundaries, image chunks, etc
     for (int y = 0; y < image.getHeight(); y++) {
       for (int x = 0; x < image.getWidth(); x++) {
-        data[y * image.getWidth() + x] = image.getValue(x, y);
+        target_image->setValue(x, y, image.getValue(x, y));
       }
     }
-
-    long naxis = 2;
-    long naxes[2] = { image.getWidth(), image.getHeight() };
-    std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
-    pFits->pHDU().write(1, total, data);
-    fitsWriterLogger.info() << "Created file " << filename;
   }
+
+  template <typename T>
+  static std::shared_ptr<WriteableImage<T>> newImage(const std::string& filename, int width, int height) {
+    std::cout << "Creating file " << filename << '\n';
+    auto image_source = std::make_shared<FitsImageSource<T>>(filename, width, height);
+    return WriteableBufferedImage<T>::create(image_source);
+  }
+
 
 }; /* End of FitsReader class */
 

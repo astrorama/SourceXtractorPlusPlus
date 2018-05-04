@@ -28,21 +28,29 @@ BOOST_AUTO_TEST_SUITE (PixelCentroid_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( one_pixel_test, IsophotalFluxFixture ) {
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0 } ), std::vector<DetectionImage::PixelType>());
+  source.setProperty<DetectionFramePixelValues>(
+      std::vector<DetectionImage::PixelType>( { 1.0 } ),
+      std::vector<DetectionImage::PixelType>(),
+      std::vector<WeightImage::PixelType>( { 0.01 } ));
 
   isophotal_flux_task.computeProperties(source);
 
   auto isophotal_flux = source.getProperty<IsophotalFlux>();
   BOOST_CHECK_CLOSE(isophotal_flux.getFlux(), 1.0, 0.0001);
+  BOOST_CHECK_CLOSE(isophotal_flux.getFluxError(), .1, 0.0001);
 }
 
 BOOST_FIXTURE_TEST_CASE( isophotal_test, IsophotalFluxFixture ) {
-  source.setProperty<DetectionFramePixelValues>(std::vector<DetectionImage::PixelType>( { 1.0, 3.0, 5.7 } ), std::vector<DetectionImage::PixelType>());
+  source.setProperty<DetectionFramePixelValues>(
+      std::vector<DetectionImage::PixelType>( { 1.0, 3.0, 5.7 } ),
+      std::vector<DetectionImage::PixelType>(),
+      std::vector<WeightImage::PixelType>( { 0.01, 0.01, 0.01 } ));
 
   isophotal_flux_task.computeProperties(source);
 
   auto isophotal_flux = source.getProperty<IsophotalFlux>();
   BOOST_CHECK_CLOSE(isophotal_flux.getFlux(), 9.7, 0.0001);
+  BOOST_CHECK_CLOSE(isophotal_flux.getFluxError(), sqrt(.03), 0.0001);
 }
 
 //-----------------------------------------------------------------------------

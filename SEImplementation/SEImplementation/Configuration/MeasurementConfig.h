@@ -108,7 +108,16 @@ public:
     return m_groups;
   }
 
+  const std::vector<SeFloat>& getGains() const {
+    return m_gains;
+  }
+
+  const std::vector<MeasurementImage::PixelType>& getSaturationLevels() const {
+    return m_saturation_levels;
+  }
+
   unsigned int addImage(const std::string filename, const std::string weight_filename, const std::string psf_filename);
+
 
 private:
   std::vector<std::string> getFilenamesFromPath(const std::string& path) const;
@@ -121,8 +130,10 @@ private:
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
   std::vector<std::shared_ptr<ImagePsf>> m_psfs;
-
   std::vector<bool> m_absolute_weights;
+  std::vector<SeFloat> m_gains;
+  std::vector<MeasurementImage::PixelType> m_saturation_levels;
+
   std::map<std::string, unsigned int> m_loaded_images;
 };
 

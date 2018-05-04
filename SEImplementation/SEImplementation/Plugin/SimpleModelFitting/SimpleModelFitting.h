@@ -31,10 +31,10 @@ public:
     m_wc_delta(wc_delta),
     m_total_flux(total_flux),
     m_exp_flux(exp_flux),
-    m_dev_flux(dev_flux),
     m_exp_ratio(exp_ratio),
     m_exp_angle(exp_angle),
     m_exp_radius(exp_radius),
+    m_dev_flux(dev_flux),
     m_dev_ratio(dev_ratio),
     m_dev_angle(dev_angle),
     m_dev_radius(dev_radius),
@@ -104,14 +104,15 @@ private:
   SeFloat m_wc_alpha, m_wc_delta; // world coordinate position
 
   SeFloat m_total_flux;
-  SeFloat m_dev_flux, m_exp_flux;
 
   // exponential model parameters
+  SeFloat m_exp_flux;
   SeFloat m_exp_ratio;
   SeFloat m_exp_angle;
   SeFloat m_exp_radius;
 
   // devaucouleurs model parameters
+  SeFloat m_dev_flux;
   SeFloat m_dev_ratio;
   SeFloat m_dev_angle;
   SeFloat m_dev_radius;

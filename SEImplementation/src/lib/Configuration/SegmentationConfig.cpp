@@ -5,11 +5,12 @@
  */
 
 #include <iostream>
-#include <regex>
+//#include <regex>
 #include <boost/regex.hpp>
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
+
 #include <fstream>
 #include <boost/algorithm/string.hpp>
 
@@ -142,13 +143,9 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(co
   while (file.good()) {
     std::string line;
     std::getline(file, line);
-
-    line = regex_replace(line, regex("\\s+#.*"), std::string(""));
-    line = regex_replace(line, regex("\\s+$"), std::string(""));
-
-    // TODO: mandate the # at the beginning of the line??
-    if (line.size() == 0 || regex_match(line, regex("(#)(.*)"))){
-      //segConfigLogger.info() << "skipping line: " << line;
+    line = regex_replace(line, regex("\\s*#.*"), std::string(""));
+    line = regex_replace(line, regex("\\s*$"), std::string(""));
+    if (line.size() == 0) {
       continue;
     }
 

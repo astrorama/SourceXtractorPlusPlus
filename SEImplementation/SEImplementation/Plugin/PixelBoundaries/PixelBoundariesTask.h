@@ -34,6 +34,27 @@ private:
 }; /* End of PixelBoundariesTask class */
 
 
+/**
+ * @class PixelBoundariesTaskHalfMaximum
+ * @brief Task to produce the PixelBoundariesHalfMaximum Property
+ *
+ */
+class PixelBoundariesTaskHalfMaximum : public SourceTask {
+
+public:
+
+  /**
+   * @brief Destructor
+   */
+  virtual ~PixelBoundariesTaskHalfMaximum() = default;
+
+  virtual void computeProperties(SourceInterface& source) const override;
+
+
+private:
+
+}; /* End of PixelBoundariesTaskHalfMaximum class */
+
 } /* namespace SExtractor */
 
 

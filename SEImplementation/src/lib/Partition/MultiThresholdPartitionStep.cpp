@@ -123,7 +123,8 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
       pixel_boundaries.getWidth(), pixel_boundaries.getHeight(), pixel_boundaries.getMin());
   image->fillValue(0);
 
-  auto detection_threshold = detection_frame.getFrame()->getDetectionThreshold();
+
+  auto min_value = original_source->getProperty<PeakValue>().getMinValue() * .8;
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
   for (auto pixel_coord : pixel_coords) {
@@ -139,7 +140,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   // Build the tree
   for (unsigned int i = 1; i < m_thresholds_nb; i++) {
 
-    auto threshold = detection_threshold * pow(peak_value / detection_threshold, (double) i / m_thresholds_nb);
+    auto threshold = min_value * pow(peak_value / min_value, (double) i / m_thresholds_nb);
     auto subtracted_image = SubtractImage<DetectionImage::PixelType>::create(image, threshold);
 
     LutzList lutz;

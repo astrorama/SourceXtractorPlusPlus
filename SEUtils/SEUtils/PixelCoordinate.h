@@ -21,6 +21,8 @@ namespace SExtractor {
 struct PixelCoordinate {
   int m_x, m_y;
 
+  PixelCoordinate() : m_x(0), m_y(0) {}
+
   PixelCoordinate(int x, int y) : m_x(x), m_y(y) {}
 
   bool operator==(const PixelCoordinate& other) const {
