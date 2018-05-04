@@ -32,7 +32,12 @@ public:
   virtual ~NDetectedPixelsTaskFactory() = default;
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
-    return std::make_shared<NDetectedPixelsSourceTask>();
+    if (property_id == PropertyId::create<NDetectedPixels>()) {
+      return std::make_shared<NDetectedPixelsSourceTask>();
+    }
+    else{
+      return nullptr;
+    }
   }
 }; // end of NDetectedPixelsTaskFactory class
 }  // namespace SExtractor
