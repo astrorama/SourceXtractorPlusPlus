@@ -22,6 +22,7 @@ static const std::string CHECK_MODEL_BACKGROUND { "checkimage-background" };
 static const std::string CHECK_MODEL_VARIANCE { "checkimage-variance" };
 static const std::string CHECK_SEGMENTATION { "checkimage-segmentation" };
 static const std::string CHECK_PARTITION { "checkimage-partition" };
+static const std::string CHECK_FILTERED { "checkimage-filtered" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -40,6 +41,8 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the segmentation check image"},
       {CHECK_PARTITION.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the partition check image"},
+      {CHECK_FILTERED.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the filtered check image"},
   }}};
 }
 
@@ -50,6 +53,7 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_model_variance_filename = args.find(CHECK_MODEL_VARIANCE)->second.as<std::string>();
   m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<std::string>();
   m_partition_filename = args.find(CHECK_PARTITION)->second.as<std::string>();
+  m_filtered_filename = args.find(CHECK_FILTERED)->second.as<std::string>();
 }
 
 } // SExtractor namespace

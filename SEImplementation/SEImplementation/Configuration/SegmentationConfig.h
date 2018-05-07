@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "SEFramework/Image/ImageProcessing.h"
+#include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
 #include "Configuration/Configuration.h"
 
@@ -48,19 +48,19 @@ public:
     return m_filter != nullptr;
   }
 
-  std::shared_ptr<DetectionImageProcessing> getFilter() const {
+  std::shared_ptr<DetectionImageFrame::ImageFilter> getFilter() const {
     return m_filter;
   }
 
 private:
-  std::shared_ptr<DetectionImageProcessing> getDefaultFilter() const;
-  std::shared_ptr<DetectionImageProcessing> loadFilter(const std::string& filename) const;
-  std::shared_ptr<DetectionImageProcessing> loadFITSFilter(const std::string& filename) const;
-  std::shared_ptr<DetectionImageProcessing> loadASCIIFilter(const std::string& filename) const;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> getDefaultFilter() const;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> loadFilter(const std::string& filename) const;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> loadFITSFilter(const std::string& filename) const;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> loadASCIIFilter(const std::string& filename) const;
 
   Algorithm m_selected_algorithm;
   bool m_filtering_enabled;
-  std::shared_ptr<DetectionImageProcessing> m_filter;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
 }; /* End of SegmentationConfig class */
 

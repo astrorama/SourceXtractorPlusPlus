@@ -76,7 +76,7 @@ void SegmentationConfig::initialize(const UserValues&) {
   m_selected_algorithm = Algorithm::LUTZ;
 }
 
-std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter() const {
+std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::getDefaultFilter() const {
   segConfigLogger.info() << "Using the default segmentation (3x3) filter.";
   auto convolution_kernel = VectorImage<SeFloat>::create(3, 3);
   convolution_kernel->setValue(0,0, 1);
@@ -94,7 +94,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::getDefaultFilter()
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
 }
 
-std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const std::string& filename) const {
+std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFilter(const std::string& filename) const {
   // check for the extension ".fits"
   std::string fits_ending(".fits");
   if (filename.length() >= fits_ending.length()
@@ -108,7 +108,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFilter(const s
   }
 }
 
-std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFITSFilter(const std::string& filename) const {
+std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFITSFilter(const std::string& filename) const {
 
   // read in the FITS file
   auto convolution_kernel = FitsReader<SeFloat>::readFile(filename);
@@ -120,7 +120,7 @@ std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadFITSFilter(con
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
 }
 
-std::shared_ptr<DetectionImageProcessing> SegmentationConfig::loadASCIIFilter(const std::string& filename) const {
+std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIFilter(const std::string& filename) const {
   std::ifstream file;
 
   // open the file and check

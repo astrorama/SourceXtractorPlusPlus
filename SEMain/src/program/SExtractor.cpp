@@ -250,12 +250,15 @@ public:
             << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
           //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
 
+    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+
     // Process the image
     segmentation->processFrame(detection_frame);
 
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
+    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->saveAllTiles();
 

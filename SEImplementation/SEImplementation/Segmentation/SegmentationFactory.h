@@ -37,7 +37,7 @@ public:
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  std::shared_ptr<DetectionImageProcessing> m_filter;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
   SegmentationConfig::Algorithm m_algorithm;
   std::shared_ptr<TaskProvider> m_task_provider;

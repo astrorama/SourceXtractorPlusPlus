@@ -49,6 +49,10 @@ public:
     return m_partition_filename;
   }
 
+  const std::string& getFilteredFilename() const {
+    return m_filtered_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
@@ -57,6 +61,7 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
+  std::string m_filtered_filename;
 
 };
 

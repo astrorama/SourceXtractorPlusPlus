@@ -8,7 +8,7 @@
 
 namespace SExtractor {
 
-Segmentation::Segmentation(std::shared_ptr<DetectionImageProcessing> image_processing)
+Segmentation::Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing)
     : m_filter_image_processing(image_processing) {
 }
 

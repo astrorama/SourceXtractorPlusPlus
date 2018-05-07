@@ -16,7 +16,6 @@
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
-#include "SEFramework/Image/ImageProcessing.h"
 #include "SEFramework/Image/InterpolatedImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
@@ -26,6 +25,10 @@ template<typename T>
 class Frame {
 
 public:
+  class ImageFilter {
+  public:
+    virtual std::shared_ptr<Image<typename T::PixelType>> processImage(std::shared_ptr<Image<typename T::PixelType>> image, std::shared_ptr<Image<typename T::PixelType>> variance, typename T::PixelType threshold) const = 0;
+  };
 
   Frame(std::shared_ptr<T> detection_image,
         std::shared_ptr<WeightImage> variance_map,
@@ -165,7 +168,7 @@ public:
     return m_saturation;
   }
 
-  void setFilter(std::shared_ptr<ImageProcessing<typename T::PixelType>> filter) {
+  void setFilter(std::shared_ptr<ImageFilter> filter) {
     m_filter = filter;
     m_filtered_image = nullptr;
   }
@@ -175,7 +178,6 @@ private:
   void applyFilter() {
     if (m_filter != nullptr) {
       m_filtered_image = m_filter->processImage(getSubtractedImage(), getVarianceMap(), getVarianceThreshold());
-      //m_filtered_image = m_filter->processImage(getSubtractedImage());
     } else {
       m_filtered_image = getSubtractedImage();
     }
@@ -194,7 +196,7 @@ private:
   typename T::PixelType m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;
 
-  std::shared_ptr<ImageProcessing<typename T::PixelType>> m_filter;
+  std::shared_ptr<ImageFilter> m_filter;
   std::shared_ptr<T> m_interpolated_image;
   std::shared_ptr<T> m_filtered_image;
 };

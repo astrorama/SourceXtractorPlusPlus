@@ -16,8 +16,8 @@
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageProcessing.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/Frame/Frame.h"
 
 
 namespace SExtractor {
@@ -37,7 +37,7 @@ public:
   /// Destructor
   virtual ~Segmentation() = default;
 
-  Segmentation(std::shared_ptr<DetectionImageProcessing> image_processing);
+  Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing);
 
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {
@@ -59,7 +59,7 @@ protected:
 
 private:
   std::unique_ptr<Labelling> m_labelling;
-  std::shared_ptr<DetectionImageProcessing> m_filter_image_processing;
+  std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter_image_processing;
 
 }; /* End of Segmentation class */
 

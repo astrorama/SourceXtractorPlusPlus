@@ -38,16 +38,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
 
-  auto image_processing_list = std::make_shared<DetectionImageProcessingList>(
-      m_filter != nullptr ?
-        std::vector<std::shared_ptr<DetectionImageProcessing>>  {
-          m_filter
-        }
-      :
-        std::vector<std::shared_ptr<DetectionImageProcessing>>  {}
-  );
-
-  auto segmentation = std::make_shared<Segmentation>(image_processing_list);
+  auto segmentation = std::make_shared<Segmentation>(m_filter);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
       segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));

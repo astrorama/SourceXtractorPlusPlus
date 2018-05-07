@@ -33,6 +33,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_model_variance_filename =  config.getModelVarianceFilename();
   m_segmentation_filename =  config.getSegmentationFilename();
   m_partition_filename =  config.getPartitionFilename();
+  m_filtered_filename =  config.getFilteredFilename();
 
   if (m_model_fitting_image_filename != "" || m_residual_filename != "") {
     m_check_image_model_fitting = FitsWriter::newImage<DetectionImage::PixelType>(m_segmentation_filename,
@@ -59,6 +60,11 @@ void CheckImages::saveImages() {
   // if possible, save the variance image
   if (m_variance_image != nullptr && m_model_variance_filename != "") {
     FitsWriter::writeFile(*m_variance_image, m_model_variance_filename);
+  }
+
+  // if possible, save the filtered image
+  if (m_filtered_image != nullptr && m_filtered_filename != "") {
+    FitsWriter::writeFile(*m_filtered_image, m_filtered_filename);
   }
 
   // if possible, create and save the residual image
