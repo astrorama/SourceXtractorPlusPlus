@@ -133,7 +133,6 @@ public:
     if (status != 0) {
       throw Elements::Exception() << "Error saving image tile to FITS file.";
     }
-
   }
 
   template <typename TT>

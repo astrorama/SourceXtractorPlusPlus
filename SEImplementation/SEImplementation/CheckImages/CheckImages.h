@@ -45,6 +45,10 @@ public:
       m_variance_image = variance_image;
   }
 
+  void setFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
+      m_filtered_image = filtered_image;
+  }
+
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
 
@@ -69,6 +73,7 @@ private:
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
+  std::shared_ptr<Image<SeFloat>> m_filtered_image;
   std::shared_ptr<WeightImage> m_variance_image;
 
   std::string m_model_fitting_image_filename;
@@ -77,6 +82,7 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
+  std::string m_filtered_filename;
 };
 
 }
