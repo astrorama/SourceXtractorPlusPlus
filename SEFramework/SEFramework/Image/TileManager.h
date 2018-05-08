@@ -65,6 +65,7 @@ public:
 
     m_tile_width = tile_width;
     m_tile_height = tile_height;
+    m_total_memory_used = 0;
     m_max_memory = max_memory*1024L*1024L;
   }
 
@@ -121,6 +122,7 @@ private:
 
   void removeExtraTiles() {
     while (m_total_memory_used > m_max_memory) {
+      assert(m_tile_list.size() > 0);
       auto tile_to_remove = m_tile_list.back();
       removeTile(tile_to_remove);
       m_tile_list.pop_back();
