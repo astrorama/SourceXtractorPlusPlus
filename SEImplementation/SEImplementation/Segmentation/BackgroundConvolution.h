@@ -50,9 +50,9 @@ private:
                 conv_weight += m_kernel->getValue(cx, cy);
               }
 
-              tile.getImage()->setValue(ix - x, iy - y, total/conv_weight);
             }
           }
+          tile.getImage()->setValue(ix - x, iy - y, total/conv_weight);
         }
       }
 
