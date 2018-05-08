@@ -33,8 +33,8 @@ private:
       int hx = m_kernel->getWidth() / 2;
       int hy = m_kernel->getHeight() / 2;
 
-      for (int iy = x; iy < y+height; iy++) {
-        for (int ix = y; ix < x+width; ix++) {
+      for (int iy = y; iy < y+height; iy++) {
+        for (int ix = x; ix < x+width; ix++) {
 
           DetectionImage::PixelType total = 0;
           DetectionImage::PixelType conv_weight = 0;
