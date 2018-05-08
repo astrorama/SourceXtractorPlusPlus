@@ -11,6 +11,8 @@
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
+#include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/ProcessingImageSource.h"
 
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
@@ -102,40 +104,63 @@ void WeightImageConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
 }
 
-std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
-  auto new_image = VectorImage<WeightImage::PixelType>::create(weight_image->getWidth(), weight_image->getHeight());
+class WeightMapImageSource : public ProcessingImageSource<WeightImage::PixelType> {
+public:
+  WeightMapImageSource(std::shared_ptr<Image<WeightImage::PixelType>> image, WeightImageConfig::WeightType weight_type, WeightImage::PixelType scaling)
+    : ProcessingImageSource<DetectionImage::PixelType>(image), m_weight_type(weight_type), m_scaling(scaling)
+       {}
 
-  switch (weight_type) {
-    default:
-    case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
-      return nullptr;
-    case WeightType::WEIGHT_TYPE_RMS:
-      for (int y = 0; y < weight_image->getHeight(); y++) {
-        for (int x = 0; x < weight_image->getWidth(); x++) {
-          auto value = weight_image->getValue(x, y) * scaling;
-          new_image->setValue(x, y, value * value);
-        }
-      }
-      return new_image;
-    case WeightType::WEIGHT_TYPE_VARIANCE:
-      for (int y = 0; y < weight_image->getHeight(); y++) {
-        for (int x = 0; x < weight_image->getWidth(); x++) {
-          new_image->setValue(x, y, weight_image->getValue(x, y) * scaling);
-        }
-      }
-      return new_image;
-    case WeightType::WEIGHT_TYPE_WEIGHT:
-      for (int y = 0; y < weight_image->getHeight(); y++) {
-        for (int x = 0; x < weight_image->getWidth(); x++) {
-          auto value = weight_image->getValue(x, y) * scaling;
-          if (value > 0) {
-            new_image->setValue(x, y, 1.0 / value);
-          } else {
-            new_image->setValue(x, y, std::numeric_limits<WeightImage::PixelType>::max());
+protected:
+  virtual void generateTile(std::shared_ptr<Image<WeightImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
+    switch (m_weight_type) {
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
+        for (int iy = y; iy < y+height; iy++) {
+          for (int ix = x; ix < x+width; ix++) {
+            auto value = image->getValue(ix, iy) * m_scaling;
+            tile.getImage()->setValue(ix - x, iy - y, value * value);
           }
         }
-      }
-      return new_image;
+        break;
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
+        for (int iy = y; iy < y+height; iy++) {
+          for (int ix = x; ix < x+width; ix++) {
+            auto value = image->getValue(ix, iy) * m_scaling;
+            tile.getImage()->setValue(ix - x, iy - y, value);
+          }
+        }
+        break;
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
+        for (int iy = y; iy < y+height; iy++) {
+          for (int ix = x; ix < x+width; ix++) {
+            auto value = image->getValue(ix, iy) * m_scaling;
+            if (value > 0) {
+              tile.getImage()->setValue(ix - x, iy - y, 1.0 / value);
+            } else {
+              tile.getImage()->setValue(ix - x, iy - y, std::numeric_limits<WeightImage::PixelType>::max());
+            }
+          }
+        }
+        break;
+      default:
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
+        assert(false);
+        break;
+    }
+  }
+
+private:
+  WeightImageConfig::WeightType m_weight_type;
+  WeightImage::PixelType m_scaling;
+};
+
+
+std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
+
+  if (weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND) {
+    return nullptr;
+  } else {
+    auto result_image = BufferedImage<WeightImage::PixelType>::create(std::make_shared<WeightMapImageSource>(weight_image, weight_type, scaling));
+    return result_image;
   }
 }
 
