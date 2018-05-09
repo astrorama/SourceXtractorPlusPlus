@@ -20,9 +20,10 @@ static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string DETECTION_IMAGE_GAIN { "detection-image-gain" };
 static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
+static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id),
-    m_gain(0), m_saturation(0), m_interpolate(false) {
+    m_gain(0), m_saturation(0), m_interpolation_gap(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
@@ -34,7 +35,9 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
       {DETECTION_IMAGE_SATURATION.c_str(), po::value<double>(),
           "Detection image saturation level (0 = no saturation)"},
       {DETECTION_IMAGE_INTERPOLATION.c_str(), po::value<bool>()->default_value(true),
-          "Interpolate bad pixels in detection image"}
+          "Interpolate bad pixels in detection image"},
+      {DETECTION_IMAGE_INTERPOLATION_GAP.c_str(), po::value<int>()->default_value(5),
+          "Maximum number if pixels to interpolate over"}
   }}};
 }
 
@@ -56,7 +59,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
     m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
   }
 
-  m_interpolate = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>();
+  m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
+      std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
 }
 
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {

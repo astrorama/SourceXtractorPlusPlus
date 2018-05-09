@@ -38,7 +38,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   
   double getGain() const { return m_gain; }
   double getSaturation() const { return m_saturation; }
-  bool shouldInterpolate() const { return m_interpolate; }
+  int getInterpolationGap() const { return m_interpolation_gap; }
 
 private:
   std::shared_ptr<DetectionImage> m_detection_image;
@@ -46,7 +46,7 @@ private:
   double m_gain;
   double m_saturation;
 
-  bool m_interpolate;
+  int m_interpolation_gap;
 
 }; /* End of DetectionImageConfig class */
 

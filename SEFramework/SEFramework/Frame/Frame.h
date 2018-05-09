@@ -34,7 +34,7 @@ public:
         std::shared_ptr<WeightImage> variance_map,
         WeightImage::PixelType variance_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
-        SeFloat gain, SeFloat saturation, bool interpolate)
+        SeFloat gain, SeFloat saturation, bool interpolation_gap)
           : m_image(detection_image),
             m_variance_map(variance_map),
             m_coordinate_system(coordinate_system),
@@ -42,7 +42,7 @@ public:
             m_saturation(saturation),
             m_detection_threshold(0),
             m_variance_threshold(variance_threshold),
-            m_use_interpolation(interpolate)
+            m_interpolation_gap(interpolation_gap)
             {}
 
   // FIXME: this simplified version is used in unit tests, get rid of it
@@ -56,7 +56,7 @@ public:
             m_saturation(0),
             m_detection_threshold(0),
             m_variance_threshold(1e6),
-            m_use_interpolation(false)
+            m_interpolation_gap(0)
             {
               if (variance_map==nullptr) {
                 m_variance_map = ConstantImage<WeightImage::PixelType>::create(detection_image->getWidth(), detection_image->getHeight(), .0001);
@@ -71,7 +71,7 @@ public:
   std::shared_ptr<T> getInterpolatedImage() const {
     if (m_interpolated_image == nullptr) {
       const_cast<Frame<T>*>(this)->m_interpolated_image = InterpolatedImage<typename T::PixelType>::create(
-          m_image, m_variance_map, getVarianceThreshold());
+          m_image, m_variance_map, getVarianceThreshold(), m_interpolation_gap);
     }
 
     return m_interpolated_image;
@@ -79,7 +79,7 @@ public:
 
   // Get the image with background subtraction
   std::shared_ptr<T> getSubtractedImage() const {
-    if (m_use_interpolation) {
+    if (m_interpolation_gap > 0) {
       return SubtractImage<typename T::PixelType>::create(getInterpolatedImage(), getBackgroundLevelMap());
     } else {
       return SubtractImage<typename T::PixelType>::create(getOriginalImage(), getBackgroundLevelMap());
@@ -107,8 +107,8 @@ public:
   }
 
   std::shared_ptr<WeightImage> getVarianceMap() const {
-    if (m_use_interpolation) {
-      return InterpolatedImage<WeightImage::PixelType>::create(m_variance_map, m_variance_map, getVarianceThreshold());
+    if (m_interpolation_gap > 0) {
+      return InterpolatedImage<WeightImage::PixelType>::create(m_variance_map, m_variance_map, getVarianceThreshold(), m_interpolation_gap);
     } else {
       return m_variance_map;
     }
@@ -191,7 +191,7 @@ private:
 
   SeFloat m_gain;
   SeFloat m_saturation;
-  bool m_use_interpolation;
+  int m_interpolation_gap; // max interpolation gap, 0 == no interpolation
 
   typename T::PixelType m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;

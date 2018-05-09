@@ -58,15 +58,19 @@ public:
   }
 
   void setOptions(int tile_width, int tile_height, int max_memory) {
+    flush();
+
+    m_tile_width = tile_width;
+    m_tile_height = tile_height;
+    m_max_memory = max_memory*1024L*1024L;
+  }
+
+  void flush() {
     // empty anything still stored in cache
     saveAllTiles();
     m_tile_list.clear();
     m_tile_map.clear();
-
-    m_tile_width = tile_width;
-    m_tile_height = tile_height;
     m_total_memory_used = 0;
-    m_max_memory = max_memory*1024L*1024L;
   }
 
   template <typename T>

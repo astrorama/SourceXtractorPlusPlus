@@ -48,6 +48,10 @@ public:
     m_tile_image = VectorImage<T>::create(width, height);
   }
 
+  virtual ~ImageTile() override {
+    saveIfModified();
+  }
+
   bool isPixelInTile(int x, int y) const {
     return x >= m_x && y >= m_y && x < m_max_x && y < m_max_y;
   }

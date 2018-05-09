@@ -195,10 +195,10 @@ public:
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
-    auto use_interpolation = config_manager.getConfiguration<DetectionImageConfig>().shouldInterpolate();
+    auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
-        detection_image_saturation, use_interpolation);
+        detection_image_saturation, interpolation_gap);
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
@@ -260,7 +260,7 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
-    TileManager::getInstance()->saveAllTiles();
+    TileManager::getInstance()->flush();
 
     return Elements::ExitCode::OK;
   }
