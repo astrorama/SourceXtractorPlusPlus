@@ -40,6 +40,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
+#include "SEImplementation/Measurement/MeasurementFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
@@ -99,6 +100,7 @@ class SEMain : public Elements::Program {
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
   DeblendingFactory deblending_factory {source_factory};
+  MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
 
 public:
@@ -122,6 +124,7 @@ public:
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
+    measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
@@ -160,6 +163,7 @@ public:
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
+    measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
 
@@ -177,13 +181,15 @@ public:
     auto source_grouping = std::make_shared<SourceGrouping>(
         std::unique_ptr<SplitSourcesCriteria>(new SplitSourcesCriteria), group_factory);
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
+    std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
     // Link together the pipeline's steps
     segmentation->addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
-    deblending->addObserver(output);
+    deblending->addObserver(measurement);
+    measurement->addObserver(output);
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
@@ -220,16 +226,9 @@ public:
       detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    //<<<<<<< HEAD
-    //std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-    //    << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
-    ////<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //=======
     // FIXME we should use average or median rather than value at coordinate 0,0
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
         << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-        //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //>>>>>>> refs/heads/for_merging
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 

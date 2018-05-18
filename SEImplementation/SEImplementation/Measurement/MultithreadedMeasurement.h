@@ -1,0 +1,15 @@
+/*
+ * MultithreadedMeasurement.h
+ *
+ *  Created on: May 17, 2018
+ *      Author: mschefer
+ */
+
+#ifndef _SEIMPLEMENTATION_OUTPUT_MULTITHREADEDMEASUREMENT_H_
+#define _SEIMPLEMENTATION_OUTPUT_MULTITHREADEDMEASUREMENT_H_
+
+
+
+
+
+#endif /* _SEIMPLEMENTATION_OUTPUT_MULTITHREADEDMEASUREMENT_H_ */

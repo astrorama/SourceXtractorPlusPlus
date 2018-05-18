@@ -44,7 +44,8 @@ elements_add_library(SEImplementation
 					 src/lib/Segmentation/*.cpp
 					 src/lib/Grouping/*.cpp
 					 src/lib/Configuration/*.cpp
-					 src/lib/Output/*.cpp
+           src/lib/Output/*.cpp
+           src/lib/Measurement/*.cpp
            src/lib/CoordinateSystem/*.cpp
            src/lib/CheckImages/*.cpp
            src/lib/Plugin/*/*.cpp
