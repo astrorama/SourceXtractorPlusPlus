@@ -21,6 +21,8 @@ class Measurement :
 public:
 
   virtual ~Measurement() = default;
+
+  virtual void performMeasurements() = 0;
 };
 
 }

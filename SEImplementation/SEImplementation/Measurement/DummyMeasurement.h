@@ -18,6 +18,9 @@ public:
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
     notifyObservers(source_group);
   }
+
+  virtual void performMeasurements() override {}
+
 };
 
 }

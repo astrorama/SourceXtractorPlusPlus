@@ -254,8 +254,13 @@ public:
     // Process the image
     segmentation->processFrame(detection_frame);
 
+    // Flush source grouping buffer
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+
+    // Perform measurements (multi-threaded part)
+    measurement->performMeasurements();
+
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
