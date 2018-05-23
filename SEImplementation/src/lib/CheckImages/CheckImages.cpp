@@ -35,9 +35,14 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_partition_filename =  config.getPartitionFilename();
   m_filtered_filename =  config.getFilteredFilename();
 
+
   if (m_model_fitting_image_filename != "") {
     m_check_image_model_fitting = FitsWriter::newImage<DetectionImage::PixelType>(m_model_fitting_image_filename,
         m_detection_image->getWidth(), m_detection_image->getHeight());
+  }
+  else if (m_residual_filename != "") {
+    m_check_image_model_fitting = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
+        "sextractor_check_model_%%%%%%.fits", m_detection_image->getWidth(), m_detection_image->getHeight());
   }
 
   if (m_segmentation_filename != "") {
