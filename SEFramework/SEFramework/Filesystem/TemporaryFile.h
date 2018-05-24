@@ -23,10 +23,6 @@ public:
   /// Return the full path of the temporary file
   const std::string& getPath() const;
 
-  /// Create the file on disk
-  /// @return An output stream pointing to the file
-  std::ofstream touch() const;
-
 private:
   std::string m_path;
   bool m_autoremove;

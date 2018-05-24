@@ -54,8 +54,4 @@ const std::string& TemporaryFile::getPath() const {
   return m_path;
 }
 
-std::ofstream TemporaryFile::touch() const {
-  return std::ofstream(m_path.c_str());
-}
-
 }
