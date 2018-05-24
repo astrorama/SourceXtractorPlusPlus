@@ -11,6 +11,7 @@
 #include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/Image/TemporaryFitsImageSource.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
 
 namespace SExtractor {
@@ -47,6 +48,14 @@ public:
   static std::shared_ptr<WriteableImage<T>> newImage(const std::string& filename, int width, int height) {
     std::cout << "Creating file " << filename << '\n';
     auto image_source = std::make_shared<FitsImageSource<T>>(filename, width, height);
+    return WriteableBufferedImage<T>::create(image_source);
+  }
+
+  template <typename T>
+    static std::shared_ptr<WriteableImage<T>> newTemporaryImage(const std::string &pattern, int width, int height,
+      bool auto_remove = true) {
+    std::cout << "Creating temporary fits file \n";
+    auto image_source = std::make_shared<TemporaryFitsImageSource<T>>(pattern, width, height, auto_remove);
     return WriteableBufferedImage<T>::create(image_source);
   }
 
