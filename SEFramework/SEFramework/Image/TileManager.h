@@ -9,6 +9,8 @@
 #define _SEFRAMEWORK_IMAGE_TILEMANAGER_H_
 
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 #include <list>
 #include <unordered_map>
@@ -57,7 +59,10 @@ public:
     saveAllTiles();
   }
 
+  // Actually not thread safe, call before starting the multi-threading
   void setOptions(int tile_width, int tile_height, int max_memory) {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
     flush();
 
     m_tile_width = tile_width;
@@ -66,6 +71,8 @@ public:
   }
 
   void flush() {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
     // empty anything still stored in cache
     saveAllTiles();
     m_tile_list.clear();
@@ -75,6 +82,8 @@ public:
 
   template <typename T>
   std::shared_ptr<ImageTile<T>> getTileForPixel(int x, int y, std::shared_ptr<const ImageSource<T>> source) {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
     x = x / m_tile_width * m_tile_width;
     y = y / m_tile_height * m_tile_height;
 
@@ -100,6 +109,8 @@ public:
   }
 
   void saveAllTiles() {
+    std::lock_guard<std::recursive_mutex> lock(m_mutex);
+
     for (auto tile_key : m_tile_list) {
       m_tile_map.at(tile_key)->saveIfModified();
     }
@@ -145,6 +156,8 @@ private:
 
   std::unordered_map<TileKey, std::shared_ptr<ImageTileBase>> m_tile_map;
   std::list<TileKey> m_tile_list;
+
+  std::recursive_mutex m_mutex;
 
   static std::shared_ptr<TileManager> s_instance;
 };

@@ -23,8 +23,8 @@ class MeasurementFactory : public Configurable {
 
 public:
 
-  MeasurementFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry) {
-  }
+  MeasurementFactory(std::shared_ptr<OutputRegistry> output_registry)
+      : m_output_registry(output_registry), m_threads_nb(0) {}
 
   std::unique_ptr<Measurement> getMeasurement() const;
 
@@ -34,7 +34,10 @@ public:
 
 
 private:
+  std::vector<std::string> m_optional_properties;
   std::shared_ptr<OutputRegistry> m_output_registry;
+
+  unsigned int m_threads_nb;
 };
 
 }
