@@ -21,7 +21,7 @@
  */
 
 
-//#include "SEImplementation/Plugin/SourceIDs/SourceIDsTaskFactory.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceIDTaskFactory.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceIDsPlugin.h"
 
 #include "SEFramework/Plugin/StaticPlugin.h"

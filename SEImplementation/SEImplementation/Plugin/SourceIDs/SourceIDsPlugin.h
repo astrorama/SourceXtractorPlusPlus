@@ -36,20 +36,22 @@ public:
   virtual ~SourceIDsPlugin() = default;
 
   virtual void registerPlugin(PluginAPI& plugin_api) {
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceIDTaskFactory, SourceID>();
+
     //TODO: "unsigned int" seems not to work as column
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceId, long>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceID, int>(
             "source_id",
-            [](const SourceId& prop){
-              return prop.getSourceId();
+            [](const SourceID& prop){
+              return prop.getId();
             }
     );
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceId, long>(
-            "detect_id",
-            [](const SourceId& prop){
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceID, int>(
+            "detection_id",
+            [](const SourceID& prop){
               return prop.getDetectionId();
             }
     );
-    plugin_api.getOutputRegistry().optionalOutput<SourceId>("SourceIDs");
+    plugin_api.getOutputRegistry().optionalOutput<SourceID>("SourceIDs");
   }
 
   virtual std::string getIdString() const {
