@@ -8,6 +8,7 @@
 
 #include "SEFramework/Filesystem/TemporaryFile.h"
 
+#include <fstream>
 #include <boost/filesystem.hpp>
 
 static const std::string temp_pattern("TemporaryFile_test_%%%%");
@@ -43,7 +44,8 @@ BOOST_AUTO_TEST_CASE ( automatic_cleanup_touch ) {
   auto temporary_file = std::make_shared<TemporaryFile>(true);
   auto full_path = temporary_file->getPath();
 
-  temporary_file->touch();
+  std::ofstream out(full_path.c_str());
+  out.close();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
 
@@ -56,7 +58,9 @@ BOOST_AUTO_TEST_CASE ( keep_file_touch ) {
   auto temporary_file = std::make_shared<TemporaryFile>(false);
   auto full_path = temporary_file->getPath();
 
-  temporary_file->touch() << "TEST_STRING";
+  std::ofstream out(full_path.c_str());
+  out << "TEST_STRING";
+  out.close();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
 
