@@ -34,6 +34,11 @@ public:
     }
   }
 
+  ImagePsf(const ImagePsf& orig) {
+    this->m_pixel_scale = orig.m_pixel_scale;
+    this->m_image = VectorImage<SExtractor::SeFloat>::create(*orig.m_image);
+  }
+
   virtual ~ImagePsf() = default;
 
   double getPixelScale() const {
@@ -53,7 +58,6 @@ public:
   }
 
   void convolve(std::shared_ptr<VectorImage<SExtractor::SeFloat>>& image) const {
-
     // FIXME don't use opencv
 
     auto size = m_image->getWidth();

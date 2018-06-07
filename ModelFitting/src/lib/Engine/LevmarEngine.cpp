@@ -4,6 +4,8 @@
  * @author Nikolaos Apostolakos
  */
 
+#include <mutex>
+
 #include <levmar.h>
 #include "ModelFitting/Engine/LevmarEngine.h"
 
@@ -17,6 +19,12 @@ LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
       
 LevmarEngine::~LevmarEngine() = default;
 
+// The Levmar library seems to have some problems with multithreading, this mutex is used to ensure only one thread
+// in levmar
+namespace {
+  std::mutex levmar_mutex;
+}
+
 LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_manager,
                                               ResidualEstimator& residual_estimator) {
   // Create a tuple which keeps the references to the given manager and estimator
@@ -24,13 +32,15 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 
   // The function which is called by the levmar loop
   auto levmar_res_func = [](double *p, double *hx, int, int, void *extra) {
-    //std::cout << "...";
+    levmar_mutex.unlock();
 
     auto* extra_ptr = (decltype(adata)*)extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(p);
     ResidualEstimator& re = std::get<1>(*extra_ptr);
     re.populateResiduals(hx);
+
+    levmar_mutex.lock();
   };
 
   // Create the vector which will be used for keeping the parameter values
@@ -41,6 +51,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   // Create a vector for getting the information of the minimization
   std::array<double, 10> info;
 
+  levmar_mutex.lock();
   // Call the levmar library
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
                          param_values.data(), // The pointer where the parameter values are
@@ -54,6 +65,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          NULL, // Ignoring covariance for the moment
                          &adata // No additional data needed
                         );
+  levmar_mutex.unlock();
   
   // Create and return the summary object
   LeastSquareSummary summary {};

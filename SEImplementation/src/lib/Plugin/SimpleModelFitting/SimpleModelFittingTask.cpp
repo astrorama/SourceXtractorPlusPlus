@@ -10,6 +10,7 @@
 #include <vector>
 #include <valarray>
 #include <boost/any.hpp>
+#include <mutex>
 
 #include "ElementsKernel/PathSearch.h"
 
@@ -62,6 +63,9 @@
 
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
+
 
 namespace SExtractor {
 
@@ -112,8 +116,8 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
-SeFloat computeReducedChiSquared(
-    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+SeFloat computeReducedChiSquared(std::shared_ptr<const Image<SeFloat>> image,
+    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
   double reduced_chi_squared = 0.0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
@@ -296,6 +300,7 @@ struct SourceModel {
 
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
+  auto psf(*m_psf);
 
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
@@ -351,7 +356,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     std::move(constant_models),
     std::move(point_models),
     std::move(extended_models),
-    *m_psf
+    psf
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
@@ -404,19 +409,18 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   //LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
 
-  for (auto& source_model : source_models) {
-    std::cout << "Before: ";
-    source_model->debugPrint();
-  }
+//  for (auto& source_model : source_models) {
+//    std::cout << "Before: ";
+//    source_model->debugPrint();
+//  }
 
   auto solution = engine.solveProblem(manager, res_estimator);
 
-  for (auto& source_model : source_models) {
-    std::cout << "After: ";
-    source_model->debugPrint();
-  }
-
-  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
+//  for (auto& source_model : source_models) {
+//    std::cout << "After: ";
+//    source_model->debugPrint();
+//  }
+//  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
 
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
@@ -433,7 +437,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source_model->createModels(extended_models, point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {
       1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
-          std::move(extended_models), *m_psf
+          std::move(extended_models), psf
     };
     auto final_image = frame_model_after.getImage();
 
@@ -473,8 +477,8 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     );
   }
 
-  SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
-  printDebugChi2(reduced_chi_squared);
+  //SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
+  //printDebugChi2(reduced_chi_squared);
 }
 
 }
