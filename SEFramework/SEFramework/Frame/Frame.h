@@ -27,10 +27,10 @@ class Frame {
 public:
   class ImageFilter {
   public:
-    virtual std::shared_ptr<Image<typename T::PixelType>> processImage(std::shared_ptr<Image<typename T::PixelType>> image, std::shared_ptr<Image<typename T::PixelType>> variance, typename T::PixelType threshold) const = 0;
+    virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> variance, T threshold) const = 0;
   };
 
-  Frame(std::shared_ptr<T> detection_image,
+  Frame(std::shared_ptr<Image<T>> detection_image,
         std::shared_ptr<WeightImage> variance_map,
         WeightImage::PixelType variance_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
@@ -46,7 +46,7 @@ public:
             {}
 
   // FIXME: this simplified version is used in unit tests, get rid of it
-  Frame(std::shared_ptr<T> detection_image,
+  Frame(std::shared_ptr<Image<T>> detection_image,
         std::shared_ptr<CoordinateSystem> coordinate_system = nullptr,
         std::shared_ptr<WeightImage> variance_map = nullptr)
           : m_image(detection_image),
@@ -64,13 +64,13 @@ public:
             }
 
   // Just the original image
-  std::shared_ptr<T> getOriginalImage() const {
+  std::shared_ptr<Image<T>> getOriginalImage() const {
     return m_image;
   }
 
-  std::shared_ptr<T> getInterpolatedImage() const {
+  std::shared_ptr<Image<T>> getInterpolatedImage() const {
     if (m_interpolated_image == nullptr) {
-      const_cast<Frame<T>*>(this)->m_interpolated_image = InterpolatedImage<typename T::PixelType>::create(
+      const_cast<Frame<T>*>(this)->m_interpolated_image = InterpolatedImage<T>::create(
           m_image, m_variance_map, getVarianceThreshold(), m_interpolation_gap);
     }
 
@@ -78,28 +78,28 @@ public:
   }
 
   // Get the image with background subtraction
-  std::shared_ptr<T> getSubtractedImage() const {
+  std::shared_ptr<Image<T>> getSubtractedImage() const {
     if (m_interpolation_gap > 0) {
-      return SubtractImage<typename T::PixelType>::create(getInterpolatedImage(), getBackgroundLevelMap());
+      return SubtractImage<T>::create(getInterpolatedImage(), getBackgroundLevelMap());
     } else {
-      return SubtractImage<typename T::PixelType>::create(getOriginalImage(), getBackgroundLevelMap());
+      return SubtractImage<T>::create(getOriginalImage(), getBackgroundLevelMap());
     }
   }
 
 //  std::shared_ptr<T> getSubtractedInterpolatedImage() const {
-//    return SubtractImage<typename T::PixelType>::create(getInterpolatedImage(), getBackgroundLevelMap());
+//    return SubtractImage<T>::create(getInterpolatedImage(), getBackgroundLevelMap());
 //  }
 
   // A filter is applied to the subtracted image
-  std::shared_ptr<T> getFilteredImage() const {
+  std::shared_ptr<Image<T>> getFilteredImage() const {
     if (m_filtered_image == nullptr) {
       const_cast<Frame<T>*>(this)->applyFilter();
     }
     return m_filtered_image;
   }
 
-  std::shared_ptr<T> getThresholdedImage() const {
-    return ThresholdedImage<typename T::PixelType>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
+  std::shared_ptr<Image<T>> getThresholdedImage() const {
+    return ThresholdedImage<T>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
   }
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
@@ -138,24 +138,24 @@ public:
     m_filtered_image = nullptr;
   }
 
-  std::shared_ptr<T> getBackgroundLevelMap() const {
+  std::shared_ptr<Image<T>> getBackgroundLevelMap() const {
     if (m_background_level_map != nullptr) {
       return m_background_level_map;
     } else {
       // background level = 0 by default
-      return ConstantImage<typename T::PixelType>::create(m_image->getWidth(), m_image->getHeight(), 0);
+      return ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), 0);
     }
   }
 
-  typename T::PixelType getDetectionThreshold() const {
+  T getDetectionThreshold() const {
 		return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
   }
 
-  void setDetectionThreshold(typename T::PixelType detection_threshold) {
+  void setDetectionThreshold(T detection_threshold) {
     m_detection_threshold = detection_threshold;
   }
 
-  void setBackgroundLevel(std::shared_ptr<T> background_level_map) {
+  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {
     m_background_level_map = background_level_map;
     m_filtered_image = nullptr;
   }
@@ -183,9 +183,9 @@ private:
     }
   }
 
-  std::shared_ptr<T> m_image;
+  std::shared_ptr<Image<T>> m_image;
   std::shared_ptr<WeightImage> m_variance_map;
-  std::shared_ptr<T> m_background_level_map;
+  std::shared_ptr<Image<T>> m_background_level_map;
 
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
@@ -193,16 +193,16 @@ private:
   SeFloat m_saturation;
   int m_interpolation_gap; // max interpolation gap, 0 == no interpolation
 
-  typename T::PixelType m_detection_threshold;
+  T m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;
 
   std::shared_ptr<ImageFilter> m_filter;
-  std::shared_ptr<T> m_interpolated_image;
-  std::shared_ptr<T> m_filtered_image;
+  std::shared_ptr<Image<T>> m_interpolated_image;
+  std::shared_ptr<Image<T>> m_filtered_image;
 };
 
-using DetectionImageFrame = Frame<DetectionImage>;
-using MeasurementImageFrame = Frame<MeasurementImage>;
+using DetectionImageFrame = Frame<DetectionImage::PixelType>;
+using MeasurementImageFrame = Frame<MeasurementImage::PixelType>;
 
 }
 

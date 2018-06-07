@@ -8,6 +8,8 @@
 #ifndef _SEFRAMEWORK_IMAGE_BUFFEREDIMAGE_H_
 #define _SEFRAMEWORK_IMAGE_BUFFEREDIMAGE_H_
 
+#include <mutex>
+
 #include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
