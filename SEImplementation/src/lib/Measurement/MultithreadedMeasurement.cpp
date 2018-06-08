@@ -5,6 +5,7 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
@@ -30,6 +31,9 @@ void MultithreadedMeasurement::performMeasurements() {
 
 void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
   m_input_queue_mutex.lock();
+  for (auto& source : *source_group) {
+    source.getProperty<SourceID>();
+  }
   m_input_queue.emplace_back(m_group_counter++, source_group);
   m_input_queue_mutex.unlock();
 }
