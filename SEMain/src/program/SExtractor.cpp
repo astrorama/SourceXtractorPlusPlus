@@ -86,6 +86,19 @@ public:
 
 static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
 
+static void setupEnvironment(void) {
+  // Some parts of boost (including boost::filesystem) can throw an exception when the
+  // locale as configured in the environment is invalid.
+  // We work around that overriding the locale if we find an invalid one.
+  // See https://svn.boost.org/trac10/ticket/10205
+  try {
+    std::locale("");
+  }
+  catch (...) {
+    ::setenv("LC_ALL", "C", 1);
+  }
+}
+
 class SEMain : public Elements::Program {
   
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry = std::make_shared<TaskFactoryRegistry>();
@@ -311,7 +324,9 @@ private:
 ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
-  
+
+  setupEnvironment();
+
   // First we create a program which has a sole purpose to get the options for
   // the plugin paths. Note that we do not want to have this helper program
   // to handle any other options except of the plugin-directory and plugin, so
