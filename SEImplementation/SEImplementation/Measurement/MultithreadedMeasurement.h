@@ -20,7 +20,7 @@ public:
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   MultithreadedMeasurement(SourceToRowConverter source_to_row, int worker_threads_nb)
-      : m_source_to_row(source_to_row), m_worker_threads_nb(worker_threads_nb) {}
+      : m_source_to_row(source_to_row), m_worker_threads_nb(worker_threads_nb), m_group_counter(0) {}
 
   virtual void performMeasurements();
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
@@ -37,10 +37,11 @@ private:
   int m_worker_threads_nb;
   std::vector<std::shared_ptr<std::thread>> m_worker_threads;
 
-  std::list<std::shared_ptr<SourceGroupInterface>> m_input_queue;
+  int m_group_counter;
+  std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_input_queue;
   std::mutex m_input_queue_mutex;
 
-  std::list<std::shared_ptr<SourceGroupInterface>> m_output_queue;
+  std::map<int, std::shared_ptr<SourceGroupInterface>> m_output_queue;
   std::mutex m_output_queue_mutex;
 };
 
