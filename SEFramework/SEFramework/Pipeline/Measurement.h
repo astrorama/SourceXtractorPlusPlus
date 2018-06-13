@@ -22,7 +22,8 @@ public:
 
   virtual ~Measurement() = default;
 
-  virtual void performMeasurements() = 0;
+  virtual void startThreads() = 0;
+  virtual void waitForThreads() = 0;
 };
 
 }

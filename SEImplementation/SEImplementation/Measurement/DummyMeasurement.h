@@ -19,7 +19,8 @@ public:
     notifyObservers(source_group);
   }
 
-  virtual void performMeasurements() override {}
+  virtual void startThreads() override {}
+  virtual void waitForThreads() override {}
 
 };
 

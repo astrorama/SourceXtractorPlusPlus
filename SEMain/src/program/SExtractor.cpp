@@ -264,6 +264,9 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
+    // Perform measurements (multi-threaded part)
+    measurement->startThreads();
+
     // Process the image
     segmentation->processFrame(detection_frame);
 
@@ -271,9 +274,7 @@ public:
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
-    // Perform measurements (multi-threaded part)
-    measurement->performMeasurements();
-
+    measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
