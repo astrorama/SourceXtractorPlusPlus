@@ -445,7 +445,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     double total_flux = 0;
     for (int y=0; y < group_stamp.getHeight(); y++) {
       for (int x=0; x < group_stamp.getWidth(); x++) {
-        PixelCoordinate pixel (x,y);
+        PixelCoordinate pixel(x, y);
         pixel += stamp_top_left;
 
         // build final stamp
@@ -453,7 +453,9 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
         // if requested, updates a check image made by adding all source models
         if (check_image) {
+          CheckImages::getInstance().lock();
           check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
+          CheckImages::getInstance().unlock();
         }
 
         total_flux += final_image->getValue(x, y);
