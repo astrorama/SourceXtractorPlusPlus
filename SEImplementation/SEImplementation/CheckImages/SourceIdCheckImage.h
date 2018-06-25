@@ -10,21 +10,24 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Image/WriteableImage.h"
-#include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Source/SourceGroupInterface.h"
 
 namespace SExtractor {
 
-class SourceIdCheckImage : public Observer<std::shared_ptr<SourceInterface>> {
+class SourceIdCheckImage : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
 
   SourceIdCheckImage(std::shared_ptr<WriteableImage<unsigned int>> check_image) :
       m_check_image(check_image)
       {}
 
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source);
+  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group);
 
 private:
   std::shared_ptr<WriteableImage<unsigned int>> m_check_image;
 };
+
+
 } /* namespace SExtractor */
+
 #endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_CHECKIMAGES_SEGMENTATIONCHECKIMAGE_H_ */
