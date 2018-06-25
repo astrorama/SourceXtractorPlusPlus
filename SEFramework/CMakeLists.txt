@@ -46,6 +46,7 @@ elements_add_library(SEFramework
                      src/lib/Plugin/*.cpp
                      src/lib/Image/*.cpp
                      src/lib/Filesystem/*.cpp
+                     src/lib/Psf/*.cpp
                      LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration
                      INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
@@ -115,6 +116,9 @@ elements_add_unit_test(TemporaryFile_test tests/src/Filesystem/TemporaryFile_tes
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(TemporaryFitsSource_test tests/src/Image/TemporaryFitsSource_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(VariablePsf_test tests/src/Psf/VariablePsf_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 
