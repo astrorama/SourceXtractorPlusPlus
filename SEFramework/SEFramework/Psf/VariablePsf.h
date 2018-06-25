@@ -34,7 +34,7 @@ public:
 
   std::shared_ptr<VectorImage<double>> getPsf(const std::vector<double> &prop_values) const;
 
-public:
+private:
   std::vector<Component> m_components;
   std::vector<unsigned> m_group_degrees;
   std::vector<std::shared_ptr<VectorImage<double>>> m_coefficients;
