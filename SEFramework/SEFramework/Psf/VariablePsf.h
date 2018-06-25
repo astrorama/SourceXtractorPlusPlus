@@ -18,8 +18,13 @@ namespace SExtractor {
 // TODO: Load form PsfEx file
 class VariablePsf {
 public:
-  VariablePsf(const std::vector<unsigned> &property_groups, const std::vector<unsigned> &group_degrees,
-    const std::vector<double> &offsets, const std::vector<double> &scales,
+  struct Component {
+    std::string name;
+    unsigned group_id;
+    double offset, scale;
+  };
+
+  VariablePsf(const std::vector<Component> &components, const std::vector<unsigned> &group_degrees,
     const std::vector<std::shared_ptr<VectorImage<double>>> &coefficients);
 
   virtual ~VariablePsf() = default;
@@ -30,8 +35,8 @@ public:
   std::shared_ptr<VectorImage<double>> getPsf(const std::vector<double> &prop_values) const;
 
 public:
-  std::vector<unsigned> m_property_groups, m_group_degrees;
-  std::vector<double> m_offsets, m_scales;
+  std::vector<Component> m_components;
+  std::vector<unsigned> m_group_degrees;
   std::vector<std::shared_ptr<VectorImage<double>>> m_coefficients;
   std::vector<std::vector<unsigned>> m_exponents;
 
