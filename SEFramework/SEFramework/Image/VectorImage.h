@@ -53,6 +53,16 @@ protected:
     assert(width > 0 && height > 0);
     assert(m_data.size() == std::size_t(width * height));
   }
+
+  template <typename Iter>
+  VectorImage(int width, int height, Iter data_begin, Iter data_end,
+        typename std::enable_if<
+            std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value
+            and std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value
+        >::type* =0) :
+      m_width(width), m_height(height), m_data(data_begin, data_end) {
+    assert(m_data.size() == std::size_t(width * height));
+  }
   
   explicit VectorImage(const Image<T>& other_image) :
     m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height), m_offset(0,0) {

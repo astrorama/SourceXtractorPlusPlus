@@ -5,6 +5,7 @@
  */
 
 #include <boost/test/unit_test.hpp>
+#include <valarray>
 
 #include "SEFramework/Image/VectorImage.h"
 
@@ -29,6 +30,19 @@ BOOST_AUTO_TEST_CASE( example_test ) {
 
   BOOST_CHECK(image->getData()[207] == 99);
   BOOST_CHECK(image->getData()[302] == 33);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE( from_iterators ) {
+  std::valarray<int> base{0, 1, 2, 3, 4, 5, 6, 7, 8};
+  auto image = VectorImage<int>::create(5, 1, std::begin(base) + 2, std::begin(base) + 7);
+
+  BOOST_CHECK_EQUAL(image->at(0, 0), 2);
+  BOOST_CHECK_EQUAL(image->at(1, 0), 3);
+  BOOST_CHECK_EQUAL(image->at(2, 0), 4);
+  BOOST_CHECK_EQUAL(image->at(3, 0), 5);
+  BOOST_CHECK_EQUAL(image->at(4, 0), 6);
 }
 
 //-----------------------------------------------------------------------------
