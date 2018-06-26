@@ -51,7 +51,7 @@ BOOST_FIXTURE_TEST_CASE(getValue_test, EngineParameterFixture) {
 }
 
 BOOST_FIXTURE_TEST_CASE(getEngineValue_test, EngineParameterFixture) {
-  double expected_python_value {1.949539694713897};
+  double expected_python_value {0.6675932907176532};
   BOOST_CHECK_EQUAL(expected_python_value, engine_parameter.getEngineValue());
 }
 
