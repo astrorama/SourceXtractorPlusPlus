@@ -13,6 +13,8 @@
 #include <iomanip>
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
+
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
 
@@ -207,10 +209,10 @@ public:
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
       segmentation->addObserver(
-          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+          std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
-      partition->addObserver(
+      deblending->addObserver(
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 

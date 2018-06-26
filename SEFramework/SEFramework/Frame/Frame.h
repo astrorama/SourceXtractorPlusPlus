@@ -34,7 +34,7 @@ public:
         std::shared_ptr<WeightImage> variance_map,
         WeightImage::PixelType variance_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
-        SeFloat gain, SeFloat saturation, bool interpolation_gap)
+        SeFloat gain, SeFloat saturation, int interpolation_gap)
           : m_image(detection_image),
             m_variance_map(variance_map),
             m_coordinate_system(coordinate_system),
