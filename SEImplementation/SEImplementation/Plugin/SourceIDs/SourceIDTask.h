@@ -28,7 +28,7 @@ public:
 
 private:
   static unsigned int getNewId() {
-    static unsigned int s_id  = 0;
+    static unsigned int s_id  = 1;
     return s_id++;
   }
 
