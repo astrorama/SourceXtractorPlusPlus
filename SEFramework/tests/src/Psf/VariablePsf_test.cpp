@@ -11,7 +11,7 @@
 
 using namespace SExtractor;
 
-void checkEqual(const std::shared_ptr<VectorImage<double>> &a, const  std::shared_ptr<VectorImage<double>> &b) {
+void checkEqual(const std::shared_ptr<VectorImage<SeFloat>> &a, const  std::shared_ptr<VectorImage<SeFloat>> &b) {
   BOOST_CHECK_EQUAL(a->getWidth(), b->getWidth());
   BOOST_CHECK_EQUAL(a->getHeight(), b->getWidth());
 
@@ -23,17 +23,17 @@ void checkEqual(const std::shared_ptr<VectorImage<double>> &a, const  std::share
 }
 
 
-auto constant = VectorImage<double>::create(3, 3, std::vector<double>{
+auto constant = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
   0. , 1., 0.,
   0.5, 1., 0.5,
   0. , 1., 0.
 });
-auto x = VectorImage<double>::create(3, 3, std::vector<double>{
+auto x = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     0., 0., 0.,
     0., 2., 0.,
     0., 0., 0.
 });
-auto x2 = VectorImage<double>::create(3, 3, std::vector<double>{
+auto x2 = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     1., 0., 0.,
     0., 0., 0.,
     0., 0., 0.2
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_SUITE (VariablePsf_test)
 /// Can not create an empty variable PSF
 BOOST_AUTO_TEST_CASE (malformed_empty) {
   try {
-    VariablePsf psf{{}, {}, {}};
+    VariablePsf psf{1, {}, {}, {}};
     BOOST_FAIL("Creation of an empty variable PSF must fail");
   }
   catch (const Elements::Exception&) {
@@ -54,13 +54,13 @@ BOOST_AUTO_TEST_CASE (malformed_empty) {
 
 /// Not all coefficient matrices have the proper dimensionality
 BOOST_AUTO_TEST_CASE (malformed_coeff_dimensions) {
-  auto bad = VectorImage<double>::create(2, 2, std::vector<double>{
+  auto bad = VectorImage<SeFloat>::create(2, 2, std::vector<SeFloat>{
       1., 2.,
       3., 1.,
   });
 
   try {
-    VariablePsf psf{{}, {}, {constant, bad}};
+    VariablePsf psf{1, {}, {}, {constant, bad}};
     BOOST_FAIL("Creation of variable PSF with mismatching coefficient dimensions");
   }
   catch (const Elements::Exception&) {
@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE (malformed_coeff_dimensions) {
 
 /// There is only a constant coefficient, so the coordinates must not matter
 BOOST_AUTO_TEST_CASE (constant_only) {
-  VariablePsf varPsf{{}, {}, {constant}};
+  VariablePsf varPsf{1, {}, {}, {constant}};
 
   BOOST_CHECK_EQUAL(varPsf.getWidth(), 3);
   BOOST_CHECK_EQUAL(varPsf.getHeight(), 3);
@@ -79,52 +79,52 @@ BOOST_AUTO_TEST_CASE (constant_only) {
 }
 
 BOOST_AUTO_TEST_CASE (x_linear) {
-  const auto expected = VectorImage<double>::create(3, 3, std::vector<double>{
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       0. , 1., 0.,
       0.5, 4., 0.5,
       0. , 1., 0.
   });
 
-  VariablePsf varPsf{{{"x", 0, 5., 2.}}, {1}, {constant, x}};
+  VariablePsf varPsf{1, {{"x", 0, 5., 2.}}, {1}, {constant, x}};
 
   auto psf = varPsf.getPsf({8.});
   checkEqual(psf, expected);
 }
 
 BOOST_AUTO_TEST_CASE (x_squared) {
-  const auto expected = VectorImage<double>::create(3, 3, std::vector<double>{
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       2.25, 1., 0.,
       0.5 , 4., 0.5,
       0.  , 1., 0.45
   });
 
-  VariablePsf varPsf{{{"x", 0, 5, 2}}, {2}, {constant, x, x2}};
+  VariablePsf varPsf{1, {{"x", 0, 5, 2}}, {2}, {constant, x, x2}};
 
   auto psf = varPsf.getPsf({8.});
   checkEqual(psf, expected);
 }
 
 BOOST_AUTO_TEST_CASE(x_y_linear) {
-  const auto expected = VectorImage<double>::create(3, 3, std::vector<double>{
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       1. , 1., 0.,
       0.5, 4., 0.5,
       0. , 1., 0.2
   });
 
-  VariablePsf varPsf{{{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {1}, {constant, x, x2}};
+  VariablePsf varPsf{1, {{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {1}, {constant, x, x2}};
 
   auto psf = varPsf.getPsf({8., 50.});
   checkEqual(psf, expected);
 }
 
 BOOST_AUTO_TEST_CASE(x_y_squared) {
-  const auto expected = VectorImage<double>::create(3, 3, std::vector<double>{
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       3.75, 1., 0.,
       0.5 , 8., 0.5,
       0.  , 1., 0.75
   });
 
-  VariablePsf varPsf{{{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {2}, {constant, x, x2, x, x2, x}};
+  VariablePsf varPsf{1, {{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {2}, {constant, x, x2, x, x2, x}};
 
   auto psf = varPsf.getPsf({8., 50.});
   checkEqual(psf, expected);

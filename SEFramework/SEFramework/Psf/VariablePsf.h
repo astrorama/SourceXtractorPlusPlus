@@ -15,30 +15,31 @@ namespace SExtractor {
 
 
 // TODO: Verify coefficient size
-// TODO: Load form PsfEx file
 class VariablePsf {
 public:
   struct Component {
     std::string name;
-    unsigned group_id;
+    int group_id;
     double offset, scale;
   };
 
-  VariablePsf(const std::vector<Component> &components, const std::vector<unsigned> &group_degrees,
-    const std::vector<std::shared_ptr<VectorImage<double>>> &coefficients);
+  VariablePsf(double pixel_scale, const std::vector<Component> &components, const std::vector<int> &group_degrees,
+    const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients);
 
   virtual ~VariablePsf() = default;
 
   int getWidth() const;
   int getHeight() const;
+  double getPixelScale() const;
 
-  std::shared_ptr<VectorImage<double>> getPsf(const std::vector<double> &prop_values) const;
+  std::shared_ptr<VectorImage < SeFloat>> getPsf(const std::vector<double> &prop_values) const;
 
 private:
+  double m_pixel_scale;
   std::vector<Component> m_components;
-  std::vector<unsigned> m_group_degrees;
-  std::vector<std::shared_ptr<VectorImage<double>>> m_coefficients;
-  std::vector<std::vector<unsigned>> m_exponents;
+  std::vector<int> m_group_degrees;
+  std::vector<std::shared_ptr<VectorImage<SeFloat>>> m_coefficients;
+  std::vector<std::vector<int>> m_exponents;
 
   void selfTest();
   std::vector<double> scaleProperties(const std::vector<double> &prop_values) const;

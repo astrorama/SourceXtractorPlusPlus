@@ -12,9 +12,10 @@
 
 namespace SExtractor {
 
-VariablePsf::VariablePsf(const std::vector<Component> &components, const std::vector<unsigned> &group_degrees,
-            const std::vector<std::shared_ptr<VectorImage<double>>> &coefficients):
-  m_components(components), m_group_degrees(group_degrees), m_coefficients(coefficients)
+VariablePsf::VariablePsf(double pixel_scale, const std::vector<Component> &components,
+            const std::vector<int> &group_degrees,
+            const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients):
+  m_pixel_scale(pixel_scale), m_components(components), m_group_degrees(group_degrees), m_coefficients(coefficients)
 {
   selfTest();
   calculateExponents();
@@ -28,11 +29,15 @@ int VariablePsf::getHeight() const {
   return m_coefficients[0]->getHeight();
 }
 
-std::shared_ptr<VectorImage<double>> VariablePsf::getPsf(const std::vector<double> &prop_values) const
+double VariablePsf::getPixelScale() const {
+  return m_pixel_scale;
+}
+
+std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &prop_values) const
 {
   auto scaled_props = scaleProperties(prop_values);
   // Initialize with the constant component
-  auto result = VectorImage<double>::create(*m_coefficients[0]);
+  auto result = VectorImage<SeFloat>::create(*m_coefficients[0]);
 
   // Add the rest of the components
   for (auto i = 1; i < m_coefficients.size(); ++i) {
@@ -91,8 +96,8 @@ std::vector<double> VariablePsf::scaleProperties(const std::vector<double> &prop
 }
 
 void VariablePsf::calculateExponents() {
-  std::vector<unsigned> group_exponents(m_group_degrees);
-  std::vector<unsigned> exp(m_components.size());
+  std::vector<int> group_exponents(m_group_degrees);
+  std::vector<int> exp(m_components.size());
 
   m_exponents.resize(m_coefficients.size());
   if (m_components.empty()) {
