@@ -212,7 +212,7 @@ public:
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
-      deblending->addObserver(
+      measurement->addObserver(
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
