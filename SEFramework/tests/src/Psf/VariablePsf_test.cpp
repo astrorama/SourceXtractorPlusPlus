@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE (malformed_coeff_dimensions) {
 
 /// There is only a constant coefficient, so the coordinates must not matter
 BOOST_AUTO_TEST_CASE (constant_only) {
-  VariablePsf varPsf{1, {}, {}, {constant}};
+  VariablePsf varPsf{1, constant};
 
   BOOST_CHECK_EQUAL(varPsf.getWidth(), 3);
   BOOST_CHECK_EQUAL(varPsf.getHeight(), 3);

@@ -26,6 +26,8 @@ public:
   VariablePsf(double pixel_scale, const std::vector<Component> &components, const std::vector<int> &group_degrees,
     const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients);
 
+  VariablePsf(double pixel_scale, const std::shared_ptr<VectorImage<SeFloat>> &constant);
+
   virtual ~VariablePsf() = default;
 
   int getWidth() const;

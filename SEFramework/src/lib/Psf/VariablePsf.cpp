@@ -21,6 +21,13 @@ VariablePsf::VariablePsf(double pixel_scale, const std::vector<Component> &compo
   calculateExponents();
 }
 
+VariablePsf::VariablePsf(double pixel_scale, const std::shared_ptr<VectorImage<SeFloat>> &constant):
+  m_pixel_scale(pixel_scale), m_coefficients{constant}
+{
+  selfTest();
+  calculateExponents();
+}
+
 int VariablePsf::getWidth() const {
   return m_coefficients[0]->getWidth();
 }
@@ -35,7 +42,13 @@ double VariablePsf::getPixelScale() const {
 
 std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &prop_values) const
 {
+  // If we only have the constant, avoid a copy
+  if (m_coefficients.size() == 1) {
+    return m_coefficients[0];
+  }
+
   auto scaled_props = scaleProperties(prop_values);
+
   // Initialize with the constant component
   auto result = VectorImage<SeFloat>::create(*m_coefficients[0]);
 
