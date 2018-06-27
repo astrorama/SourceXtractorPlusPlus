@@ -129,7 +129,7 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
 std::vector<std::string> MeasurementConfig::getFilenamesFromPath(const std::string& path) const {
   auto filename = bfs::path(path);
 
-  auto root_path = bfs::absolute(filename.root_path());
+  auto root_path = bfs::absolute(filename.parent_path());
   std::cout << ">>> " << filename << " ## " << root_path << std::endl;
 
   auto path_regexp = filename.filename().string();
