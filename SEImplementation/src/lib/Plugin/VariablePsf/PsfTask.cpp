@@ -11,12 +11,27 @@
 
 namespace SExtractor {
 
+
+std::map<std::string, ValueGetter> component_value_getters {
+    {"X_IMAGE", [](SExtractor::SourceInterface &source){
+      return source.getProperty<PixelCentroid>().getCentroidX();
+    }},
+    {"Y_IMAGE", [](SExtractor::SourceInterface &source){
+      return source.getProperty<PixelCentroid>().getCentroidY();
+    }}
+};
+
 PsfTask::PsfTask(const std::shared_ptr<VariablePsf> &vpsf): m_vpsf(vpsf) {
 }
 
 void PsfTask::computeProperties(SExtractor::SourceInterface &source) const {
-  auto centroid = source.getProperty<PixelCentroid>();
-  auto psf = m_vpsf->getPsf({centroid.getCentroidX(), centroid.getCentroidY()});
+  std::vector<double> component_values;
+
+  for (auto c : m_vpsf->getComponents()) {
+    component_values.push_back(component_value_getters[c.name](source));
+  }
+
+  auto psf = m_vpsf->getPsf(component_values);
   source.setProperty<PsfProperty>(ImagePsf{m_vpsf->getPixelScale(), psf});
 }
 

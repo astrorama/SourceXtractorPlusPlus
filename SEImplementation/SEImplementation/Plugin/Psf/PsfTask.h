@@ -13,6 +13,9 @@
 
 namespace SExtractor {
 
+typedef std::function<double(SExtractor::SourceInterface &source)> ValueGetter;
+extern std::map<std::string, ValueGetter> component_value_getters;
+
 class PsfTask: public SourceTask {
 public:
   virtual ~PsfTask() = default;

@@ -12,6 +12,7 @@
 #include <CCfits/Column.h>
 #include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 namespace po = boost::program_options;
 using Euclid::Configuration::Configuration;
@@ -91,6 +92,9 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     ll << "Components: ";
     for (auto c : components) {
        ll << c.name << " ";
+       if (component_value_getters.find(c.name) == component_value_getters.end()) {
+         throw Elements::Exception() << "Can not find a getter for the component " << c.name;
+       }
     }
 
     return std::make_shared<VariablePsf>(pixel_scale, components, group_degrees, coefficients);

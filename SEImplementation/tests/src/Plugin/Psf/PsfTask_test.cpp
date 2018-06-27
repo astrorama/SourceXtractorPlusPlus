@@ -8,33 +8,35 @@
 #include <boost/test/unit_test.hpp>
 #include <SEFramework/Source/SimpleSource.h>
 #include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
-#include <SEImplementation/Plugin/VariablePsf/VariablePsfProperty.h>
-#include "SEImplementation/Plugin/VariablePsf/VariablePsfTask.h"
+#include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 using namespace SExtractor;
 
-void checkEqual(const std::shared_ptr<VectorImage<double>> &a, const  std::shared_ptr<VectorImage<double>> &b) {
-  BOOST_CHECK_EQUAL(a->getWidth(), b->getWidth());
-  BOOST_CHECK_EQUAL(a->getHeight(), b->getWidth());
+void checkEqual(const std::shared_ptr<VectorImage<SeFloat>> &a, const  std::shared_ptr<VectorImage<SeFloat>> &b) {
+  BOOST_REQUIRE_EQUAL(a->getWidth(), b->getWidth());
+  BOOST_REQUIRE_EQUAL(a->getHeight(), b->getWidth());
 
   for (auto i = 0; i < a->getWidth(); ++i) {
     for (auto j = 0; j < a->getHeight(); ++j) {
-      BOOST_REQUIRE_CLOSE(a->at(i, j), b->at(i, j), 0.01);
+      // We assume the PSF summed value will normally be around O(1)
+      // so the error should remain bellow float::epsilon
+      BOOST_CHECK_LE(std::abs(a->at(i, j) - b->at(i, j)), std::numeric_limits<float>::epsilon());
     }
   }
 }
 
-auto constant = VectorImage<double>::create(3, 3, std::vector<double>{
+auto constant = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     0. , 1., 0.,
     0.5, 1., 0.5,
     0. , 1., 0.
 });
-auto x = VectorImage<double>::create(3, 3, std::vector<double>{
+auto x = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     0., 0., 0.,
     0., 2., 0.,
     0., 0., 0.
 });
-auto y = VectorImage<double>::create(3, 3, std::vector<double>{
+auto y = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     1., 0., 0.,
     0., 0., 0.,
     0., 0., 0.2
@@ -42,15 +44,18 @@ auto y = VectorImage<double>::create(3, 3, std::vector<double>{
 
 struct VariablePsfFixture {
   SimpleSource source;
-  VariablePsf varPsf{{{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {1}, {constant, x, y}};
-  VariablePsfTask varPsfTask{varPsf};
+  std::shared_ptr<VariablePsf> varPsf{new VariablePsf(
+    1., std::vector<VariablePsf::Component>{{"X_IMAGE", 0, 5., 2.}, {"Y_IMAGE", 0, 20., 30.}},
+    {1}, {constant, x, y}
+  )};
+  PsfTask varPsfTask{varPsf};
 };
 
 
 BOOST_AUTO_TEST_SUITE (VariablePsfProperty_test)
 
 BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
-  const auto expected = VectorImage<double>::create(3, 3, std::vector<double>{
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       1. , 1., 0.,
       0.5, 4., 0.5,
       0. , 1., 0.2
@@ -59,8 +64,8 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
   source.setProperty<PixelCentroid>(8., 50.);
 
   varPsfTask.computeProperties(source);
-  auto psf_prop = source.getProperty<VariablePsfProperty>();
-  checkEqual(psf_prop.getPsf(), expected);
+  auto psf_prop = source.getProperty<PsfProperty>();
+  checkEqual(psf_prop.getPsf().getScaledKernel(1), expected);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()
