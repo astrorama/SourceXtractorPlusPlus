@@ -40,6 +40,10 @@ double VariablePsf::getPixelScale() const {
   return m_pixel_scale;
 }
 
+const std::vector<VariablePsf::Component>& VariablePsf::getComponents() const {
+  return m_components;
+}
+
 std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &prop_values) const
 {
   // If we only have the constant, avoid a copy

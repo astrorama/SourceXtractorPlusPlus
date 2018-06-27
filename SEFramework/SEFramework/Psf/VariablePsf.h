@@ -33,6 +33,7 @@ public:
   int getWidth() const;
   int getHeight() const;
   double getPixelScale() const;
+  const std::vector<Component>& getComponents() const;
 
   std::shared_ptr<VectorImage < SeFloat>> getPsf(const std::vector<double> &prop_values) const;
 
