@@ -5,19 +5,20 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include <iostream>
 #include <ElementsKernel/Exception.h>
 #include "SEFramework/Psf/VariablePsf.h"
 
 using namespace SExtractor;
 
 void checkEqual(const std::shared_ptr<VectorImage<SeFloat>> &a, const  std::shared_ptr<VectorImage<SeFloat>> &b) {
-  BOOST_CHECK_EQUAL(a->getWidth(), b->getWidth());
-  BOOST_CHECK_EQUAL(a->getHeight(), b->getWidth());
+  BOOST_REQUIRE_EQUAL(a->getWidth(), b->getWidth());
+  BOOST_REQUIRE_EQUAL(a->getHeight(), b->getWidth());
 
   for (auto i = 0; i < a->getWidth(); ++i) {
     for (auto j = 0; j < a->getHeight(); ++j) {
-      BOOST_REQUIRE_CLOSE(a->at(i, j), b->at(i, j), 0.01);
+      // We assume the PSF summed value will normally be around O(1)
+      // so the error should remain bellow float::epsilon
+      BOOST_CHECK_LE(std::abs(a->at(i, j) - b->at(i, j)), std::numeric_limits<float>::epsilon());
     }
   }
 }
@@ -130,5 +131,39 @@ BOOST_AUTO_TEST_CASE(x_y_squared) {
   checkEqual(psf, expected);
 }
 
+// Previous tests are easy to reason about, and even can be verified with pen and paper.
+// However, they are small (3x3) and with "simple" values
+// This one uses a linear variable PSF extracted from a real PsfEx file,
+// so it is more complex (25x25), and imply moving around the limits of the numbers that can
+// be represented by a float.
+// Note that the expected value was computed with a Python prototype that was validated
+// against the PSF snapshot created by PsfEx, so this kind of expects the validation to be
+// commutative :)
+BOOST_AUTO_TEST_CASE(x_y_linear_fractional) {
+  #include "LinearFullPsf.icpp"
+
+  VariablePsf varPsf{1, {
+        {"x", 0, 2040.414154053, 2924.028137207},
+        {"y", 0, 1962.621307373, 3297.873596191}
+    }, {1}, {full_constant, full_x, full_y}
+  };
+
+  auto psf = varPsf.getPsf({772.9703369140625, 1.0});
+  checkEqual(psf, full_expected);
+}
+
+// This one is yet more complicated.
+// It has been extracted from a PsfEx file, 45x45, and the degree is 3
+BOOST_AUTO_TEST_CASE(x_y_cubic_fractional) {
+  #include "CubicFullPsf.icpp"
+
+  VariablePsf varPsf{1, {
+      {"x", 0, 1896.602607727, 3534.829940796},
+      {"y", 0, 1926.288711548, 3593.864959717}
+  }, {3}, cubic_coefficients};
+
+  auto psf = varPsf.getPsf({772.9703369140625, 1.0});
+  checkEqual(psf, cubic_expected);
+}
 
 BOOST_AUTO_TEST_SUITE_END ()
