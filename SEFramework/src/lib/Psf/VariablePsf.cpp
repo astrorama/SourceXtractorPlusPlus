@@ -44,14 +44,14 @@ const std::vector<VariablePsf::Component>& VariablePsf::getComponents() const {
   return m_components;
 }
 
-std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &prop_values) const
+std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &values) const
 {
   // If we only have the constant, avoid a copy
   if (m_coefficients.size() == 1) {
     return m_coefficients[0];
   }
 
-  auto scaled_props = scaleProperties(prop_values);
+  auto scaled_props = scaleProperties(values);
 
   // Initialize with the constant component
   auto result = VectorImage<SeFloat>::create(*m_coefficients[0]);
@@ -99,15 +99,15 @@ void VariablePsf::selfTest() {
   }
 }
 
-std::vector<double> VariablePsf::scaleProperties(const std::vector<double> &prop_values) const
+std::vector<double> VariablePsf::scaleProperties(const std::vector<double> &values) const
 {
-  if (prop_values.size() != m_components.size()) {
+  if (values.size() != m_components.size()) {
     throw Elements::Exception()
-        << "Expecting " << m_components.size() << " values, got " << prop_values.size();
+        << "Expecting " << m_components.size() << " values, got " << values.size();
   }
-  std::vector<double> scaled(prop_values.size());
-  for (auto i = 0; i < prop_values.size(); ++i) {
-    scaled[i] = (prop_values[i] - m_components[i].offset) / m_components[i].scale;
+  std::vector<double> scaled(values.size());
+  for (auto i = 0; i < values.size(); ++i) {
+    scaled[i] = (values[i] - m_components[i].offset) / m_components[i].scale;
   }
   return scaled;
 }
