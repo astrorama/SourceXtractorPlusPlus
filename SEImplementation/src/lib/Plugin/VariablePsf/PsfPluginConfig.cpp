@@ -7,9 +7,7 @@
 
 #include <Configuration/ProgramOptionsHelper.h>
 #include <SEImplementation/Image/ImagePsf.h>
-#include <CCfits/FITS.h>
-#include <CCfits/PHDU.h>
-#include <CCfits/Column.h>
+#include <CCfits/CCfits>
 #include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
@@ -21,9 +19,9 @@ static auto logger = Elements::Logging::getLogger("PsfPlugin");
 
 namespace SExtractor {
 
-static const std::string VAR_PSF_FILE{"var-psf-file"};
-static const std::string VAR_PSF_FWHM {"var-psf-fwhm" };
-static const std::string VAR_PSF_PIXELSCALE {"var-psf-pixelscale" };
+static const std::string PSF_FILE{"psf-file"};
+static const std::string PSF_FWHM {"psf-fwhm" };
+static const std::string PSF_PIXELSCALE {"psf-pixelscale" };
 
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
@@ -154,7 +152,7 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
   }
 }
 
-static std::shared_ptr<VariablePsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
+std::shared_ptr<VariablePsf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
   int supersample = 10;
   int size = int(fwhm / pixel_scale + 1) * 6 + 1;
   auto kernel = VectorImage<SeFloat>::create(size, size);
@@ -193,21 +191,21 @@ static std::shared_ptr<VariablePsf> generateGaussianPsf(SeFloat fwhm, SeFloat pi
 
 std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::getProgramOptions() {
   return {{"Variable PSF", {
-    {VAR_PSF_FILE.c_str(), po::value<std::string>(),
+    {PSF_FILE.c_str(), po::value<std::string>(),
         "Psf image file (FITS format)."},
-    {VAR_PSF_FWHM.c_str(), po::value<double>(),
+    {PSF_FWHM.c_str(), po::value<double>(),
        "Generate a gaussian PSF with given full-width half-maximum"},
-    {VAR_PSF_PIXELSCALE.c_str(), po::value<double>(),
+    {PSF_PIXELSCALE.c_str(), po::value<double>(),
         "Generate a gaussian PSF with given full-width half-maximum"}
   }}};
 };
 
 void PsfPluginConfig::initialize(const UserValues &args) {
-  if (args.find(VAR_PSF_FILE) != args.end()) {
-    m_vpsf = readPsf(args.find(VAR_PSF_FILE)->second.as<std::string>());
-  } else if (args.find(VAR_PSF_FWHM) != args.end()) {
-    m_vpsf = generateGaussianPsf(args.find(VAR_PSF_FWHM)->second.as<double>(),
-                                args.find(VAR_PSF_PIXELSCALE)->second.as<double>());
+  if (args.find(PSF_FILE) != args.end()) {
+    m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
+  } else if (args.find(PSF_FWHM) != args.end()) {
+    m_vpsf = generateGaussianPsf(args.find(PSF_FWHM)->second.as<double>(),
+                                args.find(PSF_PIXELSCALE)->second.as<double>());
   }
 }
 

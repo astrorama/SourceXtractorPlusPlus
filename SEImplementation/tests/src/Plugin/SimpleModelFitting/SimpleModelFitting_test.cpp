@@ -24,7 +24,7 @@
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
-#include "SEImplementation/Configuration/PsfConfig.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFitting.h"
 #include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTask.h"
 
@@ -66,9 +66,9 @@ struct SimpleModelFittingFixture {
   SimpleModelFittingFixture() {
     group.addSource(source);
 
-    psf = PsfConfig::generateGaussianPsf(5, 1);
-    //psf_image = convertPsf(psf->getKernel());
-    model_fitting_task = std::make_shared<SimpleModelFittingTask>(psf, 1000);
+    psf = std::make_shared<ImagePsf>(1, PsfPluginConfig::generateGaussianPsf(5, 1)->getPsf({}));
+
+    model_fitting_task = std::make_shared<SimpleModelFittingTask>(1000);
   }
 };
 

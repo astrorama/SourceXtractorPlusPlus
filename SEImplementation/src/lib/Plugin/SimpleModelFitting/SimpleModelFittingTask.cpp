@@ -10,6 +10,7 @@
 #include <vector>
 #include <valarray>
 #include <boost/any.hpp>
+#include <SEImplementation/Plugin/Psf/PsfProperty.h>
 
 #include "ElementsKernel/PathSearch.h"
 
@@ -302,6 +303,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
   //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getWeightStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
+  auto& group_psf = group.getProperty<PsfProperty>().getPsf();
 
   double pixel_scale = 1;
 
@@ -351,7 +353,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     std::move(constant_models),
     std::move(point_models),
     std::move(extended_models),
-    *m_psf
+    group_psf
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
@@ -433,7 +435,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     source_model->createModels(extended_models, point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {
       1, (size_t) group_stamp.getWidth(), (size_t) group_stamp.getHeight(), std::move(constant_models), std::move(point_models),
-          std::move(extended_models), *m_psf
+          std::move(extended_models), group_psf
     };
     auto final_image = frame_model_after.getImage();
 

@@ -27,6 +27,7 @@ public:
   const std::shared_ptr<VariablePsf>& getPsf() const;
 
   static std::shared_ptr<VariablePsf> readPsf(const std::string &filename);
+  static std::shared_ptr<VariablePsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale);
 
 private:
   std::shared_ptr<VariablePsf> m_vpsf;

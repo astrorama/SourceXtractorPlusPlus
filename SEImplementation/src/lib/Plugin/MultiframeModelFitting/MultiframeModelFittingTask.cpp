@@ -5,6 +5,8 @@
  *      Author: mschefer
  */
 
+#include <SEImplementation/Image/ImagePsf.h>
+#include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include "ElementsKernel/Logging.h"
 
 #include "ModelFitting/Models/PointModel.h"
@@ -117,10 +119,9 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
 }
 
 MultiframeModelFittingTask::MultiframeModelFittingTask(unsigned int max_iterations,
-    std::vector<std::vector<int>> frame_indices_per_band, std::vector<std::shared_ptr<ImagePsf>> psfs)
+    std::vector<std::vector<int>> frame_indices_per_band)
   : m_max_iterations(max_iterations),
-    m_frame_indices_per_band(frame_indices_per_band),
-    m_psfs(psfs)
+    m_frame_indices_per_band(frame_indices_per_band)
 {
 }
 
@@ -225,6 +226,7 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
+  auto group_psf = group.getProperty<PsfProperty>().getPsf();
 
   // Prepare debug images
   if (m_debug_images.size() == 0) {
@@ -309,7 +311,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         // Full frame model with all sources
         FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
           pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-          {}, {}, std::move(extended_models), *m_psfs[frame_index]);
+          {}, {}, std::move(extended_models), group_psf);
 
         // Setup residuals
         auto data_vs_model =
@@ -376,7 +378,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         std::move(constant_models),
         std::move(point_models),
         std::move(extended_models),
-        *m_psfs[frame_index]
+        group_psf
       };
       auto final_stamp = frame_model_after.getImage();
       auto stamp_rect = getStampRectangle(group, frame_index);

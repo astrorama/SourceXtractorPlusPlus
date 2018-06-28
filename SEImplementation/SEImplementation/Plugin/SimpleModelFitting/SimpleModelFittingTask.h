@@ -17,9 +17,8 @@ namespace SExtractor {
 class SimpleModelFittingTask : public GroupTask {
 
 public:
-  SimpleModelFittingTask(std::shared_ptr<ImagePsf> psf, unsigned int max_iterations)
-    : m_psf(psf),
-      m_max_iterations(max_iterations) {}
+  SimpleModelFittingTask(unsigned int max_iterations)
+    : m_max_iterations(max_iterations) {}
 
   virtual ~SimpleModelFittingTask() = default;
 
@@ -27,7 +26,6 @@ public:
 
 private:
 
-  std::shared_ptr<ImagePsf> m_psf;
   unsigned int m_max_iterations;
 };
 

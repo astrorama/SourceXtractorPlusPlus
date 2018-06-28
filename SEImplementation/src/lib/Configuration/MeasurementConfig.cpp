@@ -17,7 +17,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include "SEFramework/Image/FitsReader.h"
-#include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
@@ -178,12 +177,9 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
       weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
     }
 
-    std::shared_ptr<ImagePsf> psf = psf_filename.size() > 0 ? PsfConfig::readPsf(psf_filename) : nullptr;
-
     m_measurement_images.push_back(std::move(image));
     m_coordinate_systems.push_back(coordinate_system);
     m_weight_images.push_back(std::move(weight_map));
-    m_psfs.push_back(std::move(psf));
     m_psfs_paths.push_back(psf_filename);
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 

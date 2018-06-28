@@ -96,10 +96,6 @@ public:
     return m_weight_images;
   }
 
-  const std::vector<std::shared_ptr<ImagePsf>>& getPsfs() const {
-    return m_psfs;
-  }
-
   const std::vector<std::string> getPsfsPaths() const {
     return m_psfs_paths;
   }
@@ -133,7 +129,6 @@ private:
   std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
-  std::vector<std::shared_ptr<ImagePsf>> m_psfs;
   std::vector<std::string> m_psfs_paths;
   std::vector<bool> m_absolute_weights;
   std::vector<SeFloat> m_gains;

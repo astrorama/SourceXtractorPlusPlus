@@ -43,7 +43,7 @@
 #include "ModelFitting/Image/OpenCvPsf.h"
 #include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
 
-#include "SEImplementation/Configuration/PsfConfig.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace po = boost::program_options;
@@ -375,14 +375,19 @@ public:
     std::vector<ExtendedModel> extended_models;
     std::vector<PointModel> point_models;
 
-    std::shared_ptr<ImagePsf> psf;
+    std::shared_ptr<VariablePsf> vpsf;
+
     auto psf_filename = args["psf-file"].as<std::string>();
     if (psf_filename != "") {
       logger.info() << "Loading psf file: " << psf_filename;
-      psf = PsfConfig::readPsf(psf_filename);
+      vpsf = PsfPluginConfig::readPsf(psf_filename);
     } else {
-      psf = PsfConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
+      vpsf = PsfPluginConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
     }
+
+    // Generate a single PSF with all components at 0
+    std::vector<double> psf_vals(vpsf->getComponents().size());
+    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), vpsf->getPsf(psf_vals));
 
     //addExtendedSource(extended_models, image_size / 2.0, image_size / 2.0, 150000, 2.0, 1, 0,  100000, .1);
 //    boost::random::uniform_real_distribution<> random_i0(point_min_i0, point_max_i0);

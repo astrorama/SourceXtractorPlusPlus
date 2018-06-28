@@ -9,7 +9,6 @@
 #define _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGFACTORY_H_
 
 
-#include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 
@@ -31,9 +30,7 @@ public:
 
 private:
   unsigned int m_max_iterations {0};
-  //std::shared_ptr<ImagePsf> m_psf;
   std::vector<std::vector<int>> m_frame_indices_per_band;
-  std::vector<std::shared_ptr<ImagePsf>> m_psfs;
 };
 
 }

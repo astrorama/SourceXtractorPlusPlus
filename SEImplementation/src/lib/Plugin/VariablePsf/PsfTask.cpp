@@ -5,8 +5,8 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
-#include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 namespace SExtractor {
@@ -14,10 +14,14 @@ namespace SExtractor {
 
 std::map<std::string, ValueGetter> component_value_getters {
     {"X_IMAGE", [](SExtractor::SourceGroupInterface &group){
-      return group.getProperty<PixelCentroid>().getCentroidX();
+      auto &detection_frame_group = group.getProperty<DetectionFrameGroupStamp>();
+      auto top_x = detection_frame_group.getTopLeft().m_x;
+      return top_x + detection_frame_group.getStamp().getWidth() / 2;
     }},
     {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group){
-      return group.getProperty<PixelCentroid>().getCentroidY();
+      auto &detection_frame_group = group.getProperty<DetectionFrameGroupStamp>();
+      auto top_y = detection_frame_group.getTopLeft().m_y;
+      return top_y + detection_frame_group.getStamp().getHeight() / 2;
     }}
 };
 
