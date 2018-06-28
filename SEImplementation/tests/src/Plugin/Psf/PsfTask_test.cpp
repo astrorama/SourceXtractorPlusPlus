@@ -6,9 +6,9 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include <SEFramework/Source/SimpleSource.h>
 #include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include <SEFramework/Source/SimpleSourceGroup.h>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 using namespace SExtractor;
@@ -43,7 +43,7 @@ auto y = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
 });
 
 struct VariablePsfFixture {
-  SimpleSource source;
+  SimpleSourceGroup group;
   std::shared_ptr<VariablePsf> varPsf{new VariablePsf(
     1., std::vector<VariablePsf::Component>{{"X_IMAGE", 0, 5., 2.}, {"Y_IMAGE", 0, 20., 30.}},
     {1}, {constant, x, y}
@@ -61,10 +61,10 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
       0. , 1., 0.2
   });
 
-  source.setProperty<PixelCentroid>(8., 50.);
+  group.setProperty<PixelCentroid>(8., 50.);
 
-  varPsfTask.computeProperties(source);
-  auto psf_prop = source.getProperty<PsfProperty>();
+  varPsfTask.computeProperties(group);
+  auto psf_prop = group.getProperty<PsfProperty>();
   checkEqual(psf_prop.getPsf().getScaledKernel(1), expected);
 }
 

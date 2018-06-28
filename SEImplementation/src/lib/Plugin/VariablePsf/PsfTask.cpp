@@ -13,26 +13,26 @@ namespace SExtractor {
 
 
 std::map<std::string, ValueGetter> component_value_getters {
-    {"X_IMAGE", [](SExtractor::SourceInterface &source){
-      return source.getProperty<PixelCentroid>().getCentroidX();
+    {"X_IMAGE", [](SExtractor::SourceGroupInterface &group){
+      return group.getProperty<PixelCentroid>().getCentroidX();
     }},
-    {"Y_IMAGE", [](SExtractor::SourceInterface &source){
-      return source.getProperty<PixelCentroid>().getCentroidY();
+    {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group){
+      return group.getProperty<PixelCentroid>().getCentroidY();
     }}
 };
 
 PsfTask::PsfTask(const std::shared_ptr<VariablePsf> &vpsf): m_vpsf(vpsf) {
 }
 
-void PsfTask::computeProperties(SExtractor::SourceInterface &source) const {
+void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   std::vector<double> component_values;
 
   for (auto c : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[c.name](source));
+    component_values.push_back(component_value_getters[c.name](group));
   }
 
   auto psf = m_vpsf->getPsf(component_values);
-  source.setProperty<PsfProperty>(ImagePsf{m_vpsf->getPixelScale(), psf});
+  group.setProperty<PsfProperty>(ImagePsf{m_vpsf->getPixelScale(), psf});
 }
 
 }

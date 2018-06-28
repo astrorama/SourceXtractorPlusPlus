@@ -8,21 +8,21 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
 
+#include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Psf/VariablePsf.h"
-#include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {
 
-typedef std::function<double(SExtractor::SourceInterface &source)> ValueGetter;
+typedef std::function<double(SExtractor::SourceGroupInterface &group)> ValueGetter;
 extern std::map<std::string, ValueGetter> component_value_getters;
 
-class PsfTask: public SourceTask {
+class PsfTask: public GroupTask {
 public:
   virtual ~PsfTask() = default;
 
   PsfTask(const std::shared_ptr<VariablePsf> &vpsf);
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  virtual void computeProperties(SourceGroupInterface& source) const override;
 
 private:
   std::shared_ptr<VariablePsf> m_vpsf;
