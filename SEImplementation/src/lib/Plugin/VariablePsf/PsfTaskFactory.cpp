@@ -19,7 +19,8 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
 }
 
 std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
-  return std::make_shared<PsfTask>(m_vpsf);
+  auto instance = property_id.getIndex();
+  return std::make_shared<PsfTask>(instance, m_vpsf);
 }
 
 } // end SExtractor

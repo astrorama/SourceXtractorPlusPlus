@@ -21,7 +21,8 @@ std::map<std::string, ValueGetter> component_value_getters {
     }}
 };
 
-PsfTask::PsfTask(const std::shared_ptr<VariablePsf> &vpsf): m_vpsf(vpsf) {
+PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
+    : m_instance(instance), m_vpsf(vpsf) {
 }
 
 void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
@@ -32,7 +33,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   }
 
   auto psf = m_vpsf->getPsf(component_values);
-  group.setProperty<PsfProperty>(ImagePsf{m_vpsf->getPixelScale(), psf});
+  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf});
 }
 
 }

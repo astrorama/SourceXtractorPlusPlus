@@ -20,11 +20,12 @@ class PsfTask: public GroupTask {
 public:
   virtual ~PsfTask() = default;
 
-  PsfTask(const std::shared_ptr<VariablePsf> &vpsf);
+  PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf);
 
   virtual void computeProperties(SourceGroupInterface& source) const override;
 
 private:
+  unsigned m_instance;
   std::shared_ptr<VariablePsf> m_vpsf;
 };
 

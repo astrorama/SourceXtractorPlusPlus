@@ -48,7 +48,7 @@ struct VariablePsfFixture {
     1., std::vector<VariablePsf::Component>{{"X_IMAGE", 0, 5., 2.}, {"Y_IMAGE", 0, 20., 30.}},
     {1}, {constant, x, y}
   )};
-  PsfTask varPsfTask{varPsf};
+  PsfTask varPsfTask{0, varPsf};
 };
 
 
