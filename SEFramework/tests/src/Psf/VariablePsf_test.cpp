@@ -39,6 +39,21 @@ auto x2 = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     0., 0., 0.,
     0., 0., 0.2
 });
+auto y = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
+    0. , 0., 0.,
+    0. , 0., 0.,
+    0.5, 0., 0.
+});
+auto xy = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
+    0.5, 0. , 0.,
+    0. , 0. , 0.,
+    0. , 0.5, 0.
+});
+auto x2y = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
+    0., 0., 0.,
+    0., 0., 0.,
+    0., 0., 1.
+});
 
 
 BOOST_AUTO_TEST_SUITE (VariablePsf_test)
@@ -128,6 +143,19 @@ BOOST_AUTO_TEST_CASE(x_y_squared) {
   VariablePsf varPsf{1, {{"x", 0, 5., 2.}, {"y", 0, 20., 30.}}, {2}, {constant, x, x2, x, x2, x}};
 
   auto psf = varPsf.getPsf({8., 50.});
+  checkEqual(psf, expected);
+}
+
+BOOST_AUTO_TEST_CASE(x_y_two_groups) {
+  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
+      105.,  1.,   0.,
+      0.5 , 21.,   0.5,
+      0.5 ,  6., 120.
+  });
+
+  VariablePsf varPsf{1, {{"x", 0, 50., 5.}, {"y", 1, 20., 3.}}, {2, 1}, {constant, x, x2, y, xy, x2y}};
+
+  auto psf = varPsf.getPsf({100., 23.});
   checkEqual(psf, expected);
 }
 
