@@ -25,7 +25,7 @@ public:
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  std::shared_ptr<VariablePsf> m_vpsf;
+  std::vector<std::shared_ptr<VariablePsf>> m_vpsf;
 };
 
 } // end SExtractor

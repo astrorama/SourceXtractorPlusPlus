@@ -184,6 +184,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_coordinate_systems.push_back(coordinate_system);
     m_weight_images.push_back(std::move(weight_map));
     m_psfs.push_back(std::move(psf));
+    m_psfs_paths.push_back(psf_filename);
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 
     double measurement_image_gain = 0, measurement_image_saturate = 0;

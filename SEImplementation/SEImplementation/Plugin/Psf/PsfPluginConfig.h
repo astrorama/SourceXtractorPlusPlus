@@ -26,6 +26,8 @@ public:
 
   const std::shared_ptr<VariablePsf>& getPsf() const;
 
+  static std::shared_ptr<VariablePsf> readPsf(const std::string &filename);
+
 private:
   std::shared_ptr<VariablePsf> m_vpsf;
 };

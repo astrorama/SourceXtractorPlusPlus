@@ -134,7 +134,7 @@ static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels. The pixel scale is read by the header keyword SCALE which
 /// must be present
-static std::shared_ptr<VariablePsf> readPsf(const std::string &filename) {
+std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filename) {
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename)};

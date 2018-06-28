@@ -5,22 +5,41 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
+#include "SEImplementation/Configuration/MeasurementConfig.h"
 #include "SEImplementation/Plugin/Psf/PsfTaskFactory.h"
 
 namespace SExtractor {
 
 void PsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<PsfPluginConfig>();
+  manager.registerConfiguration<MeasurementConfig>();
 }
 
 void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto psf_config = manager.getConfiguration<PsfPluginConfig>();
-  m_vpsf = psf_config.getPsf();
+  auto measurement_config = manager.getConfiguration<MeasurementConfig>();
+
+  auto default_psf = psf_config.getPsf();
+  auto psf_paths = measurement_config.getPsfsPaths();
+
+  if (psf_paths.empty()) {
+    m_vpsf.emplace_back(default_psf);
+  }
+  else {
+    for (auto pp : psf_paths) {
+      if (pp.empty()) {
+        m_vpsf.emplace_back(default_psf);
+      }
+      else {
+        m_vpsf.emplace_back(PsfPluginConfig::readPsf(pp));
+      }
+    }
+  }
 }
 
 std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
   auto instance = property_id.getIndex();
-  return std::make_shared<PsfTask>(instance, m_vpsf);
+  return std::make_shared<PsfTask>(instance, m_vpsf[instance]);
 }
 
 } // end SExtractor
