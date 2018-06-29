@@ -30,7 +30,6 @@ namespace SExtractor {
  * The coefficients must be given on that order (note that the constant would be the first element)
  *
  * @todo
- * - Verify number of coefficients
  * - Convert into a template
  */
 class VariablePsf {

@@ -83,6 +83,26 @@ BOOST_AUTO_TEST_CASE (malformed_coeff_dimensions) {
   }
 }
 
+/// Missing coefficients
+BOOST_AUTO_TEST_CASE (malformed_not_enough_coeff) {
+  try {
+    VariablePsf varPsf{1, {{"x", 0, 5, 2}}, {2}, {constant, x}};
+    BOOST_FAIL("Creation of variable PSF with not enough coefficients");
+  }
+  catch (const Elements::Exception&) {
+  }
+}
+
+/// Too many coefficients
+BOOST_AUTO_TEST_CASE (malformed_too_many_coeff) {
+  try {
+    VariablePsf varPsf{1, {{"x", 0, 5, 2}}, {2}, {constant, x, x2, y}};
+    BOOST_FAIL("Creation of variable PSF with too many coefficients");
+  }
+  catch (const Elements::Exception&) {
+  }
+}
+
 /// There is only a constant coefficient, so the coordinates must not matter
 BOOST_AUTO_TEST_CASE (constant_only) {
   VariablePsf varPsf{1, constant};

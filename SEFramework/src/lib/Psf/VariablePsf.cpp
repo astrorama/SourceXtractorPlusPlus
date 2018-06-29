@@ -77,11 +77,13 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<doub
 }
 
 void VariablePsf::selfTest() {
+  // Pre-condition: There is at least a constant component
   if (m_coefficients.size() == 0) {
     throw Elements::Exception() << "A variable PSF needs at least one set of coefficients";
   }
 
-  std::vector<unsigned> n_component_per_group(m_group_degrees.size());
+  // Pre-condition: There is a degree value per unique group
+  std::vector<int> n_component_per_group(m_group_degrees.size());
   for (auto &component : m_components) {
     if (component.group_id >= m_group_degrees.size()) {
       throw Elements::Exception() << "Component group out of range for " << component.name;
@@ -89,6 +91,25 @@ void VariablePsf::selfTest() {
     ++n_component_per_group[component.group_id];
   }
 
+  // Pre-condition: There are enough coefficients - (n+d)!/(n!d!) per group
+  int n_coefficients = 1;
+  for (int g = 0; g < n_component_per_group.size(); ++g) {
+    int dmax = m_group_degrees[g];
+    int n = n_component_per_group[g];
+    int d = std::min<int>(dmax, n);
+    int num, den;
+
+    for (num = 1, den = 1; d > 0; num *= (n+dmax--), den*= d--);
+
+    n_coefficients *= num / den;
+  }
+
+  if (n_coefficients != m_coefficients.size()) {
+    throw Elements::Exception() << "Invalid number of coefficients. Got " << m_coefficients.size()
+                                << " expected " << n_coefficients;
+  }
+
+  // Pre-condition: All components have the same size
   auto psf_width = m_coefficients[0]->getWidth();
   auto psf_height = m_coefficients[0]->getHeight();
 
