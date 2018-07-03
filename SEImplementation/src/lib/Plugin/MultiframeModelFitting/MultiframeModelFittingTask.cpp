@@ -226,7 +226,6 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
-  auto group_psf = group.getProperty<PsfProperty>().getPsf();
 
   // Prepare debug images
   if (m_debug_images.size() == 0) {
@@ -298,6 +297,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         auto stamp_rect = getStampRectangle(group, frame_index);
         auto image = createImageCopy(group, frame_index);
         auto weight = createWeightImage(group, frame_index);
+        auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
         // Setup source models
         auto frame_coordinates = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
@@ -358,6 +358,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     for (auto frame_index : frame_indices) {
       auto stamp_width = images[image_nb]->getWidth();
       auto stamp_height = images[image_nb]->getHeight();
+      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
       //auto final_stamp = VectorImage<SeFloat>::create(stamp_width, stamp_height);
 
