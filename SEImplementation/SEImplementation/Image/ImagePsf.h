@@ -13,7 +13,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
 
-#include <opencv2/opencv.hpp>
+//#include <opencv2/opencv.hpp>
 
 
 namespace SExtractor {
@@ -53,19 +53,20 @@ public:
   }
 
   void convolve(std::shared_ptr<VectorImage<SExtractor::SeFloat>>& image) const {
-
+    // the method is defunct, just throw an exception if its ever comes to here
+    throw Elements::Exception() << "This functionality does not longer exist!";
     // FIXME don't use opencv
 
-    auto size = m_image->getWidth();
-    cv::Mat kernel (size, size, CV_32F);
-    std::copy(m_image->getData().begin(), m_image->getData().end(), kernel.begin<float>());
+    //auto size = m_image->getWidth();
+    //cv::Mat kernel (size, size, CV_32F);
+    //std::copy(m_image->getData().begin(), m_image->getData().end(), kernel.begin<float>());
 
-    cv::Mat image_cv (image->getHeight(), image->getWidth(), CV_32F);
-    std::copy(image->getData().begin(), image->getData().end(), image_cv.begin<float>());
+    //cv::Mat image_cv (image->getHeight(), image->getWidth(), CV_32F);
+    //std::copy(image->getData().begin(), image->getData().end(), image_cv.begin<float>());
 
-    cv::filter2D(image_cv, image_cv, -1, kernel);
+    //cv::filter2D(image_cv, image_cv, -1, kernel);
 
-    std::copy(image_cv.begin<float>(), image_cv.end<float>(), image->getData().begin());
+    //std::copy(image_cv.begin<float>(), image_cv.end<float>(), image->getData().begin());
   }
 
 private:
