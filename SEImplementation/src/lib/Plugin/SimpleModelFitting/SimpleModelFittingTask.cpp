@@ -114,7 +114,7 @@ void printLevmarInfo(std::array<double,10> info) {
 }
 
 SeFloat computeReducedChiSquared(
-    std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+  std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
   double reduced_chi_squared = 0.0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {

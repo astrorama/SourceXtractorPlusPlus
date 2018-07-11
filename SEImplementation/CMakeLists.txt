@@ -109,6 +109,9 @@ elements_add_unit_test(SimpleModelFitting_test tests/src/Plugin/SimpleModelFitti
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(PointModelFitting_test tests/src/Plugin/PointModelFitting/PointModelFitting_test.cpp
+					 LINK_LIBRARIES SEImplementation
+					 TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here
