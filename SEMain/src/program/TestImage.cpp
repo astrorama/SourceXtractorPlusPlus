@@ -93,7 +93,8 @@ public:
         ("random-sources", po::value<int>()->default_value(0), "Nb of random sources to add")
         ("source-list", po::value<string>()->default_value(""), "Use sources from file")
         ("source-catalog", po::value<string>()->default_value(""), "Use sources from file (skymaker format)")
-        ("zero-point", po::value<double>()->default_value(0.0), "zero point for magnitudes in catalog")
+        ("zero-point", po::value<double>()->default_value(0.0), "Zero point for magnitudes in catalog")
+        ("exposure-time", po::value<double>()->default_value(300.), "Exposure time for objects in catalog")
         ("save-sources", po::value<string>()->default_value(""), "Filename to save final list of sources")
         ("bad-pixels", po::value<double>()->default_value(0.0), "Probability for a pixel to be a bad pixel")
         ("bad-columns", po::value<double>()->default_value(0.0), "Probability for a column of pixels to be bad")
@@ -347,7 +348,7 @@ public:
       } else if (source_type == 100) {
         double magnitude;
         linestream >> source.x >> source.y >> magnitude;
-        source.point_flux = pow(10, (magnitude - m_zero_point) / -2.5);
+        source.point_flux = pow(10, (magnitude - m_zero_point) / -2.5) * m_exp_time;
 
         source.exp_flux = source.exp_rot = source.dev_flux = source.dev_rot = 0;
         source.exp_aspect = source.exp_rad = source.dev_aspect = source.dev_rad = 1;
@@ -360,7 +361,6 @@ public:
     }
 
     return sources;
-
   }
 
 
@@ -370,6 +370,7 @@ public:
     auto image_size = args["size"].as<double>();
 
     m_zero_point = args["zero-point"].as<double>();
+    m_exp_time = args["exposure-time"].as<double>();
 
     std::vector<ConstantModel> constant_models;
     std::vector<ExtendedModel> extended_models;
@@ -385,8 +386,17 @@ public:
       vpsf = PsfPluginConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
     }
 
-    // Generate a single PSF with all components at 0
-    std::vector<double> psf_vals(vpsf->getComponents().size());
+    // Generate a single PSF for the image
+    const auto &vpsf_components = vpsf->getComponents();
+    std::vector<double> psf_vals(vpsf_components.size());
+    for (auto i = 0; i < psf_vals.size(); ++i) {
+      if (vpsf_components[i].name == "X_IMAGE" || vpsf_components[i].name == "Y_IMAGE") {
+        psf_vals[i] = image_size / 2 - 1;
+      }
+      else {
+        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i].name;
+      }
+    }
     auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), vpsf->getPsf(psf_vals));
 
     //addExtendedSource(extended_models, image_size / 2.0, image_size / 2.0, 150000, 2.0, 1, 0,  100000, .1);
@@ -538,7 +548,7 @@ public:
 
 private:
   boost::random::mt19937 m_rng { (unsigned int) time(NULL) } ;
-  double m_zero_point;
+  double m_zero_point, m_exp_time;
 
 };
 
