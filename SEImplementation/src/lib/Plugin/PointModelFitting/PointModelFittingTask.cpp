@@ -203,7 +203,6 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
 
     auto final_image = frame_model_after.getImage();
 
-    double total_flux = 0.;
     for (int y = 0; y < group_stamp.getHeight(); y++) {
       for (int x = 0; x < group_stamp.getWidth(); x++) {
         PixelCoordinate pixel(x, y);
@@ -212,7 +211,6 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
         if (check_image) {
           check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
         }
-        total_flux += final_image->getValue(x, y);
       }
     }
 
@@ -226,7 +224,7 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
     source.setProperty<PointModelFitting>(
       x, y,
       world_coordinate.m_alpha, world_coordinate.m_delta,
-      total_flux, iterations
+      source_model->flux.getValue(), iterations
     );
   }
 

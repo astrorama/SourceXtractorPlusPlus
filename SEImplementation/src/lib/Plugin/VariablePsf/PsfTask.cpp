@@ -7,6 +7,7 @@
 
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
+#include <numeric>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 namespace SExtractor {
@@ -37,7 +38,11 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   }
 
   auto psf = m_vpsf->getPsf(component_values);
-  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf});
+  // The result may not be normalized!
+  auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
+  auto psf_div = ConstantImage<SeFloat>::create(psf->getWidth(), psf->getHeight(), 1. / psf_sum);
+  auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, psf_div));
+  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf_normalized});
 }
 
 }

@@ -9,6 +9,7 @@
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <SEFramework/Source/SimpleSourceGroup.h>
 #include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
+#include <numeric>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 using namespace SExtractor;
@@ -55,11 +56,17 @@ struct VariablePsfFixture {
 BOOST_AUTO_TEST_SUITE (VariablePsfProperty_test)
 
 BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
-  const auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
+  auto expected = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
       1. , 1., 0.,
       0.5, 4., 0.5,
       0. , 1., 0.2
   });
+  auto expected_sum = std::accumulate(expected->getData().begin(), expected->getData().end(), 0.);
+  for (auto i = 0; i < expected->getWidth(); ++i) {
+    for (auto j = 0; j < expected->getHeight(); ++j) {
+      expected->setValue(i, j, expected->getValue(i, j) / expected_sum);
+    }
+  }
 
   auto mock_stamp = VectorImage<SeFloat>::create(8. * 2, 50. * 2);
   group.setProperty<DetectionFrameGroupStamp>(mock_stamp, nullptr, PixelCoordinate{0, 0}, nullptr);
