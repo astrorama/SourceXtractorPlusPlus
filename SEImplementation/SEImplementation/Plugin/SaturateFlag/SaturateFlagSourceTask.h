@@ -16,41 +16,47 @@
 /**
  * @file SourceFlagsSourceTask.h
  *
- * @date Jul 12, 2018
+ * @date Jul 13, 2018
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_
 
-#include <iostream>
-
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
-#include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
-#include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
+#include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
 namespace SExtractor {
-class SourceFlagsSourceTask : public SourceTask {
+class SaturateFlagSourceTask : public SourceTask {
 public:
-  virtual ~SourceFlagsSourceTask() = default;
+  virtual ~SaturateFlagSourceTask() = default;
   virtual void computeProperties(SourceInterface& source) const {
-    long int source_flag(0);
+    long int saturate_flag(0);
 
-    // add the saturate flag as "1"
-    source_flag +=     source.getProperty<SaturateFlag>().getSaturateFlag();
+    // get the saturation value
+    const auto& saturation      = source.getProperty<DetectionFrame>().getFrame()->getSaturation();
 
-    // add the saturate flag as "2"
-    source_flag += 2 * source.getProperty<BoundaryFlag>().getBoundaryFlag();
-
-    // set the combined source flag
-    source.setProperty<SourceFlags>(source_flag);
+    // check whether a saturation value is set
+    if (saturation > 0){
+      // iterate over all pixel values
+      for (auto value : source.getProperty<DetectionFramePixelValues>().getValues()) {
+        // mark a saturated pixel and exit
+        if (value > saturation){
+          saturate_flag = 1;
+          break;
+        }
+      }
+    }
+    // set the property
+    source.setProperty<SaturateFlag>(saturate_flag);
   };
 private:
-}; // End of SourceFlagsSourceTask class
+}; // End of SaturateFlagSourceTask class
 } // namespace SExtractor
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_ */
 
 
 
