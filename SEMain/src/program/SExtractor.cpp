@@ -219,6 +219,7 @@ public:
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
+    // initial set of the variance and background check images, might be overwritten below
     CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
     CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
 
@@ -234,6 +235,8 @@ public:
     } else {
       detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
+    // re-set the variance check image to what's in the detection_frame()
+    CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
     //<<<<<<< HEAD
     //std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
