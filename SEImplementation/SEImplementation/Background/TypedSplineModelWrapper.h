@@ -10,15 +10,14 @@
 #define	TYPEDSPLINEMODELWRAPPER_H
 
 #include <boost/filesystem.hpp>
-//#include "SEFramework/Image/Image.h"
-//#include "SEFramework/Image/ImageChunk.h"
 #include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEImplementation/Background/SplineModel.h"
 
 namespace SExtractor {
 
 template <typename T>
-class TypedSplineModelWrapper final : public ImageBase<T> {
+class TypedSplineModelWrapper final : public ImageSource<T> {
 
 public:
 
@@ -37,7 +36,7 @@ public:
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const {
     return (T)m_spline_model->getValue((size_t)x, (size_t)y);
   };
 
@@ -56,6 +55,19 @@ public:
     return (T)m_spline_model->getMedian();
   };
 
+  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
+    auto tile = std::make_shared<ImageTile<T>>(x, y, width, height);
+    for (auto i = x; i < x + width; ++i) {
+      for (auto j = y; j < y + height; ++j) {
+        tile->setValue(i, j, getValue(i, j));
+      }
+    }
+    return tile;
+  }
+
+  void saveTile(ImageTile<T>& tile) override {
+    assert(false);
+  }
 
 private:
   TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
