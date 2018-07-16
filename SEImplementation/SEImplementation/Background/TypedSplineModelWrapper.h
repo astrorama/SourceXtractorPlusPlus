@@ -57,8 +57,12 @@ public:
 
   std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
     auto tile = std::make_shared<ImageTile<T>>(x, y, width, height);
-    for (auto i = x; i < x + width; ++i) {
-      for (auto j = y; j < y + height; ++j) {
+    // Splines are calculated and cached per row. We fill
+    // the tile with the Y axis on the outer loop, so we can
+    // benefit from that caching
+    // @see SplineModel::getValue
+    for (auto j = y; j < y + height; ++j) {
+      for (auto i = x; i < x + width; ++i) {
         tile->setValue(i, j, getValue(i, j));
       }
     }
