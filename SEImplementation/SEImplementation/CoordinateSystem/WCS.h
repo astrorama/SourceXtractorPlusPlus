@@ -25,7 +25,7 @@ public:
   virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const;
 
 private:
-  std::unique_ptr<wcslib::wcsprm> m_wcs;
+  std::unique_ptr<wcslib::wcsprm, std::function<void(wcslib::wcsprm*)>> m_wcs;
 };
 
 }
