@@ -68,7 +68,6 @@ public:
       else
         m_aperture_max = 0.;
     }
-    std::cout << "\n\nmax aperture: " << m_aperture_max << "\n\n" << std::endl;
   }
 
 private:
