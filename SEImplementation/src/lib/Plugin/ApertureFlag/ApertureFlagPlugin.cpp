@@ -14,30 +14,15 @@
  */    
 
 /**
- * @file SourceFlagsPlugin.h
+ * @file BoundaryFlagPlugin.cpp
  *
- * @date Jul 13, 2018
+ * @date Jul 10, 2018
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_
-
-#include "BoundaryFlag.h"
-#include "SEFramework/Plugin/Plugin.h"
-#include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagTaskFactory.h"
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/ApertureFlag/ApertureFlagPlugin.h"
 
 namespace SExtractor {
-class BoundaryFlagPlugin : public Plugin {
-public:
-  virtual ~BoundaryFlagPlugin() = default;
-  virtual void registerPlugin(PluginAPI& plugin_api) {
-    plugin_api.getTaskFactoryRegistry().registerTaskFactory<BoundaryFlagTaskFactory, BoundaryFlag>();
-  }
-  virtual std::string getIdString() const {
-    return "boundary_flag";
-  }
-private:
-}; // end of BoundaryFlagPlugin class
-}  // namespace SExtractor
-#endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_ */
+  static StaticPlugin<ApertureFlagPlugin> aperture_flag;
+}

@@ -14,30 +14,30 @@
  */    
 
 /**
- * @file SourceFlagsPlugin.h
+ * @file ApertureFlagPlugin.h
  *
- * @date Jul 13, 2018
+ * @date Jul 17, 2018
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREFLAGPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_APERTUREFLAGPLUGIN_H_
 
-#include "BoundaryFlag.h"
 #include "SEFramework/Plugin/Plugin.h"
-#include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagTaskFactory.h"
+#include "ApertureFlag.h"
+#include "SEImplementation/Plugin/ApertureFlag/ApertureFlagTaskFactory.h"
 
 namespace SExtractor {
-class BoundaryFlagPlugin : public Plugin {
+class ApertureFlagPlugin : public Plugin {
 public:
-  virtual ~BoundaryFlagPlugin() = default;
+  virtual ~ApertureFlagPlugin() = default;
   virtual void registerPlugin(PluginAPI& plugin_api) {
-    plugin_api.getTaskFactoryRegistry().registerTaskFactory<BoundaryFlagTaskFactory, BoundaryFlag>();
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<ApertureFlagTaskFactory, ApertureFlag>();
   }
   virtual std::string getIdString() const {
-    return "boundary_flag";
+    return "aperture_flag";
   }
 private:
-}; // end of BoundaryFlagPlugin class
+}; // end of ApertureFlagPlugin class
 }  // namespace SExtractor
-#endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREFLAGPLUGIN_H_ */
