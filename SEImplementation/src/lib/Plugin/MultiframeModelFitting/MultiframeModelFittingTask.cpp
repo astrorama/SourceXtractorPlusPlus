@@ -5,6 +5,8 @@
  *      Author: mschefer
  */
 
+#include <mutex>
+
 #include "ElementsKernel/Logging.h"
 
 #include "ModelFitting/Models/PointModel.h"
@@ -29,6 +31,8 @@
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFitting.h"
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeSourceModel.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 
 namespace SExtractor {
@@ -38,6 +42,9 @@ using namespace ModelFitting;
 static Elements::Logging logger = Elements::Logging::getLogger("MultiframeModelFitting");
 
 namespace {
+
+std::mutex debug_image_mutex;
+
 
 void printLevmarInfo(std::array<double,10> info) {
   static double total_error = 0;
@@ -126,6 +133,7 @@ MultiframeModelFittingTask::MultiframeModelFittingTask(unsigned int max_iteratio
 
 std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createImageCopy(
     SourceGroupInterface& group, int frame_index) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
@@ -143,6 +151,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createImageCop
 
 std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightImage(
     SourceGroupInterface& group, int frame_index) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
@@ -205,22 +214,60 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
   auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
+  // Get the coordinates of the detection frame group stamp
   auto stamp_top_left = detection_group_stamp.getTopLeft();
-  auto top_left = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto width = detection_group_stamp.getStamp().getWidth();
+  auto height = detection_group_stamp.getStamp().getHeight();
+
+  // Transform the 4 corner coordinates from detection image
+  auto coord1 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
       stamp_top_left.m_x, stamp_top_left.m_y)));
+  auto coord2 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x + width, stamp_top_left.m_y)));
+  auto coord3 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
+  auto coord4 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x, stamp_top_left.m_y + height)));
 
-  PixelCoordinate min_coord(int(top_left.m_x), int(top_left.m_y));
-  PixelCoordinate max_coord = min_coord + PixelCoordinate(detection_group_stamp.getStamp().getWidth(), detection_group_stamp.getStamp().getHeight());
+  // Determine the min/max coordinates
+  auto min_x = std::min(coord1.m_x, std::min(coord2.m_x, std::min(coord3.m_x, coord4.m_x)));
+  auto min_y = std::min(coord1.m_y, std::min(coord2.m_y, std::min(coord3.m_y, coord4.m_y)));
+  auto max_x = std::max(coord1.m_x, std::max(coord2.m_x, std::max(coord3.m_x, coord4.m_x)));
+  auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
 
+  PixelCoordinate min_coord, max_coord;
+  min_coord.m_x = int(min_x);
+  min_coord.m_y = int(min_y);
+  max_coord.m_x = int(max_x) + 1;
+  max_coord.m_y = int(max_y) + 1;
+
+  // Clip the coordinates to fit the available image
   auto frame_image = frame->getSubtractedImage();
-  auto frame_image_thresholded = frame->getThresholdedImage();
-
   min_coord.m_x = std::max(0, min_coord.m_x);
   min_coord.m_y = std::max(0, min_coord.m_y);
   max_coord.m_x = std::min(frame_image->getWidth(), max_coord.m_x);
   max_coord.m_y = std::min(frame_image->getHeight(), max_coord.m_y);
 
   return StampRectangle(min_coord, max_coord);
+}
+
+void MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index, double jacobian[]) const {
+  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+  auto frame_coordinates = frame->getCoordinateSystem();
+  auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
+  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
+  double y = detection_group_stamp.getTopLeft().m_y + detection_group_stamp.getStamp().getHeight() / 2.0;
+
+  auto frame_origin = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y)));
+  auto frame_dx = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x+1.0, y)));
+  auto frame_dy = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y+1.0)));
+
+  jacobian[0] = frame_dx.m_x - frame_origin.m_x;
+  jacobian[1] = frame_dx.m_y - frame_origin.m_y;
+  jacobian[2] = frame_dy.m_x - frame_origin.m_x;
+  jacobian[3] = frame_dy.m_y - frame_origin.m_y;
 }
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
@@ -297,8 +344,15 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         auto image = createImageCopy(group, frame_index);
         auto weight = createWeightImage(group, frame_index);
 
+        double jacobian[4];
+        computeJacobianForFrame(group, frame_index, jacobian);
+        std::cout << "J:\n";
+        std::cout << jacobian[0] << " " << jacobian[1] << "\n";
+        std::cout << jacobian[2] << " " << jacobian[3] << "\n";
+
         // Setup source models
-        auto frame_coordinates = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+        auto frame_coordinates =
+            group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
 
         std::vector<ExtendedModel> extended_models;
         for (auto& source_model : source_models) {
@@ -354,15 +408,13 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
     for (auto frame_index : frame_indices) {
-      auto stamp_width = images[image_nb]->getWidth();
-      auto stamp_height = images[image_nb]->getHeight();
-
-      //auto final_stamp = VectorImage<SeFloat>::create(stamp_width, stamp_height);
+      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto stamp_width = stamp_rect.getWidth();
+      auto stamp_height = stamp_rect.getHeight();
 
       std::vector<ExtendedModel> extended_models {};
       std::vector<PointModel> point_models {};
       std::vector<ConstantModel> constant_models;
-
 
       int nb_of_params = 0;
       for (auto& source_model : source_models) {
@@ -379,12 +431,13 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         *m_psfs[frame_index]
       };
       auto final_stamp = frame_model_after.getImage();
-      auto stamp_rect = getStampRectangle(group, frame_index);
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {
+          debug_image_mutex.lock();
           const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]->at(
               stamp_rect.m_min_coord.m_x + x, stamp_rect.m_min_coord.m_y + y) += final_stamp->getValue(x,y);
+          debug_image_mutex.unlock();
         }
       }
 

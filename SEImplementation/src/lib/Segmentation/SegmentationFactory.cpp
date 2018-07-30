@@ -41,6 +41,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
   auto segmentation = std::make_shared<Segmentation>(m_filter);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
+      //FIXME Use a factory from parameter
       segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:

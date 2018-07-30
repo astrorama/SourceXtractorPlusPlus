@@ -35,6 +35,7 @@
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
+#include "SEImplementation/Grouping/GroupingFactory.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
@@ -114,6 +115,7 @@ class SEMain : public Elements::Program {
   std::shared_ptr<SourceGroupFactory> group_factory =
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
+  GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
@@ -138,6 +140,7 @@ public:
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
+    grouping_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
@@ -177,6 +180,7 @@ public:
     
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
+    grouping_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
@@ -193,8 +197,8 @@ public:
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
-    auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<SplitSourcesCriteria>(new SplitSourcesCriteria), group_factory);
+    auto source_grouping = grouping_factory.createGrouping();
+
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();

@@ -360,7 +360,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
-  //std::fill(weight->getData().begin(), weight->getData().end(), 1);
+  //std::fill(weight->getData().begin(), weight->getData().end(), 1); // FIXME test
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {

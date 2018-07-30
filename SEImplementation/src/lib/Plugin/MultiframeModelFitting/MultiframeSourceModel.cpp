@@ -98,6 +98,8 @@ void MultiframeSourceModel::createParamsForBand() {
         [coordinates, cx, cy, offset, cs](double dx, double dy) {
           return coordinates->worldToImage(cs->imageToWorld(ImageCoordinate(cx + dx, cy + dy))).m_y - offset.m_y;
         }, dx, dy));
+
+    std::cout << band_nb << " " << frame_nb << " / " << offset.m_x << " " << offset.m_y << "\n";
   }
 
   void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models) {
@@ -167,6 +169,8 @@ void MultiframeSourceModel::createParamsForBand() {
   }
 
   double MultiframeSourceModel::getFluxGuess(const SourceInterface& source) const {
+//    auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
+//    return iso_flux / 2;
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
     return iso_flux / 2;
   }

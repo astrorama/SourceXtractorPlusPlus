@@ -186,9 +186,12 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_psfs.push_back(std::move(psf));
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 
-    double measurement_image_gain = 0, measurement_image_saturate = 0;
-    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
-    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
+    // FIXME tmp for tests
+    double measurement_image_gain = 1, measurement_image_saturate = 65535;
+
+//    double measurement_image_gain = 0, measurement_image_saturate = 0;
+//    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
+//    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
 
     //FIXME provide a way to override those values
 
