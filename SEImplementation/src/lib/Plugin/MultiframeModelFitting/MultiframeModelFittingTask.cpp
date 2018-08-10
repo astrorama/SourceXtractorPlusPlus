@@ -11,6 +11,7 @@
 
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
@@ -249,9 +250,11 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
   max_coord.m_y = std::min(frame_image->getHeight(), max_coord.m_y);
 
   return StampRectangle(min_coord, max_coord);
+
+//  return StampRectangle(PixelCoordinate(0,0), PixelCoordinate(frame_image->getWidth(), frame_image->getHeight()));
 }
 
-void MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index, double jacobian[]) const {
+std::tuple<double, double, double, double> MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const {
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_coordinates = frame->getCoordinateSystem();
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
@@ -264,10 +267,8 @@ void MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& g
   auto frame_dx = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x+1.0, y)));
   auto frame_dy = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y+1.0)));
 
-  jacobian[0] = frame_dx.m_x - frame_origin.m_x;
-  jacobian[1] = frame_dx.m_y - frame_origin.m_y;
-  jacobian[2] = frame_dy.m_x - frame_origin.m_x;
-  jacobian[3] = frame_dy.m_y - frame_origin.m_y;
+  return std::make_tuple(frame_dx.m_x - frame_origin.m_x, frame_dx.m_y - frame_origin.m_y,
+      frame_dy.m_x - frame_origin.m_x, frame_dy.m_y - frame_origin.m_y);
 }
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
@@ -344,20 +345,16 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         auto image = createImageCopy(group, frame_index);
         auto weight = createWeightImage(group, frame_index);
 
-        double jacobian[4];
-        computeJacobianForFrame(group, frame_index, jacobian);
-        std::cout << "J:\n";
-        std::cout << jacobian[0] << " " << jacobian[1] << "\n";
-        std::cout << jacobian[2] << " " << jacobian[3] << "\n";
+        auto jacobian = computeJacobianForFrame(group, frame_index);
 
         // Setup source models
         auto frame_coordinates =
             group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
 
-        std::vector<ExtendedModel> extended_models;
+        std::vector<TransformedModel> extended_models;
         for (auto& source_model : source_models) {
           source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
-          source_model->addModelsForFrame(frame_index, extended_models);
+          source_model->addModelsForFrame(frame_index, extended_models, jacobian);
         }
 
         // Full frame model with all sources
@@ -412,13 +409,15 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto stamp_width = stamp_rect.getWidth();
       auto stamp_height = stamp_rect.getHeight();
 
-      std::vector<ExtendedModel> extended_models {};
+      std::vector<TransformedModel> extended_models {};
       std::vector<PointModel> point_models {};
       std::vector<ConstantModel> constant_models;
 
+      auto jacobian = computeJacobianForFrame(group, frame_index);
+
       int nb_of_params = 0;
       for (auto& source_model : source_models) {
-        source_model->addModelsForFrame(frame_index, extended_models);
+        source_model->addModelsForFrame(frame_index, extended_models, jacobian);
         nb_of_params += source_model->getNumberOfParameters();
       }
 

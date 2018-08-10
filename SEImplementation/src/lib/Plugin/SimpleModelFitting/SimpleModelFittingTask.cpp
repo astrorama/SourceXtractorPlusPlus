@@ -231,7 +231,7 @@ struct SourceModel {
     manager.registerParameter(dev_rot);
   }
 
-  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
+  void createModels(std::vector<TransformedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
@@ -312,7 +312,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   EngineParameterManager manager {};
   std::vector<ConstantModel> constant_models;
-  std::vector<ExtendedModel> extended_models;
+  std::vector<TransformedModel> extended_models;
   std::vector<PointModel> point_models;
   std::vector<std::unique_ptr<SourceModel>> source_models;
 
@@ -432,7 +432,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     ++source_iter;
 
     // renders an image of the model for a single source with the final parameters
-    std::vector<ExtendedModel> extended_models {};
+    std::vector<TransformedModel> extended_models {};
     std::vector<PointModel> point_models {};
     source_model->createModels(extended_models, point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {

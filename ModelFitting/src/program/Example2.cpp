@@ -48,7 +48,7 @@ int main() {
   // models. Here we construct the vectors which will keep these models.
   vector<ConstantModel> constant_models {};
   vector<PointModel> point_models {};
-  vector<ExtendedModel> extended_models {};
+  vector<TransformedModel> extended_models {};
   
   // We will use a single constant model, which simulates the background. The
   // constant model gets a single parameter, its value.

@@ -102,15 +102,18 @@ void MultiframeSourceModel::createParamsForBand() {
     std::cout << band_nb << " " << frame_nb << " / " << offset.m_x << " " << offset.m_y << "\n";
   }
 
-  void MultiframeSourceModel::addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models) {
+  void MultiframeSourceModel::addModelsForFrame(
+      int frame_nb, std::vector<ModelFitting::TransformedModel>& extended_models,
+      std::tuple<double, double, double, double> jacobian) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), *(exp_i0s[m_frame_band_map[frame_nb]]), exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), *(exp_i0s[m_frame_band_map[frame_nb]]), exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(
-          std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size, *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]));
+          std::move(component_list), exp_xs, exp_aspect, exp_rot, m_size, m_size,
+          *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]), jacobian);
     }
     // devaucouleurs
     {
@@ -119,7 +122,8 @@ void MultiframeSourceModel::createParamsForBand() {
       component_list.clear();
       component_list.emplace_back(std::move(dev));
       extended_models.emplace_back(
-          std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size, *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]));
+          std::move(component_list), dev_xs, dev_aspect, dev_rot, m_size, m_size,
+          *(pixel_x[m_frame_map[frame_nb]]), *(pixel_y[m_frame_map[frame_nb]]), jacobian);
     }
   }
 

@@ -19,7 +19,7 @@ class TransformModelComponent : public ModelComponent {
 
 public:
 
-  TransformModelComponent(std::unique_ptr<ModelComponent> component, double jacobian[]);
+  TransformModelComponent(std::unique_ptr<ModelComponent> component, std::tuple<double, double, double, double> jacobian);
 
   TransformModelComponent(TransformModelComponent&& other);
 

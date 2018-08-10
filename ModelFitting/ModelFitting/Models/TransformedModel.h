@@ -20,12 +20,16 @@ public:
   TransformedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
                 BasicParameter& x_scale, BasicParameter& y_scale,
                 BasicParameter& rotation_angle, double width, double height,
-                BasicParameter& x, BasicParameter& y, double jacobian[]);
+                BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> jacobian);
 
-//  TransformedModel(ExtendedModel&&);
+  TransformedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
+                BasicParameter& x_scale, BasicParameter& y_scale,
+                BasicParameter& rotation_angle, double width, double height,
+                BasicParameter& x, BasicParameter& y);
+
+  TransformedModel(TransformedModel&&) = default;
 
   virtual ~TransformedModel() = default;
-
 };
 
 }

@@ -12,6 +12,7 @@
 #include "ModelFitting/Models/ConstantModel.h"
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Image/ImageTraits.h"
 
 namespace ModelFitting {
@@ -26,7 +27,7 @@ public:
   FrameModel(double pixel_scale, std::size_t width, std::size_t height,
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
-             std::vector<ExtendedModel> extended_model_list,
+             std::vector<TransformedModel> extended_model_list,
              PsfType psf);
   
   FrameModel(FrameModel&&) = default;
@@ -50,7 +51,7 @@ private:
   std::size_t m_height;
   std::vector<ConstantModel> m_constant_model_list;
   std::vector<PointModel> m_point_model_list;
-  std::vector<ExtendedModel> m_extended_model_list;
+  std::vector<TransformedModel> m_extended_model_list;
   PsfType m_psf;
   std::unique_ptr<ImageType> m_model_image {};
   

@@ -42,7 +42,7 @@ private:
 
   StampRectangle getStampRectangle(SourceGroupInterface& group, int frame_index) const;
   bool isFrameValid(SourceGroupInterface& group, int frame_index) const;
-  void computeJacobianForFrame(SourceGroupInterface& group, int frame_index, double jacobian[]) const;
+  std::tuple<double, double, double, double> computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const;
 
   // Task configuration
   unsigned int m_max_iterations;

@@ -19,7 +19,7 @@ class ExtendedModel : public PositionedModel {
   
 public:
   
-  ExtendedModel(std::vector<std::unique_ptr<ModelComponent>> component_list,
+  ExtendedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
                 BasicParameter& x_scale, BasicParameter& y_scale,
                 BasicParameter& rotation_angle, double width, double height,
                 BasicParameter& x, BasicParameter& y);
@@ -36,10 +36,11 @@ public:
   double getWidth() const;
   
   double getHeight() const;
-  
-private:
-  
+
+protected:
   std::vector<std::unique_ptr<ModelComponent>> m_component_list {};
+
+private:
   double m_width;
   double m_height;
   

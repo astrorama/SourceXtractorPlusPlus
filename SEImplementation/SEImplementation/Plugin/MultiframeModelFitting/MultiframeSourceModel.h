@@ -15,6 +15,7 @@
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
 namespace SExtractor {
@@ -81,7 +82,7 @@ public:
   void createParamsForBand();
 
   void createParamsForFrame(int band_nb, int frame_nb, std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset);
-  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models);
+  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::TransformedModel>& extended_models, std::tuple<double, double, double, double> jacobian);
 
   void registerParameters(ModelFitting::EngineParameterManager& manager);
 
