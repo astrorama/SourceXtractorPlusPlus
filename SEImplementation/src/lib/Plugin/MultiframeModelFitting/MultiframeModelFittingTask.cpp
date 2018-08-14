@@ -346,6 +346,8 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         auto weight = createWeightImage(group, frame_index);
 
         auto jacobian = computeJacobianForFrame(group, frame_index);
+        std::cout << std::get<0>(jacobian) << " " << std::get<1>(jacobian) << "\n"
+                  << std::get<2>(jacobian) << " " << std::get<3>(jacobian) << "\n";
 
         // Setup source models
         auto frame_coordinates =

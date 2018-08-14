@@ -124,10 +124,10 @@ public:
 
     auto c = cos(rotation);
     auto s = sin(rotation);
-    pFits->pHDU().addKey("CD1_1", 0.01 * c * scale, "");
-    pFits->pHDU().addKey("CD1_2", 0.01 * s * scale, "");
-    pFits->pHDU().addKey("CD2_1", 0.01 * -s * scale, "");
-    pFits->pHDU().addKey("CD2_2", 0.01 * c * scale, "");
+    pFits->pHDU().addKey("CD1_1", 0.001 * c * scale, "");
+    pFits->pHDU().addKey("CD1_2", 0.001 * s * scale, "");
+    pFits->pHDU().addKey("CD2_1", 0.001 * -s * scale, "");
+    pFits->pHDU().addKey("CD2_2", 0.001 * c * scale, "");
   }
 
   void addSource(std::vector<PointModel>& point_models, std::vector<TransformedModel>& extended_models, double size, const TestImageSource& source, std::tuple<double, double, double, double> jacobian) {
@@ -149,7 +149,7 @@ public:
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
