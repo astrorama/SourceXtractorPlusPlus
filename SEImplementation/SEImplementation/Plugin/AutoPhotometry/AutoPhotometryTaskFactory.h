@@ -45,7 +45,7 @@ private:
   SeFloat m_kron_measurement;
 
   // TEMP
-  std::shared_ptr<WriteableImage<unsigned int>> m_tmp_check_image;
+  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 
 };
 

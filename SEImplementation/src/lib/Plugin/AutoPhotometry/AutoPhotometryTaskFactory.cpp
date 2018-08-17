@@ -47,7 +47,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& 
   auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
   //m_tmp_check_image = VectorImage<int>::create(detection_image->getWidth(), detection_image->getHeight());
   std::string bbb("tmp.fits");
-  m_tmp_check_image = FitsWriter::newImage<unsigned int>(bbb, detection_image->getWidth(), detection_image->getHeight());
+  m_tmp_check_image = FitsWriter::newImage<float>(bbb, detection_image->getWidth(), detection_image->getHeight());
 }
 
 std::shared_ptr<Task> AutoPhotometryTaskFactory::createTask(const PropertyId& property_id) const {
