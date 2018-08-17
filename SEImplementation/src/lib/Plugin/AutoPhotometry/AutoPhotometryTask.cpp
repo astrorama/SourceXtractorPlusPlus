@@ -100,7 +100,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
         if (area > 0.0){
           m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+area);
         }
-        //std::cout << " area: " << area;
       }
     }
   }
@@ -182,41 +181,46 @@ SeFloat RotatedEllipticalAperture::getArea(int pixel_x, int pixel_y) const{
   SeFloat act_x_prim, act_y_prim;
   SeFloat act_x, act_y;
 
+  // set the start value in y
+  if (SUPERSAMPLE_AUTO_NB % 2)
+    // for odd sub-samples
+    act_y = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
+  else
+    // for even sub-samples
+    act_y = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
+
+  // iterate over all sub-samples in y
   SeFloat area = 0.0;
   for (int sub_y = 0; sub_y < SUPERSAMPLE_AUTO_NB; sub_y++) {
+
+    // set the start value in x
+    if (SUPERSAMPLE_AUTO_NB % 2)
+      // for odd sub-samples
+      act_x = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
+    else{
+      // for even sub-samples
+      act_x = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
+    }
+
+    // iterate over all sub-samples in x
     for (int sub_x = 0; sub_x < SUPERSAMPLE_AUTO_NB; sub_x++) {
 
-      // compute the sub-sampled x/y-coordinates
-      act_x = SeFloat(pixel_x) + SeFloat(sub_x - SUPERSAMPLE_AUTO_NB/2) / SUPERSAMPLE_AUTO_NB + 1. / (2.*SUPERSAMPLE_AUTO_NB);
-      act_y = SeFloat(pixel_y) + SeFloat(sub_y - SUPERSAMPLE_AUTO_NB/2) / SUPERSAMPLE_AUTO_NB + 1. / (2.*SUPERSAMPLE_AUTO_NB);
-      //std::cout << " " << dx2<< ":" << dy2;
-
       // rotate into the ellipse
-      act_x_prim =  m_cos*(act_x-m_center_x) + m_sin*(act_y-m_center_y);
-      act_y_prim = -m_sin*(act_x-m_center_x) + m_cos*(act_y-m_center_y);
+      act_x_prim =  m_cos*(SeFloat(pixel_x) + act_x-m_center_x) + m_sin*(SeFloat(pixel_y) + act_y-m_center_y);
+      act_y_prim = -m_sin*(SeFloat(pixel_x) + act_x-m_center_x) + m_cos*(SeFloat(pixel_y) + act_y-m_center_y);
 
       // enhance the are if the sub-pixel is in
       if (ell_aper->getArea(act_x_prim, act_y_prim)>0.) {
         area += 1.0 / (SUPERSAMPLE_AUTO_NB * SUPERSAMPLE_AUTO_NB);
       }
-      //std::cout << " " << area;
+      // increment in x
+      act_x += 1./SUPERSAMPLE_AUTO_NB;
     }
+    // increment in y
+    act_y += 1./SUPERSAMPLE_AUTO_NB;
   }
-  //std::cout << " " << pixel_x<< ":" << pixel_y << std::endl;
-  //std::cout << " " << area;
+  // return the area
   return area;
-  /* the version *without* sub-sampling
-  SeFloat dx_prim, dy_prim;
-
-  // rotate into the ellipse
-  dx_prim =  m_cos*(SeFloat(pixel_x)-m_center_x) + m_sin*(SeFloat(pixel_y)-m_center_y);
-  dy_prim = -m_sin*(SeFloat(pixel_x)-m_center_x) + m_cos*(SeFloat(pixel_y)-m_center_y);
-
-  //std::cout << " " << dx_prim<< ":" <<
-
-  //return ell_aper->getArea(pixel_x-m_center_x, pixel_y-m_center_y);
-  return ell_aper->getArea(dx_prim, dy_prim);
-  */
 }
 
 PixelCoordinate RotatedEllipticalAperture::getMinPixel() const {
