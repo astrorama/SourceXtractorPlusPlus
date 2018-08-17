@@ -37,10 +37,12 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
   // get the shape parameters
-  const auto& ell_a     = source.getProperty<ShapeParameters>().getEllipseA();
-  const auto& ell_b     = source.getProperty<ShapeParameters>().getEllipseB();
+  SeFloat ell_a     = m_kron_factor*source.getProperty<ShapeParameters>().getEllipseA();
+  ell_a = ell_a < m_kron_minrad ? m_kron_minrad : ell_a;
+  SeFloat ell_b     = m_kron_factor*source.getProperty<ShapeParameters>().getEllipseB();
+  ell_b = ell_b < m_kron_minrad ? m_kron_minrad : ell_b;
   const auto& ell_theta = source.getProperty<ShapeParameters>().getEllipseTheta();
-
+  //std::cout << ell_a << " " << ell_b << std::endl;
   // create the aperture
   auto ell_aper = std::make_shared<RotatedEllipticalAperture>(centroid_x, centroid_y, ell_theta, ell_a, ell_b);
 
@@ -197,10 +199,9 @@ SeFloat RotatedEllipticalAperture::getArea(int pixel_x, int pixel_y) const{
     if (SUPERSAMPLE_AUTO_NB % 2)
       // for odd sub-samples
       act_x = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
-    else{
+    else
       // for even sub-samples
       act_x = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
-    }
 
     // iterate over all sub-samples in x
     for (int sub_x = 0; sub_x < SUPERSAMPLE_AUTO_NB; sub_x++) {
