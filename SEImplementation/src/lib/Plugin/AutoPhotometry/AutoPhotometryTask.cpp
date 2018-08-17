@@ -36,24 +36,20 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
   const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
+  // get the shape parameters
   const auto& ell_a     = source.getProperty<ShapeParameters>().getEllipseA();
   const auto& ell_b     = source.getProperty<ShapeParameters>().getEllipseB();
   const auto& ell_theta = source.getProperty<ShapeParameters>().getEllipseTheta();
 
-  //auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, ell_a, ell_b);
-  //auto ell_aper = std::make_shared<RotatedEllipticalAperture>(ell_theta, centroid_x, centroid_y, ell_a, ell_b);
-  auto ell_aper = std::make_shared<RotatedEllipticalAperture>(centroid_x, centroid_y, ell_theta, 5.0, 5.0);
-  //auto ell_aper = std::make_shared<RotatedEllipticalAperture>(centroid_x, centroid_y, 0.0, 5.0, 5.0);
+  // create the aperture
+  auto ell_aper = std::make_shared<RotatedEllipticalAperture>(centroid_x, centroid_y, ell_theta, ell_a, ell_b);
 
   // get the aperture borders on the image
-  //auto min_pixel = ell_aper->getMinPixel();
-  //auto max_pixel = ell_aper->getMaxPixel();
   PixelCoordinate min_pixel;
   PixelCoordinate max_pixel;
-
   ell_aper->getMinMaxPixel(min_pixel, max_pixel);
 
-  std::cout << " " << min_pixel.m_x << "," << max_pixel.m_x << " : " << min_pixel.m_y << "," << max_pixel.m_y << " ? " << max_pixel.m_x-min_pixel.m_x << "," << max_pixel.m_y-min_pixel.m_y << std::endl<< std::endl;
+  //std::cout << " " << min_pixel.m_x << "," << max_pixel.m_x << " : " << min_pixel.m_y << "," << max_pixel.m_y << " ? " << max_pixel.m_x-min_pixel.m_x << "," << max_pixel.m_y-min_pixel.m_y << std::endl<< std::endl;
 
   SeFloat total_flux     = 0;
   SeFloat total_variance = 0.0;
@@ -101,6 +97,10 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
         auto area = ell_aper->getArea(pixel_x, pixel_y);
         total_flux     += value * area;
         total_variance +=  pixel_variance * area;
+        if (area > 0.0){
+          //m_tmp_check_image->setValue(pixel_x, pixel_y, 1);
+          m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1);
+        }
         //std::cout << " area: " << area;
       }
     }
@@ -187,8 +187,10 @@ SeFloat RotatedEllipticalAperture::getArea(int pixel_x, int pixel_y) const{
   //double new_y = x * m_sin + y * m_cos;
 
   // rotate into the ellipse
-  dx_prim = m_cos*(SeFloat(pixel_x)-m_center_x) - m_sin*(SeFloat(pixel_y)-m_center_y);
-  dy_prim = m_sin*(SeFloat(pixel_x)-m_center_x) + m_cos*(SeFloat(pixel_y)-m_center_y);
+  //dx_prim = m_cos*(SeFloat(pixel_x)-m_center_x) - m_sin*(SeFloat(pixel_y)-m_center_y);
+  //dy_prim = m_sin*(SeFloat(pixel_x)-m_center_x) + m_cos*(SeFloat(pixel_y)-m_center_y);
+  dx_prim = m_cos*(SeFloat(pixel_x)-m_center_x) + m_sin*(SeFloat(pixel_y)-m_center_y);
+  dy_prim = -m_sin*(SeFloat(pixel_x)-m_center_x) + m_cos*(SeFloat(pixel_y)-m_center_y);
 
   //std::cout << " " << dx_prim<< ":" <<
 
@@ -231,8 +233,16 @@ void RotatedEllipticalAperture::getMinMaxPixel(PixelCoordinate& min, PixelCoordi
   // get the min and max of the basic ellipse
   auto ell_min = ell_aper->getMinPixel();
   auto ell_max = ell_aper->getMaxPixel();
-  std::cout << " coo1: " << ell_min.m_x << "," << ell_min.m_y << " coo2: " << ell_max.m_x << "," << ell_max.m_y << std::endl;
+  //std::cout << " coo1: " << ell_min.m_x << "," << ell_min.m_y << " coo2: " << ell_max.m_x << "," << ell_max.m_y << std::endl;
 
+  // that's very rough approximation: use the major axis for all measures
+  min.m_x = m_center_x + ell_min.m_x;
+  min.m_y = m_center_y + ell_min.m_x ;
+
+  max.m_x = m_center_x + ell_max.m_x + 1;
+  max.m_y = m_center_y + ell_max.m_x + 1;
+
+  /*
   // rotate from the basic ellipse into the image
   dx1 =  m_cos*SeFloat(ell_min.m_x) + m_sin*SeFloat(ell_min.m_y);
   dy1 = -m_sin*SeFloat(ell_min.m_x) + m_cos*SeFloat(ell_min.m_y);
@@ -260,7 +270,7 @@ void RotatedEllipticalAperture::getMinMaxPixel(PixelCoordinate& min, PixelCoordi
     min.m_y = m_center_y + dy2;
     max.m_y = m_center_y + dy1 + 1;
   }
-
+   */
 }
 
 }

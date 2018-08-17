@@ -76,13 +76,14 @@ public:
   /// Destructor
   virtual ~AutoPhotometryTask() = default;
 
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry) :
+  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<unsigned int>> tmp_check_image) :
     m_magnitude_zero_point(magnitude_zero_point),
     m_kron_factor(kron_factor),
     m_kron_minrad(kron_minrad),
     m_kron_estimation(kron_estimation),
     m_kron_measurement(kron_measurement),
-    m_use_symmetry(use_symmetry) {}
+    m_use_symmetry(use_symmetry),
+    m_tmp_check_image(tmp_check_image) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
@@ -93,6 +94,9 @@ private:
   SeFloat m_kron_estimation;
   SeFloat m_kron_measurement;
   bool m_use_symmetry;
+
+  // TEMP
+  std::shared_ptr<WriteableImage<unsigned int>> m_tmp_check_image;
 };
 
 /*
