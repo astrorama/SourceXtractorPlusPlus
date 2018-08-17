@@ -185,6 +185,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
+  std::cout << "Saturation: " << saturation << " gain: " << gain << "\n";
 
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {

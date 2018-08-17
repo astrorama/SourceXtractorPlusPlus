@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <CCfits/CCfits>
+#include "SEFramework/Image/FitsWriter.h"
 
 #include "SEImplementation/Configuration/PsfConfig.h"
 #include "SEFramework/Image/FitsReader.h"
@@ -17,18 +18,6 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 
-///// Writes an OpenCv Mat to an image FITS file (prepend the filename with '!' to
-///// override existing files)
-//void writeToFits(const cv::Mat& image, const std::string& filename) {
-//  std::valarray<double> data (image.total());
-//  std::copy(image.begin<double>(), image.end<double>(), begin(data));
-//  long naxis = 2;
-//  long naxes[2] = {image.size[1], image.size[0]};
-//  std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
-//  pFits->pHDU().write(1, image.total(), data);
-//  std::cout << "Created file " << filename << '\n';
-//}
-//
 static const std::string PSF_FILE {"psf-file" };
 static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXELSCALE {"psf-pixelscale" };
@@ -87,7 +76,24 @@ std::shared_ptr<ImagePsf> PsfConfig::readPsf(const std::string& filename) {
       auto kernel = VectorImage<SeFloat>::create(size, size);
       std::copy(begin(data), end(data), kernel->getData().begin());
       std::cout << "pixel scale: " << pixel_scale << std::endl;
-      //writeToFits(kernel, "testpsf.fits");
+
+      double total = 0.0;
+      for (auto value : kernel->getData()) {
+        total += value;
+      }
+      std::cout << "psf total: " << total << std::endl;
+
+      // Renormalize the PSF
+      for (auto& value : kernel->getData()) {
+        value /= total;
+      }
+
+      // FIXME DEBUG, write the psf to fits
+      static int num = 0;
+      std::stringstream file_name;
+      file_name << "testpsf" << num++ << ".fits";
+      FitsWriter::writeFile(*kernel, file_name.str());
+
       return std::make_shared<ImagePsf>(pixel_scale, kernel);
     }
   } catch (CCfits::FitsException& e) {

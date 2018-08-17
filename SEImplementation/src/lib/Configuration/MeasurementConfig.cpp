@@ -187,7 +187,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 
     // FIXME tmp for tests
-    double measurement_image_gain = 1, measurement_image_saturate = 65535;
+    double measurement_image_gain = 1, measurement_image_saturate = 59000;
 
 //    double measurement_image_gain = 0, measurement_image_saturate = 0;
 //    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);

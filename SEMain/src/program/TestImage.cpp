@@ -99,6 +99,8 @@ public:
         ("bad-columns", po::value<double>()->default_value(0.0), "Probability for a column of pixels to be bad")
         ("rotation", po::value<double>()->default_value(0.0), "Rotate sources around middle point")
         ("scale", po::value<double>()->default_value(1.0), "Scale factor")
+        ("shift-x", po::value<double>()->default_value(0.0), "Shift X")
+        ("shift-y", po::value<double>()->default_value(0.0), "Shift Y")
         ;
 
     return config_options;
@@ -107,7 +109,7 @@ public:
 
   /// Writes a VectorImage to an image FITS file (prepend the filename with '!' to
   /// override existing files)
-  void writeToFits(std::shared_ptr<VectorImage<SeFloat>> image, const std::string& filename, double rotation, double scale) {
+  void writeToFits(std::shared_ptr<VectorImage<SeFloat>> image, const std::string& filename, double rotation, double scale, double shift_x, double shift_y) {
     std::valarray<double> data (image->getWidth() * image->getHeight());
     std::copy(image->getData().begin(), image->getData().end(), begin(data));
     long naxis = 2;
@@ -119,8 +121,8 @@ public:
     pFits->pHDU().addKey("CTYPE2", "DEC--TAN", "");
     pFits->pHDU().addKey("CRVAL1", 0.0, "");
     pFits->pHDU().addKey("CRVAL2", 0.0, "");
-    pFits->pHDU().addKey("CRPIX1", image->getWidth() / 2.0 + 0.5, "");
-    pFits->pHDU().addKey("CRPIX2", image->getHeight() / 2.0 + 0.5, "");
+    pFits->pHDU().addKey("CRPIX1", image->getWidth() / 2.0 + 0.5 + shift_x, "");
+    pFits->pHDU().addKey("CRPIX2", image->getHeight() / 2.0 + 0.5 + shift_y, "");
 
     auto c = cos(rotation);
     auto s = sin(rotation);
@@ -318,15 +320,15 @@ public:
     }
   }
 
-  void transformSources(std::vector<TestImageSource>& sources, int image_size, double rot_angle, double scale) {
+  void transformSources(std::vector<TestImageSource>& sources, int image_size, double rot_angle, double scale, double shift_x, double shift_y) {
     auto center = image_size / 2.0;
     auto c = cos(rot_angle);
     auto s = sin(rot_angle);
     for (auto& source : sources) {
       source.x -= center;
       source.y -= center;
-      double x = (source.x * c - source.y * s) / scale;
-      double y = (source.x * s + source.y * c) / scale;
+      double x = (source.x * c - source.y * s) / scale + shift_x;
+      double y = (source.x * s + source.y * c) / scale + shift_y;
       source.x = x + center;
       source.y = y + center;
 
@@ -404,6 +406,8 @@ public:
     auto image_size = args["size"].as<double>();
     auto rot_angle = args["rotation"].as<double>();
     auto scale = args["scale"].as<double>();
+    auto shift_x = args["shift-x"].as<double>();
+    auto shift_y = args["shift-y"].as<double>();
 
     m_zero_point = args["zero-point"].as<double>();
 
@@ -458,8 +462,8 @@ public:
       saveSources(sources, sources_save_filename);
     }
 
-    logger.info("Rotating sources...");
-    transformSources(sources, image_size, rot_angle, scale);
+    logger.info("Transforming sources...");
+    transformSources(sources, image_size, rot_angle, scale, shift_x, shift_y);
 
     logger.info("Creating source models...");
     for (const auto& source : sources) {
@@ -510,12 +514,12 @@ public:
 
     auto filename = args["output"].as<std::string>();
     logger.info() << "Saving file: " << filename;
-    writeToFits(image, filename, rot_angle, scale);
+    writeToFits(image, filename, rot_angle, scale, shift_x, shift_y);
 
     auto weight_filename = args["output-weight"].as<std::string>();
     if (weight_filename != "") {
       logger.info() << "Saving weight map file: " << weight_filename;
-      writeToFits(weight_map, weight_filename, rot_angle, scale);
+      writeToFits(weight_map, weight_filename, rot_angle, scale, shift_x, shift_y);
     }
 
     //Test(image_size, psf, args["output"].as<std::string>());
@@ -567,7 +571,7 @@ public:
     addBackgroundNoise(image, 0, 1);
 
     logger.info() << "Saving file: " << filename;
-    writeToFits(image, filename, 0, 1);
+    writeToFits(image, filename, 0, 1, 0, 0);
     //writeToFits(VectorImage<SeFloat>::create(*SubtractImage<SeFloat>::create(image_1, image_2)), filename);
   }
 
