@@ -36,35 +36,19 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
   const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
+  // get the shape parameters
   const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
   const auto& ell_a = source.getProperty<ShapeParameters>().getEllipseA();
   const auto& ell_b = source.getProperty<ShapeParameters>().getEllipseB();
-  auto ell_aper = std::make_shared<RotatedEllipticalApertureAlt>(centroid_x, centroid_y, cxx, cyy, cxy, m_kron_factor);
-  //auto ell_aper = std::make_shared<RotatedEllipticalApertureAlt>(centroid_x, centroid_y, cxx, cyy, cxy, 3.0);
-  //auto ell_aper = std::make_shared<RotatedEllipticalApertureAlt>(centroid_x, centroid_y, cxx, cyy, cxy, 1.0);
 
-
-  /*
-  // get the shape parameters
-  SeFloat ell_a     = m_kron_factor*source.getProperty<ShapeParameters>().getEllipseA();
-  ell_a = ell_a < m_kron_minrad ? m_kron_minrad : ell_a;
-  SeFloat ell_b     = m_kron_factor*source.getProperty<ShapeParameters>().getEllipseB();
-  ell_b = ell_b < m_kron_minrad ? m_kron_minrad : ell_b;
-  const auto& ell_theta = source.getProperty<ShapeParameters>().getEllipseTheta();
-  //std::cout << ell_a << " " << ell_b << std::endl;
-  // create the aperture
-  auto ell_aper = std::make_shared<RotatedEllipticalAperture>(centroid_x, centroid_y, ell_theta, ell_a, ell_b);
-  */
+  // create the elliptical aperture
+  auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, m_kron_factor);
 
   // get the aperture borders on the image
-  PixelCoordinate min_pixel;
-  PixelCoordinate max_pixel;
-  ell_aper->getMinMaxPixel(min_pixel, max_pixel);
-
-  //std::cout << " " << min_pixel.m_x << "," << max_pixel.m_x << " : " << min_pixel.m_y << "," << max_pixel.m_y << " ? " << max_pixel.m_x-min_pixel.m_x << "," << max_pixel.m_y-min_pixel.m_y << std::endl;
-  //std::cout << " center:" << centroid_x << "," << centroid_y << " x/ylimits:" << min_pixel.m_x << "," << max_pixel.m_x << " : " << min_pixel.m_y << "," << max_pixel.m_y << " ? " << max_pixel.m_x-min_pixel.m_x << "," << max_pixel.m_y-min_pixel.m_y << std::endl;
+  const auto& min_pixel = ell_aper->getMinPixel();
+  const auto& max_pixel = ell_aper->getMaxPixel();
 
   SeFloat total_flux     = 0;
   SeFloat total_variance = 0.0;
@@ -145,174 +129,8 @@ void AutoPhotometryAggregateTask::computeProperties(SourceInterface& source) con
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const {
-  return getArea(SeFloat(pixel_x), SeFloat(pixel_y));
-}
 
-SeFloat EllipticalAperture::getArea(SeFloat pixel_x, SeFloat pixel_y) const {
-
-  auto ell_distance = (pixel_x*pixel_x)/(m_major_axis*m_major_axis) + (pixel_y*pixel_y)/(m_minor_axis*m_minor_axis);
-  if (ell_distance < 1.0)
-    return 1.0;
-  else
-    return 0.0;
-
-
-  /*
-  SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
-  SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
-  auto distance_squared = dx * dx + dy * dy;
-  if (distance_squared <= max_supersampled_radius_squared) {
-    if (distance_squared < min_supersampled_radius_squared) {
-      return 1.0;
-    } else {
-      SeFloat area = 0.0;
-      for (int sub_y = 0; sub_y < SUPERSAMPLE_AUTO_NB; sub_y++) {
-        for (int sub_x = 0; sub_x < SUPERSAMPLE_AUTO_NB; sub_x++) {
-          auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_AUTO_NB/2) / SUPERSAMPLE_AUTO_NB;
-          auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_AUTO_NB/2) / SUPERSAMPLE_AUTO_NB;
-          auto supersampled_distance_squared = dx2 * dx2 + dy2 * dy2;
-          if (supersampled_distance_squared <= m_radius * m_radius) {
-            area += 1.0 / (SUPERSAMPLE_AUTO_NB * SUPERSAMPLE_AUTO_NB);
-          }
-        }
-      }
-      return area;
-    }
-  }
-  return 0.0;
-  */
-}
-
-PixelCoordinate EllipticalAperture::getMinPixel() const {
-  return PixelCoordinate(-1.0*m_major_axis, -1.0*m_minor_axis);
-}
-
-PixelCoordinate EllipticalAperture::getMaxPixel() const {
-  return PixelCoordinate(m_major_axis + 1, m_minor_axis + 1);
-}
-
-SeFloat RotatedEllipticalAperture::getArea(int pixel_x, int pixel_y) const{
-  SeFloat act_x_prim, act_y_prim;
-  SeFloat act_x, act_y;
-
-  // set the start value in y
-  if (SUPERSAMPLE_AUTO_NB % 2)
-    // for odd sub-samples
-    act_y = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
-  else
-    // for even sub-samples
-    act_y = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
-
-  // iterate over all sub-samples in y
-  SeFloat area = 0.0;
-  for (int sub_y = 0; sub_y < SUPERSAMPLE_AUTO_NB; sub_y++) {
-
-    // set the start value in x
-    if (SUPERSAMPLE_AUTO_NB % 2)
-      // for odd sub-samples
-      act_x = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
-    else
-      // for even sub-samples
-      act_x = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
-
-    // iterate over all sub-samples in x
-    for (int sub_x = 0; sub_x < SUPERSAMPLE_AUTO_NB; sub_x++) {
-
-      // rotate into the ellipse
-      act_x_prim =  m_cos*(SeFloat(pixel_x) + act_x-m_center_x) + m_sin*(SeFloat(pixel_y) + act_y-m_center_y);
-      act_y_prim = -m_sin*(SeFloat(pixel_x) + act_x-m_center_x) + m_cos*(SeFloat(pixel_y) + act_y-m_center_y);
-
-      // enhance the are if the sub-pixel is in
-      if (ell_aper->getArea(act_x_prim, act_y_prim)>0.) {
-        area += 1.0 / (SUPERSAMPLE_AUTO_NB * SUPERSAMPLE_AUTO_NB);
-      }
-      // increment in x
-      act_x += 1./SUPERSAMPLE_AUTO_NB;
-    }
-    // increment in y
-    act_y += 1./SUPERSAMPLE_AUTO_NB;
-  }
-  // return the area
-  return area;
-}
-
-PixelCoordinate RotatedEllipticalAperture::getMinPixel() const {
-  SeFloat dx, dy;
-
-  // get the min of the basic ellipse
-  auto ell_min = ell_aper->getMinPixel();
-
-  // rotate from the basic ellipse into the image
-  dx =  m_cos*SeFloat(ell_min.m_x) + m_sin*SeFloat(ell_min.m_y);
-  dy = -m_sin*SeFloat(ell_min.m_x) + m_cos*SeFloat(ell_min.m_y);
-
-  // return the absolute values
-  return PixelCoordinate(m_center_x + dx,  m_center_y + dy);
-}
-
-PixelCoordinate RotatedEllipticalAperture::getMaxPixel() const {
-  SeFloat dx, dy;
-
-  // get the min of the basic ellipse
-  auto ell_max = ell_aper->getMaxPixel();
-
-  // rotate from the basic ellipse into the image
-  dx =  m_cos*SeFloat(ell_max.m_x) + m_sin*SeFloat(ell_max.m_y);
-  dy = -m_sin*SeFloat(ell_max.m_x) + m_cos*SeFloat(ell_max.m_y);
-
-  // return the absolute values
-  return PixelCoordinate(m_center_x + dx + 1,  m_center_y + dy + 1);
-}
-
-
-void RotatedEllipticalAperture::getMinMaxPixel(PixelCoordinate& min, PixelCoordinate& max){
-  SeFloat dx1, dy1, dx2, dy2;
-
-  // get the min and max of the basic ellipse
-  auto ell_min = ell_aper->getMinPixel();
-  auto ell_max = ell_aper->getMaxPixel();
-  //std::cout << " coo1: " << ell_min.m_x << "," << ell_min.m_y << " coo2: " << ell_max.m_x << "," << ell_max.m_y << std::endl;
-
-  // that's very rough approximation: use the major axis for all measures
-  min.m_x = m_center_x + ell_min.m_x;
-  min.m_y = m_center_y + ell_min.m_x ;
-
-  max.m_x = m_center_x + ell_max.m_x + 1;
-  max.m_y = m_center_y + ell_max.m_x + 1;
-
-  /*
-  // rotate from the basic ellipse into the image
-  dx1 =  m_cos*SeFloat(ell_min.m_x) + m_sin*SeFloat(ell_min.m_y);
-  dy1 = -m_sin*SeFloat(ell_min.m_x) + m_cos*SeFloat(ell_min.m_y);
-
-  // rotate from the basic ellipse into the image
-  dx2 =  m_cos*SeFloat(ell_max.m_x) + m_sin*SeFloat(ell_max.m_y);
-  dy2 = -m_sin*SeFloat(ell_max.m_x) + m_cos*SeFloat(ell_max.m_y);
-
-  std::cout << " dxy1: " << dx1 << "," << dy1 << " dxy2: " << dx2 << "," << dy2 << " ? cos: "<< m_cos << " sin: "<< m_sin << " rot: " << m_rotation_angle <<std::endl;
-
-  if (dx1 < dx2){
-    min.m_x = m_center_x + dx1;
-    max.m_x = m_center_x + dx2 + 1;
-  }
-  else{
-    min.m_x = m_center_x + dx2;
-    max.m_x = m_center_x + dx1 + 1;
-  }
-
-  if (dy1 < dy2){
-    min.m_y = m_center_y + dy1;
-    max.m_y = m_center_y + dy2 + 1;
-  }
-  else{
-    min.m_y = m_center_y + dy2;
-    max.m_y = m_center_y + dy1 + 1;
-  }
-   */
-}
-
-SeFloat RotatedEllipticalApertureAlt::getArea(int pixel_x, int pixel_y) const{
+SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
   SeFloat act_x_prim, act_y_prim;
   SeFloat act_x, act_y;
 
@@ -359,7 +177,7 @@ SeFloat RotatedEllipticalApertureAlt::getArea(int pixel_x, int pixel_y) const{
   return area;
 }
 
-PixelCoordinate RotatedEllipticalApertureAlt::getMinPixel() const {
+PixelCoordinate EllipticalAperture::getMinPixel() const {
   SeFloat dx, dy;
 
   // compute the maximum extend in x/y
@@ -370,7 +188,7 @@ PixelCoordinate RotatedEllipticalApertureAlt::getMinPixel() const {
   return PixelCoordinate(m_center_x - dx,  m_center_y - dy);
 }
 
-PixelCoordinate RotatedEllipticalApertureAlt::getMaxPixel() const {
+PixelCoordinate EllipticalAperture::getMaxPixel() const {
   SeFloat dx, dy;
 
   // compute the maximum extend in x/y
@@ -380,34 +198,6 @@ PixelCoordinate RotatedEllipticalApertureAlt::getMaxPixel() const {
   // return the absolute values
   return PixelCoordinate(m_center_x + dx + 1,  m_center_y + dy + 1);
 }
-
-
-void RotatedEllipticalApertureAlt::getMinMaxPixel(PixelCoordinate& min, PixelCoordinate& max){
-  SeFloat dx, dy;
-
-  // compute the maximum extend in x/y
-  //dx = m_rad_max*std::sqrt(1.0/(m_cxx - m_cxy*m_cxy/(4.0*m_cxx)));
-  //dy = m_rad_max*std::sqrt(1.0/(m_cyy - m_cxy*m_cxy/(4.0*m_cyy)));
-
-  // insert the minimum values
-  // min.m_x = m_center_x - dx;
-  // min.m_y = m_center_y - dy ;
-
-  // insert the maximum values
-  // max.m_x = m_center_x + dx + 1;
-  // max.m_y = m_center_y + dy + 1;
-
-  // get the min and the max pixels
-  auto min_pix = getMinPixel();
-  auto max_pix = getMaxPixel();
-
-  // transfer the values
-  min.m_x = min_pix.m_x;
-  min.m_y = min_pix.m_y;
-  max.m_x = max_pix.m_x;
-  max.m_y = max_pix.m_y;
-}
-
 
 }
 

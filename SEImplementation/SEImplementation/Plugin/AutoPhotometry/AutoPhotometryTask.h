@@ -46,62 +46,18 @@ private:
   std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 };
 
-class MAperture {
+class EAperture {
 public:
-  virtual ~MAperture() = default;
+  virtual ~EAperture() = default;
   virtual SeFloat getArea(int pixel_x, int pixel_y) const = 0;
   virtual PixelCoordinate getMinPixel() const = 0;
   virtual PixelCoordinate getMaxPixel() const = 0;
 };
 
-class EllipticalAperture : public MAperture {
+class EllipticalAperture : public EAperture {
 public:
   virtual ~EllipticalAperture() = default;
-  EllipticalAperture(SeFloat major_axis, SeFloat minor_axis) :
-    m_major_axis(major_axis),
-    m_minor_axis(minor_axis) {}
-
-  virtual SeFloat getArea(SeFloat pixel_x, SeFloat pixel_y) const;
-  virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
-  virtual PixelCoordinate getMinPixel() const override;
-  virtual PixelCoordinate getMaxPixel() const override;
-
-private:
-  SeFloat m_major_axis;
-  SeFloat m_minor_axis;
-};
-
-class RotatedEllipticalAperture : public MAperture {
-public:
-  virtual ~RotatedEllipticalAperture() = default;
-  RotatedEllipticalAperture(SeFloat center_x, SeFloat center_y, SeFloat rotation_angle, SeFloat major_axis, SeFloat minor_axis) :
-    m_center_x(center_x),
-    m_center_y(center_y),
-    m_rotation_angle(rotation_angle),
-    m_sin(std::sin(rotation_angle)),
-    m_cos(std::cos(rotation_angle))
-  {
-    ell_aper = std::make_shared<EllipticalAperture>(major_axis, minor_axis);
-  }
-
-  virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
-  virtual PixelCoordinate getMinPixel() const override;
-  virtual PixelCoordinate getMaxPixel() const override;
-  virtual void getMinMaxPixel(PixelCoordinate& min, PixelCoordinate& max);
-
-private:
-  std::shared_ptr<EllipticalAperture> ell_aper;
-  SeFloat m_rotation_angle;
-  SeFloat m_center_x;
-  SeFloat m_center_y;
-  SeFloat m_sin;
-  SeFloat m_cos;
-};
-
-class RotatedEllipticalApertureAlt : public MAperture {
-public:
-  virtual ~RotatedEllipticalApertureAlt() = default;
-  RotatedEllipticalApertureAlt(SeFloat center_x, SeFloat center_y, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat rad_max) :
+  EllipticalAperture(SeFloat center_x, SeFloat center_y, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat rad_max) :
     m_center_x(center_x),
     m_center_y(center_y),
     m_cxx(cxx),
@@ -112,7 +68,6 @@ public:
   virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
   virtual PixelCoordinate getMinPixel() const override;
   virtual PixelCoordinate getMaxPixel() const override;
-  virtual void getMinMaxPixel(PixelCoordinate& min, PixelCoordinate& max);
 
 private:
   SeFloat m_center_x;
