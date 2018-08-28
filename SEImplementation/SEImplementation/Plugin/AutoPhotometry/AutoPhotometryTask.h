@@ -15,6 +15,37 @@
 
 namespace SExtractor {
 
+class AutoPhotometryTask : public SourceTask {
+public:
+
+  //using AreaFunction = std::function<SeFloat(int, int)>;
+
+  /// Destructor
+  virtual ~AutoPhotometryTask() = default;
+
+  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
+    m_magnitude_zero_point(magnitude_zero_point),
+    m_kron_factor(kron_factor),
+    m_kron_minrad(kron_minrad),
+    m_kron_estimation(kron_estimation),
+    m_kron_measurement(kron_measurement),
+    m_use_symmetry(use_symmetry),
+    m_tmp_check_image(tmp_check_image) {}
+
+  virtual void computeProperties(SourceInterface& source) const override;
+
+private:
+  SeFloat m_magnitude_zero_point;
+  SeFloat m_kron_factor;
+  SeFloat m_kron_minrad;
+  SeFloat m_kron_estimation;
+  SeFloat m_kron_measurement;
+  bool m_use_symmetry;
+
+  // TEMP
+  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+};
+
 class MAperture {
 public:
   virtual ~MAperture() = default;
@@ -67,59 +98,31 @@ private:
   SeFloat m_cos;
 };
 
-
-class AutoPhotometryTask : public SourceTask {
+class RotatedEllipticalApertureAlt : public MAperture {
 public:
+  virtual ~RotatedEllipticalApertureAlt() = default;
+  RotatedEllipticalApertureAlt(SeFloat center_x, SeFloat center_y, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat rad_max) :
+    m_center_x(center_x),
+    m_center_y(center_y),
+    m_cxx(cxx),
+    m_cyy(cyy),
+    m_cxy(cxy),
+    m_rad_max(rad_max) {}
 
-  //using AreaFunction = std::function<SeFloat(int, int)>;
-
-  /// Destructor
-  virtual ~AutoPhotometryTask() = default;
-
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
-    m_magnitude_zero_point(magnitude_zero_point),
-    m_kron_factor(kron_factor),
-    m_kron_minrad(kron_minrad),
-    m_kron_estimation(kron_estimation),
-    m_kron_measurement(kron_measurement),
-    m_use_symmetry(use_symmetry),
-    m_tmp_check_image(tmp_check_image) {}
-
-  virtual void computeProperties(SourceInterface& source) const override;
+  virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
+  virtual PixelCoordinate getMinPixel() const override;
+  virtual PixelCoordinate getMaxPixel() const override;
+  virtual void getMinMaxPixel(PixelCoordinate& min, PixelCoordinate& max);
 
 private:
-  SeFloat m_magnitude_zero_point;
-  SeFloat m_kron_factor;
-  SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
-  bool m_use_symmetry;
-
-  // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+  SeFloat m_center_x;
+  SeFloat m_center_y;
+  SeFloat m_cxx;
+  SeFloat m_cyy;
+  SeFloat m_cxy;
+  SeFloat m_rad_max;
 };
 
-/*
-class AutoPhotometryAggregateTask : public SourceTask {
-public:
-
-  AutoPhotometryAggregateTask(
-    unsigned int instance, std::vector<unsigned int> instances_to_aggregate, SeFloat magnitude_zero_point
-  ) :
-      m_instance(instance),
-      m_instances_to_aggregate(instances_to_aggregate),
-      m_magnitude_zero_point(magnitude_zero_point) {}
-
-  virtual ~AutoPhotometryAggregateTask() = default;
-
-  virtual void computeProperties(SourceInterface& source) const override;
-
-private:
-  unsigned int m_instance;
-  std::vector<unsigned int> m_instances_to_aggregate;
-  SeFloat m_magnitude_zero_point;
-};
-*/
 }
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_ */
