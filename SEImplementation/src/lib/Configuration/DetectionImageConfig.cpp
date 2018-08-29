@@ -50,6 +50,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   double detection_image_gain = 0, detection_image_saturate = 0;
   fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
   fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
+  //fits_image_source->readFitsKeyword("GAIN", m_gain);
+  //fits_image_source->readFitsKeyword("SATURATE", m_saturation);
 
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
     m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();

@@ -41,6 +41,8 @@ int main() {
   double pixel_scale {};
   auto image_path = Elements::pathSearchInEnvVariable("gal.fits", "ELEMENTS_AUX_PATH");
   tie(image, pixel_scale) = readImage(image_path[0].string());
+  size_t image_cols = image.cols;
+  size_t image_rows = image.rows;
   
   //
   // Model creation
@@ -95,7 +97,7 @@ int main() {
   // Finally we create the FrameModel with same pixel scale and size as the
   // input image
   FrameModel<OpenCvPsf, cv::Mat> frame_model {
-    pixel_scale, (size_t)image.cols, (size_t)image.rows, move(constant_models), {},
+    pixel_scale, image_cols, image_rows, move(constant_models), {},
     move(extended_models), move(psf)
   };
   
@@ -180,7 +182,7 @@ int main() {
   constant_models.clear();
   constant_models.emplace_back(back);
   FrameModel<OpenCvPsf, cv::Mat> frame_model_after {
-    pixel_scale, (size_t)image.cols, (size_t)image.rows, move(constant_models), {},
+    pixel_scale, image_cols, image_rows, move(constant_models), {},
     move(extended_models), readPsf(psf_path[0].string())
   };
   writeToFits(frame_model_after.getImage(), "example_gal2_after.fits");
