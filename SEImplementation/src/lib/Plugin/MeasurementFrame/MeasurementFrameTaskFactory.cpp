@@ -47,7 +47,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& gains = manager.getConfiguration<MeasurementConfig>().getGains();
   const auto& saturation_levels = manager.getConfiguration<MeasurementConfig>().getSaturationLevels();
 
-  SimpleBackgroundAnalyzer analyzer;
+  SimpleBackgroundAnalyzer analyzer; // FIXME use proper background detection
 
   for (unsigned int i=0; i<measurement_images.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
@@ -57,6 +57,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
         ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
             measurement_images[i]->getHeight(), true), 1.5);
     measurement_frame->setVarianceMap(background_model.getVarianceMap());
+    measurement_frame->setBackgroundLevel(background_model.getLevelMap());
 
     m_measurement_frames.emplace_back(measurement_frame);
   }

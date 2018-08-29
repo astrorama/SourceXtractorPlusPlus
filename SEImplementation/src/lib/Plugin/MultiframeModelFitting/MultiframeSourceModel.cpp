@@ -21,6 +21,7 @@
 
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
@@ -31,15 +32,16 @@ namespace SExtractor {
 using namespace ModelFitting;
 
 MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
-    m_size(getSize(source)),
-    m_center_x(getCenterX(source)),
-    m_center_y(getCenterY(source)),
-    m_ref_coordinate_system(getRefCoordinateSystem(source)),
 
-    m_radius_guess(getRadiusGuess(source)),
-    m_aspect_guess(getAspectGuess(source)),
-    m_exp_flux_guess(getFluxGuess(source)),
-    m_dev_flux_guess(getFluxGuess(source)),
+    m_source(source),
+
+    m_size(getSize()),
+    m_center_x(getCenterX()),
+    m_center_y(getCenterY()),
+    m_ref_coordinate_system(getRefCoordinateSystem()),
+
+    m_radius_guess(getRadiusGuess()),
+    m_aspect_guess(getAspectGuess()),
 
     dx(0, make_unique<SigmoidConverter>(-m_radius_guess, m_radius_guess)),
     dy(0, make_unique<SigmoidConverter>(-m_radius_guess, m_radius_guess)),
@@ -55,33 +57,37 @@ MultiframeSourceModel::MultiframeSourceModel(const SourceInterface& source) :
         dev_effective_radius),
 
     exp_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.0)),
-    exp_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
+    exp_rot(getRotGuess(), make_unique<SigmoidConverter>(-M_PI, M_PI)),
     dev_aspect(m_aspect_guess, make_unique<SigmoidConverter>(0, 1.0)),
-    dev_rot(getRotGuess(source), make_unique<SigmoidConverter>(-M_PI, M_PI)),
+    dev_rot(getRotGuess(), make_unique<SigmoidConverter>(-M_PI, M_PI)),
 
     m_number_of_parameters(0)
   {
   }
 
-void MultiframeSourceModel::createPlaceholderForInactiveBand() {
-  exp_fluxes.emplace_back(nullptr);
-  dev_fluxes.emplace_back(nullptr);
-  exp_i0s.emplace_back(nullptr);
-  dev_i0s.emplace_back(nullptr);
-}
+void MultiframeSourceModel::createParamsForBand(const std::vector<int>& frames_in_band) {
+  if (frames_in_band.size() == 0) {
+    // create placeholders
+    exp_fluxes.emplace_back(nullptr);
+    dev_fluxes.emplace_back(nullptr);
+    exp_i0s.emplace_back(nullptr);
+    dev_i0s.emplace_back(nullptr);
+  } else {
+    int band_nb = exp_fluxes.size();
 
-void MultiframeSourceModel::createParamsForBand() {
-  exp_fluxes.emplace_back(new EngineParameter(
-      m_exp_flux_guess, make_unique<ExpSigmoidConverter>(m_exp_flux_guess * .00001, m_exp_flux_guess * 20)));
-  dev_fluxes.emplace_back(new EngineParameter(
-      m_dev_flux_guess, make_unique<ExpSigmoidConverter>(m_dev_flux_guess * .00001, m_dev_flux_guess * 20)));
+    auto flux_guess = getFluxGuess(frames_in_band) / 2.0;
+    exp_fluxes.emplace_back(new EngineParameter(
+        flux_guess, make_unique<ExpSigmoidConverter>(flux_guess * .00001, flux_guess * 1000)));
+    dev_fluxes.emplace_back(new EngineParameter(
+        flux_guess, make_unique<ExpSigmoidConverter>(flux_guess * .00001, flux_guess * 1000)));
 
-  exp_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
-     [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
-     *exp_fluxes.back(), exp_effective_radius, exp_aspect));
-  dev_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
-     [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
-     *dev_fluxes.back(), dev_effective_radius, dev_aspect));
+    exp_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+       [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+       *exp_fluxes.back(), exp_effective_radius, exp_aspect));
+    dev_i0s.emplace_back(new DependentParameter<EngineParameter, EngineParameter, EngineParameter>(
+       [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+       *dev_fluxes.back(), dev_effective_radius, dev_aspect));
+  }
 }
 
 void MultiframeSourceModel::createParamsForFrame(int band_nb, int frame_nb,
@@ -173,50 +179,63 @@ void MultiframeSourceModel::debugPrint() const {
   std::cout << "\n";
 }
 
-int MultiframeSourceModel::getSize(const SourceInterface& source) const {
-  auto& boundaries = source.getProperty<PixelBoundaries>();
+int MultiframeSourceModel::getSize() const {
+  auto& boundaries = m_source.getProperty<PixelBoundaries>();
   int size = std::max(boundaries.getWidth(), boundaries.getHeight());
   return size*2;
 }
 
-double MultiframeSourceModel::getFluxGuess(const SourceInterface& source) const {
-  auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
-  return iso_flux / 2;
+double MultiframeSourceModel::getFluxGuess(const std::vector<int>& frames_in_band) const {
+  auto iso_flux = m_source.getProperty<IsophotalFlux>().getFlux();
+
+//  SeFloat total = 0.0;
+//  for (auto frame_nb : frames_in_band) {
+//    total += m_source.getProperty<AperturePhotometry>(frame_nb).getFlux();
+//  }
+//  total /= frames_in_band.size();
+//
+//  std::cout << "flux for ";
+//  for (auto frame_nb : frames_in_band) {
+//    std::cout << frame_nb << " ";
+//  }
+//  std::cout << "is " << total << "\n";
+
+  return iso_flux;
 }
 
-double MultiframeSourceModel::getRadiusGuess(const SourceInterface& source) const {
-  auto& shape_parameters = source.getProperty<ShapeParameters>();
+double MultiframeSourceModel::getRadiusGuess() const {
+  auto& shape_parameters = m_source.getProperty<ShapeParameters>();
   double radius_guess = shape_parameters.getEllipseA() / 2.0;
 
   return radius_guess;
 }
 
-double MultiframeSourceModel::getAspectGuess(const SourceInterface& source) const {
-  auto& shape_parameters = source.getProperty<ShapeParameters>();
+double MultiframeSourceModel::getAspectGuess() const {
+  auto& shape_parameters = m_source.getProperty<ShapeParameters>();
   double aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
 
   return aspect_guess;
 }
 
-double MultiframeSourceModel::getRotGuess(const SourceInterface& source) const {
-  auto& shape_parameters = source.getProperty<ShapeParameters>();
+double MultiframeSourceModel::getRotGuess() const {
+  auto& shape_parameters = m_source.getProperty<ShapeParameters>();
   double rot_guess = shape_parameters.getEllipseTheta();
 
   return -rot_guess;
 }
 
-double MultiframeSourceModel::getCenterX(const SourceInterface& source) const {
-  auto& centroid = source.getProperty<PixelCentroid>();
+double MultiframeSourceModel::getCenterX() const {
+  auto& centroid = m_source.getProperty<PixelCentroid>();
   return centroid.getCentroidX();
 }
 
-double MultiframeSourceModel::getCenterY(const SourceInterface& source) const {
-  auto& centroid = source.getProperty<PixelCentroid>();
+double MultiframeSourceModel::getCenterY() const {
+  auto& centroid = m_source.getProperty<PixelCentroid>();
   return centroid.getCentroidY();
 }
 
-std::shared_ptr<CoordinateSystem> MultiframeSourceModel::getRefCoordinateSystem(const SourceInterface& source) const {
-  auto frame = source.getProperty<DetectionFrame>().getFrame();
+std::shared_ptr<CoordinateSystem> MultiframeSourceModel::getRefCoordinateSystem() const {
+  auto frame = m_source.getProperty<DetectionFrame>().getFrame();
   return frame->getCoordinateSystem();
 }
 

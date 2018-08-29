@@ -185,7 +185,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
-  std::cout << "Saturation: " << saturation << " gain: " << gain << "\n";
+  //std::cout << "Saturation: " << saturation << " gain: " << gain << "\n";
 
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
@@ -333,46 +333,41 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
   for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
-    if (frame_indices.size() == 0) {
+    for (auto& source_model : source_models) {
+      source_model->createParamsForBand(frame_indices);
+    }
+
+    for (auto frame_index : frame_indices) {
+      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto image = createImageCopy(group, frame_index);
+      auto weight = createWeightImage(group, frame_index);
+
+      auto jacobian = computeJacobianForFrame(group, frame_index);
+//      std::cout << std::get<0>(jacobian) << " " << std::get<1>(jacobian) << "\n"
+//                << std::get<2>(jacobian) << " " << std::get<3>(jacobian) << "\n";
+
+      // Setup source models
+      auto frame_coordinates =
+          group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+
+      std::vector<TransformedModel> extended_models;
       for (auto& source_model : source_models) {
-        source_model->createPlaceholderForInactiveBand();
+        source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
+        source_model->addModelsForFrame(frame_index, extended_models, jacobian);
       }
-    } else {
-      for (auto& source_model : source_models) {
-        source_model->createParamsForBand();
-      }
-      for (auto frame_index : frame_indices) {
-        auto stamp_rect = getStampRectangle(group, frame_index);
-        auto image = createImageCopy(group, frame_index);
-        auto weight = createWeightImage(group, frame_index);
 
-        auto jacobian = computeJacobianForFrame(group, frame_index);
-        std::cout << std::get<0>(jacobian) << " " << std::get<1>(jacobian) << "\n"
-                  << std::get<2>(jacobian) << " " << std::get<3>(jacobian) << "\n";
+      // Full frame model with all sources
+      FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+        pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
+        {}, {}, std::move(extended_models), *m_psfs[frame_index]);
 
-        // Setup source models
-        auto frame_coordinates =
-            group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+      // Setup residuals
+      auto data_vs_model =
+          createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
+      res_estimator.registerBlockProvider(std::move(data_vs_model));
 
-        std::vector<TransformedModel> extended_models;
-        for (auto& source_model : source_models) {
-          source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
-          source_model->addModelsForFrame(frame_index, extended_models, jacobian);
-        }
-
-        // Full frame model with all sources
-        FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
-          pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-          {}, {}, std::move(extended_models), *m_psfs[frame_index]);
-
-        // Setup residuals
-        auto data_vs_model =
-            createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
-        res_estimator.registerBlockProvider(std::move(data_vs_model));
-
-        images.emplace_back(image);
-        weights.emplace_back(weight);
-      }
+      images.emplace_back(image);
+      weights.emplace_back(weight);
     }
   }
 
@@ -444,7 +439,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       }
 
       auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-      auto residual_image = SubtractImage<SeFloat>::create(frame->getOriginalImage(),
+      auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(),
             const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]);
       const_cast<MultiframeModelFittingTask*>(this)->m_residual_images[frame_index] = residual_image;
 

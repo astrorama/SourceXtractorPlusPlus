@@ -77,13 +77,13 @@ std::shared_ptr<ImagePsf> PsfConfig::readPsf(const std::string& filename) {
       std::copy(begin(data), end(data), kernel->getData().begin());
       std::cout << "pixel scale: " << pixel_scale << std::endl;
 
+      // Renormalize the PSF
       double total = 0.0;
       for (auto value : kernel->getData()) {
         total += value;
       }
       std::cout << "psf total: " << total << std::endl;
 
-      // Renormalize the PSF
       for (auto& value : kernel->getData()) {
         value /= total;
       }
