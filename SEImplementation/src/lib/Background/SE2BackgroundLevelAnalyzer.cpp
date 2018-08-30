@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include <boost/lexical_cast.hpp>
+#include <SEFramework/Image/ProcessingImageSource.h>
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEFramework/Image/ConstantImage.h"
@@ -119,7 +120,11 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   //FitsWriter::writeFile(*splModelSigPtr, bbb);
 
   // return the background model
-  return BackgroundModel(splModelBckPtr, splModelVarPtr, sigFac);
+  return BackgroundModel(
+    BufferedImage<SeFloat>::create(splModelBckPtr),
+    BufferedImage<SeFloat>::create(splModelVarPtr),
+    sigFac
+  );
 }
 
 std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)

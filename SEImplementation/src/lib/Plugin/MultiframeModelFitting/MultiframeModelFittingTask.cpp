@@ -21,6 +21,9 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Image/FitsWriter.h"
 
+#include <SEImplementation/Image/ImagePsf.h>
+#include <SEImplementation/Plugin/Psf/PsfProperty.h>
+
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
@@ -125,10 +128,9 @@ void printDebugChi2(SeFloat reduced_chi_squared) {
 }
 
 MultiframeModelFittingTask::MultiframeModelFittingTask(unsigned int max_iterations,
-    std::vector<std::vector<int>> frame_indices_per_band, std::vector<std::shared_ptr<ImagePsf>> psfs)
+    std::vector<std::vector<int>> frame_indices_per_band)
   : m_max_iterations(max_iterations),
-    m_frame_indices_per_band(frame_indices_per_band),
-    m_psfs(psfs)
+    m_frame_indices_per_band(frame_indices_per_band)
 {
 }
 
@@ -341,6 +343,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto stamp_rect = getStampRectangle(group, frame_index);
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
+      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
       auto jacobian = computeJacobianForFrame(group, frame_index);
 //      std::cout << std::get<0>(jacobian) << " " << std::get<1>(jacobian) << "\n"
@@ -359,7 +362,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       // Full frame model with all sources
       FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
         pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-        {}, {}, std::move(extended_models), *m_psfs[frame_index]);
+        {}, {}, std::move(extended_models), group_psf);
 
       // Setup residuals
       auto data_vs_model =
@@ -406,6 +409,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto stamp_rect = getStampRectangle(group, frame_index);
       auto stamp_width = stamp_rect.getWidth();
       auto stamp_height = stamp_rect.getHeight();
+      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
       std::vector<TransformedModel> extended_models {};
       std::vector<PointModel> point_models {};
@@ -425,7 +429,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         std::move(constant_models),
         std::move(point_models),
         std::move(extended_models),
-        *m_psfs[frame_index]
+        group_psf
       };
       auto final_stamp = frame_model_after.getImage();
 

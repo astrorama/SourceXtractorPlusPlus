@@ -23,7 +23,7 @@ namespace SExtractor {
 
 using namespace wcslib;
 
-WCS::WCS(const std::string& fits_file_path) {
+WCS::WCS(const std::string& fits_file_path): m_wcs(nullptr, nullptr) {
   fitsfile *fptr = NULL;
   int status = 0;
   fits_open_file(&fptr, fits_file_path.c_str(), READONLY, &status);
@@ -40,7 +40,10 @@ WCS::WCS(const std::string& fits_file_path) {
     wcsprm* wcs;
     wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
 
-    m_wcs.reset(wcs);
+    m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
+      int nwcs_copy = nwcs;
+      wcsvfree(&nwcs_copy, &wcs);
+    });
   }
 
   free(header);

@@ -17,8 +17,11 @@
 #include <yaml-cpp/yaml.h>
 
 #include "SEFramework/Image/FitsReader.h"
-#include "SEFramework/Image/MultiplyImage.h"
-#include "SEImplementation/Configuration/PsfConfig.h"
+//<<<<<<< HEAD
+//=======
+//#include "SEImplementation/Configuration/PsfConfig.h"
+//>>>>>>> modelfitting
+//#include "SEFramework/Image/MultiplyImage.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
@@ -130,7 +133,7 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
 std::vector<std::string> MeasurementConfig::getFilenamesFromPath(const std::string& path) const {
   auto filename = bfs::path(path);
 
-  auto root_path = bfs::absolute(filename.root_path());
+  auto root_path = bfs::absolute(filename.parent_path());
   std::cout << ">>> " << filename << " ## " << root_path << std::endl;
 
   auto path_regexp = filename.filename().string();
@@ -179,8 +182,6 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
       weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
     }
 
-    std::shared_ptr<ImagePsf> psf = psf_filename.size() > 0 ? PsfConfig::readPsf(psf_filename) : nullptr;
-
     // FIXME tmp for tests
     double measurement_image_gain = 100, measurement_image_saturate = 0, flux_scale = 1.0;
 
@@ -196,7 +197,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_measurement_images.push_back(std::move(image));
     m_coordinate_systems.push_back(coordinate_system);
     m_weight_images.push_back(std::move(weight_map));
-    m_psfs.push_back(std::move(psf));
+    m_psfs_paths.push_back(psf_filename);
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
 
     m_gains.push_back(measurement_image_gain);

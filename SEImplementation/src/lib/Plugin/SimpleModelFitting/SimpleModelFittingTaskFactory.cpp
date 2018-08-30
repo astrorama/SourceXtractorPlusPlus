@@ -17,10 +17,7 @@ namespace SExtractor {
 
 std::shared_ptr<Task> SimpleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<SimpleModelFitting>()) {
-    if (m_psf == nullptr) {
-      throw Elements::Exception() << "Model fitting requested but no PSF provided";
-    }
-    return std::make_shared<SimpleModelFittingTask>(m_psf, m_max_iterations);
+    return std::make_shared<SimpleModelFittingTask>(m_max_iterations);
   } else {
     return nullptr;
   }
@@ -28,13 +25,11 @@ std::shared_ptr<Task> SimpleModelFittingTaskFactory::createTask(const PropertyId
 
 void SimpleModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<ModelFittingConfig>();
-  manager.registerConfiguration<PsfConfig>();
 }
 
 void SimpleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
   m_max_iterations = model_fitting_config.getMaxIterations();
-  m_psf = manager.getConfiguration<PsfConfig>().getPsf();
 }
 
 }
