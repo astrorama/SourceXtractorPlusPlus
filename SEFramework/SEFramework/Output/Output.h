@@ -27,7 +27,7 @@ public:
   }
 
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    for (auto& source: *source_group) {
+    for (auto& source : *source_group) {
       outputSource(source);
     }
   }

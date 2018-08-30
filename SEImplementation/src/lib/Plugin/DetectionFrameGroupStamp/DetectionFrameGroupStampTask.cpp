@@ -6,6 +6,7 @@
  */
 
 #include <iostream>
+#include <mutex>
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -15,9 +16,12 @@
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStampTask.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 namespace SExtractor {
 
 void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   // FIXME we are obviously assuming the same DetectionFrame for all sources but we should not have to rely on that
   auto detection_frame = group.cbegin()->getProperty<DetectionFrame>().getFrame();

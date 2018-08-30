@@ -18,6 +18,9 @@ int FitsImageSource<float>::getDataType() const { return TFLOAT; }
 template <>
 int FitsImageSource<unsigned int>::getDataType() const { return TUINT; }
 
+template <>
+int FitsImageSource<int>::getDataType() const { return TINT; }
+
 //FIXME what if compiled on 32bit system?
 template <>
 int FitsImageSource<long>::getDataType() const { return TLONGLONG; }
@@ -31,6 +34,9 @@ int FitsImageSource<float>::getImageType() const { return FLOAT_IMG; }
 
 template <>
 int FitsImageSource<unsigned int>::getImageType() const { return LONG_IMG; }
+
+template <>
+int FitsImageSource<int>::getImageType() const { return LONG_IMG; }
 
 //FIXME what if compiled on 32bit system?
 template <>

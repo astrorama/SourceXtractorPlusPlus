@@ -11,6 +11,7 @@
 #include <valarray>
 #include <boost/any.hpp>
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include <mutex>
 
 #include "ElementsKernel/PathSearch.h"
 
@@ -63,6 +64,9 @@
 
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
+
 
 namespace SExtractor {
 
@@ -113,8 +117,8 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # total error running count: " << total_error << "\n\n";
 }
 
-SeFloat computeReducedChiSquared(
-  std::shared_ptr<const Image<SeFloat>> image, std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+SeFloat computeReducedChiSquared(std::shared_ptr<const Image<SeFloat>> image,
+    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
   double reduced_chi_squared = 0.0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
@@ -228,7 +232,7 @@ struct SourceModel {
     manager.registerParameter(dev_rot);
   }
 
-  void createModels(std::vector<ExtendedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
+  void createModels(std::vector<TransformedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
     // exponential
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
@@ -297,7 +301,6 @@ struct SourceModel {
 
 
 void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
-
   auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
   auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
@@ -309,7 +312,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
   EngineParameterManager manager {};
   std::vector<ConstantModel> constant_models;
-  std::vector<ExtendedModel> extended_models;
+  std::vector<TransformedModel> extended_models;
   std::vector<PointModel> point_models;
   std::vector<std::unique_ptr<SourceModel>> source_models;
 
@@ -357,7 +360,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   };
 
   auto weight = VectorImage<SeFloat>::create(group_stamp.getWidth(), group_stamp.getHeight());
-  //std::fill(weight->getData().begin(), weight->getData().end(), 1);
+  //std::fill(weight->getData().begin(), weight->getData().end(), 1); // FIXME test
 
   for (int y=0; y < group_stamp.getHeight(); y++) {
     for (int x=0; x < group_stamp.getWidth(); x++) {
@@ -406,19 +409,18 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   //LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
 
-  for (auto& source_model : source_models) {
-    std::cout << "Before: ";
-    source_model->debugPrint();
-  }
+//  for (auto& source_model : source_models) {
+//    std::cout << "Before: ";
+//    source_model->debugPrint();
+//  }
 
   auto solution = engine.solveProblem(manager, res_estimator);
 
-  for (auto& source_model : source_models) {
-    std::cout << "After: ";
-    source_model->debugPrint();
-  }
-
-  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
+//  for (auto& source_model : source_models) {
+//    std::cout << "After: ";
+//    source_model->debugPrint();
+//  }
+//  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
 
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
@@ -430,7 +432,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     ++source_iter;
 
     // renders an image of the model for a single source with the final parameters
-    std::vector<ExtendedModel> extended_models {};
+    std::vector<TransformedModel> extended_models {};
     std::vector<PointModel> point_models {};
     source_model->createModels(extended_models, point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after {
@@ -443,7 +445,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     double total_flux = 0;
     for (int y=0; y < group_stamp.getHeight(); y++) {
       for (int x=0; x < group_stamp.getWidth(); x++) {
-        PixelCoordinate pixel (x,y);
+        PixelCoordinate pixel(x, y);
         pixel += stamp_top_left;
 
         // build final stamp
@@ -451,7 +453,9 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
 
         // if requested, updates a check image made by adding all source models
         if (check_image) {
+          CheckImages::getInstance().lock();
           check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
+          CheckImages::getInstance().unlock();
         }
 
         total_flux += final_image->getValue(x, y);
@@ -475,8 +479,8 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
     );
   }
 
-  SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
-  printDebugChi2(reduced_chi_squared);
+  //SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
+  //printDebugChi2(reduced_chi_squared);
 }
 
 }

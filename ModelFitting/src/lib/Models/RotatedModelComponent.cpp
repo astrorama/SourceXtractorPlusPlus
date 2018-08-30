@@ -38,7 +38,7 @@ RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
 RotatedModelComponent::~RotatedModelComponent() = default;
 
 double RotatedModelComponent::getValue(double x, double y) {
-  double new_x = x * m_cos - y* m_sin;
+  double new_x = x * m_cos - y * m_sin;
   double new_y = x * m_sin + y * m_cos;
   return m_component->getValue(new_x, new_y);
 }

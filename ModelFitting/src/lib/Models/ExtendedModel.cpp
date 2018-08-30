@@ -12,7 +12,7 @@
 
 namespace ModelFitting {
 
-ExtendedModel::ExtendedModel(std::vector<std::unique_ptr<ModelComponent> > component_list,
+ExtendedModel::ExtendedModel(std::vector<std::unique_ptr<ModelComponent> >&& component_list,
                              BasicParameter& x_scale, BasicParameter& y_scale,
                              BasicParameter& rotation_angle, double width, double height,
                              BasicParameter& x, BasicParameter& y)

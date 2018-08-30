@@ -2,7 +2,7 @@
  * PointModelFittingTask.cpp
  *
  *  Created on: July 11, 2018
- *      Author: Alejandro Álvarez
+ *      Author: Alejandro Alvarez
  */
 
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
@@ -102,7 +102,7 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
 
   EngineParameterManager manager{};
   std::vector<ConstantModel> constant_models;
-  std::vector<ExtendedModel> extended_models;
+  std::vector<TransformedModel> extended_models;
   std::vector<PointModel> point_models;
   std::vector<std::unique_ptr<SourceModel>> source_models;
 
@@ -192,7 +192,7 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
 
     // renders an image of the model for a single source with the final parameters
     std::vector<ConstantModel> constant_models{};
-    std::vector<ExtendedModel> extended_models{};
+    std::vector<TransformedModel> extended_models{};
     std::vector<PointModel> point_models{};
     source_model->createModels(point_models);
     FrameModel<ImagePsf, std::shared_ptr<VectorImage<SeFloat>>> frame_model_after{

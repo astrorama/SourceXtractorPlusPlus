@@ -5,12 +5,13 @@
  *      Author: mschefer
  */
 
-#include <SEImplementation/Image/ImagePsf.h>
-#include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include <mutex>
+
 #include "ElementsKernel/Logging.h"
 
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
@@ -19,6 +20,9 @@
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Image/FitsWriter.h"
+
+#include <SEImplementation/Image/ImagePsf.h>
+#include <SEImplementation/Plugin/Psf/PsfProperty.h>
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
@@ -31,6 +35,8 @@
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFitting.h"
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeSourceModel.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 
 namespace SExtractor {
@@ -40,6 +46,9 @@ using namespace ModelFitting;
 static Elements::Logging logger = Elements::Logging::getLogger("MultiframeModelFitting");
 
 namespace {
+
+std::mutex debug_image_mutex;
+
 
 void printLevmarInfo(std::array<double,10> info) {
   static double total_error = 0;
@@ -127,6 +136,7 @@ MultiframeModelFittingTask::MultiframeModelFittingTask(unsigned int max_iteratio
 
 std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createImageCopy(
     SourceGroupInterface& group, int frame_index) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
@@ -144,6 +154,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createImageCop
 
 std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightImage(
     SourceGroupInterface& group, int frame_index) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
@@ -176,6 +187,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
+  //std::cout << "Saturation: " << saturation << " gain: " << gain << "\n";
 
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
@@ -206,22 +218,60 @@ MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampR
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
   auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
+  // Get the coordinates of the detection frame group stamp
   auto stamp_top_left = detection_group_stamp.getTopLeft();
-  auto top_left = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto width = detection_group_stamp.getStamp().getWidth();
+  auto height = detection_group_stamp.getStamp().getHeight();
+
+  // Transform the 4 corner coordinates from detection image
+  auto coord1 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
       stamp_top_left.m_x, stamp_top_left.m_y)));
+  auto coord2 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x + width, stamp_top_left.m_y)));
+  auto coord3 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
+  auto coord4 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+      stamp_top_left.m_x, stamp_top_left.m_y + height)));
 
-  PixelCoordinate min_coord(int(top_left.m_x), int(top_left.m_y));
-  PixelCoordinate max_coord = min_coord + PixelCoordinate(detection_group_stamp.getStamp().getWidth(), detection_group_stamp.getStamp().getHeight());
+  // Determine the min/max coordinates
+  auto min_x = std::min(coord1.m_x, std::min(coord2.m_x, std::min(coord3.m_x, coord4.m_x)));
+  auto min_y = std::min(coord1.m_y, std::min(coord2.m_y, std::min(coord3.m_y, coord4.m_y)));
+  auto max_x = std::max(coord1.m_x, std::max(coord2.m_x, std::max(coord3.m_x, coord4.m_x)));
+  auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
 
+  PixelCoordinate min_coord, max_coord;
+  min_coord.m_x = int(min_x);
+  min_coord.m_y = int(min_y);
+  max_coord.m_x = int(max_x) + 1;
+  max_coord.m_y = int(max_y) + 1;
+
+  // Clip the coordinates to fit the available image
   auto frame_image = frame->getSubtractedImage();
-  auto frame_image_thresholded = frame->getThresholdedImage();
-
   min_coord.m_x = std::max(0, min_coord.m_x);
   min_coord.m_y = std::max(0, min_coord.m_y);
   max_coord.m_x = std::min(frame_image->getWidth(), max_coord.m_x);
   max_coord.m_y = std::min(frame_image->getHeight(), max_coord.m_y);
 
   return StampRectangle(min_coord, max_coord);
+
+//  return StampRectangle(PixelCoordinate(0,0), PixelCoordinate(frame_image->getWidth(), frame_image->getHeight()));
+}
+
+std::tuple<double, double, double, double> MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const {
+  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+  auto frame_coordinates = frame->getCoordinateSystem();
+  auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
+  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
+  double y = detection_group_stamp.getTopLeft().m_y + detection_group_stamp.getStamp().getHeight() / 2.0;
+
+  auto frame_origin = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y)));
+  auto frame_dx = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x+1.0, y)));
+  auto frame_dy = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y+1.0)));
+
+  return std::make_tuple(frame_dx.m_x - frame_origin.m_x, frame_dx.m_y - frame_origin.m_y,
+      frame_dy.m_x - frame_origin.m_x, frame_dy.m_y - frame_origin.m_y);
 }
 
 void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) const {
@@ -285,42 +335,42 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
   for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
-    if (frame_indices.size() == 0) {
+    for (auto& source_model : source_models) {
+      source_model->createParamsForBand(frame_indices);
+    }
+
+    for (auto frame_index : frame_indices) {
+      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto image = createImageCopy(group, frame_index);
+      auto weight = createWeightImage(group, frame_index);
+      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
+
+      auto jacobian = computeJacobianForFrame(group, frame_index);
+//      std::cout << std::get<0>(jacobian) << " " << std::get<1>(jacobian) << "\n"
+//                << std::get<2>(jacobian) << " " << std::get<3>(jacobian) << "\n";
+
+      // Setup source models
+      auto frame_coordinates =
+          group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+
+      std::vector<TransformedModel> extended_models;
       for (auto& source_model : source_models) {
-        source_model->createPlaceholderForInactiveBand();
+        source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
+        source_model->addModelsForFrame(frame_index, extended_models, jacobian);
       }
-    } else {
-      for (auto& source_model : source_models) {
-        source_model->createParamsForBand();
-      }
-      for (auto frame_index : frame_indices) {
-        auto stamp_rect = getStampRectangle(group, frame_index);
-        auto image = createImageCopy(group, frame_index);
-        auto weight = createWeightImage(group, frame_index);
-        auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
-        // Setup source models
-        auto frame_coordinates = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+      // Full frame model with all sources
+      FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+        pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
+        {}, {}, std::move(extended_models), group_psf);
 
-        std::vector<ExtendedModel> extended_models;
-        for (auto& source_model : source_models) {
-          source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
-          source_model->addModelsForFrame(frame_index, extended_models);
-        }
+      // Setup residuals
+      auto data_vs_model =
+          createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
+      res_estimator.registerBlockProvider(std::move(data_vs_model));
 
-        // Full frame model with all sources
-        FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
-          pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-          {}, {}, std::move(extended_models), group_psf);
-
-        // Setup residuals
-        auto data_vs_model =
-            createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
-        res_estimator.registerBlockProvider(std::move(data_vs_model));
-
-        images.emplace_back(image);
-        weights.emplace_back(weight);
-      }
+      images.emplace_back(image);
+      weights.emplace_back(weight);
     }
   }
 
@@ -356,20 +406,20 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
     for (auto frame_index : frame_indices) {
-      auto stamp_width = images[image_nb]->getWidth();
-      auto stamp_height = images[image_nb]->getHeight();
+      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto stamp_width = stamp_rect.getWidth();
+      auto stamp_height = stamp_rect.getHeight();
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
-      //auto final_stamp = VectorImage<SeFloat>::create(stamp_width, stamp_height);
-
-      std::vector<ExtendedModel> extended_models {};
+      std::vector<TransformedModel> extended_models {};
       std::vector<PointModel> point_models {};
       std::vector<ConstantModel> constant_models;
 
+      auto jacobian = computeJacobianForFrame(group, frame_index);
 
       int nb_of_params = 0;
       for (auto& source_model : source_models) {
-        source_model->addModelsForFrame(frame_index, extended_models);
+        source_model->addModelsForFrame(frame_index, extended_models, jacobian);
         nb_of_params += source_model->getNumberOfParameters();
       }
 
@@ -382,17 +432,18 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         group_psf
       };
       auto final_stamp = frame_model_after.getImage();
-      auto stamp_rect = getStampRectangle(group, frame_index);
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {
+          debug_image_mutex.lock();
           const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]->at(
               stamp_rect.m_min_coord.m_x + x, stamp_rect.m_min_coord.m_y + y) += final_stamp->getValue(x,y);
+          debug_image_mutex.unlock();
         }
       }
 
       auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-      auto residual_image = SubtractImage<SeFloat>::create(frame->getOriginalImage(),
+      auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(),
             const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]);
       const_cast<MultiframeModelFittingTask*>(this)->m_residual_images[frame_index] = residual_image;
 

@@ -2,7 +2,7 @@
  * PsfTask.cpp
  *
  *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
+ *      Author: Alejandro Alvarez Ayllon
  */
 
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
@@ -40,8 +40,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   auto psf = m_vpsf->getPsf(component_values);
   // The result may not be normalized!
   auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
-  auto psf_div = ConstantImage<SeFloat>::create(psf->getWidth(), psf->getHeight(), 1. / psf_sum);
-  auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, psf_div));
+  auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
   group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf_normalized});
 }
 

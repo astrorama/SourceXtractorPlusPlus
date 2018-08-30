@@ -3,6 +3,9 @@
  * @date 06/16/16
  * @author mschefer
  */
+
+#include <mutex>
+
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -11,9 +14,13 @@
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 namespace SExtractor {
 
 void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   auto detection_frame = source.getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
 
   const auto& boundaries = source.getProperty<PixelBoundaries>();

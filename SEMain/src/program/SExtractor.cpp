@@ -35,6 +35,7 @@
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
+#include "SEImplementation/Grouping/GroupingFactory.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
@@ -42,6 +43,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
+#include "SEImplementation/Measurement/MeasurementFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
@@ -113,7 +115,9 @@ class SEMain : public Elements::Program {
   std::shared_ptr<SourceGroupFactory> group_factory =
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
+  GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
+  MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
 
 public:
@@ -136,7 +140,9 @@ public:
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
+    grouping_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
+    measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
@@ -174,7 +180,9 @@ public:
     
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
+    grouping_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
+    measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
 
@@ -189,16 +197,18 @@ public:
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
-    auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<SplitSourcesCriteria>(new SplitSourcesCriteria), group_factory);
+    auto source_grouping = grouping_factory.createGrouping();
+
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
+    std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
     // Link together the pipeline's steps
     segmentation->addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
-    deblending->addObserver(output);
+    deblending->addObserver(measurement);
+    measurement->addObserver(output);
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
@@ -206,7 +216,7 @@ public:
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
-      deblending->addObserver(
+      measurement->addObserver(
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
     }
 
@@ -238,16 +248,9 @@ public:
     // re-set the variance check image to what's in the detection_frame()
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    //<<<<<<< HEAD
-    //std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-    //    << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
-    ////<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //=======
     // FIXME we should use average or median rather than value at coordinate 0,0
     std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
         << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-        //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //>>>>>>> refs/heads/for_merging
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
@@ -270,11 +273,17 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
+    // Perform measurements (multi-threaded part)
+    measurement->startThreads();
+
     // Process the image
     segmentation->processFrame(detection_frame);
 
+    // Flush source grouping buffer
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+
+    measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();

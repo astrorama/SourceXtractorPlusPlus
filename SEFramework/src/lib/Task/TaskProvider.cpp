@@ -4,11 +4,19 @@
  * @author mschefer
  */
 
+
+#include <mutex>
 #include "SEFramework/Task/TaskProvider.h"
 
 namespace SExtractor {
 
+namespace {
+  std::mutex task_provider_mutex;
+}
+
 std::shared_ptr<const Task> TaskProvider::getTask(const PropertyId& property_id) const {
+  std::lock_guard<std::mutex> lock(task_provider_mutex);
+
   // tries to find the Task for the property
   auto iterTask = m_tasks.find(property_id);
 

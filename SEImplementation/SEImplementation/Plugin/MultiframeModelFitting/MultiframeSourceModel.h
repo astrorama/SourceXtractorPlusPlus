@@ -15,16 +15,19 @@
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
 namespace SExtractor {
 
 class MultiframeSourceModel {
 
+  const SourceInterface& m_source;
+
   int m_size;
   double m_center_x, m_center_y;
   std::shared_ptr<CoordinateSystem> m_ref_coordinate_system;
-  double m_radius_guess, m_aspect_guess, m_exp_flux_guess, m_dev_flux_guess;
+  double m_radius_guess, m_aspect_guess;
 
 
   // common parameters
@@ -77,28 +80,15 @@ public:
 
   MultiframeSourceModel(const SourceInterface& source);
 
-  void createPlaceholderForInactiveBand();
-  void createParamsForBand();
+  void createParamsForBand(const std::vector<int>& frames_in_band);
 
   void createParamsForFrame(int band_nb, int frame_nb, std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset);
-  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::ExtendedModel>& extended_models);
+  void addModelsForFrame(int frame_nb, std::vector<ModelFitting::TransformedModel>& extended_models, std::tuple<double, double, double, double> jacobian);
 
   void registerParameters(ModelFitting::EngineParameterManager& manager);
 
   void debugPrint() const;
 
-  int getSize(const SourceInterface& source) const;
-
-  double getFluxGuess(const SourceInterface& source) const;
-
-  double getRadiusGuess(const SourceInterface& source) const;
-  double getAspectGuess(const SourceInterface& source) const;
-  double getRotGuess(const SourceInterface& source) const;
-
-  double getCenterX(const SourceInterface& source) const;
-  double getCenterY(const SourceInterface& source) const;
-
-  std::shared_ptr<CoordinateSystem> getRefCoordinateSystem(const SourceInterface& source) const;
 
   int getNumberOfParameters() const;
   WorldCoordinate getFittedWorldCoordinate() const;
@@ -114,6 +104,18 @@ public:
 
   SeFloat getExpRadius() const;
   SeFloat getDevRadius() const;
+
+private:
+  int getSize() const;
+  double getCenterX() const;
+  double getCenterY() const;
+
+  double getFluxGuess(const std::vector<int>& frames_in_band) const;
+  double getRadiusGuess() const;
+  double getAspectGuess() const;
+  double getRotGuess() const;
+
+  std::shared_ptr<CoordinateSystem> getRefCoordinateSystem() const;
 
 };
 

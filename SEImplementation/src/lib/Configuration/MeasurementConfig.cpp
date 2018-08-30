@@ -17,6 +17,11 @@
 #include <yaml-cpp/yaml.h>
 
 #include "SEFramework/Image/FitsReader.h"
+//<<<<<<< HEAD
+//=======
+//#include "SEImplementation/Configuration/PsfConfig.h"
+//>>>>>>> modelfitting
+//#include "SEFramework/Image/MultiplyImage.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
@@ -163,7 +168,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     //auto image = FitsReader<MeasurementImage::PixelType>::readFile(filename);
 
     auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(filename);
-    auto image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+    std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
 
     auto coordinate_system = std::make_shared<WCS>(filename);
 
@@ -177,17 +182,23 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
       weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
     }
 
+    // FIXME tmp for tests
+    double measurement_image_gain = 100, measurement_image_saturate = 0, flux_scale = 1.0;
+
+    //FIXME provide a way to override those values
+//    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
+//    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
+    fits_image_source->readFitsKeyword("FLXSCALE", flux_scale);
+
+    if (flux_scale != 1.0) {
+      image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
+    }
+
     m_measurement_images.push_back(std::move(image));
     m_coordinate_systems.push_back(coordinate_system);
     m_weight_images.push_back(std::move(weight_map));
     m_psfs_paths.push_back(psf_filename);
     m_absolute_weights.push_back(true); // FIXME we should have that in the config file
-
-    double measurement_image_gain = 0, measurement_image_saturate = 0;
-    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
-    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
-
-    //FIXME provide a way to override those values
 
     m_gains.push_back(measurement_image_gain);
     m_saturation_levels.push_back(measurement_image_saturate);

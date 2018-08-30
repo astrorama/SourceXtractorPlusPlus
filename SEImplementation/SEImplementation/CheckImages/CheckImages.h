@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_CHECKIMAGES_CHECKIMAGES_H_
 #define _SEIMPLEMENTATION_CHECKIMAGES_CHECKIMAGES_H_
 
+#include <mutex>
+
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -60,6 +62,14 @@ public:
     return *m_instance;
   }
 
+  void lock() {
+    m_access_mutex.lock();
+  }
+
+  void unlock() {
+    m_access_mutex.unlock();
+  }
+
 
 private:
   CheckImages();
@@ -83,6 +93,8 @@ private:
   std::string m_segmentation_filename;
   std::string m_partition_filename;
   std::string m_filtered_filename;
+
+  std::mutex m_access_mutex;
 };
 
 }

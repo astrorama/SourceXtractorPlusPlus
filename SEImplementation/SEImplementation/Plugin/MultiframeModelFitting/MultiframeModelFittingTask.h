@@ -8,7 +8,6 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGTASK_H_
 
-
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
 
@@ -41,6 +40,7 @@ private:
 
   StampRectangle getStampRectangle(SourceGroupInterface& group, int frame_index) const;
   bool isFrameValid(SourceGroupInterface& group, int frame_index) const;
+  std::tuple<double, double, double, double> computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const;
 
   // Task configuration
   unsigned int m_max_iterations;

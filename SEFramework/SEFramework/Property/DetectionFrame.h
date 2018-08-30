@@ -18,15 +18,15 @@ namespace SExtractor {
 
 class DetectionFrame : public Property {
 public:
-  DetectionFrame(std::shared_ptr<Frame<DetectionImage>> detection_frame) : m_detection_frame(detection_frame) {
+  DetectionFrame(std::shared_ptr<DetectionImageFrame> detection_frame) : m_detection_frame(detection_frame) {
   }
 
-  std::shared_ptr<Frame<DetectionImage>> getFrame() const {
+  std::shared_ptr<DetectionImageFrame> getFrame() const {
     return m_detection_frame;
   }
 
 private:
-  std::shared_ptr<Frame<DetectionImage>> m_detection_frame;
+  std::shared_ptr<DetectionImageFrame> m_detection_frame;
 };
 
 }

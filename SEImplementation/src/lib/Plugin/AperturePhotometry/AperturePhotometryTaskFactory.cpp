@@ -56,6 +56,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
 
   // determine which apertures are needed for each image
   std::vector<std::set<SeFloat>> aperture_sizes(measurement_images_nb);
+
   for (auto& group : measurement_config.getImageGroups()) {
     auto apertures = group->getAperturePhotometryOptions().getApertureSizes();
 
@@ -71,7 +72,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
       m_image_instances.emplace_back(image_nb);
       m_apertures.emplace_back(aperture_size);
 
-      // This will need to be replaced by vector output
+      // FIXME This will need to be replaced by vector output
       std::stringstream instance_name;
       instance_name << image_nb << "_" << aperture_size;
       m_instance_names.emplace_back(std::make_pair(instance_name.str(), aperture_instance_nb));

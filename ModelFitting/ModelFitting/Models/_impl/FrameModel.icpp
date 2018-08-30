@@ -10,7 +10,7 @@ template <typename PsfType, typename ImageType>
 FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width, std::size_t height,
                                            std::vector<ConstantModel> constant_model_list,
                                            std::vector<PointModel> point_model_list,
-                                           std::vector<ExtendedModel> extended_model_list,
+                                           std::vector<TransformedModel> extended_model_list,
                                            PsfType psf)
         : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
           m_constant_model_list{std::move(constant_model_list)},
@@ -46,7 +46,7 @@ void addPointModels(ImageType& image, const std::vector<PointModel>& model_list,
 }
   
 template <typename ImageType, typename PsfType>
-void addExtendedModels(ImageType& image, const std::vector<ExtendedModel>& model_list,
+void addExtendedModels(ImageType& image, const std::vector<TransformedModel>& model_list,
                        const PsfType& psf, double pixel_scale) {
   using Traits = ImageTraits<ImageType>;
   auto scale_factor = psf.getPixelScale() / pixel_scale;

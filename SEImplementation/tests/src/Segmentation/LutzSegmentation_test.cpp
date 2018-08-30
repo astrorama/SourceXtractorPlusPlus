@@ -138,11 +138,8 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   auto detection_frame = std::make_shared<DetectionImageFrame>(image);
 
-  // FIXME wrong!!!! this is now interpreted as a nullptr, should be a constant image
-  detection_frame->setBackgroundLevel(0);
-
+  detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0));
   detection_frame->setVarianceMap(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0.25));
-  //detection_frame->setDetectionThreshold(0.5);
   segmentation.processFrame(detection_frame);
 
   // Check that we have the right number of sources

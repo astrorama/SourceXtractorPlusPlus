@@ -87,7 +87,7 @@ int main() {
   double height = 10;
   
   // We create the extended model list with a single model
-  vector<ExtendedModel> extended_models {};
+  vector<TransformedModel> extended_models {};
   extended_models.emplace_back(std::move(component_list), x_scale, y_scale,
                                rot_angle, width, height, x, y);
   

@@ -91,7 +91,7 @@ public:
    */
   virtual ~SourceGrouping() = default;
 
-  SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
+  SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
                  std::shared_ptr<SourceGroupFactory> group_factory);
 
   /// Handles a new Source
@@ -102,7 +102,7 @@ public:
 
 private:
 
-  std::unique_ptr<GroupingCriteria> m_grouping_criteria;
+  std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_group_factory;
   std::list<std::shared_ptr<SourceGroupInterface>> m_source_groups;
 

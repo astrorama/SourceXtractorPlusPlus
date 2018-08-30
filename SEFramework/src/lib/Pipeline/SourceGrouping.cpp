@@ -9,9 +9,9 @@
 
 namespace SExtractor {
 
-SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
+SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
                                std::shared_ptr<SourceGroupFactory> group_factory)
-        : m_grouping_criteria(std::move(grouping_criteria)), m_group_factory(group_factory) {
+        : m_grouping_criteria(grouping_criteria), m_group_factory(group_factory) {
 }
 
 void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
@@ -51,7 +51,6 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
   for (auto& group_it : groups_to_remove) {
     m_source_groups.erase(group_it);
   }
-  
 }
 
 void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {

@@ -15,6 +15,7 @@ namespace SExtractor {
 
 void DetectionIdCheckImage::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   if (m_check_image) {
+    CheckImages::getInstance().lock();
 
     auto coordinates = source->getProperty<PixelCoordinateList>();
 
@@ -25,6 +26,8 @@ void DetectionIdCheckImage::handleMessage(const std::shared_ptr<SourceInterface>
     for (auto& coord : coordinates.getCoordinateList()) {
       m_check_image->setValue(coord.m_x, coord.m_y, source_id);
     }
+
+    CheckImages::getInstance().unlock();
   }
 }
 

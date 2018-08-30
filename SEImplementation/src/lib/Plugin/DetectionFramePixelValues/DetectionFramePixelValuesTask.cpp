@@ -4,6 +4,7 @@
  * @author mschefer
  */
 #include <memory>
+#include <mutex>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -11,9 +12,13 @@
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 namespace SExtractor {
 
 void DetectionFramePixelValuesTask::computeProperties(SourceInterface& source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   auto detection_image = source.getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
   auto filtered_image = source.getProperty<DetectionFrame>().getFrame()->getFilteredImage();
   auto variance_map = source.getProperty<DetectionFrame>().getFrame()->getVarianceMap();

@@ -2,7 +2,7 @@
  * PointModelFitting_test.cpp
  *
  *  Created on: July 11, 2018
- *      Author: Alejandro Álvarez
+ *      Author: Alejandro ��lvarez
  */
 
 #include <boost/test/unit_test.hpp>
@@ -66,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE (point_model_fitting_test, PointModelFittingFixture) {
   auto variance_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
   variance_image->fillValue(0);
 
-  auto detection_frame = std::make_shared<Frame<DetectionImage>>(image, nullptr, 10,
+  auto detection_frame = std::make_shared<Frame<DetectionImage::PixelType>>(image, nullptr, 10,
     std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
 
   source->setProperty<PixelCentroid>(image->getWidth()/2 - 1, image->getHeight() / 2 - 2);

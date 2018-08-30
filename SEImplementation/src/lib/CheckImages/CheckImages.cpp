@@ -57,6 +57,8 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 }
 
 void CheckImages::saveImages() {
+  lock();
+
   // if possible, save the background image
   if (m_background_image != nullptr && m_model_background_filename != "") {
     FitsWriter::writeFile(*m_background_image, m_model_background_filename);
@@ -77,6 +79,8 @@ void CheckImages::saveImages() {
     auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
     FitsWriter::writeFile(*residual_image, m_residual_filename);
   }
+
+  unlock();
 }
 
 }
