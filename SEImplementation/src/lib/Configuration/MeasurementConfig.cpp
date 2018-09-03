@@ -159,6 +159,10 @@ std::vector<std::string> MeasurementConfig::getFilenamesFromPath(const std::stri
 
   std::sort(file_paths.begin(), file_paths.end());
 
+  if (file_paths.empty()) {
+    throw Elements::Exception() << "Failed to find any file matching for: " << path;
+  }
+
   return file_paths;
 }
 
