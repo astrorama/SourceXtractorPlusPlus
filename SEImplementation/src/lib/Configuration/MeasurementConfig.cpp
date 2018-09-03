@@ -63,9 +63,11 @@ void MeasurementConfig::parseTree() {
   AperturePhotometryOptions ap_options;
   ap_options.updateOptions(m_yaml_config);
 
-  for (auto node : m_yaml_config) {
-    if (node.first.as<std::string>() == "measurements-group") {
-      parseMeasurementsGroup(node.second, ap_options);
+  for (auto iter : m_yaml_config) {
+    for (auto node : iter) {
+      if (node.first.as<std::string>() == "measurements-group") {
+        parseMeasurementsGroup(node.second, ap_options);
+      }
     }
   }
 }
@@ -101,17 +103,19 @@ std::set<unsigned int> MeasurementConfig::parseImageFiles(const YAML::Node& imag
   std::vector<std::string> psf_filenames;
 
   for (auto node : image_group) {
-    if (node.first.as<std::string>() == "path") {
-      auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
-      image_filenames.insert(image_filenames.end(), file_paths.begin(), file_paths.end());
-    } else if (node.first.as<std::string>() == "weight-image-path") {
-      auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
-      weight_filenames.insert(weight_filenames.end(), file_paths.begin(), file_paths.end());
-    } else if (node.first.as<std::string>() == "psf-path") {
-      auto file_paths = getFilenamesFromPath(node.second.as<std::string>());
-      psf_filenames.insert(psf_filenames.end(), file_paths.begin(), file_paths.end());
-    } else {
-      std::cout << "Unknown node: " << node.first.as<std::string>() << "\n";
+    for (auto subnode : node) {
+      if (subnode.first.as<std::string>() == "path") {
+        auto file_paths = getFilenamesFromPath(subnode.second.as<std::string>());
+        image_filenames.insert(image_filenames.end(), file_paths.begin(), file_paths.end());
+      } else if (subnode.first.as<std::string>() == "weight-image-path") {
+        auto file_paths = getFilenamesFromPath(subnode.second.as<std::string>());
+        weight_filenames.insert(weight_filenames.end(), file_paths.begin(), file_paths.end());
+      } else if (subnode.first.as<std::string>() == "psf-path") {
+        auto file_paths = getFilenamesFromPath(subnode.second.as<std::string>());
+        psf_filenames.insert(psf_filenames.end(), file_paths.begin(), file_paths.end());
+      } else {
+        std::cout << "Unknown node: " << node.first.as<std::string>() << "\n";
+      }
     }
   }
 
