@@ -28,7 +28,7 @@ DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(mana
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
   return { {"Detection image", {
-      {DETECTION_IMAGE.c_str(), po::value<std::string>(),
+      {DETECTION_IMAGE.c_str(), po::value<std::string>()->required(),
           "Path to a fits format image to be used as detection image."},
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
