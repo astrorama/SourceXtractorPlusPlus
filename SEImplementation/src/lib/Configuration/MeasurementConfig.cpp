@@ -17,11 +17,6 @@
 #include <yaml-cpp/yaml.h>
 
 #include "SEFramework/Image/FitsReader.h"
-//<<<<<<< HEAD
-//=======
-//#include "SEImplementation/Configuration/PsfConfig.h"
-//>>>>>>> modelfitting
-//#include "SEFramework/Image/MultiplyImage.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
@@ -37,19 +32,49 @@ namespace ba = boost::adaptors;
 namespace SExtractor {
 
 static const std::string MEASUREMENT_CONFIG_FILE { "measurement-config-file" };
+static const std::string MEASUREMENT_IMAGES_GAIN { "measurement-images-gain" };
+static const std::string MEASUREMENT_IMAGES_SATURATION { "measurement-images-saturation" };
+static const std::string MEASUREMENT_IMAGES_FLUX_SCALE { "measurement-images-flux-scale" };
 
-MeasurementConfig::MeasurementConfig(long manager_id) : Configuration(manager_id) {
+MeasurementConfig::MeasurementConfig(long manager_id) : Configuration(manager_id),
+        m_override_gain(false),
+        m_gain(0.0),
+        m_override_saturation(false),
+        m_saturation(0),
+        m_override_flux_scale(false),
+        m_flux_scale(1)
+{
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> MeasurementConfig::getProgramOptions() {
   return { {"Measurement config", {
       { MEASUREMENT_CONFIG_FILE.c_str(), po::value<std::string>()->default_value({}, ""),
-          "Config file for measurement" }
+          "Config file for measurement" },
+      { MEASUREMENT_IMAGES_GAIN.c_str(), po::value<double>(),
+          "Sets the gain for all measurement images (overrides FITS data)" },
+      { MEASUREMENT_IMAGES_SATURATION.c_str(), po::value<double>(),
+          "Sets the saturation for all measurement images (overrides FITS data)" },
+      { MEASUREMENT_IMAGES_FLUX_SCALE.c_str(), po::value<double>(),
+          "Sets the flux scalefor all measurement images (overrides FITS data)" }
   }}};
 }
 
 void MeasurementConfig::initialize(const UserValues& args) {
   auto filename = args.find(MEASUREMENT_CONFIG_FILE)->second.as<std::string>();
+
+  if (args.find(MEASUREMENT_IMAGES_GAIN) != args.end()) {
+    m_override_gain = true;
+    m_gain = args.find(MEASUREMENT_IMAGES_GAIN)->second.as<double>();
+  }
+  if (args.find(MEASUREMENT_IMAGES_SATURATION) != args.end()) {
+    m_override_saturation= true;
+    m_saturation = args.find(MEASUREMENT_IMAGES_SATURATION)->second.as<double>();
+  }
+  if (args.find(MEASUREMENT_IMAGES_FLUX_SCALE) != args.end()) {
+    m_override_flux_scale = true;
+    m_flux_scale = args.find(MEASUREMENT_IMAGES_FLUX_SCALE)->second.as<double>();
+  }
+
 
   if (filename != "") {
     m_yaml_config = YAML::LoadFile(filename);
@@ -186,13 +211,22 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
       weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
     }
 
-    // FIXME tmp for tests
-    double measurement_image_gain = 100, measurement_image_saturate = 0, flux_scale = 1.0;
+    // Default values
+    double measurement_image_gain = 0, measurement_image_saturate = 0, flux_scale = 1.0;
 
-    //FIXME provide a way to override those values
-//    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
-//    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
+    fits_image_source->readFitsKeyword("GAIN", measurement_image_gain);
+    fits_image_source->readFitsKeyword("SATURATE", measurement_image_saturate);
     fits_image_source->readFitsKeyword("FLXSCALE", flux_scale);
+
+    if (m_override_gain) {
+      measurement_image_gain = m_gain;
+    }
+    if (m_override_saturation) {
+      measurement_image_saturate = m_saturation;
+    }
+    if (m_override_flux_scale) {
+      flux_scale = m_flux_scale;
+    }
 
     if (flux_scale != 1.0) {
       image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);

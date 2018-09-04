@@ -134,6 +134,15 @@ private:
   std::vector<SeFloat> m_gains;
   std::vector<MeasurementImage::PixelType> m_saturation_levels;
 
+  bool m_override_gain;
+  double m_gain;
+
+  bool m_override_saturation;
+  double m_saturation;
+
+  bool m_override_flux_scale;
+  double m_flux_scale;
+
   std::map<std::string, unsigned int> m_loaded_images;
 };
 
