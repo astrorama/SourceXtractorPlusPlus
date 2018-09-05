@@ -111,7 +111,10 @@ SeFloat computeReducedChiSquared(
 void printDebugChi2(SeFloat reduced_chi_squared) {
   static double total = 0.0;
   static int count = 0;
+  static std::mutex mutex;
   static std::vector<SeFloat> chi_squares;
+
+  std::lock_guard<std::mutex> lock(mutex);
 
   chi_squares.push_back(reduced_chi_squared);
   total += reduced_chi_squared;
