@@ -6,7 +6,7 @@
  */
 
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
-#include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
+#include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
 #include <numeric>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
@@ -14,15 +14,15 @@ namespace SExtractor {
 
 
 std::map<std::string, ValueGetter> component_value_getters {
-    {"X_IMAGE", [](SExtractor::SourceGroupInterface &group){
-      auto &detection_frame_group = group.getProperty<DetectionFrameGroupStamp>();
-      auto top_x = detection_frame_group.getTopLeft().m_x;
-      return top_x + detection_frame_group.getStamp().getWidth() / 2;
+    {"X_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
+      auto &measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+      auto top_x = measurement_frame_group.getTopLeft().m_x;
+      return top_x + measurement_frame_group.getWidth() / 2;
     }},
-    {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group){
-      auto &detection_frame_group = group.getProperty<DetectionFrameGroupStamp>();
-      auto top_y = detection_frame_group.getTopLeft().m_y;
-      return top_y + detection_frame_group.getStamp().getHeight() / 2;
+    {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
+      auto &measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+      auto top_y = measurement_frame_group.getTopLeft().m_y;
+      return top_y + measurement_frame_group.getHeight() / 2;
     }}
 };
 
@@ -34,7 +34,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   std::vector<double> component_values;
 
   for (auto c : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[c.name](group));
+    component_values.push_back(component_value_getters[c.name](group, m_instance));
   }
 
   auto psf = m_vpsf->getPsf(component_values);

@@ -35,6 +35,12 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
       }
     }
   }
+
+  for (auto& vpsf : m_vpsf) {
+    if (!vpsf) {
+      throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF, or that there is a valid default PSF";
+    }
+  }
 }
 
 std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {

@@ -6,10 +6,10 @@
  */
 
 #include <boost/test/unit_test.hpp>
+#include <numeric>
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <SEFramework/Source/SimpleSourceGroup.h>
-#include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
-#include <numeric>
+#include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 using namespace SExtractor;
@@ -68,8 +68,7 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
     }
   }
 
-  auto mock_stamp = VectorImage<SeFloat>::create(8. * 2, 50. * 2);
-  group.setProperty<DetectionFrameGroupStamp>(mock_stamp, nullptr, PixelCoordinate{0, 0}, nullptr);
+  group.setProperty<MeasurementFrameGroupRectangle>(PixelCoordinate{0, 0}, PixelCoordinate{16, 100});
 
   varPsfTask.computeProperties(group);
   auto psf_prop = group.getProperty<PsfProperty>();

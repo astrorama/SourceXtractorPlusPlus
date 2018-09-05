@@ -23,6 +23,7 @@
 
 #include <SEImplementation/Image/ImagePsf.h>
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
+#include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
@@ -141,11 +142,11 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createImageCop
   auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   auto frame_image = frame->getSubtractedImage();
 
-  auto rect = getStampRectangle(group, frame_index);
+  auto rect =  group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
-      image->at(x, y) = frame_image->getValue(rect.m_min_coord.m_x + x, rect.m_min_coord.m_y + y);
+      image->at(x, y) = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
     }
   }
 
@@ -161,7 +162,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   auto frame_image_thresholded = frame->getThresholdedImage();
   auto variance_map = frame->getVarianceMap();
 
-  auto rect = getStampRectangle(group, frame_index);
+  auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   std::fill(weight->getData().begin(), weight->getData().end(), 1);
 //  for (int y=0; y < height; y++) {
@@ -191,12 +192,12 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
 
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
-      auto back_var = variance_map->getValue(rect.m_min_coord.m_x + x, rect.m_min_coord.m_y + y);
-      if (saturation > 0 && frame_image->getValue(rect.m_min_coord.m_x + x, rect.m_min_coord.m_y + y) > saturation) {
+      auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) > saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y) > 0) {
         if (gain > 0.0) {
-          weight->at(x, y) = sqrt(1.0 / (back_var + frame_image->getValue(rect.m_min_coord.m_x + x, rect.m_min_coord.m_y + y) / gain));
+          weight->at(x, y) = sqrt(1.0 / (back_var + frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) / gain));
         } else {
           weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
         }
@@ -208,53 +209,8 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
 }
 
 bool MultiframeModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
-  auto stamp_rect = getStampRectangle(group, frame_index);
+  auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   return stamp_rect.getWidth() > 0 && stamp_rect.getHeight() > 0;
-}
-
-MultiframeModelFittingTask::StampRectangle MultiframeModelFittingTask::getStampRectangle(SourceGroupInterface& group, int frame_index) const {
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_coordinates = frame->getCoordinateSystem();
-  auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
-  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
-
-  // Get the coordinates of the detection frame group stamp
-  auto stamp_top_left = detection_group_stamp.getTopLeft();
-  auto width = detection_group_stamp.getStamp().getWidth();
-  auto height = detection_group_stamp.getStamp().getHeight();
-
-  // Transform the 4 corner coordinates from detection image
-  auto coord1 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-      stamp_top_left.m_x, stamp_top_left.m_y)));
-  auto coord2 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-      stamp_top_left.m_x + width, stamp_top_left.m_y)));
-  auto coord3 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-      stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
-  auto coord4 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-      stamp_top_left.m_x, stamp_top_left.m_y + height)));
-
-  // Determine the min/max coordinates
-  auto min_x = std::min(coord1.m_x, std::min(coord2.m_x, std::min(coord3.m_x, coord4.m_x)));
-  auto min_y = std::min(coord1.m_y, std::min(coord2.m_y, std::min(coord3.m_y, coord4.m_y)));
-  auto max_x = std::max(coord1.m_x, std::max(coord2.m_x, std::max(coord3.m_x, coord4.m_x)));
-  auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
-
-  PixelCoordinate min_coord, max_coord;
-  min_coord.m_x = int(min_x);
-  min_coord.m_y = int(min_y);
-  max_coord.m_x = int(max_x) + 1;
-  max_coord.m_y = int(max_y) + 1;
-
-  // Clip the coordinates to fit the available image
-  auto frame_image = frame->getSubtractedImage();
-  min_coord.m_x = std::max(0, min_coord.m_x);
-  min_coord.m_y = std::max(0, min_coord.m_y);
-  max_coord.m_x = std::min(frame_image->getWidth(), max_coord.m_x);
-  max_coord.m_y = std::min(frame_image->getHeight(), max_coord.m_y);
-
-  return StampRectangle(min_coord, max_coord);
-
-//  return StampRectangle(PixelCoordinate(0,0), PixelCoordinate(frame_image->getWidth(), frame_image->getHeight()));
 }
 
 std::tuple<double, double, double, double> MultiframeModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const {
@@ -340,7 +296,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
     }
 
     for (auto frame_index : frame_indices) {
-      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
@@ -355,7 +311,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
       std::vector<TransformedModel> extended_models;
       for (auto& source_model : source_models) {
-        source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.m_min_coord);
+        source_model->createParamsForFrame(band_nb, frame_index, frame_coordinates, stamp_rect.getTopLeft());
         source_model->addModelsForFrame(frame_index, extended_models, jacobian);
       }
 
@@ -406,7 +362,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   for (unsigned int band_nb=0; band_nb < validated_frame_indices_per_band.size(); band_nb++) {
     auto& frame_indices = validated_frame_indices_per_band[band_nb];
     for (auto frame_index : frame_indices) {
-      auto stamp_rect = getStampRectangle(group, frame_index);
+      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
       auto stamp_width = stamp_rect.getWidth();
       auto stamp_height = stamp_rect.getHeight();
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
@@ -437,7 +393,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         for (int y=0; y<final_stamp->getHeight(); y++) {
           debug_image_mutex.lock();
           const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]->at(
-              stamp_rect.m_min_coord.m_x + x, stamp_rect.m_min_coord.m_y + y) += final_stamp->getValue(x,y);
+              stamp_rect.getTopLeft().m_x + x, stamp_rect.getTopLeft().m_y + y) += final_stamp->getValue(x,y);
           debug_image_mutex.unlock();
         }
       }
