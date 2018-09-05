@@ -13,7 +13,7 @@
 
 namespace SExtractor {
 
-typedef std::function<double(SExtractor::SourceGroupInterface &group)> ValueGetter;
+typedef std::function<double(SExtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
 extern std::map<std::string, ValueGetter> component_value_getters;
 
 class PsfTask: public GroupTask {
