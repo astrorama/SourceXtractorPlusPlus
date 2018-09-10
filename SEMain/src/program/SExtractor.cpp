@@ -11,7 +11,6 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #include <iomanip>
-#include "SEMain/Progress.h"
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
@@ -63,7 +62,8 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEUtils/Python.h"
+#include "SEMain/Progress.h"
+#include "SEMain/Sorter.h"
 
 
 namespace po = boost::program_options;
@@ -236,15 +236,19 @@ public:
     std::shared_ptr<Output> output = output_factory.getOutput();
 
     ProgressListener progress_listener{logger, boost::posix_time::seconds{5}};
+    auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
+    measurement->addObserver(sorter);
+    sorter->addObserver(output);
+
     deblending->addObserver(progress_listener.getDetectionListener());
-    measurement->addObserver(output);
     measurement->addObserver(progress_listener.getMeasurementListener());
+    sorter->addObserver(progress_listener.getEmissionListener());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {

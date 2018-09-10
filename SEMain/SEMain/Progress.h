@@ -25,15 +25,16 @@ public:
 
   std::shared_ptr<observer_t>& getDetectionListener(void);
   std::shared_ptr<observer_t>& getMeasurementListener(void);
+  std::shared_ptr<observer_t>& getEmissionListener(void);
   void ping(void);
 
 private:
   Elements::Logging &m_logger;
   boost::posix_time::time_duration m_min_interval;
   boost::posix_time::ptime m_first, m_last;
-  std::atomic_int m_detected, m_measured;
+  std::atomic_int m_detected, m_measured, m_emitted;
 
-  std::shared_ptr<observer_t> m_detection_listener, m_measurement_listener;
+  std::shared_ptr<observer_t> m_detection_listener, m_measurement_listener, m_emission_listener;
 };
 
 } // end SExtractor
