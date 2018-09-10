@@ -60,8 +60,8 @@ void ProgressListener::ping() {
     float progress_emitted = (m_emitted * 100.) / m_detected;
 
     m_logger.info() << "Detected: " << m_detected;
-    m_logger.info() << "Measured: " << m_measured << " (" << std::setprecision(2) << progress_measured << "%)";
-    m_logger.info() << "Emitted:  " << m_emitted << " (" << std::setprecision(2) << progress_emitted << "%)";
+    m_logger.info() << "Measured: " << m_measured << " (" << std::fixed << std::setprecision(2) << progress_measured << "%)";
+    m_logger.info() << "Emitted:  " << m_emitted << " (" << std::fixed << std::setprecision(2) << progress_emitted << "%)";
     m_logger.info() << "Elapsed: " << elapsed;
 
     m_last = now;
