@@ -14,9 +14,6 @@
 // TEMP
 #include "SEFramework/Image/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
-//#include "SEFramework/Image/VectorImage.h"
-//#include "SEFramework/Image/FitsWriter.h"
-//#include "SEFramework/Image/WriteableImage.h"
 
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 
@@ -45,7 +42,6 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& 
 
   // TEMP
   auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-  //m_tmp_check_image = VectorImage<int>::create(detection_image->getWidth(), detection_image->getHeight());
   std::string bbb("tmp.fits");
   m_tmp_check_image = FitsWriter::newImage<float>(bbb, detection_image->getWidth(), detection_image->getHeight());
 }

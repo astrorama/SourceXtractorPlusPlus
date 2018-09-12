@@ -5,8 +5,8 @@
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_KRONRADIUS_KRONRADIUSTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_KRONRADIUS_KRONRADIUSTASK_H_
 
 //#include <memory>
 
@@ -15,15 +15,14 @@
 
 namespace SExtractor {
 
-class AutoPhotometryTask : public SourceTask {
+class KronRadiusTask : public SourceTask {
 public:
 
-  //using AreaFunction = std::function<SeFloat(int, int)>;
-
   /// Destructor
-  virtual ~AutoPhotometryTask() = default;
+  virtual ~KronRadiusTask() = default;
 
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
+  /*
+  KronRadiusTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
     m_magnitude_zero_point(magnitude_zero_point),
     m_kron_factor(kron_factor),
     m_kron_minrad(kron_minrad),
@@ -31,9 +30,12 @@ public:
     m_kron_measurement(kron_measurement),
     m_use_symmetry(use_symmetry),
     m_tmp_check_image(tmp_check_image) {}
+  */
+  KronRadiusTask() {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
+  /*
 private:
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
@@ -44,8 +46,10 @@ private:
 
   // TEMP
   std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+*/
 };
 
+/*
 class EAperture {
 public:
   virtual ~EAperture() = default;
@@ -66,7 +70,6 @@ public:
     m_rad_max(rad_max) {}
 
   virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
-  virtual SeFloat getRadiusSquared(int pixel_x, int pixel_y) const;
   virtual PixelCoordinate getMinPixel() const override;
   virtual PixelCoordinate getMaxPixel() const override;
 
@@ -78,7 +81,8 @@ private:
   SeFloat m_cxy;
   SeFloat m_rad_max;
 };
+*/
 
 }
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_KRONRADIUS_KRONRADIUSTASK_H_ */

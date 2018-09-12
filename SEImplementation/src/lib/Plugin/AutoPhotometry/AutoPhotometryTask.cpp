@@ -177,6 +177,13 @@ SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
   return area;
 }
 
+SeFloat EllipticalAperture::getRadiusSquared(int pixel_x, int pixel_y) const{
+  auto dist_x = SeFloat(pixel_x)-m_center_x;
+  auto dist_y = SeFloat(pixel_y)-m_center_y;
+
+  return m_cxx*dist_x*dist_x + m_cyy*dist_y*dist_y + m_cxy*dist_x*dist_y;
+}
+
 PixelCoordinate EllipticalAperture::getMinPixel() const {
   SeFloat dx, dy;
 
