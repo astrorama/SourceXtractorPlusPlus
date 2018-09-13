@@ -10,6 +10,7 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
+#include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
@@ -43,8 +44,29 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& ell_a = source.getProperty<ShapeParameters>().getEllipseA();
   const auto& ell_b = source.getProperty<ShapeParameters>().getEllipseB();
 
+  // get the kron-radius
+  //SeFloat kron_radius_auto = m_kron_factor*source.getProperty<KronRadius>().getKronRadius();
+  //if (kron_radius_auto < m_kron_minrad)
+  //  kron_radius_auto = m_kron_minrad;
+  //SeFloat kron_radius_auto = 2.5*source.getProperty<KronRadius>().getKronRadius();
+  //if (kron_radius_auto < 3.5)
+  //  kron_radius_auto = 3.5;
+  auto kron_radius_auto = source.getProperty<KronRadius>().getKronRadius();
+
+  /*
+  if (r1>0.0 && v1>0.0)
+    {
+    obj2->kronfactor = prefs.autoparam[0]*r1/v1;
+    if (obj2->kronfactor < prefs.autoparam[1])
+      obj2->kronfactor = prefs.autoparam[1];
+    }
+  else
+    obj2->kronfactor = prefs.autoparam[1];
+  */
+
   // create the elliptical aperture
-  auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, m_kron_factor);
+  //auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, m_kron_factor);
+  auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, kron_radius_auto);
 
   // get the aperture borders on the image
   const auto& min_pixel = ell_aper->getMinPixel();
@@ -130,7 +152,7 @@ void AutoPhotometryAggregateTask::computeProperties(SourceInterface& source) con
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
+SeFloat EllipticalAperture::getAreaSub(int pixel_x, int pixel_y) const{
   SeFloat act_x_prim, act_y_prim;
   SeFloat act_x, act_y;
 
@@ -173,8 +195,19 @@ SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
     // increment in y
     act_y += 1./SUPERSAMPLE_AUTO_NB;
   }
+  //std::cout << " area:" << area;
   // return the area
   return area;
+}
+
+SeFloat EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
+  auto dist_x = SeFloat(pixel_x)-m_center_x;
+  auto dist_y = SeFloat(pixel_y)-m_center_y;
+
+  if (m_cxx*dist_x*dist_x + m_cyy*dist_y*dist_y + m_cxy*dist_x*dist_y < m_rad_max*m_rad_max)
+    return 1.0;
+  else
+    return 0.0;
 }
 
 SeFloat EllipticalAperture::getRadiusSquared(int pixel_x, int pixel_y) const{

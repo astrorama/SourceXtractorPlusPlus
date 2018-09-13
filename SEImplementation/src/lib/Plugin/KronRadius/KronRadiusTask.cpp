@@ -52,7 +52,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel();
   const auto& max_pixel = ell_aper->getMaxPixel();
 
-  SeFloat radius_flux_sum;
+  SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;
   SeFloat area_sum=0.;
 
@@ -87,11 +87,22 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
     }
   }
 
+  //SeFloat kron_radius_auto = 2.5*source.getProperty<KronRadius>().getKronRadius();
+  //if (kron_radius_auto < 3.5)
+  //  kron_radius_auto = 3.5;
+
   // set the property
-  if (area_sum>0)
-    source.setProperty<KronRadius>(radius_flux_sum/flux_sum);
-  else
-    source.setProperty<KronRadius>(0.0);
+  if (area_sum>0){
+    SeFloat kron_radius_auto = 2.5*radius_flux_sum/flux_sum;
+    if (kron_radius_auto < 3.5)
+      kron_radius_auto = 3.5;
+    source.setProperty<KronRadius>(kron_radius_auto);
+    //source.setProperty<KronRadius>(radius_flux_sum/flux_sum);
+  }
+  else {
+    //source.setProperty<KronRadius>(0.0);
+    source.setProperty<KronRadius>(3.5);
+  }
 }
 }
 

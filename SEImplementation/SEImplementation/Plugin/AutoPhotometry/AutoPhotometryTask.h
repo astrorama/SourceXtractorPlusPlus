@@ -49,6 +49,7 @@ private:
 class EAperture {
 public:
   virtual ~EAperture() = default;
+  virtual SeFloat getAreaSub(int pixel_x, int pixel_y) const = 0;
   virtual SeFloat getArea(int pixel_x, int pixel_y) const = 0;
   virtual PixelCoordinate getMinPixel() const = 0;
   virtual PixelCoordinate getMaxPixel() const = 0;
@@ -65,6 +66,7 @@ public:
     m_cxy(cxy),
     m_rad_max(rad_max) {}
 
+  virtual SeFloat getAreaSub(int pixel_x, int pixel_y) const override;
   virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
   virtual SeFloat getRadiusSquared(int pixel_x, int pixel_y) const;
   virtual PixelCoordinate getMinPixel() const override;
