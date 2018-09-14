@@ -41,8 +41,6 @@ private:
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
 
   // TEMP
   std::shared_ptr<WriteableImage<float>> m_tmp_check_image;

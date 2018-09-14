@@ -42,8 +42,6 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
-  const auto& ell_a = source.getProperty<ShapeParameters>().getEllipseA();
-  const auto& ell_b = source.getProperty<ShapeParameters>().getEllipseB();
 
   // create the elliptical aperture
   auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, KRON_NRADIUS);
@@ -78,30 +76,22 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
         }
 
         // get the area and enhance the total quantities
-        auto area           = ell_aper->getArea(pixel_x, pixel_y);
-        auto radius_squared = ell_aper->getRadiusSquared(pixel_x, pixel_y);
-        radius_flux_sum += area*value*sqrt(radius_squared);
-        flux_sum        += area*value;
-        area_sum        += area;
+        if (ell_aper->getArea(pixel_x, pixel_y) > 0){
+          radius_flux_sum += value*sqrt(ell_aper->getRadiusSquared(pixel_x, pixel_y));
+          flux_sum        += value;
+          area_sum        += 1;
+        }
       }
     }
   }
 
-  //SeFloat kron_radius_auto = 2.5*source.getProperty<KronRadius>().getKronRadius();
-  //if (kron_radius_auto < 3.5)
-  //  kron_radius_auto = 3.5;
-
   // set the property
   if (area_sum>0){
-    SeFloat kron_radius_auto = 2.5*radius_flux_sum/flux_sum;
-    if (kron_radius_auto < 3.5)
-      kron_radius_auto = 3.5;
-    source.setProperty<KronRadius>(kron_radius_auto);
-    //source.setProperty<KronRadius>(radius_flux_sum/flux_sum);
+    source.setProperty<KronRadius>(radius_flux_sum/flux_sum);
   }
   else {
-    //source.setProperty<KronRadius>(0.0);
-    source.setProperty<KronRadius>(3.5);
+    // the default value
+    source.setProperty<KronRadius>(0.0);
   }
 }
 }

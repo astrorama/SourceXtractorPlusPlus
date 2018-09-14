@@ -1,7 +1,7 @@
 /*
  * KronRadiusTaskFactory.h
  *
- *  Created on: Sep 18, 2018
+ *  Created on: Sep 12, 2018
  *      Author: mkuemmel@usm.lmu.de
  */
 
@@ -19,21 +19,8 @@ public:
   /// Destructor
   virtual ~KronRadiusTaskFactory() = default;
 
-  //void configure(Euclid::Configuration::ConfigManager& manager) override;
-
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
-/*
-private:
-  SeFloat m_magnitude_zero_point;
-  SeFloat m_kron_factor;
-  SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
-
-  // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
-*/
 };
 
 }

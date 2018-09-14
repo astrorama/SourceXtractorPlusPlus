@@ -23,12 +23,10 @@ public:
   /// Destructor
   virtual ~AutoPhotometryTask() = default;
 
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor,  SeFloat kron_minrad,  SeFloat kron_estimation,  SeFloat kron_measurement, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
+  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
     m_magnitude_zero_point(magnitude_zero_point),
     m_kron_factor(kron_factor),
     m_kron_minrad(kron_minrad),
-    m_kron_estimation(kron_estimation),
-    m_kron_measurement(kron_measurement),
     m_use_symmetry(use_symmetry),
     m_tmp_check_image(tmp_check_image) {}
 
@@ -50,7 +48,7 @@ class EAperture {
 public:
   virtual ~EAperture() = default;
   virtual SeFloat getAreaSub(int pixel_x, int pixel_y) const = 0;
-  virtual SeFloat getArea(int pixel_x, int pixel_y) const = 0;
+  virtual int getArea(int pixel_x, int pixel_y) const = 0;
   virtual PixelCoordinate getMinPixel() const = 0;
   virtual PixelCoordinate getMaxPixel() const = 0;
 };
@@ -67,7 +65,7 @@ public:
     m_rad_max(rad_max) {}
 
   virtual SeFloat getAreaSub(int pixel_x, int pixel_y) const override;
-  virtual SeFloat getArea(int pixel_x, int pixel_y) const override;
+  virtual int getArea(int pixel_x, int pixel_y) const override;
   virtual SeFloat getRadiusSquared(int pixel_x, int pixel_y) const;
   virtual PixelCoordinate getMinPixel() const override;
   virtual PixelCoordinate getMaxPixel() const override;

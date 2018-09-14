@@ -28,14 +28,10 @@ public:
 
   SeFloat getAutoKronFactor() const;
   SeFloat getAutoKronMinrad() const;
-  SeFloat getAutoKronEstimation() const;
-  SeFloat getAutoKronMeasurement() const;
 
 private:
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
 };
 
 } /* namespace SExtractor */
