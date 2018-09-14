@@ -54,9 +54,9 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel();
   const auto& max_pixel = ell_aper->getMaxPixel();
 
-  SeFloat total_flux     = 0;
-  SeFloat total_variance = 0.0;
-  //SeFloat total_area = 0.0;
+  SeFloat  total_flux     = 0;
+  SeFloat  total_variance = 0.0;
+  long int total_flag = 0;
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -107,6 +107,9 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
           m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1.);
         }
       }
+      else{
+        total_flag |= 0x0008;
+      }
     }
   }
 
@@ -116,7 +119,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   // set the source properties
-  source.setProperty<AutoPhotometry>(total_flux, flux_error, mag, mag_error);
+  source.setProperty<AutoPhotometry>(total_flux, flux_error, mag, mag_error, total_flag);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

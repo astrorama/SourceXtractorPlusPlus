@@ -46,6 +46,13 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, long int>(
+          "auto_flag",
+          [](const AutoPhotometry& prop){
+            return prop.getFlag();
+          }
+  );
+
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<AutoPhotometry>("AutoPhotometry");
   // just enable as output (to execute on the measurment images only??)

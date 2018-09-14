@@ -25,6 +25,13 @@ void KronRadiusPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<KronRadius, long int>(
+          "kron_flag",
+          [](const KronRadius& prop){
+            return prop.getFlag();
+          }
+  );
+
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<KronRadius>("KronRadius");
 }

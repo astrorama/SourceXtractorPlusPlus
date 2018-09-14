@@ -53,6 +53,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;
   SeFloat area_sum=0.;
+  long int flag=0;
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -82,16 +83,19 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
           area_sum        += 1;
         }
       }
+      else{
+        flag |= 0x0008;
+      }
     }
   }
 
   // set the property
   if (area_sum>0){
-    source.setProperty<KronRadius>(radius_flux_sum/flux_sum);
+    source.setProperty<KronRadius>(radius_flux_sum/flux_sum, flag);
   }
   else {
     // the default value
-    source.setProperty<KronRadius>(0.0);
+    source.setProperty<KronRadius>(0.0, flag);
   }
 }
 }

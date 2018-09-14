@@ -25,15 +25,20 @@ public:
    */
   virtual ~KronRadius() = default;
 
-  KronRadius(SeFloat kron_radius)
-    : m_kron_radius(kron_radius) {}
+  KronRadius(SeFloat kron_radius, long int flag)
+    : m_kron_radius(kron_radius), m_flag(flag) {}
 
   SeFloat getKronRadius() const {
     return m_kron_radius;
   }
 
+  SeFloat getFlag() const {
+    return m_flag;
+  }
+
 private:
-  SeFloat m_kron_radius;
+  SeFloat  m_kron_radius;
+  long int m_flag;
 };
 
 } /* namespace SExtractor */
