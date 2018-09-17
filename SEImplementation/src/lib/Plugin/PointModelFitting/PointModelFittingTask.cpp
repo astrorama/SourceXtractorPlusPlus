@@ -98,7 +98,7 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
   auto &group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
   auto &variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
   auto &thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
-  auto &group_psf = group.getProperty<PsfProperty>().getPsf();
+  auto group_psf = group.getProperty<PsfProperty>().getPsf();
 
   EngineParameterManager manager{};
   std::vector<ConstantModel> constant_models;
