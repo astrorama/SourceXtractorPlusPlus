@@ -121,6 +121,15 @@ elements_add_unit_test(TemporaryFitsSource_test tests/src/Image/TemporaryFitsSou
 elements_add_unit_test(VariablePsf_test tests/src/Psf/VariablePsf_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(PaddedImage_test tests/src/Image/PaddedImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(RecenterImage_test tests/src/Image/RecenterImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(MirrorImage_test tests/src/Image/MirrorImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here
