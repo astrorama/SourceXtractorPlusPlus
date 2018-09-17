@@ -14,7 +14,6 @@
 #include "SEFramework/Source/SimpleSourceGroup.h"
 
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/ConvolutionImageProcessing.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
