@@ -135,6 +135,12 @@ elements_add_unit_test(MirrorImage_test tests/src/Image/MirrorImage_test.cpp
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(DirectConvolution_test tests/src/Convolution/DirectConvolution_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(DFT_test tests/src/Convolution/DFT_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here
