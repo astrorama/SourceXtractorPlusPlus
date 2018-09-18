@@ -10,6 +10,7 @@
 
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SExtractor {
 
@@ -32,6 +33,58 @@ public:
 
 private:
   SeFloat m_radius;
+};
+
+class NeighbourInfo{
+public:
+  /// Destructor
+  virtual ~NeighbourInfo() = default;
+
+  NeighbourInfo(const PixelCoordinate& min_pixel, const PixelCoordinate& max_pixel, const std::vector<PixelCoordinate>& pixel_list, const std::shared_ptr<Image<SeFloat>> threshold_image)
+  : m_offset(min_pixel) {
+
+    // create the image
+    auto x_size=max_pixel.m_x-min_pixel.m_x+1;
+    auto y_size=max_pixel.m_y-min_pixel.m_y+1;
+    neighbour_image = VectorImage<int>::create(x_size, y_size, std::vector<int>(x_size*y_size, 0));
+
+    std::cout << "width: " << neighbour_image->getWidth() << ", height: " << neighbour_image->getHeight() << std::endl;
+
+    // set the pixels belonging to the source to -1
+    for (auto pixel_coord : pixel_list) {
+      auto act_x = pixel_coord.m_x-m_offset.m_x;
+      auto act_y = pixel_coord.m_y-m_offset.m_y;
+
+      // make sure to be inside the image
+      if (act_x>=0 && act_y>=0 && act_x<neighbour_image->getWidth() && act_y<neighbour_image->getHeight())
+        neighbour_image->setValue(act_x, act_y, -1);
+    }
+
+    // go over the image
+    for (int act_y=0; act_y<neighbour_image->getHeight(); act_y++) {
+      for (int act_x=0; act_x<neighbour_image->getWidth(); act_x++) {
+        int offset_x = act_x+m_offset.m_x;
+        int offset_y = act_y+m_offset.m_y;
+
+        // set surrounding pixels above the threshold to 1, all others to 0
+        if (offset_x>=0 && offset_y>=0 && offset_x<threshold_image->getWidth() && offset_y<threshold_image->getHeight()) {
+          if (threshold_image->getValue(offset_x, offset_y)>0){
+            if (neighbour_image->getValue(act_x, act_y)!=-1)
+              neighbour_image->setValue(act_x, act_y, 1);
+            else
+              neighbour_image->setValue(act_x, act_y, 0);
+          }
+          else
+            neighbour_image->setValue(act_x, act_y, 0);
+        }
+      }
+    }
+  }
+
+private:
+  std::shared_ptr<VectorImage<int>> neighbour_image;
+
+  PixelCoordinate m_offset;
 };
 
 class AperturePhotometryTask : public SourceTask {

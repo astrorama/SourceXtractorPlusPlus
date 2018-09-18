@@ -39,8 +39,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto min_pixel = m_aperture->getMinPixel(centroid_x, centroid_y);
   auto max_pixel = m_aperture->getMaxPixel(centroid_x, centroid_y);
 
-  SeFloat total_flux     = 0;
-  SeFloat total_variance = 0.0;
+  SeFloat  total_flux     = 0;
+  SeFloat  total_variance = 0.0;
+  long int flag           = 0;
   //SeFloat total_area = 0.0;
 
   // iterate over the aperture pixels
@@ -86,6 +87,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
         total_flux     += value * area;
         total_variance +=  pixel_variance * area;
       }
+      else{
+        flag |= 0x0008;
+      }
     }
   }
 
@@ -95,7 +99,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   // set the source properties
-  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error, flag);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -109,7 +113,7 @@ void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source)
   flux /= m_instances_to_aggregate.size();
 
   auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999); // FIXME
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999, 0); // FIXME
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

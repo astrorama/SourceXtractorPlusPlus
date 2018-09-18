@@ -10,8 +10,10 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
@@ -33,6 +35,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& detection_image    = detection_frame->getSubtractedImage();
   const auto& detection_variance = detection_frame->getVarianceMap();
   const auto& variance_threshold = detection_frame->getVarianceThreshold();
+  const auto& threshold_image    = detection_frame->getThresholdedImage();
 
   // get the object center
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
@@ -43,6 +46,9 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
+  // get the pixel list
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
   // create the elliptical aperture
   auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, KRON_NRADIUS);
 
@@ -50,9 +56,14 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel();
   const auto& max_pixel = ell_aper->getMaxPixel();
 
+  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
+  //std::shared_ptr<NeighbourInfo> neighbour_info = std::shared_ptr<NeighbourInfo>(new NeighbourInfo(min_pixel, max_pixel, pix_list));
+  //std::shared_ptr<
+  //auto neighbour_info = std::make_shared<NeighbourInfo>((min_pixel, max_pixel, pix_list));
+
   SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;
-  SeFloat area_sum=0.;
+  long int area_sum=0.;
   long int flag=0;
 
   // iterate over the aperture pixels

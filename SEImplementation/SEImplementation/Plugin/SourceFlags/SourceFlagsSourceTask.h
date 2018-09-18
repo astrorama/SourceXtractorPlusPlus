@@ -25,7 +25,6 @@
 
 #include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
-#include "SEImplementation/Plugin/ApertureFlag/ApertureFlag.h"
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 
@@ -41,9 +40,6 @@ public:
 
     // add the boundary flag as "8"
     source_flag +=  8 * source.getProperty<BoundaryFlag>().getBoundaryFlag();
-
-    // add the aperture flag as "16"
-    source_flag += 16 * source.getProperty<ApertureFlag>().getApertureFlag();
 
     // set the combined source flag
     source.setProperty<SourceFlags>(source_flag);
