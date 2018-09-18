@@ -35,7 +35,7 @@ public:
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<BoundaryFlagTaskFactory, BoundaryFlag>();
   }
   virtual std::string getIdString() const {
-    return "source_flags";
+    return "boundary_flag";
   }
 private:
 }; // end of BoundaryFlagPlugin class

@@ -47,8 +47,17 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  //plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
-  plugin_api.getOutputRegistry().enableOutput<AperturePhotometry>();
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, long int>(
+          "aperture_flag",
+          [](const AperturePhotometry& prop){
+            return prop.getFlag();
+          }
+  );
+
+  // register as optional output (to have it in the output catalog)
+  plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
+  // just enable as output (to execute on the measurment images only??)
+  //plugin_api.getOutputRegistry().enableOutput<AperturePhotometry>();
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

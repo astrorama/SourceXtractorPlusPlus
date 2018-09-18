@@ -1,12 +1,12 @@
 /*
- * AperturePhotometry.h
+ * AutoPhotometry.h
  *
- *  Created on: Sep 22, 2016
- *      Author: mschefer
+ *  Created on: Jul 18, 2018
+ *      Author: mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRY_H_
-#define _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRY_H_
+#define _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRY_H_
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
@@ -14,18 +14,18 @@
 namespace SExtractor {
 
 /**
- * @class AperturePhotometry
- * @brief Aperture photometry flux and magnitude
+ * @class AutoPhotometry
+ * @brief Auto photometry flux and magnitude
  */
-class AperturePhotometry : public Property {
+class AutoPhotometry : public Property {
 public:
 
   /**
    * @brief Destructor
    */
-  virtual ~AperturePhotometry() = default;
+  virtual ~AutoPhotometry() = default;
 
-  AperturePhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, long int flag)
+  AutoPhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, long int flag)
     : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
 
   SeFloat getFlux() const {
@@ -44,7 +44,7 @@ public:
     return m_mag_error;
   }
 
-  SeFloat getFlag() const {
+  long int getFlag() const {
     return m_flag;
   }
 
@@ -58,4 +58,4 @@ private:
 
 } /* namespace SExtractor */
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRY_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRY_H_ */

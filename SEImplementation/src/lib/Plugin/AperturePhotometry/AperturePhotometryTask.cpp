@@ -16,7 +16,8 @@
 namespace SExtractor {
 
 namespace {
-  const int SUPERSAMPLE_NB = 5;
+  // enhancing from 5 to 10 smoothens the photometry
+  const int SUPERSAMPLE_NB = 10;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
+  long int flag = 0;
 
+  // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
       MeasurementImage::PixelType value = 0;
@@ -58,6 +61,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
             }
           }
         }
+        else {
+          flag |= 0x0008;
+        }
       }
 
       auto area = m_aperture->getArea(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY(), pixel_x, pixel_y);
@@ -72,12 +78,13 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
     }
   }
 
+  // compute the derived quantities
   auto flux_error = sqrt(total_variance);
-
   auto mag = total_flux > 0.0 ? -2.5*log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / total_flux;
 
-  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
+  // set the source properties
+  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error, flag);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -91,7 +98,7 @@ void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source)
   flux /= m_instances_to_aggregate.size();
 
   auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999); // FIXME
+  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999, 0); // FIXME
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

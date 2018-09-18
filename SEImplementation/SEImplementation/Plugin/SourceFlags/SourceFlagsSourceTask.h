@@ -23,12 +23,10 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_
 
-#include <iostream>
-
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 #include "SEFramework/Task/SourceTask.h"
-#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
+#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 
 namespace SExtractor {
 class SourceFlagsSourceTask : public SourceTask {
@@ -37,11 +35,11 @@ public:
   virtual void computeProperties(SourceInterface& source) const {
     long int source_flag(0);
 
-    // add the saturate flag as "1"
-    source_flag +=     source.getProperty<SaturateFlag>().getSaturateFlag();
+    // add the saturate flag as "4"
+    source_flag +=  4 * source.getProperty<SaturateFlag>().getSaturateFlag();
 
-    // add the saturate flag as "2"
-    source_flag += 2 * source.getProperty<BoundaryFlag>().getBoundaryFlag();
+    // add the boundary flag as "8"
+    source_flag +=  8 * source.getProperty<BoundaryFlag>().getBoundaryFlag();
 
     // set the combined source flag
     source.setProperty<SourceFlags>(source_flag);
