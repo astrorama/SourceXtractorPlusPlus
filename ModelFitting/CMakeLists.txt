@@ -7,7 +7,6 @@ elements_depends_on_subdirs(ElementsKernel)
 # Declare library dependencies
 #    The module is using the Boost C++ library
 find_package(Boost)
-find_package(OpenCV)
 
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
@@ -16,7 +15,7 @@ elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost levmar OpenCV lapack blas
+                     LINK_LIBRARIES ElementsKernel Boost levmar lapack blas
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
@@ -51,27 +50,30 @@ elements_add_unit_test(DependentParameter_test
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
 
 find_package(CCfits)
+find_package(OpenCV)
 
-elements_add_executable(Example1 src/program/Example1.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+if (OPENCV_FOUND)
+    elements_add_executable(Example1 src/program/Example1.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example2 src/program/Example2.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+    elements_add_executable(Example2 src/program/Example2.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example3 src/program/Example3.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+    elements_add_executable(Example3 src/program/Example3.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example4 src/program/Example4.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+    elements_add_executable(Example4 src/program/Example4.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example_gal src/program/Example_gal.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+    elements_add_executable(Example_gal src/program/Example_gal.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
 
-elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
-                        LINK_LIBRARIES ModelFitting CCfits
-                        INCLUDE_DIRS CCfits)
+    elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
+                            LINK_LIBRARIES ModelFitting CCfits ${OpenCV_LIBS}
+                            INCLUDE_DIRS CCfits)
+endif ()

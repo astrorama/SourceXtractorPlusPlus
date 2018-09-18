@@ -73,6 +73,8 @@ protected:
     }
   }
 
+  explicit VectorImage(const std::shared_ptr<const Image<T>>& other_image): VectorImage{*other_image} {}
+
 public:
   template<typename... Args>
   static std::shared_ptr<VectorImage<T>> create(Args&&... args) {
