@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlags.h
@@ -26,16 +26,21 @@
 #include "SEFramework/Property/Property.h"
 
 namespace SExtractor {
+
 class BoundaryFlag : public Property {
 public:
   virtual ~BoundaryFlag() = default;
-  BoundaryFlag(unsigned long boundary_flag) : m_boundary_flag(boundary_flag) {}
-  long int getBoundaryFlag () const {
+
+  BoundaryFlag(bool boundary_flag) : m_boundary_flag{boundary_flag} {}
+
+  bool getBoundaryFlag() const {
     return m_boundary_flag;
   }
+
 private:
-  long int m_boundary_flag;
+  bool m_boundary_flag;
 }; // end of BoundaryFlag class
+
 } // namespace SExtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAG_H_*/

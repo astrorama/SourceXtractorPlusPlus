@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsPlugin.h
@@ -28,16 +28,21 @@
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlagTaskFactory.h"
 
 namespace SExtractor {
+
 class SaturateFlagPlugin : public Plugin {
 public:
   virtual ~SaturateFlagPlugin() = default;
-  virtual void registerPlugin(PluginAPI& plugin_api) {
+
+  virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SaturateFlagTaskFactory, SaturateFlag>();
   }
+
   virtual std::string getIdString() const {
     return "saturate_flag";
   }
+
 private:
 }; // end of SaturateFlagPlugin class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SATURATEFLAGPLUGIN_H_ */

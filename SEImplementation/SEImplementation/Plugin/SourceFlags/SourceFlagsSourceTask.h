@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsSourceTask.h
@@ -31,20 +31,15 @@
 namespace SExtractor {
 class SourceFlagsSourceTask : public SourceTask {
 public:
+  SourceFlagsSourceTask(unsigned instance): m_instance{instance} {}
+
   virtual ~SourceFlagsSourceTask() = default;
-  virtual void computeProperties(SourceInterface& source) const {
-    long int source_flag(0);
 
-    // add the saturate flag as "4"
-    source_flag +=  4 * source.getProperty<SaturateFlag>().getSaturateFlag();
+  virtual void computeProperties(SourceInterface &source) const;
 
-    // add the boundary flag as "8"
-    source_flag +=  8 * source.getProperty<BoundaryFlag>().getBoundaryFlag();
-
-    // set the combined source flag
-    source.setProperty<SourceFlags>(source_flag);
-  };
 private:
+  unsigned m_instance;
+
 }; // End of SourceFlagsSourceTask class
 } // namespace SExtractor
 

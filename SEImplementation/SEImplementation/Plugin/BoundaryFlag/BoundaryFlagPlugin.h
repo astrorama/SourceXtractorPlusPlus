@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsPlugin.h
@@ -28,16 +28,21 @@
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagTaskFactory.h"
 
 namespace SExtractor {
+
 class BoundaryFlagPlugin : public Plugin {
 public:
   virtual ~BoundaryFlagPlugin() = default;
-  virtual void registerPlugin(PluginAPI& plugin_api) {
+
+  virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<BoundaryFlagTaskFactory, BoundaryFlag>();
   }
+
   virtual std::string getIdString() const {
     return "boundary_flag";
   }
+
 private:
 }; // end of BoundaryFlagPlugin class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_ */

@@ -16,13 +16,13 @@
 namespace SExtractor {
 
 namespace {
-  // enhancing from 5 to 10 smoothens the photometry
-  const int SUPERSAMPLE_NB = 10;
+// enhancing from 5 to 10 smoothens the photometry
+const int SUPERSAMPLE_NB = 10;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
+void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto measurement_frame = source.getProperty<MeasurementFrame>(m_image_instance).getFrame();
 
   auto measurement_image = measurement_frame->getSubtractedImage();
@@ -44,7 +44,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
       MeasurementImage::PixelType value = 0;
       WeightImage::PixelType variance = 0;
 
-      if (pixel_x >=0 && pixel_y >=0 && pixel_x < measurement_image->getWidth() && pixel_y < measurement_image->getHeight()) {
+      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < measurement_image->getWidth() &&
+          pixel_y < measurement_image->getHeight()) {
 
         auto pixel_variance = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
         if (pixel_variance < variance_threshold) {
@@ -53,15 +54,15 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
         } else if (m_use_symmetry) {
           auto mirror_x = 2 * pixel_centroid.getCentroidX() - pixel_x + 0.49999;
           auto mirror_y = 2 * pixel_centroid.getCentroidY() - pixel_y + 0.49999;
-          if (mirror_x >=0 && mirror_y >=0 && mirror_x < measurement_image->getWidth() && mirror_y < measurement_image->getHeight()) {
+          if (mirror_x >= 0 && mirror_y >= 0 && mirror_x < measurement_image->getWidth() &&
+              mirror_y < measurement_image->getHeight()) {
             auto mirror_pixel_variance = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
             if (mirror_pixel_variance < variance_threshold) {
               value = measurement_image->getValue(mirror_x, mirror_y);
               variance = mirror_pixel_variance;
             }
           }
-        }
-        else {
+        } else {
           flag |= 0x0008;
         }
       }
@@ -74,13 +75,13 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 //      }
 
       total_flux += value * area;
-      total_variance +=  variance * area;
+      total_variance += variance * area;
     }
   }
 
   // compute the derived quantities
   auto flux_error = sqrt(total_variance);
-  auto mag = total_flux > 0.0 ? -2.5*log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag = total_flux > 0.0 ? -2.5 * log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   // set the source properties
@@ -89,7 +90,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source) const {
+void AperturePhotometryAggregateTask::computeProperties(SourceInterface &source) const {
   SeFloat flux = 0;
   for (auto instance : m_instances_to_aggregate) {
     auto aperture_photometry = source.getProperty<AperturePhotometry>(instance);
@@ -97,7 +98,7 @@ void AperturePhotometryAggregateTask::computeProperties(SourceInterface& source)
   }
   flux /= m_instances_to_aggregate.size();
 
-  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag = flux > 0.0 ? -2.5 * log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
   source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999, 0); // FIXME
 }
 
@@ -117,8 +118,8 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, int pixel_
       SeFloat area = 0.0;
       for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
         for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
-          auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB/2) / SUPERSAMPLE_NB;
-          auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_NB/2) / SUPERSAMPLE_NB;
+          auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
+          auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
           auto supersampled_distance_squared = dx2 * dx2 + dy2 * dy2;
           if (supersampled_distance_squared <= m_radius * m_radius) {
             area += 1.0 / (SUPERSAMPLE_NB * SUPERSAMPLE_NB);
