@@ -39,6 +39,7 @@ WCS::WCS(const std::string& fits_file_path): m_wcs(nullptr, nullptr) {
     int nreject = 0, nwcs = 0;
     wcsprm* wcs;
     wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+    wcsset(wcs);
 
     m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
       int nwcs_copy = nwcs;
