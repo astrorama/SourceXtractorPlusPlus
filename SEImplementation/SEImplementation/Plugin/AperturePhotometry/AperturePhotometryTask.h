@@ -48,7 +48,7 @@ public:
     auto y_size=max_pixel.m_y-min_pixel.m_y+1;
     neighbour_image = VectorImage<int>::create(x_size, y_size, std::vector<int>(x_size*y_size, 0));
 
-    std::cout << "width: " << neighbour_image->getWidth() << ", height: " << neighbour_image->getHeight() << std::endl;
+    //std::cout << "width: " << neighbour_image->getWidth() << ", height: " << neighbour_image->getHeight() << std::endl;
 
     // set the pixels belonging to the source to -1
     for (auto pixel_coord : pixel_list) {
@@ -79,6 +79,16 @@ public:
         }
       }
     }
+  }
+
+  int isNeighbourPixel(int x, int y ){
+    auto act_x=x-m_offset.m_x;
+    auto act_y=y-m_offset.m_y;
+    if (act_x>=0 && act_y>=0 && act_x<neighbour_image->getWidth() && act_y<neighbour_image->getHeight())
+      return neighbour_image->getValue(x-m_offset.m_x, y-m_offset.m_y);
+    else
+      std::cout << " Booh!";
+    return 0;
   }
 
 private:

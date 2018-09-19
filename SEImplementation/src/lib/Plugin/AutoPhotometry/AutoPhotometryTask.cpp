@@ -11,15 +11,19 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 namespace SExtractor {
 
 namespace {
   // enhancing from 5 to 10 smoothens the photometry
   const int SUPERSAMPLE_AUTO_NB = 10;
+  const SeFloat CROWD_THRESHOLD_AUTO   = 0.1;
+  const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -32,6 +36,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& detection_image    = detection_frame->getSubtractedImage();
   const auto& detection_variance = detection_frame->getVarianceMap();
   const auto& variance_threshold = detection_frame->getVarianceThreshold();
+  const auto& threshold_image    = detection_frame->getThresholdedImage();
 
   // get the object center
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
@@ -41,6 +46,9 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
+
+  // get the pixel list
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor*source.getProperty<KronRadius>().getKronRadius();
@@ -54,8 +62,14 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel();
   const auto& max_pixel = ell_aper->getMaxPixel();
 
+  // get the neighbourhood information
+  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
+
   SeFloat  total_flux     = 0;
   SeFloat  total_variance = 0.0;
+  long int area_sum=0;
+  long int area_bad=0;
+  long int area_full=0;
   long int total_flag = 0;
 
   // iterate over the aperture pixels
@@ -64,53 +78,78 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
       SeFloat value = 0;
       SeFloat pixel_variance = 0;
 
-      // make sure the pixel is inside the image
-      if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
+      // check whether the pixel is in the ellipse
+      if (ell_aper->getArea(pixel_x, pixel_y) > 0){
 
-        // get the variance value
-        pixel_variance = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+        // check whether the pixel is inside the image
+        if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
 
-        // check whether the pixel is "good"
-        if (pixel_variance < variance_threshold) {
-          value = detection_image->getValue(pixel_x, pixel_y);
-        }
-        else if (m_use_symmetry) {
+          // enhance the area
+          area_sum += 1;
 
-          // for bad pixels get the mirror pixel
-          auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
-          auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
-          if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
-            pixel_variance = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
+          // get the variance value
+          pixel_variance = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
 
-            // check whether the mirror pixel is good
-            if (pixel_variance < variance_threshold) {
-              value = detection_image->getValue(mirror_x, mirror_y);
-            } else {
-              // set bad pixel values to zero
-              value=0.0;
-              pixel_variance=0.0;
+          // check whether the pixel is "good"
+          if (pixel_variance < variance_threshold) {
+            value = detection_image->getValue(pixel_x, pixel_y);
+          }
+          else if (m_use_symmetry) {
+
+            // for bad pixels get the mirror pixel
+            auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
+            auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
+            if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
+              pixel_variance = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
+
+              // check whether the mirror pixel is good
+              if (pixel_variance < variance_threshold) {
+                value = detection_image->getValue(mirror_x, mirror_y);
+              } else {
+                // set bad pixel values to zero
+                value=0.0;
+                pixel_variance=0.0;
+                area_bad += 1;
+              }
             }
           }
-        } else {
-          // set bad pixel values to zero
-          value=0.0;
-          pixel_variance=0.0;
-        }
+          else {
+            // set bad pixel values to zero
+            value=0.0;
+            pixel_variance=0.0;
+            area_bad += 1;
+          }
 
-        // check whether the pixel is in the area;
-        // enhance the flux and error quantities
-        if (ell_aper->getArea(pixel_x, pixel_y) > 0){
-          total_flux     += value;
-          total_variance += pixel_variance;
-
+          // check whether the pixel is part of another object
+          if (neighbour_info.isNeighbourPixel(pixel_x, pixel_y)) {
+            area_full += 1;
+          }
+          else {
+            total_flux     += value;
+            total_variance += pixel_variance;
+            }
           // TEMP
           m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1.);
         }
-      }
-      else{
-        total_flag |= 0x0008;
+        else{
+          // set the border flag
+          total_flag |= 0x0008;
+        }
       }
     }
+  }
+
+  if (area_sum>0){
+    // check/set the bad area flag
+    if ((SeFloat)area_bad/(SeFloat)area_sum > BADAREA_THRESHOLD_AUTO)
+      total_flag |= 0x0001;
+
+    // check/set the crowded area flag
+    if ((SeFloat)area_full/(SeFloat)area_sum > BADAREA_THRESHOLD_AUTO)
+      total_flag |= 0x0002;
+  }
+  else{
+    std::cout << "zero-sized area ";
   }
 
   // compute the derived quantities
@@ -121,24 +160,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   // set the source properties
   source.setProperty<AutoPhotometry>(total_flux, flux_error, mag, mag_error, total_flag);
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-/*
-void AutoPhotometryAggregateTask::computeProperties(SourceInterface& source) const {
-  SeFloat flux = 0;
-  for (auto instance : m_instances_to_aggregate) {
-    auto aperture_photometry = source.getProperty<AperturePhotometry>(instance);
-    flux += aperture_photometry.getFlux();
-  }
-  flux /= m_instances_to_aggregate.size();
-
-  auto mag = flux > 0.0 ? -2.5*log10(flux) + m_magnitude_zero_point : SeFloat(99.0);
-  source.setIndexedProperty<AperturePhotometry>(m_instance, flux, 999999, mag, 999999); // FIXME
-}
-*/
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
 
 SeFloat EllipticalAperture::getAreaSub(int pixel_x, int pixel_y) const{
   SeFloat act_x, act_y;
