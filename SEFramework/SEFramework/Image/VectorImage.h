@@ -64,7 +64,7 @@ protected:
     assert(m_data.size() == std::size_t(width * height));
   }
   
-  explicit VectorImage(const Image<T>& other_image) :
+  VectorImage(const Image<T>& other_image) :
     m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height), m_offset(0,0) {
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
@@ -73,7 +73,7 @@ protected:
     }
   }
 
-  explicit VectorImage(const std::shared_ptr<const Image<T>>& other_image): VectorImage{*other_image} {}
+  VectorImage(const std::shared_ptr<const Image<T>>& other_image): VectorImage(static_cast<const Image<T>&>(*other_image)) {}
 
 public:
   template<typename... Args>

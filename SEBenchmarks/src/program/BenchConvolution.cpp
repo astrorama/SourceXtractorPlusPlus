@@ -37,6 +37,13 @@
 #include "SEFramework/Convolution/OpenCVConvolution.h"
 #endif
 
+#if BOOST_VERSION < 105600
+#include <boost/units/detail/utility.hpp>
+using boost::units::detail::demangle;
+#else
+using boost::core::demangle;
+#endif
+
 namespace po = boost::program_options;
 namespace timer = boost::timer;
 using namespace SExtractor;
@@ -129,7 +136,7 @@ public:
   std::shared_ptr<VectorImage<SeFloat>>
   benchmark(std::shared_ptr<VectorImage<SeFloat>> &image, std::shared_ptr<VectorImage<SeFloat>> &kernel,
     int repeat, int measures) {
-    auto conv_name = boost::core::demangle(typeid(Convolution).name());
+    auto conv_name = demangle(typeid(Convolution).name());
 
     Convolution convolution(kernel);
 
