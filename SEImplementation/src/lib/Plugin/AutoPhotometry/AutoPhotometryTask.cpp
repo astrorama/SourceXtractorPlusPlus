@@ -121,7 +121,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
           }
 
           // check whether the pixel is part of another object
-          if (neighbour_info.isNeighbourPixel(pixel_x, pixel_y)) {
+          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
             area_full += 1;
           }
           else {
@@ -129,7 +129,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
             total_variance += pixel_variance;
             }
           // TEMP
-          m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1.);
+          //m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1.);
         }
         else{
           // set the border flag
@@ -147,9 +147,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
     // check/set the crowded area flag
     if ((SeFloat)area_full/(SeFloat)area_sum > BADAREA_THRESHOLD_AUTO)
       total_flag |= 0x0002;
-  }
-  else{
-    std::cout << "zero-sized area ";
   }
 
   // compute the derived quantities

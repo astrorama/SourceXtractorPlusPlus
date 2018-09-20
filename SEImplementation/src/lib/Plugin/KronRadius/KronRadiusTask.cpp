@@ -98,7 +98,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
           }
 
           // check whether the pixel is part of another object
-          if (neighbour_info.isNeighbourPixel(pixel_x, pixel_y)) {
+          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
             area_full += 1;
           }
           else {

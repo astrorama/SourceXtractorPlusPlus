@@ -81,14 +81,11 @@ public:
     }
   }
 
-  int isNeighbourPixel(int x, int y ){
+  int isNeighbourObjectPixel(int x, int y ){
     auto act_x=x-m_offset.m_x;
     auto act_y=y-m_offset.m_y;
-    if (act_x>=0 && act_y>=0 && act_x<neighbour_image->getWidth() && act_y<neighbour_image->getHeight())
-      return neighbour_image->getValue(x-m_offset.m_x, y-m_offset.m_y);
-    else
-      std::cout << " Booh!";
-    return 0;
+    assert(act_x>=0 && act_y>=0 && act_x<neighbour_image->getWidth() && act_y<neighbour_image->getHeight());
+    return neighbour_image->getValue(act_x, act_y);
   }
 
 private:
@@ -106,12 +103,13 @@ public:
   virtual ~AperturePhotometryTask() = default;
 
   AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, unsigned int image_instance,
-      SeFloat magnitude_zero_point, bool use_symmetry)
+      SeFloat magnitude_zero_point, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image)
       : m_aperture(aperture),
         m_instance(instance),
         m_image_instance(image_instance),
         m_magnitude_zero_point(magnitude_zero_point),
-        m_use_symmetry(use_symmetry) {}
+        m_use_symmetry(use_symmetry),
+        m_tmp_check_image(tmp_check_image) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
@@ -121,6 +119,9 @@ private:
   unsigned int m_image_instance;
   SeFloat m_magnitude_zero_point;
   bool m_use_symmetry;
+
+  // TEMP
+  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 };
 
 class AperturePhotometryAggregateTask : public SourceTask {

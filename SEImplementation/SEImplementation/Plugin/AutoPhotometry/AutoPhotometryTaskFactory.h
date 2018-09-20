@@ -11,10 +11,10 @@
 #include "SEFramework/Task/TaskFactory.h"
 
 // TEMP
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
-#include "SEFramework/Image/WriteableImage.h"
+//#include "SEFramework/Image/Image.h"
+//#include "SEFramework/Image/VectorImage.h"
+//#include "SEFramework/Image/SubtractImage.h"
+//#include "SEFramework/Image/WriteableImage.h"
 //#include "SEFramework/Image/FitsWriter.h"
 
 namespace SExtractor {
@@ -43,7 +43,7 @@ private:
   SeFloat m_kron_minrad;
 
   // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+  //std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 
 };
 

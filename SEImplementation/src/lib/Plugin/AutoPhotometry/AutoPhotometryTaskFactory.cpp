@@ -39,14 +39,15 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& 
   m_kron_minrad = manager.getConfiguration<AutoPhotometryConfig>().getAutoKronMinrad();
 
   // TEMP
-  auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-  std::string bbb("tmp.fits");
-  m_tmp_check_image = FitsWriter::newImage<float>(bbb, detection_image->getWidth(), detection_image->getHeight());
+  //auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+  //std::string bbb("tmp.fits");
+  //m_tmp_check_image = FitsWriter::newImage<float>(bbb, detection_image->getWidth(), detection_image->getHeight());
 }
 
 std::shared_ptr<Task> AutoPhotometryTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<AutoPhotometry>()) {
-    return std::make_shared<AutoPhotometryTask>(m_magnitude_zero_point, m_kron_factor, m_kron_minrad, true, m_tmp_check_image);
+    //return std::make_shared<AutoPhotometryTask>(m_magnitude_zero_point, m_kron_factor, m_kron_minrad, true, m_tmp_check_image);
+    return std::make_shared<AutoPhotometryTask>(m_magnitude_zero_point, m_kron_factor, m_kron_minrad, true);
   } else {
     return nullptr;
   }

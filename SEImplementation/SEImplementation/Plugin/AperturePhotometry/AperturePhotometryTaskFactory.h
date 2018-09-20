@@ -10,6 +10,13 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
+// TEMP
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/WriteableImage.h"
+#include "SEFramework/Image/FitsWriter.h"
+
 namespace SExtractor {
 
 class AperturePhotometryTaskFactory : public TaskFactory {
@@ -37,6 +44,9 @@ private:
   std::map<std::pair<unsigned int, SeFloat>, unsigned int> m_aperture_instances;
 
   std::vector<std::pair<std::string, unsigned int>> m_instance_names;
+
+  // TEMP
+  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 };
 
 }
