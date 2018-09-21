@@ -59,8 +59,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
-      SeFloat value = 0;
+      SeFloat pixel_value    = 0;
       SeFloat pixel_variance = 0;
+      SeFloat variance_tmp   = 0;
 
       // get the area coverage and continue if there is overlap
       auto area = m_aperture->getArea(centroid_x, centroid_y, pixel_x, pixel_y);
@@ -69,52 +70,40 @@ void AperturePhotometryTask::computeProperties(SourceInterface& source) const {
         // make sure the pixel is inside the image
         if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
 
-          // engance the area
+          // enhance the area
           total_area += area;
 
-          // get the variance value
-          pixel_variance = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
 
-          // check whether the pixel is "good"
-          if (pixel_variance < variance_threshold) {
-            value = detection_image->getValue(pixel_x, pixel_y);
-          }
-          else if (m_use_symmetry) {
+          variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) || variance_tmp > variance_threshold) {
 
-            // for bad pixels get the mirror pixel
-            auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
-            auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
-            if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
-              pixel_variance = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
+            // enhance the area affected by a defect
+            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
+              full_area+=1;
+            if (variance_tmp > variance_threshold)
+              bad_area+=1;
 
-              // check whether the mirror pixel is good
-              if (pixel_variance < variance_threshold) {
-                value = detection_image->getValue(mirror_x, mirror_y);
-              } else {
-                // set bad pixel values to zero
-                value=0.0;
-                pixel_variance=0.0;
-                bad_area += area;
+            // try using the mirror pixel
+            if (m_use_symmetry){
+              // get the mirror pixel
+              auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
+              auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
+              if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
+                variance_tmp = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
+                if (!neighbour_info.isNeighbourObjectPixel(mirror_x, mirror_y) && variance_tmp < variance_threshold) {
+                  // mirror pixel is OK: take the value
+                  pixel_value    = detection_image->getValue(mirror_x, mirror_y);
+                  pixel_variance = variance_tmp;
+                }
               }
             }
-          } else {
-            // set bad pixel values to zero
-            value=0.0;
-            pixel_variance=0.0;
-            bad_area+=area;
-          }
-
-          // check whether the pixel is part of another object
-          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
-            full_area += area;
           }
           else {
-            total_flux     += value * area;
-            total_variance += pixel_variance * area;
+            pixel_value    = detection_image->getValue(pixel_x, pixel_y);
+            pixel_variance = variance_tmp;
           }
-
-          // TEMP
-          m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+area);
+          total_flux     += pixel_value * area;
+          total_variance += pixel_variance * area;
         }
         else{
           total_flag |= 0x0008;

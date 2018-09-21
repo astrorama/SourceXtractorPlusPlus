@@ -75,8 +75,9 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
-      SeFloat value = 0;
+      SeFloat pixel_value    = 0;
       SeFloat pixel_variance = 0;
+      SeFloat variance_tmp   = 0;
 
       // check whether the pixel is in the ellipse
       if (ell_aper->getArea(pixel_x, pixel_y) > 0){
@@ -87,49 +88,38 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
           // enhance the area
           area_sum += 1;
 
-          // get the variance value
-          pixel_variance = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+          // check whether the pixel is OK
+          variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) || variance_tmp > variance_threshold) {
 
-          // check whether the pixel is "good"
-          if (pixel_variance < variance_threshold) {
-            value = detection_image->getValue(pixel_x, pixel_y);
-          }
-          else if (m_use_symmetry) {
+            // enhance the area affected by a defect
+            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
+              area_full+=1;
+            if (variance_tmp > variance_threshold)
+              area_bad+=1;
 
-            // for bad pixels get the mirror pixel
-            auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
-            auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
-            if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
-              pixel_variance = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
-
-              // check whether the mirror pixel is good
-              if (pixel_variance < variance_threshold) {
-                value = detection_image->getValue(mirror_x, mirror_y);
-              } else {
-                // set bad pixel values to zero
-                value=0.0;
-                pixel_variance=0.0;
-                area_bad += 1;
+            // try using the mirror pixel
+            if (m_use_symmetry){
+              // get the mirror pixel
+              auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
+              auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
+              if (mirror_x >=0 && mirror_y >=0 && mirror_x < detection_image->getWidth() && mirror_y < detection_image->getHeight()) {
+                variance_tmp = detection_variance ? detection_variance->getValue(mirror_x, mirror_y) : 1;
+                if (!neighbour_info.isNeighbourObjectPixel(mirror_x, mirror_y) && variance_tmp < variance_threshold) {
+                  // mirror pixel is OK: take the value
+                  pixel_value    = detection_image->getValue(mirror_x, mirror_y);
+                  pixel_variance = variance_tmp;
+                }
               }
             }
           }
           else {
-            // set bad pixel values to zero
-            value=0.0;
-            pixel_variance=0.0;
-            area_bad += 1;
+            // pixel is OK: take the value
+            pixel_value    = detection_image->getValue(pixel_x, pixel_y);
+            pixel_variance = variance_tmp;
           }
-
-          // check whether the pixel is part of another object
-          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
-            area_full += 1;
-          }
-          else {
-            total_flux     += value;
-            total_variance += pixel_variance;
-            }
-          // TEMP
-          //m_tmp_check_image->setValue(pixel_x, pixel_y, m_tmp_check_image->getValue(pixel_x, pixel_y)+1.);
+          total_flux     += pixel_value;
+          total_variance += pixel_variance;
         }
         else{
           // set the border flag

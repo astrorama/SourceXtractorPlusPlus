@@ -11,10 +11,6 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 
-// TEMP
-#include "SEFramework/Image/FitsWriter.h"
-#include "SEImplementation/Configuration/DetectionImageConfig.h"
-
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 
@@ -33,8 +29,7 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
         instance,
         m_image_instances[instance],
         m_magnitude_zero_point,
-        m_symmetry_usage,
-        m_tmp_check_image
+        m_symmetry_usage
         );
   } else {
     return nullptr;
@@ -50,8 +45,6 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
   manager.registerConfiguration<AperturePhotometryConfig>();
   manager.registerConfiguration<WeightImageConfig>();
 
-  // TEMP
-  manager.registerConfiguration<DetectionImageConfig>();
 }
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
@@ -87,12 +80,6 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
       aperture_instance_nb++;
     }
   }
-
-  // TEMP
-  auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-  std::string bbb("ttmp.fits");
-  m_tmp_check_image = FitsWriter::newImage<float>(bbb, detection_image->getWidth(), detection_image->getHeight());
-
 }
 
 }

@@ -103,13 +103,12 @@ public:
   virtual ~AperturePhotometryTask() = default;
 
   AperturePhotometryTask(std::shared_ptr<Aperture> aperture, unsigned int instance, unsigned int image_instance,
-      SeFloat magnitude_zero_point, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image)
+      SeFloat magnitude_zero_point, bool use_symmetry)
       : m_aperture(aperture),
         m_instance(instance),
         m_image_instance(image_instance),
         m_magnitude_zero_point(magnitude_zero_point),
-        m_use_symmetry(use_symmetry),
-        m_tmp_check_image(tmp_check_image) {}
+        m_use_symmetry(use_symmetry) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
@@ -120,8 +119,6 @@ private:
   SeFloat m_magnitude_zero_point;
   bool m_use_symmetry;
 
-  // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 };
 
 class AperturePhotometryAggregateTask : public SourceTask {
