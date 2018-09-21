@@ -43,8 +43,6 @@ private:
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
   bool m_use_symmetry;
 
   // TEMP

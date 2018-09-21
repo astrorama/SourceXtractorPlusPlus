@@ -26,13 +26,15 @@ static const std::string WEIGHT_TYPE {"weight-type" };
 static const std::string WEIGHT_ABSOLUTE {"weight-absolute" };
 static const std::string WEIGHT_SCALING {"weight-scaling" };
 static const std::string WEIGHT_THRESHOLD {"weight-threshold" };
+static const std::string WEIGHT_SYMMETRYUSAGE {"weight-usesymmetry" };
 
 WeightImageConfig::WeightImageConfig(long manager_id) :
     Configuration(manager_id),
     m_weight_type(WeightType::WEIGHT_TYPE_FROM_BACKGROUND),
     m_absolute_weight(false),
     m_weight_scaling(1),
-    m_weight_threshold(0) {}
+    m_weight_threshold(0),
+    m_symmetry_usage(true) {}
 
 std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::getProgramOptions() {
   return { {"Weight image", {
@@ -46,11 +48,14 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
           "Weight map scaling factor."},
       {WEIGHT_THRESHOLD.c_str(), po::value<double>(),
           "Threshold for pixels to be considered bad pixels. In same units as weight map."},
+      {WEIGHT_SYMMETRYUSAGE.c_str(), po::value<bool>()->default_value(true),
+          "Use object symmetry to replace pixels above the weight threshold for photometry."},
   }}};
 }
 
 void WeightImageConfig::initialize(const UserValues& args) {
   m_absolute_weight = args.find(WEIGHT_ABSOLUTE)->second.as<bool>();
+  m_symmetry_usage = args.find(WEIGHT_SYMMETRYUSAGE)->second.as<bool>();
   auto weight_image_filename = args.find(WEIGHT_IMAGE)->second.as<std::string>();
   if (weight_image_filename != "") {
     m_weight_image = FitsReader<WeightImage::PixelType>::readFile(weight_image_filename);

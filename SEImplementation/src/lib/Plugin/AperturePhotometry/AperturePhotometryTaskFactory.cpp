@@ -15,6 +15,7 @@
 #include "SEFramework/Image/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
+#include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
@@ -32,7 +33,7 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
         instance,
         m_image_instances[instance],
         m_magnitude_zero_point,
-        true,
+        m_symmetry_usage,
         m_tmp_check_image
         );
   } else {
@@ -47,6 +48,7 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry& ou
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<MagnitudeConfig>();
   manager.registerConfiguration<AperturePhotometryConfig>();
+  manager.registerConfiguration<WeightImageConfig>();
 
   // TEMP
   manager.registerConfiguration<DetectionImageConfig>();
@@ -54,6 +56,7 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
+  m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
   auto apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
 
   // this code is for the detection image only,
