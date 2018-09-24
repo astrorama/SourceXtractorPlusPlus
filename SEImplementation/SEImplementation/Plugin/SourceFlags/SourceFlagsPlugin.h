@@ -38,7 +38,7 @@ public:
     plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, long int>(
       "source_flags",
       [](const SourceFlags &prop) {
-        return prop.getSourceFlags();
+        return static_cast<long int>(prop.getSourceFlags());
       }
     );
     plugin_api.getOutputRegistry().optionalOutput<SourceFlags>("SourceFlags");

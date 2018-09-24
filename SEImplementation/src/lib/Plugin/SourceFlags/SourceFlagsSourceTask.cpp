@@ -21,6 +21,7 @@
  */
 
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
+#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 
 namespace SExtractor {
 
@@ -28,10 +29,10 @@ void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
   long int source_flag = 0;
 
   // add the saturate flag as "4"
-  source_flag += 4 * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
+  source_flag |= SourceFlags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
 
   // add the boundary flag as "8"
-  source_flag += 8 * source.getProperty<BoundaryFlag>(m_instance).getBoundaryFlag();
+  source_flag |= SourceFlags::BOUNDARY * source.getProperty<BoundaryFlag>(m_instance).getBoundaryFlag();
 
   // set the combined source flag
   source.setIndexedProperty<SourceFlags>(m_instance, source_flag);
