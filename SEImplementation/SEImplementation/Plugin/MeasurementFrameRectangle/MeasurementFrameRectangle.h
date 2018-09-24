@@ -25,6 +25,10 @@ public:
     return m_min_coord;
   }
 
+  PixelCoordinate getBottomRight() const {
+    return m_max_coord;
+  }
+
   int getWidth() const {
     return m_max_coord.m_x - m_min_coord.m_x;
   }
