@@ -39,10 +39,6 @@
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 
-#include "ModelFitting/Image/OpenCvMatImageTraits.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
-#include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
-
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
 

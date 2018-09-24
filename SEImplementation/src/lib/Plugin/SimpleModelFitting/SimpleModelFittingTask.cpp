@@ -306,7 +306,7 @@ void SimpleModelFittingTask::computeProperties(SourceGroupInterface& group) cons
   auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
   //auto& weight_stamp = group.getProperty<DetectionFrameGroupStamp>().getWeightStamp();
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
-  auto& group_psf = group.getProperty<PsfProperty>().getPsf();
+  auto group_psf = group.getProperty<PsfProperty>().getPsf();
 
   double pixel_scale = 1;
 
