@@ -51,10 +51,10 @@ void MeasurementFrameGroupRectangleTask::computeProperties(SourceGroupInterface&
 
   // Clip the coordinates to fit the available image
   auto frame_image = frame->getSubtractedImage();
-  min_coord.m_x = std::max(0, min_coord.m_x);
-  min_coord.m_y = std::max(0, min_coord.m_y);
-  max_coord.m_x = std::min(frame_image->getWidth(), max_coord.m_x);
-  max_coord.m_y = std::min(frame_image->getHeight(), max_coord.m_y);
+  min_coord.m_x = std::max(0, std::min(frame_image->getWidth(), min_coord.m_x));
+  min_coord.m_y = std::max(0, std::min(frame_image->getHeight(), min_coord.m_y));
+  max_coord.m_x = std::max(0, std::min(frame_image->getWidth(), max_coord.m_x));
+  max_coord.m_y = std::max(0, std::min(frame_image->getHeight(), max_coord.m_y));
 
   group.setIndexedProperty<MeasurementFrameGroupRectangle>(m_instance, min_coord, max_coord);
 }
