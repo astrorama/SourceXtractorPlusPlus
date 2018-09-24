@@ -26,7 +26,7 @@
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
-#include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
+#include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 
 namespace SExtractor {
 
@@ -46,7 +46,7 @@ public:
     auto y_border = measurement_frame->getOriginalImage()->getHeight() - 1;
 
     // iterate over all pixel coordinates
-    auto measurement_rectangle = source.getProperty<MeasurementFrameGroupRectangle>(m_instance);
+    auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);
     auto top_left = measurement_rectangle.getTopLeft();
     auto bottom_right = measurement_rectangle.getBottomRight();
 

@@ -24,7 +24,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_
 
 #include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
-#include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
+#include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -41,10 +41,9 @@ public:
   virtual void computeProperties(SourceInterface &source) const {
     bool saturate_flag = false;
 
-    // get the saturation value
     const auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
     const auto saturation = measurement_frame->getSaturation();
-    const auto measurement_rectangle = source.getProperty<MeasurementFrameGroupRectangle>(m_instance);
+    const auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);
 
     // check whether a saturation value is set
     if (saturation > 0) {
