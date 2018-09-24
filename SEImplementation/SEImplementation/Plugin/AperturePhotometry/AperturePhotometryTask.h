@@ -79,6 +79,13 @@ public:
     }
   }
 
+  int isNeighbourObjectPixel(int x, int y ){
+    auto act_x=x-m_offset.m_x;
+    auto act_y=y-m_offset.m_y;
+    assert(act_x>=0 && act_y>=0 && act_x<neighbour_image->getWidth() && act_y<neighbour_image->getHeight());
+    return neighbour_image->getValue(act_x, act_y);
+  }
+
 private:
   std::shared_ptr<VectorImage<int>> neighbour_image;
 
@@ -109,6 +116,7 @@ private:
   unsigned int m_image_instance;
   SeFloat m_magnitude_zero_point;
   bool m_use_symmetry;
+
 };
 
 class AperturePhotometryAggregateTask : public SourceTask {

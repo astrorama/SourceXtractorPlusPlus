@@ -22,13 +22,20 @@ public:
 
   /// Destructor
   virtual ~AutoPhotometryTask() = default;
-
+  /*
   AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
     m_magnitude_zero_point(magnitude_zero_point),
     m_kron_factor(kron_factor),
     m_kron_minrad(kron_minrad),
     m_use_symmetry(use_symmetry),
     m_tmp_check_image(tmp_check_image) {}
+*/
+
+  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry) :
+    m_magnitude_zero_point(magnitude_zero_point),
+    m_kron_factor(kron_factor),
+    m_kron_minrad(kron_minrad),
+    m_use_symmetry(use_symmetry) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
@@ -36,12 +43,10 @@ private:
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
-  SeFloat m_kron_estimation;
-  SeFloat m_kron_measurement;
   bool m_use_symmetry;
 
   // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+  //std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 };
 
 class EAperture {

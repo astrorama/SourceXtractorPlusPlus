@@ -11,10 +11,10 @@
 #include "SEFramework/Task/TaskFactory.h"
 
 // TEMP
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
-#include "SEFramework/Image/WriteableImage.h"
+//#include "SEFramework/Image/Image.h"
+//#include "SEFramework/Image/VectorImage.h"
+//#include "SEFramework/Image/SubtractImage.h"
+//#include "SEFramework/Image/WriteableImage.h"
 //#include "SEFramework/Image/FitsWriter.h"
 
 namespace SExtractor {
@@ -25,10 +25,6 @@ public:
 
   /// Destructor
   virtual ~AutoPhotometryTaskFactory() = default;
-  //virtual ~AutoPhotometryTaskFactory(){
-  //  std::string bbb("tmp.fits");
-  //  FitsWriter::writeFile(*m_tmp_check_image, bbb);
-  //}
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
@@ -41,9 +37,10 @@ private:
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
+  bool    m_symmetry_usage;
 
   // TEMP
-  std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
+  //std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
 
 };
 
