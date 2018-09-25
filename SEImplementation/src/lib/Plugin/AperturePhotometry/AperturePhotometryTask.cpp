@@ -109,14 +109,6 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
           total_flag |= 0x0008;
         }
       }
-
-      // FIXME add gain noise, weight_gain flag support?
-//      if (gain > 0 && total_flux > 0) {
-//        total_variance += total_flux / gain;
-//      }
-
-      total_flux += pixel_value * area;
-      total_variance += pixel_value * area;
     }
   }
 
