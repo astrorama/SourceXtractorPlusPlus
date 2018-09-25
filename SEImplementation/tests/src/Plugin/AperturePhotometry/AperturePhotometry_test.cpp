@@ -14,6 +14,7 @@
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 
 using namespace SExtractor;
 
@@ -35,6 +36,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
 
   auto frame = std::make_shared<DetectionImageFrame>(image);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
+  source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{{0, 0}}});
 
   AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0, 0, false);
   aperture_photometry_task.computeProperties(source);
