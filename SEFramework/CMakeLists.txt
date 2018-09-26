@@ -49,8 +49,8 @@ elements_add_library(SEFramework
                      src/lib/Filesystem/*.cpp
                      src/lib/Psf/*.cpp
                      src/lib/FFT/*.cpp
-                     LINK_LIBRARIES ElementsKernel CCfits SEUtils Table Configuration ${FFTW_LIBRARIES}
-                     INCLUDE_DIRS SEUtils CCfits ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+                     LINK_LIBRARIES ElementsKernel SEUtils Table Configuration ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
+                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
                      
 #===============================================================================
