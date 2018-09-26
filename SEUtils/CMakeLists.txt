@@ -58,7 +58,7 @@ elements_add_unit_test(PixelCoordinate_test tests/src/PixelCoordinate_test.cpp
 
 if(GMOCK_FOUND)
 elements_add_unit_test(Observable_test tests/src/Observable_test.cpp 
-                     LINK_LIBRARIES SEUtils GMock
+                     LINK_LIBRARIES SEUtils GMock pthread
                      INCLUDE_DIRS GMock
                      TYPE Boost)
 endif(GMOCK_FOUND)
