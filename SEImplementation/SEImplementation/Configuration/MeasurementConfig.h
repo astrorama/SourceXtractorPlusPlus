@@ -47,6 +47,17 @@ public:
       return m_measurement_image_indices;
     }
 
+    const int getPosition(unsigned i) const {
+      int pos = 1;
+      for (auto img : m_measurement_image_indices) {
+        if (img == i) {
+          return pos;
+        }
+        ++pos;
+      }
+      return -1;
+    }
+
     const AperturePhotometryOptions& getAperturePhotometryOptions() const {
       return m_aperture_options;
     }
@@ -106,6 +117,15 @@ public:
 
   const std::vector<std::shared_ptr<ImageGroup>>& getImageGroups() const {
     return m_groups;
+  }
+
+  const std::shared_ptr<ImageGroup> getGroupForImage(unsigned i) const {
+    for (auto group : m_groups) {
+      if (group->getMeasurementImageIndices().count(i)) {
+        return group;
+      }
+    }
+    return nullptr;
   }
 
   const std::vector<SeFloat>& getGains() const {

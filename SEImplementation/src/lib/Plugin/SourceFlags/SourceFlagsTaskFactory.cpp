@@ -39,7 +39,12 @@ void SourceFlagsTaskFactory::configure(Euclid::Configuration::ConfigManager &man
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   for (unsigned i = 0; i < measurement_images_nb; ++i) {
-    m_instance_names.emplace_back(std::make_pair(std::to_string(i), i));
+    auto& group = measurement_config.getGroupForImage(i);
+    auto& all_idx = group->getMeasurementImageIndices();
+
+    std::ostringstream suffix;
+    suffix << group->getName() << "_" << group->getPosition(i);
+    m_instance_names.emplace_back(std::make_pair(suffix.str(), i));
   }
 }
 
