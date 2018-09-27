@@ -234,6 +234,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
 
     if (flux_scale != 1.0) {
       image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
+      measurement_image_saturate *= flux_scale;
     }
 
     m_measurement_images.push_back(std::move(image));

@@ -193,7 +193,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) > saturation) {
+      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y) > 0) {
         if (gain > 0.0) {

@@ -48,14 +48,14 @@ public:
     // check whether a saturation value is set
     if (saturation > 0) {
       // iterate over all pixel values
-      auto image = measurement_frame->getSubtractedImage();
+      auto image = measurement_frame->getOriginalImage();
       auto stamp = image->getChunk(
         measurement_rectangle.getTopLeft().m_x, measurement_rectangle.getTopLeft().m_y,
         measurement_rectangle.getWidth(), measurement_rectangle.getHeight());
 
       for (int y = 0; y < stamp->getHeight(); ++y) {
         for (int x = 0; x < stamp->getWidth(); ++x) {
-          if (stamp->getValue(x, y) > saturation) {
+          if (stamp->getValue(x, y) >= saturation) {
             saturate_flag = true;
             break;
           }
