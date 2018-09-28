@@ -45,8 +45,7 @@ public:
     const auto saturation = measurement_frame->getSaturation();
     const auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);
 
-    // check whether a saturation value is set
-    if (saturation > 0) {
+    if (saturation > 0 && measurement_rectangle.getWidth()) {
       // iterate over all pixel values
       auto image = measurement_frame->getOriginalImage();
       auto stamp = image->getChunk(

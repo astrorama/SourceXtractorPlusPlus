@@ -16,6 +16,7 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
 
 namespace SExtractor {
 
@@ -63,7 +64,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel();
 
   // get the neighbourhood information
-  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
+  auto neighbour_info = source.getProperty<NeighbourInfo>();
 
   SeFloat  total_flux     = 0;
   SeFloat  total_variance = 0.0;

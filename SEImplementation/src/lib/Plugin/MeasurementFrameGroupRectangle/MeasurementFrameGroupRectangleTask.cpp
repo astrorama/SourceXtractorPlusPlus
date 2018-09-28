@@ -49,14 +49,21 @@ void MeasurementFrameGroupRectangleTask::computeProperties(SourceGroupInterface&
   max_coord.m_x = int(max_x) + 1;
   max_coord.m_y = int(max_y) + 1;
 
-  // Clip the coordinates to fit the available image
   auto frame_image = frame->getSubtractedImage();
-  min_coord.m_x = std::max(0, std::min(frame_image->getWidth(), min_coord.m_x));
-  min_coord.m_y = std::max(0, std::min(frame_image->getHeight(), min_coord.m_y));
-  max_coord.m_x = std::max(0, std::min(frame_image->getWidth(), max_coord.m_x));
-  max_coord.m_y = std::max(0, std::min(frame_image->getHeight(), max_coord.m_y));
 
-  group.setIndexedProperty<MeasurementFrameGroupRectangle>(m_instance, min_coord, max_coord);
+  // The full boundaries may lie outside of the frame
+  if (max_coord.m_x < 0 | max_coord.m_y < 0 | min_coord.m_x >= frame_image->getWidth() || min_coord.m_y >= frame_image->getHeight()) {
+    group.setIndexedProperty<MeasurementFrameGroupRectangle>(m_instance);
+  }
+    // Clip the coordinates to fit the available image
+  else {
+    min_coord.m_x = std::max(0, min_coord.m_x);
+    min_coord.m_y = std::max(0, min_coord.m_y);
+    max_coord.m_x = std::min(frame_image->getWidth() - 1, max_coord.m_x);
+    max_coord.m_y = std::min(frame_image->getHeight() - 1, max_coord.m_y);
+
+    group.setIndexedProperty<MeasurementFrameGroupRectangle>(m_instance, min_coord, max_coord);
+  }
 }
 
 } // SEImplementation namespace

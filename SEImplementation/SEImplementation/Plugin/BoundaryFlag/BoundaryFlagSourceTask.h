@@ -47,10 +47,11 @@ public:
 
     // iterate over all pixel coordinates
     auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);
-    auto top_left = measurement_rectangle.getTopLeft();
-    auto bottom_right = measurement_rectangle.getBottomRight();
 
     if (measurement_rectangle.getHeight() && measurement_rectangle.getWidth()) {
+      auto top_left = measurement_rectangle.getTopLeft();
+      auto bottom_right = measurement_rectangle.getBottomRight();
+
       if (top_left.m_x <= 0 || top_left.m_y <= 0 || bottom_right.m_x >= x_border || bottom_right.m_y >= y_border) {
           boundary_flag = true;
       }

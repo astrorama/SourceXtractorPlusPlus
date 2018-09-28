@@ -44,7 +44,7 @@ public:
     return m_mag_error;
   }
 
-  SeFloat getFlag() const {
+  long int getFlag() const {
     return m_flag;
   }
 
