@@ -33,15 +33,13 @@ public:
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
-  void registerPropertyInstances(OutputRegistry& output_registry) override;
-
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
 
 private:
-  std::vector<std::pair<std::string, unsigned int>> m_instance_names;
+  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 }; // end of SourceFlagsTaskFactory class
 
 }  // namespace SExtractor

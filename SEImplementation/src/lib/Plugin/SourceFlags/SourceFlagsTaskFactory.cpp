@@ -30,27 +30,19 @@ void SourceFlagsTaskFactory::reportConfigDependencies(Euclid::Configuration::Con
   manager.registerConfiguration<MeasurementConfig>();
 }
 
-void SourceFlagsTaskFactory::registerPropertyInstances(SExtractor::OutputRegistry &output_registry) {
-  output_registry.registerPropertyInstances<SourceFlags>(m_instance_names);
-}
-
 void SourceFlagsTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   for (unsigned i = 0; i < measurement_images_nb; ++i) {
     auto& group = measurement_config.getGroupForImage(i);
-    auto& all_idx = group->getMeasurementImageIndices();
-
-    std::ostringstream suffix;
-    suffix << group->getName() << "_" << group->getPosition(i);
-    m_instance_names.emplace_back(std::make_pair(suffix.str(), i));
+    m_instances_per_group[group->getName()].emplace_back(i);
   }
 }
 
 std::shared_ptr<Task> SourceFlagsTaskFactory::createTask(const PropertyId &property_id) const {
-  if (property_id.getTypeId() == typeid(SourceFlags)) {
-    return std::make_shared<SourceFlagsSourceTask>(property_id.getIndex());
+  if (property_id == PropertyId::create<SourceFlags>()) {
+    return std::make_shared<SourceFlagsSourceTask>(m_instances_per_group);
   } else {
     return nullptr;
   }

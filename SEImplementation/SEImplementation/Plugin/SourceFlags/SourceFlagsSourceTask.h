@@ -31,14 +31,15 @@
 namespace SExtractor {
 class SourceFlagsSourceTask : public SourceTask {
 public:
-  SourceFlagsSourceTask(unsigned instance): m_instance{instance} {}
+  SourceFlagsSourceTask(const std::map<std::string, std::vector<unsigned int>> &instances_per_group)
+    : m_instances_per_group{instances_per_group} {}
 
   virtual ~SourceFlagsSourceTask() = default;
 
   virtual void computeProperties(SourceInterface &source) const;
 
 private:
-  unsigned m_instance;
+  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 
 }; // End of SourceFlagsSourceTask class
 } // namespace SExtractor

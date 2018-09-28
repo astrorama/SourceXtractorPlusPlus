@@ -47,17 +47,6 @@ public:
       return m_measurement_image_indices;
     }
 
-    const int getPosition(unsigned i) const {
-      int pos = 1;
-      for (auto img : m_measurement_image_indices) {
-        if (img == i) {
-          return pos;
-        }
-        ++pos;
-      }
-      return -1;
-    }
-
     const AperturePhotometryOptions& getAperturePhotometryOptions() const {
       return m_aperture_options;
     }

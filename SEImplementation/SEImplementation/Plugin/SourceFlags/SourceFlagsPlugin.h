@@ -27,6 +27,8 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsTaskFactory.h"
 
+#include <vector>
+
 namespace SExtractor {
 
 class SourceFlagsPlugin : public Plugin {
@@ -35,10 +37,10 @@ public:
 
   virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceFlagsTaskFactory, SourceFlags>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, long int>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<long int>>(
       "source_flags",
       [](const SourceFlags &prop) {
-        return static_cast<long int>(prop.getSourceFlags());
+        return prop.getSourceFlags();
       }
     );
     plugin_api.getOutputRegistry().optionalOutput<SourceFlags>("SourceFlags");
