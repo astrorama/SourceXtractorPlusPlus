@@ -14,7 +14,7 @@
 
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 
 namespace SExtractor {
@@ -53,7 +53,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto max_pixel = m_aperture->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<NeighbourInfo>(m_instance);
+  auto neighbour_info = source.getProperty<MeasurementNeighbourInfo>(m_instance);
 
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;

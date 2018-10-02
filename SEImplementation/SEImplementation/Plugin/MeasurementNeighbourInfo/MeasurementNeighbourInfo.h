@@ -1,12 +1,12 @@
 /*
- * NeighbourInfo.h
+ * MeasurementNeighbourInfo.h
  *
  *  Created on: Sep 28, 2018
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_NEIGHBOURINFO_NEIGHBOURINFO_H_
-#define _SEIMPLEMENTATION_PLUGIN_NEIGHBOURINFO_NEIGHBOURINFO_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTNEIGHBOURINFO_MEASUREMENTNEIGHBOURINFO_H_
+#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTNEIGHBOURINFO_MEASUREMENTNEIGHBOURINFO_H_
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Property/Property.h"
@@ -14,18 +14,16 @@
 
 namespace SExtractor {
 
-class NeighbourInfo : public Property {
+class MeasurementNeighbourInfo : public Property {
 public:
   /// Destructor
-  virtual ~NeighbourInfo() = default;
+  virtual ~MeasurementNeighbourInfo() = default;
 
-  NeighbourInfo() : m_neighbour_image(nullptr) {
+  MeasurementNeighbourInfo() : m_neighbour_image(nullptr) {
   }
 
-  NeighbourInfo(PixelCoordinate offset, const std::shared_ptr<Image < int>>
-
-  &neighbour_image):
-  m_offset{ offset }, m_neighbour_image{ neighbour_image } {
+  MeasurementNeighbourInfo(PixelCoordinate offset, const std::shared_ptr<Image<int>> &neighbour_image)
+    : m_neighbour_image{ neighbour_image }, m_offset{ offset } {
   }
 
   /// Checks
@@ -49,4 +47,4 @@ private:
 
 } // end SExtractor
 
-#endif // _SEIMPLEMENTATION_PLUGIN_NEIGHBOURINFO_NEIGHBOURINFO_H_
+#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTNEIGHBOURINFO_MEASUREMENTNEIGHBOURINFO_H_

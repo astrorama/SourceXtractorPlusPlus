@@ -17,7 +17,7 @@
 
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
 
 namespace SExtractor {
 
@@ -60,7 +60,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel();
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<NeighbourInfo>();
+  auto neighbour_info = source.getProperty<MeasurementNeighbourInfo>();
 
   SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;

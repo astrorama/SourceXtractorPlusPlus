@@ -57,7 +57,7 @@ public:
 };
 
 
-struct NeighbourInfo_Fixture {
+struct MeasurementNeighbourInfo_Fixture {
   // Two "sources", once centered at 2,2 (42), and another one
   // at 4,2 (24). Tests will run on the centered one, whose pixels
   // are identified by detection_coordinates.
@@ -97,7 +97,7 @@ BOOST_AUTO_TEST_SUITE(NeighbourInfo_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE(OneToOne_test, NeighbourInfo_Fixture) {
+BOOST_FIXTURE_TEST_CASE(OneToOne_test, MeasurementNeighbourInfo_Fixture) {
   NeighbourInfoTask task{0};
 
   source.setProperty<MeasurementFrame>(std::make_shared<MeasurementImageFrame>(
@@ -120,7 +120,7 @@ BOOST_FIXTURE_TEST_CASE(OneToOne_test, NeighbourInfo_Fixture) {
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE(Rotate_test, NeighbourInfo_Fixture) {
+BOOST_FIXTURE_TEST_CASE(Rotate_test, MeasurementNeighbourInfo_Fixture) {
   NeighbourInfoTask task{0};
 
   source.setProperty<MeasurementFrame>(std::make_shared<MeasurementImageFrame>(

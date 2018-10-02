@@ -15,7 +15,7 @@
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 
 using namespace SExtractor;
@@ -37,7 +37,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   image->setValue(0, 0, 1);
 
   auto neighbour = VectorImage<int>::create(1, 1);
-  source.setIndexedProperty<NeighbourInfo>(0, PixelCoordinate{0,0}, neighbour);
+  source.setIndexedProperty<MeasurementNeighbourInfo>(0, PixelCoordinate{0,0}, neighbour);
 
   auto frame = std::make_shared<MeasurementImageFrame>(image);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
@@ -76,7 +76,7 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
     {0, 2}, {2, 2}, {2, 2}
   }});
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 1, 1);
-  source.setIndexedProperty<NeighbourInfo>(0, PixelCoordinate{0,0}, neighbour);
+  source.setIndexedProperty<MeasurementNeighbourInfo>(0, PixelCoordinate{0,0}, neighbour);
 
 
   AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(1.0), 0, 0, 0, false);

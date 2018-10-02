@@ -1,5 +1,5 @@
 /*
- * NeighbourInfoTask.cpp
+ * MeasurementNeighbourInfoTask.cpp
  *
  *  Created on: Sep 28, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -10,14 +10,14 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfoTask.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfoTask.h"
+#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
 
 namespace SExtractor {
 
-NeighbourInfoTask::NeighbourInfoTask(unsigned instance) : m_instance{instance} {}
+MeasurementNeighbourInfoTask::MeasurementNeighbourInfoTask(unsigned instance) : m_instance{instance} {}
 
-void NeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) const {
+void MeasurementNeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) const {
   const auto &measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
   const auto &measurement_boundaries = source.getProperty<MeasurementFrameRectangle>(m_instance);
   const auto &detection_frame = source.getProperty<DetectionFrame>().getFrame();
@@ -33,7 +33,7 @@ void NeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) c
 
   // If the source is outside bounds, skip
   if (measurement_boundaries.getWidth() <= 0) {
-    source.setIndexedProperty<NeighbourInfo>(m_instance);
+    source.setIndexedProperty<MeasurementNeighbourInfo>(m_instance);
     return;
   }
 
@@ -98,7 +98,7 @@ void NeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) c
   }
 
   // Store as a property
-  source.setIndexedProperty<NeighbourInfo>(m_instance, measurement_pixel_min, measurement_neighbour_img);
+  source.setIndexedProperty<MeasurementNeighbourInfo>(m_instance, measurement_pixel_min, measurement_neighbour_img);
 }
 
 } // end SExtractor
