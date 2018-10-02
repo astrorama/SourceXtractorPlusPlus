@@ -11,12 +11,11 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
-#include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
+#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo.h"
 
 namespace SExtractor {
 
@@ -48,9 +47,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
-  // get the pixel list
-  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
-
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor*source.getProperty<KronRadius>().getKronRadius();
   if (kron_radius_auto < m_kron_minrad)
@@ -64,7 +60,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel();
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<MeasurementNeighbourInfo>();
+  auto neighbour_info = source.getProperty<DetectionNeighbourInfo>();
 
   SeFloat  total_flux     = 0;
   SeFloat  total_variance = 0.0;

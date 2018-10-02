@@ -117,6 +117,13 @@ elements_add_unit_test(PointModelFitting_test tests/src/Plugin/PointModelFitting
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
 					 LINK_LIBRARIES SEImplementation
 					 TYPE Boost)
+elements_add_unit_test(DetectionNeighbourInfo_test tests/src/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(MeasurementNeighbourInfo_test tests/src/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo_test.cpp
+					 LINK_LIBRARIES SEImplementation
+					 TYPE Boost)
+
 #===============================================================================
 # Declare the Python programs here
 # Examples :

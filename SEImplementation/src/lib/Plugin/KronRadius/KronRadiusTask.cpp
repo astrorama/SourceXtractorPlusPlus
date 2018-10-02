@@ -10,14 +10,13 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
-#include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
-#include "SEImplementation/Plugin/MeasurementNeighbourInfo/MeasurementNeighbourInfo.h"
+#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo.h"
 
 namespace SExtractor {
 
@@ -49,9 +48,6 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
-  // get the pixel list
-  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
-
   // create the elliptical aperture
   auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, KRON_NRADIUS);
 
@@ -60,7 +56,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel();
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<MeasurementNeighbourInfo>();
+  auto neighbour_info = source.getProperty<DetectionNeighbourInfo>();
 
   SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;
