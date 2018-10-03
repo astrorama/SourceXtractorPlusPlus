@@ -108,6 +108,15 @@ public:
     return m_groups;
   }
 
+  const std::shared_ptr<ImageGroup> getGroupForImage(unsigned i) const {
+    for (auto group : m_groups) {
+      if (group->getMeasurementImageIndices().count(i)) {
+        return group;
+      }
+    }
+    return nullptr;
+  }
+
   const std::vector<SeFloat>& getGains() const {
     return m_gains;
   }

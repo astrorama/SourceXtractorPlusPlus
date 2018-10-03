@@ -14,9 +14,9 @@
  */    
 
 /**
- * @file NDetectedPixels.cpp
+ * @file BoundaryFlagPlugin.cpp
  *
- * @date Apr 27, 2018
+ * @date Jul 10, 2018
  * @author mkuemmel@usm.lmu.de
  */
 

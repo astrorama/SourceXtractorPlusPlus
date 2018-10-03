@@ -266,6 +266,7 @@ public:
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
+    CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
     std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
             << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';

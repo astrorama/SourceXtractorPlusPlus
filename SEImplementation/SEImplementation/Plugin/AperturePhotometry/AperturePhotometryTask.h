@@ -10,6 +10,7 @@
 
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SExtractor {
 
@@ -58,6 +59,7 @@ private:
   unsigned int m_image_instance;
   SeFloat m_magnitude_zero_point;
   bool m_use_symmetry;
+
 };
 
 class AperturePhotometryAggregateTask : public SourceTask {

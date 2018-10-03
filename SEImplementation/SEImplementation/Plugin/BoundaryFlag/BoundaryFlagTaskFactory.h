@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsTaskFactory.h
@@ -26,19 +26,22 @@
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagSourceTask.h"
 
 namespace SExtractor {
+
 class BoundaryFlagTaskFactory : public TaskFactory {
 public:
   BoundaryFlagTaskFactory() {}
+
   virtual ~BoundaryFlagTaskFactory() = default;
+
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
-    if (property_id == PropertyId::create<BoundaryFlag>()) {
-      return std::make_shared<BoundaryFlagSourceTask>();
-    }
-    else{
+  virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const {
+    if (property_id.getTypeId() == typeid(BoundaryFlag)) {
+      return std::make_shared<BoundaryFlagSourceTask>(property_id.getIndex());
+    } else {
       return nullptr;
     }
   }
 }; // end of BoundaryFlagTaskFactory class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGTASKFACTORY_H_ */

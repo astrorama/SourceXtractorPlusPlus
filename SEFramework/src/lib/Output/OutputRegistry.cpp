@@ -28,8 +28,8 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
   return [this](const SourceInterface& source) {
     std::vector<ColumnInfo::info_type> info_list {};
     std::vector<Row::cell_type> cell_values {};
-    for (auto& property : m_output_properties) {
-      for (auto& name : m_property_to_names_map[property]) {
+    for (const auto& property : m_output_properties) {
+      for (const auto& name : m_property_to_names_map.at(property)) {
         info_list.emplace_back(name, m_name_to_converter_map.at(name).first);
         cell_values.emplace_back(m_name_to_converter_map.at(name).second(source));
       }

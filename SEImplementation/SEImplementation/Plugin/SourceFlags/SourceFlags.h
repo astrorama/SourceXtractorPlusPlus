@@ -24,18 +24,29 @@
 #define _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGS_H_
 
 #include "SEFramework/Property/Property.h"
+#include <vector>
 
 namespace SExtractor {
+
 class SourceFlags : public Property {
 public:
+  // Backwards compatible with sextractor flags!
+  static const int HAS_NEIGHBORS = 1 << 0;
+  static const int BLENDED = 1 << 1;
+  static const int SATURATED = 1 << 2;
+  static const int BOUNDARY = 1 << 3;
+
   virtual ~SourceFlags() = default;
-  SourceFlags(unsigned long source_flags) : m_source_flags(source_flags) {}
-  long int getSourceFlags () const {
+  SourceFlags(const std::vector<long int> &source_flags) : m_source_flags(source_flags) {}
+
+  std::vector<long int> getSourceFlags () const {
     return m_source_flags;
   }
+
 private:
-  long int m_source_flags;
+  std::vector<long int> m_source_flags;
 }; // end of SourceFlags class
+
 } // namespace SExtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGS_H_*/

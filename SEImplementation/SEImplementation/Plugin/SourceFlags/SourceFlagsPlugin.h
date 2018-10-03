@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsPlugin.h
@@ -27,24 +27,31 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsTaskFactory.h"
 
+#include <vector>
+
 namespace SExtractor {
+
 class SourceFlagsPlugin : public Plugin {
 public:
   virtual ~SourceFlagsPlugin() = default;
-  virtual void registerPlugin(PluginAPI& plugin_api) {
+
+  virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceFlagsTaskFactory, SourceFlags>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, long int>(
-        "source_flags",
-        [](const SourceFlags& prop){
-      return prop.getSourceFlags();
-    }
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<long int>>(
+      "source_flags",
+      [](const SourceFlags &prop) {
+        return prop.getSourceFlags();
+      }
     );
     plugin_api.getOutputRegistry().optionalOutput<SourceFlags>("SourceFlags");
   }
+
   virtual std::string getIdString() const {
     return "source_flags";
   }
+
 private:
 }; // end of SourceFlagsPlugin class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSPLUGIN_H_ */

@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsTaskFactory.h
@@ -26,19 +26,22 @@
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlagSourceTask.h"
 
 namespace SExtractor {
+
 class SaturateFlagTaskFactory : public TaskFactory {
 public:
   SaturateFlagTaskFactory() {}
+
   virtual ~SaturateFlagTaskFactory() = default;
+
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
-    if (property_id == PropertyId::create<SaturateFlag>()) {
-      return std::make_shared<SaturateFlagSourceTask>();
-    }
-    else{
+  virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const {
+    if (property_id.getTypeId() == typeid(SaturateFlag)) {
+      return std::make_shared<SaturateFlagSourceTask>(property_id.getIndex());
+    } else {
       return nullptr;
     }
   }
 }; // end of SourceFlagsTaskFactory class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SATURATEFLAGTASKFACTORY_H_ */

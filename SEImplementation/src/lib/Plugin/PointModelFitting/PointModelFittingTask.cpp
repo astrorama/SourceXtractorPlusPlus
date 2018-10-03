@@ -155,7 +155,7 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
   for (int y = 0; y < group_stamp.getHeight(); y++) {
     for (int x = 0; x < group_stamp.getWidth(); x++) {
       auto back_var = variance_stamp.getValue(x, y);
-      if (saturation > 0 && group_stamp.getValue(x, y) > saturation) {
+      if (saturation > 0 && group_stamp.getValue(x, y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y) > 0) {
         if (gain > 0.0) {

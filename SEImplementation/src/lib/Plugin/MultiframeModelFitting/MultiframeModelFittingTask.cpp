@@ -111,7 +111,10 @@ SeFloat computeReducedChiSquared(
 void printDebugChi2(SeFloat reduced_chi_squared) {
   static double total = 0.0;
   static int count = 0;
+  static std::mutex mutex;
   static std::vector<SeFloat> chi_squares;
+
+  std::lock_guard<std::mutex> lock(mutex);
 
   chi_squares.push_back(reduced_chi_squared);
   total += reduced_chi_squared;
@@ -193,7 +196,7 @@ std::shared_ptr<VectorImage<SeFloat>> MultiframeModelFittingTask::createWeightIm
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) > saturation) {
+      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (weight->at(x, y) > 0) {
         if (gain > 0.0) {
@@ -234,13 +237,17 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   std::cout << "MultiframeModelFittingTask::computeProperties()\n";
 
   // Prepare debug images
-  if (m_debug_images.size() == 0) {
-    for (auto& frame_indices : m_frame_indices_per_band) {
-      for (auto frame_index : frame_indices) {
-        auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+  {
+    std::lock_guard<std::mutex> lock{debug_image_mutex};
+    if (m_debug_images.size() == 0) {
+      for (auto &frame_indices : m_frame_indices_per_band) {
+        for (auto frame_index : frame_indices) {
+          auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
-        auto debug_image = VectorImage<SeFloat>::create(frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight());
-        const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index] = debug_image;
+          auto debug_image = VectorImage<SeFloat>::create(frame->getOriginalImage()->getWidth(),
+                                                          frame->getOriginalImage()->getHeight());
+          const_cast<MultiframeModelFittingTask *>(this)->m_debug_images[frame_index] = debug_image;
+        }
       }
     }
   }
@@ -391,17 +398,20 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {
-          debug_image_mutex.lock();
+          std::lock_guard<std::mutex> lock{debug_image_mutex};
           const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]->at(
               stamp_rect.getTopLeft().m_x + x, stamp_rect.getTopLeft().m_y + y) += final_stamp->getValue(x,y);
-          debug_image_mutex.unlock();
         }
       }
 
-      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-      auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(),
-            const_cast<MultiframeModelFittingTask*>(this)->m_debug_images[frame_index]);
-      const_cast<MultiframeModelFittingTask*>(this)->m_residual_images[frame_index] = residual_image;
+      {
+        std::lock_guard<std::mutex> lock{debug_image_mutex};
+        auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+        auto residual_image = SubtractImage<SeFloat>::create(
+          frame->getSubtractedImage(),
+          const_cast<MultiframeModelFittingTask *>(this)->m_debug_images[frame_index]);
+        const_cast<MultiframeModelFittingTask *>(this)->m_residual_images[frame_index] = residual_image;
+      }
 
       SeFloat reduced_chi_squared = computeReducedChiSquared(
           images[image_nb], final_stamp, weights[image_nb], nb_of_params);

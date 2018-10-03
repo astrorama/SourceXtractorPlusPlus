@@ -11,7 +11,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file SourceFlagsTaskFactory.h
@@ -26,19 +26,21 @@
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 
 namespace SExtractor {
+
 class SourceFlagsTaskFactory : public TaskFactory {
 public:
-  SourceFlagsTaskFactory() {}
   virtual ~SourceFlagsTaskFactory() = default;
+
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
-    if (property_id == PropertyId::create<SourceFlags>()) {
-      return std::make_shared<SourceFlagsSourceTask>();
-    }
-    else{
-      return nullptr;
-    }
-  }
+  virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
+
+private:
+  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 }; // end of SourceFlagsTaskFactory class
+
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSTASKFACTORY_H_ */
