@@ -280,7 +280,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
           std::vector<double>(m_frame_indices_per_band.size(), nan("")),
           std::vector<double>(m_frame_indices_per_band.size(), nan("")),
           std::vector<double>(m_frame_indices_per_band.size(), nan("")),
-          0, nan("")
+          0, nan(""), 0
           );
     }
 
@@ -437,7 +437,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
         wc.m_alpha, wc.m_delta,
         source_model->getExpRadius(), source_model->getDevRadius(),
         source_model->getFluxes(), source_model->getExpFluxes(), source_model->getDevFluxes(),
-        iterations, avg_reduced_chi_squared
+        iterations, avg_reduced_chi_squared, total_nb_of_valid_frames
         );
   }
 
