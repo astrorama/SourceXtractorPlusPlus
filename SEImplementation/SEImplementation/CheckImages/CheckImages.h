@@ -11,6 +11,7 @@
 #include <mutex>
 
 #include "SEFramework/Configuration/Configurable.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
@@ -85,6 +86,7 @@ private:
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<Image<SeFloat>> m_filtered_image;
   std::shared_ptr<WeightImage> m_variance_image;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
   std::string m_model_fitting_image_filename;
   std::string m_residual_filename;

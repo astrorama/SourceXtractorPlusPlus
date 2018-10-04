@@ -17,7 +17,9 @@ namespace wcslib {
 
 }
 
+#include "ElementsKernel/Exception.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
+#include <boost/algorithm/string/trim.hpp>
 
 namespace SExtractor {
 
@@ -79,6 +81,30 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   wcss2p(m_wcs.get(), 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
+}
+
+std::map<std::string, std::string> WCS::getFitsHeaders() const {
+  int nkeyrec;
+  char *raw_header;
+
+  if (wcshdo(WCSHDO_all, m_wcs.get(), &nkeyrec, &raw_header) != 0) {
+    throw Elements::Exception() << "Failed to get the FITS headers for the WCS coordinate system";
+  }
+
+  std::map<std::string, std::string> headers;
+  for (int i = 0; i < nkeyrec; ++i) {
+    char *hptr = &raw_header[80 * i];
+    std::string key(hptr, hptr + 8);
+    boost::trim(key);
+    std::string value(hptr + 9, hptr + 72);
+    boost::trim(value);
+    if (!key.empty()) {
+      headers.emplace(std::make_pair(key, value));
+    }
+  }
+
+  free(raw_header);
+  return headers;
 }
 
 }
