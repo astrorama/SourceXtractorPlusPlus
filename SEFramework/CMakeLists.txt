@@ -39,6 +39,7 @@ find_package(FFTW COMPONENTS single double long)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEFramework
+                     src/lib/Aperture/*.cpp
                      src/lib/Pipeline/*.cpp 
                      src/lib/Property/*.cpp
                      src/lib/Source/*.cpp 

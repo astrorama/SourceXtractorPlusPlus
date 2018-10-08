@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Aperture/EllipticalAperture.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 
@@ -49,11 +50,11 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
   // create the elliptical aperture
-  auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, KRON_NRADIUS);
+  auto ell_aper = std::make_shared<EllipticalAperture>(cxx, cyy, cxy, KRON_NRADIUS);
 
   // get the aperture borders on the image
-  const auto& min_pixel = ell_aper->getMinPixel();
-  const auto& max_pixel = ell_aper->getMaxPixel();
+  const auto& min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
+  const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
   auto neighbour_info = source.getProperty<NeighbourInfo>();
@@ -72,7 +73,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
       SeFloat pixel_variance = 0;
 
       // check whether the current pixel is inside
-      if (ell_aper->getArea(pixel_x, pixel_y) > 0){
+      if (ell_aper->getArea(centroid_x, centroid_y, pixel_x, pixel_y) > 0){
 
         // make sure the pixel is inside the image
         if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
@@ -100,7 +101,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
           }
           else {
             // add the pixel quantity
-            radius_flux_sum += value*sqrt(ell_aper->getRadiusSquared(pixel_x, pixel_y));
+            radius_flux_sum += value*sqrt(ell_aper->getRadiusSquared(centroid_x, centroid_y, pixel_x, pixel_y));
             flux_sum        += value;
           }
         }

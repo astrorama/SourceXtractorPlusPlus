@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Aperture/EllipticalAperture.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
@@ -22,8 +23,6 @@
 namespace SExtractor {
 
 namespace {
-  // enhancing from 5 to 10 smoothens the photometry
-  const int SUPERSAMPLE_AUTO_NB = 10;
   const SeFloat CROWD_THRESHOLD_AUTO   = 0.1;
   const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 }
@@ -55,11 +54,11 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
     kron_radius_auto = m_kron_minrad;
 
   // create the elliptical aperture
-  auto ell_aper = std::make_shared<EllipticalAperture>(centroid_x, centroid_y, cxx, cyy, cxy, kron_radius_auto);
+  auto ell_aper = std::make_shared<EllipticalAperture>(cxx, cyy, cxy, kron_radius_auto);
 
   // get the aperture borders on the image
-  const auto& min_pixel = ell_aper->getMinPixel();
-  const auto& max_pixel = ell_aper->getMaxPixel();
+  const auto& min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
+  const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
   auto neighbour_info = source.getProperty<NeighbourInfo>();
@@ -79,7 +78,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
       SeFloat variance_tmp   = 0;
 
       // check whether the pixel is in the ellipse
-      if (ell_aper->getArea(pixel_x, pixel_y) > 0){
+      if (ell_aper->getArea(centroid_x, centroid_y, pixel_x, pixel_y) > 0){
 
         // check whether the pixel is inside the image
         if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
@@ -153,7 +152,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
 
     for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
       for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
-        if (ell_aper->getArea(x, y) > 0) {
+        if (ell_aper->getArea(centroid_x, centroid_y, x, y) > 0) {
           if (x >= 0 && y >= 0 && x < aperture_check_img->getWidth() && y < aperture_check_img->getHeight()) {
             aperture_check_img->setValue(x, y, src_id);
           }
@@ -161,91 +160,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
       }
     }
   }
-}
-
-SeFloat EllipticalAperture::getAreaSub(int pixel_x, int pixel_y) const{
-  SeFloat act_x, act_y;
-
-  // set the start value in y
-  if (SUPERSAMPLE_AUTO_NB % 2)
-    // for odd sub-samples
-    act_y = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
-  else
-    // for even sub-samples
-    act_y = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
-
-  // iterate over all sub-samples in y
-  SeFloat area = 0.0;
-  for (int sub_y = 0; sub_y < SUPERSAMPLE_AUTO_NB; sub_y++) {
-
-    // set the start value in x
-    if (SUPERSAMPLE_AUTO_NB % 2)
-      // for odd sub-samples
-      act_x = -1.0/SUPERSAMPLE_AUTO_NB * (SUPERSAMPLE_AUTO_NB/2);
-    else
-      // for even sub-samples
-      act_x = 1./(2*SUPERSAMPLE_AUTO_NB) - (1./SUPERSAMPLE_AUTO_NB)*(SUPERSAMPLE_AUTO_NB/2);
-
-    // iterate over all sub-samples in x
-    for (int sub_x = 0; sub_x < SUPERSAMPLE_AUTO_NB; sub_x++) {
-      //std::cout << " spix:" << act_x << ":" << act_y;
-      // CXX(x − x) 2 + CYY(y − y) 2 + CXY(x − x)(y − y) = R 2
-      auto dist_x = SeFloat(pixel_x)+act_x-m_center_x;
-      auto dist_y = SeFloat(pixel_y)+act_y-m_center_y;
-
-      if (m_cxx*dist_x*dist_x + m_cyy*dist_y*dist_y + m_cxy*dist_x*dist_y < m_rad_max*m_rad_max)
-        // enhance the are if the sub-pixel is in
-        area += 1.0 / (SUPERSAMPLE_AUTO_NB * SUPERSAMPLE_AUTO_NB);
-
-      // increment in x
-      act_x += 1./SUPERSAMPLE_AUTO_NB;
-    }
-    // increment in y
-    act_y += 1./SUPERSAMPLE_AUTO_NB;
-  }
-
-  // return the area
-  return area;
-}
-
-int EllipticalAperture::getArea(int pixel_x, int pixel_y) const{
-  // check whether the pixel is in/out
-  //if (m_cxx*dist_x*dist_x + m_cyy*dist_y*dist_y + m_cxy*dist_x*dist_y < m_rad_max*m_rad_max)
-  if (getRadiusSquared(pixel_x, pixel_y) < m_rad_max*m_rad_max)
-    return 1;
-  else
-    return 0;
-}
-
-SeFloat EllipticalAperture::getRadiusSquared(int pixel_x, int pixel_y) const{
-  // compute the offsets from the center
-  auto dist_x = SeFloat(pixel_x)-m_center_x;
-  auto dist_y = SeFloat(pixel_y)-m_center_y;
-
-  // compute and return the elliptical radius squared
-  return m_cxx*dist_x*dist_x + m_cyy*dist_y*dist_y + m_cxy*dist_x*dist_y;
-}
-
-PixelCoordinate EllipticalAperture::getMinPixel() const {
-  SeFloat dx, dy;
-
-  // compute the maximum extend in x/y
-  dx = m_rad_max*std::sqrt(1.0/(m_cxx - m_cxy*m_cxy/(4.0*m_cyy)));
-  dy = m_rad_max*std::sqrt(1.0/(m_cyy - m_cxy*m_cxy/(4.0*m_cxx)));
-
-  // return the absolute values
-  return PixelCoordinate(m_center_x - dx,  m_center_y - dy);
-}
-
-PixelCoordinate EllipticalAperture::getMaxPixel() const {
-  SeFloat dx, dy;
-
-  // compute the maximum extend in x/y
-  dx = m_rad_max*std::sqrt(1.0/(m_cxx - m_cxy*m_cxy/(4.0*m_cyy)));
-  dy = m_rad_max*std::sqrt(1.0/(m_cyy - m_cxy*m_cxy/(4.0*m_cxx)));
-
-  // return the absolute values
-  return PixelCoordinate(m_center_x + dx + 1,  m_center_y + dy + 1);
 }
 
 }

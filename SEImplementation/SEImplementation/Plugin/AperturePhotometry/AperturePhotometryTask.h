@@ -8,32 +8,11 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYTASK_H_
 
-#include "SEUtils/PixelCoordinate.h"
+#include "SEFramework/Aperture/Aperture.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Image/VectorImage.h"
 
 namespace SExtractor {
-
-class Aperture {
-public:
-  virtual ~Aperture() = default;
-  virtual SeFloat getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const = 0;
-  virtual PixelCoordinate getMinPixel(SeFloat centroid_x, SeFloat centroid_y) const = 0;
-  virtual PixelCoordinate getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const = 0;
-};
-
-class CircularAperture : public Aperture {
-public:
-  virtual ~CircularAperture() = default;
-  CircularAperture(SeFloat radius) : m_radius(radius) {}
-
-  virtual SeFloat getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const override;
-  virtual PixelCoordinate getMinPixel(SeFloat centroid_x, SeFloat centroid_y) const override;
-  virtual PixelCoordinate getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const override;
-
-private:
-  SeFloat m_radius;
-};
 
 class AperturePhotometryTask : public SourceTask {
 public:
