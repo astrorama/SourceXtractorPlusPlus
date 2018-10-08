@@ -53,6 +53,14 @@ public:
     return m_filtered_filename;
   }
 
+  const std::string& getAutoApertureFilename() const {
+    return m_auto_aperture_filename;
+  }
+
+  const std::string& getApertureFilename() const {
+    return m_aperture_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
@@ -62,6 +70,8 @@ private:
   std::string m_segmentation_filename;
   std::string m_partition_filename;
   std::string m_filtered_filename;
+  std::string m_auto_aperture_filename;
+  std::string m_aperture_filename;
 
 };
 

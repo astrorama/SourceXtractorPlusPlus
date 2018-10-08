@@ -1,5 +1,5 @@
 /*
- * DetectionNeighbourInfoTask.h
+ * NeighbourInfoTask.h
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -12,9 +12,9 @@
 
 namespace SExtractor {
 
-class DetectionNeighbourInfoTask: public SourceTask {
+class NeighbourInfoTask: public SourceTask {
 public:
-  virtual ~DetectionNeighbourInfoTask() = default;
+  virtual ~NeighbourInfoTask() = default;
 
   void computeProperties(SourceInterface& source) const override;
 };

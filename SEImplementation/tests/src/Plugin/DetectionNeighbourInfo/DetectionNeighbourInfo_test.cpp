@@ -1,5 +1,5 @@
 /*
- *  DetectionNeighbourInfo_test.cpp
+ *  NeighbourInfo_test.cpp
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -11,15 +11,15 @@
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
-#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo.h"
-#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfoTask.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfoTask.h"
 
 #include "SEFramework/tests/src/Image/CompareImages.h"
 
 using namespace SExtractor;
 
 
-struct DetectionNeighbourInfo_Fixture {
+struct NeighbourInfo_Fixture {
   // Two "sources", once centered at 2,2 (42), and another one
   // at 4,2 (24). Tests will run on the centered one, whose pixels
   // are identified by detection_coordinates.
@@ -46,7 +46,7 @@ struct DetectionNeighbourInfo_Fixture {
 
   SimpleSource source;
 
-  DetectionNeighbourInfo_Fixture() {
+  NeighbourInfo_Fixture() {
     source.setProperty<PixelCoordinateList>(detection_pixel_list);
     source.setProperty<PixelBoundaries>(1, 1, 3, 3);
     source.setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
@@ -59,12 +59,12 @@ BOOST_AUTO_TEST_SUITE(NeighbourInfo_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE(OneToOne_test, DetectionNeighbourInfo_Fixture) {
-  DetectionNeighbourInfoTask task;
+BOOST_FIXTURE_TEST_CASE(OneToOne_test, NeighbourInfo_Fixture) {
+  NeighbourInfoTask task;
 
   task.computeProperties(source);
 
-  auto neighbour_info = source.getProperty<DetectionNeighbourInfo>().getImage();
+  auto neighbour_info = source.getProperty<NeighbourInfo>().getImage();
 
   auto expected = VectorImage<int>::create(3, 3, std::vector<int>{
     0, 0, 1,

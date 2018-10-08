@@ -1,5 +1,5 @@
 /*
- * DetectionNeighbourInfoTaskFactory.h
+ * NeighbourInfoTaskFactory.h
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -12,7 +12,7 @@
 
 namespace SExtractor {
 
-class DetectionNeighbourInfoTaskFactory: public TaskFactory {
+class NeighbourInfoTaskFactory: public TaskFactory {
 public:
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const;
 };

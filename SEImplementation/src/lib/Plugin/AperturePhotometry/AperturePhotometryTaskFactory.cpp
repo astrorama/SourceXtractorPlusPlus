@@ -54,23 +54,12 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
   auto apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
 
-  auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
+  auto measurement_images_nb = 1;//std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
   std::cout << "measurement_images_nb: " << measurement_images_nb << std::endl;
-
-  // determine which apertures are needed for each image
-  std::vector<std::set<SeFloat>> aperture_sizes(measurement_images_nb);
-
-  for (auto& group : measurement_config.getImageGroups()) {
-    auto apertures = group->getAperturePhotometryOptions().getApertureSizes();
-
-    for (auto image_nb : group->getMeasurementImageIndices()) {
-      std::copy(apertures.begin(), apertures.end(), std::inserter(aperture_sizes[image_nb], aperture_sizes[image_nb].end()));
-    }
-  }
 
   unsigned int aperture_instance_nb = 0;
   for (unsigned int image_nb = 0; image_nb < measurement_images_nb; image_nb++) {
-    for (auto aperture_size : aperture_sizes[image_nb]) {
+    for (auto aperture_size : apertures) {
       m_aperture_instances[std::make_pair(image_nb, aperture_size)] = aperture_instance_nb;
       m_image_instances.emplace_back(image_nb);
       m_apertures.emplace_back(aperture_size);

@@ -23,20 +23,6 @@ namespace SExtractor {
 class MeasurementConfig : public Euclid::Configuration::Configuration {
 public:
 
-  class AperturePhotometryOptions {
-  public:
-    AperturePhotometryOptions() {}
-
-    void updateOptions(const YAML::Node& image_group);
-
-    std::vector<double> getApertureSizes() const {
-      return m_aperture_sizes;
-    }
-
-  private:
-    std::vector<double> m_aperture_sizes;
-  };
-
   class ImageGroup {
   public:
     void addImages(std::set<unsigned int> images) {
@@ -47,14 +33,6 @@ public:
       return m_measurement_image_indices;
     }
 
-    const AperturePhotometryOptions& getAperturePhotometryOptions() const {
-      return m_aperture_options;
-    }
-
-    void setAperturePhotometryOptions(AperturePhotometryOptions aperture_options) {
-      m_aperture_options = aperture_options;
-    }
-
     void setName(const std::string name) {
       m_name = name;
     }
@@ -63,7 +41,6 @@ public:
 
   private:
     std::set<unsigned int> m_measurement_image_indices;
-    AperturePhotometryOptions m_aperture_options;
     std::string m_name;
   };
 
@@ -81,7 +58,7 @@ public:
   void initialize(const UserValues& args) override;
 
   void parseTree();
-  void parseMeasurementsGroup(const YAML::Node& image_group, AperturePhotometryOptions ap_options);
+  void parseMeasurementsGroup(const YAML::Node& image_group);
   std::set<unsigned int> parseImageFiles(const YAML::Node& image_group);
 
   const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const {

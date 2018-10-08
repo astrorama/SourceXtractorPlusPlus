@@ -1,5 +1,5 @@
 /*
- * DetectionNeighbourInfoTask.cpp
+ * NeighbourInfoTask.cpp
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -8,12 +8,12 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfoTask.h"
-#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfoTask.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
 
 namespace SExtractor {
 
-void DetectionNeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) const {
+void NeighbourInfoTask::computeProperties(SExtractor::SourceInterface &source) const {
   const auto &detection_frame = source.getProperty<DetectionFrame>().getFrame();
   const auto &detection_pixel_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
   const auto &detection_boundaries = source.getProperty<PixelBoundaries>();
@@ -49,7 +49,7 @@ void DetectionNeighbourInfoTask::computeProperties(SExtractor::SourceInterface &
     }
   }
 
-  source.setProperty<DetectionNeighbourInfo>(detection_pixel_min, detection_neighbour_img);
+  source.setProperty<NeighbourInfo>(detection_pixel_min, detection_neighbour_img);
 }
 
 } // end SExtractor

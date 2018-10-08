@@ -23,6 +23,8 @@ static const std::string CHECK_MODEL_VARIANCE { "checkimage-variance" };
 static const std::string CHECK_SEGMENTATION { "checkimage-segmentation" };
 static const std::string CHECK_PARTITION { "checkimage-partition" };
 static const std::string CHECK_FILTERED { "checkimage-filtered" };
+static const std::string CHECK_AUTO_APERTURE { "checkimage-auto-aperture" };
+static const std::string CHECK_APERTURE { "checkimage-aperture" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -43,6 +45,10 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the partition check image"},
       {CHECK_FILTERED.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the filtered check image"},
+      {CHECK_AUTO_APERTURE.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the auto aperture check image"},
+      {CHECK_APERTURE.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the aperture check image"},
   }}};
 }
 
@@ -54,6 +60,8 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<std::string>();
   m_partition_filename = args.find(CHECK_PARTITION)->second.as<std::string>();
   m_filtered_filename = args.find(CHECK_FILTERED)->second.as<std::string>();
+  m_auto_aperture_filename = args.find(CHECK_AUTO_APERTURE)->second.as<std::string>();
+  m_aperture_filename = args.find(CHECK_APERTURE)->second.as<std::string>();
 }
 
 } // SExtractor namespace

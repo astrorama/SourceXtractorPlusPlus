@@ -15,7 +15,9 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-#include "SEImplementation/Plugin/DetectionNeighbourInfo/DetectionNeighbourInfo.h"
+#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 
 namespace SExtractor {
 
@@ -60,7 +62,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel();
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<DetectionNeighbourInfo>();
+  auto neighbour_info = source.getProperty<NeighbourInfo>();
 
   SeFloat  total_flux     = 0;
   SeFloat  total_variance = 0.0;
@@ -143,6 +145,22 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
 
   // set the source properties
   source.setProperty<AutoPhotometry>(total_flux, flux_error, mag, mag_error, total_flag);
+
+  // Draw the aperture
+  auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage();
+  if (aperture_check_img) {
+    auto src_id = source.getProperty<SourceID>().getId();
+
+    for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
+      for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
+        if (ell_aper->getArea(x, y) > 0) {
+          if (x >= 0 && y >= 0 && x < aperture_check_img->getWidth() && y < aperture_check_img->getHeight()) {
+            aperture_check_img->setValue(x, y, src_id);
+          }
+        }
+      }
+    }
+  }
 }
 
 SeFloat EllipticalAperture::getAreaSub(int pixel_x, int pixel_y) const{

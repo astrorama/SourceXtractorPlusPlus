@@ -34,6 +34,8 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_segmentation_filename =  config.getSegmentationFilename();
   m_partition_filename =  config.getPartitionFilename();
   m_filtered_filename =  config.getFilteredFilename();
+  m_auto_aperture_filename = config.getAutoApertureFilename();
+  m_aperture_filename = config.getApertureFilename();
 
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
@@ -54,6 +56,17 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   if (m_partition_filename != "") {
     m_partition_image = FitsWriter::newImage<unsigned int>(m_partition_filename,
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
+  }
+
+  if (m_auto_aperture_filename != "") {
+    m_auto_aperture_image = FitsWriter::newImage<unsigned int>(m_auto_aperture_filename,
+        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
+  }
+
+  if (m_aperture_filename != "") {
+    m_aperture_image = FitsWriter::newImage<unsigned int>(m_aperture_filename,
+        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
+    );
   }
 }
 

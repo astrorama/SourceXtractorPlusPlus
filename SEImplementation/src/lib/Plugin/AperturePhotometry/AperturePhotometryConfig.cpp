@@ -24,7 +24,7 @@ const std::string APERTURE_SIZE {"aperture-size"};
 
 auto AperturePhotometryConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"Aperture photometry options", {
-      {APERTURE_SIZE.c_str(), po::value<std::vector<SeFloat>>()->default_value({5.0}, "5.0"),
+      {APERTURE_SIZE.c_str(), po::value<std::vector<SeFloat>>()->multitoken()->default_value({5.0}, "5.0"),
           "Aperture size"},
   }}};
 }

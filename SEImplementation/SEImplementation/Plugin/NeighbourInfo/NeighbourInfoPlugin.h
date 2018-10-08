@@ -1,5 +1,5 @@
 /*
- * DetectionNeighbourInfo.h
+ * NeighbourInfo.h
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -12,9 +12,9 @@
 
 namespace SExtractor {
 
-class DetectionNeighbourInfoPlugin: public Plugin {
+class NeighbourInfoPlugin: public Plugin {
 public:
-  virtual ~DetectionNeighbourInfoPlugin() = default;
+  virtual ~NeighbourInfoPlugin() = default;
 
   virtual void registerPlugin(PluginAPI& plugin_api) override;
   virtual std::string getIdString() const override;

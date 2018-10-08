@@ -38,10 +38,6 @@ private:
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
   bool    m_symmetry_usage;
-
-  // TEMP
-  //std::shared_ptr<WriteableImage<float>> m_tmp_check_image;
-
 };
 
 }

@@ -1,5 +1,5 @@
 /*
- * DetectionNeighbourInfo.h
+ * NeighbourInfo.h
  *
  *  Created on: Oct 02, 2018
  *      Author: Alejandro Alvarez Ayllon
@@ -14,15 +14,15 @@
 
 namespace SExtractor {
 
-class DetectionNeighbourInfo : public Property {
+class NeighbourInfo : public Property {
 public:
   /// Destructor
-  virtual ~DetectionNeighbourInfo() = default;
+  virtual ~NeighbourInfo() = default;
 
-  DetectionNeighbourInfo() : m_neighbour_image(nullptr) {
+  NeighbourInfo() : m_neighbour_image(nullptr) {
   }
 
-  DetectionNeighbourInfo(PixelCoordinate offset, const std::shared_ptr <Image<int>> &neighbour_image)
+  NeighbourInfo(PixelCoordinate offset, const std::shared_ptr <Image<int>> &neighbour_image)
     : m_neighbour_image{neighbour_image}, m_offset{offset} {
   }
 
