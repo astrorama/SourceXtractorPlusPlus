@@ -35,7 +35,6 @@ static const std::string MEASUREMENT_CONFIG_FILE { "measurement-config-file" };
 static const std::string MEASUREMENT_IMAGES_GAIN { "measurement-images-gain" };
 static const std::string MEASUREMENT_IMAGES_SATURATION { "measurement-images-saturation" };
 static const std::string MEASUREMENT_IMAGES_FLUX_SCALE { "measurement-images-flux-scale" };
-static const std::string MEASUREMENT_APERTURE_SIZES { "measurement-aperture-sizes" };
 
 MeasurementConfig::MeasurementConfig(long manager_id) : Configuration(manager_id),
         m_override_gain(false),
