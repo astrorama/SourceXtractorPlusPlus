@@ -134,7 +134,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface& source) const {
       total_flag |= 0x0001;
 
     // check/set the crowded area flag
-    if ((SeFloat)area_full/(SeFloat)area_sum > BADAREA_THRESHOLD_AUTO)
+    if ((SeFloat)area_full/(SeFloat)area_sum > CROWD_THRESHOLD_AUTO)
       total_flag |= 0x0002;
   }
 

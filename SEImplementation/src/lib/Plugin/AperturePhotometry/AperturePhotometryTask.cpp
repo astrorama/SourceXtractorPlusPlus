@@ -123,7 +123,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
       total_flag |= 0x0001;
 
     // check/set the crowded area flag
-    if ((SeFloat)full_area/(SeFloat)total_area > BADAREA_THRESHOLD_APER)
+    if ((SeFloat)full_area/(SeFloat)total_area > CROWD_THRESHOLD_APER)
       total_flag |= 0x0002;
   }
 
