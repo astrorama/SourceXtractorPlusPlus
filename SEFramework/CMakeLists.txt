@@ -142,6 +142,9 @@ elements_add_unit_test(DirectConvolution_test tests/src/Convolution/DirectConvol
 elements_add_unit_test(DFT_test tests/src/Convolution/DFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(TransformedAperture_test tests/src/Aperture/TransformedAperture_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

@@ -17,13 +17,13 @@ class Aperture {
 public:
   virtual ~Aperture() = default;
 
-  virtual SeFloat getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const = 0;
+  virtual SeFloat getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const = 0;
 
   virtual PixelCoordinate getMinPixel(SeFloat centroid_x, SeFloat centroid_y) const = 0;
 
   virtual PixelCoordinate getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const = 0;
 
-  virtual SeFloat getRadiusSquared(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const = 0;
+  virtual SeFloat getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const = 0;
 };
 
 } // end SExtractor

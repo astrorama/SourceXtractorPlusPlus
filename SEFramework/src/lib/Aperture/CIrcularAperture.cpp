@@ -12,7 +12,7 @@ namespace SExtractor {
 // enhancing from 5 to 10 smoothens the photometry
 const int SUPERSAMPLE_NB = 10;
 
-SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const {
+SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
   auto dx = pixel_x - center_x;
   auto dy = pixel_y - center_y;
   SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
@@ -40,7 +40,7 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, int pixel_
   return 0.0;
 }
 
-SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const {
+SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
   auto dist_x = SeFloat(pixel_x) - center_x;
   auto dist_y = SeFloat(pixel_y) - center_y;
 

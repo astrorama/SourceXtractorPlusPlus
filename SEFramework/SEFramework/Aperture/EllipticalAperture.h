@@ -18,13 +18,13 @@ public:
 
   EllipticalAperture(SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat rad_max);
 
-  SeFloat getArea(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const override;
+  SeFloat getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const override;
 
   PixelCoordinate getMinPixel(SeFloat centroid_x, SeFloat centroid_y) const override;
 
   PixelCoordinate getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const override;
 
-  SeFloat getRadiusSquared(SeFloat center_x, SeFloat center_y, int pixel_x, int pixel_y) const override;
+  SeFloat getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const override;
 
 private:
   SeFloat m_cxx;
