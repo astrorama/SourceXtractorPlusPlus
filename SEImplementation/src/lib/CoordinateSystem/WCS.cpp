@@ -87,7 +87,7 @@ std::map<std::string, std::string> WCS::getFitsHeaders() const {
   int nkeyrec;
   char *raw_header;
 
-  if (wcshdo(WCSHDO_all, m_wcs.get(), &nkeyrec, &raw_header) != 0) {
+  if (wcshdo(WCSHDO_none, m_wcs.get(), &nkeyrec, &raw_header) != 0) {
     throw Elements::Exception() << "Failed to get the FITS headers for the WCS coordinate system";
   }
 

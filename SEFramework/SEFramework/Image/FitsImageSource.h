@@ -73,7 +73,7 @@ public:
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;
 
-        serializer << padded_key.str() << "=" << std::setw(71) << h.second;
+        serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
         auto str = serializer.str();
 
         fits_update_card(m_fptr, padded_key.str().c_str(), str.c_str(), &status);
