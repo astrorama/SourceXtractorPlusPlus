@@ -48,6 +48,12 @@ public:
     return m_aperture_image;
   }
 
+  std::shared_ptr<WriteableImage<unsigned int>>
+  getAutoApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
+
+  std::shared_ptr<WriteableImage<unsigned int>>
+  getApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
+
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
       m_background_image = background_image;
   }
@@ -91,6 +97,8 @@ private:
   std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
+  std::map<int, decltype(m_aperture_image)> m_measurement_aperture_images;
+  std::map<int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;

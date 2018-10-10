@@ -292,7 +292,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       auto weight = createWeightImage(group, frame_index);
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
 
-      auto jacobian = group.getProperty<Jacobian>(frame_index).asTuple();
+      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
       // Setup source models
       auto frame_coordinates =
@@ -360,7 +360,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
       std::vector<PointModel> point_models {};
       std::vector<ConstantModel> constant_models;
 
-      auto jacobian = group.getProperty<Jacobian>(frame_index).asTuple();
+      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
       int nb_of_params = 0;
       for (auto& source_model : source_models) {

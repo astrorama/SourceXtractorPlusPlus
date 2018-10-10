@@ -8,9 +8,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASK_H_
 
-//#include <memory>
-
-#include "SEUtils/PixelCoordinate.h"
+#include "SEUtils/Types.h"
 #include "SEFramework/Task/SourceTask.h"
 
 namespace SExtractor {
@@ -18,20 +16,11 @@ namespace SExtractor {
 class AutoPhotometryTask : public SourceTask {
 public:
 
-  //using AreaFunction = std::function<SeFloat(int, int)>;
-
   /// Destructor
   virtual ~AutoPhotometryTask() = default;
-  /*
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry, std::shared_ptr<WriteableImage<float>> tmp_check_image) :
-    m_magnitude_zero_point(magnitude_zero_point),
-    m_kron_factor(kron_factor),
-    m_kron_minrad(kron_minrad),
-    m_use_symmetry(use_symmetry),
-    m_tmp_check_image(tmp_check_image) {}
-*/
 
-  AutoPhotometryTask(SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry) :
+  AutoPhotometryTask(unsigned instance, SeFloat magnitude_zero_point, SeFloat kron_factor, SeFloat kron_minrad, bool use_symmetry) :
+    m_instance(instance),
     m_magnitude_zero_point(magnitude_zero_point),
     m_kron_factor(kron_factor),
     m_kron_minrad(kron_minrad),
@@ -40,6 +29,7 @@ public:
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
+  unsigned m_instance;
   SeFloat m_magnitude_zero_point;
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;

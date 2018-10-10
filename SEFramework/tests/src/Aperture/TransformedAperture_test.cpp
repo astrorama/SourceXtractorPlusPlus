@@ -18,8 +18,15 @@ BOOST_AUTO_TEST_CASE(Identity_test) {
     0., 1.
     ));
 
-  BOOST_CHECK(original->getMinPixel(10, 10) == transformed->getMinPixel(10, 10));
-  BOOST_CHECK(original->getMaxPixel(10, 10) == transformed->getMaxPixel(10, 10));
+  auto omin = original->getMinPixel(10, 10);
+  auto tmin = transformed->getMinPixel(10, 10);
+  auto omax = original->getMaxPixel(10, 10);
+  auto tmax = transformed->getMaxPixel(10, 10);
+
+  BOOST_CHECK_EQUAL(omin.m_x, tmin.m_x);
+  BOOST_CHECK_EQUAL(omin.m_y, tmin.m_y);
+  BOOST_CHECK_EQUAL(omax.m_x, tmax.m_x);
+  BOOST_CHECK_EQUAL(omax.m_y, tmax.m_y);
   BOOST_CHECK_EQUAL(original->getArea(10, 10, 10, 10), transformed->getArea(10, 10, 10, 10));
   BOOST_CHECK_EQUAL(original->getRadiusSquared(10, 10, 10, 10), transformed->getRadiusSquared(10, 10, 10, 10));
 }

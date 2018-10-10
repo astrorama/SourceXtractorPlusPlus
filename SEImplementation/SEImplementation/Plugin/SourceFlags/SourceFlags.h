@@ -31,7 +31,7 @@ namespace SExtractor {
 class SourceFlags : public Property {
 public:
   // Backwards compatible with sextractor flags!
-  static const int HAS_NEIGHBORS = 1 << 0;
+  static const int BIASED = 1 << 0;
   static const int BLENDED = 1 << 1;
   static const int SATURATED = 1 << 2;
   static const int BOUNDARY = 1 << 3;

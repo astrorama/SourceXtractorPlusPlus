@@ -19,21 +19,21 @@ std::unique_ptr<CheckImages> CheckImages::m_instance;
 CheckImages::CheckImages() {
 }
 
-void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<CheckImagesConfig>();
 }
 
-void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
+void CheckImages::configure(Euclid::Configuration::ConfigManager &manager) {
   m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-  auto& config = manager.getConfiguration<CheckImagesConfig>();
+  auto &config = manager.getConfiguration<CheckImagesConfig>();
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
   m_model_background_filename = config.getModelBackgroundFilename();
-  m_model_variance_filename =  config.getModelVarianceFilename();
-  m_segmentation_filename =  config.getSegmentationFilename();
-  m_partition_filename =  config.getPartitionFilename();
-  m_filtered_filename =  config.getFilteredFilename();
+  m_model_variance_filename = config.getModelVarianceFilename();
+  m_segmentation_filename = config.getSegmentationFilename();
+  m_partition_filename = config.getPartitionFilename();
+  m_filtered_filename = config.getFilteredFilename();
   m_auto_aperture_filename = config.getAutoApertureFilename();
   m_aperture_filename = config.getApertureFilename();
 
@@ -45,7 +45,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   }
   else if (m_residual_filename != "") {
     m_check_image_model_fitting = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
-        "sextractor_check_model_%%%%%%.fits", m_detection_image->getWidth(), m_detection_image->getHeight());
+      "sextractor_check_model_%%%%%%.fits", m_detection_image->getWidth(), m_detection_image->getHeight());
   }
 
   if (m_segmentation_filename != "") {
@@ -68,6 +68,54 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
     );
   }
+}
+
+std::shared_ptr<WriteableImage<unsigned int>>
+CheckImages::getAutoApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &cs) {
+  if (m_auto_aperture_filename.empty()) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  auto i = m_measurement_auto_aperture_images.find(instance);
+  if (i == m_measurement_auto_aperture_images.end()) {
+    auto frame_filename = m_auto_aperture_filename + "." + std::to_string(instance);
+    i = m_measurement_auto_aperture_images.emplace(
+      std::make_pair(
+        instance,
+        FitsWriter::newImage<unsigned int>(
+          frame_filename,
+          width,
+          height,
+          cs
+        ))).first;
+  }
+  return i->second;
+}
+
+std::shared_ptr<WriteableImage<unsigned int>>
+CheckImages::getApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &cs) {
+  if (m_aperture_filename.empty()) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  auto i = m_measurement_aperture_images.find(instance);
+  if (i == m_measurement_aperture_images.end()) {
+    auto frame_filename = m_aperture_filename + "." + std::to_string(instance);
+    i = m_measurement_aperture_images.emplace(
+      std::make_pair(
+        instance,
+        FitsWriter::newImage<unsigned int>(
+          frame_filename,
+          width,
+          height,
+          cs
+        ))).first;
+  }
+  return i->second;
 }
 
 void CheckImages::saveImages() {

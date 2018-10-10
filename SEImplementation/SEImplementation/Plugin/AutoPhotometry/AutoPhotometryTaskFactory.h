@@ -30,6 +30,8 @@ public:
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
+  void registerPropertyInstances(OutputRegistry &) override;
+
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
@@ -38,6 +40,7 @@ private:
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
   bool    m_symmetry_usage;
+  std::vector<std::pair<std::string, unsigned int>> m_auto_names;
 };
 
 }

@@ -25,8 +25,8 @@ public:
    */
   virtual ~AperturePhotometry() = default;
 
-  AperturePhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, long int flag)
-    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
+  AperturePhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error)
+    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error) {}
 
   SeFloat getFlux() const {
     return m_flux;
@@ -44,16 +44,11 @@ public:
     return m_mag_error;
   }
 
-  long int getFlag() const {
-    return m_flag;
-  }
-
 private:
   SeFloat  m_flux;
   SeFloat  m_flux_error;
   SeFloat  m_mag;
   SeFloat  m_mag_error;
-  long int m_flag;
 };
 
 } /* namespace SExtractor */

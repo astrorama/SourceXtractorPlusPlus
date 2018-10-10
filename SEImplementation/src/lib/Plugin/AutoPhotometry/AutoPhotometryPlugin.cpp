@@ -8,6 +8,7 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTaskFactory.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryPlugin.h"
 
@@ -16,7 +17,7 @@ namespace SExtractor {
 static StaticPlugin<AutoPhotometryPlugin> aperture_photometry_plugin;
 
 void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<AutoPhotometryTaskFactory, AutoPhotometry>();
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<AutoPhotometryTaskFactory, AutoPhotometry, AutoPhotometryFlag>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, double>(
           "auto_flux",
@@ -46,17 +47,16 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, long int>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryFlag, long int>(
           "auto_flag",
-          [](const AutoPhotometry& prop){
+          [](const AutoPhotometryFlag& prop){
             return prop.getFlag();
           }
   );
 
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<AutoPhotometry>("AutoPhotometry");
-  // just enable as output (to execute on the measurment images only??)
-  //plugin_api.getOutputRegistry().enableOutput<AperturePhotometry>();
+  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometryFlag>("AutoPhotometry");
 }
 
 std::string AutoPhotometryPlugin::getIdString() const {

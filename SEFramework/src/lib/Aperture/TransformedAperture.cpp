@@ -21,10 +21,10 @@ TransformedAperture::TransformedAperture(std::shared_ptr<Aperture> decorated,
 
   double inv_det = 1. / (m_transform[0] * m_transform[3] - m_transform[2] * m_transform[1]);
 
-  m_inv_transform[0] = m_transform[0] * inv_det;
-  m_inv_transform[1] = m_transform[1] * inv_det;
-  m_inv_transform[2] = m_transform[2] * inv_det;
-  m_inv_transform[3] = m_transform[3] * inv_det;
+  m_inv_transform[0] = m_transform[3] * inv_det;
+  m_inv_transform[1] = -m_transform[1] * inv_det;
+  m_inv_transform[2] = -m_transform[2] * inv_det;
+  m_inv_transform[3] = m_transform[0] * inv_det;
 }
 
 inline std::pair<double, double> transform(int x, int y, const std::array<double, 4> &t) {
