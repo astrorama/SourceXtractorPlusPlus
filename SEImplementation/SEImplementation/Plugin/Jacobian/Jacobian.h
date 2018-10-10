@@ -14,9 +14,12 @@
 
 namespace SExtractor {
 
-class Jacobian: public Property {
+class Jacobian {
 public:
   virtual ~Jacobian() = default;
+
+  // Identity constructor for convenience
+  Jacobian(): m_jacobian{1., 0., 0., 1.} {}
 
   Jacobian(double a, double b, double c, double d): m_jacobian{a, b, c, d} {}
 
@@ -26,6 +29,16 @@ public:
 
 private:
   std::tuple<double, double, double, double> m_jacobian;
+};
+
+
+class JacobianSource: public Property, public Jacobian {
+public:
+  using Jacobian::Jacobian;
+};
+
+class JacobianGroup: public Property, public Jacobian {
+  using Jacobian::Jacobian;
 };
 
 } // end SExtractor

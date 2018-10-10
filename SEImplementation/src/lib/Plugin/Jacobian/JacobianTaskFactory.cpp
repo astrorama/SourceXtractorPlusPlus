@@ -12,8 +12,11 @@
 namespace SExtractor {
 
 std::shared_ptr<Task> JacobianTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
-  if (property_id.getTypeId() == typeid(Jacobian)) {
-    return std::make_shared<JacobianTask>(property_id.getIndex());
+  if (property_id.getTypeId() == typeid(JacobianGroup)) {
+    return std::make_shared<JacobianGroupTask>(property_id.getIndex());
+  }
+  else if (property_id.getTypeId() == typeid(JacobianSource)) {
+    return std::make_shared<JacobianSourceTask>(property_id.getIndex());
   }
   return nullptr;
 }

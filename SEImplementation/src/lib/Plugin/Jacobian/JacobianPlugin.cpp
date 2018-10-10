@@ -19,7 +19,7 @@ std::string JacobianPlugin::getIdString() const {
 }
 
 void JacobianPlugin::registerPlugin(PluginAPI &plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<JacobianTaskFactory, Jacobian>();
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<JacobianTaskFactory, JacobianSource, JacobianGroup>();
 }
 
 } // end SExtractor
