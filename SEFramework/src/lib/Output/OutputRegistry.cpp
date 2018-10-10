@@ -20,9 +20,11 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
     if (m_optional_properties.count(optional) == 0) {
       throw Elements::Exception() << "Unknown output property " << optional;
     }
-    auto type_index = m_optional_properties.at(optional);
-    if (std::find(m_output_properties.begin(), m_output_properties.end(), type_index) == m_output_properties.end()) {
-      m_output_properties.emplace_back(type_index);
+    auto matching_properties = m_optional_properties.equal_range(optional);
+    for (auto i = matching_properties.first; i != matching_properties.second; ++i) {
+      if (std::find(m_output_properties.begin(), m_output_properties.end(), i->second) == m_output_properties.end()) {
+        m_output_properties.emplace_back(i->second);
+      }
     }
   }
   return [this](const SourceInterface& source) {

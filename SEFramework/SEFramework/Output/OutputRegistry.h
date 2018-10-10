@@ -72,10 +72,10 @@ public:
     m_optional_properties.emplace(alias_name, typeid(PropertyType));
   }
   
-  std::vector<std::string> getOptionalOutputNames() {
-    std::vector<std::string> result {};
+  std::set<std::string> getOptionalOutputNames() {
+    std::set<std::string> result {};
     for (auto& pair : m_optional_properties) {
-      result.emplace_back(pair.first);
+      result.emplace(pair.first);
     }
     return result;
   }
@@ -103,7 +103,7 @@ private:
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
   std::vector<std::type_index> m_output_properties {};
-  std::map<std::string, std::type_index> m_optional_properties {};
+  std::multimap<std::string, std::type_index> m_optional_properties {};
   
 };
 
