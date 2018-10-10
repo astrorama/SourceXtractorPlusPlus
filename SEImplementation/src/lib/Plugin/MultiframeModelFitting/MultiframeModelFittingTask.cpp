@@ -111,20 +111,19 @@ SeFloat computeReducedChiSquared(
 void printDebugChi2(SeFloat reduced_chi_squared) {
   static double total = 0.0;
   static int count = 0;
-  static std::vector<SeFloat> chi_squares;
+  //static std::vector<SeFloat> chi_squares;
+  //chi_squares.push_back(reduced_chi_squared);
 
-  chi_squares.push_back(reduced_chi_squared);
   total += reduced_chi_squared;
   count++;
 
-  std::sort(chi_squares.begin(), chi_squares.end());
+  //std::sort(chi_squares.begin(), chi_squares.end());
 
   std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
   std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
 //  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
 //  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
 }
-
 
 }
 
