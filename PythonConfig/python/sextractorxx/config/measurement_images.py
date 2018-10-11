@@ -20,6 +20,12 @@ class MeasurementImage(object):
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
 
+    def __str__(self):
+        return 'Image: {}, HDU: {}, Cube: {}, PSF: {}, PSF HDU: {}'.format(
+            self.meta['IMAGE_FILENAME'], self.meta['IMAGE_HDU_NO'],
+            self.meta['IMAGE_CUBE_INDEX'], self.meta['PSF_FILENAME'],
+            self.meta['PSF_HDU_NO'])
+
 
 class MeasurementGroup(object):
 
@@ -37,7 +43,7 @@ class MeasurementGroup(object):
         if key == 'subgroups':
             self.__subgroups = kwargs[key]
             for name, _ in self._subgroups:
-                self.__subgroup_names.insert(name)
+                self.__subgroup_names.add(name)
 
     def __len__(self):
         if self.__subgroups:
@@ -80,6 +86,26 @@ class MeasurementGroup(object):
             raise Exception('Subgroup {} alread exists'.format(name))
         self.__subgroup_names.add(name)
         self.__subgroups.append((name, group))
+
+    def is_leaf(self):
+        return self.__subgroups is None
+
+    def __getitem__(self, name):
+        if self.__subgroups is None:
+            raise Exception('MeasurementGroup is not subgrouped yet')
+        return (x for x in self.__subgroups if x[0] == name).next()[1]
+
+    def printToScreen(self, prefix='', show_images=False):
+        if self.__subgroups is None:
+            print('{}Image List ({})'.format(prefix, len(self.__images)))
+            if show_images:
+                for im in self.__images:
+                    print('{}{}'.format(prefix, im))
+        else:
+            print('{}Sub-groups: {}'.format(prefix, ','.join(x for x,_ in self.__subgroups)))
+            for name, group in self.__subgroups:
+                print('{}  {}:'.format(prefix, name))
+                group.printToScreen(prefix + '    ', show_images)
 
 
 def load_fits_images(image_list, psf_list, hdu_list=None, psf_hdu_list=None):

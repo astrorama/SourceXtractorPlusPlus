@@ -1,3 +1,5 @@
 /build*
 /InstallArea
 /tests
+*.pyc
+__pycache__
