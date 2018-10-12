@@ -37,6 +37,7 @@ class FlexibleModelFittingFreeParameter : public FlexibleModelFittingParameter {
             m_is_exponential_range(is_exponential_range) {}
 
 private:
+  // FIXME this will be replaced by Python callbacks
   double m_initial_value;
   double m_minimum_value;
   double m_maximum_value;

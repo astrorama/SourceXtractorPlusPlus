@@ -15,6 +15,8 @@
 
 namespace SExtractor {
 
+// FlexibleModelFitting property class to contain the results from the model fitting
+
 class FlexibleModelFitting : public Property {
 public:
   virtual ~FlexibleModelFitting() = default;

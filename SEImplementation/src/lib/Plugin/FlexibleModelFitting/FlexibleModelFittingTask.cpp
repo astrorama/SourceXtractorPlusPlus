@@ -93,7 +93,6 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
-
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
