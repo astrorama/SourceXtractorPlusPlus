@@ -8,9 +8,9 @@
 #include <iostream>
 
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
@@ -46,7 +46,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   auto max_pixel = m_aperture->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<NeighbourInfo>();
+  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
   long int total_flag = 0;
   SeFloat total_area = 0.0;

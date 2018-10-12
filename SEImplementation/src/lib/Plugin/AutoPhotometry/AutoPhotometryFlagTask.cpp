@@ -6,13 +6,14 @@
  */
 
 #include "SEFramework/Aperture/EllipticalAperture.h"
+#include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
-#include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlagTask.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
@@ -46,6 +47,9 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   const auto &cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
   const auto &cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
+  // get the pixel list
+  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor * source.getProperty<KronRadius>().getKronRadius();
   if (kron_radius_auto < m_kron_minrad)
@@ -59,7 +63,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   const auto &max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<NeighbourInfo>();
+  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
   long int area_sum = 0;
   long int area_bad = 0;

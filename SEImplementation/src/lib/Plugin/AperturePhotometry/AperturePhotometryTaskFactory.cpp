@@ -71,12 +71,19 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
   unsigned int flag_instance = 0;
   for (auto aperture_size : apertures) {
     m_detection_apertures.emplace_back(aperture_size);
-    m_flag_names.emplace_back(std::make_pair(std::to_string(aperture_size), flag_instance));
+    std::stringstream instance_name;
+    instance_name << aperture_size;
+    m_flag_names.emplace_back(std::make_pair(instance_name.str(), flag_instance));
   }
 
   // We have one AperturePhotometry per aperture per measurement image
+  std::map<std::string, unsigned> pos_in_group;
+
   unsigned int aperture_instance_nb = 0;
   for (unsigned int image_nb = 0; image_nb < measurement_images_nb; image_nb++) {
+    auto& group = measurement_config.getGroupForImage(image_nb);
+    unsigned pos = pos_in_group[group->getName()]++;
+
     for (auto aperture_size : apertures) {
       m_aperture_instances[std::make_pair(image_nb, aperture_size)] = aperture_instance_nb;
       m_image_instances.emplace_back(image_nb);
@@ -84,7 +91,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
 
 
       std::stringstream instance_name;
-      instance_name << image_nb << "_" << aperture_size;
+      instance_name << group->getName() << "_" << pos << "_" << aperture_size;
       m_photometry_names.emplace_back(std::make_pair(instance_name.str(), aperture_instance_nb));
 
       aperture_instance_nb++;

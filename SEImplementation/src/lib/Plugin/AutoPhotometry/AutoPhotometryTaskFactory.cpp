@@ -45,8 +45,12 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
   auto &measurement_config = manager.getConfiguration<MeasurementConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
+  std::map<std::string, unsigned> pos_in_group;
+
   for (int i = 0; i < measurement_images_nb; ++i) {
-    m_auto_names.emplace_back(std::make_pair(std::to_string(i), i));
+    auto& group = measurement_config.getGroupForImage(i);
+    unsigned pos = pos_in_group[group->getName()]++;
+    m_auto_names.emplace_back(std::make_pair(group->getName() + "_" + std::to_string(pos), i));
   }
 }
 

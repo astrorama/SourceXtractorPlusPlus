@@ -9,15 +9,15 @@
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Aperture/EllipticalAperture.h"
+#include "SEFramework/Aperture/NeighbourInfo.h"
+
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
-
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
 
 namespace SExtractor {
 
@@ -56,8 +56,11 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
   const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
+// get the pixel list
+  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
   // get the neighbourhood information
-  auto neighbour_info = source.getProperty<NeighbourInfo>();
+  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
   SeFloat radius_flux_sum=0.;
   SeFloat flux_sum=0.;
@@ -119,7 +122,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
       flag |= 0x0001;
 
     // check/set the crowded area flag
-    if ((SeFloat)area_full/(SeFloat)area_sum > BADAREA_THRESHOLD_KRON)
+    if ((SeFloat)area_full/(SeFloat)area_sum > CROWD_THRESHOLD_KRON)
       flag |= 0x0002;
   }
 

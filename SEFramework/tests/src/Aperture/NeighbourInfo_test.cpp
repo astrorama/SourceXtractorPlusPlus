@@ -6,15 +6,9 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Source/SimpleSource.h"
-#include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfo.h"
-#include "SEImplementation/Plugin/NeighbourInfo/NeighbourInfoTask.h"
 
-#include "SEFramework/tests/src/Image/CompareImages.h"
+#include "SEFramework/Image/ConstantImage.h"
+#include "SEFramework/Aperture/NeighbourInfo.h"
 
 using namespace SExtractor;
 
@@ -44,15 +38,8 @@ struct NeighbourInfo_Fixture {
     {3, 3},
   };
 
-  SimpleSource source;
-
-  NeighbourInfo_Fixture() {
-    source.setProperty<PixelCoordinateList>(detection_pixel_list);
-    source.setProperty<PixelBoundaries>(1, 1, 3, 3);
-    source.setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-      detection_image, variance_map, 0., nullptr, 0., 60000, 0
-    ));
-  }
+  PixelCoordinate min_pixel{1, 1};
+  PixelCoordinate max_pixel{3, 3};
 };
 
 BOOST_AUTO_TEST_SUITE(NeighbourInfo_test)
@@ -60,11 +47,7 @@ BOOST_AUTO_TEST_SUITE(NeighbourInfo_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(OneToOne_test, NeighbourInfo_Fixture) {
-  NeighbourInfoTask task;
-
-  task.computeProperties(source);
-
-  auto neighbour_info = source.getProperty<NeighbourInfo>().getImage();
+  NeighbourInfo neighbour_info{min_pixel, max_pixel, detection_pixel_list, variance_map};
 
   auto expected = VectorImage<int>::create(3, 3, std::vector<int>{
     0, 0, 1,
@@ -72,7 +55,11 @@ BOOST_FIXTURE_TEST_CASE(OneToOne_test, NeighbourInfo_Fixture) {
     0, 0, 0,
   });
 
-  BOOST_CHECK(compareImages(expected, neighbour_info));
+  for (int y = 0; y < expected->getHeight(); ++y) {
+    for (int x = 0; x < expected->getWidth(); ++x) {
+      BOOST_CHECK_EQUAL(expected->getValue(x, y), neighbour_info.isNeighbourObjectPixel(min_pixel.m_x + x, min_pixel.m_y + y));
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
