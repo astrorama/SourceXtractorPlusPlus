@@ -15,6 +15,7 @@
 #include <SEImplementation/Plugin/Jacobian/Jacobian.h>
 #include <SEImplementation/CheckImages/CheckImages.h>
 #include <SEImplementation/Plugin/SourceIDs/SourceID.h>
+#include <SEImplementation/Plugin/SourceFlags/SourceFlags.h>
 #include "SEFramework/Aperture/EllipticalAperture.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
@@ -66,6 +67,14 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
 
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
+  long flag = 0;
+
+  // Skip if the full source is outside the frame
+  if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= measurement_image->getWidth() ||
+      min_pixel.m_y >= measurement_image->getHeight()) {
+    source.setIndexedProperty<AutoPhotometry>(m_instance, 0., 0., 99., 99., flag);
+    return;
+  }
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -107,6 +116,9 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
           total_flux += pixel_value;
           total_variance += pixel_variance;
         }
+        else {
+          flag |= SourceFlags::BOUNDARY;
+        }
       }
     }
   }
@@ -117,7 +129,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   // set the source properties
-  source.setIndexedProperty<AutoPhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
+  source.setIndexedProperty<AutoPhotometry>(m_instance, total_flux, flux_error, mag, mag_error, flag);
 
   // Draw the aperture
   auto coord_system = measurement_frame->getCoordinateSystem();

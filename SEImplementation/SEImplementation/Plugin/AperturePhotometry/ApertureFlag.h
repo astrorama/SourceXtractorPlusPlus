@@ -10,6 +10,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include <vector>
 
 namespace SExtractor {
 
@@ -22,14 +23,14 @@ public:
 
   virtual ~ApertureFlag() = default;
 
-  ApertureFlag(int flag): m_flag{flag} {}
+  ApertureFlag(const std::vector<long>& flags): m_flags{flags} {}
 
-  int getFlag() const {
-    return m_flag;
+  const std::vector<long>& getFlags() const {
+    return m_flags;
   }
 
 private:
-  int m_flag;
+  std::vector<long> m_flags;
 };
 
 } /* namespace SExtractor */

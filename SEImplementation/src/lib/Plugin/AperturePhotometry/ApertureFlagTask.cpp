@@ -15,6 +15,7 @@
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 
 namespace SExtractor {
@@ -48,7 +49,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
-  long int total_flag = 0;
+  long int global_flag = 0;
   SeFloat total_area = 0.0;
   SeFloat bad_area = 0;
   SeFloat full_area = 0;
@@ -77,7 +78,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
               bad_area += 1;
           }
         } else {
-          total_flag |= SourceFlags::BOUNDARY;
+          global_flag |= SourceFlags::BOUNDARY;
         }
       }
     }
@@ -86,15 +87,27 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   if (total_area > 0) {
     // check/set the bad area flag
     if (bad_area / total_area > BADAREA_THRESHOLD_APER)
-      total_flag |= SourceFlags::BIASED;
+      global_flag |= SourceFlags::BIASED;
 
     // check/set the crowded area flag
     if (full_area / total_area > CROWD_THRESHOLD_APER)
-      total_flag |= SourceFlags::BLENDED;
+      global_flag |= SourceFlags::BLENDED;
+  }
+
+  // Iterate through groups, and flatten the flags into a vector with one entry per group
+  std::vector<long> all_flags;
+
+  for (auto& group : m_images_per_group) {
+    long group_flag = global_flag;
+    for (auto image : group.second) {
+      auto photo = source.getProperty<AperturePhotometry>(image);
+      group_flag |= photo.getFlag();
+    }
+    all_flags.push_back(group_flag);
   }
 
   // set the source properties
-  source.setIndexedProperty<ApertureFlag>(m_instance, total_flag);
+  source.setIndexedProperty<ApertureFlag>(m_instance, all_flags);
 
   // Draw the checkimage for the aperture on the detection image
   auto aperture_check_img = CheckImages::getInstance().getApertureImage();

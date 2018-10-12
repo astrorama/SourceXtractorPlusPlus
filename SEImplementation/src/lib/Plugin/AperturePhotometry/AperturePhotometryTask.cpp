@@ -15,6 +15,7 @@
 #include <SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h>
 #include <SEImplementation/CheckImages/CheckImages.h>
 #include <SEImplementation/Plugin/SourceIDs/SourceID.h>
+#include <SEImplementation/Plugin/SourceFlags/SourceFlags.h>
 
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
@@ -49,6 +50,14 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
 
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
+  long flag = 0;
+
+  // Skip if the full source is outside the frame
+  if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= measurement_image->getWidth() ||
+      min_pixel.m_y >= measurement_image->getHeight()) {
+    source.setIndexedProperty<AperturePhotometry>(m_instance, 0., 0., 99., 99., flag);
+    return;
+  }
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -89,6 +98,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
           total_flux += pixel_value * area;
           total_variance += pixel_variance * area;
         }
+        else {
+          flag |= SourceFlags::BOUNDARY;
+        }
       }
     }
   }
@@ -99,7 +111,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   // set the source properties
-  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error);
+  source.setIndexedProperty<AperturePhotometry>(m_instance, total_flux, flux_error, mag, mag_error, flag);
 
   // Draw the aperture
   auto coord_system = measurement_frame->getCoordinateSystem();

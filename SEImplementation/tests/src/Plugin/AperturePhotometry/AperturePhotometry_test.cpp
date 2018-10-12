@@ -28,6 +28,11 @@ using namespace SExtractor;
 
 struct AperturePhotometryFixture {
   SimpleSource source;
+  std::map<std::string, std::vector<unsigned>> images_per_group;
+
+  AperturePhotometryFixture() {
+    images_per_group.emplace("r", 0);
+  }
 };
 
 //-----------------------------------------------------------------------------
@@ -50,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{{0, 0}}});
   source.setIndexedProperty<JacobianSource>(0);
 
-  ApertureFlagTask aperture_flag_task(std::make_shared<CircularAperture>(.5), 0);
+  ApertureFlagTask aperture_flag_task(std::make_shared<CircularAperture>(.5), images_per_group, 0);
   AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(.5), 0, 0, 0, false);
   aperture_flag_task.computeProperties(source);
   aperture_photometry_task.computeProperties(source);
@@ -60,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
 
   // It is on a boundary
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK(aperture_flag.getFlag() == SourceFlags::BOUNDARY);
+  BOOST_CHECK(aperture_flag.getFlags()[0] == SourceFlags::BOUNDARY);
 }
 
 //-----------------------------------------------------------------------------
@@ -85,7 +90,7 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 1, 1);
   source.setIndexedProperty<JacobianSource>(0);
 
-  ApertureFlagTask aperture_flag_task(std::make_shared<CircularAperture>(1.), 0);
+  ApertureFlagTask aperture_flag_task(std::make_shared<CircularAperture>(1.), images_per_group, 0);
   AperturePhotometryTask aperture_photometry_task(std::make_shared<CircularAperture>(1.0), 0, 0, 0, false);
   aperture_flag_task.computeProperties(source);
   aperture_photometry_task.computeProperties(source);
@@ -94,7 +99,7 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFlux(), 1.45, 10);
   // There is one pixel that belongs to a neighbour
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK(aperture_flag.getFlag() & SourceFlags::BLENDED);
+  BOOST_CHECK(aperture_flag.getFlags()[0] & SourceFlags::BLENDED);
 }
 
 //-----------------------------------------------------------------------------

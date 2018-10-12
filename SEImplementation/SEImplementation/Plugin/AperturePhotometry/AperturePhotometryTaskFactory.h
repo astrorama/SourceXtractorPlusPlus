@@ -39,7 +39,7 @@ private:
   std::vector<unsigned int> m_image_instances;
   std::map<std::pair<unsigned int, SeFloat>, unsigned int> m_aperture_instances;
   std::vector<std::pair<std::string, unsigned int>> m_photometry_names;
-
+  std::map<std::string, std::vector<unsigned int>> m_images_per_group;
 
 };
 

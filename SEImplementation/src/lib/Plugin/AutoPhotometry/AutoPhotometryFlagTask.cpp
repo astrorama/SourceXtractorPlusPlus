@@ -12,6 +12,7 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
@@ -68,7 +69,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   long int area_sum = 0;
   long int area_bad = 0;
   long int area_full = 0;
-  long int total_flag = 0;
+  long int global_flag = 0;
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -96,7 +97,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
           }
         } else {
           // set the border flag
-          total_flag |= SourceFlags::BOUNDARY;
+          global_flag |= SourceFlags::BOUNDARY;
         }
       }
     }
@@ -105,15 +106,27 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   if (area_sum > 0) {
     // check/set the bad area flag
     if ((SeFloat) area_bad / (SeFloat) area_sum > BADAREA_THRESHOLD_AUTO)
-      total_flag |= SourceFlags::BIASED;
+      global_flag |= SourceFlags::BIASED;
 
     // check/set the crowded area flag
     if ((SeFloat) area_full / (SeFloat) area_sum > CROWD_THRESHOLD_AUTO)
-      total_flag |= SourceFlags::BLENDED;
+      global_flag |= SourceFlags::BLENDED;
+  }
+
+  // Iterate through groups, and flatten the flags into a vector with one entry per group
+  std::vector<long> all_flags;
+
+  for (auto& group : m_instances_per_group) {
+    long group_flag = global_flag;
+    for (auto image : group.second) {
+      auto photo = source.getProperty<AutoPhotometry>(image);
+      group_flag |= photo.getFlag();
+    }
+    all_flags.push_back(group_flag);
   }
 
   // set the source properties
-  source.setProperty<AutoPhotometryFlag>(total_flag);
+  source.setProperty<AutoPhotometryFlag>(all_flags);
 
   // Draw the aperture
   auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage();

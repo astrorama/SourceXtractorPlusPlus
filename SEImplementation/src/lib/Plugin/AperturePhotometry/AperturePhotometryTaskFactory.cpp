@@ -38,6 +38,7 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
   } else if (property_id.getTypeId() == typeid(ApertureFlag) && instance < m_detection_apertures.size()) {
     return std::make_shared<ApertureFlagTask>(
       std::make_shared<CircularAperture>(m_detection_apertures[instance]),
+      m_images_per_group,
       instance
     );
   } else {
@@ -67,7 +68,6 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
 
   // FIXME This will need to be replaced by vector output
 
-  // We have one ApertureFlag per aperture size, since it only works on the detection image
   unsigned int flag_instance = 0;
   for (auto aperture_size : apertures) {
     m_detection_apertures.emplace_back(aperture_size);
@@ -84,11 +84,12 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
     auto& group = measurement_config.getGroupForImage(image_nb);
     unsigned pos = pos_in_group[group->getName()]++;
 
+    m_images_per_group[group->getName()].emplace_back(image_nb);
+
     for (auto aperture_size : apertures) {
       m_aperture_instances[std::make_pair(image_nb, aperture_size)] = aperture_instance_nb;
       m_image_instances.emplace_back(image_nb);
       m_measure_apertures.emplace_back(aperture_size);
-
 
       std::stringstream instance_name;
       instance_name << group->getName() << "_" << pos << "_" << aperture_size;

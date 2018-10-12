@@ -40,6 +40,7 @@ private:
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
   bool    m_symmetry_usage;
+  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
   std::vector<std::pair<std::string, unsigned int>> m_auto_names;
 };
 

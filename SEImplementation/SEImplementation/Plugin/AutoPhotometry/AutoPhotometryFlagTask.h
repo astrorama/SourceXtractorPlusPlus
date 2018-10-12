@@ -18,15 +18,16 @@ public:
 
   virtual ~AutoPhotometryFlagTask() = default;
 
-  AutoPhotometryFlagTask(SeFloat kron_factor, SeFloat kron_minrad)
-  : m_kron_factor{kron_factor}, m_kron_minrad{kron_minrad} {}
+  AutoPhotometryFlagTask(SeFloat kron_factor, SeFloat kron_minrad,
+    const std::map<std::string, std::vector<unsigned int>> &instances_per_group)
+  : m_kron_factor{kron_factor}, m_kron_minrad{kron_minrad}, m_instances_per_group{instances_per_group} {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
-
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
+  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 };
 
 } // end SExtractor

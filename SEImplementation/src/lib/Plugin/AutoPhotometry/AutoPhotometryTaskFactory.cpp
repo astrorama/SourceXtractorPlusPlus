@@ -51,6 +51,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
     auto& group = measurement_config.getGroupForImage(i);
     unsigned pos = pos_in_group[group->getName()]++;
     m_auto_names.emplace_back(std::make_pair(group->getName() + "_" + std::to_string(pos), i));
+    m_instances_per_group[group->getName()].emplace_back(i);
   }
 }
 
@@ -63,7 +64,7 @@ std::shared_ptr<Task> AutoPhotometryTaskFactory::createTask(const PropertyId &pr
     return std::make_shared<AutoPhotometryTask>(property_id.getIndex(), m_magnitude_zero_point, m_kron_factor,
                                                 m_kron_minrad, m_symmetry_usage);
   } else if (property_id == PropertyId::create<AutoPhotometryFlag>()) {
-    return std::make_shared<AutoPhotometryFlagTask>(m_kron_factor, m_kron_minrad);
+    return std::make_shared<AutoPhotometryFlagTask>(m_kron_factor, m_kron_minrad, m_instances_per_group);
   } else {
     return nullptr;
   }
