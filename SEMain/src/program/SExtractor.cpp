@@ -67,6 +67,7 @@ using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
+//FIXME This option doesn't work if no detection image is given
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
