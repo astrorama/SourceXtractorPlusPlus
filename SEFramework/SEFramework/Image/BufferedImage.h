@@ -15,7 +15,7 @@
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/TileManager.h"
 
-#include <boost/thread/shared_mutex.hpp>
+#include <boost/thread/tss.hpp>
 
 namespace SExtractor {
 
@@ -81,19 +81,15 @@ protected:
   std::shared_ptr<const ImageSource<T>> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
 
-  mutable boost::shared_mutex m_current_tile_mutex;
-  mutable std::map<std::thread::id, std::shared_ptr<ImageTile<T>>> m_current_tile;
-
   std::shared_ptr<ImageTile<T>> &getEntryForThisThread() const {
-    boost::upgrade_lock<boost::shared_mutex> read_lock{m_current_tile_mutex};
-    auto current_tile_i = m_current_tile.find(std::this_thread::get_id());
-    if (current_tile_i == m_current_tile.end()) {
-      boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
-      current_tile_i = m_current_tile.emplace(std::make_pair(std::this_thread::get_id(), nullptr)).first;
-    };
-
-    return current_tile_i->second;
+    if (!m_current_tile.get()) {
+      m_current_tile.reset(new std::shared_ptr<ImageTile<T>>{nullptr});
+    }
+    return *m_current_tile;
   }
+
+private:
+  mutable boost::thread_specific_ptr<std::shared_ptr<ImageTile<T>>> m_current_tile;
 };
 
 }
