@@ -4,27 +4,42 @@ import os
 import re
 from astropy.io import fits
 
+import libPythonConfig as cpp
 
-class MeasurementImage(object):
 
-    def __init__(self, fits_file, hdu, cube_index, psf_file, psf_hdu):
+measurement_images = {}
+
+
+class MeasurementImage(cpp.MeasurementImage):
+
+    def __init__(self, fits_file, psf_file, weight_file=None):
+        super(MeasurementImage, self).__init__(os.path.abspath(fits_file), os.path.abspath(psf_file), os.path.abspath(weight_file) if weight_file else '')
         self.meta = {
-            'IMAGE_FILENAME' : os.path.abspath(fits_file),
-            'IMAGE_HDU_NO' : hdu,
-            'IMAGE_CUBE_INDEX' : cube_index,
-            'PSF_FILENAME' : os.path.abspath(psf_file),
-            'PSF_HDU_NO' : psf_hdu
+            'IMAGE_FILENAME' : self.file,
+            'PSF_FILENAME' : self.psf_file,
+            'WEIGHT_FILENAME' : self.weight_file
         }
         hdu_list = fits.open(fits_file)
-        hdu_meta = hdu_list[hdu].header
+        hdu_meta = hdu_list[0].header
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
+        global measurement_images
+        measurement_images[self.id] = self
 
     def __str__(self):
-        return 'Image: {}, HDU: {}, Cube: {}, PSF: {}, PSF HDU: {}'.format(
-            self.meta['IMAGE_FILENAME'], self.meta['IMAGE_HDU_NO'],
-            self.meta['IMAGE_CUBE_INDEX'], self.meta['PSF_FILENAME'],
-            self.meta['PSF_HDU_NO'])
+        return 'Image {}: {}, PSF: {}, Weight: {}'.format(
+            self.id, self.meta['IMAGE_FILENAME'], self.meta['PSF_FILENAME'],
+            self.meta['WEIGHT_FILENAME'])
+
+
+def print_measurement_images():
+    print('Measurement images:')
+    for i in measurement_images:
+        im = measurement_images[i]
+        print('Image {}'.format(i))
+        print('      File: {}'.format(im.file))
+        print('       PSF: {}'.format(im.psf_file))
+        print('    Weight: {}'.format(im.weight_file))
 
 
 class ImageGroup(object):
@@ -108,91 +123,87 @@ class ImageGroup(object):
                 group.printToScreen(prefix + '    ', show_images)
 
 
-def load_fits_images(image_list, psf_list, hdu_list=None, psf_hdu_list=None):
+def load_fits_images(image_list, psf_list, weight_list=None):
     """Creates an image group for the given images.
 
     The parameter images is a list of relative paths to the FITS files containing
     the images. The optional parameter hdu_list can be used to control the HDU of
     each file where the image is stored. By default the primary HDU is used. The
     psf_list must contain relative paths to the FITS files containing the PSF of
-    each image and it must match one-to-one the images in the image_list. The
-    optional parameter psf_hdu_list must contain the HDU the PSF is in each file.
-    By default the same HDU numbers of the image FITS are used.
+    each image and it must match one-to-one the images in the image_list. Finally,
+    the weight_list can be used to define the weight images. The entries of this
+    list can be either a filename or one of None and empty string, which mean no
+    weights.
 
     :param image_list: A list of relative paths to the images FITS files
     :param psf_list: A list of relative paths to the PSF FITS files
-    :param hdu_list: A list of the HDU numbers where each image is stored (optional)
-    :param psf_hdu_list: A list of the HDU numbers where the PSFs are stored (optional)
+    :param weight_list: A list of relative paths to the weight files (optional)
     :return: A ImageGroup representing the images
     """
     assert len(image_list) == len(psf_list)
-    if hdu_list is None:
-        hdu_list = [0] * len(image_list)
+    if weight_list is None:
+        weight_list = [None] * len(image_list)
     else:
-        assert len(image_list) == len(hdu_list)
-    if psf_hdu_list is None:
-        psf_hdu_list = hdu_list
-    else:
-        assert len(psf_hdu_list) == len(psf_list)
+        assert len(image_list) == len(weight_list)
     meas_image_list = []
-    for im, hdu, psf, psf_hdu in zip (image_list, hdu_list, psf_list, psf_hdu_list):
-        meas_image_list.append(MeasurementImage(im, hdu, 0, psf, psf_hdu))
+    for im, psf, w in zip (image_list, psf_list, weight_list):
+        meas_image_list.append(MeasurementImage(im, psf, w))
     return ImageGroup(images=meas_image_list)
 
 
-def load_multi_hdu_fits(image_file, psf):
-    """Creates an image group with the images of a multi-HDU FITS file.
-
-    The psf parameter can either be a multi-HDU FITS file where the HDUs match
-    one-to-one the HDUs of the image file or a list of single HDU PSFs. Note that
-    any HDUs not containing images (two dimensional arrays) are ignored.
-
-    :param image_file: The multi-HDU FITS file containing the images
-    :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
-        single HDU FITS files, one for each PSF
-    :return: A ImageGroup representing the images
-    """
-    hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
-    if isinstance(psf, list):
-        assert len(psf) == len(hdu_list)
-        psf_list = psf
-        psf_hdu_list = [0] * len(psf_list)
-    else:
-        psf_list = [psf] * len(hdu_list)
-        psf_hdu_list = hdu_list
-    meas_image_list = []
-    for hdu, psf, psf_hdu in zip(du_list, psf_list, psf_hdu_list):
-        meas_image_list.append(MeasurementImage(image_file, hdu, 0, psf, psf_hdu))
-    return ImageGroup(images=meas_image_list)
-
-
-def load_fits_cube(image_file, psf, hdu=0):
-    """Creates an image group with the immages of a FITS cube HDU.
-
-    The psf parameter can either be a multi-HDU FITS file with as many HDUs as the
-    cubes third dimension or a list of single HDU PSFs. Note that all the images
-    of the cube will share in their metadata the information of the FITS header.
-
-    :param image_file: The cube FITS file
-    :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
-        single HDU FITS files, one for each PSF
-    :param hdu: The HDU of the image_file containing the cube (optional)
-    :return: A ImageGroup representing the images
-    """
-    fits_header = fits.open(image_file)[hdu].header
-    assert fits_header['NAXIS'] == 3
-    image_no = fits_header['NAXIS3']
-    if isinstance(psf, list):
-        assert len(psf) == image_no
-        psf_list = psf
-        psf_hdu_list = [0] * image_no
-    else:
-        psf_list = [psf] * image_no
-        psf_hdu_list = range(image_no)
-    meas_image_list = []
-    for i, psf, psf_hdu in zip(range(image_no), psf_list, psf_hdu_list):
-        meas_image_list.append(MeasurementImage(image_file, hdu, i, psf, psf_hdu))
-    return ImageGroup(images=meas_image_list)
+# def load_multi_hdu_fits(image_file, psf):
+#     """Creates an image group with the images of a multi-HDU FITS file.
+#
+#     The psf parameter can either be a multi-HDU FITS file where the HDUs match
+#     one-to-one the HDUs of the image file or a list of single HDU PSFs. Note that
+#     any HDUs not containing images (two dimensional arrays) are ignored.
+#
+#     :param image_file: The multi-HDU FITS file containing the images
+#     :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
+#         single HDU FITS files, one for each PSF
+#     :return: A ImageGroup representing the images
+#     """
+#     hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+#     if isinstance(psf, list):
+#         assert len(psf) == len(hdu_list)
+#         psf_list = psf
+#         psf_hdu_list = [0] * len(psf_list)
+#     else:
+#         psf_list = [psf] * len(hdu_list)
+#         psf_hdu_list = hdu_list
+#     meas_image_list = []
+#     for hdu, psf, psf_hdu in zip(du_list, psf_list, psf_hdu_list):
+#         meas_image_list.append(MeasurementImage(image_file, hdu, 0, psf, psf_hdu))
+#     return ImageGroup(images=meas_image_list)
+#
+#
+# def load_fits_cube(image_file, psf, hdu=0):
+#     """Creates an image group with the immages of a FITS cube HDU.
+#
+#     The psf parameter can either be a multi-HDU FITS file with as many HDUs as the
+#     cubes third dimension or a list of single HDU PSFs. Note that all the images
+#     of the cube will share in their metadata the information of the FITS header.
+#
+#     :param image_file: The cube FITS file
+#     :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
+#         single HDU FITS files, one for each PSF
+#     :param hdu: The HDU of the image_file containing the cube (optional)
+#     :return: A ImageGroup representing the images
+#     """
+#     fits_header = fits.open(image_file)[hdu].header
+#     assert fits_header['NAXIS'] == 3
+#     image_no = fits_header['NAXIS3']
+#     if isinstance(psf, list):
+#         assert len(psf) == image_no
+#         psf_list = psf
+#         psf_hdu_list = [0] * image_no
+#     else:
+#         psf_list = [psf] * image_no
+#         psf_hdu_list = range(image_no)
+#     meas_image_list = []
+#     for i, psf, psf_hdu in zip(range(image_no), psf_list, psf_hdu_list):
+#         meas_image_list.append(MeasurementImage(image_file, hdu, i, psf, psf_hdu))
+#     return ImageGroup(images=meas_image_list)
 
 
 class ByKeyword(object):
