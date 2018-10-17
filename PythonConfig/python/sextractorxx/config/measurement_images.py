@@ -195,7 +195,7 @@ def load_fits_cube(image_file, psf, hdu=0):
     return MeasurementGroup(images=meas_image_list)
 
 
-class GroupByKeyword(object):
+class ByKeyword(object):
 
     def __init__(self, key):
         self.__key = key
@@ -210,7 +210,7 @@ class GroupByKeyword(object):
         return [(k, result[k]) for k in result]
 
 
-class GroupByPattern(object):
+class ByPattern(object):
 
     def __init__(self, key, pattern):
         self.__key = key

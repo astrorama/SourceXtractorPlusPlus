@@ -225,3 +225,9 @@ class DeVaucouleursModel(SersicModel):
         else:
             return 'DeVaucouleurs[alpha={}, delta={}, flux={}, i0={}, k={}]'.format(
                 self.alpha.id, self.delta.id, self.flux.id, self.i0.id, self.k.id)
+
+
+model_fitting_groups = []
+
+def set_model_fitting_groups(*groups):
+    model_fitting_groups = groups
