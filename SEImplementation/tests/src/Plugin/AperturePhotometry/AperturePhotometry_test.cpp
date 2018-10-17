@@ -5,6 +5,7 @@
  *      Author: mschefer
  */
 
+#include <string>
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Source/SimpleSource.h"
@@ -31,7 +32,7 @@ struct AperturePhotometryFixture {
   std::map<std::string, std::vector<unsigned>> images_per_group;
 
   AperturePhotometryFixture() {
-    images_per_group.emplace("r", 0);
+    images_per_group.emplace("r", std::vector<unsigned>{0});
   }
 };
 
