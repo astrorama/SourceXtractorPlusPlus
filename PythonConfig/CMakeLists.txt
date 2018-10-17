@@ -16,6 +16,7 @@ elements_subdir(PythonConfig)
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(SEImplementation)
+elements_depends_on_subdirs(Configuration) # From Alexandria
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -36,7 +37,7 @@ find_package(Boost REQUIRED COMPONENTS python)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(PythonConfig src/lib/*.cpp
-                     LINK_LIBRARIES SEUtils SEFramework SEImplementation Boost PythonLibs PythonInterp
+                     LINK_LIBRARIES SEUtils SEFramework SEImplementation Boost PythonLibs PythonInterp Configuration
                      INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
                      PUBLIC_HEADERS PythonConfig)
 

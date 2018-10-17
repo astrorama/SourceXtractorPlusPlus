@@ -116,50 +116,10 @@ def get_flux_parameter(type=FluxParameterType.ISO):
     return FreeParameter(lambda o: getattr(o, func_map[type]), Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
-class ModelFittingGroup(object):
-
-    def __init__(self, meas_group):
-        self.__images = None
-        self.__subgroups = None
-        if meas_group.is_leaf():
-            self.__images = [im for im in meas_group]
-        else:
-            self.__subgroups = [(n, ModelFittingGroup(g)) for n,g in meas_group]
-        self.__models = []
-
-    def __iter__(self):
-        if self.__subgroups:
-            return self.__subgroups.__iter__()
-        else:
-            return self.__images.__iter__()
-
-    def __getitem__(self, name):
-        if self.__subgroups is None:
-            raise Exception('Does not contain subgroups')
-        return (x for x in self.__subgroups if x[0] == name).next()[1]
-
-    def add_model(self, model):
-        self.__models.append(model)
-
-    def get_models(self):
-        return self.__models
-
-    def printToScreen(self, prefix='', show_images=False, show_params=False):
-        if self.__images:
-            print('{}Image List ({})'.format(prefix, len(self.__images)))
-            if show_images:
-                for im in self.__images:
-                    print('{}{}'.format(prefix, im))
-        if self.__subgroups:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(
-                x for x, _ in self.__subgroups)))
-            for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name))
-                group.printToScreen(prefix + '    ', show_images, show_params)
-        if self.__models:
-            print('{}Models:'.format(prefix))
-            for m in self.__models:
-                print ('{}  {}'.format(prefix, m.to_string(show_params)))
+def add_model(group, model):
+    if not hasattr(group, 'models'):
+        group.models = []
+    group.models.append(model)
 
 
 class ModelBase(object):

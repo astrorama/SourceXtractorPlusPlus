@@ -27,7 +27,7 @@ class MeasurementImage(object):
             self.meta['PSF_HDU_NO'])
 
 
-class MeasurementGroup(object):
+class ImageGroup(object):
 
     def __init__(self, **kwargs):
         self.__images = []
@@ -59,7 +59,7 @@ class MeasurementGroup(object):
 
     def split(self, grouping_method):
         if self.__subgroups:
-            raise Exception('MeasurementGroup is already subgrouped')
+            raise Exception('ImageGroup is already subgrouped')
         subgrouped_images = grouping_method(self.__images)
         if sum(len(p[1]) for p in subgrouped_images) != len(self.__images):
             self.__subgroups = None
@@ -68,12 +68,12 @@ class MeasurementGroup(object):
         for k, im_list in subgrouped_images:
             assert k not in self.__subgroup_names
             self.__subgroup_names.add(k)
-            self.__subgroups.append((k, MeasurementGroup(images=im_list)))
+            self.__subgroups.append((k, ImageGroup(images=im_list)))
         self.__images = []
 
     def add_images(self, images):
         if self.__subgroups is not None:
-            raise Exception('MeasurementGroup is already subgrouped')
+            raise Exception('ImageGroup is already subgrouped')
         if isinstance(images, MeasurementImage):
             self.__images.append(images)
         else:
@@ -81,7 +81,7 @@ class MeasurementGroup(object):
 
     def add_subgroup(self, name, group):
         if self.__subgroups is None:
-            raise Exception('MeasurementGroup is not subgrouped yet')
+            raise Exception('ImageGroup is not subgrouped yet')
         if name in self.__subgroup_names:
             raise Exception('Subgroup {} alread exists'.format(name))
         self.__subgroup_names.add(name)
@@ -92,7 +92,7 @@ class MeasurementGroup(object):
 
     def __getitem__(self, name):
         if self.__subgroups is None:
-            raise Exception('MeasurementGroup is not subgrouped yet')
+            raise Exception('ImageGroup is not subgrouped yet')
         return (x for x in self.__subgroups if x[0] == name).next()[1]
 
     def printToScreen(self, prefix='', show_images=False):
@@ -123,7 +123,7 @@ def load_fits_images(image_list, psf_list, hdu_list=None, psf_hdu_list=None):
     :param psf_list: A list of relative paths to the PSF FITS files
     :param hdu_list: A list of the HDU numbers where each image is stored (optional)
     :param psf_hdu_list: A list of the HDU numbers where the PSFs are stored (optional)
-    :return: A MeasurementGroup representing the images
+    :return: A ImageGroup representing the images
     """
     assert len(image_list) == len(psf_list)
     if hdu_list is None:
@@ -137,7 +137,7 @@ def load_fits_images(image_list, psf_list, hdu_list=None, psf_hdu_list=None):
     meas_image_list = []
     for im, hdu, psf, psf_hdu in zip (image_list, hdu_list, psf_list, psf_hdu_list):
         meas_image_list.append(MeasurementImage(im, hdu, 0, psf, psf_hdu))
-    return MeasurementGroup(images=meas_image_list)
+    return ImageGroup(images=meas_image_list)
 
 
 def load_multi_hdu_fits(image_file, psf):
@@ -150,7 +150,7 @@ def load_multi_hdu_fits(image_file, psf):
     :param image_file: The multi-HDU FITS file containing the images
     :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
         single HDU FITS files, one for each PSF
-    :return: A MeasurementGroup representing the images
+    :return: A ImageGroup representing the images
     """
     hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
     if isinstance(psf, list):
@@ -163,7 +163,7 @@ def load_multi_hdu_fits(image_file, psf):
     meas_image_list = []
     for hdu, psf, psf_hdu in zip(du_list, psf_list, psf_hdu_list):
         meas_image_list.append(MeasurementImage(image_file, hdu, 0, psf, psf_hdu))
-    return MeasurementGroup(images=meas_image_list)
+    return ImageGroup(images=meas_image_list)
 
 
 def load_fits_cube(image_file, psf, hdu=0):
@@ -177,7 +177,7 @@ def load_fits_cube(image_file, psf, hdu=0):
     :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
         single HDU FITS files, one for each PSF
     :param hdu: The HDU of the image_file containing the cube (optional)
-    :return: A MeasurementGroup representing the images
+    :return: A ImageGroup representing the images
     """
     fits_header = fits.open(image_file)[hdu].header
     assert fits_header['NAXIS'] == 3
@@ -192,7 +192,7 @@ def load_fits_cube(image_file, psf, hdu=0):
     meas_image_list = []
     for i, psf, psf_hdu in zip(range(image_no), psf_list, psf_hdu_list):
         meas_image_list.append(MeasurementImage(image_file, hdu, i, psf, psf_hdu))
-    return MeasurementGroup(images=meas_image_list)
+    return ImageGroup(images=meas_image_list)
 
 
 class ByKeyword(object):
@@ -225,3 +225,39 @@ class ByPattern(object):
                 result[group] = []
             result[group].append(im)
         return [(k, result[k]) for k in result]
+
+
+class MeasurementGroup(object):
+
+    def __init__(self, image_group):
+        self.__images = None
+        self.__subgroups = None
+        if image_group.is_leaf():
+            self.__images = [im for im in image_group]
+        else:
+            self.__subgroups = [(n, ModelFittingGroup(g)) for n,g in image_group]
+        self.__models = []
+
+    def __iter__(self):
+        if self.__subgroups:
+            return self.__subgroups.__iter__()
+        else:
+            return self.__images.__iter__()
+
+    def __getitem__(self, name):
+        if self.__subgroups is None:
+            raise Exception('Does not contain subgroups')
+        return (x for x in self.__subgroups if x[0] == name).next()[1]
+
+    def printToScreen(self, prefix='', show_images=False, show_params=False):
+        if self.__images:
+            print('{}Image List ({})'.format(prefix, len(self.__images)))
+            if show_images:
+                for im in self.__images:
+                    print('{}{}'.format(prefix, im))
+        if self.__subgroups:
+            print('{}Sub-groups: {}'.format(prefix, ','.join(
+                x for x, _ in self.__subgroups)))
+            for name, group in self.__subgroups:
+                print('{}  {}:'.format(prefix, name))
+                group.printToScreen(prefix + '    ', show_images, show_params)
