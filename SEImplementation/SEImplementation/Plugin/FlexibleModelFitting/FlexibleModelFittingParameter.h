@@ -46,6 +46,17 @@ private:
   virtual std::shared_ptr<ModelFitting::BasicParameter> create(ModelFitting::EngineParameterManager& manager) const;
 };
 
+class FlexibleModelFittingConstantParameter : public FlexibleModelFittingParameter {
+
+  FlexibleModelFittingConstantParameter(double value)
+          : m_value(value) {}
+
+private:
+  double m_value;
+
+  virtual std::shared_ptr<ModelFitting::BasicParameter> create(ModelFitting::EngineParameterManager& manager) const;
+};
+
 }
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGPARAMETER_H_ */

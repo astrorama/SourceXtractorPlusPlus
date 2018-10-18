@@ -34,4 +34,10 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
   return parameter;
 }
 
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
+                                                            ModelFitting::EngineParameterManager& manager) const {
+    return std::make_shared<ManualParameter>(m_value);
+}
+
+
 }

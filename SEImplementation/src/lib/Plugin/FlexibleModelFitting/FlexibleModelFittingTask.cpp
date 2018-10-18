@@ -180,8 +180,11 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   auto solution = engine.solveProblem(manager.getEngineParameterManager(), res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
-
-  // Get results
+  for (auto& source : group) {
+    for (auto parameter : m_parameters) {
+      manager.getParameter(source, parameter);
+    }
+  }
 
 
 }
