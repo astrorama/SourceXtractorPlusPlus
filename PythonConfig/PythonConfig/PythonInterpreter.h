@@ -8,7 +8,7 @@
 
 #include <string>
 #include <map>
-#include <PythonConfig/MeasurementImage.h>
+#include <PythonConfig/PyMeasurementImage.h>
 
 namespace SExtractor {
 
@@ -20,9 +20,11 @@ public:
   
   void runCode(const std::string& code);
   
+  void runFile(const std::string& filename);
+  
   virtual ~PythonInterpreter();
   
-  std::map<int, MeasurementImage> getMeasurementImages();
+  std::map<int, PyMeasurementImage> getMeasurementImages();
   
 private:
   

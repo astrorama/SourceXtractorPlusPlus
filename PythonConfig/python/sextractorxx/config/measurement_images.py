@@ -12,8 +12,13 @@ measurement_images = {}
 
 class MeasurementImage(cpp.MeasurementImage):
 
-    def __init__(self, fits_file, psf_file, weight_file=None):
-        super(MeasurementImage, self).__init__(os.path.abspath(fits_file), os.path.abspath(psf_file), os.path.abspath(weight_file) if weight_file else '')
+    def __init__(self, fits_file, psf_file, weight_file=None, gain=None,
+                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
+                 flux_scale=None, flux_scale_keyword='FLXSCALE'):
+        super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
+                                               os.path.abspath(psf_file),
+                                               os.path.abspath(weight_file) if weight_file else '')
+
         self.meta = {
             'IMAGE_FILENAME' : self.file,
             'PSF_FILENAME' : self.psf_file,
@@ -23,6 +28,28 @@ class MeasurementImage(cpp.MeasurementImage):
         hdu_meta = hdu_list[0].header
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
+
+        if (gain is not None):
+            self.gain = gain
+        elif gain_keyword in self.meta:
+            self.gain = float(self.meta[gain_keyword])
+        else:
+            self.gain = 0.
+
+        if (saturation is not None):
+            self.saturation = saturation
+        elif saturation_keyword in self.meta:
+            self.saturation = float(self.meta[saturation_keyword])
+        else:
+            self.saturation = 0.
+
+        if (flux_scale is not None):
+            self.flux_scale = flux_scale
+        elif flux_scale_keyword in self.meta:
+            self.flux_scale = float(self.meta[flux_scale_keyword])
+        else:
+            self.flux_scale = 0.
+
         global measurement_images
         measurement_images[self.id] = self
 
@@ -134,6 +161,12 @@ def load_fits_images(image_list, psf_list, weight_list=None):
     the weight_list can be used to define the weight images. The entries of this
     list can be either a filename or one of None and empty string, which mean no
     weights.
+
+    Note that this method will set the gain, saturation level and fux scale using
+    the header keywords GAIN, SATURATE and FLUXSCALE respectively, or the values
+    0., 0., and 1. in the cases the keywords are missing. To override this
+    default behavior one should create the ImageGroup manually from a list of
+    MeasurementImage instances.
 
     :param image_list: A list of relative paths to the images FITS files
     :param psf_list: A list of relative paths to the PSF FITS files

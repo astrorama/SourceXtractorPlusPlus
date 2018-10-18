@@ -5,7 +5,7 @@
 
 #include <boost/python.hpp>
 #include <PythonConfig/ObjectInfo.h>
-#include <PythonConfig/MeasurementImage.h>
+#include <PythonConfig/PyMeasurementImage.h>
 
 
 namespace bp = boost::python;
@@ -20,11 +20,14 @@ BOOST_PYTHON_MODULE(libPythonConfig) {
       .def("get_iso_flux", &ObjectInfo::getIsoFlux)
       .def("get_radius_world", &ObjectInfo::getRadiusWorld);
   
-  bp::class_<MeasurementImage>("MeasurementImage", bp::init<std::string, std::string, std::string>())
-      .def_readonly("id", &MeasurementImage::id)
-      .def_readonly("file", &MeasurementImage::file)
-      .def_readonly("psf_file", &MeasurementImage::psf_file)
-      .def_readonly("weight_file", &MeasurementImage::weight_file);
+  bp::class_<PyMeasurementImage>("MeasurementImage", bp::init<std::string, std::string, std::string>())
+      .def_readonly("id", &PyMeasurementImage::id)
+      .def_readonly("file", &PyMeasurementImage::file)
+      .def_readwrite("gain", &PyMeasurementImage::gain)
+      .def_readwrite("saturation", &PyMeasurementImage::saturation)
+      .def_readwrite("flux_scale", &PyMeasurementImage::flux_scale)
+      .def_readonly("psf_file", &PyMeasurementImage::psf_file)
+      .def_readonly("weight_file", &PyMeasurementImage::weight_file);
 }
 
 } // namespace SExtractor

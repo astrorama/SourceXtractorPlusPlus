@@ -36,10 +36,13 @@ find_package(Boost REQUIRED COMPONENTS python)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(PythonConfig src/lib/*.cpp
+elements_add_library(PythonConfig src/lib/*.cpp src/lib/Configuration/*.cpp
                      LINK_LIBRARIES SEUtils SEFramework SEImplementation Boost PythonLibs PythonInterp Configuration
                      INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
                      PUBLIC_HEADERS PythonConfig)
+
+elements_add_executable(tt src/program/tt.cpp
+                     LINK_LIBRARIES PythonConfig)
 
 #===============================================================================
 # Use the following macro for python modules, scripts and aux files:
