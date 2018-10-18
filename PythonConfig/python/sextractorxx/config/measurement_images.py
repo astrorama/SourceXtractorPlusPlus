@@ -14,7 +14,9 @@ class MeasurementImage(cpp.MeasurementImage):
 
     def __init__(self, fits_file, psf_file, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
-                 flux_scale=None, flux_scale_keyword='FLXSCALE'):
+                 flux_scale=None, flux_scale_keyword='FLXSCALE',
+                 weight_type='background', weight_absolute=False, weight_scaling=1.,
+                 weight_threshold=None):
         super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
                                                os.path.abspath(psf_file),
                                                os.path.abspath(weight_file) if weight_file else '')
@@ -29,26 +31,35 @@ class MeasurementImage(cpp.MeasurementImage):
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
 
-        if (gain is not None):
+        if gain is not None:
             self.gain = gain
         elif gain_keyword in self.meta:
             self.gain = float(self.meta[gain_keyword])
         else:
             self.gain = 0.
 
-        if (saturation is not None):
+        if saturation is not None:
             self.saturation = saturation
         elif saturation_keyword in self.meta:
             self.saturation = float(self.meta[saturation_keyword])
         else:
             self.saturation = 0.
 
-        if (flux_scale is not None):
+        if flux_scale is not None:
             self.flux_scale = flux_scale
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 0.
+
+        self.weight_type = weight_type
+        self.weight_absolute = weight_absolute
+        self.weight_scaling = weight_scaling
+        if weight_threshold is None:
+            self.has_weight_threshold = False
+        else:
+            self.has_weight_threshold = True
+            self.weight_threshold = weight_threshold
 
         global measurement_images
         measurement_images[self.id] = self
@@ -167,6 +178,10 @@ def load_fits_images(image_list, psf_list, weight_list=None):
     0., 0., and 1. in the cases the keywords are missing. To override this
     default behavior one should create the ImageGroup manually from a list of
     MeasurementImage instances.
+
+    The same is true for the weight map configuration, where the type is set to
+    background, the scaling to 1, the weights are treated as relative and there
+    is no weight threshold.
 
     :param image_list: A list of relative paths to the images FITS files
     :param psf_list: A list of relative paths to the PSF FITS files

@@ -27,7 +27,12 @@ BOOST_PYTHON_MODULE(libPythonConfig) {
       .def_readwrite("saturation", &PyMeasurementImage::saturation)
       .def_readwrite("flux_scale", &PyMeasurementImage::flux_scale)
       .def_readonly("psf_file", &PyMeasurementImage::psf_file)
-      .def_readonly("weight_file", &PyMeasurementImage::weight_file);
+      .def_readonly("weight_file", &PyMeasurementImage::weight_file)
+      .def_readwrite("weight_type", &PyMeasurementImage::weight_type)
+      .def_readwrite("weight_absolute", &PyMeasurementImage::weight_absolute)
+      .def_readwrite("weight_scaling", &PyMeasurementImage::weight_scaling)
+      .def_readwrite("has_weight_threshold", &PyMeasurementImage::has_weight_threshold)
+      .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold);
 }
 
 } // namespace SExtractor

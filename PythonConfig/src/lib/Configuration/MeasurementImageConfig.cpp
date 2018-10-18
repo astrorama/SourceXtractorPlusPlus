@@ -4,7 +4,9 @@
  */
 
 #include <utility>
+#include <limits>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include <ElementsKernel/Logging.h>
 #include <SEFramework/Image/FitsImageSource.h>
 #include <SEFramework/Image/BufferedImage.h>
@@ -28,6 +30,13 @@ MeasurementImageConfig::MeasurementImageConfig(long manager_id) : Configuration(
 namespace {
 
 Elements::Logging logger = Elements::Logging::getLogger("Config");
+
+std::map<std::string, WeightImageConfig::WeightType> weight_type_map {
+  {"BACKGROUND", WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND},
+  {"RMS", WeightImageConfig::WeightType::WEIGHT_TYPE_RMS},
+  {"VARIANCE", WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE},
+  {"WEIGHT", WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT}
+};
 
 void validateImagePaths(const PyMeasurementImage& image) {
   logger.debug() << "adding: " << image.file << " weight: " << image.weight_file << " psf: " << image.psf_file;
@@ -57,10 +66,44 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
     return nullptr;
   }
   std::shared_ptr<WeightImage> weight_map = FitsReader<WeightImage::PixelType>::readFile(py_image.weight_file);
-  std::cout << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight() << std::endl;
-  // TODO: The weight type and scale should be taken from the configuration
-  weight_map = WeightImageConfig::convertWeightMap(weight_map, WeightImageConfig::WeightType::WEIGHT_TYPE_RMS);
+  auto weight_type_name = boost::to_upper_copy(py_image.weight_type);
+  if (weight_type_map.find(weight_type_name) == weight_type_map.end()) {
+    throw Elements::Exception() << "Unknown weight map type : " << py_image.weight_type;
+  }
+  std::cout << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight() 
+      << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling << std::endl;
+  weight_map = WeightImageConfig::convertWeightMap(weight_map, weight_type_map[weight_type_name], py_image.weight_scaling);
+  // Sanity checks
+  if (py_image.weight_file != "" && weight_type_map[weight_type_name] == WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
+    throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
+  if (py_image.weight_absolute && py_image.weight_file == "")
+    throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
   return weight_map;
+}
+
+WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image) {
+  if (!py_image.has_weight_threshold) {
+    return std::numeric_limits<WeightImage::PixelType>::max();
+  }
+  WeightImage::PixelType threshold = py_image.weight_threshold;
+  auto weight_type_name = boost::to_upper_copy(py_image.weight_type);
+  switch (weight_type_map[weight_type_name]) {
+    default:
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
+        threshold = threshold * threshold;
+        break;
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
+        threshold = threshold;
+        break;
+      case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
+        if (threshold>0)
+          threshold = 1.0 / threshold;
+        else
+          threshold = std::numeric_limits<WeightImage::PixelType>::max();
+        break; 
+  }
+  return threshold;
 }
 
 }
@@ -77,6 +120,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
     m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
     m_psfs_paths.push_back(py_image.psf_file);
     m_weight_images.push_back(createWeightMap(py_image));
+    m_absolute_weights.push_back(py_image.weight_absolute);
+    m_weight_thresholds.push_back(extractWeightThreshold(py_image));
     m_gains.push_back(py_image.gain);
     m_saturation_levels.push_back(py_image.saturation);
   }
@@ -92,6 +137,14 @@ const std::vector<std::shared_ptr<CoordinateSystem>>& MeasurementImageConfig::ge
 
 const std::vector<std::shared_ptr<WeightImage>>& MeasurementImageConfig::getWeightImages() const {
   return m_weight_images;
+}
+
+const std::vector<bool>& MeasurementImageConfig::getAbsoluteWeights() const {
+  return m_absolute_weights;
+}
+
+const std::vector<WeightImage::PixelType>& MeasurementImageConfig::getWeightThresholds() const {
+  return m_weight_thresholds;
 }
 
 const std::vector<std::string> MeasurementImageConfig::getPsfsPaths() const {
