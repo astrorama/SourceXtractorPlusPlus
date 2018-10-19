@@ -26,17 +26,17 @@
 namespace SExtractor {
 
 void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
-  std::vector<long int> source_flags;
+  std::vector<Flags> source_flags;
 
   for (auto group : m_instances_per_group) {
-    long int source_flag = 0;
+    Flags source_flag = Flags::NONE;
 
     for (auto instance : group.second) {
       // add the saturate flag as "4"
-      source_flag |= SourceFlags::SATURATED * source.getProperty<SaturateFlag>(instance).getSaturateFlag();
+      source_flag |= Flags::SATURATED * source.getProperty<SaturateFlag>(instance).getSaturateFlag();
 
       // add the boundary flag as "8"
-      source_flag |= SourceFlags::BOUNDARY * source.getProperty<BoundaryFlag>(instance).getBoundaryFlag();
+      source_flag |= Flags::BOUNDARY * source.getProperty<BoundaryFlag>(instance).getBoundaryFlag();
     }
 
     source_flags.emplace_back(source_flag);

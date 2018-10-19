@@ -10,6 +10,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
 
 namespace SExtractor {
 
@@ -25,7 +26,7 @@ public:
    */
   virtual ~AutoPhotometry() = default;
 
-  AutoPhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, long flag)
+  AutoPhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, Flags flag)
     : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
 
   SeFloat getFlux() const {
@@ -44,7 +45,7 @@ public:
     return m_mag_error;
   }
 
-  long getFlag() const {
+  Flags getFlag() const {
     return m_flag;
   }
 
@@ -53,7 +54,7 @@ private:
   SeFloat  m_flux_error;
   SeFloat  m_mag;
   SeFloat  m_mag_error;
-  long m_flag;
+  Flags m_flag;
 };
 
 } /* namespace SExtractor */

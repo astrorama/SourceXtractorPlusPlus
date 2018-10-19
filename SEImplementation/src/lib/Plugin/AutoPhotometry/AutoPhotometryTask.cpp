@@ -6,17 +6,16 @@
  */
 //#include <math.h>
 #include <iostream>
-#include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
-#include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
-#include <SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h>
-#include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
-#include <SEImplementation/Plugin/KronRadius/KronRadius.h>
-#include <SEFramework/Aperture/TransformedAperture.h>
-#include <SEImplementation/Plugin/Jacobian/Jacobian.h>
-#include <SEImplementation/CheckImages/CheckImages.h>
-#include <SEImplementation/Plugin/SourceIDs/SourceID.h>
-#include <SEImplementation/Plugin/SourceFlags/SourceFlags.h>
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
+#include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
+#include "SEImplementation/Plugin/KronRadius/KronRadius.h"
+#include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEFramework/Aperture/EllipticalAperture.h"
+#include "SEFramework/Aperture/TransformedAperture.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 
@@ -67,7 +66,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
 
   SeFloat total_flux = 0;
   SeFloat total_variance = 0.0;
-  long flag = 0;
+  Flags flag = Flags::NONE;
 
   // Skip if the full source is outside the frame
   if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= measurement_image->getWidth() ||
@@ -117,7 +116,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
           total_variance += pixel_variance;
         }
         else {
-          flag |= SourceFlags::BOUNDARY;
+          flag |= Flags::BOUNDARY;
         }
       }
     }

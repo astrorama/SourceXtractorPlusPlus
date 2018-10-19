@@ -50,7 +50,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<long>>(
     "aperture_flags",
     [](const AperturePhotometry &prop) {
-      return prop.getFlags();
+      return flags2long(prop.getFlags());
     }
   );
 

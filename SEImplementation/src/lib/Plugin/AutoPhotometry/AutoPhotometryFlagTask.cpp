@@ -8,6 +8,7 @@
 #include "SEFramework/Aperture/EllipticalAperture.h"
 #include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -17,7 +18,6 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlagTask.h"
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 
 
 namespace SExtractor {
@@ -69,7 +69,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   long int area_sum = 0;
   long int area_bad = 0;
   long int area_full = 0;
-  long int global_flag = 0;
+  Flags global_flag = Flags::NONE;
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
@@ -97,7 +97,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
           }
         } else {
           // set the border flag
-          global_flag |= SourceFlags::BOUNDARY;
+          global_flag |= Flags::BOUNDARY;
         }
       }
     }
@@ -106,18 +106,18 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   if (area_sum > 0) {
     // check/set the bad area flag
     if ((SeFloat) area_bad / (SeFloat) area_sum > BADAREA_THRESHOLD_AUTO)
-      global_flag |= SourceFlags::BIASED;
+      global_flag |= Flags::BIASED;
 
     // check/set the crowded area flag
     if ((SeFloat) area_full / (SeFloat) area_sum > CROWD_THRESHOLD_AUTO)
-      global_flag |= SourceFlags::BLENDED;
+      global_flag |= Flags::BLENDED;
   }
 
   // Iterate through groups, and flatten the flags into a vector with one entry per group
-  std::vector<long> all_flags;
+  std::vector<Flags> all_flags;
 
   for (auto& group : m_instances_per_group) {
-    long group_flag = global_flag;
+    Flags group_flag = global_flag;
     for (auto image : group.second) {
       auto photo = source.getProperty<AutoPhotometry>(image);
       group_flag |= photo.getFlag();

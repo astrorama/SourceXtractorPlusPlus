@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 3.14159 * .25, 10);
 
   // It is on a boundary
-  BOOST_CHECK(aperture_photometry.getFlags()[0] == SourceFlags::BOUNDARY);
+  BOOST_CHECK(aperture_photometry.getFlags()[0] == Flags::BOUNDARY);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,8 +99,8 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 1.45, 10);
   // There is one pixel that belongs to a neighbour
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK(aperture_flag.getFlags()[0] & SourceFlags::BLENDED);
-  BOOST_CHECK(aperture_photometry.getFlags()[0] & SourceFlags::BLENDED);
+  BOOST_CHECK((aperture_flag.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
 }
 
 //-----------------------------------------------------------------------------

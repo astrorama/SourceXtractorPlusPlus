@@ -8,17 +8,16 @@
 #include <iostream>
 
 #include "SEFramework/Aperture/TransformedAperture.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-#include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
-#include <SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h>
-#include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
-#include <SEImplementation/Plugin/Jacobian/Jacobian.h>
-#include <SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h>
-#include <SEImplementation/CheckImages/CheckImages.h>
-#include <SEImplementation/Plugin/SourceIDs/SourceID.h>
-#include <SEImplementation/Plugin/SourceFlags/SourceFlags.h>
-#include <SEFramework/Aperture/CircularAperture.h>
-#include <SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h>
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
+#include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+#include "SEFramework/Aperture/CircularAperture.h"
 
 
 namespace SExtractor {
@@ -47,7 +46,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
 
   std::vector<SeFloat> fluxes, fluxes_error;
   std::vector<SeFloat> mags, mags_error;
-  std::vector<long> flags;
+  std::vector<Flags> flags;
 
   for (auto aperture_size : m_apertures) {
     auto aperture = TransformedAperture(std::make_shared<CircularAperture>(aperture_size), jacobian.asTuple());
@@ -58,7 +57,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
 
     SeFloat total_flux = 0;
     SeFloat total_variance = 0.0;
-    long flag = 0;
+    Flags flag = Flags::NONE;
 
     // Skip if the full source is outside the frame
     if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= measurement_image->getWidth() ||
@@ -110,7 +109,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
             total_flux += pixel_value * area;
             total_variance += pixel_variance * area;
           } else {
-            flag |= SourceFlags::BOUNDARY;
+            flag |= Flags::BOUNDARY;
           }
         }
       }

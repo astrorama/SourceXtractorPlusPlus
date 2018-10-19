@@ -10,6 +10,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include <vector>
 
 namespace SExtractor {
@@ -28,7 +29,7 @@ public:
 
   AperturePhotometry(const std::vector<SeFloat> &flux, const std::vector<SeFloat> &flux_error,
                      const std::vector<SeFloat> &mag, const std::vector<SeFloat> &mag_error,
-                     const std::vector<long> &flag)
+                     const std::vector<Flags> &flag)
     : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
 
   const std::vector<SeFloat> &getFluxes() const {
@@ -47,7 +48,7 @@ public:
     return m_mag_error;
   }
 
-  const std::vector<long> &getFlags() const {
+  const std::vector<Flags> &getFlags() const {
     return m_flag;
   }
 
@@ -56,7 +57,7 @@ private:
   std::vector<SeFloat> m_flux_error;
   std::vector<SeFloat> m_mag;
   std::vector<SeFloat> m_mag_error;
-  std::vector<long> m_flag;
+  std::vector<Flags> m_flag;
 };
 
 } /* namespace SExtractor */

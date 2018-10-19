@@ -50,7 +50,7 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryFlag, std::vector<long>>(
           "auto_flags",
           [](const AutoPhotometryFlag& prop){
-            return prop.getFlags();
+            return flags2long(prop.getFlags());
           }
   );
 

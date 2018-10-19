@@ -10,6 +10,7 @@
 #include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Aperture/NeighbourInfo.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -43,7 +44,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the pixel list
   const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
-  std::vector<long> all_flags;
+  std::vector<Flags> all_flags;
 
   for (auto aperture_size : m_apertures) {
     auto aperture = CircularAperture(aperture_size);
@@ -55,7 +56,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
     // get the neighbourhood information
     NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
-    long int flag = 0;
+    Flags flag = Flags::NONE;
     SeFloat total_area = 0.0;
     SeFloat bad_area = 0;
     SeFloat full_area = 0;
@@ -84,7 +85,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
                 bad_area += 1;
             }
           } else {
-            flag |= SourceFlags::BOUNDARY;
+            flag |= Flags::BOUNDARY;
           }
         }
       }
@@ -93,11 +94,11 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
     if (total_area > 0) {
       // check/set the bad area flag
       if (bad_area / total_area > BADAREA_THRESHOLD_APER)
-        flag |= SourceFlags::BIASED;
+        flag |= Flags::BIASED;
 
       // check/set the crowded area flag
       if (full_area / total_area > CROWD_THRESHOLD_APER)
-        flag |= SourceFlags::BLENDED;
+        flag |= Flags::BLENDED;
     }
 
     all_flags.push_back(flag);

@@ -37,10 +37,10 @@ public:
 
   virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceFlagsTaskFactory, SourceFlags>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<long int>>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<long>>(
       "source_flags",
       [](const SourceFlags &prop) {
-        return prop.getSourceFlags();
+        return flags2long(prop.getSourceFlags());
       }
     );
     plugin_api.getOutputRegistry().optionalOutput<SourceFlags>("SourceFlags");

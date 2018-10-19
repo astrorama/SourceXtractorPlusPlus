@@ -10,6 +10,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include <vector>
 
 namespace SExtractor {
@@ -18,14 +19,14 @@ class AutoPhotometryFlag: public Property {
 public:
   virtual ~AutoPhotometryFlag() = default;
 
-  AutoPhotometryFlag(const std::vector<long> &flags): m_flags{flags} {}
+  AutoPhotometryFlag(const std::vector<Flags> &flags): m_flags{flags} {}
 
-  const std::vector<long>& getFlags() const {
+  const std::vector<Flags>& getFlags() const {
     return m_flags;
   }
 
 private:
-  std::vector<long> m_flags;
+  std::vector<Flags> m_flags;
 };
 
 } /* namespace SExtractor */
