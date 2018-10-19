@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
@@ -42,81 +43,81 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the pixel list
   const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
-  // get the aperture borders on the image
-  auto min_pixel = m_aperture->getMinPixel(centroid_x, centroid_y);
-  auto max_pixel = m_aperture->getMaxPixel(centroid_x, centroid_y);
+  std::vector<long> all_flags;
 
-  // get the neighbourhood information
-  NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
+  for (auto aperture_size : m_apertures) {
+    auto aperture = CircularAperture(aperture_size);
 
-  long int global_flag = 0;
-  SeFloat total_area = 0.0;
-  SeFloat bad_area = 0;
-  SeFloat full_area = 0;
+    // get the aperture borders on the image
+    auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
+    auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
 
-  // iterate over the aperture pixels
-  for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
-    for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
+    // get the neighbourhood information
+    NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
-      // get the area coverage and continue if there is overlap
-      auto area = m_aperture->getArea(centroid_x, centroid_y, pixel_x, pixel_y);
-      if (area > 0) {
+    long int flag = 0;
+    SeFloat total_area = 0.0;
+    SeFloat bad_area = 0;
+    SeFloat full_area = 0;
 
-        // make sure the pixel is inside the image
-        if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_image->getWidth() &&
-            pixel_y < detection_image->getHeight()) {
+    // iterate over the aperture pixels
+    for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
+      for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
 
-          // enhance the area
-          total_area += area;
+        // get the area coverage and continue if there is overlap
+        auto area = aperture.getArea(centroid_x, centroid_y, pixel_x, pixel_y);
+        if (area > 0) {
 
-          auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
-          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) || variance_tmp > variance_threshold) {
+          // make sure the pixel is inside the image
+          if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_image->getWidth() &&
+              pixel_y < detection_image->getHeight()) {
 
-            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
-              full_area += 1;
-            if (variance_tmp > variance_threshold)
-              bad_area += 1;
+            // enhance the area
+            total_area += area;
+
+            auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) || variance_tmp > variance_threshold) {
+
+              if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
+                full_area += 1;
+              if (variance_tmp > variance_threshold)
+                bad_area += 1;
+            }
+          } else {
+            flag |= SourceFlags::BOUNDARY;
           }
-        } else {
-          global_flag |= SourceFlags::BOUNDARY;
         }
       }
     }
-  }
 
-  if (total_area > 0) {
-    // check/set the bad area flag
-    if (bad_area / total_area > BADAREA_THRESHOLD_APER)
-      global_flag |= SourceFlags::BIASED;
+    if (total_area > 0) {
+      // check/set the bad area flag
+      if (bad_area / total_area > BADAREA_THRESHOLD_APER)
+        flag |= SourceFlags::BIASED;
 
-    // check/set the crowded area flag
-    if (full_area / total_area > CROWD_THRESHOLD_APER)
-      global_flag |= SourceFlags::BLENDED;
-  }
-
-  // Iterate through groups, and flatten the flags into a vector with one entry per group
-  std::vector<long> all_flags;
-
-  for (auto& group : m_images_per_group) {
-    long group_flag = global_flag;
-    for (auto image : group.second) {
-      auto photo = source.getProperty<AperturePhotometry>(image);
-      group_flag |= photo.getFlag();
+      // check/set the crowded area flag
+      if (full_area / total_area > CROWD_THRESHOLD_APER)
+        flag |= SourceFlags::BLENDED;
     }
-    all_flags.push_back(group_flag);
+
+    all_flags.push_back(flag);
   }
 
   // set the source properties
-  source.setIndexedProperty<ApertureFlag>(m_instance, all_flags);
+  source.setProperty<ApertureFlag>(all_flags);
 
-  // Draw the checkimage for the aperture on the detection image
+  // Draw the checkimage for the last aperture on the detection image
   auto aperture_check_img = CheckImages::getInstance().getApertureImage();
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 
+    auto aperture = CircularAperture(m_apertures[0]);
+    auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
+    auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
+
     for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
       for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
-        if (m_aperture->getArea(centroid_x, centroid_y, x, y) > 0) {
+        if (aperture.getArea(centroid_x, centroid_y, x, y) > 0) {
           if (x >= 0 && y >= 0 && x < aperture_check_img->getWidth() && y < aperture_check_img->getHeight()) {
             aperture_check_img->setValue(x, y, src_id);
           }

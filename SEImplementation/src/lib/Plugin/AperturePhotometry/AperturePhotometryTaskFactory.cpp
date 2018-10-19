@@ -27,28 +27,23 @@ namespace SExtractor {
 
 std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId &property_id) const {
   auto instance = property_id.getIndex();
-  if (property_id.getTypeId() == typeid(AperturePhotometry) && instance < m_measure_apertures.size()) {
+
+  if (property_id.getTypeId() == typeid(AperturePhotometry)) {
     return std::make_shared<AperturePhotometryTask>(
-      std::make_shared<CircularAperture>(m_measure_apertures[instance]),
+      m_apertures,
       instance,
-      m_image_instances[instance],
       m_magnitude_zero_point,
       m_symmetry_usage
     );
-  } else if (property_id.getTypeId() == typeid(ApertureFlag) && instance < m_detection_apertures.size()) {
-    return std::make_shared<ApertureFlagTask>(
-      std::make_shared<CircularAperture>(m_detection_apertures[instance]),
-      m_images_per_group,
-      instance
-    );
-  } else {
-    return nullptr;
   }
+  else if (property_id == PropertyId::create<ApertureFlag>()) {
+    return std::make_shared<ApertureFlagTask>(m_apertures);
+  }
+  return nullptr;
 }
 
 void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &output_registry) {
-  output_registry.registerPropertyInstances<AperturePhotometry>(m_photometry_names);
-  output_registry.registerPropertyInstances<ApertureFlag>(m_flag_names);
+  output_registry.registerPropertyInstances<AperturePhotometry>(m_instances);
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
@@ -60,43 +55,14 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto &measurement_config = manager.getConfiguration<MeasurementConfig>();
-  auto apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
+  m_apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  // FIXME This will need to be replaced by vector output
-
-  unsigned int flag_instance = 0;
-  for (auto aperture_size : apertures) {
-    m_detection_apertures.emplace_back(aperture_size);
-    std::stringstream instance_name;
-    instance_name << aperture_size;
-    m_flag_names.emplace_back(std::make_pair(instance_name.str(), flag_instance));
-  }
-
-  // We have one AperturePhotometry per aperture per measurement image
-  std::map<std::string, unsigned> pos_in_group;
-
-  unsigned int aperture_instance_nb = 0;
-  for (unsigned int image_nb = 0; image_nb < measurement_images_nb; image_nb++) {
-    auto& group = measurement_config.getGroupForImage(image_nb);
-    unsigned pos = pos_in_group[group->getName()]++;
-
-    m_images_per_group[group->getName()].emplace_back(image_nb);
-
-    for (auto aperture_size : apertures) {
-      m_aperture_instances[std::make_pair(image_nb, aperture_size)] = aperture_instance_nb;
-      m_image_instances.emplace_back(image_nb);
-      m_measure_apertures.emplace_back(aperture_size);
-
-      std::stringstream instance_name;
-      instance_name << group->getName() << "_" << pos << "_" << aperture_size;
-      m_photometry_names.emplace_back(std::make_pair(instance_name.str(), aperture_instance_nb));
-
-      aperture_instance_nb++;
-    }
+  for (int i = 0; i < measurement_images_nb; ++i) {
+    m_instances.emplace_back(std::make_pair(std::to_string(i), i));
   }
 }
 

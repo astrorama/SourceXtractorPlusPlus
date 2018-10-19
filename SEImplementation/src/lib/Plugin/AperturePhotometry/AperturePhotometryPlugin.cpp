@@ -19,44 +19,43 @@ static StaticPlugin<AperturePhotometryPlugin> aperture_photometry_plugin;
 void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<AperturePhotometryTaskFactory, AperturePhotometry, ApertureFlag>();
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
     "aperture_flux",
     [](const AperturePhotometry &prop) {
-      return prop.getFlux();
+      return prop.getFluxes();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
     "aperture_flux_err",
     [](const AperturePhotometry &prop) {
-      return prop.getFluxError();
+      return prop.getFluxErrors();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
     "aperture_mag",
     [](const AperturePhotometry &prop) {
-      return prop.getMag();
+      return prop.getMags();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
     "aperture_mag_err",
     [](const AperturePhotometry &prop) {
-      return prop.getMagError();
+      return prop.getMagErrors();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<ApertureFlag, std::vector<long>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<long>>(
     "aperture_flags",
-    [](const ApertureFlag &prop) {
+    [](const AperturePhotometry &prop) {
       return prop.getFlags();
     }
   );
 
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
-  plugin_api.getOutputRegistry().optionalOutput<ApertureFlag>("AperturePhotometry");
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

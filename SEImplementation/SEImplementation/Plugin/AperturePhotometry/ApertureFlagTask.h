@@ -18,16 +18,13 @@ public:
 
   virtual ~ApertureFlagTask() = default;
 
-  ApertureFlagTask(std::shared_ptr<Aperture> aperture,
-                   const std::map<std::string, std::vector<unsigned int>> &images_per_group, unsigned int instance)
-    : m_aperture(aperture), m_images_per_group(images_per_group), m_instance(instance) {}
+  ApertureFlagTask(const std::vector<SeFloat> &apertures)
+    : m_apertures(apertures) {}
 
   virtual void computeProperties(SourceInterface &source) const override;
 
 private:
-  std::shared_ptr<Aperture> m_aperture;
-  std::map<std::string, std::vector<unsigned int>> m_images_per_group;
-  unsigned int m_instance;
+  std::vector<SeFloat> m_apertures;
 };
 
 }
