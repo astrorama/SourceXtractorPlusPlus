@@ -6,6 +6,7 @@
  */
 //#include <math.h>
 #include <iostream>
+#include <SEFramework/Aperture/FluxMeasurement.h>
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -57,78 +58,20 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
     kron_radius_auto = m_kron_minrad;
 
   // create the elliptical aperture
-  auto ell_aper = TransformedAperture(std::make_shared<EllipticalAperture>(cxx, cyy, cxy, kron_radius_auto),
-                                      jacobian.asTuple());
+  auto ell_aper = std::make_shared<TransformedAperture>(
+    std::make_shared<EllipticalAperture>(cxx, cyy, cxy, kron_radius_auto),
+    jacobian.asTuple());
 
-  // get the aperture borders on the image
-  const auto &min_pixel = ell_aper.getMinPixel(centroid_x, centroid_y);
-  const auto &max_pixel = ell_aper.getMaxPixel(centroid_x, centroid_y);
-
-  SeFloat total_flux = 0;
-  SeFloat total_variance = 0.0;
-  Flags flag = Flags::NONE;
-
-  // Skip if the full source is outside the frame
-  if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= measurement_image->getWidth() ||
-      min_pixel.m_y >= measurement_image->getHeight()) {
-    source.setIndexedProperty<AutoPhotometry>(m_instance, 0., 0., 99., 99., flag);
-    return;
-  }
-
-  // iterate over the aperture pixels
-  for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
-    for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
-      SeFloat pixel_value = 0;
-      SeFloat pixel_variance = 0;
-      SeFloat variance_tmp = 0;
-
-      // check whether the pixel is in the ellipse
-      if (ell_aper.getArea(centroid_x, centroid_y, pixel_x, pixel_y) > 0) {
-
-        // check whether the pixel is inside the image
-        if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < measurement_image->getWidth() &&
-            pixel_y < measurement_image->getHeight()) {
-
-          // check whether the pixel is OK
-          variance_tmp = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
-          if (variance_tmp > variance_threshold) {
-            // try using the mirror pixel
-            if (m_use_symmetry) {
-              // get the mirror pixel
-              auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
-              auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
-              if (mirror_x >= 0 && mirror_y >= 0 && mirror_x < measurement_image->getWidth() &&
-                  mirror_y < measurement_image->getHeight()) {
-                variance_tmp = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
-                if (variance_tmp < variance_threshold) {
-                  // mirror pixel is OK: take the value
-                  pixel_value = measurement_image->getValue(mirror_x, mirror_y);
-                  pixel_variance = variance_tmp;
-                }
-              }
-            }
-          } else {
-            // pixel is OK: take the value
-            pixel_value = measurement_image->getValue(pixel_x, pixel_y);
-            pixel_variance = variance_tmp;
-          }
-          total_flux += pixel_value;
-          total_variance += pixel_variance;
-        }
-        else {
-          flag |= Flags::BOUNDARY;
-        }
-      }
-    }
-  }
+  auto measurement = measureFlux(ell_aper, centroid_x, centroid_y, measurement_image, variance_map, variance_threshold,
+                                 m_use_symmetry);
 
   // compute the derived quantities
-  auto flux_error = sqrt(total_variance);
-  auto mag = total_flux > 0.0 ? -2.5 * log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
-  auto mag_error = 1.0857 * flux_error / total_flux;
+  auto flux_error = sqrt(measurement.m_variance);
+  auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
   // set the source properties
-  source.setIndexedProperty<AutoPhotometry>(m_instance, total_flux, flux_error, mag, mag_error, flag);
+  source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
 
   // Draw the aperture
   auto coord_system = measurement_frame->getCoordinateSystem();
@@ -138,15 +81,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 
-    for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
-      for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
-        if (ell_aper.getArea(centroid_x, centroid_y, x, y) > 0) {
-          if (x >= 0 && y >= 0 && x < aperture_check_img->getWidth() && y < aperture_check_img->getHeight()) {
-            aperture_check_img->setValue(x, y, src_id);
-          }
-        }
-      }
-    }
+    fillAperture(ell_aper, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
   }
 }
 
