@@ -25,7 +25,7 @@ void KronRadiusPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<KronRadius, long int>(
+  plugin_api.getOutputRegistry().registerColumnConverter<KronRadius, int64_t>(
           "kron_flag",
           [](const KronRadius& prop){
             return prop.getFlag();

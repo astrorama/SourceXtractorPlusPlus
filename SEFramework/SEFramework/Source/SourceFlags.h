@@ -10,12 +10,13 @@
 
 #include <type_traits>
 #include <vector>
+#include <stdint.h>
 
 namespace SExtractor {
 
 /// Flagging of bad sources
 /// @note Backwards compatible with sextractor flags!
-enum class Flags : unsigned long {
+enum class Flags : int64_t {
   NONE      = 0,      ///< No flag is set
   BIASED    = 1 << 0, ///< The object has neighbors, bright and close enough, or bad pixels
   BLENDED   = 1 << 1, ///< The object was originally blended with another one.
@@ -43,12 +44,12 @@ inline Flags &operator|=(Flags &a, const Flags &b) {
   return a;
 }
 
-constexpr inline unsigned long flags2long(const Flags &a) {
-  return static_cast<unsigned long>(a);
+constexpr inline int64_t flags2long(const Flags &a) {
+  return static_cast<int64_t>(a);
 }
 
-inline std::vector<long> flags2long(const std::vector<Flags> &v) {
-  std::vector<long> vl;
+inline std::vector<int64_t> flags2long(const std::vector<Flags> &v) {
+  std::vector<int64_t> vl;
   for (auto a : v) {
     vl.emplace_back(flags2long(a));
   }

@@ -37,7 +37,7 @@ public:
 
   virtual void registerPlugin(PluginAPI &plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourceFlagsTaskFactory, SourceFlags>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<long>>(
+    plugin_api.getOutputRegistry().registerColumnConverter<SourceFlags, std::vector<int64_t>>(
       "source_flags",
       [](const SourceFlags &prop) {
         return flags2long(prop.getSourceFlags());
