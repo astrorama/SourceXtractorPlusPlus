@@ -33,6 +33,9 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
+// Reference for Sersic related quantities:
+// See https://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
+
 void FlexibleModelFittingPointModel::addForSource(const FlexibleModelFittingParameterManager& manager,
                                          const SourceInterface& source,
                                          std::vector<ModelFitting::PointModel>& point_models,
@@ -73,12 +76,12 @@ void FlexibleModelFittingExponentialModel::addForSource(const FlexibleModelFitti
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
   auto i0 = DependentParameter<BasicParameter, BasicParameter, BasicParameter>(
-     [](double flux, double radius, double aspect) { return flux / (M_PI * 2.0 * 0.346 * radius * radius * aspect); },
+     [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.35513 * radius * radius * aspect); },
      *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
      *manager.getParameter(source, m_aspect_ratio));
 
   auto k = DependentParameter<BasicParameter>(
-      [](double eff_radius) { return 1.7 / eff_radius; },
+      [](double eff_radius) { return 1.678 / eff_radius; },
       *manager.getParameter(source, m_effective_radius));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
@@ -114,12 +117,12 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(const FlexibleModelFit
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
   auto i0 = DependentParameter<BasicParameter, BasicParameter, BasicParameter>(
-     [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+     [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 1.684925 * radius * radius *  aspect); },
      *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
      *manager.getParameter(source, m_aspect_ratio));
 
   auto k = DependentParameter<BasicParameter>(
-      [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
+      [](double eff_radius) { return 7.669 / pow(eff_radius, .25); },
       *manager.getParameter(source, m_effective_radius));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
@@ -132,6 +135,17 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(const FlexibleModelFit
   extended_models.emplace_back(
       std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, jacobian);
+}
+
+static double computeBn(double n) {
+  // Using approximation from MacArthur, L.A., Courteau, S., & Holtzman, J.A. 2003, ApJ, 582, 689
+  // FIXME solve for increased precision? or is it too slow?
+  if (n <= 0.36) {
+    return 0.01945 - 0.8902 * n + 10.95 * n * n - 19.67 * n * n * n + 13.43 *  n * n * n * n;
+  } else {
+    return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
+        + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
+  }
 }
 
 
@@ -155,15 +169,14 @@ void FlexibleModelFittingSersicModel::addForSource(const FlexibleModelFittingPar
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
 
-  // FIXME compute the correct i0 and k for variable sersic index
-  auto i0 = DependentParameter<BasicParameter, BasicParameter, BasicParameter>(
-     [](double flux, double radius, double aspect) { return flux * pow(10, 3.33) / (7.2 * M_PI * radius * radius *  aspect); },
+  auto i0 = DependentParameter<BasicParameter, BasicParameter, BasicParameter, BasicParameter>(
+      [](double flux, double radius, double aspect, double n) { return flux / (2 * M_PI * pow(computeBn(n), -2*n) * n * std::tgamma(2*n) * radius * radius *  aspect); },
      *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
-     *manager.getParameter(source, m_aspect_ratio));
+     *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_sersic_index));
 
-  auto k = DependentParameter<BasicParameter>(
-      [](double eff_radius) { return pow(3459.0 / eff_radius, .25); },
-      *manager.getParameter(source, m_effective_radius));
+  auto k = DependentParameter<BasicParameter, BasicParameter>(
+      [](double eff_radius, double n) { return computeBn(n) * pow(eff_radius, 1.0 / n); },
+      *manager.getParameter(source, m_effective_radius), *manager.getParameter(source, m_sersic_index));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0, *manager.getParameter(source, m_sersic_index), k));
