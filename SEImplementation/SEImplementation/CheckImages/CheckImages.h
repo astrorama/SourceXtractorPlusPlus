@@ -9,6 +9,7 @@
 #define _SEIMPLEMENTATION_CHECKIMAGES_CHECKIMAGES_H_
 
 #include <mutex>
+#include <map>
 
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Image/Image.h"
@@ -50,6 +51,8 @@ public:
   void setFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
       m_filtered_image = filtered_image;
   }
+
+  std::shared_ptr<WriteableImage<SeFloat>> getCustomCheckImage(std::string id);
 
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
@@ -93,6 +96,8 @@ private:
   std::string m_segmentation_filename;
   std::string m_partition_filename;
   std::string m_filtered_filename;
+
+  std::map<std::string, std::shared_ptr<WriteableImage<SeFloat>>> m_custom_images;
 
   std::mutex m_access_mutex;
 };

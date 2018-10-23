@@ -175,11 +175,12 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   }
 
   // Model fitting
-
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(manager.getEngineParameterManager(), res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
+
+  // Collect parameters for output
   for (auto& source : group) {
     for (auto parameter : m_parameters) {
       manager.getParameter(source, parameter);
