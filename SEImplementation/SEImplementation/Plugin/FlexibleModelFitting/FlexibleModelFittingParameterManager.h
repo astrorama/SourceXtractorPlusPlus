@@ -36,7 +36,7 @@ public:
   }
 
   void add(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter) {
-    m_params[std::make_tuple(std::cref(source), parameter)] = parameter->create(m_engine_manager);
+    m_params[std::make_tuple(std::cref(source), parameter)] = parameter->create(m_engine_manager, source);
   }
 
   ModelFitting::EngineParameterManager& getEngineParameterManager() {

@@ -36,12 +36,20 @@ class Range(object):
 
 _parameter_counter = 0
 
-
-parameter_dict = {}
+constant_parameter_dict = {}
+free_parameter_dict = {}
+dependent_parameter_dict = {}
 
 def print_parameters():
-    for n in parameter_dict:
-        print('{}: {}'.format(n, parameter_dict[n]))
+    print('Constant parameters:')
+    for n in constant_parameter_dict:
+        print('  {}: {}'.format(n, constant_parameter_dict[n]))
+    print('Free parameters:')
+    for n in free_parameter_dict:
+        print('  {}: {}'.format(n, free_parameter_dict[n]))
+    print('Dependent parameters:')
+    for n in dependent_parameter_dict:
+        print('  {}: {}'.format(n, dependent_parameter_dict[n]))
 
 
 class ParameterBase(object):
@@ -50,7 +58,6 @@ class ParameterBase(object):
         global _parameter_counter
         _parameter_counter += 1
         self.id = _parameter_counter
-        parameter_dict[self.id] = self
 
     def __str__(self):
         return '(ID:{})'.format(self.id)
@@ -61,6 +68,7 @@ class ConstantParameter(ParameterBase):
     def __init__(self, init_value):
         ParameterBase.__init__(self)
         self.__init_value = init_value
+        constant_parameter_dict[self.id] = self
 
     def get_init_value(self):
         return self.__init_value if hasattr(self.__init_value, '__call__') else lambda o: self.__init_value
@@ -79,6 +87,7 @@ class FreeParameter(ConstantParameter):
     def __init__(self, init_value, range=None):
         ConstantParameter.__init__(self, init_value)
         self.__range = range
+        free_parameter_dict[self.id] = self
 
     def get_range(self):
         return self.__range
@@ -96,6 +105,7 @@ class DependentParameter(ParameterBase):
     def __init__(self, func, *params):
         self.func = func
         self.params = [p.id for p in params]
+        dependent_parameter_dict[self.id] = self
 
 
 def get_pos_parameters():

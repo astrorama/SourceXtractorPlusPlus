@@ -15,21 +15,39 @@
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 
+#include "SEFramework/Source/SourceInterface.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 
 namespace SExtractor {
 
 using namespace ModelFitting;
 
-std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
-                                                            ModelFitting::EngineParameterManager& manager) const {
-  std::shared_ptr<EngineParameter> parameter;
-  if (m_is_exponential_range) {
-    parameter = std::make_shared<EngineParameter>(m_initial_value, make_unique<ExpSigmoidConverter>(m_minimum_value, m_maximum_value));
-  } else {
-    parameter = std::make_shared<EngineParameter>(m_initial_value, make_unique<SigmoidConverter>(m_minimum_value, m_maximum_value));
-  }
+FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(ValueFunc value)
+        : m_value(value) { }
 
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
+                                      ModelFitting::EngineParameterManager&,
+                                      const SourceInterface& source) const {
+  double value = m_value(source);
+  auto parameter = std::make_shared<ManualParameter>(value);
+  return parameter;
+}
+
+
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
+                                                            ModelFitting::EngineParameterManager& manager,
+                                                            const SourceInterface& source) const {
+  double initial_value = m_initial_value(source);
+  double minimum_value, maximum_value;
+  std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
+  
+  std::unique_ptr<CoordinateConverter> converter;
+  if (m_is_exponential_range)
+    converter = make_unique<ExpSigmoidConverter>(minimum_value, maximum_value);
+  else
+    converter = make_unique<SigmoidConverter>(minimum_value, maximum_value);
+  
+  auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
   manager.registerParameter(*parameter);
   return parameter;
 }
