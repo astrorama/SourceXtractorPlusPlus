@@ -2,6 +2,8 @@ from __future__ import division, print_function
 
 from enum import Enum
 
+import libPythonConfig as cpp
+
 
 class RangeType(Enum):
     LINEAR = 1
@@ -33,10 +35,6 @@ class Range(object):
         res += ',{}]'.format(type_str[self.__type])
         return res
 
-
-_parameter_counter = 0
-
-
 parameter_dict = {}
 
 def print_parameters():
@@ -44,14 +42,7 @@ def print_parameters():
         print('{}: {}'.format(n, parameter_dict[n]))
 
 
-class ParameterBase(object):
-
-    def __init__(self):
-        global _parameter_counter
-        _parameter_counter += 1
-        self.id = _parameter_counter
-        parameter_dict[self.id] = self
-
+class ParameterBase(cpp.Column):
     def __str__(self):
         return '(ID:{})'.format(self.id)
 

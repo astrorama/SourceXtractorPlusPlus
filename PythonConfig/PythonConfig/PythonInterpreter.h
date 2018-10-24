@@ -8,7 +8,9 @@
 
 #include <string>
 #include <map>
+#include <vector>
 #include <PythonConfig/PyMeasurementImage.h>
+#include <PythonConfig/PyAperture.h>
 
 namespace SExtractor {
 
@@ -25,6 +27,10 @@ public:
   virtual ~PythonInterpreter();
   
   std::map<int, PyMeasurementImage> getMeasurementImages();
+
+  std::map<int, PyAperture> getApertures();
+
+  std::map<std::string, std::vector<int>> getOutputColumns();
   
 private:
   
