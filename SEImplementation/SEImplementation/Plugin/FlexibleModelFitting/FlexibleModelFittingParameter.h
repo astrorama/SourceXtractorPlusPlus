@@ -9,6 +9,8 @@
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGPARAMETER_H_
 
 #include <memory>
+#include <utility>
+#include <functional>
 
 namespace ModelFitting {
   class BasicParameter;
@@ -17,33 +19,67 @@ namespace ModelFitting {
 
 namespace SExtractor {
 
+class SourceInterface;
+
 class FlexibleModelFittingParameter {
 public:
   FlexibleModelFittingParameter() {}
   virtual ~FlexibleModelFittingParameter() {}
 
-  virtual std::shared_ptr<ModelFitting::BasicParameter> create(ModelFitting::EngineParameterManager& manager) const = 0;
+  virtual std::shared_ptr<ModelFitting::BasicParameter> create(
+                                  ModelFitting::EngineParameterManager& manager,
+                                  const SourceInterface& source) const = 0;
 
 private:
 };
 
-class FlexibleModelFittingFreeParameter : public FlexibleModelFittingParameter {
+class FlexibleModelFittingConstantParameter : public FlexibleModelFittingParameter {
+  
+public:
+  
+  /// The signature of a function providing the parameters value. It gets as a
+  /// parameter a source and returns the value.
+  using ValueFunc = std::function<double(const SourceInterface&)>;
+  
+  FlexibleModelFittingConstantParameter(ValueFunc value);
 
-  FlexibleModelFittingFreeParameter(double initial_value,
-          double minimum_value, double maximum_value, bool is_exponential_range)
-          : m_initial_value(initial_value),
-            m_minimum_value(minimum_value),
-            m_maximum_value(maximum_value),
-            m_is_exponential_range(is_exponential_range) {}
+  std::shared_ptr<ModelFitting::BasicParameter> create(
+                                  ModelFitting::EngineParameterManager& manager,
+                                  const SourceInterface& source) const override;
 
 private:
-  // FIXME this will be replaced by Python callbacks
-  double m_initial_value;
-  double m_minimum_value;
-  double m_maximum_value;
-  bool m_is_exponential_range;
 
-  virtual std::shared_ptr<ModelFitting::BasicParameter> create(ModelFitting::EngineParameterManager& manager) const;
+  ValueFunc m_value;
+  
+};
+
+class FlexibleModelFittingFreeParameter : public FlexibleModelFittingParameter {
+  
+public:
+  
+  /// The signature of a function providing the initial value. It gets as a
+  /// parameter a source and returns the initial value.
+  using InitialValueFunc = std::function<double(const SourceInterface&)>;
+  /// The signature of a function providing the range of a parameter. It gets as
+  /// as input the initial value of the parameter and the source, and it returns
+  /// a pair containing the minimum and maximum values of the range.
+  using RangeFunc = std::function<std::pair<double, double>(double, const SourceInterface&)>;
+
+  FlexibleModelFittingFreeParameter(InitialValueFunc initial_value,
+                                    RangeFunc range, bool is_exponential_range)
+          : m_initial_value(initial_value),
+            m_range(range),
+            m_is_exponential_range(is_exponential_range) {}
+
+  std::shared_ptr<ModelFitting::BasicParameter> create(
+                                  ModelFitting::EngineParameterManager& manager,
+                                  const SourceInterface& source) const override;
+
+private:
+
+  InitialValueFunc m_initial_value;
+  RangeFunc m_range;
+  bool m_is_exponential_range;
 };
 
 }
