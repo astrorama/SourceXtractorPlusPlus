@@ -49,8 +49,7 @@ elements_add_library(SEImplementation
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
-            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table ${WCSLIB_LIBRARIES} ${YAML_CPP_LIBRARIES}
-            INCLUDE_DIRS ${WCSLIB_INCLUDE_DIRS} ${YAML_CPP_INCLUDE_DIR}
+            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp
             PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================
