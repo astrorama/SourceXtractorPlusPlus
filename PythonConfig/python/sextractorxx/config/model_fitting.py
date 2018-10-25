@@ -254,8 +254,3 @@ class DeVaucouleursModel(SersicModelBase):
             return 'DeVaucouleurs[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.alpha.id, self.delta.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
-
-model_fitting_groups = []
-
-def set_model_fitting_groups(*groups):
-    model_fitting_groups = groups
