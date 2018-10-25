@@ -3,6 +3,7 @@ from __future__ import division, print_function
 from enum import Enum
 
 import libPythonConfig as cpp
+from psutil.tests import sh
 
 
 class RangeType(Enum):
@@ -130,10 +131,35 @@ def get_flux_parameter(type=FluxParameterType.ISO):
     return FreeParameter(lambda o: getattr(o, func_map[type])(), Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
+frame_models_dict = {}
+
+
+def _set_model_to_frames(group, model):
+    for x in group:
+        if isinstance(x, tuple):
+            _set_model_to_frames(x[1], model)
+        else:
+            if not x.id in frame_models_dict:
+                frame_models_dict[x.id] = []
+            frame_models_dict[x.id].append(model.id)
+
+
 def add_model(group, model):
     if not hasattr(group, 'models'):
         group.models = []
     group.models.append(model)
+    _set_model_to_frames(group, model)
+
+
+def print_model_fitting_info(group, show_params=False, prefix=''):
+    if hasattr(group, 'models') and group.models:
+        print('{}Models:'.format(prefix))
+        for m in group.models:
+            print('{}  {}'.format(prefix, m.to_string(show_params)))
+    for x in group:
+        if isinstance(x, tuple):
+            print('{}{}:'.format(prefix, x[0]))
+            print_model_fitting_info(x[1], show_params, prefix + '    ')
 
 
 point_source_model_dict = {}

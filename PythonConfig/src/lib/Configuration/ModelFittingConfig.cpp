@@ -91,6 +91,14 @@ void ModelFittingConfig::initialize(const UserValues&) {
         m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
+    std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};
+    for (int x : p.second) {
+      model_list.push_back(m_models[x]);
+    }
+    m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
+  }
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
@@ -99,6 +107,10 @@ const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittin
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& ModelFittingConfig::getModels() const {
   return m_models;
+}
+
+const std::vector<std::shared_ptr<FlexibleModelFittingFrame> >& ModelFittingConfig::getFrames() const {
+  return m_frames;
 }
 
 }

@@ -86,6 +86,11 @@ int main() {
     }
     cout << endl;
   }
+  
+  cout << "\n\nFrames:\n";
+  for (auto p : config_manager.getConfiguration<ModelFittingConfig>().getFrames()) {
+    cout << p->getFrameNb() << ": number of models " << p->getModels().size() << endl;
+  }
 
 //  
 //  auto image_map = py.getMeasurementImages();

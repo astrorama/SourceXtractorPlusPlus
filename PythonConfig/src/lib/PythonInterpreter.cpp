@@ -124,4 +124,20 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
   return getMapFromDict("sextractorxx.config.model_fitting", "de_vaucouleurs_model_dict");
 }
 
+std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
+  std::map<int, std::vector<int>> result {};
+  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  py::dict frame_dict = py::extract<py::dict>(model_fitting_module.attr("frame_models_dict"));
+  py::list frame_ids = frame_dict.keys();
+  for (int i = 0; i < py::len(frame_ids); ++i) {
+    int frame_id = py::extract<int>(frame_ids[i]);
+    py::list model_ids = py::extract<py::list>(frame_dict[frame_ids[i]]);
+    for (int j = 0; j < py::len(model_ids); ++j) {
+      int model_id = py::extract<int>(model_ids[j]);
+      result[frame_id].push_back(model_id);
+    }
+  }
+  return result;
+}
+
 }

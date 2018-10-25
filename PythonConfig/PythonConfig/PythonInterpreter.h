@@ -44,6 +44,8 @@ public:
   
   std::map<int, boost::python::object> getDeVaucouleursModels();
   
+  std::map<int, std::vector<int>> getFrameModelsMap();
+  
 private:
   
   PythonInterpreter();
