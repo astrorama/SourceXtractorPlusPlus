@@ -6,25 +6,24 @@ from astropy.io import fits
 
 import libSEImplementation as cpp
 
-
 measurement_images = {}
 
 
 class MeasurementImage(cpp.MeasurementImage):
 
-    def __init__(self, fits_file, psf_file, weight_file=None, gain=None,
+    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='background', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None):
         super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
-                                               os.path.abspath(psf_file),
+                                               os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
         self.meta = {
-            'IMAGE_FILENAME' : self.file,
-            'PSF_FILENAME' : self.psf_file,
-            'WEIGHT_FILENAME' : self.weight_file
+            'IMAGE_FILENAME': self.file,
+            'PSF_FILENAME': self.psf_file,
+            'WEIGHT_FILENAME': self.weight_file
         }
         hdu_list = fits.open(fits_file)
         hdu_meta = hdu_list[0].header
@@ -117,7 +116,7 @@ class ImageGroup(object):
         subgrouped_images = grouping_method(self.__images)
         if sum(len(p[1]) for p in subgrouped_images) != len(self.__images):
             self.__subgroups = None
-            raise Exception ('Some images were not grouped')
+            raise Exception('Some images were not grouped')
         self.__subgroups = []
         for k, im_list in subgrouped_images:
             assert k not in self.__subgroup_names
@@ -156,10 +155,54 @@ class ImageGroup(object):
                 for im in self.__images:
                     print('{}{}'.format(prefix, im))
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(x for x,_ in self.__subgroups)))
+            print('{}Sub-groups: {}'.format(prefix, ','.join(x for x, _ in self.__subgroups)))
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name))
                 group.printToScreen(prefix + '    ', show_images)
+
+
+class ImageCacheEntry(object):
+    def __init__(self, image, kwargs):
+        self.image = image
+        self.kwargs = kwargs
+
+    def match_kwargs(self, kwargs):
+        mismatch = []
+        for key, value in kwargs.items():
+            if key not in self.kwargs:
+                mismatch.append('{} {} != undefined'.format(key, value))
+            elif self.kwargs[key] != value:
+                mismatch.append('{} {} != {}'.format(key, value, self.kwargs[key]))
+        return mismatch
+
+_image_cache = {}
+
+
+def load_fits_image(im, **kwargs):
+    """Returns a new MeasurementImage, or an existing one if the image was already loaded.
+
+    If the image was loaded previously, then the arguments will be cross-checked to make sure it was instantiated
+    either with the same parameters, or at least with a superset (i.e on the second call you may skip a parameter,
+    but you may *not* add a new one).
+
+    :param im: Relative path to the image FITS file
+    :param kwargs:
+        These will be forwarded to the constructor, or used to verify the parameters match the previous instantiation
+    :raise:
+        If `im` was already loaded before, but the parameters do not match what was used before.
+    :return:
+        A MeasurementImage instance
+    """
+    if im in _image_cache:
+        entry = _image_cache[im]
+        mismatch = entry.match_kwargs(kwargs)
+        if mismatch:
+            raise Exception(
+                'The image "{}" was constructed before with different parameters: {}'.format(im, ', '.join(mismatch))
+            )
+        return entry.image
+    _image_cache[im] = ImageCacheEntry(MeasurementImage(im, **kwargs), kwargs)
+    return _image_cache[im].image
 
 
 def load_fits_images(image_list, psf_list, weight_list=None):
@@ -195,8 +238,10 @@ def load_fits_images(image_list, psf_list, weight_list=None):
     else:
         assert len(image_list) == len(weight_list)
     meas_image_list = []
-    for im, psf, w in zip (image_list, psf_list, weight_list):
-        meas_image_list.append(MeasurementImage(im, psf, w))
+    for im, psf, w in zip(image_list, psf_list, weight_list):
+        meas_image_list.append(
+            load_fits_image(im, psf_file=psf, weight_file=w)
+        )
     return ImageGroup(images=meas_image_list)
 
 
@@ -308,6 +353,15 @@ class MeasurementGroup(object):
         if self.__subgroups is None:
             raise Exception('Does not contain subgroups')
         return (x for x in self.__subgroups if x[0] == name).next()[1]
+
+    def __len__(self):
+        if self.__subgroups:
+            return len(self.__subgroups)
+        else:
+            return len(self.__images)
+
+    def is_leaf(self):
+        return self.__subgroups is None
 
     def printToScreen(self, prefix='', show_images=False, show_params=False):
         if self.__images:
