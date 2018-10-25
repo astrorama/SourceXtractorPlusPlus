@@ -1,5 +1,5 @@
 from __future__ import division, print_function
-from .measurement_images import MeasurementImage, ImageGroup
+from .measurement_images import MeasurementImage, MeasurementGroup
 
 import libSEImplementation as cpp
 
@@ -16,6 +16,13 @@ def add_aperture_photometry(target, apertures):
     outputs = []
 
     for t in target:
+        if isinstance(t, MeasurementGroup):
+            if not t.is_leaf():
+                raise Exception('The MeasurementGroup is not a leaf')
+            elif len(t) != 1:
+                raise Exception('The MeasurementGroup contains {} images'.format(len(t)))
+            t = [i for i in t][0]
+
         if not isinstance(t, MeasurementImage):
             raise Exception('Only MeasurementImage supported as targets, got {}'.format(type(t)))
         else:
