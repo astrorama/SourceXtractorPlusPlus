@@ -21,10 +21,6 @@ PythonInterpreter::PythonInterpreter() {
   Py_Initialize();
 }
 
-PythonInterpreter::~PythonInterpreter() {
-  Py_Finalize();
-}
-
 void PythonInterpreter::runCode(const std::string &code) {
   py::object main_module = py::import("__main__");
   py::object main_namespace = main_module.attr("__dict__");
@@ -85,6 +81,31 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getOutputColumns() {
     }
   }
   return result;
+}
+
+namespace {
+
+std::map<int, boost::python::object> getParameters(const py::str& dict_name) {
+  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  py::dict parameters = py::extract<py::dict>(model_fitting_module.attr(dict_name));
+  py::list ids = parameters.keys();
+  std::map<int, boost::python::object> result;
+  for (int i = 0; i < py::len(ids); ++i) {
+    int id = py::extract<int>(ids[i]);
+    auto par = parameters[ids[i]];
+    result.emplace(std::make_pair(id, par));
+  }
+  return result;
+}
+
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getConstantParameters() {
+  return getParameters("constant_parameter_dict");
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getFreeParameters() {
+  return getParameters("free_parameter_dict");
 }
 
 }

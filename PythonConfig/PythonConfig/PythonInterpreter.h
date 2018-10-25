@@ -24,13 +24,17 @@ public:
   
   void runFile(const std::string& filename);
   
-  virtual ~PythonInterpreter();
+  virtual ~PythonInterpreter() = default;
   
   std::map<int, PyMeasurementImage> getMeasurementImages();
 
   std::map<int, PyAperture> getApertures();
 
   std::map<std::string, std::vector<int>> getOutputColumns();
+  
+  std::map<int, boost::python::object> getConstantParameters();
+  
+  std::map<int, boost::python::object> getFreeParameters();
   
 private:
   

@@ -41,15 +41,18 @@ free_parameter_dict = {}
 dependent_parameter_dict = {}
 
 def print_parameters():
-    print('Constant parameters:')
-    for n in constant_parameter_dict:
-        print('  {}: {}'.format(n, constant_parameter_dict[n]))
-    print('Free parameters:')
-    for n in free_parameter_dict:
-        print('  {}: {}'.format(n, free_parameter_dict[n]))
-    print('Dependent parameters:')
-    for n in dependent_parameter_dict:
-        print('  {}: {}'.format(n, dependent_parameter_dict[n]))
+    if constant_parameter_dict:
+        print('Constant parameters:')
+        for n in constant_parameter_dict:
+            print('  {}: {}'.format(n, constant_parameter_dict[n]))
+    if free_parameter_dict:
+        print('Free parameters:')
+        for n in free_parameter_dict:
+            print('  {}: {}'.format(n, free_parameter_dict[n]))
+    if dependent_parameter_dict:
+        print('Dependent parameters:')
+        for n in dependent_parameter_dict:
+            print('  {}: {}'.format(n, dependent_parameter_dict[n]))
 
 
 class ParameterBase(cpp.Column):
@@ -59,36 +62,43 @@ class ParameterBase(cpp.Column):
 
 class ConstantParameter(ParameterBase):
 
-    def __init__(self, init_value):
+    def __init__(self, value):
         ParameterBase.__init__(self)
-        self.__init_value = init_value
+        self.__value = value
         constant_parameter_dict[self.id] = self
 
-    def get_init_value(self):
-        return self.__init_value if hasattr(self.__init_value, '__call__') else lambda o: self.__init_value
+    def get_value(self):
+        return self.__value if hasattr(self.__value, '__call__') else lambda o: self.__value
 
     def __str__(self):
         res = ParameterBase.__str__(self)[:-1] + ', value:'
-        if hasattr(self.__init_value, '__call__'):
+        if hasattr(self.__value, '__call__'):
             res += 'func'
         else:
-            res += str(self.__init_value)
+            res += str(self.__value)
         return res + ')'
 
 
-class FreeParameter(ConstantParameter):
+class FreeParameter(ParameterBase):
 
     def __init__(self, init_value, range=None):
-        ConstantParameter.__init__(self, init_value)
+        ParameterBase.__init__(self)
+        self.__init_value = init_value
         self.__range = range
         free_parameter_dict[self.id] = self
+
+    def get_init_value(self):
+        return self.__init_value if hasattr(self.__init_value, '__call__') else lambda o: self.__init_value
 
     def get_range(self):
         return self.__range
 
     def __str__(self):
-        res = ConstantParameter.__str__(self)[:-1]
-        res = res.replace('value', 'init')
+        res = ParameterBase.__str__(self)[:-1] + ', init:'
+        if hasattr(self.__init_value, '__call__'):
+            res += 'func'
+        else:
+            res += str(self.__init_value)
         if self.__range:
             res += ', range:' + str(self.__range)
         return res + ')'
@@ -117,7 +127,7 @@ def get_flux_parameter(type=FluxParameterType.ISO):
     func_map = {
         FluxParameterType.ISO : 'get_iso_flux'
     }
-    return FreeParameter(lambda o: getattr(o, func_map[type]), Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
+    return FreeParameter(lambda o: getattr(o, func_map[type])(), Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
 def add_model(group, model):

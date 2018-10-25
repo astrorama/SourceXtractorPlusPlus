@@ -17,11 +17,20 @@
 #include <Configuration/ConfigManager.h>
 #include <ElementsKernel/Logging.h>
 #include <PythonConfig/Configuration/ApertureConfig.h>
+#include <PythonConfig/Configuration/ModelFittingConfig.h>
+#include <PythonConfig/ObjectInfo.h>
+#include <SEFramework/Source/SimpleSourceFactory.h>
+#include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
+#include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
+#include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
+#include <ModelFitting/Engine/EngineParameterManager.h>
 
 
 using namespace std;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
+
+namespace py = boost::python;
 
 int main() {
 
@@ -30,6 +39,7 @@ int main() {
   auto &config_manager = ConfigManager::getInstance(1);
   config_manager.registerConfiguration<MeasurementImageConfig>();
   config_manager.registerConfiguration<ApertureConfig>();
+  config_manager.registerConfiguration<ModelFittingConfig>();
   config_manager.closeRegistration();
 
   Configuration::UserValues args{};
@@ -51,6 +61,30 @@ int main() {
     for (auto a : apertures) {
       std::cout << '\t' << a << std::endl;
     }
+  }
+  
+  
+  SimpleSource source {};
+  source.setProperty<WorldCentroid>(5, 10);
+  source.setProperty<ShapeParameters>(1,1,1,1,1,1,1,1);
+  source.setProperty<IsophotalFlux>(456, 25, 19, 0.3);
+  
+  ModelFitting::EngineParameterManager mgr {};
+  
+  cout << "Parameters:\n";
+  for (auto& mfcp : config_manager.getConfiguration<ModelFittingConfig>().getParameters()) {
+    auto p = mfcp.second->create(mgr, source);
+    cout << mfcp.first << ' ' << p->getValue();
+    auto free_p = dynamic_pointer_cast<ModelFitting::EngineParameter>(p);
+    if (free_p != nullptr) {
+      free_p->setEngineValue(-1E10);
+      cout << " [" << free_p->getValue();
+      free_p->setEngineValue(0);
+      cout << ", " << free_p->getValue();
+      free_p->setEngineValue(1E10);
+      cout << ", " << free_p->getValue() << ']';
+    }
+    cout << endl;
   }
 
 //  
