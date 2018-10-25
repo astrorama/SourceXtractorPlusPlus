@@ -20,11 +20,11 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  const std::map<int, std::unique_ptr<FlexibleModelFittingParameter>>& getParameters() const;
+  const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& getParameters() const;
   
 private:
   
-  std::map<int, std::unique_ptr<FlexibleModelFittingParameter>> m_parameters;
+  std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   
 };
 

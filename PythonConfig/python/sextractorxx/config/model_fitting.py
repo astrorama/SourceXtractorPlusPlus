@@ -134,6 +134,7 @@ def add_model(group, model):
     if not hasattr(group, 'models'):
         group.models = []
     group.models.append(model)
+    print(model.id)
 
 
 class ModelBase(cpp.Id):
@@ -143,6 +144,7 @@ class ModelBase(cpp.Id):
 class PointSourceModel(ModelBase):
 
     def __init__(self, alpha, delta, flux):
+        ModelBase.__init__(self)
         self.alpha = alpha if isinstance(alpha, ParameterBase) else ConstantParameter(alpha)
         self.delta = delta if isinstance(delta, ParameterBase) else ConstantParameter(delta)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)

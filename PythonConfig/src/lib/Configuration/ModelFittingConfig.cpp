@@ -3,13 +3,11 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <AlexandriaKernel/memory_tools.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
 #include <PythonConfig/ObjectInfo.h>
 #include <PythonConfig/Configuration/PythonConfig.h>
 #include <PythonConfig/Configuration/ModelFittingConfig.h>
 
-using namespace Euclid;
 using namespace Euclid::Configuration;
 namespace py = boost::python;
 
@@ -26,7 +24,7 @@ void ModelFittingConfig::initialize(const UserValues&) {
       ObjectInfo oi {o};
       return py::extract<double>(py_value_func(oi));
     };
-    m_parameters[p.first] = make_unique<FlexibleModelFittingConstantParameter>(value_func);
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(value_func);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
@@ -45,11 +43,11 @@ void ModelFittingConfig::initialize(const UserValues&) {
       return {low, high};
     };
     bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
-    m_parameters[p.first] = make_unique<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
   }
 }
 
-const std::map<int, std::unique_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
+const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
   return m_parameters;
 }
 
