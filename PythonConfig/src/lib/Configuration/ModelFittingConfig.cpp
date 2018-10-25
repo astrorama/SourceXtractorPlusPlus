@@ -45,10 +45,60 @@ void ModelFittingConfig::initialize(const UserValues&) {
     bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
   }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    int n_id = py::extract<int>(p.second.attr("n").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingSersicModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
+        m_parameters[angle_id], m_parameters[n_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingExponentialModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingDevaucouleursModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+  }
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
   return m_parameters;
+}
+
+const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& ModelFittingConfig::getModels() const {
+  return m_models;
 }
 
 }

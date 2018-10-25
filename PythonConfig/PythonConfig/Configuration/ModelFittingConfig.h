@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h>
 #include <Configuration/Configuration.h>
 
 namespace SExtractor {
@@ -22,9 +23,12 @@ public:
   
   const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& getParameters() const;
   
+  const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& getModels() const;
+  
 private:
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
+  std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
   
 };
 

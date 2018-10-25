@@ -36,6 +36,14 @@ public:
   
   std::map<int, boost::python::object> getFreeParameters();
   
+  std::map<int, boost::python::object> getPointSourceModels();
+  
+  std::map<int, boost::python::object> getSersicModels();
+  
+  std::map<int, boost::python::object> getExponentialModels();
+  
+  std::map<int, boost::python::object> getDeVaucouleursModels();
+  
 private:
   
   PythonInterpreter();

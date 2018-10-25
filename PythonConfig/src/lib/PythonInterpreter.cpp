@@ -85,8 +85,8 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getOutputColumns() {
 
 namespace {
 
-std::map<int, boost::python::object> getParameters(const py::str& dict_name) {
-  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+std::map<int, boost::python::object> getMapFromDict(const py::str& module_name, const py::str& dict_name) {
+  py::object model_fitting_module = py::import(module_name);
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr(dict_name));
   py::list ids = parameters.keys();
   std::map<int, boost::python::object> result;
@@ -101,11 +101,27 @@ std::map<int, boost::python::object> getParameters(const py::str& dict_name) {
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getConstantParameters() {
-  return getParameters("constant_parameter_dict");
+  return getMapFromDict("sextractorxx.config.model_fitting", "constant_parameter_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getFreeParameters() {
-  return getParameters("free_parameter_dict");
+  return getMapFromDict("sextractorxx.config.model_fitting", "free_parameter_dict");
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getPointSourceModels() {
+  return getMapFromDict("sextractorxx.config.model_fitting", "point_source_model_dict");
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getSersicModels() {
+  return getMapFromDict("sextractorxx.config.model_fitting", "sersic_model_dict");
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getExponentialModels() {
+  return getMapFromDict("sextractorxx.config.model_fitting", "exponential_model_dict");
+}
+
+std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels() {
+  return getMapFromDict("sextractorxx.config.model_fitting", "de_vaucouleurs_model_dict");
 }
 
 }
