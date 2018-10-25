@@ -34,11 +34,16 @@ private:
 
   void createParameters() const;
 
+  void updateCheckImages(SourceGroupInterface& group, double pixel_scale,
+      std::vector<std::shared_ptr<Image<SeFloat>>>& images, FlexibleModelFittingParameterManager& manager) const;
+
   // Task configuration
   unsigned int m_max_iterations;
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+
+  std::string m_checkimage_prefix;
 };
 
 }

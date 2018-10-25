@@ -52,7 +52,8 @@ public:
       m_filtered_image = filtered_image;
   }
 
-  std::shared_ptr<WriteableImage<SeFloat>> getCustomCheckImage(std::string id);
+  std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id);
+  void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
 
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
@@ -97,7 +98,7 @@ private:
   std::string m_partition_filename;
   std::string m_filtered_filename;
 
-  std::map<std::string, std::shared_ptr<WriteableImage<SeFloat>>> m_custom_images;
+  std::map<std::string, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 
   std::mutex m_access_mutex;
 };

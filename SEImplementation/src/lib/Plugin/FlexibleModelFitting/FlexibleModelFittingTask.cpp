@@ -30,8 +30,11 @@
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
 
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
+
+#include "SEImplementation/CheckImages/CheckImages.h"
 
 namespace SExtractor {
 
@@ -154,7 +157,6 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
       for (auto& source : group) {
         for (auto model : frame->getModels()) {
-          // FIXME we need the correct offset
           model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
         }
       }
@@ -178,16 +180,82 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(manager.getEngineParameterManager(), res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
-
+  double avg_reduced_chi_squared = 99; //FIXME
 
   // Collect parameters for output
   for (auto& source : group) {
+    std::vector<double> parameter_values;
     for (auto parameter : m_parameters) {
-      manager.getParameter(source, parameter);
+      //fixme if output requested
+      parameter_values.emplace_back(manager.getParameter(source, parameter)->getValue());
     }
+    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values);
   }
 
+  updateCheckImages(group, pixel_scale, images, manager);
+}
 
+void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, double pixel_scale,
+    std::vector<std::shared_ptr<Image<SeFloat>>>& images, FlexibleModelFittingParameterManager& manager) const {
+
+  int frame_id = 0;
+  for (auto frame : m_frames) {
+    std::vector<PointModel> point_models;
+    std::vector<TransformedModel> extended_models;
+
+    int frame_index = frame->getFrameNb();
+    // Validate that each frame covers the model fitting region
+    if (isFrameValid(group, frame_index)) {
+      auto frame_coordinates =
+          group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+
+      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
+      auto image = createImageCopy(group, frame_index);
+      auto weight = createWeightImage(group, frame_index);
+      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
+      auto jacobian = computeJacobianForFrame(group, frame_index);
+
+      for (auto& source : group) {
+        for (auto model : frame->getModels()) {
+          model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
+        }
+      }
+
+      // Full frame model with all sources
+      FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+        pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
+        {}, {}, std::move(extended_models), group_psf);
+
+      auto final_stamp = frame_model.getImage();
+
+
+      CheckImages::getInstance().lock();
+
+      std::stringstream checkimage_id;
+      checkimage_id << m_checkimage_prefix << "_debug_" << frame_id;
+      auto debug_image = CheckImages::getInstance().getWriteableCheckImage(checkimage_id.str());
+
+      for (int x=0; x<final_stamp->getWidth(); x++) {
+        for (int y=0; y<final_stamp->getHeight(); y++) {
+          auto x_coord = stamp_rect.getTopLeft().m_x + x;
+          auto y_coord = stamp_rect.getTopLeft().m_y + y;
+          debug_image->setValue(x_coord, y_coord, debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x,y));
+        }
+      }
+
+      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+      auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(), debug_image);
+
+
+      std::stringstream checkimage_residual_id;
+      checkimage_residual_id << m_checkimage_prefix << "_residual_" << frame_id;
+      CheckImages::getInstance().setCustomCheckImage(checkimage_residual_id.str(), residual_image);
+
+      CheckImages::getInstance().unlock();
+
+      frame_id++;
+    }
+  }
 }
 
 FlexibleModelFittingTask::~FlexibleModelFittingTask() {

@@ -23,15 +23,24 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager&
   manager.registerConfiguration<CheckImagesConfig>();
 }
 
-std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getCustomCheckImage(std::string id) {
-  auto image = m_custom_images[id];
-  if (image == nullptr) {
-    image = FitsWriter::newImage<SeFloat>(id + ".fits",
-        m_detection_image->getWidth(), m_detection_image->getHeight());
-    m_custom_images[id] = image;
+std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id) {
+  if (m_custom_images.count(id) != 0) {
+    auto image = std::dynamic_pointer_cast<WriteableImage<SeFloat>>(std::get<0>(m_custom_images[id]));
+    if (image != nullptr) {
+      return image;
+    }
   }
 
+
+  auto image = FitsWriter::newImage<SeFloat>(id + ".fits",
+      m_detection_image->getWidth(), m_detection_image->getHeight());
+  m_custom_images[id] = std::make_tuple(image, false);
+
   return image;
+}
+
+void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image) {
+  m_custom_images[id] = std::make_tuple(image, true);
 }
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
@@ -89,6 +98,12 @@ void CheckImages::saveImages() {
   if (m_check_image_model_fitting != nullptr && m_residual_filename != "") {
     auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
     FitsWriter::writeFile(*residual_image, m_residual_filename);
+  }
+
+  for (auto const& entry : m_custom_images) {
+    if (std::get<1>(entry.second)) {
+      FitsWriter::writeFile(*std::get<0>(entry.second), entry.first + ".fits");
+    }
   }
 
   unlock();
