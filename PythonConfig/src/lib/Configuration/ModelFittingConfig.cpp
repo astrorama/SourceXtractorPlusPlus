@@ -49,7 +49,7 @@ void ModelFittingConfig::initialize(const UserValues&) {
   }
 }
 
-const std::map<int, std::unique_ptr<FlexibleModelFittingParameter> >& ModelFittingConfig::getParameters() const {
+const std::map<int, std::unique_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
   return m_parameters;
 }
 

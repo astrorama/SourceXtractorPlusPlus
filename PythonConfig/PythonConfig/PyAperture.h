@@ -8,12 +8,12 @@
 
 #include <vector>
 #include <boost/python.hpp>
-#include "PythonConfig/PyColumn.h"
+#include "PythonConfig/PyId.h"
 
 namespace SExtractor {
 
 
-class PyAperture : public PyColumn {
+class PyAperture : public PyId {
 public:
   PyAperture(const boost::python::list &py_apertures);
 

@@ -35,10 +35,10 @@ BOOST_PYTHON_MODULE(libPythonConfig) {
       .def_readwrite("has_weight_threshold", &PyMeasurementImage::has_weight_threshold)
       .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold);
 
-  bp::class_<PyColumn>("Column", bp::init<>())
-    .def_readonly("id", &PyColumn::id);
+  bp::class_<PyId>("Id", bp::init<>())
+    .def_readonly("id", &PyId::id);
 
-  bp::class_<PyAperture, bp::bases<PyColumn>>("Aperture", bp::init<bp::list>())
+  bp::class_<PyAperture, bp::bases<PyId>>("Aperture", bp::init<bp::list>())
     .def_readonly("apertures", &PyAperture::apertures)
     .def("__str__", &PyAperture::toString)
     .def("__repr__", &PyAperture::toString);

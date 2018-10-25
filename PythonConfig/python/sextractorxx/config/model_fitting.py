@@ -55,7 +55,7 @@ def print_parameters():
             print('  {}: {}'.format(n, dependent_parameter_dict[n]))
 
 
-class ParameterBase(cpp.Column):
+class ParameterBase(cpp.Id):
     def __str__(self):
         return '(ID:{})'.format(self.id)
 
@@ -136,7 +136,7 @@ def add_model(group, model):
     group.models.append(model)
 
 
-class ModelBase(object):
+class ModelBase(cpp.Id):
     pass
 
 
