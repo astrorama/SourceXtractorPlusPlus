@@ -10,12 +10,14 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
+#include <vector>
 
 namespace SExtractor {
 
 /**
  * @class AperturePhotometry
- * @brief Aperture photometry flux and magnitude
+ * @brief Aperture photometry fluxes and magnitudes
  */
 class AperturePhotometry : public Property {
 public:
@@ -25,30 +27,37 @@ public:
    */
   virtual ~AperturePhotometry() = default;
 
-  AperturePhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error)
-    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error) {}
+  AperturePhotometry(const std::vector<SeFloat> &flux, const std::vector<SeFloat> &flux_error,
+                     const std::vector<SeFloat> &mag, const std::vector<SeFloat> &mag_error,
+                     const std::vector<Flags> &flag)
+    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
 
-  SeFloat getFlux() const {
+  const std::vector<SeFloat> &getFluxes() const {
     return m_flux;
   }
 
-  SeFloat getFluxError() const {
+  const std::vector<SeFloat> &getFluxErrors() const {
     return m_flux_error;
   }
 
-  SeFloat getMag() const {
+  const std::vector<SeFloat> &getMags() const {
     return m_mag;
   }
 
-  SeFloat getMagError() const {
+  const std::vector<SeFloat> &getMagErrors() const {
     return m_mag_error;
   }
 
+  const std::vector<Flags> &getFlags() const {
+    return m_flag;
+  }
+
 private:
-  SeFloat m_flux;
-  SeFloat m_flux_error;
-  SeFloat m_mag;
-  SeFloat m_mag_error;
+  std::vector<SeFloat> m_flux;
+  std::vector<SeFloat> m_flux_error;
+  std::vector<SeFloat> m_mag;
+  std::vector<SeFloat> m_mag_error;
+  std::vector<Flags> m_flag;
 };
 
 } /* namespace SExtractor */

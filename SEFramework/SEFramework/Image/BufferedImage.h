@@ -15,6 +15,8 @@
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/TileManager.h"
 
+#include <boost/thread/tss.hpp>
+
 namespace SExtractor {
 
 /**
@@ -40,11 +42,13 @@ public:
     //std::cout << "BufferedImage::getValue() " << x << " " << y << "\n";
     assert(x >= 0 && y >=0 && x < m_source->getWidth() && y < m_source->getHeight());
 
-    if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
-      const_cast<BufferedImage<T>*>(this)->m_current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
+    auto& current_tile = getEntryForThisThread();
+
+    if (current_tile == nullptr || !current_tile->isPixelInTile(x, y)) {
+      current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
     }
 
-    return m_current_tile->getValue(x, y);
+    return current_tile->getValue(x, y);
   }
 
   /// Returns the width of the image in pixels
@@ -76,7 +80,16 @@ public:
 protected:
   std::shared_ptr<const ImageSource<T>> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
-  std::shared_ptr<ImageTile<T>> m_current_tile;
+
+  std::shared_ptr<ImageTile<T>> &getEntryForThisThread() const {
+    if (!m_current_tile.get()) {
+      m_current_tile.reset(new std::shared_ptr<ImageTile<T>>{nullptr});
+    }
+    return *m_current_tile;
+  }
+
+private:
+  mutable boost::thread_specific_ptr<std::shared_ptr<ImageTile<T>>> m_current_tile;
 };
 
 }

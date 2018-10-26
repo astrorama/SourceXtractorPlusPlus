@@ -96,6 +96,12 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getIterations();
           }
   );
+  plugin_api.getOutputRegistry().registerColumnConverter<MultiframeModelFitting, int>(
+          "mmf_nframes",
+          [](const MultiframeModelFitting& prop) {
+            return prop.getFrameCount();
+          }
+  );
 
   plugin_api.getOutputRegistry().optionalOutput<MultiframeModelFitting>("MultiframeModelFitting");
 }

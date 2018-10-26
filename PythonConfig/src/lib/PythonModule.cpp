@@ -6,6 +6,7 @@
 #include <boost/python.hpp>
 #include <PythonConfig/ObjectInfo.h>
 #include <PythonConfig/PyMeasurementImage.h>
+#include <PythonConfig/PyAperture.h>
 
 
 namespace bp = boost::python;
@@ -33,6 +34,14 @@ BOOST_PYTHON_MODULE(libPythonConfig) {
       .def_readwrite("weight_scaling", &PyMeasurementImage::weight_scaling)
       .def_readwrite("has_weight_threshold", &PyMeasurementImage::has_weight_threshold)
       .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold);
+
+  bp::class_<PyId>("Id", bp::init<>())
+    .def_readonly("id", &PyId::id);
+
+  bp::class_<PyAperture, bp::bases<PyId>>("Aperture", bp::init<bp::list>())
+    .def_readonly("apertures", &PyAperture::apertures)
+    .def("__str__", &PyAperture::toString)
+    .def("__repr__", &PyAperture::toString);
 }
 
 } // namespace SExtractor

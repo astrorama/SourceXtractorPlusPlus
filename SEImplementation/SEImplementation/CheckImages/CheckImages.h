@@ -12,6 +12,7 @@
 #include <map>
 
 #include "SEFramework/Configuration/Configurable.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
@@ -39,6 +40,20 @@ public:
   std::shared_ptr<WriteableImage<unsigned int>> getPartitionImage() const {
     return m_partition_image;
   }
+
+  std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage() const {
+    return m_auto_aperture_image;
+  }
+
+  std::shared_ptr<WriteableImage<unsigned int>> getApertureImage() const {
+    return m_aperture_image;
+  }
+
+  std::shared_ptr<WriteableImage<unsigned int>>
+  getAutoApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
+
+  std::shared_ptr<WriteableImage<unsigned int>>
+  getApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
 
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
       m_background_image = background_image;
@@ -84,11 +99,16 @@ private:
   std::shared_ptr<WriteableImage<DetectionImage::PixelType>> m_check_image_model_fitting;
   std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
+  std::map<int, decltype(m_aperture_image)> m_measurement_aperture_images;
+  std::map<int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<Image<SeFloat>> m_filtered_image;
   std::shared_ptr<WeightImage> m_variance_image;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
   std::string m_model_fitting_image_filename;
   std::string m_residual_filename;
@@ -97,6 +117,8 @@ private:
   std::string m_segmentation_filename;
   std::string m_partition_filename;
   std::string m_filtered_filename;
+  std::string m_auto_aperture_filename;
+  std::string m_aperture_filename;
 
   std::map<std::string, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 

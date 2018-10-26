@@ -10,6 +10,7 @@
 
 #include <vector>
 #include "Configuration/Configuration.h"
+#include "SEUtils/Types.h"
 
 namespace SExtractor {
 

@@ -190,7 +190,7 @@ double MultiframeSourceModel::getFluxGuess(const std::vector<int>& frames_in_ban
 
 //  SeFloat total = 0.0;
 //  for (auto frame_nb : frames_in_band) {
-//    total += m_source.getProperty<AperturePhotometry>(frame_nb).getFlux();
+//    total += m_source.getProperty<AperturePhotometry>(frame_nb).getFluxes();
 //  }
 //  total /= frames_in_band.size();
 //

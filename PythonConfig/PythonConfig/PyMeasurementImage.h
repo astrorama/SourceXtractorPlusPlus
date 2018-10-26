@@ -7,15 +7,15 @@
 #define _PYTHONCONFIG_PYMEASUREMENTIMAGE_H
 
 #include <string>
+#include <PythonConfig/PyId.h>
 
 namespace SExtractor {
 
-class PyMeasurementImage {
+class PyMeasurementImage : public PyId {
   
 public:
   PyMeasurementImage(std::string file, std::string psf_file, std::string weight_file);
 
-  int id;
   std::string file;
   double gain;
   double saturation;

@@ -16,21 +16,21 @@ class ObjectInfo {
   
 public:
   
-  ObjectInfo(SourceInterface& source);
+  ObjectInfo(const SourceInterface& source);
   
   virtual ~ObjectInfo() = default;
   
-  SeFloat getAlphaCoord();
+  SeFloat getAlphaCoord() const;
   
-  SeFloat getDeltaCoord();
+  SeFloat getDeltaCoord() const;
   
-  SeFloat getIsoFlux();
+  SeFloat getIsoFlux() const;
   
-  SeFloat getRadiusWorld();
+  SeFloat getRadiusWorld() const;
   
 private:
   
-  std::reference_wrapper<SourceInterface> m_source;
+  std::reference_wrapper<const SourceInterface> m_source;
   
 };
 

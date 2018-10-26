@@ -24,18 +24,25 @@
 #define _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGS_H_
 
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
+#include <vector>
 
 namespace SExtractor {
+
 class SourceFlags : public Property {
 public:
+
   virtual ~SourceFlags() = default;
-  SourceFlags(unsigned long source_flags) : m_source_flags(source_flags) {}
-  long int getSourceFlags () const {
+  SourceFlags(const std::vector<Flags> &source_flags) : m_source_flags(source_flags) {}
+
+  std::vector<Flags> getSourceFlags () const {
     return m_source_flags;
   }
+
 private:
-  long int m_source_flags;
+  std::vector<Flags> m_source_flags;
 }; // end of SourceFlags class
+
 } // namespace SExtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGS_H_*/

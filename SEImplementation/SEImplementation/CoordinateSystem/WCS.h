@@ -24,6 +24,8 @@ public:
   virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const;
   virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const;
 
+  virtual std::map<std::string, std::string> getFitsHeaders() const override;
+
 private:
   std::unique_ptr<wcslib::wcsprm, std::function<void(wcslib::wcsprm*)>> m_wcs;
 };

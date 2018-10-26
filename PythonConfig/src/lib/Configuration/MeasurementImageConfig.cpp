@@ -110,7 +110,7 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
 
 void MeasurementImageConfig::initialize(const UserValues&) {
   auto images = getDependency<PythonConfig>().getInterpreter().getMeasurementImages();
-  
+
   for (auto& p : images) {
     
     PyMeasurementImage& py_image = p.second;
@@ -124,11 +124,17 @@ void MeasurementImageConfig::initialize(const UserValues&) {
     m_weight_thresholds.push_back(extractWeightThreshold(py_image));
     m_gains.push_back(py_image.gain);
     m_saturation_levels.push_back(py_image.saturation);
+    m_image_ids.push_back(py_image.id);
+    m_paths.push_back(py_image.file);
   }
 }
 
 const std::vector<std::shared_ptr<MeasurementImage>>& MeasurementImageConfig::getMeasurementImages() const {
   return m_measurement_images;
+}
+
+const std::vector<int>& MeasurementImageConfig::getImageIds() const {
+  return m_image_ids;
 }
 
 const std::vector<std::shared_ptr<CoordinateSystem>>& MeasurementImageConfig::getCoordinateSystems() const {
@@ -149,6 +155,10 @@ const std::vector<WeightImage::PixelType>& MeasurementImageConfig::getWeightThre
 
 const std::vector<std::string> MeasurementImageConfig::getPsfsPaths() const {
   return m_psfs_paths;
+}
+
+const std::vector<std::string> MeasurementImageConfig::getImagePaths() const {
+  return m_paths;
 }
 
 const std::vector<SeFloat>& MeasurementImageConfig::getGains() const {

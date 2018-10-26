@@ -10,21 +10,21 @@
 
 namespace SExtractor {
 
-ObjectInfo::ObjectInfo(SourceInterface& source) : m_source(source) { }
+ObjectInfo::ObjectInfo(const SourceInterface& source) : m_source(source) { }
 
-SeFloat ObjectInfo::getAlphaCoord() {
+SeFloat ObjectInfo::getAlphaCoord() const {
   return m_source.get().getProperty<WorldCentroid>().getCentroidAlpha();
 }
 
-SeFloat ObjectInfo::getDeltaCoord() {
+SeFloat ObjectInfo::getDeltaCoord() const {
   return m_source.get().getProperty<WorldCentroid>().getCentroidDelta();
 }
 
-SeFloat ObjectInfo::getIsoFlux() {
+SeFloat ObjectInfo::getIsoFlux() const {
   return m_source.get().getProperty<IsophotalFlux>().getFlux();
 }
 
-SeFloat ObjectInfo::getRadiusWorld() {
+SeFloat ObjectInfo::getRadiusWorld() const {
   return m_source.get().getProperty<ShapeParameters>().getEllipseA() / 2.0;
 }
 

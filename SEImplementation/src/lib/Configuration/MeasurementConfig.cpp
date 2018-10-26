@@ -85,25 +85,19 @@ void MeasurementConfig::initialize(const UserValues& args) {
 void MeasurementConfig::parseTree() {
   std::cout << "### parseTree" << std::endl;
 
-  AperturePhotometryOptions ap_options;
-  ap_options.updateOptions(m_yaml_config);
-
   for (auto iter : m_yaml_config) {
     for (auto node : iter) {
       if (node.first.as<std::string>() == "measurements-group") {
-        parseMeasurementsGroup(node.second, ap_options);
+        parseMeasurementsGroup(node.second);
       }
     }
   }
 }
 
-void MeasurementConfig::parseMeasurementsGroup(const YAML::Node& image_group, AperturePhotometryOptions ap_options) {
+void MeasurementConfig::parseMeasurementsGroup(const YAML::Node& image_group) {
   std::cout << "### parseMeasurementsGroup" << std::endl;
 
-  ap_options.updateOptions(image_group);
-
   auto group = std::make_shared<ImageGroup>();
-  group->setAperturePhotometryOptions(ap_options);
   m_groups.push_back(group);
 
   try {
@@ -234,6 +228,7 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
 
     if (flux_scale != 1.0) {
       image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
+      measurement_image_saturate *= flux_scale;
     }
 
     m_measurement_images.push_back(std::move(image));
@@ -250,33 +245,6 @@ unsigned int MeasurementConfig::addImage(const std::string filename, const std::
     m_loaded_images[filename] = image_index;
 
     return m_measurement_images.size() - 1;
-  }
-}
-
-void MeasurementConfig::AperturePhotometryOptions::updateOptions(const YAML::Node& image_group) {
-  try {
-    auto aperture_options = image_group["aperture-photometry"];
-//    for (auto node : aperture_options) {
-//    }
-
-    try {
-      const auto& aperture_size_node = aperture_options["size"];
-
-      if (aperture_size_node.Type() == YAML::NodeType::Sequence) {
-        for (auto aperture_size : aperture_size_node) {
-          m_aperture_sizes.push_back(aperture_size.as<double>());
-        }
-      } else if (aperture_size_node.Type() == YAML::NodeType::Scalar) {
-        m_aperture_sizes.push_back(aperture_size_node.as<double>());
-      } else {
-        // fixme throw
-      }
-
-    } catch(std::exception& e) {
-    }
-
-  } catch (std::exception& e) { // FIXME specific exception
-    std::cout << "updateOptions exception" << std::endl;
   }
 }
 

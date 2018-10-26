@@ -294,7 +294,7 @@ class MeasurementGroup(object):
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, ModelFittingGroup(g)) for n,g in image_group]
+            self.__subgroups = [(n, MeasurementGroup(g)) for n,g in image_group]
         self.__models = []
 
     def __iter__(self):

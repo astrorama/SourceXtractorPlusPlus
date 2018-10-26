@@ -12,9 +12,11 @@
 #include <type_traits>
 
 #include <fitsio.h>
+#include <iomanip>
 
 #include "ElementsKernel/Exception.h"
 
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSource.h"
 
 namespace SExtractor {
@@ -23,7 +25,8 @@ template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
 
-  FitsImageSource(const std::string& filename) : m_fptr(nullptr) {
+  FitsImageSource(const std::string &filename)
+    : m_fptr(nullptr) {
     int status = 0;
 
     fits_open_file(&m_fptr, filename.c_str(), READONLY, &status);
@@ -49,7 +52,8 @@ public:
 //    readFitsKeyword("FLXSCALE", flux_scale);
   }
 
-  FitsImageSource(const std::string& filename, int width, int height) : m_fptr(nullptr) {
+  FitsImageSource(const std::string &filename, int width, int height,
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr) : m_fptr(nullptr) {
     m_width = width;
     m_height = height;
 
@@ -62,6 +66,24 @@ public:
 
     long naxes[2] = {width, height};
     fits_create_img(m_fptr, getImageType(), 2, naxes, &status);
+
+    if (coord_system) {
+      auto headers = coord_system->getFitsHeaders();
+      for (auto &h : headers) {
+        std::ostringstream padded_key, serializer;
+        padded_key << std::setw(8) << std::left << h.first;
+
+        serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
+        auto str = serializer.str();
+
+        fits_update_card(m_fptr, padded_key.str().c_str(), str.c_str(), &status);
+        if (status != 0) {
+          char err_txt[31];
+          fits_get_errstatus(status, err_txt);
+          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+        }
+      }
+    }
 
     std::vector<T> buffer(width);
     for (int i = 0; i<height; i++) {

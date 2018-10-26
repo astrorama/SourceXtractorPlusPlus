@@ -46,6 +46,9 @@ public:
     return m_weight_threshold;
   }
 
+  bool symmetryUsage() const {
+    return m_symmetry_usage;
+  }
 
   static std::shared_ptr<WeightImage> convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling = 1);
 
@@ -54,6 +57,7 @@ private:
   std::shared_ptr<WeightImage> m_weight_image;
   WeightType m_weight_type;
   bool m_absolute_weight;
+  bool m_symmetry_usage;
   WeightImage::PixelType m_weight_scaling;
   WeightImage::PixelType m_weight_threshold;
 };

@@ -22,6 +22,10 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
 
+#ifdef __APPLE__
+#define sincosf __sincosf
+#endif
+
 namespace ModelFitting {
 
 // Interpolation types

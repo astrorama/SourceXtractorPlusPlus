@@ -24,6 +24,8 @@ public:
 
   const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const;
 
+  const std::vector<int>& getImageIds() const;
+
   const std::vector<std::shared_ptr<CoordinateSystem>>& getCoordinateSystems() const;
 
   const std::vector<std::shared_ptr<WeightImage>>& getWeightImages() const;
@@ -31,6 +33,8 @@ public:
   const std::vector<bool>& getAbsoluteWeights() const;
   
   const std::vector<WeightImage::PixelType>& getWeightThresholds() const;
+
+  const std::vector<std::string> getImagePaths() const;
 
   const std::vector<std::string> getPsfsPaths() const;
 
@@ -45,10 +49,11 @@ private:
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
   std::vector<bool> m_absolute_weights;
   std::vector<WeightImage::PixelType> m_weight_thresholds;
+  std::vector<std::string> m_paths;
   std::vector<std::string> m_psfs_paths;
   std::vector<SeFloat> m_gains;
   std::vector<MeasurementImage::PixelType> m_saturation_levels;
-  
+  std::vector<int> m_image_ids;
 };
 
 }

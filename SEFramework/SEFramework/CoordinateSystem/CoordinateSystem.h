@@ -9,6 +9,8 @@
 #define _SEFRAMEWORK_COORDINATESYSTEM_COORDINATESYSTEM_H_
 
 #include "SEUtils/PixelCoordinate.h"
+#include <map>
+#include <string>
 
 namespace SExtractor {
 
@@ -33,6 +35,10 @@ public:
 
   virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const = 0;
   virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const = 0;
+
+  virtual std::map<std::string, std::string> getFitsHeaders() const {
+    return {};
+  };
 };
 
 }

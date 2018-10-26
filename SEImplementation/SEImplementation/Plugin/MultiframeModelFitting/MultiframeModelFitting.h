@@ -25,7 +25,7 @@ public:
       SeFloat wc_alpha, SeFloat wc_delta,
       SeFloat exp_radius, SeFloat dev_radius,
       std::vector<double> fluxes, std::vector<double> exp_fluxes, std::vector<double> dev_fluxes,
-      unsigned int iterations, SeFloat chi_squared) :
+      unsigned int iterations, SeFloat chi_squared, unsigned int nframes) :
     m_x(x),
     m_y(y),
     m_wc_alpha(wc_alpha),
@@ -35,7 +35,7 @@ public:
     m_fluxes(fluxes),
     m_exp_fluxes(exp_fluxes),
     m_dev_fluxes(dev_fluxes),
-    m_iterations(iterations),
+    m_iterations(iterations), m_frame_count(nframes),
     m_chi_squared(chi_squared) {}
 
   SeFloat getX() const {
@@ -82,6 +82,10 @@ public:
     return m_iterations;
   }
 
+  unsigned int getFrameCount() const {
+    return m_frame_count;
+  }
+
   SeFloat getReducedChiSquared() const {
     return m_chi_squared;
   }
@@ -92,7 +96,7 @@ private:
   SeFloat m_exp_radius, m_dev_radius;
 
   std::vector<double> m_fluxes, m_exp_fluxes, m_dev_fluxes;
-  unsigned int m_iterations;
+  unsigned int m_iterations, m_frame_count;
   SeFloat m_chi_squared;
 };
 
