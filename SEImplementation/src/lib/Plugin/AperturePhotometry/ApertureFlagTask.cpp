@@ -98,7 +98,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
 
       // check/set the crowded area flag
       if (full_area / total_area > CROWD_THRESHOLD_APER)
-        flag |= Flags::BLENDED;
+        flag |= Flags::NEIGHBORS;
     }
 
     all_flags.push_back(flag);

@@ -10,6 +10,9 @@
 
 namespace SExtractor {
 
+const SeFloat BADAREA_THRESHOLD_APER = 0.1;
+
+
 FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat centroid_x, SeFloat centroid_y,
                             const std::shared_ptr<Image<SeFloat>> &img,
                             const std::shared_ptr<Image<SeFloat>> &variance_map, SeFloat variance_threshold,
@@ -36,13 +39,15 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
       auto area = aperture->getArea(centroid_x, centroid_y, pixel_x, pixel_y);
       if (area > 0) {
 
+        measurement.m_total_area += area;
+
         // make sure the pixel is inside the image
         if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < img->getWidth() && pixel_y < img->getHeight()) {
 
           variance_tmp = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
           if (variance_tmp > variance_threshold) {
 
-            // TODO: Should we flag bad pixel?
+            measurement.m_bad_area += 1;
 
             // try using the mirror pixel
             if (use_symmetry) {
@@ -62,12 +67,20 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
             pixel_value = img->getValue(pixel_x, pixel_y);
             pixel_variance = variance_tmp;
           }
+
           measurement.m_flux += pixel_value * area;
           measurement.m_variance += pixel_variance * area;
         } else {
           measurement.m_flags |= Flags::BOUNDARY;
         }
       }
+    }
+  }
+
+  // check/set the bad area flag
+  if (measurement.m_total_area > 0) {
+    if (measurement.m_bad_area / measurement.m_total_area > BADAREA_THRESHOLD_APER) {
+      measurement.m_flags |= Flags::BIASED;
     }
   }
 

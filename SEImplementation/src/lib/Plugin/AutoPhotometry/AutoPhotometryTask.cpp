@@ -5,8 +5,8 @@
  *      Author: mkuemmel@usm.lmu.de
  */
 //#include <math.h>
-#include <iostream>
-#include <SEFramework/Aperture/FluxMeasurement.h>
+#include "SEFramework/Aperture/FluxMeasurement.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"

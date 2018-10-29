@@ -48,7 +48,9 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto image = VectorImage<MeasurementImage::PixelType>::create(1, 1);
   image->setValue(0, 0, 1);
 
-  auto frame = std::make_shared<MeasurementImageFrame>(image);
+  auto variance_map = ConstantImage<WeightImage::PixelType>::create(image->getWidth(), image->getHeight(), .0001);
+
+  auto frame = std::make_shared<MeasurementImageFrame>(image, variance_map, 1e6, nullptr, 0., 9., 0);
   source.setIndexedProperty<DetectionFrame>(0, frame);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
   source.setIndexedProperty<PixelBoundaries>(0, 0, 0, 0, 0);
@@ -64,8 +66,8 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto aperture_photometry = source.getProperty<AperturePhotometry>();
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 3.14159 * .25, 10);
 
-  // It is on a boundary
-  BOOST_CHECK(aperture_photometry.getFlags()[0] == Flags::BOUNDARY);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BOUNDARY) == Flags::BOUNDARY);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::SATURATED) == Flags::NONE);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,8 +101,8 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 1.45, 10);
   // There is one pixel that belongs to a neighbour
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK((aperture_flag.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
+  BOOST_CHECK((aperture_flag.getFlags()[0] & Flags::NEIGHBORS) == Flags::NEIGHBORS);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::NEIGHBORS) == Flags::NEIGHBORS);
 }
 
 //-----------------------------------------------------------------------------

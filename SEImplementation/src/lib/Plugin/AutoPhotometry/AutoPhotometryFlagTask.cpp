@@ -110,7 +110,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
 
     // check/set the crowded area flag
     if ((SeFloat) area_full / (SeFloat) area_sum > CROWD_THRESHOLD_AUTO)
-      global_flag |= Flags::BLENDED;
+      global_flag |= Flags::NEIGHBORS;
   }
 
   // Iterate through groups, and flatten the flags into a vector with one entry per group
