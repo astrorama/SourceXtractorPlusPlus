@@ -70,6 +70,10 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
+  // Add the flags from the detection image
+  auto det_flag = source.getProperty<AutoPhotometryFlag>();
+  measurement.m_flags |= det_flag.getFlags();
+
   // set the source properties
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
 

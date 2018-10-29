@@ -47,16 +47,15 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryFlag, std::vector<int64_t>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, int64_t>(
           "auto_flags",
-          [](const AutoPhotometryFlag& prop){
+          [](const AutoPhotometry& prop){
             return flags2long(prop.getFlags());
           }
   );
 
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<AutoPhotometry>("AutoPhotometry");
-  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometryFlag>("AutoPhotometry");
 }
 
 std::string AutoPhotometryPlugin::getIdString() const {
