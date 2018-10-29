@@ -6,6 +6,7 @@
  */
 //#include <math.h>
 #include "SEFramework/Aperture/FluxMeasurement.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -70,9 +71,11 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
-  // Add the flags from the detection image
+  // Add the flags from the detection image and from the saturated plugin
   auto det_flag = source.getProperty<AutoPhotometryFlag>();
-  measurement.m_flags |= det_flag.getFlags();
+  auto sat_flag = source.getProperty<SaturateFlag>(m_instance);
+
+  measurement.m_flags |= det_flag.getFlags() | (Flags::SATURATED * sat_flag.getSaturateFlag());
 
   // set the source properties
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);

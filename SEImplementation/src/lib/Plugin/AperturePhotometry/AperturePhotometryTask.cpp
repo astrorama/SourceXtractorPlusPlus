@@ -10,6 +10,7 @@
 
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -67,11 +68,12 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
     flags.push_back(measurement.m_flags);
   }
 
-  // Merge flags with those set on the detection frame
+  // Merge flags with those set on the detection frame and from the saturate plugin
   auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+  auto sat_flag = Flags::SATURATED * source.getProperty<SaturateFlag>().getSaturateFlag();
 
   for (size_t i = 0; i < aperture_flags.size(); ++i) {
-    flags[i] |= aperture_flags[i];
+    flags[i] |= aperture_flags[i] | sat_flag;
   }
 
   // set the source properties

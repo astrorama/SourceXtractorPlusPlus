@@ -13,7 +13,7 @@
 #include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
@@ -57,6 +57,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 0, 0);
   source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{{0, 0}}});
   source.setIndexedProperty<JacobianSource>(0);
+  source.setIndexedProperty<SaturateFlag>(0, false);
 
   ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{1.});
   AperturePhotometryTask aperture_photometry_task(std::vector<SeFloat>{.5}, 0, 0, false);
@@ -91,6 +92,7 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<PixelCentroid>(0, 1, 1);
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 1, 1);
   source.setIndexedProperty<JacobianSource>(0);
+  source.setIndexedProperty<SaturateFlag>(0, false);
 
   ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{1.});
   AperturePhotometryTask aperture_photometry_task(std::vector<SeFloat>{1.}, 0, 0, false);
