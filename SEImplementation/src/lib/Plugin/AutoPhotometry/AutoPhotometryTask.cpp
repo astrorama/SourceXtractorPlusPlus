@@ -4,8 +4,12 @@
  *  Created on: Jul 18, 2016
  *      Author: mkuemmel@usm.lmu.de
  */
-//#include <math.h>
+
+#include "SEFramework/Aperture/EllipticalAperture.h"
+#include "SEFramework/Aperture/TransformedAperture.h"
+#include "SEFramework/Source/SourceFlags.h"
 #include "SEFramework/Aperture/FluxMeasurement.h"
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
@@ -15,9 +19,6 @@
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
-#include "SEFramework/Aperture/EllipticalAperture.h"
-#include "SEFramework/Aperture/TransformedAperture.h"
-#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 
@@ -71,11 +72,10 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
-  // Add the flags from the detection image and from the saturated plugin
-  auto det_flag = source.getProperty<AutoPhotometryFlag>();
-  auto sat_flag = source.getProperty<SaturateFlag>(m_instance);
-
-  measurement.m_flags |= det_flag.getFlags() | (Flags::SATURATED * sat_flag.getSaturateFlag());
+  // Add the flags from the detection image and from the saturated and blended plugins
+  measurement.m_flags |= source.getProperty<AutoPhotometryFlag>().getFlags();
+  measurement.m_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
+  measurement.m_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
   // set the source properties
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
@@ -93,4 +93,3 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
 }
 
 }
-
