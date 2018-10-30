@@ -34,7 +34,8 @@ void AperturePhotometryConfig::preInitialize(const UserValues& args) {
   // Boost doesn't seem to work well with multiple values on a configuration file, so
   // we do the parsing here ourselves
   auto aperture_str = args.at(APERTURE_SIZE).as<std::string>();
-  boost::tokenizer<> tok(aperture_str);
+  boost::char_separator<char> sep(" \t;,");
+  boost::tokenizer<boost::char_separator<char>> tok(aperture_str, sep);
 
   for (auto v : tok) {
     m_apertures.push_back(boost::lexical_cast<SeFloat>(v));
