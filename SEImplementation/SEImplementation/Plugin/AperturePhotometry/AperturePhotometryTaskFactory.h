@@ -32,7 +32,8 @@ private:
   SeFloat m_magnitude_zero_point;
   bool m_symmetry_usage;
 
-  std::vector<SeFloat> m_apertures;
+  std::map<int, std::vector<float>> m_aperture_config;
+  std::vector<float> m_all_apertures;
   std::vector<std::pair<std::string, unsigned>> m_instances;
 };
 

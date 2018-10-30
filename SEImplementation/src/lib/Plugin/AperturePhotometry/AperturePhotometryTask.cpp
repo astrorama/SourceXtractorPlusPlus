@@ -73,8 +73,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   additional_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
   auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
-  for (size_t i = 0; i < aperture_flags.size(); ++i) {
-    flags[i] |= aperture_flags[i] | additional_flags;
+  for (size_t i = 0; i < m_apertures.size(); ++i) {
+    auto det_flag = aperture_flags.at(m_apertures[i]);
+    flags[i] |= additional_flags | det_flag;
   }
 
   // set the source properties

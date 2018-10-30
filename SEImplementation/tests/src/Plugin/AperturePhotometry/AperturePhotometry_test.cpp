@@ -61,7 +61,7 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<SaturateFlag>(0, false);
   source.setIndexedProperty<BlendedFlag>(0, false);
 
-  ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{1.});
+  ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{.5});
   AperturePhotometryTask aperture_photometry_task(std::vector<SeFloat>{.5}, 0, 0, false);
   aperture_flag_task.computeProperties(source);
   aperture_photometry_task.computeProperties(source);
@@ -106,7 +106,7 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 1.45, 10);
   // There is one pixel that belongs to a neighbour
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK((aperture_flag.getFlags()[0] & Flags::NEIGHBORS) == Flags::NEIGHBORS);
+  BOOST_CHECK((aperture_flag.getFlags().at(1.) & Flags::NEIGHBORS) == Flags::NEIGHBORS);
   BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::NEIGHBORS) == Flags::NEIGHBORS);
 }
 

@@ -11,10 +11,9 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 
-
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
-
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryConfig.h"
@@ -23,7 +22,6 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTaskFactory.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
-#include "SEImplementation/Configuration/MeasurementConfig.h"
 
 
 namespace SExtractor {
@@ -33,7 +31,7 @@ void AutoPhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::
   manager.registerConfiguration<AutoPhotometryConfig>();
   manager.registerConfiguration<WeightImageConfig>();
   manager.registerConfiguration<CheckImagesConfig>();
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
@@ -42,7 +40,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
   m_kron_minrad = manager.getConfiguration<AutoPhotometryConfig>().getAutoKronMinrad();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  auto &measurement_config = manager.getConfiguration<MeasurementConfig>();
+  auto &measurement_config = manager.getConfiguration<MeasurementImageConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   std::map<std::string, unsigned> pos_in_group;

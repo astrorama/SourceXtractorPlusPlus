@@ -44,7 +44,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the pixel list
   const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
-  std::vector<Flags> all_flags;
+  std::map<float, Flags> all_flags;
 
   for (auto aperture_size : m_apertures) {
     auto aperture = CircularAperture(aperture_size);
@@ -101,7 +101,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
         flag |= Flags::NEIGHBORS;
     }
 
-    all_flags.push_back(flag);
+    all_flags.emplace(std::make_pair(aperture_size, flag));
   }
 
   // set the source properties

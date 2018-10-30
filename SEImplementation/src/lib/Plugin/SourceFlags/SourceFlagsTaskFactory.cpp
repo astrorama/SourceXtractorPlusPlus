@@ -20,23 +20,22 @@
  * @author mkuemmel@usm.lmu.de
  */
 
-#include "SEImplementation/Configuration/MeasurementConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsTaskFactory.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 
 namespace SExtractor {
 
 void SourceFlagsTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void SourceFlagsTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
-  auto& measurement_config = manager.getConfiguration<MeasurementConfig>();
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   for (unsigned i = 0; i < measurement_images_nb; ++i) {
-    auto& group = measurement_config.getGroupForImage(i);
-    m_instances_per_group[group->getName()].emplace_back(i);
+    m_instances_per_group["global"].emplace_back(i);
   }
 }
 

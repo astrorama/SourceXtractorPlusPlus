@@ -42,4 +42,8 @@ std::vector<float> ApertureConfig::getAperturesForImage(int image_id) const {
   return i->second;
 }
 
+const std::map<int, std::vector<float>>& ApertureConfig::getApertures() const {
+  return m_apertures;
+}
+
 } // end SExtractor

@@ -18,6 +18,8 @@ public:
 
   std::vector<float> getAperturesForImage(int image_id) const;
 
+  const std::map<int, std::vector<float>>& getApertures() const;
+
   std::vector<int> getOutputForImages() const {
     return m_output_images;
   }
