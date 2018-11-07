@@ -3,8 +3,8 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#ifndef _PYTHONCONFIG_OBJECTINFO_H
-#define _PYTHONCONFIG_OBJECTINFO_H
+#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
+#define _SEIMPLEMENTATION_OBJECTINFO_H
 
 #include <functional>
 #include <SEUtils/Types.h>
@@ -28,6 +28,10 @@ public:
   
   SeFloat getRadiusWorld() const;
   
+  SeFloat getAngle() const;
+
+  SeFloat getAspectRatio() const;
+
 private:
   
   std::reference_wrapper<const SourceInterface> m_source;
@@ -36,5 +40,5 @@ private:
 
 } // end of namespace SExtractor
 
-#endif // _PYTHONCONFIG_OBJECTINFO_H
+#endif // _SEIMPLEMENTATION_OBJECTINFO_H
 

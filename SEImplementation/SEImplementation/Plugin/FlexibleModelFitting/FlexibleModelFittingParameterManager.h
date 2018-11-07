@@ -9,6 +9,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGPARAMETERMANAGER_H_
 
 #include <map>
+#include <vector>
 
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "SEFramework/Source/SourceInterface.h"
@@ -39,12 +40,19 @@ public:
     m_params[std::make_tuple(std::cref(source), parameter)] = parameter->create(m_engine_manager, source);
   }
 
+  // Used to just store a parameter's pointer for the duration of the model fitting
+  // This is necessary to keep dependent parameters working
+  void storeParameter(std::shared_ptr<ModelFitting::BasicParameter> param) {
+    m_storage.emplace_back(param);
+  }
+
   ModelFitting::EngineParameterManager& getEngineParameterManager() {
     return m_engine_manager;
   }
 
 private:
   std::map<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<FlexibleModelFittingParameter>>, std::shared_ptr<ModelFitting::BasicParameter>> m_params;
+  std::vector<std::shared_ptr<ModelFitting::BasicParameter>> m_storage;
   ModelFitting::EngineParameterManager m_engine_manager {};
 
 };

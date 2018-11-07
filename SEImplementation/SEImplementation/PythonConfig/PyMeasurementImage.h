@@ -3,11 +3,11 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#ifndef _PYTHONCONFIG_PYMEASUREMENTIMAGE_H
-#define _PYTHONCONFIG_PYMEASUREMENTIMAGE_H
+#ifndef _SEIMPLEMENTATION_PYMEASUREMENTIMAGE_H
+#define _SEIMPLEMENTATION_PYMEASUREMENTIMAGE_H
 
 #include <string>
-#include <PythonConfig/PyId.h>
+#include <SEImplementation/PythonConfig/PyId.h>
 
 namespace SExtractor {
 
@@ -32,5 +32,5 @@ public:
 
 }
 
-#endif // _PYTHONCONFIG_PYMEASUREMENTIMAGE_H
+#endif // _SEIMPLEMENTATION_PYMEASUREMENTIMAGE_H
 

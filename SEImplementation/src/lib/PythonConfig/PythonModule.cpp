@@ -4,22 +4,24 @@
  */
 
 #include <boost/python.hpp>
-#include <PythonConfig/ObjectInfo.h>
-#include <PythonConfig/PyMeasurementImage.h>
-#include <PythonConfig/PyAperture.h>
+#include <SEImplementation/PythonConfig/ObjectInfo.h>
+#include <SEImplementation/PythonConfig/PyMeasurementImage.h>
+#include <SEImplementation/PythonConfig/PyAperture.h>
 
 
 namespace bp = boost::python;
 
 namespace SExtractor {
 
-BOOST_PYTHON_MODULE(libPythonConfig) {
+BOOST_PYTHON_MODULE(libSEImplementation) {
   
   bp::class_<ObjectInfo>("ObjectInfo", bp::init<SourceInterface&>())
       .def("get_alpha_coord", &ObjectInfo::getAlphaCoord)
       .def("get_delta_coord", &ObjectInfo::getDeltaCoord)
       .def("get_iso_flux", &ObjectInfo::getIsoFlux)
-      .def("get_radius_world", &ObjectInfo::getRadiusWorld);
+      .def("get_radius_world", &ObjectInfo::getRadiusWorld)
+      .def("get_angle", &ObjectInfo::getAngle)
+      .def("get_aspect_ratio", &ObjectInfo::getAspectRatio);
   
   bp::class_<PyMeasurementImage>("MeasurementImage", bp::init<std::string, std::string, std::string>())
       .def_readonly("id", &PyMeasurementImage::id)

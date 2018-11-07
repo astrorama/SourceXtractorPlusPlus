@@ -10,15 +10,15 @@
  */
 
 #include <iostream>
-#include <PythonConfig/PythonInterpreter.h>
-#include <PythonConfig/PyMeasurementImage.h>
-#include <PythonConfig/Configuration/PythonConfig.h>
-#include <PythonConfig/Configuration/MeasurementImageConfig.h>
+#include <SEImplementation/PythonConfig/PythonInterpreter.h>
+#include <SEImplementation/PythonConfig/PyMeasurementImage.h>
+#include <SEImplementation/Configuration/PythonConfig.h>
+#include <SEImplementation/Configuration/MeasurementImageConfig.h>
 #include <Configuration/ConfigManager.h>
 #include <ElementsKernel/Logging.h>
-#include <PythonConfig/Configuration/ApertureConfig.h>
-#include <PythonConfig/Configuration/ModelFittingConfig.h>
-#include <PythonConfig/ObjectInfo.h>
+#include <SEImplementation/Configuration/ApertureConfig.h>
+#include <SEImplementation/Configuration/ModelFittingConfig.h>
+#include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEFramework/Source/SimpleSourceFactory.h>
 #include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
@@ -33,10 +33,10 @@ using namespace Euclid::Configuration;
 namespace py = boost::python;
 
 int main() {
-
   Elements::Logging::setLevel("DEBUG");
 
   auto &config_manager = ConfigManager::getInstance(1);
+//  config_manager.registerConfiguration<PythonConfig>();
   config_manager.registerConfiguration<MeasurementImageConfig>();
   config_manager.registerConfiguration<ApertureConfig>();
   config_manager.registerConfiguration<ModelFittingConfig>();
@@ -46,7 +46,6 @@ int main() {
   args["python-config-file"].value() = (boost::filesystem::path(getenv("HOME")) / "temp/test_config.py").native();
 
   config_manager.initialize(args);
-
   auto &py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
 
   auto &mconfig = config_manager.getConfiguration<MeasurementImageConfig>();

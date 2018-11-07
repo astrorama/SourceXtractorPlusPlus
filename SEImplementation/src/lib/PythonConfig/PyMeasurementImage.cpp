@@ -3,7 +3,7 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <PythonConfig/PyMeasurementImage.h>
+#include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 
 namespace SExtractor {
 

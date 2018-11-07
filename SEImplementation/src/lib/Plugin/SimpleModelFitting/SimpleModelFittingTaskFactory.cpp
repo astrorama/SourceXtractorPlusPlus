@@ -11,7 +11,7 @@
 #include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTask.h"
 #include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTaskFactory.h"
 
-#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 
 namespace SExtractor {
 
@@ -24,11 +24,11 @@ std::shared_ptr<Task> SimpleModelFittingTaskFactory::createTask(const PropertyId
 }
 
 void SimpleModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<ModelFittingConfig>();
+  manager.registerConfiguration<LegacyModelFittingConfig>();
 }
 
 void SimpleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
+  auto& model_fitting_config = manager.getConfiguration<LegacyModelFittingConfig>();
   m_max_iterations = model_fitting_config.getMaxIterations();
 }
 

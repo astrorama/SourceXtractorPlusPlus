@@ -4,7 +4,7 @@ import os
 import re
 from astropy.io import fits
 
-import libPythonConfig as cpp
+import libSEImplementation as cpp
 
 
 measurement_images = {}
@@ -50,7 +50,7 @@ class MeasurementImage(cpp.MeasurementImage):
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
-            self.flux_scale = 0.
+            self.flux_scale = 1.
 
         self.weight_type = weight_type
         self.weight_absolute = weight_absolute
@@ -95,7 +95,8 @@ class ImageGroup(object):
                 self.__images = [kwargs[key]]
         if key == 'subgroups':
             self.__subgroups = kwargs[key]
-            for name, _ in self._subgroups:
+            print(self.__subgroups)
+            for name, _ in self.__subgroups:
                 self.__subgroup_names.add(name)
 
     def __len__(self):

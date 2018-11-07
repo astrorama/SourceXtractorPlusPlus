@@ -12,7 +12,7 @@
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTaskFactory.h"
 
-#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 #include "SEImplementation/Configuration/MeasurementConfig.h"
 
 namespace SExtractor {
@@ -28,13 +28,13 @@ std::shared_ptr<Task> MultiframeModelFittingTaskFactory::createTask(const Proper
 }
 
 void MultiframeModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<ModelFittingConfig>();
+  manager.registerConfiguration<LegacyModelFittingConfig>();
 }
 
 void MultiframeModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementConfig>();
 
-  auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
+  auto& model_fitting_config = manager.getConfiguration<LegacyModelFittingConfig>();
   m_max_iterations = model_fitting_config.getMaxIterations();
 
   auto& groups = measurement_config.getImageGroups();

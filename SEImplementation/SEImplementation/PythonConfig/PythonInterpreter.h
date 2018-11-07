@@ -3,14 +3,14 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#ifndef _PYTHONCONFIG_PYTHONINTERPRETER_H
-#define _PYTHONCONFIG_PYTHONINTERPRETER_H
+#ifndef _SEIMPLEMENTATION_PYTHONINTERPRETER_H
+#define _SEIMPLEMENTATION_PYTHONINTERPRETER_H
 
 #include <string>
 #include <map>
 #include <vector>
-#include <PythonConfig/PyMeasurementImage.h>
-#include <PythonConfig/PyAperture.h>
+#include <SEImplementation/PythonConfig/PyMeasurementImage.h>
+#include <SEImplementation/PythonConfig/PyAperture.h>
 
 namespace SExtractor {
 
@@ -54,5 +54,5 @@ private:
 
 } // end of namespace SExtractor
 
-#endif // _PYTHONCONFIG_PYTHONINTERPRETER_H
+#endif // _SEIMPLEMENTATION_PYTHONINTERPRETER_H
 

@@ -29,6 +29,7 @@
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
+#include <SEImplementation/Plugin/Jacobian/Jacobian.h>
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
@@ -40,8 +41,50 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
-FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations)
-  : m_max_iterations(max_iterations) {}
+
+namespace {
+
+void printLevmarInfo(std::array<double,10> info) {
+  std::cout << "\nMinimization info:\n";
+  std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
+  std::cout << "  ||e||_2: " << info[1] << '\n';
+  std::cout << "  ||J^T e||_inf: " << info[2] << '\n';
+  std::cout << "  ||Dp||_2: " << info[3] << '\n';
+  std::cout << "  mu/max[J^T J]_ii: " << info[4] << '\n';
+  std::cout << "  # iterations: " << info[5] << '\n';
+  switch ((int)info[6]) {
+  case 1:
+    std::cout << "  stopped by small gradient J^T e\n";
+    break;
+  case 2:
+    std::cout << "  stopped by small Dp\n";
+    break;
+  case 3:
+    std::cout << "  stopped by itmax\n";
+    break;
+  case 4:
+    std::cout << "  singular matrix. Restart from current p with increased mu\n";
+    break;
+  case 5:
+    std::cout << "  no further error reduction is possible. Restart with increased mu\n";
+    break;
+  case 6:
+    std::cout << "  stopped by small ||e||_2\n";
+    break;
+  case 7:
+    std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
+    break;
+  }
+  std::cout << "  # function evaluations: " << info[7] << '\n';
+  std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
+  std::cout << "  # linear systems solved: " << info[9] << "\n\n";
+}
+}
+
+FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations,
+    std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
+    std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames)
+  : m_max_iterations(max_iterations), m_parameters(parameters), m_frames(frames) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
@@ -129,7 +172,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   // Prepare parameters
   for (auto& source : group) {
+    std::cout << ".";
     for (auto parameter : m_parameters) {
+      std::cout << ",";
       manager.add(source, parameter);
     }
   }
@@ -139,6 +184,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   std::vector<std::shared_ptr<Image<SeFloat>>> images;
   std::vector<std::shared_ptr<Image<SeFloat>>> weights;
 
+  int valid_frames = 0;
   for (auto frame : m_frames) {
     std::vector<PointModel> point_models;
     std::vector<TransformedModel> extended_models;
@@ -146,6 +192,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
+      valid_frames++;
       auto frame_coordinates =
           group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
 
@@ -153,7 +200,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
-      auto jacobian = computeJacobianForFrame(group, frame_index);
+      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
       for (auto& source : group) {
         for (auto model : frame->getModels()) {
@@ -164,7 +211,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       // Full frame model with all sources
       FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
         pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-        {}, {}, std::move(extended_models), group_psf);
+        {}, std::move(point_models), std::move(extended_models), group_psf);
 
       // Setup residuals
       auto data_vs_model =
@@ -176,9 +223,21 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     }
   }
 
+
+  if (valid_frames == 0) {
+    // Can't do model fitting as no measurement frame overlaps the detected source
+    // We still need to provide a property
+    for (auto& source : group) {
+      source.setProperty<FlexibleModelFitting>(0, 99, std::vector<double>());
+    }
+
+    return;
+  }
+
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(manager.getEngineParameterManager(), res_estimator);
+  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   double avg_reduced_chi_squared = 99; //FIXME
 
@@ -213,7 +272,7 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, do
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
       auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
-      auto jacobian = computeJacobianForFrame(group, frame_index);
+      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
       for (auto& source : group) {
         for (auto model : frame->getModels()) {
@@ -224,7 +283,7 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, do
       // Full frame model with all sources
       FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
         pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-        {}, {}, std::move(extended_models), group_psf);
+        {}, std::move(point_models), std::move(extended_models), group_psf);
 
       auto final_stamp = frame_model.getImage();
 
@@ -252,9 +311,8 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, do
       CheckImages::getInstance().setCustomCheckImage(checkimage_residual_id.str(), residual_image);
 
       CheckImages::getInstance().unlock();
-
-      frame_id++;
     }
+    frame_id++;
   }
 }
 

@@ -4,7 +4,7 @@
  */
 
 #include <boost/filesystem.hpp>
-#include <PythonConfig/Configuration/PythonConfig.h>
+#include <SEImplementation/Configuration/PythonConfig.h>
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;

@@ -3,11 +3,11 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#ifndef _PYTHON_CONFIG_CONFIGURATION_PYTHONCONFIG_H
-#define _PYTHON_CONFIG_CONFIGURATION_PYTHONCONFIG_H
+#ifndef _SEIMPLEMENTATION_CONFIGURATION_PYTHONCONFIG_H
+#define _SEIMPLEMENTATION_CONFIGURATION_PYTHONCONFIG_H
 
 #include <Configuration/Configuration.h>
-#include <PythonConfig/PythonInterpreter.h>
+#include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
 namespace SExtractor {
 
@@ -29,5 +29,5 @@ public:
 
 }
 
-#endif // _PYTHON_CONFIG_CONFIGURATION_PYTHONCONFIG_H
+#endif // _SEIMPLEMENTATION_CONFIGURATION_PYTHONCONFIG_H
 

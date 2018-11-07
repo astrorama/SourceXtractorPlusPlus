@@ -19,7 +19,10 @@ namespace SExtractor {
 class FlexibleModelFittingTask : public GroupTask {
 
 public:
-  FlexibleModelFittingTask(unsigned int max_iterations);
+  FlexibleModelFittingTask(unsigned int max_iterations,
+      std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
+      std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames);
+
   virtual ~FlexibleModelFittingTask();
 
   virtual void computeProperties(SourceGroupInterface& group) const override;

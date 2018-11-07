@@ -1,34 +1,116 @@
-/*
- * ModelFittingConfig.cpp
- *
- *  Created on: May 17, 2017
- *      Author: mschefer
+/* 
+ * @file ModelFittingConfig.cpp
+ * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
+#include <SEImplementation/PythonConfig/ObjectInfo.h>
+#include <SEImplementation/Configuration/PythonConfig.h>
+#include <SEImplementation/Configuration/ModelFittingConfig.h>
 
 using namespace Euclid::Configuration;
-namespace po = boost::program_options;
+namespace py = boost::python;
 
 namespace SExtractor {
 
-static const std::string MFIT_MAX_ITERATIONS {"model-fitting-iterations"};
-
 ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_id) {
+  declareDependency<PythonConfig>();
 }
 
-auto ModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
-  return { {"Model Fitting", {
-      {MFIT_MAX_ITERATIONS.c_str(), po::value<unsigned int>()->default_value(1000), "Maximum number of iterations allowed for model fitting"},
-  }}};
-
-  return {};
+void ModelFittingConfig::initialize(const UserValues&) {
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
+    py::object py_value_func = p.second.attr("get_value")();
+    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
+      ObjectInfo oi {o};
+      return py::extract<double>(py_value_func(oi));
+    };
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(value_func);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
+    py::object py_init_value_func = p.second.attr("get_init_value")();
+    auto init_value_func = [py_init_value_func] (const SourceInterface& o) -> double {
+      ObjectInfo oi {o};
+      return py::extract<double>(py_init_value_func(oi));
+    };
+    py::object py_range_obj = p.second.attr("get_range")();
+    py::object py_range_func = py_range_obj.attr("get_limits")();
+    auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
+      ObjectInfo oi {o};
+      py::tuple range = py::extract<py::tuple>(py_range_func(init, oi));
+      double low = py::extract<double>(range[0]);
+      double high = py::extract<double>(range[1]);
+      return {low, high};
+    };
+    bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    int n_id = py::extract<int>(p.second.attr("n").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingSersicModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
+        m_parameters[angle_id], m_parameters[n_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingExponentialModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
+    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
+    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingDevaucouleursModel>(
+        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+  }
+  
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
+    std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};
+    for (int x : p.second) {
+      model_list.push_back(m_models[x]);
+    }
+    m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
+  }
 }
 
-void ModelFittingConfig::initialize(const UserValues& args) {
-  m_max_iterations = args.at(MFIT_MAX_ITERATIONS).as<unsigned int>();
+const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
+  return m_parameters;
 }
 
-} /* namespace SExtractor */
+const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& ModelFittingConfig::getModels() const {
+  return m_models;
+}
 
+const std::vector<std::shared_ptr<FlexibleModelFittingFrame> >& ModelFittingConfig::getFrames() const {
+  return m_frames;
+}
 
+}

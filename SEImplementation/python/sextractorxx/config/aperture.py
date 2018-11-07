@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 from .measurement_images import MeasurementImage, ImageGroup
 
-import libPythonConfig as cpp
+import libSEImplementation as cpp
 
 apertures_for_image = {}
 

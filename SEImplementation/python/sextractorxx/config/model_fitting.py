@@ -2,7 +2,7 @@ from __future__ import division, print_function
 
 from enum import Enum
 
-import libPythonConfig as cpp
+import libSEImplementation as cpp
 from psutil.tests import sh
 
 
@@ -124,11 +124,11 @@ class FluxParameterType():
     ISO = 1
 
 
-def get_flux_parameter(type=FluxParameterType.ISO):
+def get_flux_parameter(type=FluxParameterType.ISO, scale=1):
     func_map = {
         FluxParameterType.ISO : 'get_iso_flux'
     }
-    return FreeParameter(lambda o: getattr(o, func_map[type])(), Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
+    return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
 frame_models_dict = {}
@@ -203,7 +203,7 @@ class SersicModelBase(CoordinateModelBase):
         CoordinateModelBase.__init__(self, alpha, delta, flux)
         self.effective_radius = effective_radius if isinstance(effective_radius, ParameterBase) else ConstantParameter(effective_radius)
         self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
-        self.angle = k if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
 
 
 class SersicModel(SersicModelBase):

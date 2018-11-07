@@ -30,6 +30,11 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(yaml-cpp)
 find_package(WCSLIB REQUIRED)
 
+find_package(PythonInterp REQUIRED)
+find_package(PythonLibs REQUIRED)
+find_package(Boost REQUIRED COMPONENTS python)
+
+
 #===============================================================================
 # Declare the library dependencies here
 # Example:
@@ -38,19 +43,31 @@ find_package(WCSLIB REQUIRED)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
+
+include_directories(../PythonConfig/)
+
+
 elements_add_library(SEImplementation
             src/lib/Background/*.cpp
             src/lib/Partition/*.cpp
             src/lib/Segmentation/*.cpp
             src/lib/Grouping/*.cpp
             src/lib/Configuration/*.cpp
+            src/lib/PythonConfig/*.cpp
             src/lib/Output/*.cpp
            	src/lib/Measurement/*.cpp
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
-            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp
+            
+            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp Boost PythonLibs PythonInterp Configuration
+            INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
+            
+elements_add_executable(tt src/program/tt.cpp
+                     LINK_LIBRARIES SEImplementation)
+
+            
 
 #===============================================================================
 # Declare the executables here
@@ -129,6 +146,7 @@ elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
 #  elements_install_python_modules()
 #  elements_install_scripts()
 #===============================================================================
+elements_install_python_modules()
 
 #===============================================================================
 # Add the elements_install_conf_files macro

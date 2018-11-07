@@ -5,6 +5,8 @@
  *      Author: mschefer
  */
 
+#include <iostream>
+
 #include "ModelFitting/utils.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
@@ -25,26 +27,22 @@ using namespace ModelFitting;
 FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(ValueFunc value)
         : m_value(value) { }
 
-std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
-                                      ModelFitting::EngineParameterManager&,
-                                      const SourceInterface& source) const {
-  double value = m_value(source);
-  auto parameter = std::make_shared<ManualParameter>(value);
-  return parameter;
-}
-
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
                                                             ModelFitting::EngineParameterManager& manager,
                                                             const SourceInterface& source) const {
   double initial_value = m_initial_value(source);
+
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
   
+  //std::cout << initial_value << " " << minimum_value << " " << maximum_value << "\n";
+
   std::unique_ptr<CoordinateConverter> converter;
-  if (m_is_exponential_range)
+  if (m_is_exponential_range) {
     converter = make_unique<ExpSigmoidConverter>(minimum_value, maximum_value);
-  else
+  } else {
     converter = make_unique<SigmoidConverter>(minimum_value, maximum_value);
+  }
   
   auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
   manager.registerParameter(*parameter);
@@ -52,8 +50,9 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
 }
 
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
-                                                            ModelFitting::EngineParameterManager& manager) const {
-    return std::make_shared<ManualParameter>(m_value);
+                                                            ModelFitting::EngineParameterManager& manager,
+                                                            const SourceInterface& source) const {
+    return std::make_shared<ManualParameter>(m_value(source));
 }
 
 

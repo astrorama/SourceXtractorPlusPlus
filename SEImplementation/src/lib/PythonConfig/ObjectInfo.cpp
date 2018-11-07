@@ -3,7 +3,7 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <PythonConfig/ObjectInfo.h>
+#include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
@@ -26,6 +26,17 @@ SeFloat ObjectInfo::getIsoFlux() const {
 
 SeFloat ObjectInfo::getRadiusWorld() const {
   return m_source.get().getProperty<ShapeParameters>().getEllipseA() / 2.0;
+}
+
+SeFloat ObjectInfo::getAngle() const {
+  return -m_source.get().getProperty<ShapeParameters>().getEllipseTheta();
+}
+
+SeFloat ObjectInfo::getAspectRatio() const {
+  auto& shape_parameters = m_source.get().getProperty<ShapeParameters>();
+  double aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
+
+  return aspect_guess;
 }
 
 }

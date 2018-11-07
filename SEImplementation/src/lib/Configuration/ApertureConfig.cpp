@@ -3,8 +3,8 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include "PythonConfig/Configuration/ApertureConfig.h"
-#include "PythonConfig/Configuration/PythonConfig.h"
+#include "SEImplementation/Configuration/ApertureConfig.h"
+#include "SEImplementation/Configuration/PythonConfig.h"
 
 namespace SExtractor {
 

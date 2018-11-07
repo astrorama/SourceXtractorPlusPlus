@@ -27,7 +27,7 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
 
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
   std::sort(image_copy->getData().begin(), image_copy->getData().end());
-  std::cout << "Using the SimpleBackgroundLeverAnalyzer" << std::endl<< std::endl<< std::endl;
+  std::cout << "Using the SimpleBackgroundLeverAnalyzer" << std::endl;
 
   auto background_level = image_copy->getData()[image_copy->getData().size()/2]; // the median
   auto background_level_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_level);
@@ -36,6 +36,7 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
 
   auto background_variance = getVariance(subtracted_image);
   auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_variance);
+  std::cout << "bg: " << background_level << " var: " << background_variance << std::endl;
 
   return BackgroundModel(background_level_map, background_variance_map, 99999); // FIXME
 }

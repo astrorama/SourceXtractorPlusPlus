@@ -1,41 +1,41 @@
-/*
- * ModelFittingConfig.h
- *
- *  Created on: May 17, 2017
- *      Author: mschefer
+/* 
+ * @file ModelFittingConfig.h
+ * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#ifndef _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H_
-#define _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H_
+#ifndef _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H
+#define _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H
 
-#include "Configuration/Configuration.h"
+#include <vector>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h>
+#include <Configuration/Configuration.h>
 
 namespace SExtractor {
 
 class ModelFittingConfig : public Euclid::Configuration::Configuration {
-
+  
 public:
-
+  
   ModelFittingConfig(long manager_id);
-
-  virtual ~ModelFittingConfig() = default;
-
-  std::map<std::string, OptionDescriptionList> getProgramOptions() override;
-
+  
   void initialize(const UserValues& args) override;
-
-  unsigned int getMaxIterations() const {
-    return m_max_iterations;
-  }
-
+  
+  const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& getParameters() const;
+  
+  const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& getModels() const;
+  const std::vector<std::shared_ptr<FlexibleModelFittingFrame>>& getFrames() const;
+  
 private:
-  unsigned int m_max_iterations;
-
+  
+  std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
+  std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
+  std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+  
 };
 
-} /* namespace SExtractor */
+}
 
+#endif // _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H
 
-
-
-#endif /* _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H_ */

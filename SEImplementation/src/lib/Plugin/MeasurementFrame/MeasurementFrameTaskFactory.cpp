@@ -7,7 +7,9 @@
 
 #include <iostream>
 
-#include "SEImplementation/Configuration/MeasurementConfig.h"
+//#include "SEImplementation/Configuration/MeasurementConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
+
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
@@ -36,16 +38,16 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
 }
 
 void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  const auto& measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
-  const auto& coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
-  const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
+  const auto& measurement_images = manager.getConfiguration<MeasurementImageConfig>().getMeasurementImages();
+  const auto& coordinate_systems = manager.getConfiguration<MeasurementImageConfig>().getCoordinateSystems();
+  const auto& weight_images = manager.getConfiguration<MeasurementImageConfig>().getWeightImages();
 
-  const auto& gains = manager.getConfiguration<MeasurementConfig>().getGains();
-  const auto& saturation_levels = manager.getConfiguration<MeasurementConfig>().getSaturationLevels();
+  const auto& gains = manager.getConfiguration<MeasurementImageConfig>().getGains();
+  const auto& saturation_levels = manager.getConfiguration<MeasurementImageConfig>().getSaturationLevels();
 
   SimpleBackgroundAnalyzer analyzer; // FIXME use proper background detection
 

@@ -5,19 +5,19 @@
  *      Author: Alejandro Álvarez
  */
 
-#include "SEImplementation/Configuration/ModelFittingConfig.h"
 #include "SEImplementation/Plugin/PointModelFitting/PointModelFitting.h"
 #include "SEImplementation/Plugin/PointModelFitting/PointModelFittingTask.h"
 #include "SEImplementation/Plugin/PointModelFitting/PointModelFittingTaskFactory.h"
+#include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 
 namespace SExtractor {
 
 void PointModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
-  manager.registerConfiguration<ModelFittingConfig>();
+  manager.registerConfiguration<LegacyModelFittingConfig>();
 }
 
 void PointModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
-  auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
+  auto& model_fitting_config = manager.getConfiguration<LegacyModelFittingConfig>();
   m_max_iterations = model_fitting_config.getMaxIterations();
 }
 

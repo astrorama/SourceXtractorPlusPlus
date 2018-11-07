@@ -14,9 +14,9 @@
 #include <SEFramework/Image/MultiplyImage.h>
 #include <SEImplementation/CoordinateSystem/WCS.h>
 #include <SEImplementation/Configuration/WeightImageConfig.h>
-#include <PythonConfig/Configuration/MeasurementImageConfig.h>
-#include <PythonConfig/Configuration/PythonConfig.h>
-#include <PythonConfig/PyMeasurementImage.h>
+#include <SEImplementation/Configuration/MeasurementImageConfig.h>
+#include <SEImplementation/Configuration/PythonConfig.h>
+#include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 
 using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
@@ -54,10 +54,11 @@ void validateImagePaths(const PyMeasurementImage& image) {
 std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImage& py_image) {
   auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file);
   std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-  logger.debug() << "w: " << image->getWidth() << " h: " << image->getHeight();
-  if (py_image.flux_scale != 1.) {
-    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
-  }
+//  std::cout << "XXw: " << image->getWidth() << " h: " << image->getHeight() << "\n";
+//  std::cout << "flux_scale " << py_image.flux_scale << "\n";
+//  if (py_image.flux_scale != 1.) {
+//    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
+//  }
   return image;
 }
 
@@ -116,6 +117,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
     PyMeasurementImage& py_image = p.second;
     validateImagePaths(py_image);
     
+    std::cout << "%%%\n";
+
     m_measurement_images.push_back(createMeasurementImage(py_image));
     m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
     m_psfs_paths.push_back(py_image.psf_file);

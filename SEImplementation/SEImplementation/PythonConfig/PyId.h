@@ -3,8 +3,8 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#ifndef _PYTHONCONFIG_PYID_H
-#define _PYTHONCONFIG_PYID_H
+#ifndef _SEIMPLEMENTATION_PYID_H
+#define _SEIMPLEMENTATION_PYID_H
 
 #include <atomic>
 #include <map>
@@ -24,5 +24,5 @@ private:
 
 }
 
-#endif // _PYTHONCONFIG_PYID_H
+#endif // _SEIMPLEMENTATION_PYID_H
 

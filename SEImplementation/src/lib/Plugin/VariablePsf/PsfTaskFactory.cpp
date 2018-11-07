@@ -5,19 +5,21 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
-#include "SEImplementation/Configuration/MeasurementConfig.h"
+//#include "SEImplementation/Configuration/MeasurementConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
+
 #include "SEImplementation/Plugin/Psf/PsfTaskFactory.h"
 
 namespace SExtractor {
 
 void PsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<PsfPluginConfig>();
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto psf_config = manager.getConfiguration<PsfPluginConfig>();
-  auto measurement_config = manager.getConfiguration<MeasurementConfig>();
+  auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
   auto default_psf = psf_config.getPsf();
   auto psf_paths = measurement_config.getPsfsPaths();
