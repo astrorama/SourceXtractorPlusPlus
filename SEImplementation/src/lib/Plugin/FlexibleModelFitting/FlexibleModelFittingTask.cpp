@@ -170,12 +170,16 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   double pixel_scale = 1;
   FlexibleModelFittingParameterManager manager;
 
-  // Prepare parameters
-  for (auto& source : group) {
-    std::cout << ".";
-    for (auto parameter : m_parameters) {
-      std::cout << ",";
-      manager.add(source, parameter);
+  {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
+    // Prepare parameters
+    for (auto& source : group) {
+      std::cout << ".";
+      for (auto parameter : m_parameters) {
+        std::cout << ",";
+        manager.add(source, parameter);
+      }
     }
   }
 
