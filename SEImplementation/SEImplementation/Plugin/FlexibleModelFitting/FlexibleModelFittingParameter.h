@@ -60,6 +60,7 @@ public:
   /// The signature of a function providing the initial value. It gets as a
   /// parameter a source and returns the initial value.
   using InitialValueFunc = std::function<double(const SourceInterface&)>;
+
   /// The signature of a function providing the range of a parameter. It gets as
   /// as input the initial value of the parameter and the source, and it returns
   /// a pair containing the minimum and maximum values of the range.

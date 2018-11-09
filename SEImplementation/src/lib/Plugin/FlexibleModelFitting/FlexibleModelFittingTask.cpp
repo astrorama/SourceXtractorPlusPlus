@@ -142,7 +142,6 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
   SeFloat gain = measurement_frame->getGain();
   SeFloat saturation = measurement_frame->getSaturation();
-  //std::cout << "Saturation: " << saturation << " gain: " << gain << "\n";
 
   for (int y=0; y < rect.getHeight(); y++) {
     for (int x=0; x < rect.getWidth(); x++) {
@@ -175,9 +174,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
     // Prepare parameters
     for (auto& source : group) {
-      std::cout << ".";
       for (auto parameter : m_parameters) {
-        std::cout << ",";
         manager.add(source, parameter);
       }
     }
