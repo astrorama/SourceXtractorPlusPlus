@@ -14,14 +14,14 @@
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
-
 namespace SExtractor {
 
 // Needed to store the source in a reference_wrapper
 inline bool operator<(std::reference_wrapper<const SourceInterface> a, std::reference_wrapper<const SourceInterface> b) {
   return &a.get() < &b.get();
 }
+
+class FlexibleModelFittingParameter;
 
 class FlexibleModelFittingParameterManager {
 
@@ -36,8 +36,8 @@ public:
     return m_params.at(std::make_tuple(std::cref(source), parameter));
   }
 
-  void add(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter) {
-    m_params[std::make_tuple(std::cref(source), parameter)] = parameter->create(m_engine_manager, source);
+  void addParameter(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter, std::shared_ptr<ModelFitting::BasicParameter> engine_parameter) {
+    m_params[std::make_tuple(std::cref(source), parameter)] = engine_parameter;
   }
 
   // Used to just store a parameter's pointer for the duration of the model fitting
@@ -46,15 +46,9 @@ public:
     m_storage.emplace_back(param);
   }
 
-  ModelFitting::EngineParameterManager& getEngineParameterManager() {
-    return m_engine_manager;
-  }
-
 private:
   std::map<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<FlexibleModelFittingParameter>>, std::shared_ptr<ModelFitting::BasicParameter>> m_params;
   std::vector<std::shared_ptr<ModelFitting::BasicParameter>> m_storage;
-  ModelFitting::EngineParameterManager m_engine_manager {};
-
 };
 
 }

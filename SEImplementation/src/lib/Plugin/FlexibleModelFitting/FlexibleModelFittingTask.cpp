@@ -168,6 +168,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   double pixel_scale = 1;
   FlexibleModelFittingParameterManager manager;
+  ModelFitting::EngineParameterManager engine_manager {};
 
   {
     std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -175,7 +176,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Prepare parameters
     for (auto& source : group) {
       for (auto parameter : m_parameters) {
-        manager.add(source, parameter);
+        manager.addParameter(source, parameter, parameter->create(manager, engine_manager, source));
       }
     }
   }
@@ -237,7 +238,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(manager.getEngineParameterManager(), res_estimator);
+  auto solution = engine.solveProblem(engine_manager, res_estimator);
   printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   double avg_reduced_chi_squared = 99; //FIXME

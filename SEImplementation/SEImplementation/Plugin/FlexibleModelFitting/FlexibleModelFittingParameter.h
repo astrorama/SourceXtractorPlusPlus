@@ -20,6 +20,7 @@ namespace ModelFitting {
 namespace SExtractor {
 
 class SourceInterface;
+class FlexibleModelFittingParameterManager;
 
 class FlexibleModelFittingParameter {
 public:
@@ -27,7 +28,8 @@ public:
   virtual ~FlexibleModelFittingParameter() {}
 
   virtual std::shared_ptr<ModelFitting::BasicParameter> create(
-                                  ModelFitting::EngineParameterManager& manager,
+                                  FlexibleModelFittingParameterManager& parameter_manager,
+                                  ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const = 0;
 
 private:
@@ -44,7 +46,8 @@ public:
   FlexibleModelFittingConstantParameter(ValueFunc value);
 
   std::shared_ptr<ModelFitting::BasicParameter> create(
-                                  ModelFitting::EngineParameterManager& manager,
+                                  FlexibleModelFittingParameterManager& parameter_manager,
+                                  ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
 
 private:
@@ -73,7 +76,8 @@ public:
             m_is_exponential_range(is_exponential_range) {}
 
   std::shared_ptr<ModelFitting::BasicParameter> create(
-                                  ModelFitting::EngineParameterManager& manager,
+                                  FlexibleModelFittingParameterManager& parameter_manager,
+                                  ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
 
 private:

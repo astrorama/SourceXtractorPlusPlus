@@ -25,6 +25,9 @@
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <ModelFitting/Engine/EngineParameterManager.h>
 
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h>
+
+
 
 using namespace std;
 using namespace SExtractor;
@@ -69,10 +72,11 @@ int main() {
   source.setProperty<IsophotalFlux>(456, 25, 19, 0.3);
   
   ModelFitting::EngineParameterManager mgr {};
+  FlexibleModelFittingParameterManager parameter_manager {};
   
   cout << "Parameters:\n";
   for (auto& mfcp : config_manager.getConfiguration<ModelFittingConfig>().getParameters()) {
-    auto p = mfcp.second->create(mgr, source);
+    auto p = mfcp.second->create(parameter_manager, mgr, source);
     cout << mfcp.first << ' ' << p->getValue();
     auto free_p = dynamic_pointer_cast<ModelFitting::EngineParameter>(p);
     if (free_p != nullptr) {
