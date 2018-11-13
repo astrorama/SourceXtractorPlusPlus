@@ -108,6 +108,7 @@ class FreeParameter(ParameterBase):
 class DependentParameter(ParameterBase):
 
     def __init__(self, func, *params):
+        ParameterBase.__init__(self)
         self.func = func
         self.params = [p.id for p in params]
         dependent_parameter_dict[self.id] = self

@@ -46,6 +46,17 @@ void ModelFittingConfig::initialize(const UserValues&) {
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
   }
   
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
+    py::object py_func = p.second.attr("func");
+    std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
+    py::list param_ids = py::extract<py::list>(p.second.attr("params"));
+    for (int i = 0; i < py::len(param_ids); ++i) {
+      int id = py::extract<int>(param_ids[i]);
+      params.push_back(m_parameters[id]);
+    }
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(py_func, params);
+  }
+  
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
     int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
     int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));

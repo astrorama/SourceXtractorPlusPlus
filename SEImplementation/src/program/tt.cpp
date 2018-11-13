@@ -24,8 +24,8 @@
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <ModelFitting/Engine/EngineParameterManager.h>
-
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h>
+#include "ModelFitting/Parameters/DependentParameter.h"
 
 
 
@@ -39,7 +39,6 @@ int main() {
   Elements::Logging::setLevel("DEBUG");
 
   auto &config_manager = ConfigManager::getInstance(1);
-//  config_manager.registerConfiguration<PythonConfig>();
   config_manager.registerConfiguration<MeasurementImageConfig>();
   config_manager.registerConfiguration<ApertureConfig>();
   config_manager.registerConfiguration<ModelFittingConfig>();
@@ -77,6 +76,7 @@ int main() {
   cout << "Parameters:\n";
   for (auto& mfcp : config_manager.getConfiguration<ModelFittingConfig>().getParameters()) {
     auto p = mfcp.second->create(parameter_manager, mgr, source);
+    parameter_manager.addParameter(source, mfcp.second, p);
     cout << mfcp.first << ' ' << p->getValue();
     auto free_p = dynamic_pointer_cast<ModelFitting::EngineParameter>(p);
     if (free_p != nullptr) {
