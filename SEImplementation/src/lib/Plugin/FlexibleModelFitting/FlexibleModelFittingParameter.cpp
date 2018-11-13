@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <boost/python.hpp>
+#include <mutex>
 
 #include "ModelFitting/utils.h"
 
@@ -66,6 +67,8 @@ double doubleResolver(const T&) {
   return 0;
 }
 
+std::mutex python_callback_mutex {};
+
 template<typename ... Parameters>
 std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        FlexibleModelFittingParameterManager& parameter_manager,
@@ -73,6 +76,7 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        boost::python::object value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
   auto calc = [value_calculator] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
+    std::lock_guard<std::mutex> guard {python_callback_mutex};
     return boost::python::extract<double>(value_calculator(params...));
   };
   return createDependentParameterPtr(calc, *(parameter_manager.getParameter(source, parameters))...);
