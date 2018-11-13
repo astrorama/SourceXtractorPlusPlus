@@ -36,7 +36,8 @@ public:
     return m_params.at(std::make_tuple(std::cref(source), parameter));
   }
 
-  void addParameter(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter, std::shared_ptr<ModelFitting::BasicParameter> engine_parameter) {
+  void addParameter(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter,
+      std::shared_ptr<ModelFitting::BasicParameter> engine_parameter) {
     m_params[std::make_tuple(std::cref(source), parameter)] = engine_parameter;
   }
 
@@ -44,6 +45,10 @@ public:
   // This is necessary to keep dependent parameters working
   void storeParameter(std::shared_ptr<ModelFitting::BasicParameter> param) {
     m_storage.emplace_back(param);
+  }
+
+  int getParameterNb() const {
+    return m_params.size();
   }
 
 private:

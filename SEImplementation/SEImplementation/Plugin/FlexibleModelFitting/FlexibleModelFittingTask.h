@@ -8,6 +8,10 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGTASK_H_
 
+#include "ModelFitting/Models/FrameModel.h"
+
+#include "SEImplementation/Image/ImagePsf.h"
+
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
 
@@ -35,10 +39,20 @@ private:
   std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceGroupInterface& group, int frame_index) const;
   std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceGroupInterface& group, int frame_index) const;
 
+  ModelFitting::FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> createFrameModel(
+      SourceGroupInterface& group,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager, std::shared_ptr<FlexibleModelFittingFrame> frame) const;
+
   void createParameters() const;
 
-  void updateCheckImages(SourceGroupInterface& group, double pixel_scale,
-      std::vector<std::shared_ptr<Image<SeFloat>>>& images, FlexibleModelFittingParameterManager& manager) const;
+  void updateCheckImages(SourceGroupInterface& group,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
+
+  SeFloat computeReducedChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+      std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights,
+      int nb_of_free_params) const;
+  SeFloat computeReducedChiSquared(SourceGroupInterface& group,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
 
   // Task configuration
   unsigned int m_max_iterations;

@@ -79,6 +79,7 @@ void printLevmarInfo(std::array<double,10> info) {
   std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
   std::cout << "  # linear systems solved: " << info[9] << "\n\n";
 }
+
 }
 
 FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations,
@@ -161,13 +162,42 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   return weight;
 }
 
+FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> FlexibleModelFittingTask::createFrameModel(
+    SourceGroupInterface& group,
+    double pixel_scale, FlexibleModelFittingParameterManager& manager, std::shared_ptr<FlexibleModelFittingFrame> frame) const {
+
+  int frame_index = frame->getFrameNb();
+
+  auto frame_coordinates =
+      group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+
+  auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
+  auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
+  auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
+
+  std::vector<PointModel> point_models;
+  std::vector<TransformedModel> extended_models;
+
+  for (auto& source : group) {
+    for (auto model : frame->getModels()) {
+      model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
+    }
+  }
+
+  // Full frame model with all sources
+  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+    pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
+    {}, std::move(point_models), std::move(extended_models), group_psf);
+
+  return frame_model;
+}
 
 
 void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
   std::cout << "FlexibleModelFittingTask::computeProperties()\n";
 
   double pixel_scale = 1;
-  FlexibleModelFittingParameterManager manager;
+  FlexibleModelFittingParameterManager parameter_manager;
   ModelFitting::EngineParameterManager engine_manager {};
 
   {
@@ -176,52 +206,30 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Prepare parameters
     for (auto& source : group) {
       for (auto parameter : m_parameters) {
-        manager.addParameter(source, parameter, parameter->create(manager, engine_manager, source));
+        parameter_manager.addParameter(source, parameter, parameter->create(parameter_manager, engine_manager, source));
       }
     }
   }
 
   // Add models for all frames
   ResidualEstimator res_estimator {};
-  std::vector<std::shared_ptr<Image<SeFloat>>> images;
-  std::vector<std::shared_ptr<Image<SeFloat>>> weights;
 
   int valid_frames = 0;
   for (auto frame : m_frames) {
-    std::vector<PointModel> point_models;
-    std::vector<TransformedModel> extended_models;
-
-    int frame_index = frame->getFrameNb();
+     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
       valid_frames++;
-      auto frame_coordinates =
-          group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
 
-      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
+      auto frame_model = createFrameModel(group, pixel_scale, parameter_manager, frame);
+
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
-      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
-      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
-
-      for (auto& source : group) {
-        for (auto model : frame->getModels()) {
-          model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
-        }
-      }
-
-      // Full frame model with all sources
-      FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
-        pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-        {}, std::move(point_models), std::move(extended_models), group_psf);
 
       // Setup residuals
       auto data_vs_model =
           createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
       res_estimator.registerBlockProvider(std::move(data_vs_model));
-
-      images.emplace_back(image);
-      weights.emplace_back(weight);
     }
   }
 
@@ -241,23 +249,23 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   auto solution = engine.solveProblem(engine_manager, res_estimator);
   printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
-  double avg_reduced_chi_squared = 99; //FIXME
+  SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 
   // Collect parameters for output
   for (auto& source : group) {
     std::vector<double> parameter_values;
     for (auto parameter : m_parameters) {
       //fixme if output requested
-      parameter_values.emplace_back(manager.getParameter(source, parameter)->getValue());
+      parameter_values.emplace_back(parameter_manager.getParameter(source, parameter)->getValue());
     }
     source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values);
   }
 
-  updateCheckImages(group, pixel_scale, images, manager);
+  updateCheckImages(group, pixel_scale, parameter_manager);
 }
 
-void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, double pixel_scale,
-    std::vector<std::shared_ptr<Image<SeFloat>>>& images, FlexibleModelFittingParameterManager& manager) const {
+void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
+    double pixel_scale, FlexibleModelFittingParameterManager& manager) const {
 
   int frame_id = 0;
   for (auto frame : m_frames) {
@@ -267,28 +275,10 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, do
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
-      auto frame_coordinates =
-          group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
-
-      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-      auto image = createImageCopy(group, frame_index);
-      auto weight = createWeightImage(group, frame_index);
-      auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
-      auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
-
-      for (auto& source : group) {
-        for (auto model : frame->getModels()) {
-          model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
-        }
-      }
-
-      // Full frame model with all sources
-      FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
-        pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-        {}, std::move(point_models), std::move(extended_models), group_psf);
-
+      auto frame_model = createFrameModel(group, pixel_scale, manager, frame);
       auto final_stamp = frame_model.getImage();
 
+      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
 
       CheckImages::getInstance().lock();
 
@@ -316,6 +306,52 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group, do
     }
     frame_id++;
   }
+}
+
+SeFloat FlexibleModelFittingTask::computeReducedChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights,
+    int nb_of_free_params) const {
+  double reduced_chi_squared = 0.0;
+  int data_points = 0;
+  for (int y=0; y < image->getHeight(); y++) {
+    for (int x=0; x < image->getWidth(); x++) {
+      double tmp = image->getValue(x, y) - model->getValue(x, y);
+      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
+      if (weights->getValue(x, y) > 0) {
+        data_points++;
+      }
+    }
+  }
+  return reduced_chi_squared / (data_points - nb_of_free_params);
+}
+
+SeFloat FlexibleModelFittingTask::computeReducedChiSquared(SourceGroupInterface& group,
+    double pixel_scale, FlexibleModelFittingParameterManager& manager) const {
+
+  SeFloat avg_reduced_chi_squared = 0;
+  int valid_frames = 0;
+  for (auto frame : m_frames) {
+    std::vector<PointModel> point_models;
+    std::vector<TransformedModel> extended_models;
+
+    int frame_index = frame->getFrameNb();
+    // Validate that each frame covers the model fitting region
+    if (isFrameValid(group, frame_index)) {
+      valid_frames++;
+      auto frame_model = createFrameModel(group, pixel_scale, manager, frame);
+      auto final_stamp = frame_model.getImage();
+
+      auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
+      auto image = createImageCopy(group, frame_index);
+      auto weight = createWeightImage(group, frame_index);
+
+      SeFloat reduced_chi_squared = computeReducedChiSquaredForFrame(
+          image, final_stamp, weight, manager.getParameterNb());
+      avg_reduced_chi_squared += reduced_chi_squared;
+    }
+  }
+
+  return avg_reduced_chi_squared / valid_frames;
 }
 
 FlexibleModelFittingTask::~FlexibleModelFittingTask() {
