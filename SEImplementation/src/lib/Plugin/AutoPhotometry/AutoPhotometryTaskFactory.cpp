@@ -47,7 +47,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
 
   std::map<std::string, unsigned> pos_in_group;
 
-  for (int i = 0; i < measurement_images_nb; ++i) {
+  for (unsigned int i = 0; i < measurement_images_nb; ++i) {
     auto& group = measurement_config.getGroupForImage(i);
     unsigned pos = pos_in_group[group->getName()]++;
     m_auto_names.emplace_back(std::make_pair(group->getName() + "_" + std::to_string(pos), i));

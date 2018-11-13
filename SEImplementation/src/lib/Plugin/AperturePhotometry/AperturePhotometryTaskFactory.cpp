@@ -61,7 +61,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  for (int i = 0; i < measurement_images_nb; ++i) {
+  for (unsigned int i = 0; i < measurement_images_nb; ++i) {
     m_instances.emplace_back(std::make_pair(std::to_string(i), i));
   }
 }

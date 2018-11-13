@@ -44,6 +44,6 @@ void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
 
   // set the combined source flag
   source.setProperty<SourceFlags>(source_flags);
-};
+}
 
 } // end SExtractor

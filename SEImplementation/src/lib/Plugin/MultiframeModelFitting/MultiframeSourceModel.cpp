@@ -73,8 +73,6 @@ void MultiframeSourceModel::createParamsForBand(const std::vector<int>& frames_i
     exp_i0s.emplace_back(nullptr);
     dev_i0s.emplace_back(nullptr);
   } else {
-    int band_nb = exp_fluxes.size();
-
     auto flux_guess = getFluxGuess(frames_in_band) / 2.0;
     exp_fluxes.emplace_back(new EngineParameter(
         flux_guess, make_unique<ExpSigmoidConverter>(flux_guess * .00001, flux_guess * 1000)));
@@ -185,7 +183,7 @@ int MultiframeSourceModel::getSize() const {
   return size*2;
 }
 
-double MultiframeSourceModel::getFluxGuess(const std::vector<int>& frames_in_band) const {
+double MultiframeSourceModel::getFluxGuess(const std::vector<int>& /*frames_in_band*/) const {
   auto iso_flux = m_source.getProperty<IsophotalFlux>().getFlux();
 
 //  SeFloat total = 0.0;

@@ -12,7 +12,7 @@ ApertureConfig::ApertureConfig(long manager_id): Configuration(manager_id) {
   declareDependency<PythonConfig>();
 }
 
-void ApertureConfig::initialize(const Euclid::Configuration::Configuration::UserValues &args) {
+void ApertureConfig::initialize(const Euclid::Configuration::Configuration::UserValues& /*args*/) {
   auto &py = getDependency<PythonConfig>().getInterpreter();
 
   std::map<int, int> output;

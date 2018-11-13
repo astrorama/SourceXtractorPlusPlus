@@ -28,7 +28,7 @@ FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(Val
         : m_value(value) { }
 
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
-                                                            FlexibleModelFittingParameterManager& parameter_manager,
+                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
   double initial_value = m_initial_value(source);
@@ -51,8 +51,8 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
 }
 
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
-                                                            FlexibleModelFittingParameterManager& parameter_manager,
-                                                            ModelFitting::EngineParameterManager& engine_manager,
+                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
+                                                            ModelFitting::EngineParameterManager& /*engine_manager*/,
                                                             const SourceInterface& source) const {
     return std::make_shared<ManualParameter>(m_value(source));
 }

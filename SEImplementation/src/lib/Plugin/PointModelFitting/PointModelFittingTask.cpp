@@ -109,7 +109,6 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
   // Setup models for all the sources
   for (auto &source : group) {
     auto &pixel_centroid = source.getProperty<PixelCentroid>();
-    auto &pixel_boundaries = source.getProperty<PixelBoundaries>();
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
     auto pos_range = group_psf.getSize();

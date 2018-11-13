@@ -425,7 +425,7 @@ public:
     // Generate a single PSF for the image
     const auto &vpsf_components = vpsf->getComponents();
     std::vector<double> psf_vals(vpsf_components.size());
-    for (auto i = 0; i < psf_vals.size(); ++i) {
+    for (auto i = 0u; i < psf_vals.size(); ++i) {
       if (vpsf_components[i].name == "X_IMAGE" || vpsf_components[i].name == "Y_IMAGE") {
         psf_vals[i] = image_size / 2 - 1;
       }

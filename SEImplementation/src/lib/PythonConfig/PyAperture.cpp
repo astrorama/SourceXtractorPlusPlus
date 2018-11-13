@@ -14,7 +14,7 @@ PyAperture::PyAperture(const boost::python::list &py_apertures) {
 std::string PyAperture::toString() const {
   std::stringstream str;
   str << "(ID:" << id << ", apertures:[";
-  for (int i = 0; i < apertures.size(); ++i) {
+  for (unsigned int i = 0; i < apertures.size(); ++i) {
     str << apertures[i];
     if (i < apertures.size() - 1) {
       str << ",";

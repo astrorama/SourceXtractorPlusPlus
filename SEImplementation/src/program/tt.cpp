@@ -49,7 +49,7 @@ int main() {
   args["python-config-file"].value() = (boost::filesystem::path(getenv("HOME")) / "temp/test_config.py").native();
 
   config_manager.initialize(args);
-  auto &py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
+  //auto &py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
 
   auto &mconfig = config_manager.getConfiguration<MeasurementImageConfig>();
   auto &aconfig = config_manager.getConfiguration<ApertureConfig>();

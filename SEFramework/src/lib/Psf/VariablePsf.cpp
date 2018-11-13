@@ -57,12 +57,12 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<doub
   auto result = VectorImage<SeFloat>::create(*m_coefficients[0]);
 
   // Add the rest of the components
-  for (auto i = 1; i < m_coefficients.size(); ++i) {
+  for (auto i = 1u; i < m_coefficients.size(); ++i) {
     const auto &exp = m_exponents[i];
     const auto &coef = m_coefficients[i];
 
     double acc = 1.;
-    for (auto j = 0; j < scaled_props.size(); ++j) {
+    for (auto j = 0u; j < scaled_props.size(); ++j) {
       acc *= std::pow(scaled_props[j], exp[j]);
     }
 
@@ -85,15 +85,15 @@ void VariablePsf::selfTest() {
   // Pre-condition: There is a degree value per unique group
   std::vector<int> n_component_per_group(m_group_degrees.size());
   for (auto &component : m_components) {
-    if (component.group_id >= m_group_degrees.size()) {
+    if (component.group_id >= (int) m_group_degrees.size()) {
       throw Elements::Exception() << "Component group out of range for " << component.name;
     }
     ++n_component_per_group[component.group_id];
   }
 
   // Pre-condition: There are enough coefficients - (n+d)!/(n!d!) per group
-  int n_coefficients = 1;
-  for (int g = 0; g < n_component_per_group.size(); ++g) {
+  unsigned int n_coefficients = 1;
+  for (unsigned int g = 0; g < n_component_per_group.size(); ++g) {
     int dmax = m_group_degrees[g];
     int n = n_component_per_group[g];
     int d = std::min<int>(dmax, n);
@@ -127,7 +127,7 @@ std::vector<double> VariablePsf::scaleProperties(const std::vector<double> &valu
         << "Expecting " << m_components.size() << " values, got " << values.size();
   }
   std::vector<double> scaled(values.size());
-  for (auto i = 0; i < values.size(); ++i) {
+  for (auto i = 0u; i < values.size(); ++i) {
     scaled[i] = (values[i] - m_components[i].offset) / m_components[i].scale;
   }
   return scaled;

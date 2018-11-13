@@ -52,7 +52,7 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   auto frame_image = frame->getSubtractedImage();
 
   // The full boundaries may lie outside of the frame
-  if (max_coord.m_x < 0 | max_coord.m_y < 0 | min_coord.m_x >= frame_image->getWidth() || min_coord.m_y >= frame_image->getHeight()) {
+  if (max_coord.m_x < 0 || max_coord.m_y < 0 || min_coord.m_x >= frame_image->getWidth() || min_coord.m_y >= frame_image->getHeight()) {
     source.setIndexedProperty<MeasurementFrameRectangle>(m_instance);
   }
   // Clip the coordinates to fit the available image

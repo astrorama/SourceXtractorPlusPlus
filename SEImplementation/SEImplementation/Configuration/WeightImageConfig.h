@@ -57,9 +57,9 @@ private:
   std::shared_ptr<WeightImage> m_weight_image;
   WeightType m_weight_type;
   bool m_absolute_weight;
-  bool m_symmetry_usage;
   WeightImage::PixelType m_weight_scaling;
   WeightImage::PixelType m_weight_threshold;
+  bool m_symmetry_usage;
 };
 
 

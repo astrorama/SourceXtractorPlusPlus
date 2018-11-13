@@ -39,8 +39,8 @@ using namespace ModelFitting;
 void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterManager& manager,
                                          const SourceInterface& source,
                                          std::vector<ModelFitting::PointModel>& point_models,
-                                         std::vector<ModelFitting::TransformedModel>& extended_models,
-                                         std::tuple<double, double, double, double> jacobian,
+                                         std::vector<ModelFitting::TransformedModel>& /*extended_models*/,
+                                         std::tuple<double, double, double, double> /*jacobian*/,
                                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const  {
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
@@ -60,7 +60,7 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
 void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
-                          std::vector<ModelFitting::PointModel>& point_models,
+                          std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -106,7 +106,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
-                          std::vector<ModelFitting::PointModel>& point_models,
+                          std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -163,7 +163,7 @@ static double computeBn(double n) {
 
 void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
-                          std::vector<ModelFitting::PointModel>& point_models,
+                          std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {

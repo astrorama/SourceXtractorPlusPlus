@@ -29,7 +29,7 @@ public:
     return tile;
   }
 
-  virtual void saveTile(ImageTile<T>& tile) override {
+  virtual void saveTile(ImageTile<T>& /*tile*/) override {
     assert(false);
   }
 

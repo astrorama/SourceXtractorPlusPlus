@@ -191,10 +191,11 @@ private:
 
   SeFloat m_gain;
   SeFloat m_saturation;
-  int m_interpolation_gap; // max interpolation gap, 0 == no interpolation
 
   T m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;
+
+  int m_interpolation_gap; // max interpolation gap, 0 == no interpolation
 
   std::shared_ptr<ImageFilter> m_filter;
   std::shared_ptr<Image<T>> m_interpolated_image;

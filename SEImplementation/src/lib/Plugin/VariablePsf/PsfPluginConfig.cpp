@@ -198,7 +198,7 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
     {PSF_PIXELSCALE.c_str(), po::value<double>(),
         "Generate a gaussian PSF with given full-width half-maximum"}
   }}};
-};
+}
 
 void PsfPluginConfig::initialize(const UserValues &args) {
   if (args.find(PSF_FILE) != args.end()) {

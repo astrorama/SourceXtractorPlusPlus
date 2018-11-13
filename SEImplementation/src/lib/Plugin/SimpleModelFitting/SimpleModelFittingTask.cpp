@@ -76,77 +76,77 @@ using namespace ModelFitting;
 
 namespace {
 
-// Prints on the screen the info of the levmar minimization
-void printLevmarInfo(std::array<double,10> info) {
-  static double total_error = 0;
-  total_error += info[1];
+//// Prints on the screen the info of the levmar minimization
+//void printLevmarInfo(std::array<double,10> info) {
+//  static double total_error = 0;
+//  total_error += info[1];
+//
+//  std::cout << "\nMinimization info:\n";
+//  std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
+//  std::cout << "  ||e||_2: " << info[1] << '\n';
+//  std::cout << "  ||J^T e||_inf: " << info[2] << '\n';
+//  std::cout << "  ||Dp||_2: " << info[3] << '\n';
+//  std::cout << "  mu/max[J^T J]_ii: " << info[4] << '\n';
+//  std::cout << "  # iterations: " << info[5] << '\n';
+//  switch ((int)info[6]) {
+//  case 1:
+//    std::cout << "  stopped by small gradient J^T e\n";
+//    break;
+//  case 2:
+//    std::cout << "  stopped by small Dp\n";
+//    break;
+//  case 3:
+//    std::cout << "  stopped by itmax\n";
+//    break;
+//  case 4:
+//    std::cout << "  singular matrix. Restart from current p with increased mu\n";
+//    break;
+//  case 5:
+//    std::cout << "  no further error reduction is possible. Restart with increased mu\n";
+//    break;
+//  case 6:
+//    std::cout << "  stopped by small ||e||_2\n";
+//    break;
+//  case 7:
+//    std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
+//    break;
+//  }
+//  std::cout << "  # function evaluations: " << info[7] << '\n';
+//  std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
+//  std::cout << "  # linear systems solved: " << info[9] << "\n\n";
+//  std::cout << "  # total error running count: " << total_error << "\n\n";
+//}
 
-  std::cout << "\nMinimization info:\n";
-  std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
-  std::cout << "  ||e||_2: " << info[1] << '\n';
-  std::cout << "  ||J^T e||_inf: " << info[2] << '\n';
-  std::cout << "  ||Dp||_2: " << info[3] << '\n';
-  std::cout << "  mu/max[J^T J]_ii: " << info[4] << '\n';
-  std::cout << "  # iterations: " << info[5] << '\n';
-  switch ((int)info[6]) {
-  case 1:
-    std::cout << "  stopped by small gradient J^T e\n";
-    break;
-  case 2:
-    std::cout << "  stopped by small Dp\n";
-    break;
-  case 3:
-    std::cout << "  stopped by itmax\n";
-    break;
-  case 4:
-    std::cout << "  singular matrix. Restart from current p with increased mu\n";
-    break;
-  case 5:
-    std::cout << "  no further error reduction is possible. Restart with increased mu\n";
-    break;
-  case 6:
-    std::cout << "  stopped by small ||e||_2\n";
-    break;
-  case 7:
-    std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
-    break;
-  }
-  std::cout << "  # function evaluations: " << info[7] << '\n';
-  std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
-  std::cout << "  # linear systems solved: " << info[9] << "\n\n";
-  std::cout << "  # total error running count: " << total_error << "\n\n";
-}
-
-SeFloat computeReducedChiSquared(std::shared_ptr<const Image<SeFloat>> image,
-    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
-  double reduced_chi_squared = 0.0;
-  for (int y=0; y < image->getHeight(); y++) {
-    for (int x=0; x < image->getWidth(); x++) {
-      double tmp = image->getValue(x, y) - model->getValue(x, y);
-      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
-    }
-  }
-
-  return reduced_chi_squared / (image->getWidth() * image->getHeight());
-}
-
-void printDebugChi2(SeFloat reduced_chi_squared) {
-  static double total = 0.0;
-  static int count = 0;
-  static std::vector<SeFloat> chi_squares;
-
-  chi_squares.push_back(reduced_chi_squared);
-  total += reduced_chi_squared;
-  count++;
-
-  std::sort(chi_squares.begin(), chi_squares.end());
-
-
-  std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
-  std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
-  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
-  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
-}
+//SeFloat computeReducedChiSquared(std::shared_ptr<const Image<SeFloat>> image,
+//    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
+//  double reduced_chi_squared = 0.0;
+//  for (int y=0; y < image->getHeight(); y++) {
+//    for (int x=0; x < image->getWidth(); x++) {
+//      double tmp = image->getValue(x, y) - model->getValue(x, y);
+//      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
+//    }
+//  }
+//
+//  return reduced_chi_squared / (image->getWidth() * image->getHeight());
+//}
+//
+//void printDebugChi2(SeFloat reduced_chi_squared) {
+//  static double total = 0.0;
+//  static int count = 0;
+//  static std::vector<SeFloat> chi_squares;
+//
+//  chi_squares.push_back(reduced_chi_squared);
+//  total += reduced_chi_squared;
+//  count++;
+//
+//  std::sort(chi_squares.begin(), chi_squares.end());
+//
+//
+//  std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
+//  std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
+//  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
+//  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
