@@ -11,6 +11,8 @@
 #include <memory>
 #include <utility>
 #include <functional>
+#include <vector>
+#include <boost/python/object.hpp>
 
 namespace ModelFitting {
   class BasicParameter;
@@ -85,6 +87,28 @@ private:
   InitialValueFunc m_initial_value;
   RangeFunc m_range;
   bool m_is_exponential_range;
+};
+
+class FlexibleModelFittingDependentParameter : public FlexibleModelFittingParameter {
+  
+public:
+  
+  FlexibleModelFittingDependentParameter(boost::python::object value_calculator,
+                                         std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters)
+          : FlexibleModelFittingParameter(),
+            m_value_calculator(value_calculator),
+            m_parameters(parameters) { }
+
+  std::shared_ptr<ModelFitting::BasicParameter> create(
+                                  FlexibleModelFittingParameterManager& parameter_manager,
+                                  ModelFitting::EngineParameterManager& engine_manager,
+                                  const SourceInterface& source) const override;
+
+private:
+  
+  boost::python::object m_value_calculator;
+  std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
+  
 };
 
 }

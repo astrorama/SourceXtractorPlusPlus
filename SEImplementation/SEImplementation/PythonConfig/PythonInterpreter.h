@@ -36,6 +36,8 @@ public:
   
   std::map<int, boost::python::object> getFreeParameters();
   
+  std::map<int, boost::python::object> getDependentParameters();
+  
   std::map<int, boost::python::object> getPointSourceModels();
   
   std::map<int, boost::python::object> getSersicModels();

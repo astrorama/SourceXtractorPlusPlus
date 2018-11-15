@@ -281,10 +281,13 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
 
       CheckImages::getInstance().lock();
+      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
       std::stringstream checkimage_id;
       checkimage_id << m_checkimage_prefix << "_debug_" << frame_id;
-      auto debug_image = CheckImages::getInstance().getWriteableCheckImage(checkimage_id.str());
+      auto debug_image = CheckImages::getInstance().getWriteableCheckImage(checkimage_id.str(),
+          frame->getSubtractedImage()->getWidth(),
+          frame->getSubtractedImage()->getHeight());
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {
@@ -294,7 +297,6 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
         }
       }
 
-      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
       auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(), debug_image);
 
 

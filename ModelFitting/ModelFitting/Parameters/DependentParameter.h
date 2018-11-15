@@ -121,6 +121,13 @@ DependentParameter<Parameters...> createDependentParameter(
   return DependentParameter<Parameters...> { value_calculator, parameters... };
 }
 
+template<typename ... Parameters>
+std::shared_ptr<DependentParameter<Parameters...>> createDependentParameterPtr(
+    typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
+    Parameters &... parameters) {
+  return std::make_shared<DependentParameter<Parameters...>>(value_calculator, parameters...);
+}
+
 }
 
 #endif  /* MODELFITTING_DEPENDENTPARAMETER_H */
