@@ -27,6 +27,8 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
+std::mutex python_callback_mutex {};
+
 FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(ValueFunc value)
         : m_value(value) { }
 
@@ -34,6 +36,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& parameter_manager,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
+  std::lock_guard<std::mutex> guard {python_callback_mutex};
   double initial_value = m_initial_value(source);
 
   double minimum_value, maximum_value;
@@ -57,7 +60,8 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParame
                                                             FlexibleModelFittingParameterManager& parameter_manager,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
-    return std::make_shared<ManualParameter>(m_value(source));
+  std::lock_guard<std::mutex> guard {python_callback_mutex};
+  return std::make_shared<ManualParameter>(m_value(source));
 }
 
 namespace {
@@ -67,7 +71,6 @@ double doubleResolver(const T&) {
   return 0;
 }
 
-std::mutex python_callback_mutex {};
 
 template<typename ... Parameters>
 std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
