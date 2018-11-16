@@ -114,7 +114,7 @@ static void handleUnexpectedExceptions(void) {
       std::rethrow_exception(ex_ptr);
     }
     catch (const py::error_already_set &) {
-      auto elements_ex = pyToElementsException();
+      auto elements_ex = pyToElementsException(logger);
       logger.error() << elements_ex.what();
     }
     catch (const std::exception &e) {

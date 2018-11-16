@@ -8,9 +8,7 @@ namespace py = boost::python;
 
 namespace SExtractor {
 
-static auto logger = Elements::Logging::getLogger("PythonInterpreter");
-
-Elements::Exception pyToElementsException() {
+Elements::Exception pyToElementsException(Elements::Logging &logger) {
   PyObject *ptype, *pvalue, *ptraceback;
   PyErr_Fetch(&ptype, &pvalue, &ptraceback);
   PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
