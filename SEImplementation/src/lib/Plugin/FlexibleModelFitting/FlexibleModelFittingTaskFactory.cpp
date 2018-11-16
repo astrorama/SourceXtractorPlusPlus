@@ -40,6 +40,32 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
 
   // m_max_iterations = model_fitting_config.getMaxIterations();
   m_max_iterations = 99; //FIXME
+  
+  m_outputs = model_fitting_config.getOutputs();
+}
+
+void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
+  for (auto& p : m_outputs) {
+    std::string name = p.first;
+    std::vector<int> properties = p.second;
+    if (properties.size() == 1) {
+      registry.registerColumnConverter<FlexibleModelFitting, double>(name,
+          [properties](const FlexibleModelFitting& prop) {
+            return prop.getParameterValue(properties[0]);
+          }
+      );
+    } else {
+      registry.registerColumnConverter<FlexibleModelFitting, std::vector<double>>(name,
+          [properties](const FlexibleModelFitting& prop) {
+            std::vector<double> result;
+            for (int id : properties) {
+              result.push_back(prop.getParameterValue(id));
+            }
+            return result;
+          }
+      );
+    }
+  }
 }
 
 }

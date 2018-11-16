@@ -1,15 +1,30 @@
 from __future__ import division, print_function
+from .model_fitting import ParameterBase
 
-output_columns = []
+_used_names = set()
+model_fitting_parameter_columns = []
+
+_type_column_map = {
+    ParameterBase : model_fitting_parameter_columns
+}
 
 def print_output_columns():
-    for n, ids in output_columns:
-        print('{} : {}'.format(n, ids))
+    if model_fitting_parameter_columns:
+        print('Model fitting parameter outputs:')
+        for n, ids in model_fitting_parameter_columns:
+            print('    {} : {}'.format(n, ids))
+
+
 
 def add_output_column(name, params):
-    if name in [x for x,_ in output_columns]:
+    if name in _used_names:
         raise Exception('Column {} is already set'.format(name))
-    if isinstance(params, list):
-        output_columns.append((name, [x.id for x in params]))
-    else:
-        output_columns.append((name, params.id))
+    _used_names.add(name)
+
+    if not isinstance(params, list):
+        params = [params]
+    param_type = type(params[0])
+
+    for base in _type_column_map:
+        if issubclass(param_type, base):
+            _type_column_map[base].append((name, params))

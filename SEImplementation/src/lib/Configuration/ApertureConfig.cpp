@@ -23,7 +23,7 @@ void ApertureConfig::initialize(const Euclid::Configuration::Configuration::User
     output.emplace(a.second.id, a.first);
   }
 
-  auto output_columns = py.getOutputColumns();
+  auto output_columns = py.getModelFittingOutputColumns();
   for (auto &oc : output_columns) {
     for (auto &oi : oc.second) {
       auto ai = output.find(oi);

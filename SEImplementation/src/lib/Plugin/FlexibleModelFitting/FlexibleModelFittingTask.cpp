@@ -238,7 +238,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Can't do model fitting as no measurement frame overlaps the detected source
     // We still need to provide a property
     for (auto& source : group) {
-      source.setProperty<FlexibleModelFitting>(0, 99, std::vector<double>());
+      source.setProperty<FlexibleModelFitting>(0, 99, std::unordered_map<int, double>());
     }
 
     return;
@@ -253,10 +253,10 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   // Collect parameters for output
   for (auto& source : group) {
-    std::vector<double> parameter_values;
+    std::unordered_map<int, double> parameter_values;
     for (auto parameter : m_parameters) {
       //fixme if output requested
-      parameter_values.emplace_back(parameter_manager.getParameter(source, parameter)->getValue());
+      parameter_values[parameter->getId()] = parameter_manager.getParameter(source, parameter)->getValue();
     }
     source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values);
   }

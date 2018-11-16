@@ -8,7 +8,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTING_H_
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTING_H_
 
-#include <vector>
+#include <unordered_map>
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
@@ -21,7 +21,7 @@ class FlexibleModelFitting : public Property {
 public:
   virtual ~FlexibleModelFitting() = default;
 
-  FlexibleModelFitting(unsigned int iterations, SeFloat chi_squared, std::vector<double> parameter_values) :
+  FlexibleModelFitting(unsigned int iterations, SeFloat chi_squared, std::unordered_map<int, double> parameter_values) :
     m_iterations(iterations),
     m_chi_squared(chi_squared),
     m_parameter_values(parameter_values) {}
@@ -34,14 +34,14 @@ public:
     return m_chi_squared;
   }
 
-  SeFloat getParameterValue(unsigned int index) const {
-    return m_parameter_values[index];
+  SeFloat getParameterValue(int index) const {
+    return m_parameter_values.at(index);
   }
 
 private:
   unsigned int m_iterations;
   SeFloat m_chi_squared;
-  std::vector<double> m_parameter_values;
+  std::unordered_map<int, double> m_parameter_values;
 };
 
 }
