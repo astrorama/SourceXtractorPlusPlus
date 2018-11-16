@@ -9,6 +9,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/python.hpp>
 
 #include <iomanip>
 
@@ -58,10 +59,11 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-
+#include "SEUtils/Python.h"
 
 
 namespace po = boost::program_options;
+namespace py = boost::python;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
 
@@ -101,6 +103,29 @@ static void setupEnvironment(void) {
   catch (...) {
     ::setenv("LC_ALL", "C", 1);
   }
+}
+
+static void handleUnexpectedExceptions(void) {
+  std::exception_ptr ex_ptr = std::current_exception();
+
+  if (ex_ptr) {
+    logger.error() << "Unhandled exception!";
+    try {
+      std::rethrow_exception(ex_ptr);
+    }
+    catch (const py::error_already_set &) {
+      auto elements_ex = pyToElementsException();
+      logger.error() << elements_ex.what();
+    }
+    catch (const std::exception &e) {
+      logger.error() << e.what();
+    }
+    catch (...) {
+      logger.error() << "Unknown exception type. This is likely caused by a bug somewhere.";
+    }
+  }
+
+  abort();
 }
 
 class SEMain : public Elements::Program {
@@ -338,6 +363,9 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   std::vector<std::string> plugin_list {};
 
   setupEnvironment();
+
+  // Try to be reasonably graceful with unhandled exceptions
+  std::set_terminate(handleUnexpectedExceptions);
 
   // First we create a program which has a sole purpose to get the options for
   // the plugin paths. Note that we do not want to have this helper program
