@@ -7,50 +7,11 @@
 #include <boost/python.hpp>
 #include <python2.7/Python.h>
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
-#include <ElementsKernel/Exception.h>
-#include <ElementsKernel/Logging.h>
+#include <SEUtils/Python.h>
 
 namespace py = boost::python;
 
 namespace SExtractor {
-
-static auto logger = Elements::Logging::getLogger("PythonInterpreter");
-
-// Dumps into ERR the traceback and returns an Elements exception
-// to be re-thrown
-static Elements::Exception pyToElementsException() {
-  PyObject * ptype, *pvalue, *ptraceback;
-  PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-  PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
-
-  py::handle<> handle_type(ptype);
-  py::handle<> handle_value(pvalue);
-  py::handle<> handle_traceback(py::allow_null(ptraceback));
-
-  // Get only the error message
-  py::object err_msg_obj(py::handle<>(PyObject_Str(pvalue)));
-  std::string err_msg = py::extract<std::string>(err_msg_obj);
-
-  // Dump to ERR the traceback
-  logger.error() << "Python exception " << err_msg;
-
-  if (ptraceback) {
-    py::object traceback(handle_traceback);
-    while (traceback) {
-      long lineno = py::extract<long>(traceback.attr("tb_lineno"));
-      std::string filename = py::extract<std::string>(traceback.attr("tb_frame").attr("f_code").attr("co_filename"));
-      std::string funcname = py::extract<std::string>(traceback.attr("tb_frame").attr("f_code").attr("co_name"));
-
-      logger.error() << "File \"" << filename << "\", line " << lineno << ", in " << funcname;
-
-      traceback = traceback.attr("tb_next");
-    }
-  }
-
-  // Done
-  PyErr_Clear();
-  return Elements::Exception(err_msg);
-}
 
 PythonInterpreter &PythonInterpreter::getSingleton() {
   static PythonInterpreter singleton{};
