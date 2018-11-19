@@ -25,12 +25,14 @@ public:
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void registerPropertyInstances(OutputRegistry&) override;
 
 private:
   unsigned int m_max_iterations {0};
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+  std::map<std::string, std::vector<int>> m_outputs;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 };
 

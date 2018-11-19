@@ -28,8 +28,14 @@ using namespace ModelFitting;
 
 std::mutex python_callback_mutex {};
 
-FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(ValueFunc value)
-        : m_value(value) { }
+FlexibleModelFittingParameter::FlexibleModelFittingParameter(int id) : m_id(id) { }
+
+int FlexibleModelFittingParameter::getId() const {
+  return m_id;
+}
+
+FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(int id, ValueFunc value)
+        : FlexibleModelFittingParameter(id), m_value(value) { }
 
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,

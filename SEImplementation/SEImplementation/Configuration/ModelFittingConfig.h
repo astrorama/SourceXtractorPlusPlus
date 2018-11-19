@@ -27,11 +27,14 @@ public:
   const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& getModels() const;
   const std::vector<std::shared_ptr<FlexibleModelFittingFrame>>& getFrames() const;
   
+  const std::map<std::string, std::vector<int>>& getOutputs() const;
+  
 private:
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+  std::map<std::string, std::vector<int>> m_outputs;
   
 };
 

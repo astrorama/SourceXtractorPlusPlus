@@ -24,7 +24,8 @@ void ModelFittingConfig::initialize(const UserValues&) {
       ObjectInfo oi {o};
       return py::extract<double>(py_value_func(oi));
     };
-    m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(value_func);
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
+                                                           p.first, value_func);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
@@ -43,7 +44,8 @@ void ModelFittingConfig::initialize(const UserValues&) {
       return {low, high};
     };
     bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
-    m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(init_value_func, range_func, is_exponential);
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(
+                          p.first, init_value_func, range_func, is_exponential);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
@@ -54,7 +56,8 @@ void ModelFittingConfig::initialize(const UserValues&) {
       int id = py::extract<int>(param_ids[i]);
       params.push_back(m_parameters[id]);
     }
-    m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(py_func, params);
+    m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
+                                                      p.first, py_func, params);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
@@ -110,6 +113,8 @@ void ModelFittingConfig::initialize(const UserValues&) {
     }
     m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
   }
+  
+  m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {
@@ -122,6 +127,10 @@ const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& ModelFittingCon
 
 const std::vector<std::shared_ptr<FlexibleModelFittingFrame> >& ModelFittingConfig::getFrames() const {
   return m_frames;
+}
+
+const std::map<std::string, std::vector<int>>& ModelFittingConfig::getOutputs() const {
+  return m_outputs;
 }
 
 }

@@ -30,15 +30,18 @@ class FlexibleModelFittingParameterManager;
 
 class FlexibleModelFittingParameter {
 public:
-  FlexibleModelFittingParameter() {}
-  virtual ~FlexibleModelFittingParameter() {}
+  FlexibleModelFittingParameter(int id);
+  virtual ~FlexibleModelFittingParameter() = default;
 
   virtual std::shared_ptr<ModelFitting::BasicParameter> create(
                                   FlexibleModelFittingParameterManager& parameter_manager,
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const = 0;
+  
+  virtual int getId() const final;
 
 private:
+  int m_id;
 };
 
 class FlexibleModelFittingConstantParameter : public FlexibleModelFittingParameter {
@@ -49,7 +52,7 @@ public:
   /// parameter a source and returns the value.
   using ValueFunc = std::function<double(const SourceInterface&)>;
   
-  FlexibleModelFittingConstantParameter(ValueFunc value);
+  FlexibleModelFittingConstantParameter(int id, ValueFunc value);
 
   std::shared_ptr<ModelFitting::BasicParameter> create(
                                   FlexibleModelFittingParameterManager& parameter_manager,
@@ -75,9 +78,10 @@ public:
   /// a pair containing the minimum and maximum values of the range.
   using RangeFunc = std::function<std::pair<double, double>(double, const SourceInterface&)>;
 
-  FlexibleModelFittingFreeParameter(InitialValueFunc initial_value,
+  FlexibleModelFittingFreeParameter(int id, InitialValueFunc initial_value,
                                     RangeFunc range, bool is_exponential_range)
-          : m_initial_value(initial_value),
+          : FlexibleModelFittingParameter(id),
+            m_initial_value(initial_value),
             m_range(range),
             m_is_exponential_range(is_exponential_range) {}
 
@@ -97,9 +101,9 @@ class FlexibleModelFittingDependentParameter : public FlexibleModelFittingParame
   
 public:
   
-  FlexibleModelFittingDependentParameter(boost::python::object value_calculator,
+  FlexibleModelFittingDependentParameter(int id, boost::python::object value_calculator,
                                          std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters)
-          : FlexibleModelFittingParameter(),
+          : FlexibleModelFittingParameter(id),
             m_value_calculator(value_calculator),
             m_parameters(parameters) { }
 
