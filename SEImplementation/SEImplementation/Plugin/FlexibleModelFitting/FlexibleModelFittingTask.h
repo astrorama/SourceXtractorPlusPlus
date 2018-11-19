@@ -17,6 +17,7 @@
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"
 
 namespace SExtractor {
 
@@ -25,7 +26,8 @@ class FlexibleModelFittingTask : public GroupTask {
 public:
   FlexibleModelFittingTask(unsigned int max_iterations,
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
-      std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames);
+      std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
+      std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors);
 
   virtual ~FlexibleModelFittingTask();
 
@@ -59,6 +61,7 @@ private:
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+  std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
   std::string m_checkimage_prefix;
 };

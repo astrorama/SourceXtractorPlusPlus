@@ -74,8 +74,7 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getModelFittingOutput
         int c = py::extract<int>(cs[j].attr("id"));
         result[name].push_back(c);
       }
-    }
-    else {
+    } else {
       int c = py::extract<int>(t[1]);
       result[name].push_back(c);
     }
@@ -85,7 +84,7 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getModelFittingOutput
 
 namespace {
 
-std::map<int, boost::python::object> getMapFromDict(const py::str& module_name, const py::str& dict_name) {
+std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {
   py::object model_fitting_module = py::import(module_name);
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr(dict_name));
   py::list ids = parameters.keys();
@@ -129,7 +128,7 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
 }
 
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
-  std::map<int, std::vector<int>> result {};
+  std::map<int, std::vector<int>> result{};
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   py::dict frame_dict = py::extract<py::dict>(model_fitting_module.attr("frame_models_dict"));
   py::list frame_ids = frame_dict.keys();
