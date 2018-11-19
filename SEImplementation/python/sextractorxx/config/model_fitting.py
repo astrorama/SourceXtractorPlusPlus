@@ -137,6 +137,7 @@ prior_dict = {}
 class Prior(cpp.Id):
 
     def __init__(self, param, value, sigma):
+        cpp.Id.__init__(self)
         self.param = param.id
         self.value = value if hasattr(value, '__call__') else lambda o: value
         self.sigma = sigma if hasattr(sigma, '__call__') else lambda o: sigma

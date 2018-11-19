@@ -5,6 +5,6 @@ from .model_fitting import (RangeType, Range, print_parameters, ConstantParamete
                             FreeParameter, DependentParameter,get_pos_parameters,
                             FluxParameterType, get_flux_parameter, add_model,
                             PointSourceModel, SersicModel, ExponentialModel,
-                            DeVaucouleursModel, print_model_fitting_info)
+                            DeVaucouleursModel, print_model_fitting_info, Prior)
 from .aperture import *
 from .output import (add_output_column, print_output_columns)
