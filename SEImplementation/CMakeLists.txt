@@ -29,9 +29,6 @@ elements_depends_on_subdirs(ModelFitting)
 
 find_package(yaml-cpp)
 find_package(WCSLIB REQUIRED)
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
-find_package(Boost REQUIRED COMPONENTS Python)
 
 find_package(PythonInterp REQUIRED)
 find_package(PythonLibs REQUIRED)
