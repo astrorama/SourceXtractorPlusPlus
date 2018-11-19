@@ -84,8 +84,9 @@ void printLevmarInfo(std::array<double,10> info) {
 
 FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
-    std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames)
-  : m_max_iterations(max_iterations), m_parameters(parameters), m_frames(frames) {}
+    std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
+    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
+  : m_max_iterations(max_iterations), m_parameters(parameters), m_frames(frames), m_priors(priors) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
@@ -242,6 +243,13 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     }
 
     return;
+  }
+
+  // Add priors
+  for (auto& source : group) {
+    for (auto prior : m_priors) {
+      prior->setupPrior(parameter_manager, source, res_estimator);
+    }
   }
 
   // Model fitting

@@ -12,6 +12,8 @@
 #include <utility>
 #include <functional>
 #include <vector>
+#include <mutex>
+
 #include <boost/python/object.hpp>
 
 namespace ModelFitting {
@@ -20,6 +22,8 @@ namespace ModelFitting {
 }
 
 namespace SExtractor {
+
+extern std::mutex python_callback_mutex;
 
 class SourceInterface;
 class FlexibleModelFittingParameterManager;

@@ -18,7 +18,7 @@ namespace SExtractor {
 
 std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
-    return std::make_shared<FlexibleModelFittingTask>(m_max_iterations, m_parameters, m_frames);
+    return std::make_shared<FlexibleModelFittingTask>(m_max_iterations, m_parameters, m_frames, m_priors);
   } else {
     return nullptr;
   }
