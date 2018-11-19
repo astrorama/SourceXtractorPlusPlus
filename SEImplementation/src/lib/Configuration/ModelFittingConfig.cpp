@@ -114,6 +114,23 @@ void ModelFittingConfig::initialize(const UserValues&) {
     m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
   }
   
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getPriors()) {
+    auto& prior = p.second;
+    int param_id = py::extract<int>(prior.attr("param"));
+    auto param = m_parameters[param_id];
+    py::object py_value_func = prior.attr("value");
+    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
+      ObjectInfo oi {o};
+      return py::extract<double>(py_value_func(oi));
+    };
+    py::object py_sigma_func = prior.attr("sigma");
+    auto sigma_func = [py_sigma_func] (const SourceInterface& o) -> double {
+      ObjectInfo oi {o};
+      return py::extract<double>(py_sigma_func(oi));
+    };
+    m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
+  }
+  
   m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
 }
 
@@ -127,6 +144,10 @@ const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& ModelFittingCon
 
 const std::vector<std::shared_ptr<FlexibleModelFittingFrame> >& ModelFittingConfig::getFrames() const {
   return m_frames;
+}
+
+const std::map<int, std::shared_ptr<FlexibleModelFittingPrior> >& ModelFittingConfig::getPriors() const {
+  return m_priors;
 }
 
 const std::map<std::string, std::vector<int>>& ModelFittingConfig::getOutputs() const {

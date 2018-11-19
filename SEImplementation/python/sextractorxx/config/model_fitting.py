@@ -132,6 +132,17 @@ def get_flux_parameter(type=FluxParameterType.ISO, scale=1):
     return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
+prior_dict = {}
+
+class Prior(cpp.Id):
+
+    def __init__(self, param, value, sigma):
+        self.param = param.id
+        self.value = value if hasattr(value, '__call__') else lambda o: value
+        self.sigma = sigma if hasattr(sigma, '__call__') else lambda o: sigma
+        prior_dict[self.id] = self
+
+
 frame_models_dict = {}
 
 

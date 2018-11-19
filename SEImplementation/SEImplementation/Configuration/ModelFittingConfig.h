@@ -10,6 +10,7 @@
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h>
 #include <Configuration/Configuration.h>
 
 namespace SExtractor {
@@ -27,6 +28,8 @@ public:
   const std::map<int, std::shared_ptr<FlexibleModelFittingModel>>& getModels() const;
   const std::vector<std::shared_ptr<FlexibleModelFittingFrame>>& getFrames() const;
   
+  const std::map<int, std::shared_ptr<FlexibleModelFittingPrior>>& getPriors() const;
+  
   const std::map<std::string, std::vector<int>>& getOutputs() const;
   
 private:
@@ -34,6 +37,7 @@ private:
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
+  std::map<int, std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
   std::map<std::string, std::vector<int>> m_outputs;
   
 };
