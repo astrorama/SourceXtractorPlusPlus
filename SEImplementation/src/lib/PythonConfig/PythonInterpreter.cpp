@@ -3,6 +3,7 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <signal.h>
 #include <utility>
 #include <boost/python.hpp>
 #include <python2.7/Python.h>
@@ -18,7 +19,15 @@ PythonInterpreter &PythonInterpreter::getSingleton() {
 }
 
 PythonInterpreter::PythonInterpreter() {
+  // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
+  // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
+  // the default one) and restore it after initializing the interpreter
+  struct sigaction sigint_handler;
+  sigaction(SIGINT, nullptr, &sigint_handler);
+
   Py_Initialize();
+
+  sigaction(SIGINT, &sigint_handler, nullptr);
 }
 
 void PythonInterpreter::runCode(const std::string &code) {
