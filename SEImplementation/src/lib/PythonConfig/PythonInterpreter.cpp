@@ -111,6 +111,10 @@ std::map<int, boost::python::object> PythonInterpreter::getDependentParameters()
   return getMapFromDict("sextractorxx.config.model_fitting", "dependent_parameter_dict");
 }
 
+std::map<int, boost::python::object> PythonInterpreter::getPriors() {
+  return getMapFromDict("sextractorxx.config.model_fitting", "prior_dict");
+}
+
 std::map<int, boost::python::object> PythonInterpreter::getPointSourceModels() {
   return getMapFromDict("sextractorxx.config.model_fitting", "point_source_model_dict");
 }

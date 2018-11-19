@@ -37,6 +37,10 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   }
 
   m_frames = model_fitting_config.getFrames();
+  
+  for (auto const& p : model_fitting_config.getPriors()) {
+    m_priors.push_back(p.second);
+  }
 
   // m_max_iterations = model_fitting_config.getMaxIterations();
   m_max_iterations = 99; //FIXME
