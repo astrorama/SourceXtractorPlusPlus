@@ -335,7 +335,7 @@ public:
     config_manager.registerConfiguration<PluginConfig>();
     auto options = config_manager.closeRegistration();
     // The following will consume any extra options in the configuration file
-    options.add_options()("*", po::value<std::string>());
+    options.add_options()("*", po::value<std::vector<std::string>>());
     return options;
   }
   
