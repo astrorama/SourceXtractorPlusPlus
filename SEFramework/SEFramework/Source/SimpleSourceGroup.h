@@ -6,7 +6,7 @@
 #ifndef _SEFRAMEWORK_SIMPLESOURCEGROUP_H
 #define _SEFRAMEWORK_SIMPLESOURCEGROUP_H
 
-#include <set>
+#include <list>
 
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Property/PropertyHolder.h"
@@ -56,7 +56,7 @@ protected:
 private:
   
   class iter;
-  std::set<std::shared_ptr<SourceInterface>> m_sources;
+  std::list<std::shared_ptr<SourceInterface>> m_sources;
   PropertyHolder m_property_holder;
   
 }; /* End of SimpleSourceGroup class */
@@ -65,7 +65,7 @@ private:
 class SimpleSourceGroup::iter : public SourceGroupInterface::IteratorImpl {
   
 public:
-  iter(std::set<std::shared_ptr<SourceInterface>>::iterator wrapped_it)
+  iter(std::list<std::shared_ptr<SourceInterface>>::iterator wrapped_it)
           : m_wrapped_it(wrapped_it) {
   }
 
@@ -99,7 +99,7 @@ public:
 
 private:
   
-  std::set<std::shared_ptr<SourceInterface>>::iterator m_wrapped_it;
+  std::list<std::shared_ptr<SourceInterface>>::iterator m_wrapped_it;
   
   friend SimpleSourceGroup::iterator SimpleSourceGroup::removeSource(SimpleSourceGroup::iterator);
   

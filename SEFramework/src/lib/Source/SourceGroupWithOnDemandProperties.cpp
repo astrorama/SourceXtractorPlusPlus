@@ -30,16 +30,16 @@ SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandPropert
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::begin() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SourceGroupWithOnDemandProperties*>(this)->m_sources.begin()}));
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::end() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SourceGroupWithOnDemandProperties*>(this)->m_sources.end()}));
 }
 
 void SourceGroupWithOnDemandProperties::addSource(std::shared_ptr<SourceInterface> source) {
   clearGroupProperties();
-  m_sources.emplace(source, *this);
+  m_sources.emplace_back(source, *this);
 }
 
 SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(iterator pos) {
@@ -55,7 +55,7 @@ void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface& other)
   // locally, pointing to the same wrapped sources. This is necessary, so the
   // new EntangledSources have a reference to the correct group.
   for (auto& source : other_group.m_sources) {
-    this->m_sources.emplace( source.m_source, *this);
+    this->m_sources.emplace_back( source.m_source, *this);
   }
   this->clearGroupProperties();
 }
