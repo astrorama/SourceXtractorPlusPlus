@@ -65,7 +65,7 @@ private:
   
   class iter;
   class EntangledSource;
-  std::set<EntangledSource> m_sources;
+  std::list<EntangledSource> m_sources;
   PropertyHolder m_property_holder;
   std::shared_ptr<TaskProvider> m_task_provider;
   
@@ -105,7 +105,7 @@ class SourceGroupWithOnDemandProperties::iter : public SourceGroupInterface::Ite
   
 public:
   
-  iter(std::set<EntangledSource>::iterator m_entangled_it) 
+  iter(std::list<EntangledSource>::iterator m_entangled_it)
           : m_entangled_it(m_entangled_it) {
   }
 
@@ -145,7 +145,7 @@ public:
 
 private:
   
-  std::set<EntangledSource>::iterator m_entangled_it;
+  std::list<EntangledSource>::iterator m_entangled_it;
   
   friend SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(SourceGroupWithOnDemandProperties::iterator);
   

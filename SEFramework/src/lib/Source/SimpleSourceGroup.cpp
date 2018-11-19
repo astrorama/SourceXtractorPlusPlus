@@ -24,15 +24,15 @@ SimpleSourceGroup::const_iterator SimpleSourceGroup::cend() {
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::begin() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SimpleSourceGroup*>(this)->m_sources.begin()}));
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::end() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SimpleSourceGroup*>(this)->m_sources.end()}));
 }
 
 void SimpleSourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
-  m_sources.emplace(source);
+  m_sources.push_back(source);
 }
 
 SourceGroupInterface::iterator SimpleSourceGroup::removeSource(iterator pos) {
