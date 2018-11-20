@@ -141,7 +141,11 @@ class Prior(cpp.Id):
         self.param = param.id
         self.value = value if hasattr(value, '__call__') else lambda o: value
         self.sigma = sigma if hasattr(sigma, '__call__') else lambda o: sigma
-        prior_dict[self.id] = self
+
+
+def add_prior(param, value, sigma):
+    prior = Prior(param, value, sigma)
+    prior_dict[prior.id] = prior
 
 
 frame_models_dict = {}
