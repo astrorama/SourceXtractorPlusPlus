@@ -5,9 +5,7 @@
  *      Author: mschefer
  */
 
-#include <iostream>
 #include <sstream>
-
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
@@ -42,29 +40,31 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
 }
 
 void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &registry) {
-  std::vector<std::pair<std::string, unsigned int>> instances;
+  std::vector<std::pair<std::string, unsigned int>> flux_instances, flux_err_instances;
+  std::vector<std::pair<std::string, unsigned int>> mag_instances, mag_err_instances;
+  std::vector<std::pair<std::string, unsigned int>> flags_instances;
 
   for (auto &o : m_outputs) {
     auto name = o.first;
     auto imgs_for_column = o.second;
 
-    std::cout << "COL " << name << std::endl;
-
-    registry.registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
-      name,
-      [](const AperturePhotometry &a) {
-        return a.getFluxes();
-      }
-    );
-
     for (auto &img_id : imgs_for_column) {
-      std::cout << "IMG " << img_id << std::endl;
-      instances.emplace_back(std::make_pair(std::to_string(img_id), img_id));
+      flux_instances.emplace_back(std::make_pair(name + "_flux_" + std::to_string(img_id), img_id));
+      flux_err_instances.emplace_back(std::make_pair(name + "_flux_err_" + std::to_string(img_id), img_id));
+      mag_instances.emplace_back(std::make_pair(name + "_mag_" + std::to_string(img_id), img_id));
+      mag_err_instances.emplace_back(std::make_pair(name + "_mag_err_" + std::to_string(img_id), img_id));
+      flags_instances.emplace_back(std::make_pair(name + "_flags_" + std::to_string(img_id), img_id));
     }
   }
 
-  registry.enableOutput<AperturePhotometry>();
-  registry.registerPropertyInstances<AperturePhotometry>(instances);
+  if (m_outputs.size()) {
+    registry.enableOutput<AperturePhotometry>();
+    registry.registerPropertyInstances<AperturePhotometry>("aperture_flux", flux_instances);
+    registry.registerPropertyInstances<AperturePhotometry>("aperture_flux_err", flux_err_instances);
+    registry.registerPropertyInstances<AperturePhotometry>("aperture_mag", mag_instances);
+    registry.registerPropertyInstances<AperturePhotometry>("aperture_mag_err", mag_err_instances);
+    registry.registerPropertyInstances<AperturePhotometry>("aperture_flags", flags_instances);
+  }
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {

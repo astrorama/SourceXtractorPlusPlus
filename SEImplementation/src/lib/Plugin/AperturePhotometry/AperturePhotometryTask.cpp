@@ -68,7 +68,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   }
 
   // Merge flags with those set on the detection frame and from the saturate and blended plugins
-  Flags additional_flags;
+  Flags additional_flags(Flags::NONE);
   additional_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
   additional_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
