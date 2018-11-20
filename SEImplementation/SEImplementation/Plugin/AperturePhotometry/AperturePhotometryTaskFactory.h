@@ -32,9 +32,12 @@ private:
   SeFloat m_magnitude_zero_point;
   bool m_symmetry_usage;
 
+  // Apertures for a given image ID
   std::map<int, std::vector<float>> m_aperture_config;
+  // All configured apertures (required to be able to flag on the detection image)
   std::vector<float> m_all_apertures;
-  std::vector<std::pair<std::string, unsigned>> m_instances;
+  // Image IDs that correspond to a output column name
+  std::map<std::string, std::vector<int>> m_outputs;
 };
 
 }

@@ -35,15 +35,36 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
       m_magnitude_zero_point,
       m_symmetry_usage
     );
-  }
-  else if (property_id == PropertyId::create<ApertureFlag>()) {
+  } else if (property_id == PropertyId::create<ApertureFlag>()) {
     return std::make_shared<ApertureFlagTask>(m_all_apertures);
   }
   return nullptr;
 }
 
-void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &output_registry) {
-  output_registry.registerPropertyInstances<AperturePhotometry>(m_instances);
+void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &registry) {
+  std::vector<std::pair<std::string, unsigned int>> instances;
+
+  for (auto &o : m_outputs) {
+    auto name = o.first;
+    auto imgs_for_column = o.second;
+
+    std::cout << "COL " << name << std::endl;
+
+    registry.registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
+      name,
+      [](const AperturePhotometry &a) {
+        return a.getFluxes();
+      }
+    );
+
+    for (auto &img_id : imgs_for_column) {
+      std::cout << "IMG " << img_id << std::endl;
+      instances.emplace_back(std::make_pair(std::to_string(img_id), img_id));
+    }
+  }
+
+  registry.enableOutput<AperturePhotometry>();
+  registry.registerPropertyInstances<AperturePhotometry>(instances);
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
@@ -60,7 +81,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
 
   m_aperture_config = aperture_config.getApertures();
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
-  m_symmetry_usage =  manager.getConfiguration<WeightImageConfig>().symmetryUsage();
+  m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
   for (unsigned int i = 0; i < measurement_images_nb; ++i) {
     for (auto a : aperture_config.getAperturesForImage(i)) {
@@ -70,9 +91,7 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
     }
   }
 
-  for (auto i : aperture_config.getOutputForImages()) {
-    m_instances.emplace_back(std::make_pair(std::to_string(i), i));
-  }
+  m_outputs = aperture_config.getImagesToOutput();
 }
 
 }

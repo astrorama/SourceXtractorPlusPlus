@@ -18,7 +18,7 @@ static StaticPlugin<AperturePhotometryPlugin> aperture_photometry_plugin;
 
 void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<AperturePhotometryTaskFactory, AperturePhotometry, ApertureFlag>();
-
+/*
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
     "aperture_flux",
     [](const AperturePhotometry &prop) {
@@ -56,6 +56,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
 
   // register as optional output (to have it in the output catalog)
   plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
+  */
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

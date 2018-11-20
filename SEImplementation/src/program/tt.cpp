@@ -55,15 +55,16 @@ int main() {
 
   auto &measurement_images = mconfig.getImagePaths();
 
-  auto aper_out = aconfig.getOutputForImages();
-  for (auto &img_id : aper_out) {
-    std::cout  << "Aperture column for image " << measurement_images[img_id] << std::endl;
-    auto apertures = aconfig.getAperturesForImage(img_id);
-    for (auto a : apertures) {
-      std::cout << '\t' << a << std::endl;
+  auto aper_out = aconfig.getImagesToOutput();
+  for (auto &columns : aper_out) {
+    for (auto &img : columns.second) {
+      std::cout << "Aperture column for image " << measurement_images[img] << std::endl;
+      auto apertures = aconfig.getAperturesForImage(img);
+      for (auto a : apertures) {
+        std::cout << '\t' << a << std::endl;
+      }
     }
   }
-  
   
   SimpleSource source {};
   source.setProperty<WorldCentroid>(5, 10);

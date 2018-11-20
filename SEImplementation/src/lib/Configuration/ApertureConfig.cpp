@@ -15,20 +15,26 @@ ApertureConfig::ApertureConfig(long manager_id): Configuration(manager_id) {
 void ApertureConfig::initialize(const Euclid::Configuration::Configuration::UserValues& /*args*/) {
   auto &py = getDependency<PythonConfig>().getInterpreter();
 
-  std::map<int, int> output;
+  // Used to get the image corresponding to a given aperture ID
+  std::map<int, int> ap_id_to_img;
 
+  // These are the apertures we need to compute for each image
   auto apertures = py.getApertures();
   for (auto &a : apertures) {
     m_apertures.emplace(a.first, a.second.apertures);
-    output.emplace(a.second.id, a.first);
+    ap_id_to_img.emplace(a.second.id, a.first);
   }
 
-  auto output_columns = py.getModelFittingOutputColumns();
+  // And these are the output columns. If several apertures are defined together, they go out together
+  auto output_columns = py.getApertureOutputColumns();
   for (auto &oc : output_columns) {
-    for (auto &oi : oc.second) {
-      auto ai = output.find(oi);
-      if (ai != output.end()) {
-        m_output_images.push_back(ai->second);
+    auto col_name = oc.first;
+    for (auto &ap_id : oc.second) {
+      auto img_id_iter = ap_id_to_img.find(ap_id);
+      if (img_id_iter != ap_id_to_img.end()) {
+        auto img_id = img_id_iter->second;
+        // Which images ID correspond to an output column
+        m_output_images[col_name].push_back(img_id);
       }
     }
   }

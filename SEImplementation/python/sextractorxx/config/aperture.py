@@ -6,6 +6,9 @@ import libSEImplementation as cpp
 apertures_for_image = {}
 
 
+Aperture = cpp.Aperture
+
+
 def add_aperture_photometry(target, apertures):
     if not isinstance(target, list):
         target = [target]

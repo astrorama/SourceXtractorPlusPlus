@@ -20,7 +20,7 @@ public:
 
   const std::map<int, std::vector<float>>& getApertures() const;
 
-  std::vector<int> getOutputForImages() const {
+  std::map<std::string, std::vector<int>> getImagesToOutput() const {
     return m_output_images;
   }
 
@@ -28,7 +28,7 @@ private:
   // Map the image id to the apertures
   std::map<int, std::vector<float>> m_apertures;
   // List of images for which we write a column
-  std::vector<int> m_output_images;
+  std::map<std::string, std::vector<int>> m_output_images;
 };
 
 }
