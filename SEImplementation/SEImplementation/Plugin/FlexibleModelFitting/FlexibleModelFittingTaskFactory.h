@@ -32,7 +32,7 @@ private:
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
-  std::map<std::string, std::vector<int>> m_outputs;
+  std::vector<std::pair<std::string, std::vector<int>>> m_outputs;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 };
 

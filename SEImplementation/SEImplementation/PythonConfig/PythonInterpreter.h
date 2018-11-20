@@ -30,7 +30,7 @@ public:
 
   std::map<int, PyAperture> getApertures();
 
-  std::map<std::string, std::vector<int>> getModelFittingOutputColumns();
+  std::vector<std::pair<std::string, std::vector<int>>> getModelFittingOutputColumns();
   
   std::map<int, boost::python::object> getConstantParameters();
   

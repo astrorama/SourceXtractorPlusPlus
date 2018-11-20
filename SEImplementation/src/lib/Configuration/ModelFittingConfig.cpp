@@ -150,7 +150,7 @@ const std::map<int, std::shared_ptr<FlexibleModelFittingPrior> >& ModelFittingCo
   return m_priors;
 }
 
-const std::map<std::string, std::vector<int>>& ModelFittingConfig::getOutputs() const {
+const std::vector<std::pair<std::string, std::vector<int>>>& ModelFittingConfig::getOutputs() const {
   return m_outputs;
 }
 
