@@ -30,7 +30,7 @@ public:
   
   const std::map<int, std::shared_ptr<FlexibleModelFittingPrior>>& getPriors() const;
   
-  const std::map<std::string, std::vector<int>>& getOutputs() const;
+  const std::vector<std::pair<std::string, std::vector<int>>>& getOutputs() const;
   
 private:
   
@@ -38,7 +38,7 @@ private:
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::map<int, std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
-  std::map<std::string, std::vector<int>> m_outputs;
+  std::vector<std::pair<std::string, std::vector<int>>> m_outputs;
   
 };
 
