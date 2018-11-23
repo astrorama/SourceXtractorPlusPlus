@@ -116,8 +116,8 @@ class DependentParameter(ParameterBase):
 
 def get_pos_parameters():
     return (
-        FreeParameter(lambda o: o.get_alpha_coord(), Range(lambda v,o: (v-o.get_radius_world(), v+o.get_radius_world()), RangeType.LINEAR)),
-        FreeParameter(lambda o: o.get_delta_coord(), Range(lambda v,o: (v-o.get_radius_world(), v+o.get_radius_world()), RangeType.LINEAR))
+        FreeParameter(lambda o: o.get_centroid_x(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR)),
+        FreeParameter(lambda o: o.get_centroid_y(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR))
     )
 
 

@@ -16,10 +16,10 @@ namespace SExtractor {
 BOOST_PYTHON_MODULE(libSEImplementation) {
   
   bp::class_<ObjectInfo>("ObjectInfo", bp::init<SourceInterface&>())
-      .def("get_alpha_coord", &ObjectInfo::getAlphaCoord)
-      .def("get_delta_coord", &ObjectInfo::getDeltaCoord)
+      .def("get_centroid_x", &ObjectInfo::getCentroidX)
+      .def("get_centroid_y", &ObjectInfo::getCentroidY)
       .def("get_iso_flux", &ObjectInfo::getIsoFlux)
-      .def("get_radius_world", &ObjectInfo::getRadiusWorld)
+      .def("get_radius", &ObjectInfo::getRadius)
       .def("get_angle", &ObjectInfo::getAngle)
       .def("get_aspect_ratio", &ObjectInfo::getAspectRatio);
   

@@ -27,6 +27,7 @@ public:
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const = 0;
 
 private:
@@ -34,10 +35,10 @@ private:
 
 class FlexibleModelFittingPointModel : public FlexibleModelFittingModel {
 public:
-  FlexibleModelFittingPointModel(std::shared_ptr<FlexibleModelFittingParameter> alpha,
-                                 std::shared_ptr<FlexibleModelFittingParameter> delta,
+  FlexibleModelFittingPointModel(std::shared_ptr<FlexibleModelFittingParameter> x,
+                                 std::shared_ptr<FlexibleModelFittingParameter> y,
                                  std::shared_ptr<FlexibleModelFittingParameter> flux)
-      : m_alpha_coord(alpha), m_delta_coord(delta), m_flux(flux) {}
+      : m_x(x), m_y(y), m_flux(flux) {}
 
   virtual ~FlexibleModelFittingPointModel() {}
 
@@ -46,23 +47,24 @@ public:
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
 private:
-  std::shared_ptr<FlexibleModelFittingParameter> m_alpha_coord;
-  std::shared_ptr<FlexibleModelFittingParameter> m_delta_coord;
+  std::shared_ptr<FlexibleModelFittingParameter> m_x;
+  std::shared_ptr<FlexibleModelFittingParameter> m_y;
   std::shared_ptr<FlexibleModelFittingParameter> m_flux;
 };
 
 class FlexibleModelFittingExponentialModel : public FlexibleModelFittingModel {
 public:
-  FlexibleModelFittingExponentialModel(std::shared_ptr<FlexibleModelFittingParameter> alpha,
-                                  std::shared_ptr<FlexibleModelFittingParameter> delta,
+  FlexibleModelFittingExponentialModel(std::shared_ptr<FlexibleModelFittingParameter> x,
+                                  std::shared_ptr<FlexibleModelFittingParameter> y,
                                   std::shared_ptr<FlexibleModelFittingParameter> flux,
                                   std::shared_ptr<FlexibleModelFittingParameter> effective_radius,
                                   std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
                                   std::shared_ptr<FlexibleModelFittingParameter> angle)
-      : m_alpha_coord(alpha),
-        m_delta_coord(delta),
+      : m_x(x),
+        m_y(y),
         m_flux(flux),
         m_effective_radius(effective_radius),
         m_aspect_ratio(aspect_ratio),
@@ -75,11 +77,12 @@ public:
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
 
 private:
-  std::shared_ptr<FlexibleModelFittingParameter> m_alpha_coord;
-  std::shared_ptr<FlexibleModelFittingParameter> m_delta_coord;
+  std::shared_ptr<FlexibleModelFittingParameter> m_x;
+  std::shared_ptr<FlexibleModelFittingParameter> m_y;
   std::shared_ptr<FlexibleModelFittingParameter> m_flux;
   std::shared_ptr<FlexibleModelFittingParameter> m_effective_radius;
   std::shared_ptr<FlexibleModelFittingParameter> m_aspect_ratio;
@@ -88,14 +91,14 @@ private:
 
 class FlexibleModelFittingDevaucouleursModel : public FlexibleModelFittingModel {
 public:
-  FlexibleModelFittingDevaucouleursModel(std::shared_ptr<FlexibleModelFittingParameter> alpha,
-                                  std::shared_ptr<FlexibleModelFittingParameter> delta,
+  FlexibleModelFittingDevaucouleursModel(std::shared_ptr<FlexibleModelFittingParameter> x,
+                                  std::shared_ptr<FlexibleModelFittingParameter> y,
                                   std::shared_ptr<FlexibleModelFittingParameter> flux,
                                   std::shared_ptr<FlexibleModelFittingParameter> effective_radius,
                                   std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
                                   std::shared_ptr<FlexibleModelFittingParameter> angle)
-      : m_alpha_coord(alpha),
-        m_delta_coord(delta),
+      : m_x(x),
+        m_y(y),
         m_flux(flux),
         m_effective_radius(effective_radius),
         m_aspect_ratio(aspect_ratio),
@@ -108,11 +111,12 @@ public:
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
 
 private:
-  std::shared_ptr<FlexibleModelFittingParameter> m_alpha_coord;
-  std::shared_ptr<FlexibleModelFittingParameter> m_delta_coord;
+  std::shared_ptr<FlexibleModelFittingParameter> m_x;
+  std::shared_ptr<FlexibleModelFittingParameter> m_y;
   std::shared_ptr<FlexibleModelFittingParameter> m_flux;
   std::shared_ptr<FlexibleModelFittingParameter> m_effective_radius;
   std::shared_ptr<FlexibleModelFittingParameter> m_aspect_ratio;
@@ -121,15 +125,15 @@ private:
 
 class FlexibleModelFittingSersicModel : public FlexibleModelFittingModel {
 public:
-  FlexibleModelFittingSersicModel(std::shared_ptr<FlexibleModelFittingParameter> alpha,
-                                  std::shared_ptr<FlexibleModelFittingParameter> delta,
+  FlexibleModelFittingSersicModel(std::shared_ptr<FlexibleModelFittingParameter> x,
+                                  std::shared_ptr<FlexibleModelFittingParameter> y,
                                   std::shared_ptr<FlexibleModelFittingParameter> flux,
                                   std::shared_ptr<FlexibleModelFittingParameter> sersic_index,
                                   std::shared_ptr<FlexibleModelFittingParameter> effective_radius,
                                   std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
                                   std::shared_ptr<FlexibleModelFittingParameter> angle)
-      : m_alpha_coord(alpha),
-        m_delta_coord(delta),
+      : m_x(x),
+        m_y(y),
         m_flux(flux),
         m_sersic_index(sersic_index),
         m_effective_radius(effective_radius),
@@ -143,11 +147,12 @@ public:
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
 
 private:
-  std::shared_ptr<FlexibleModelFittingParameter> m_alpha_coord;
-  std::shared_ptr<FlexibleModelFittingParameter> m_delta_coord;
+  std::shared_ptr<FlexibleModelFittingParameter> m_x;
+  std::shared_ptr<FlexibleModelFittingParameter> m_y;
   std::shared_ptr<FlexibleModelFittingParameter> m_flux;
   std::shared_ptr<FlexibleModelFittingParameter> m_sersic_index;
   std::shared_ptr<FlexibleModelFittingParameter> m_effective_radius;
