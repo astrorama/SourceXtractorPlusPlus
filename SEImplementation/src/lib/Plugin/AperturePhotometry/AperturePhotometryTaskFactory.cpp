@@ -14,9 +14,11 @@
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArray.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArrayTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTaskFactory.h"
 #include "SEImplementation/Configuration/ApertureConfig.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
@@ -33,6 +35,11 @@ std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId
       m_magnitude_zero_point,
       m_symmetry_usage
     );
+  } else if (property_id.getTypeId() == typeid(AperturePhotometryArray)) {
+    return std::make_shared<AperturePhotometryArrayTask>(
+      m_apertures_per_output.at(instance),
+      instance
+    );
   } else if (property_id == PropertyId::create<ApertureFlag>()) {
     return std::make_shared<ApertureFlagTask>(m_all_apertures);
   }
@@ -44,26 +51,26 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
   std::vector<std::pair<std::string, unsigned int>> mag_instances, mag_err_instances;
   std::vector<std::pair<std::string, unsigned int>> flags_instances;
 
-  for (auto &o : m_outputs) {
-    auto name = o.first;
-    auto imgs_for_column = o.second;
+  for (auto &aggregated_ap : m_apertures_per_output) {
+    auto& array_id = aggregated_ap.first;
+    auto& apertures_ids = aggregated_ap.second;
 
-    for (auto &img_id : imgs_for_column) {
-      flux_instances.emplace_back(std::make_pair(name + "_flux_" + std::to_string(img_id), img_id));
-      flux_err_instances.emplace_back(std::make_pair(name + "_flux_err_" + std::to_string(img_id), img_id));
-      mag_instances.emplace_back(std::make_pair(name + "_mag_" + std::to_string(img_id), img_id));
-      mag_err_instances.emplace_back(std::make_pair(name + "_mag_err_" + std::to_string(img_id), img_id));
-      flags_instances.emplace_back(std::make_pair(name + "_flags_" + std::to_string(img_id), img_id));
-    }
+    std::string name = m_col_prefix.at(array_id);
+
+    flux_instances.emplace_back(std::make_pair(name + "_flux", array_id));
+    flux_err_instances.emplace_back(std::make_pair(name + "_flux_err", array_id));
+    mag_instances.emplace_back(std::make_pair(name + "_mag", array_id));
+    mag_err_instances.emplace_back(std::make_pair(name + "_mag_err", array_id));
+    flags_instances.emplace_back(std::make_pair(name + "_flags", array_id));
   }
 
-  if (m_outputs.size()) {
-    registry.enableOutput<AperturePhotometry>();
-    registry.registerPropertyInstances<AperturePhotometry>("aperture_flux", flux_instances);
-    registry.registerPropertyInstances<AperturePhotometry>("aperture_flux_err", flux_err_instances);
-    registry.registerPropertyInstances<AperturePhotometry>("aperture_mag", mag_instances);
-    registry.registerPropertyInstances<AperturePhotometry>("aperture_mag_err", mag_err_instances);
-    registry.registerPropertyInstances<AperturePhotometry>("aperture_flags", flags_instances);
+  if (flux_instances.size()) {
+    registry.enableOutput<AperturePhotometryArray>();
+    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
+    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
+    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
+    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
+    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
   }
 }
 
@@ -91,7 +98,12 @@ void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManag
     }
   }
 
-  m_outputs = aperture_config.getImagesToOutput();
+  auto outputs = aperture_config.getImagesToOutput();
+  unsigned i = 0;
+  for (auto j = outputs.begin(); j != outputs.end(); ++i, ++j) {
+    m_col_prefix[i] = j->first;
+    m_apertures_per_output[i] = j->second;
+  }
 }
 
 }

@@ -16,7 +16,7 @@ void ApertureConfig::initialize(const Euclid::Configuration::Configuration::User
   auto &py = getDependency<PythonConfig>().getInterpreter();
 
   // Used to get the image corresponding to a given aperture ID
-  std::map<int, int> ap_id_to_img;
+  std::map<unsigned, unsigned> ap_id_to_img;
 
   // These are the apertures we need to compute for each image
   auto apertures = py.getApertures();
@@ -40,7 +40,7 @@ void ApertureConfig::initialize(const Euclid::Configuration::Configuration::User
   }
 }
 
-std::vector<float> ApertureConfig::getAperturesForImage(int image_id) const {
+std::vector<float> ApertureConfig::getAperturesForImage(unsigned image_id) const {
   auto i = m_apertures.find(image_id);
   if (i == m_apertures.end()) {
     return {};
@@ -48,7 +48,7 @@ std::vector<float> ApertureConfig::getAperturesForImage(int image_id) const {
   return i->second;
 }
 
-const std::map<int, std::vector<float>>& ApertureConfig::getApertures() const {
+const std::map<unsigned, std::vector<float>>& ApertureConfig::getApertures() const {
   return m_apertures;
 }
 
