@@ -4,7 +4,7 @@
  */
 
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
-#include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
+#include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
 
@@ -12,19 +12,19 @@ namespace SExtractor {
 
 ObjectInfo::ObjectInfo(const SourceInterface& source) : m_source(source) { }
 
-SeFloat ObjectInfo::getAlphaCoord() const {
-  return m_source.get().getProperty<WorldCentroid>().getCentroidAlpha();
+SeFloat ObjectInfo::getCentroidX() const {
+  return m_source.get().getProperty<PixelCentroid>().getCentroidX();
 }
 
-SeFloat ObjectInfo::getDeltaCoord() const {
-  return m_source.get().getProperty<WorldCentroid>().getCentroidDelta();
+SeFloat ObjectInfo::getCentroidY() const {
+  return m_source.get().getProperty<PixelCentroid>().getCentroidY();
 }
 
 SeFloat ObjectInfo::getIsoFlux() const {
   return m_source.get().getProperty<IsophotalFlux>().getFlux();
 }
 
-SeFloat ObjectInfo::getRadiusWorld() const {
+SeFloat ObjectInfo::getRadius() const {
   return m_source.get().getProperty<ShapeParameters>().getEllipseA() / 2.0;
 }
 

@@ -20,13 +20,13 @@ public:
   
   virtual ~ObjectInfo() = default;
   
-  SeFloat getAlphaCoord() const;
+  SeFloat getCentroidX() const;
   
-  SeFloat getDeltaCoord() const;
+  SeFloat getCentroidY() const;
   
   SeFloat getIsoFlux() const;
   
-  SeFloat getRadiusWorld() const;
+  SeFloat getRadius() const;
   
   SeFloat getAngle() const;
 
