@@ -36,6 +36,7 @@ private:
   SeFloat m_kron_minrad;
   bool    m_symmetry_usage;
   std::vector<std::pair<std::string, unsigned int>> m_auto_names;
+  std::vector<unsigned> m_images;
 };
 
 }

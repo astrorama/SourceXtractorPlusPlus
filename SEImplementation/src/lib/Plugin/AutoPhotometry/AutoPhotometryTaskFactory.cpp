@@ -16,9 +16,11 @@
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryArray.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryConfig.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlagTask.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryArrayTask.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTaskFactory.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
@@ -47,6 +49,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
 
   for (unsigned int i = 0; i < measurement_images_nb; ++i) {
     m_auto_names.emplace_back(std::make_pair(std::to_string(i), i));
+    m_images.push_back(i);
   }
 }
 
@@ -60,6 +63,8 @@ std::shared_ptr<Task> AutoPhotometryTaskFactory::createTask(const PropertyId &pr
                                                 m_kron_minrad, m_symmetry_usage);
   } else if (property_id == PropertyId::create<AutoPhotometryFlag>()) {
     return std::make_shared<AutoPhotometryFlagTask>(m_kron_factor, m_kron_minrad);
+  } else if (property_id == PropertyId::create<AutoPhotometryArray>()) {
+    return std::make_shared<AutoPhotometryArrayTask>(m_images);
   } else {
     return nullptr;
   }
