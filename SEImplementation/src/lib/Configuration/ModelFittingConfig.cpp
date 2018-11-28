@@ -61,48 +61,48 @@ void ModelFittingConfig::initialize(const UserValues&) {
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
-    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
-    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
-        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id]);
+        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id]);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
-    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
-    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     int n_id = py::extract<int>(p.second.attr("n").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingSersicModel>(
-        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
         m_parameters[angle_id], m_parameters[n_id]);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
-    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
-    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingExponentialModel>(
-        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
-    int alpha_id = py::extract<int>(p.second.attr("alpha").attr("id"));
-    int delta_id = py::extract<int>(p.second.attr("delta").attr("id"));
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingDevaucouleursModel>(
-        m_parameters[alpha_id], m_parameters[delta_id], m_parameters[flux_id],
+        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
   
