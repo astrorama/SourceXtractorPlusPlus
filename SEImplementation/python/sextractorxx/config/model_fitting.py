@@ -191,33 +191,33 @@ class ModelBase(cpp.Id):
 
 class CoordinateModelBase(ModelBase):
 
-    def __init__(self, alpha, delta, flux):
+    def __init__(self, x_coord, y_coord, flux):
         ModelBase.__init__(self)
-        self.alpha = alpha if isinstance(alpha, ParameterBase) else ConstantParameter(alpha)
-        self.delta = delta if isinstance(delta, ParameterBase) else ConstantParameter(delta)
+        self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
+        self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
 
 
 class PointSourceModel(CoordinateModelBase):
 
-    def __init__(self, alpha, delta, flux):
-        CoordinateModelBase.__init__(self, alpha, delta, flux)
+    def __init__(self, x_coord, y_coord, flux):
+        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
         global point_source_model_dict
         point_source_model_dict[self.id] = self
 
     def to_string(self, show_params=False):
         if show_params:
-            return 'PointSource[alpha={}, delta={}, flux={}]'.format(
-                self.alpha, self.delta, self.flux)
+            return 'PointSource[x_coord={}, y_coord={}, flux={}]'.format(
+                self.x_coord, self.y_coord, self.flux)
         else:
-            return 'PointSource[alpha={}, delta={}, flux={}]'.format(
-                self.alpha.id, self.delta.id, self.flux.id)
+            return 'PointSource[x_coord={}, y_coord={}, flux={}]'.format(
+                self.x_coord.id, self.y_coord.id, self.flux.id)
 
 
 class SersicModelBase(CoordinateModelBase):
 
-    def __init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle):
-        CoordinateModelBase.__init__(self, alpha, delta, flux)
+    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
+        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
         self.effective_radius = effective_radius if isinstance(effective_radius, ParameterBase) else ConstantParameter(effective_radius)
         self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
         self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
@@ -225,49 +225,49 @@ class SersicModelBase(CoordinateModelBase):
 
 class SersicModel(SersicModelBase):
 
-    def __init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle, n):
-        SersicModelBase.__init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle)
+    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle, n):
+        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         self.n = n if isinstance(n, ParameterBase) else ConstantParameter(n)
         global sersic_model_dict
         sersic_model_dict[self.id] = self
 
     def to_string(self, show_params=False):
         if show_params:
-            return 'Sersic[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
-                self.alpha, self.delta, self.flux, self.effective_radius, self.aspect_ratio, self.angle, self.n)
+            return 'Sersic[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
+                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle, self.n)
         else:
-            return 'Sersic[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
-                self.alpha.id, self.delta.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id, self.n.id)
+            return 'Sersic[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
+                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id, self.n.id)
 
 
 class ExponentialModel(SersicModelBase):
 
-    def __init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle):
-        SersicModelBase.__init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle)
+    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
+        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         global exponential_model_dict
         exponential_model_dict[self.id] = self
 
     def to_string(self, show_params=False):
         if show_params:
-            return 'Exponential[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.alpha, self.delta, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
+            return 'Exponential[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
         else:
-            return 'Exponential[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.alpha.id, self.delta.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
+            return 'Exponential[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
 
 class DeVaucouleursModel(SersicModelBase):
 
-    def __init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle):
-        SersicModelBase.__init__(self, alpha, delta, flux, effective_radius, aspect_ratio, angle)
+    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
+        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         global de_vaucouleurs_model_dict
         de_vaucouleurs_model_dict[self.id] = self
 
     def to_string(self, show_params=False):
         if show_params:
-            return 'DeVaucouleurs[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.alpha, self.delta, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
+            return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
         else:
-            return 'DeVaucouleurs[alpha={}, delta={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.alpha.id, self.delta.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
+            return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
