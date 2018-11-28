@@ -42,9 +42,8 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
     m_priors.push_back(p.second);
   }
 
-  // m_max_iterations = model_fitting_config.getMaxIterations();
-  m_max_iterations = 99; //FIXME
-  
+  m_max_iterations = model_fitting_config.getMaxIterations();
+
   m_outputs = model_fitting_config.getOutputs();
 }
 
