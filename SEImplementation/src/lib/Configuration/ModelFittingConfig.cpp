@@ -132,6 +132,9 @@ void ModelFittingConfig::initialize(const UserValues&) {
   }
   
   m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
+
+  auto parameters = getDependency<PythonConfig>().getInterpreter().getModelFittingParams();
+  m_max_iterations = py::extract<int>(parameters["max_iterations"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

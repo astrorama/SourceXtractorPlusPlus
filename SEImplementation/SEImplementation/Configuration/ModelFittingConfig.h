@@ -32,7 +32,10 @@ public:
   
   const std::vector<std::pair<std::string, std::vector<int>>>& getOutputs() const;
   
+  unsigned int getMaxIterations() const { return m_max_iterations; }
+
 private:
+  unsigned int m_max_iterations {0};
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
