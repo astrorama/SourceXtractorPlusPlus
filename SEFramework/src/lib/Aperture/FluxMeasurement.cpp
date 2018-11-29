@@ -25,6 +25,7 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
   // Skip if the full source is outside the frame
   if (max_pixel.m_x < 0 || max_pixel.m_y < 0 || min_pixel.m_x >= img->getWidth() ||
       min_pixel.m_y >= img->getHeight()) {
+    measurement.m_flags = Flags::OUTSIDE;
     return measurement;
   }
 

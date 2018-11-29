@@ -22,6 +22,7 @@ enum class Flags : int64_t {
   SATURATED = 1 << 2, ///< At least one pixel of the object is saturated.
   BOUNDARY  = 1 << 3, ///< The object is truncates (to close to an image boundary).
   NEIGHBORS = 1 << 4, ///< The object has neighbors, bright and close enough
+  OUTSIDE   = 1 << 5, ///< The object is completely outside of the measurement frame
 };
 
 
