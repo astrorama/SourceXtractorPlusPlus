@@ -6,7 +6,7 @@
 #include <signal.h>
 #include <utility>
 #include <boost/python.hpp>
-#include <python2.7/Python.h>
+#include <Python.h>
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
 namespace py = boost::python;
