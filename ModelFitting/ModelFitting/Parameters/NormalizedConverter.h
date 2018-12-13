@@ -60,6 +60,9 @@ public:
    */
   double engineToWorld(const double engine_value) const override;
   
+  double getEngineToWorldDerivative(const double value) const override;
+
+
 private:
   
   double m_norm_value;

@@ -201,7 +201,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   double pixel_scale = 1;
   FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_manager {};
+  ModelFitting::EngineParameterManager engine_parameter_manager {};
 
   {
     std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -209,7 +209,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Prepare parameters
     for (auto& source : group) {
       for (auto parameter : m_parameters) {
-        parameter_manager.addParameter(source, parameter, parameter->create(parameter_manager, engine_manager, source));
+        parameter_manager.addParameter(source, parameter, parameter->create(parameter_manager, engine_parameter_manager, source));
       }
     }
   }
@@ -219,7 +219,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   int valid_frames = 0;
   for (auto frame : m_frames) {
-     int frame_index = frame->getFrameNb();
+    int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
       valid_frames++;
@@ -236,18 +236,16 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     }
   }
 
-
   if (valid_frames == 0) {
     // Can't do model fitting as no measurement frame overlaps the detected source
     // We still need to provide a property
     for (auto& source : group) {
-      std::unordered_map<int, double> parameter_values;
+      std::unordered_map<int, double> dummy_values;
       for (auto parameter : m_parameters) {
-          parameter_values[parameter->getId()] = 99;
+          dummy_values[parameter->getId()] = 99;
       }
-      source.setProperty<FlexibleModelFitting>(0, 99, parameter_values);
+      source.setProperty<FlexibleModelFitting>(0, 99, dummy_values, dummy_values);
     }
-
     return;
   }
 
@@ -260,18 +258,29 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(engine_manager, res_estimator);
+  auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
   printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 
+  for (auto error : solution.parameter_sigmas) {
+    std::cout << error << " ";
+  }
+  std::cout << "\n";
+
   // Collect parameters for output
+  int parameter_index=0;
   for (auto& source : group) {
-    std::unordered_map<int, double> parameter_values;
+    std::unordered_map<int, double> parameter_values, parameter_sigmas;
     for (auto parameter : m_parameters) {
       parameter_values[parameter->getId()] = parameter_manager.getParameter(source, parameter)->getValue();
+      if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+        parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
+      } else {
+        parameter_sigmas[parameter->getId()] = 99.; // FIXME need user defined error margin for dependent parameters
+      }
     }
-    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values);
+    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values, parameter_sigmas);
   }
 
   updateCheckImages(group, pixel_scale, parameter_manager);
@@ -311,7 +320,6 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       }
 
       auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(), debug_image);
-
 
       std::stringstream checkimage_residual_id;
       checkimage_residual_id << m_checkimage_prefix << "_residual_" << frame_id;
