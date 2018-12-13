@@ -20,4 +20,9 @@ double NeutralConverter::engineToWorld(const double engine_value) const {
   return engine_value;
 }
 
+double NeutralConverter::getEngineToWorldDerivative(const double /*value*/) const {
+  return 1;
+}
+
+
 }// namespace ModelFitting

@@ -43,6 +43,8 @@ public:
 
   void setEngineValue(const double engine_value);
 
+  double getEngineToWorldDerivative() const;
+
 protected:
   /*
    * The setValue should not be implemented in this class, nor in any
