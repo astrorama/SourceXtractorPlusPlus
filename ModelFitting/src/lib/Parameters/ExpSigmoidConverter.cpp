@@ -28,5 +28,9 @@ double ExpSigmoidConverter::engineToWorld(const double engine_value) const {
   return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
 }
 
+double ExpSigmoidConverter::getEngineToWorldDerivative(const double value) const {
+  return value * log(value - m_min_value) * log(m_max_value - value) / log(m_max_value - m_min_value);
+}
+
 
 }// namespace ModelFitting

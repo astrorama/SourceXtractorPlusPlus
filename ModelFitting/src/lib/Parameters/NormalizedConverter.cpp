@@ -20,4 +20,8 @@ double NormalizedConverter::engineToWorld(const double engine_value) const {
   return engine_value * m_norm_value;
 }
 
+double NormalizedConverter::getEngineToWorldDerivative(const double /*value*/) const {
+  return m_norm_value;
+}
+
 } // end of namespace ModelFitting

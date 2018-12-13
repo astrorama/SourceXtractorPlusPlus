@@ -116,6 +116,9 @@ public:
   template <typename DoubleIter>
   void updateEngineValues(DoubleIter new_values_iter);
   
+  std::vector<double> convertCovarianceMatrixToWorldSpace(std::vector<double> covariance_matrix) const;
+
+
 private:
   
   std::vector<EngineParameter> m_parameters {};

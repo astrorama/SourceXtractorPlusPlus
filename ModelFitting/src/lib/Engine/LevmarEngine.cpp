@@ -51,6 +51,8 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   // Create a vector for getting the information of the minimization
   std::array<double, 10> info;
 
+  std::vector<double> covariance_matrix (parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
+
   levmar_mutex.lock();
   // Call the levmar library
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
@@ -62,13 +64,19 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          m_opts.data(), // The minimization options
                          info.data(), // Where the information of the minimization is stored
                          NULL, // Working memory is allocated internally
-                         NULL, // Ignoring covariance for the moment
+                         covariance_matrix.data(),
                          &adata // No additional data needed
                         );
   levmar_mutex.unlock();
   
   // Create and return the summary object
   LeastSquareSummary summary {};
+
+  auto converted_covariance_matrix = parameter_manager.convertCovarianceMatrixToWorldSpace(covariance_matrix);
+  for (unsigned int i=0; i<parameter_manager.numberOfParameters(); i++) {
+    summary.parameter_sigmas.push_back(sqrt(converted_covariance_matrix[i*(parameter_manager.numberOfParameters()+1)]));
+  }
+
   summary.success_flag = (res != -1);
   summary.iteration_no = info[5];
   summary.underlying_framework_info = info;
