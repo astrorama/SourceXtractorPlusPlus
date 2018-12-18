@@ -1,8 +1,9 @@
+#include <Python.h>
+#include <ElementsKernel/Logging.h>
+#include <boost/python.hpp>
+
 #include "SEUtils/Python.h"
 
-#include <ElementsKernel/Logging.h>
-#include <Python.h>
-#include <boost/python.hpp>
 
 namespace py = boost::python;
 

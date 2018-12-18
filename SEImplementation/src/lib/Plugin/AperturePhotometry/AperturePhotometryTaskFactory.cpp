@@ -53,7 +53,6 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
 
   for (auto &aggregated_ap : m_apertures_per_output) {
     auto& array_id = aggregated_ap.first;
-    auto& apertures_ids = aggregated_ap.second;
 
     std::string name = m_col_prefix.at(array_id);
 

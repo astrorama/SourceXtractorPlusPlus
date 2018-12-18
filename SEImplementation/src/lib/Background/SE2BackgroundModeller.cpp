@@ -178,7 +178,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   PIXTYPE* weightData=NULL;
   int* maskData=NULL;
 
-  PIXTYPE  undefNumber=-BIG;
+  //PIXTYPE  undefNumber=-BIG;
 
   BackgroundCell* oneCell=NULL;
 
@@ -354,7 +354,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   }
 
   // convert the grid of rms values to variance
-  for (auto index=0; index<nGridPoints; index++)
+  for (size_t index=0; index<nGridPoints; index++)
     bckSigVals[index] *= bckSigVals[index];
 
   // create the splined interpolation images for background and variance
@@ -371,7 +371,10 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     delete [] weightData;
 }
 
-void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
+void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr,
+                                         std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac,
+                                         const size_t *bckCellSize, const PIXTYPE varianceThreshold,
+                                         const size_t */*filterBoxSize*/, const float &/*filterThreshold*/)
   {
   int status=0;
   int anynul=0;
@@ -866,7 +869,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   PIXTYPE* sigmaFilt=NULL;
   PIXTYPE* bmask=NULL;
   PIXTYPE* smask=NULL;
-  PIXTYPE allBckMed, allSigmaMed, median;
+  PIXTYPE allSigmaMed, median; //allBckMed
   int    i,nx,ny,npx,npx2,npy,npy2,x,y;
   int np;
 
@@ -967,7 +970,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
   // compute the median values for the background
   // and the sigma
-  allBckMed   = SE2BackgroundUtils::fqMedian(backFilt, np);
+  //allBckMed   = SE2BackgroundUtils::fqMedian(backFilt, np);
   allSigmaMed = SE2BackgroundUtils::fqMedian(sigmaFilt, np);
 
   // NOTE: I don't understand what that does.

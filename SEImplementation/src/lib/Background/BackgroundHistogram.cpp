@@ -98,7 +98,7 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
 
   int hilowIndex, hihighIndex;
   //int hcutIndex, lcutIndex;
-  int hilowVal, hihighVal;
+  //int hilowVal, hihighVal;
   unsigned long mySum;
   double myMea, mySig, myDpix;
   //int    myI, myN, myLcut,myHcut, myNlevelsm1, myPix;
@@ -137,8 +137,8 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
     hilowIndex=lcut;
     hihighIndex=hcut;
     //histotVal = histo[histotIndex];
-    hilowVal  = histo[hilowIndex];
-    hihighVal = histo[hihighIndex];
+    //hilowVal  = histo[hilowIndex];
+    //hihighVal = histo[hihighIndex];
 
     for (i=lcut; i<=hcut; i++)
     {
@@ -146,13 +146,13 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
       {
         lowsum   += *(hilow++);
         hilowIndex++;
-        hilowVal = histo[hilowIndex];
+        //hilowVal = histo[hilowIndex];
       }
       else
       {
         highsum +=  *(hihigh--);
         hihighIndex--;
-        hihighVal = histo[hihighIndex];
+        //hihighVal = histo[hihighIndex];
       }
 
       sum += (pix = *(histot++));
