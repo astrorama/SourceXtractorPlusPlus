@@ -9,7 +9,6 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/python.hpp>
 
 #include <iomanip>
 
@@ -63,7 +62,6 @@
 
 
 namespace po = boost::program_options;
-namespace py = boost::python;
 namespace fs = boost::filesystem;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
@@ -112,10 +110,6 @@ static void handleUnexpectedExceptions(void) {
     logger.fatal() << "Unhandled exception!";
     try {
       std::rethrow_exception(ex_ptr);
-    }
-    catch (const py::error_already_set &) {
-      auto elements_ex = pyToElementsException(logger);
-      logger.fatal() << elements_ex.what();
     }
     catch (const std::exception &e) {
       logger.fatal() << e.what();
@@ -434,11 +428,6 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   }
   catch (const std::exception &e) {
     logger.fatal() << e.what();
-    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
-  }
-  catch (const py::error_already_set &e) {
-    auto elements_ex = pyToElementsException(logger);
-    logger.fatal() << elements_ex.what();
     return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
   }
   catch (...) {
