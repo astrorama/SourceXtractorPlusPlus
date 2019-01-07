@@ -436,6 +436,11 @@ ELEMENTS_API int main(int argc, char* argv[]) {
     logger.fatal() << e.what();
     return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
   }
+  catch (const py::error_already_set &e) {
+    auto elements_ex = pyToElementsException(logger);
+    logger.fatal() << elements_ex.what();
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
+  }
   catch (...) {
     logger.fatal() << "Unknown exception type!";
     logger.fatal() << "Please, report this as a bug";
