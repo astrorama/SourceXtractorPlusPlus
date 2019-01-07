@@ -109,19 +109,19 @@ static void handleUnexpectedExceptions(void) {
   std::exception_ptr ex_ptr = std::current_exception();
 
   if (ex_ptr) {
-    logger.error() << "Unhandled exception!";
+    logger.fatal() << "Unhandled exception!";
     try {
       std::rethrow_exception(ex_ptr);
     }
     catch (const py::error_already_set &) {
       auto elements_ex = pyToElementsException(logger);
-      logger.error() << elements_ex.what();
+      logger.fatal() << elements_ex.what();
     }
     catch (const std::exception &e) {
-      logger.error() << e.what();
+      logger.fatal() << e.what();
     }
     catch (...) {
-      logger.error() << "Unknown exception type. This is likely caused by a bug somewhere.";
+      logger.fatal() << "Unknown exception type. This is likely caused by a bug somewhere.";
     }
   }
 
