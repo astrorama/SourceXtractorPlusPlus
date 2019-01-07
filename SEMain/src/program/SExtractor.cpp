@@ -367,57 +367,69 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   // Try to be reasonably graceful with unhandled exceptions
   std::set_terminate(handleUnexpectedExceptions);
 
-  // First we create a program which has a sole purpose to get the options for
-  // the plugin paths. Note that we do not want to have this helper program
-  // to handle any other options except of the plugin-directory and plugin, so
-  // we create a subset of the given options with only the necessary ones. We
-  // also turn off the the logging.
-  std::vector<int> masked_indices {};
-  std::vector<std::string> plugin_options_input {};
-  plugin_options_input.emplace_back("DummyProgram");
-  plugin_options_input.emplace_back("--log-level");
-  plugin_options_input.emplace_back("FATAL");
-  for (int i = 0; i < argc; ++i) {
-    std::string option {argv[i]};
-    if (option == "--config-file") {
-      plugin_options_input.emplace_back("--config-file");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
+  try {
+    // First we create a program which has a sole purpose to get the options for
+    // the plugin paths. Note that we do not want to have this helper program
+    // to handle any other options except of the plugin-directory and plugin, so
+    // we create a subset of the given options with only the necessary ones. We
+    // also turn off the the logging.
+    std::vector<int> masked_indices{};
+    std::vector<std::string> plugin_options_input{};
+    plugin_options_input.emplace_back("DummyProgram");
+    plugin_options_input.emplace_back("--log-level");
+    plugin_options_input.emplace_back("FATAL");
+    for (int i = 0; i < argc; ++i) {
+      std::string option{argv[i]};
+      if (option == "--config-file") {
+        plugin_options_input.emplace_back("--config-file");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--config-file=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin-directory") {
+        plugin_options_input.emplace_back("--plugin-directory");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin-directory=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin") {
+        plugin_options_input.emplace_back("--plugin");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin=")) {
+        plugin_options_input.emplace_back(option);
+      }
     }
-    if (boost::starts_with(option, "--config-file=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin-directory") {
-      plugin_options_input.emplace_back("--plugin-directory");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin-directory=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin") {
-      plugin_options_input.emplace_back("--plugin");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin=")) {
-      plugin_options_input.emplace_back(option);
-    }
-  }
-  
-  int argc_tmp = plugin_options_input.size();
-  std::vector<const char*> argv_tmp (argc_tmp);
-  for (unsigned int i=0; i<plugin_options_input.size(); ++i){
-    auto& option_str = plugin_options_input[i];
-    argv_tmp[i] = option_str.data();
-  }
 
-  std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
-  Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  plugin_options_program.run(argc_tmp, const_cast<char**>(argv_tmp.data()));
-  
-  Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  Elements::ExitCode exit_code = man.run(argc, argv);
-  return static_cast<Elements::ExitCodeType>(exit_code);
+    int argc_tmp = plugin_options_input.size();
+    std::vector<const char *> argv_tmp(argc_tmp);
+    for (unsigned int i = 0; i < plugin_options_input.size(); ++i) {
+      auto &option_str = plugin_options_input[i];
+      argv_tmp[i] = option_str.data();
+    }
+
+    std::unique_ptr<Elements::Program> plugin_options_main{new PluginOptionsMain{plugin_path, plugin_list}};
+    Elements::ProgramManager plugin_options_program{std::move(plugin_options_main),
+                                                    THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING,
+                                                    THIS_MODULE_VERSION_STRING,
+                                                    THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
+
+    Elements::ProgramManager man{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
+                                 THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
+                                 THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    Elements::ExitCode exit_code = man.run(argc, argv);
+    return static_cast<Elements::ExitCodeType>(exit_code);
+  }
+  catch (const std::exception &e) {
+    logger.fatal() << e.what();
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
+  }
+  catch (...) {
+    logger.fatal() << "Unknown exception type!";
+    logger.fatal() << "Please, report this as a bug";
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::SOFTWARE);
+  }
 }
