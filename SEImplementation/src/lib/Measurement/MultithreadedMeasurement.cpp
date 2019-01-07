@@ -8,11 +8,14 @@
 #include <iostream>
 #include <chrono>
 
-#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
+#include <ElementsKernel/Logging.h>
 
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 using namespace SExtractor;
+
+static Elements::Logging logger = Elements::Logging::getLogger("MultithreadedMeasurement");
 
 std::recursive_mutex MultithreadedMeasurement::g_global_mutex;
 
@@ -20,7 +23,7 @@ void MultithreadedMeasurement::startThreads() {
   // Start worker threads
   m_active_threads = m_worker_threads_nb;
   for (int i=0; i<m_worker_threads_nb; i++) {
-    m_worker_threads.emplace_back(std::make_shared<std::thread>(workerThreadStatic, this));
+    m_worker_threads.emplace_back(std::make_shared<std::thread>(workerThreadStatic, this, i));
   }
 
   // Start output thread
@@ -28,6 +31,8 @@ void MultithreadedMeasurement::startThreads() {
 }
 
 void MultithreadedMeasurement::waitForThreads() {
+  logger.debug() << "Waiting for worker threads";
+
   // set flag to indicate no new input will be coming
   {
     std::unique_lock<std::mutex> input_lock(m_input_queue_mutex);
@@ -40,6 +45,8 @@ void MultithreadedMeasurement::waitForThreads() {
     m_worker_threads[i]->join();
   }
   m_output_thread->join();
+
+  logger.debug() << "All worker threads done!";
 }
 
 void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
@@ -57,12 +64,16 @@ void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupIn
   m_new_input.notify_one();
 }
 
-void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* measurement) {
+void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* measurement, int id) {
+  logger.debug() << "Starting worker thread " << id;
   measurement->workerThreadLoop();
+  logger.debug() << "Stopping worker thread " << id;
 }
 
 void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement) {
+  logger.debug() << "Starting output thread";
   measurement->outputThreadLoop();
+  logger.debug() << "Stopping output thread";
 }
 
 void MultithreadedMeasurement::workerThreadLoop() {

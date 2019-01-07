@@ -37,7 +37,7 @@ public:
   static std::recursive_mutex g_global_mutex;
 
 private:
-  static void workerThreadStatic(MultithreadedMeasurement* measurement);
+  static void workerThreadStatic(MultithreadedMeasurement* measurement, int id);
   static void outputThreadStatic(MultithreadedMeasurement* measurement);
   void workerThreadLoop();
   void outputThreadLoop();
