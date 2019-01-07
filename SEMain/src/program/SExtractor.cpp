@@ -64,6 +64,7 @@
 
 namespace po = boost::program_options;
 namespace py = boost::python;
+namespace fs = boost::filesystem;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
 
@@ -188,6 +189,15 @@ public:
         std::cout << name << '\n';
       }
       return Elements::ExitCode::OK;
+    }
+
+    // Elements does not verify that the config-file exists. It will just not read it.
+    // We verify that it does exist here.
+    if (args.find("config-file") != args.end()) {
+      auto cfg_file = args.at("config-file").as<fs::path>();
+      if (!fs::exists(cfg_file)) {
+        throw Elements::Exception() << "The configuration file '" << cfg_file << "' does not exist";
+      }
     }
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
