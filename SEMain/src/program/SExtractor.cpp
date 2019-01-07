@@ -417,10 +417,10 @@ ELEMENTS_API int main(int argc, char* argv[]) {
                                                     THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
     plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
 
-    Elements::ProgramManager man{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
+    Elements::ProgramManager main{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
                                  THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
                                  THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-    Elements::ExitCode exit_code = man.run(argc, argv);
+    Elements::ExitCode exit_code = main.run(argc, argv);
     return static_cast<Elements::ExitCodeType>(exit_code);
   }
   catch (const std::exception &e) {
