@@ -163,7 +163,7 @@ public:
     
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
       for (auto& name : output_registry->getOptionalOutputNames()) {
-        std::cout << name << '\n';
+        std::cout << name << std::endl;
       }
       return Elements::ExitCode::OK;
     }
@@ -261,8 +261,8 @@ public:
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
     // FIXME we should use average or median rather than value at coordinate 0,0
-    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+    logger.info() << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+      << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0));
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
@@ -280,9 +280,9 @@ public:
     }
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-            << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-          //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    logger.info() << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
+        << " threshold: "  << detection_frame->getDetectionThreshold();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
@@ -301,7 +301,13 @@ public:
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
-    output->flush();
+    size_t n_writen_rows = output->flush();
+
+    if (n_writen_rows > 0) {
+      std::cout << n_writen_rows << " sources detected" << std::endl;
+    } else {
+      std::cout << "NO SOURCES DETECTED" << std::endl;
+    }
 
     return Elements::ExitCode::OK;
   }

@@ -71,8 +71,8 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
   if (weight_type_map.find(weight_type_name) == weight_type_map.end()) {
     throw Elements::Exception() << "Unknown weight map type : " << py_image.weight_type;
   }
-  std::cout << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight() 
-      << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling << std::endl;
+  logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
+      << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling;
   weight_map = WeightImageConfig::convertWeightMap(weight_map, weight_type_map[weight_type_name], py_image.weight_scaling);
   // Sanity checks
   if (py_image.weight_file != "" && weight_type_map[weight_type_name] == WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
@@ -116,8 +116,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
     
     PyMeasurementImage& py_image = p.second;
     validateImagePaths(py_image);
-    
-    std::cout << "%%%\n";
+
+    logger.debug() << "Initializing MeasurementImageConfig";
 
     m_measurement_images.push_back(createMeasurementImage(py_image));
     m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));

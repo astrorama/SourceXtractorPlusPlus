@@ -49,7 +49,7 @@ public:
   template <typename T>
   static std::shared_ptr<WriteableImage<T>> newImage(const std::string &filename, int width, int height,
                                                      const std::shared_ptr<CoordinateSystem> coord_system = nullptr) {
-    std::cout << "Creating file " << filename << '\n';
+    fitsWriterLogger.debug() << "Creating file " << filename;
     auto image_source = std::make_shared<FitsImageSource<T>>(filename, width, height, coord_system);
     return WriteableBufferedImage<T>::create(image_source);
   }
@@ -57,7 +57,7 @@ public:
   template <typename T>
     static std::shared_ptr<WriteableImage<T>> newTemporaryImage(const std::string &pattern, int width, int height,
       bool auto_remove = true) {
-    std::cout << "Creating temporary fits file \n";
+    fitsWriterLogger.debug() << "Creating temporary fits file";
     auto image_source = std::make_shared<TemporaryFitsImageSource<T>>(pattern, width, height, auto_remove);
     return WriteableBufferedImage<T>::create(image_source);
   }
