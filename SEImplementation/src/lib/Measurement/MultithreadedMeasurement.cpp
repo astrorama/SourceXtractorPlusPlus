@@ -47,6 +47,11 @@ void MultithreadedMeasurement::waitForThreads() {
   m_output_thread->join();
 
   logger.debug() << "All worker threads done!";
+
+  if (m_rethrow) {
+    logger.debug() << "A thread had set an error, rethrowing";
+    throw Elements::Exception(*m_rethrow);
+  }
 }
 
 void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
@@ -66,18 +71,38 @@ void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupIn
 
 void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* measurement, int id) {
   logger.debug() << "Starting worker thread " << id;
-  measurement->workerThreadLoop();
+  try {
+    measurement->workerThreadLoop();
+  }
+  catch (const std::exception &e) {
+    logger.error() << "Worker thread " << id << " got an exception!";
+    logger.error() << "Aborting the execution";
+
+    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
+    measurement->m_abort = true;
+    measurement->m_rethrow.reset(new Elements::Exception(e.what()));
+  }
   logger.debug() << "Stopping worker thread " << id;
 }
 
 void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement) {
   logger.debug() << "Starting output thread";
-  measurement->outputThreadLoop();
+  try {
+    measurement->outputThreadLoop();
+  }
+  catch (const std::exception &e) {
+    logger.error() << "Output thread got an exception!";
+    logger.error() << "Aborting the execution";
+
+    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
+    measurement->m_abort = true;
+    measurement->m_rethrow.reset(new Elements::Exception(e.what()));
+  }
   logger.debug() << "Stopping output thread";
 }
 
 void MultithreadedMeasurement::workerThreadLoop() {
-  while (true) {
+  while (!m_abort) {
     int order_number;
     std::shared_ptr<SourceGroupInterface> source_group;
     {
@@ -120,7 +145,7 @@ void MultithreadedMeasurement::workerThreadLoop() {
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (true) {
+  while (!m_abort) {
     {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
