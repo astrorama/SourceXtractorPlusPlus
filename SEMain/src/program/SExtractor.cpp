@@ -17,6 +17,7 @@
 
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
+#include "ElementsKernel/System.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
 
@@ -103,24 +104,6 @@ static void setupEnvironment(void) {
   }
 }
 
-static void handleUnexpectedExceptions(void) {
-  std::exception_ptr ex_ptr = std::current_exception();
-
-  if (ex_ptr) {
-    logger.fatal() << "Unhandled exception!";
-    try {
-      std::rethrow_exception(ex_ptr);
-    }
-    catch (const std::exception &e) {
-      logger.fatal() << e.what();
-    }
-    catch (...) {
-      logger.fatal() << "Unknown exception type. This is likely caused by a bug somewhere.";
-    }
-  }
-
-  abort();
-}
 
 class SEMain : public Elements::Program {
   
@@ -368,7 +351,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   setupEnvironment();
 
   // Try to be reasonably graceful with unhandled exceptions
-  std::set_terminate(handleUnexpectedExceptions);
+  std::set_terminate(&Elements::ProgramManager::onTerminate);
 
   try {
     // First we create a program which has a sole purpose to get the options for
