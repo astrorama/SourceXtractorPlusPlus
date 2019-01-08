@@ -33,6 +33,8 @@ public:
   }
 
   virtual void outputSource(const SourceInterface& source) = 0;
+
+  virtual void flush() = 0;
 };
 
 }

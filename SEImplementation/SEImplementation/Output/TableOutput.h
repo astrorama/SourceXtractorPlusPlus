@@ -20,7 +20,7 @@ public:
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
   
-  virtual ~TableOutput() {
+  void flush() override {
     if (!m_rows.empty()) {
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);

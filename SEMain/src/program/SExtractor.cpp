@@ -301,6 +301,7 @@ public:
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    output->flush();
 
     return Elements::ExitCode::OK;
   }
