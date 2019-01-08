@@ -27,7 +27,7 @@ void MultithreadedMeasurement::startThreads() {
   }
 
   // Start output thread
-  m_output_thread = std::make_shared<std::thread>(outputThreadStatic, this);
+  m_output_thread = std::make_shared<std::thread>(outputThreadStatic, this, m_worker_threads_nb);
 }
 
 void MultithreadedMeasurement::waitForThreads() {
@@ -49,8 +49,8 @@ void MultithreadedMeasurement::waitForThreads() {
   logger.debug() << "All worker threads done!";
 
   if (m_rethrow) {
-    logger.debug() << "A thread had set an error, rethrowing";
-    throw Elements::Exception(*m_rethrow);
+    logger.debug() << "Rethrowing error set by thread " << m_rethrow->first;
+    throw Elements::Exception(m_rethrow->second);
   }
 }
 
@@ -80,13 +80,13 @@ void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* meas
 
     std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
     measurement->m_abort = true;
-    measurement->m_rethrow.reset(new Elements::Exception(e.what()));
+    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
   }
   logger.debug() << "Stopping worker thread " << id;
 }
 
-void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement) {
-  logger.debug() << "Starting output thread";
+void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement, int id) {
+  logger.debug() << "Starting output thread " << id;
   try {
     measurement->outputThreadLoop();
   }
@@ -96,9 +96,9 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* meas
 
     std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
     measurement->m_abort = true;
-    measurement->m_rethrow.reset(new Elements::Exception(e.what()));
+    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
   }
-  logger.debug() << "Stopping output thread";
+  logger.debug() << "Stopping output thread " << id;
 }
 
 void MultithreadedMeasurement::workerThreadLoop() {

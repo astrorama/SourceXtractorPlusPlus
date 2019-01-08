@@ -39,7 +39,7 @@ public:
 
 private:
   static void workerThreadStatic(MultithreadedMeasurement* measurement, int id);
-  static void outputThreadStatic(MultithreadedMeasurement* measurement);
+  static void outputThreadStatic(MultithreadedMeasurement* measurement, int id);
   void workerThreadLoop();
   void outputThreadLoop();
 
@@ -65,7 +65,7 @@ private:
   std::mutex m_output_queue_mutex;
 
   std::atomic_bool m_abort;
-  std::unique_ptr<Elements::Exception> m_rethrow;
+  std::unique_ptr<std::pair<int, Elements::Exception>> m_rethrow;
 };
 
 }
