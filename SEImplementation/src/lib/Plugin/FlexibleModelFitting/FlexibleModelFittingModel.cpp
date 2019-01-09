@@ -41,16 +41,17 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
                                          std::vector<ModelFitting::PointModel>& point_models,
                                          std::vector<ModelFitting::TransformedModel>& /*extended_models*/,
                                          std::tuple<double, double, double, double> /*jacobian*/,
+                                         std::shared_ptr<CoordinateSystem> reference_coordinates,
                                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const  {
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_x - offset.m_x;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_y - offset.m_y;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   manager.storeParameter(pixel_x);
   manager.storeParameter(pixel_y);
@@ -63,16 +64,17 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
+                          std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_x - offset.m_x;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_y - offset.m_y;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
   ManualParameter n(1); // Sersic index for exponential
@@ -109,16 +111,17 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
+                          std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_x - offset.m_x;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_y - offset.m_y;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
   ManualParameter n(4); // Sersic index for Devaucouleurs
@@ -166,16 +169,17 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
+                          std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_x - offset.m_x;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [coordinates, offset](double alpha, double delta) {
-        return coordinates->worldToImage(WorldCoordinate(alpha, delta)).m_y - offset.m_y;
-      }, *manager.getParameter(source, m_alpha_coord), *manager.getParameter(source, m_delta_coord));
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
@@ -205,8 +209,5 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       size, size, *pixel_x, *pixel_y, jacobian);
 }
 
-
-
 }
-
 

@@ -171,6 +171,8 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
 
   auto frame_coordinates =
       group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+  auto ref_coordinates =
+      group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
@@ -181,7 +183,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
 
   for (auto& source : group) {
     for (auto model : frame->getModels()) {
-      model->addForSource(manager, source, point_models, extended_models, jacobian, frame_coordinates, stamp_rect.getTopLeft());
+      model->addForSource(manager, source, point_models, extended_models, jacobian, ref_coordinates, frame_coordinates, stamp_rect.getTopLeft());
     }
   }
 
