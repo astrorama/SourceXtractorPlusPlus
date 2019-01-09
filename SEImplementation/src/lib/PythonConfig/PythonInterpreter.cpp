@@ -158,4 +158,17 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
   return result;
 }
 
+std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
+  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
+  py::list ids = parameters.keys();
+  std::map<std::string, boost::python::object> result;
+  for (int i = 0; i < py::len(ids); ++i) {
+    std::string id = py::extract<std::string>(ids[i]);
+    auto par = parameters[ids[i]];
+    result.emplace(std::make_pair(id, par));
+  }
+  return result;
+}
+
 }
