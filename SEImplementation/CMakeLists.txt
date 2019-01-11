@@ -59,6 +59,7 @@ elements_add_library(SEImplementation
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
+            src/lib/Deblending/*.cpp
             
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp Boost PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}

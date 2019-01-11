@@ -118,6 +118,13 @@ public:
     return m_variance_map;
   }
 
+  std::shared_ptr<WeightImage> getConvolvedVarianceMap() const {
+    if (m_convolved_variance_map == nullptr) {
+      //const_cast<Frame<T>*>(this)->applyFilter();
+    }
+    return m_filtered_image;
+  }
+
   void setVarianceMap(std::shared_ptr<WeightImage> variance_map) {
     m_variance_map = variance_map;
 
@@ -200,6 +207,8 @@ private:
   std::shared_ptr<ImageFilter> m_filter;
   std::shared_ptr<Image<T>> m_interpolated_image;
   std::shared_ptr<Image<T>> m_filtered_image;
+
+  std::shared_ptr<Image<T>> m_convolved_variance_map;
 };
 
 using DetectionImageFrame = Frame<DetectionImage::PixelType>;
