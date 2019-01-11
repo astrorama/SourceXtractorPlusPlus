@@ -308,8 +308,7 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       std::stringstream checkimage_id;
       checkimage_id << m_checkimage_prefix << "_debug_" << frame_id;
       auto debug_image = CheckImages::getInstance().getWriteableCheckImage(checkimage_id.str(),
-          frame->getSubtractedImage()->getWidth(),
-          frame->getSubtractedImage()->getHeight());
+          frame->getSubtractedImage()->getWidth(), frame->getSubtractedImage()->getHeight());
 
       for (int x=0; x<final_stamp->getWidth(); x++) {
         for (int y=0; y<final_stamp->getHeight(); y++) {

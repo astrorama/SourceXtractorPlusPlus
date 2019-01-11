@@ -72,12 +72,12 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
   source_observer->m_list.clear();
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources, nullptr, PixelCoordinate(0,0), nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 2);
   source_observer->m_list.clear();

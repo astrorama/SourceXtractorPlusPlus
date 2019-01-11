@@ -77,33 +77,37 @@ BOOST_AUTO_TEST_SUITE (SimpleModelFitting_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(modelfitting_test, SimpleModelFittingFixture) {
-  auto image = psf->getScaledKernel(10);
-  std::vector<PixelCoordinate> pixel_coordinates;
-  for (auto x = 0; x < image->getWidth(); ++x) {
-    for (auto y = 0; y < image->getHeight(); ++y) {
-      pixel_coordinates.emplace_back(x, y);
-    }
-  }
 
-  auto variance_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
-  variance_image->fillValue(0);
+  // FIXME
+  BOOST_CHECK(false);
 
-  auto detection_frame = std::make_shared<DetectionImageFrame>(
-    image, nullptr, 10,
-    std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
-
-  source->setProperty<ShapeParameters>(5, 5, 0, 1, 1, 1, 1, 25);
-  source->setProperty<PixelCentroid>(image->getWidth()/2 - 1, image->getHeight() / 2 - 2);
-  source->setProperty<PixelBoundaries>(0 , 0, image->getWidth(), image->getHeight());
-  source->setProperty<IsophotalFlux>(10., 0., 1., 0.);
-  source->setProperty<PixelCoordinateList>(pixel_coordinates);
-  source->setProperty<DetectionFrame>(detection_frame);
-
-  group.setProperty<DetectionFrameGroupStamp>(image, image, PixelCoordinate(0,0), variance_image);
-  group.setProperty<PsfProperty>(std::move(*psf));
-  model_fitting_task->computeProperties(group);
-
-  BOOST_CHECK(true);
+  //  auto image = psf->getScaledKernel(10);
+//  std::vector<PixelCoordinate> pixel_coordinates;
+//  for (auto x = 0; x < image->getWidth(); ++x) {
+//    for (auto y = 0; y < image->getHeight(); ++y) {
+//      pixel_coordinates.emplace_back(x, y);
+//    }
+//  }
+//
+//  auto variance_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+//  variance_image->fillValue(0);
+//
+//  auto detection_frame = std::make_shared<DetectionImageFrame>(
+//    image, nullptr, 10,
+//    std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
+//
+//  source->setProperty<ShapeParameters>(5, 5, 0, 1, 1, 1, 1, 25);
+//  source->setProperty<PixelCentroid>(image->getWidth()/2 - 1, image->getHeight() / 2 - 2);
+//  source->setProperty<PixelBoundaries>(0 , 0, image->getWidth(), image->getHeight());
+//  source->setProperty<IsophotalFlux>(10., 0., 1., 0.);
+//  source->setProperty<PixelCoordinateList>(pixel_coordinates);
+//  source->setProperty<DetectionFrame>(detection_frame);
+//
+//  group.setProperty<DetectionFrameGroupStamp>(image, image, PixelCoordinate(0,0), variance_image);
+//  group.setProperty<PsfProperty>(std::move(*psf));
+//  model_fitting_task->computeProperties(group);
+//
+//  BOOST_CHECK(true);
 }
 
 //-----------------------------------------------------------------------------

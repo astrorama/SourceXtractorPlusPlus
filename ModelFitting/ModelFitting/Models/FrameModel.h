@@ -30,6 +30,12 @@ public:
              std::vector<TransformedModel> extended_model_list,
              PsfType psf);
   
+  FrameModel(double pixel_scale, std::size_t width, std::size_t height,
+             std::vector<ConstantModel> constant_model_list,
+             std::vector<PointModel> point_model_list,
+             std::vector<TransformedModel> extended_model_list);
+
+
   FrameModel(FrameModel&&) = default;
   
   virtual ~FrameModel();

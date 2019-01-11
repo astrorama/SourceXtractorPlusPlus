@@ -8,13 +8,13 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_SIMPLEMODELFITTING_SIMPLEMODELFITTINGTASK_H_
 
-#include "SEFramework/Task/GroupTask.h"
+#include "SEFramework/Task/SourceTask.h"
 
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace SExtractor {
 
-class SimpleModelFittingTask : public GroupTask {
+class SimpleModelFittingTask : public SourceTask {
 
 public:
   SimpleModelFittingTask(unsigned int max_iterations)
@@ -22,7 +22,7 @@ public:
 
   virtual ~SimpleModelFittingTask() = default;
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  virtual void computeProperties(SourceInterface& group) const override;
 
 private:
 
