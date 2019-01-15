@@ -37,6 +37,8 @@ public:
   void recomputeImage();
   
   const ImageType& getImage();
+
+  void rasterToImage(ImageType&);
   
   const_iterator begin();
   
