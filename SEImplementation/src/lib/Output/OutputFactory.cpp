@@ -36,17 +36,17 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   
   auto out_file = output_config.getOutputFile();
 
-  // Check if we can, at least, create it.
-  // Otherwise, the error will be triggered only at the end of the full process!
-  {
-    std::ofstream check_writeable{out_file};
-    if (!check_writeable) {
-      throw Elements::Exception(
-        std::system_error(errno, std::system_category(), "Failed to open the output catalog").what());
-    }
-  }
-
   if (out_file != "") {
+    // Check if we can, at least, create it.
+    // Otherwise, the error will be triggered only at the end of the full process!
+    {
+      std::ofstream check_writeable{out_file};
+      if (!check_writeable) {
+        throw Elements::Exception(
+          std::system_error(errno, std::system_category(), "Failed to open the output catalog").what());
+      }
+    }
+
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
         m_table_handler = [out_file](const Euclid::Table::Table& table) {
