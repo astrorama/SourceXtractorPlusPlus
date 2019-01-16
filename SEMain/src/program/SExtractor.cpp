@@ -172,7 +172,7 @@ public:
     // We verify that it does exist here.
     if (args.find("config-file") != args.end()) {
       auto cfg_file = args.at("config-file").as<fs::path>();
-      if (!fs::exists(cfg_file)) {
+      if (cfg_file != "" && !fs::exists(cfg_file)) {
         throw Elements::Exception() << "The configuration file '" << cfg_file << "' does not exist";
       }
     }
