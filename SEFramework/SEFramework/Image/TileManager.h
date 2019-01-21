@@ -15,10 +15,14 @@
 #include <list>
 #include <unordered_map>
 
+#include <ElementsKernel/Logging.h>
+
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/ImageSource.h"
 
 namespace SExtractor {
+
+
 
 struct TileKey {
   std::shared_ptr<const ImageSourceBase> m_source;
@@ -52,7 +56,8 @@ namespace SExtractor {
 class TileManager {
 public:
 
-  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(100*1024L*1024L), m_total_memory_used(0) {
+  TileManager() : m_tile_width(256), m_tile_height(256), m_max_memory(100 * 1024L * 1024L), m_total_memory_used(0),
+                  m_tile_logger(Elements::Logging::getLogger("TileManager")) {
   }
 
   virtual ~TileManager() {
@@ -127,6 +132,9 @@ public:
 private:
 
   void removeTile(TileKey tile_key) {
+    m_tile_logger.debug() << "Evicting tile (" << tile_key.m_source << " " << tile_key.m_tile_x << ","
+                          << tile_key.m_tile_y << ") from cache";
+
     auto& tile = m_tile_map.at(tile_key);
 
     tile->saveIfModified();
@@ -145,6 +153,9 @@ private:
   }
 
   void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {
+    m_tile_logger.debug() << "Cache miss (" << key.m_source << " " << key.m_tile_x << ","
+                          << key.m_tile_y << ")";
+
     m_tile_map[key] = tile;
     m_tile_list.push_front(key);
     m_total_memory_used += tile->getTileSize();
@@ -158,6 +169,8 @@ private:
   std::list<TileKey> m_tile_list;
 
   std::recursive_mutex m_mutex;
+
+  Elements::Logging m_tile_logger;
 
   static std::shared_ptr<TileManager> s_instance;
 };

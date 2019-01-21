@@ -82,15 +82,20 @@ template <typename PsfType, typename ImageType>
 void FrameModel<PsfType, ImageType>::recomputeImage() {
   using Traits = ImageTraits<ImageType>;
   m_model_image.reset(new ImageType(Traits::factory(m_width, m_height)));
-  _impl::addConstantModels(*m_model_image, m_constant_model_list);
-  _impl::addPointModels(*m_model_image, m_point_model_list, m_psf, m_pixel_scale);
-  _impl::addExtendedModels(*m_model_image, m_extended_model_list, m_psf, m_pixel_scale);
+  rasterToImage(*m_model_image);
 }
 
 template <typename PsfType, typename ImageType>
 const ImageType& FrameModel<PsfType, ImageType>::getImage() {
   recomputeImage();
   return *m_model_image;
+}
+
+template <typename PsfType, typename ImageType>
+void FrameModel<PsfType, ImageType>::rasterToImage(ImageType &model_image) {
+  _impl::addConstantModels(model_image, m_constant_model_list);
+  _impl::addPointModels(model_image, m_point_model_list, m_psf, m_pixel_scale);
+  _impl::addExtendedModels(model_image, m_extended_model_list, m_psf, m_pixel_scale);
 }
 
 template <typename PsfType, typename ImageType>

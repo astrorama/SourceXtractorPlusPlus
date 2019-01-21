@@ -34,6 +34,175 @@ typedef enum  {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
 
 using ImageInterfaceType = SExtractor::VectorImage<SExtractor::SeFloat>;
 using ImageInterfaceTypePtr = std::shared_ptr<ImageInterfaceType>;
+using WriteableInterfaceType = SExtractor::WriteableImage<SExtractor::SeFloat>;
+using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
+
+
+static void make_kernel(float pos, float *kernel, interpenum interptype) {
+  const float pi = boost::math::constants::pi<float>();
+  const float threshold = 1e-6;
+  float  x, val, sinx1,sinx2,sinx3,cosx1;
+
+  if (interptype == INTERP_NEARESTNEIGHBOUR)
+    *kernel = 1.0;
+  else if (interptype == INTERP_BILINEAR) {
+    *(kernel++) = 1.0 - pos;
+    *kernel = pos;
+  } else if (interptype == INTERP_LANCZOS2) {
+    if (pos < threshold && pos > - threshold) {
+      *(kernel++) = 0.0;
+      *(kernel++) = 1.0;
+      *(kernel++) = 0.0;
+      *kernel = 0.0;
+    } else {
+      x = - pi / 2.0 * (pos + 1.0);
+      sincosf(x, &sinx1, &cosx1);
+      val = (*(kernel++) = sinx1 / (x * x));
+      x += pi / 2.0;
+      val += (*(kernel++) = -cosx1 / (x * x));
+      x += pi / 2.0;
+      val += (*(kernel++) = -sinx1 / (x * x));
+      x += pi / 2.0;
+      val += (*kernel = cosx1 / (x * x));
+      val = 1.0/val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *kernel *= val;
+    }
+  } else if (interptype == INTERP_LANCZOS3) {
+    if (pos < threshold && pos > - threshold) {
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 1.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *kernel = 0.0;
+    } else {
+      x = - pi / 3.0 * (pos + 2.0);
+      sincosf(x, &sinx1, &cosx1);
+      val = (*(kernel++) = sinx1 / (x * x));
+      x += pi / 3.0;
+      val += (*(kernel++) = (sinx2 = -0.5 * sinx1 - 0.866025403785 * cosx1)
+                            / (x*x));
+      x += pi / 3.0;
+      val += (*(kernel++) = (sinx3 = - 0.5 * sinx1 + 0.866025403785 * cosx1)
+                            / (x * x));
+      x += pi / 3.0;
+      val += (*(kernel++) = sinx1 / (x * x));
+      x += pi / 3.0;
+      val += (*(kernel++) = sinx2 / (x * x));
+      x += pi / 3.0;
+      val += (*kernel = sinx3 / (x * x));
+      val = 1.0 / val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *kernel *= val;
+    }
+  } else if (interptype == INTERP_LANCZOS4) {
+    if (pos < threshold && pos > - threshold) {
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 1.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *(kernel++) = 0.0;
+      *kernel = 0.0;
+    } else {
+      x = - pi / 4.0 * (pos + 3.0);
+      sincosf(x, &sinx1, &cosx1);
+      val = (*(kernel++) = sinx1 / (x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = - (sinx2 = 0.707106781186 * (sinx1 + cosx1))
+                            / (x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = cosx1 / (x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = - (sinx3 = 0.707106781186 * (cosx1 - sinx1))
+                            /(x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = -sinx1 / (x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = sinx2 / (x * x));
+      x += pi / 4.0;
+      val += (*(kernel++) = -cosx1 / (x * x));
+      x += pi / 4.0;
+      val += (*kernel = sinx3 / (x * x));
+      val = 1.0 / val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *(kernel--) *= val;
+      *kernel *= val;
+    }
+  }
+}
+
+
+static float interpolate_pix(float *pix, float x, float y,
+                             int xsize, int ysize, interpenum interptype) {
+
+  static const int interp_kernwidth[5]={1,2,4,6,8};
+
+  float    buffer[INTERP_MAXKERNELWIDTH],
+    kernel[INTERP_MAXKERNELWIDTH],
+    *kvector, *pixin, *pixout,
+    dx, dy, val;
+  int    i, j, ix, iy, kwidth, step;
+
+  kwidth = interp_kernwidth[interptype];
+
+//-- Get the integer part of the current coordinate or nearest neighbour
+  if (interptype == INTERP_NEARESTNEIGHBOUR) {
+    ix = (int)(x-0.50001);
+    iy = (int)(y-0.50001);
+  } else {
+    ix = (int)x;
+    iy = (int)y;
+  }
+
+//-- Store the fractional part of the current coordinate
+  dx = x - ix;
+  dy = y - iy;
+//-- Check if interpolation start/end exceed image boundary
+  ix -= kwidth / 2;
+  iy -= kwidth / 2;
+  if (ix < 0 || ix + kwidth <= 0 || ix + kwidth > xsize ||
+      iy < 0 || iy + kwidth <= 0 || iy + kwidth > ysize)
+    return 0.0;
+
+//-- First step: interpolate along NAXIS1 from the data themselves
+  make_kernel(dx, kernel, interptype);
+  step = xsize - kwidth;
+  pixin = pix + iy * xsize + ix ; // Set starting pointer
+  pixout = buffer;
+  for (j = kwidth; j--;) {
+    val = 0.0;
+    kvector = kernel;
+    for (i = kwidth; i--;)
+      val += *(kvector++) * *(pixin++);
+    *(pixout++) = val;
+    pixin += step;
+  }
+
+//-- Second step: interpolate along NAXIS2 from the interpolation buffer
+  make_kernel(dy, kernel, interptype);
+  pixin = buffer;
+  val = 0.0;
+  kvector = kernel;
+  for (i = kwidth; i--;)
+    val += *(kvector++) * *(pixin++);
+
+  return val;
+}
+
 
 template <>
 struct ImageTraits<ImageInterfaceTypePtr> {
@@ -146,170 +315,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
 
   }
 
-  static float interpolate_pix(float *pix, float x, float y,
-      int xsize, int ysize, interpenum interptype) {
 
-     static const int interp_kernwidth[5]={1,2,4,6,8};
-
-     float    buffer[INTERP_MAXKERNELWIDTH],
-      kernel[INTERP_MAXKERNELWIDTH],
-      *kvector, *pixin, *pixout,
-      dx, dy, val;
-     int    i, j, ix, iy, kwidth, step;
-
-    kwidth = interp_kernwidth[interptype];
-
-//-- Get the integer part of the current coordinate or nearest neighbour
-    if (interptype == INTERP_NEARESTNEIGHBOUR) {
-      ix = (int)(x-0.50001);
-      iy = (int)(y-0.50001);
-    } else {
-      ix = (int)x;
-      iy = (int)y;
-    }
-
-//-- Store the fractional part of the current coordinate
-    dx = x - ix;
-    dy = y - iy;
-//-- Check if interpolation start/end exceed image boundary
-    ix -= kwidth / 2;
-    iy -= kwidth / 2;
-    if (ix < 0 || ix + kwidth <= 0 || ix + kwidth > xsize ||
-  iy < 0 || iy + kwidth <= 0 || iy + kwidth > ysize)
-      return 0.0;
-
-//-- First step: interpolate along NAXIS1 from the data themselves
-    make_kernel(dx, kernel, interptype);
-    step = xsize - kwidth;
-    pixin = pix + iy * xsize + ix ; // Set starting pointer
-    pixout = buffer;
-    for (j = kwidth; j--;) {
-      val = 0.0;
-      kvector = kernel;
-      for (i = kwidth; i--;)
-        val += *(kvector++) * *(pixin++);
-      *(pixout++) = val;
-      pixin += step;
-    }
-
-//-- Second step: interpolate along NAXIS2 from the interpolation buffer
-    make_kernel(dy, kernel, interptype);
-    pixin = buffer;
-    val = 0.0;
-    kvector = kernel;
-    for (i = kwidth; i--;)
-      val += *(kvector++) * *(pixin++);
-
-    return val;
-  }
-
-
-  static void make_kernel(float pos, float *kernel, interpenum interptype) {
-   const float pi = boost::math::constants::pi<float>();
-   const float threshold = 1e-6;
-   float  x, val, sinx1,sinx2,sinx3,cosx1;
-
-    if (interptype == INTERP_NEARESTNEIGHBOUR)
-      *kernel = 1.0;
-    else if (interptype == INTERP_BILINEAR) {
-      *(kernel++) = 1.0 - pos;
-      *kernel = pos;
-    } else if (interptype == INTERP_LANCZOS2) {
-      if (pos < threshold && pos > - threshold) {
-        *(kernel++) = 0.0;
-        *(kernel++) = 1.0;
-        *(kernel++) = 0.0;
-        *kernel = 0.0;
-      } else {
-        x = - pi / 2.0 * (pos + 1.0);
-        sincosf(x, &sinx1, &cosx1);
-        val = (*(kernel++) = sinx1 / (x * x));
-        x += pi / 2.0;
-        val += (*(kernel++) = -cosx1 / (x * x));
-        x += pi / 2.0;
-        val += (*(kernel++) = -sinx1 / (x * x));
-        x += pi / 2.0;
-        val += (*kernel = cosx1 / (x * x));
-        val = 1.0/val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *kernel *= val;
-      }
-    } else if (interptype == INTERP_LANCZOS3) {
-      if (pos < threshold && pos > - threshold) {
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 1.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *kernel = 0.0;
-      } else {
-        x = - pi / 3.0 * (pos + 2.0);
-        sincosf(x, &sinx1, &cosx1);
-        val = (*(kernel++) = sinx1 / (x * x));
-        x += pi / 3.0;
-        val += (*(kernel++) = (sinx2 = -0.5 * sinx1 - 0.866025403785 * cosx1)
-        / (x*x));
-        x += pi / 3.0;
-        val += (*(kernel++) = (sinx3 = - 0.5 * sinx1 + 0.866025403785 * cosx1)
-        / (x * x));
-        x += pi / 3.0;
-        val += (*(kernel++) = sinx1 / (x * x));
-        x += pi / 3.0;
-        val += (*(kernel++) = sinx2 / (x * x));
-        x += pi / 3.0;
-        val += (*kernel = sinx3 / (x * x));
-        val = 1.0 / val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *kernel *= val;
-      }
-    } else if (interptype == INTERP_LANCZOS4) {
-      if (pos < threshold && pos > - threshold) {
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 1.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *(kernel++) = 0.0;
-        *kernel = 0.0;
-      } else {
-        x = - pi / 4.0 * (pos + 3.0);
-        sincosf(x, &sinx1, &cosx1);
-        val = (*(kernel++) = sinx1 / (x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = - (sinx2 = 0.707106781186 * (sinx1 + cosx1))
-        / (x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = cosx1 / (x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = - (sinx3 = 0.707106781186 * (cosx1 - sinx1))
-        /(x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = -sinx1 / (x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = sinx2 / (x * x));
-        x += pi / 4.0;
-        val += (*(kernel++) = -cosx1 / (x * x));
-        x += pi / 4.0;
-        val += (*kernel = sinx3 / (x * x));
-        val = 1.0 / val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *(kernel--) *= val;
-        *kernel *= val;
-      }
-    }
-  }
 }; // end of class ImageTraits<ImageInterfaceTypePtr>
 
 //ImageInterfaceTypePtr operator*(std::shared_ptr<const Image<ImageInterfaceType::PixelType>> image, ImageInterfaceType::PixelType factor) {
