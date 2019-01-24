@@ -47,6 +47,11 @@ public:
     for (auto& current_name : m_property_to_names_map[typeid(PropertyType)]) {
       // Get the current converter
       auto converter = m_name_to_converter_map.at(current_name);
+      // Remove the old converter
+      // Do it *before*, because the new name may be the same!
+      m_name_to_converter_map.erase(current_name);
+
+      // Add the new ones
       for (auto instance : instance_names) {
         // Make a copy of the converter and set the index
         auto new_converter = converter;
@@ -57,8 +62,6 @@ public:
         m_name_to_converter_map.emplace(new_name, new_converter);
         new_names.push_back(new_name);
       }
-      // Remove the old converter
-      m_name_to_converter_map.erase(current_name);
     }
     // Replace all the old names with the new ones
     m_property_to_names_map[typeid(PropertyType)] = new_names;
@@ -76,6 +79,11 @@ public:
     std::vector<std::string> new_names {};
     // Get the current converter
     auto converter = m_name_to_converter_map.at(current_name);
+    // Remove the old converter
+    // Do it *before*, because the new name may be the same!
+    m_name_to_converter_map.erase(current_name);
+
+    // Add the new ones
     for (auto instance : instance_names) {
       // Make a copy of the converter and set the index
       auto new_converter = converter;
@@ -85,8 +93,7 @@ public:
       m_name_to_converter_map.emplace(new_name, new_converter);
       new_names.push_back(new_name);
     }
-    // Remove the old converter
-    m_name_to_converter_map.erase(current_name);
+
     // Replace all the old names with the new ones
     auto& names = m_property_to_names_map[typeid(PropertyType)];
     names.erase(std::find(names.begin(), names.end(), current_name));
