@@ -16,7 +16,7 @@
 #include <SEImplementation/Configuration/MeasurementImageConfig.h>
 #include <Configuration/ConfigManager.h>
 #include <ElementsKernel/Logging.h>
-#include <SEImplementation/Configuration/ApertureConfig.h>
+#include <SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h>
 #include <SEImplementation/Configuration/ModelFittingConfig.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEFramework/Source/SimpleSourceFactory.h>
@@ -40,7 +40,7 @@ int main() {
 
   auto &config_manager = ConfigManager::getInstance(1);
   config_manager.registerConfiguration<MeasurementImageConfig>();
-  config_manager.registerConfiguration<ApertureConfig>();
+  config_manager.registerConfiguration<AperturePhotometryConfig>();
   config_manager.registerConfiguration<ModelFittingConfig>();
   config_manager.closeRegistration();
 
@@ -51,7 +51,7 @@ int main() {
   //auto &py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
 
   auto &mconfig = config_manager.getConfiguration<MeasurementImageConfig>();
-  auto &aconfig = config_manager.getConfiguration<ApertureConfig>();
+  auto &aconfig = config_manager.getConfiguration<AperturePhotometryConfig>();
 
   auto &measurement_images = mconfig.getImagePaths();
 

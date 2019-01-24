@@ -20,7 +20,7 @@
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArrayTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTaskFactory.h"
-#include "SEImplementation/Configuration/ApertureConfig.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
 
 namespace SExtractor {
@@ -77,13 +77,13 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<MagnitudeConfig>();
   manager.registerConfiguration<WeightImageConfig>();
-  manager.registerConfiguration<ApertureConfig>();
+  manager.registerConfiguration<AperturePhotometryConfig>();
   manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto &measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  auto &aperture_config = manager.getConfiguration<ApertureConfig>();
+  auto &aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   m_aperture_config = aperture_config.getApertures();
