@@ -3,7 +3,6 @@ from __future__ import division, print_function
 from enum import Enum
 
 import libSEImplementation as cpp
-from psutil.tests import sh
 
 
 class RangeType(Enum):
