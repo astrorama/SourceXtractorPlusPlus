@@ -200,6 +200,14 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
   }}};
 }
 
+void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::UserValues &args) {
+  // Fail if there is no PSF file, but PSF_FWHM is set and PSF_PIXELSCALE is not
+  if (args.find(PSF_FILE) == args.end() && args.find(PSF_FWHM) != args.end() &&
+      args.find(PSF_PIXELSCALE) == args.end()) {
+    throw Elements::Exception("psf-pixelscale is required when using psf-fwhm");
+  }
+}
+
 void PsfPluginConfig::initialize(const UserValues &args) {
   if (args.find(PSF_FILE) != args.end()) {
     m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
