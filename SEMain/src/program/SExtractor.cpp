@@ -304,9 +304,9 @@ public:
     size_t n_writen_rows = output->flush();
 
     if (n_writen_rows > 0) {
-      std::cout << n_writen_rows << " sources detected" << std::endl;
+      logger.info() << n_writen_rows << " sources detected";
     } else {
-      std::cout << "NO SOURCES DETECTED" << std::endl;
+      logger.info() << "NO SOURCES DETECTED";
     }
 
     return Elements::ExitCode::OK;
