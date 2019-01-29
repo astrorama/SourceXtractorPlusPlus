@@ -47,6 +47,7 @@ void PythonInterpreter::runCode(const std::string &code) {
 void PythonInterpreter::runFile(const std::string &filename) {
   try {
     py::object main_module = py::import("__main__");
+    py::setattr(main_module, "__file__", py::object(filename));
     py::object main_namespace = main_module.attr("__dict__");
     py::exec_file(filename.c_str(), main_namespace);
   }
