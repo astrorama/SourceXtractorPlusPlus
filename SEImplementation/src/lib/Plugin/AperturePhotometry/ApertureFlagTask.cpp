@@ -46,8 +46,8 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
 
   std::map<float, Flags> all_flags;
 
-  for (auto aperture_size : m_apertures) {
-    auto aperture = CircularAperture(aperture_size);
+  for (auto aperture_diameter : m_apertures) {
+    auto aperture = CircularAperture(aperture_diameter / 2.);
 
     // get the aperture borders on the image
     auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
@@ -101,7 +101,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
         flag |= Flags::NEIGHBORS;
     }
 
-    all_flags.emplace(std::make_pair(aperture_size, flag));
+    all_flags.emplace(std::make_pair(aperture_diameter, flag));
   }
 
   // set the source properties
@@ -112,7 +112,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 
-    auto aperture = CircularAperture(m_apertures[0]);
+    auto aperture = CircularAperture(m_apertures[0] / 2.);
     auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
     auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
 

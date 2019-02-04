@@ -9,7 +9,6 @@
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
-#include "SEFramework/Aperture/CircularAperture.h"
 
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
