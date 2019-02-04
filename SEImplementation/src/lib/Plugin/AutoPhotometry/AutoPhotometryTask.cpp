@@ -41,6 +41,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   const auto &variance_map = measurement_frame->getVarianceMap();
   const auto &variance_threshold = measurement_frame->getVarianceThreshold();
   const auto &threshold_image = measurement_frame->getThresholdedImage();
+  SeFloat gain = measurement_frame->getGain();
 
   // get the object center
   const auto &centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
@@ -68,7 +69,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
                                  m_use_symmetry);
 
   // compute the derived quantities
-  auto flux_error = sqrt(measurement.m_variance);
+  auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
