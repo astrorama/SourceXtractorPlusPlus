@@ -32,7 +32,9 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
     std::vector<Row::cell_type> cell_values {};
     for (const auto& property : m_output_properties) {
       for (const auto& name : m_property_to_names_map.at(property)) {
-        info_list.emplace_back(name, m_name_to_converter_map.at(name).first);
+        auto& col_info = m_name_to_col_info_map.at(name);
+        info_list.emplace_back(name, m_name_to_converter_map.at(name).first,
+                               col_info.unit, col_info.description);
         cell_values.emplace_back(m_name_to_converter_map.at(name).second(source));
       }
     }
