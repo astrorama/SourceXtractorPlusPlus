@@ -32,7 +32,7 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
 
 
   // FIXME temporary, for now just enlarge the area by a fixed amount of pixels
-  PixelCoordinate border = (max - min) * .8 + PixelCoordinate(2, 2);
+  PixelCoordinate border = (max - min) * .8 + PixelCoordinate(5, 5);
 
   min -= border;
   max += border;

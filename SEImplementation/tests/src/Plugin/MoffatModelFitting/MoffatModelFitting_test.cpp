@@ -1,5 +1,5 @@
 /*
- * SimpleModelFitting_test.cpp
+ * MoffatModelFitting_test.cpp
  *
  *  Created on: Jun 30, 2017
  *      Author: mschefer
@@ -9,7 +9,8 @@
 
 #include <memory>
 
-
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
 
@@ -26,8 +27,6 @@
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
-#include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFitting.h"
-#include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTask.h"
 
 using namespace SExtractor;
 
@@ -56,27 +55,27 @@ public:
 //  return image;
 //}
 
-struct SimpleModelFittingFixture {
+struct MoffatModelFittingFixture {
   std::shared_ptr<SimpleSource> source {new SimpleSource};
   SimpleSourceGroup group;
 
   std::shared_ptr<ImagePsf> psf;
-  std::shared_ptr<SimpleModelFittingTask> model_fitting_task;
+  std::shared_ptr<MoffatModelFittingTask> model_fitting_task;
 
-  SimpleModelFittingFixture() {
+  MoffatModelFittingFixture() {
     group.addSource(source);
     psf = std::make_shared<ImagePsf>(1, PsfPluginConfig::generateGaussianPsf(5, 1)->getPsf({}));
-    model_fitting_task = std::make_shared<SimpleModelFittingTask>(100);
+    model_fitting_task = std::make_shared<MoffatModelFittingTask>(100);
   }
 };
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (SimpleModelFitting_test)
+BOOST_AUTO_TEST_SUITE (MoffatModelFitting_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_FIXTURE_TEST_CASE(modelfitting_test, SimpleModelFittingFixture) {
+BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 
   // FIXME
   BOOST_CHECK(false);

@@ -122,7 +122,7 @@ elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotomet
 elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(SimpleModelFitting_test tests/src/Plugin/SimpleModelFitting/SimpleModelFitting_test.cpp 
+elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
