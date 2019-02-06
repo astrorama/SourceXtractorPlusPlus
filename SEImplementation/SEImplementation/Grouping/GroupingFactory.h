@@ -15,6 +15,7 @@
 #include "SEImplementation/Grouping/NoGroupingCriteria.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
+#include "SEImplementation/Grouping/MoffatCriteria.h"
 
 
 #include "SEImplementation/Configuration/GroupingConfig.h"
@@ -45,6 +46,9 @@ public:
       break;
     case GroupingConfig::Algorithm::SPLIT_SOURCES:
       m_grouping_criteria = std::make_shared<SplitSourcesCriteria>();
+      break;
+    case GroupingConfig::Algorithm::MOFFAT:
+      m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold());
       break;
     }
   }

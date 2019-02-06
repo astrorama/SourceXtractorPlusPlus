@@ -1,5 +1,5 @@
 /*
- * SimpleModelTask.cpp
+ * MoffatModelTask.cpp
  *
  *  Created on: May 2, 2017
  *      Author: mschefer
@@ -13,6 +13,8 @@
 #include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <mutex>
 
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "ElementsKernel/PathSearch.h"
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
@@ -47,9 +49,6 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
-
-#include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFitting.h"
-#include "SEImplementation/Plugin/SimpleModelFitting/SimpleModelFittingTask.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -225,7 +224,7 @@ struct SourceModel {
 }
 
 
-void SimpleModelFittingTask::computeProperties(SourceInterface& source) const {
+void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
   auto& variance_stamp = source.getProperty<DetectionFrameSourceStamp>().getVarianceStamp();
   auto& thresholded_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdedStamp();
@@ -243,8 +242,9 @@ void SimpleModelFittingTask::computeProperties(SourceInterface& source) const {
   auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
   auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
-  double size_factor = 2;
-  auto size = std::max<double>(pixel_boundaries.getWidth(), pixel_boundaries.getHeight()) * size_factor;
+//  double size_factor = 2;
+//  auto size = std::max<double>(pixel_boundaries.getWidth(), pixel_boundaries.getHeight()) * size_factor;
+  auto size = std::max<double>(source_stamp.getWidth(), source_stamp.getHeight());
 
   //double radius_guess = std::max<double>(half_maximum_boundaries.getWidth(), half_maximum_boundaries.getHeight()) / 2.0;
   double radius_guess = shape_parameters.getEllipseA() / 2.0;
@@ -279,13 +279,13 @@ void SimpleModelFittingTask::computeProperties(SourceInterface& source) const {
   };
 
   auto weight = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
-  std::fill(weight->getData().begin(), weight->getData().end(), 0);
+  std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
-//  for (int y=0; y < source_stamp.getHeight(); y++) {
-//    for (int x=0; x < source_stamp.getWidth(); x++) {
-//      weight->at(x, y) = (thresholded_stamp.getValue(x, y) >= 0) ? 0 : 1;
-//    }
-//  }
+  for (int y=0; y < source_stamp.getHeight(); y++) {
+    for (int x=0; x < source_stamp.getWidth(); x++) {
+      weight->at(x, y) = (thresholded_stamp.getValue(x, y) >= 0) ? 0 : 1;
+    }
+  }
 
   auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
   for (auto pixel : pixel_coordinates) {
@@ -370,6 +370,7 @@ void SimpleModelFittingTask::computeProperties(SourceInterface& source) const {
       if (check_image) {
         CheckImages::getInstance().lock();
         check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
+//        check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + source_stamp.getValue(x, y));
         CheckImages::getInstance().unlock();
       }
 
@@ -381,17 +382,21 @@ void SimpleModelFittingTask::computeProperties(SourceInterface& source) const {
 
   SeFloat x = stamp_top_left.m_x + source_model->x.getValue();
   SeFloat y = stamp_top_left.m_y + source_model->y.getValue();
-  ImageCoordinate image_coordinate(x, y);
-  auto world_coordinate = coordinate_system->imageToWorld(image_coordinate);
+//  ImageCoordinate image_coordinate(x, y);
+//  auto world_coordinate = coordinate_system->imageToWorld(image_coordinate);
 
-  source.setProperty<SimpleModelFitting>(
+  source.setProperty<MoffatModelFitting>(
       x, y,
-      world_coordinate.m_alpha, world_coordinate.m_delta,
-      total_flux, 99, 99,
-      99, 99, 99,
-      99, 99, 99,
-//        source_model->getExpRatio(), source_model->getExpAngle(), source_model->getExpRadius(),
-//        source_model->getDevRatio(), source_model->getDevAngle(), source_model->getDevRadius(),
+
+      source_model->moffat_i0.getValue(),
+      source_model->moffat_index.getValue(),
+      source_model->minkowski_exponent.getValue(),
+      source_model->flat_top_offset.getValue(),
+      source_model->m_size,
+      source_model->moffat_x_scale.getValue(),
+      source_model->moffat_y_scale.getValue(),
+      source_model->moffat_rotation.getValue(),
+
       iterations
   );
 

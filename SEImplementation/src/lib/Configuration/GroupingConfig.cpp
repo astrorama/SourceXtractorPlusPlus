@@ -18,19 +18,23 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string GROUPING_ALGORITHM {"grouping-algorithm" };
+static const std::string GROUPING_MOFFAT_THRESHOLD {"grouping-moffat-threshold" };
 
 static const std::string GROUPING_ALGORITHM_NONE {"NONE" };
 static const std::string GROUPING_ALGORITHM_OVERLAP {"OVERLAP" };
 static const std::string GROUPING_ALGORITHM_SPLIT {"SPLIT" };
+static const std::string GROUPING_ALGORITHM_MOFFAT {"MOFFAT" };
 
 GroupingConfig::GroupingConfig(long manager_id)
-    : Configuration(manager_id), m_selected_algorithm(Algorithm::SPLIT_SOURCES) {
+    : Configuration(manager_id), m_selected_algorithm(Algorithm::SPLIT_SOURCES), m_moffat_threshold(0.02) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getProgramOptions() {
   return { {"Grouping", {
       {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_SPLIT),
           "Grouping algorithm to be used."},
+      {GROUPING_MOFFAT_THRESHOLD.c_str(), po::value<double>()->default_value(0.02),
+          "Threshold used for Moffat grouping."},
   }}};
 }
 
@@ -42,9 +46,16 @@ void GroupingConfig::initialize(const UserValues& args) {
     m_selected_algorithm = Algorithm::OVERLAPPING;
   } else if (algorithm_name == GROUPING_ALGORITHM_SPLIT) {
     m_selected_algorithm = Algorithm::SPLIT_SOURCES;
+  } else if (algorithm_name == GROUPING_ALGORITHM_MOFFAT) {
+    m_selected_algorithm = Algorithm::MOFFAT;
   } else {
     throw Elements::Exception() << "Unknown grouping algorithm : " << algorithm_name;
   }
+
+  if (args.find(GROUPING_MOFFAT_THRESHOLD) != args.end()) {
+    m_moffat_threshold = args.find(GROUPING_MOFFAT_THRESHOLD)->second.as<double>();
+  }
+
 }
 
 } // SExtractor namespace

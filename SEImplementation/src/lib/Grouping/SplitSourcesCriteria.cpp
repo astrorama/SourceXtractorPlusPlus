@@ -17,5 +17,5 @@ bool SplitSourcesCriteria::shouldGroup(const SourceInterface& first, const Sourc
   return first_id == second_id;
 }
 
-} // SEImplementation namespace
+} // SExtractor namespace
 
