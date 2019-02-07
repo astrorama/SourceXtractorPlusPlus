@@ -9,6 +9,8 @@
 #define _SEIMPLEMENTATION_DEBLENDING_CLEANING_H_
 
 #include "SEFramework/Pipeline/Deblending.h"
+#include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Source/SourceGroupInterface.h"
 
 namespace SExtractor {
 
@@ -21,6 +23,7 @@ public:
   void deblend(SourceGroupInterface& group) const override;
 
 private:
+    bool shouldClean(SourceInterface& source, SourceGroupInterface& group) const;
 
 };
 

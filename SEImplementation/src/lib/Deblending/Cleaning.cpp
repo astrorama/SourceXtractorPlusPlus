@@ -11,7 +11,16 @@
 namespace SExtractor {
 
 void Cleaning::deblend(SourceGroupInterface& group) const {
+  for (auto it = group.begin(); it != group.end(); ++it) {
+    if (shouldClean(*it, group)) {
+      group.removeSource(it);
+      continue;
+    }
+  }
+}
 
+bool Cleaning::shouldClean(SourceInterface& source, SourceGroupInterface& group) const {
+  return false;
 }
 
 }
