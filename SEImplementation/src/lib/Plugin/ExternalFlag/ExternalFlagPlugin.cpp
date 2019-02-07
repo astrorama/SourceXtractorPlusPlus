@@ -20,14 +20,14 @@ void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<ExternalFlagTaskFactory, ExternalFlag>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<ExternalFlag, std::int64_t>(
-          "IMAFLAGS_ISO",
+          "isophotal_image_flags",
           [](const ExternalFlag& prop){
             return prop.getFlag();
           }
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ExternalFlag, int>(
-          "NIMAFLAGS_ISO",
+          "isophotal_image_flags_pixel_count",
           [](const ExternalFlag& prop){
             return prop.getCount();
           }
