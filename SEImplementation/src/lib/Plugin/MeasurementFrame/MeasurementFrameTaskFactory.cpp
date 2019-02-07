@@ -44,6 +44,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& measurement_images = manager.getConfiguration<MeasurementImageConfig>().getMeasurementImages();
   const auto& coordinate_systems = manager.getConfiguration<MeasurementImageConfig>().getCoordinateSystems();
   const auto& weight_images = manager.getConfiguration<MeasurementImageConfig>().getWeightImages();
+  const auto& is_weight_absolute = manager.getConfiguration<MeasurementImageConfig>().getAbsoluteWeights();
 
   const auto& gains = manager.getConfiguration<MeasurementImageConfig>().getGains();
   const auto& saturation_levels = manager.getConfiguration<MeasurementImageConfig>().getSaturationLevels();
@@ -61,8 +62,18 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
         ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
             measurement_images[i]->getHeight(), false), measurement_frame->getVarianceThreshold());
 
-    measurement_frame->setVarianceMap(background_model.getVarianceMap());
     measurement_frame->setBackgroundLevel(background_model.getLevelMap());
+
+    if (weight_images[i] != nullptr) {
+      if (is_weight_absolute[i]) {
+        measurement_frame->setVarianceMap(weight_images[i]);
+      } else {
+        auto scaled_image = MultiplyImage<SeFloat>::create(weight_images[i], background_model.getScalingFactor());
+        measurement_frame->setVarianceMap(scaled_image);
+      }
+    } else {
+      measurement_frame->setVarianceMap(background_model.getVarianceMap());
+    }
 
     m_measurement_frames.emplace_back(measurement_frame);
   }
