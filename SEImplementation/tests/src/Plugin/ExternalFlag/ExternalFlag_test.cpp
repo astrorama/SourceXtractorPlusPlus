@@ -8,6 +8,7 @@
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -17,6 +18,12 @@ using namespace SExtractor;
 
 struct ExternalFlagFixture {
   SimpleSource source;
+
+  ExternalFlagFixture() {
+    source.setProperty<DetectionFrame>(
+      std::make_shared<DetectionImageFrame>(ConstantImage<SeFloat>::create(4, 1, 0),
+                                            nullptr, 1e6, nullptr, 1, 1, 0));
+  }
 };
 
 //-----------------------------------------------------------------------------
