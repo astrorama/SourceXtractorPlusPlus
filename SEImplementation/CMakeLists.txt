@@ -16,6 +16,7 @@ elements_subdir(SEImplementation)
 elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table) # From Alexandria
+elements_depends_on_subdirs(NdArray) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
@@ -59,7 +60,6 @@ elements_add_library(SEImplementation
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
-            
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp Boost PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)

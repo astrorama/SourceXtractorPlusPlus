@@ -17,9 +17,10 @@ namespace SExtractor {
 struct FluxMeasurement {
   SeFloat m_flux;
   SeFloat m_variance;
+  SeFloat m_total_area, m_bad_area;
   Flags m_flags;
 
-  FluxMeasurement() : m_flux(0.), m_variance(0.), m_flags(Flags::NONE) {}
+  FluxMeasurement() : m_flux(0.), m_variance(0.), m_total_area(0.), m_bad_area(0.), m_flags(Flags::NONE) {}
 };
 
 /**

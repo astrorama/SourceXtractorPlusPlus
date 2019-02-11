@@ -9,6 +9,7 @@
 
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArray.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTaskFactory.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryPlugin.h"
 
@@ -16,46 +17,47 @@ namespace SExtractor {
 
 static StaticPlugin<AperturePhotometryPlugin> aperture_photometry_plugin;
 
-void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<AperturePhotometryTaskFactory, AperturePhotometry, ApertureFlag>();
+template <typename T>
+using NdArray = Euclid::NdArray::NdArray<T>;
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
+void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
+  plugin_api.getTaskFactoryRegistry()
+  .registerTaskFactory<AperturePhotometryTaskFactory, AperturePhotometry, ApertureFlag, AperturePhotometryArray>();
+
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_flux",
-    [](const AperturePhotometry &prop) {
+    [](const AperturePhotometryArray &prop) {
       return prop.getFluxes();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_flux_err",
-    [](const AperturePhotometry &prop) {
+    [](const AperturePhotometryArray &prop) {
       return prop.getFluxErrors();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_mag",
-    [](const AperturePhotometry &prop) {
+    [](const AperturePhotometryArray &prop) {
       return prop.getMags();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<SeFloat>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_mag_err",
-    [](const AperturePhotometry &prop) {
+    [](const AperturePhotometryArray &prop) {
       return prop.getMagErrors();
     }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometry, std::vector<int64_t>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<int64_t>>(
     "aperture_flags",
-    [](const AperturePhotometry &prop) {
-      return flags2long(prop.getFlags());
+    [](const AperturePhotometryArray &prop) {
+      return prop.getFlags();
     }
   );
-
-  // register as optional output (to have it in the output catalog)
-  plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

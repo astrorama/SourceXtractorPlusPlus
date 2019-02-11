@@ -26,8 +26,8 @@ public:
    */
   virtual ~AutoPhotometry() = default;
 
-  AutoPhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, Flags flag)
-    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flag(flag) {}
+  AutoPhotometry(SeFloat flux, SeFloat flux_error, SeFloat mag, SeFloat mag_error, Flags flags)
+    : m_flux(flux), m_flux_error(flux_error), m_mag(mag), m_mag_error(mag_error), m_flags(flags) {}
 
   SeFloat getFlux() const {
     return m_flux;
@@ -45,8 +45,8 @@ public:
     return m_mag_error;
   }
 
-  Flags getFlag() const {
-    return m_flag;
+  Flags getFlags() const {
+    return m_flags;
   }
 
 private:
@@ -54,7 +54,7 @@ private:
   SeFloat  m_flux_error;
   SeFloat  m_mag;
   SeFloat  m_mag_error;
-  Flags m_flag;
+  Flags m_flags;
 };
 
 } /* namespace SExtractor */

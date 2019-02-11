@@ -110,23 +110,11 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
 
     // check/set the crowded area flag
     if ((SeFloat) area_full / (SeFloat) area_sum > CROWD_THRESHOLD_AUTO)
-      global_flag |= Flags::BLENDED;
-  }
-
-  // Iterate through groups, and flatten the flags into a vector with one entry per group
-  std::vector<Flags> all_flags;
-
-  for (auto& group : m_instances_per_group) {
-    Flags group_flag = global_flag;
-    for (auto image : group.second) {
-      auto photo = source.getProperty<AutoPhotometry>(image);
-      group_flag |= photo.getFlag();
-    }
-    all_flags.push_back(group_flag);
+      global_flag |= Flags::NEIGHBORS;
   }
 
   // set the source properties
-  source.setProperty<AutoPhotometryFlag>(all_flags);
+  source.setProperty<AutoPhotometryFlag>(global_flag);
 
   // Draw the aperture
   auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage();
