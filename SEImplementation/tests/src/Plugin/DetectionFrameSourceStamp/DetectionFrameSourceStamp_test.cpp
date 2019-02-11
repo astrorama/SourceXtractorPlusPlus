@@ -40,13 +40,20 @@ BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
   task.computeProperties(source);
 
   auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
+  auto top_left = source.getProperty<DetectionFrameSourceStamp>().getTopLeft();
 
-  BOOST_CHECK(source_stamp.getWidth() == 2);
-  BOOST_CHECK(source_stamp.getHeight() == 2);
-  BOOST_CHECK_CLOSE(source_stamp.getValue(0,0), 1.0, 0.000001);
-  BOOST_CHECK_CLOSE(source_stamp.getValue(1,0), 2.0, 0.000001);
-  BOOST_CHECK_CLOSE(source_stamp.getValue(0,1), 4.0, 0.000001);
-  BOOST_CHECK_CLOSE(source_stamp.getValue(1,1), 5.0, 0.000001);
+  // Size must be at least the size of the source itself (+ some area around it)
+  BOOST_CHECK(source_stamp.getWidth() >= 2);
+  BOOST_CHECK(source_stamp.getHeight() >= 2);
+
+  // Test the 2 pixels that are part of the source
+  BOOST_CHECK_CLOSE(source_stamp.getValue(PixelCoordinate(2, 0) - top_left), 2.0, 0.000001);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(PixelCoordinate(1, 1) - top_left), 4.0, 0.000001);
+
+  // Test some pixels that are not part of the source but must be included
+  // are they are part of the minimal rectangle that includes the source pixel
+  BOOST_CHECK_CLOSE(source_stamp.getValue(PixelCoordinate(1, 0) - top_left), 1.0, 0.000001);
+  BOOST_CHECK_CLOSE(source_stamp.getValue(PixelCoordinate(2, 1) - top_left), 5.0, 0.000001);
 }
 
 //----------------------------------------------------------------------------
