@@ -9,11 +9,11 @@ Installing the software
 Hardware requirements
 =====================
 
-|SExtractor| runs in (ANSI) text-mode from a shell. A graphical environment
+|SExtractor++| runs in (ANSI) text-mode from a shell. A graphical environment
 is not necessary to operate the software.
 
-Obtaining |SExtractor|
-----------------------
+Obtaining |SExtractor++|
+------------------------
 
 Software requirements
 ---------------------

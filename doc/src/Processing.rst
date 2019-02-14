@@ -18,7 +18,7 @@ Finally, the measured quantities are written to the output catalog, after cross-
 .. figure:: figures/sexlayout.*
    :align: center
 
-   Layout of the main |SExtractor| procedures. *Dashed arrows* represent
+   Layout of the main |SExtractor++| procedures. *Dashed arrows* represent
    optional inputs. 
 
 The following sections describe each of these operations in more detail.
