@@ -4,6 +4,7 @@
  * @author Nikolaos Apostolakos
  */
 
+#include <cmath>
 #include <mutex>
 
 #include <levmar.h>
