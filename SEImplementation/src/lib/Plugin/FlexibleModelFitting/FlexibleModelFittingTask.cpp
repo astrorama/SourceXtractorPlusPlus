@@ -263,11 +263,6 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 
-  for (auto error : solution.parameter_sigmas) {
-    std::cout << error << " ";
-  }
-  std::cout << "\n";
-
   // Collect parameters for output
   int parameter_index=0;
   for (auto& source : group) {
