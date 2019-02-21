@@ -29,7 +29,7 @@ public:
   virtual bool shouldGroup(const SourceInterface&, const SourceInterface&) const override;
 
 private:
-  bool doesImpact(const MoffatModelFitting& model, const SourceInterface& source) const;
+  bool doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const;
 
   double m_threshold;
 };

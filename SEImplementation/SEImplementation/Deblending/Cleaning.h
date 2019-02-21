@@ -12,6 +12,7 @@
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
+#include "SEFramework/Source/SourceFactory.h"
 
 namespace ModelFitting {
   class ExtendedModel;
@@ -24,14 +25,19 @@ class MoffatModelFitting;
 class Cleaning : public DeblendStep {
 
 public:
-  Cleaning() {}
+  Cleaning(std::shared_ptr<SourceFactory> source_factory, unsigned int min_area) :
+    m_source_factory(source_factory), m_min_area(min_area) {}
   virtual ~Cleaning() {}
 
   void deblend(SourceGroupInterface& group) const override;
 
 private:
-    bool shouldClean(SourceInterface& source, SourceGroupInterface& group) const;
-    ModelFitting::ExtendedModel createMoffatModel(SourceInterface& source) const;
+  SourceGroupInterface::iterator findParentSource(SourceInterface& source, SourceGroupInterface& group) const;
+  std::shared_ptr<SourceInterface> mergeSources(SourceInterface& parent,
+      const std::vector<SourceGroupInterface::iterator> children) const;
+
+  std::shared_ptr<SourceFactory> m_source_factory;
+  unsigned int m_min_area;
 };
 
 }

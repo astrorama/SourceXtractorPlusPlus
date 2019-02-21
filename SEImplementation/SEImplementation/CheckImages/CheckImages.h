@@ -10,6 +10,7 @@
 
 #include <mutex>
 #include <map>
+#include <iostream>
 
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"

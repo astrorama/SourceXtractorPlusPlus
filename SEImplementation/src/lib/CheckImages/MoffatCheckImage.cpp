@@ -25,7 +25,6 @@ using namespace ModelFitting;
 
 void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   if (m_check_image) {
-    CheckImages::getInstance().lock();
 
     for (auto& source : *group) {
       auto& model = source.getProperty<MoffatModelFitting>();
@@ -52,13 +51,15 @@ void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>
       component_list.emplace_back(std::move(moff));
       ExtendedModel extended_model(std::move(component_list), x_scale, y_scale, moffat_rotation, size, size, x, y);
 
+      CheckImages::getInstance().lock();
       for (int y=0; y<m_check_image->getHeight(); y++) {
         for (int x=0; x<m_check_image->getWidth(); x++) {
           m_check_image->setValue(x, y, m_check_image->getValue(x, y) + extended_model.getValue(x,y));
         }
       }
+      CheckImages::getInstance().unlock();
     }
-    CheckImages::getInstance().unlock();
+
   }
 }
 
