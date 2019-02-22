@@ -43,7 +43,7 @@ public:
         return flags2long(prop.getSourceFlags());
       }
     );
-    plugin_api.getOutputRegistry().optionalOutput<SourceFlags>("SourceFlags");
+    plugin_api.getOutputRegistry().enableOutput<SourceFlags>("SourceFlags");
   }
 
   virtual std::string getIdString() const {

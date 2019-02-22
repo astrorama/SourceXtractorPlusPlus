@@ -33,7 +33,7 @@ void KronRadiusPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   // register as optional output (to have it in the output catalog)
-  plugin_api.getOutputRegistry().optionalOutput<KronRadius>("KronRadius");
+  plugin_api.getOutputRegistry().enableOutput<KronRadius>("KronRadius");
 }
 
 std::string KronRadiusPlugin::getIdString() const {

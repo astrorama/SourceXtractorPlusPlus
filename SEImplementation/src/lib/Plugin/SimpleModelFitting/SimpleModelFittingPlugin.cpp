@@ -124,7 +124,7 @@ void SimpleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<SimpleModelFitting>("SimpleModelFitting");
+  plugin_api.getOutputRegistry().enableOutput<SimpleModelFitting>("SimpleModelFitting");
 }
 
 std::string SimpleModelFittingPlugin::getIdString() const {

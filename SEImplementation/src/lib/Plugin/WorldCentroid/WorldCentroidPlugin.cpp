@@ -34,7 +34,7 @@ void WorldCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<WorldCentroid>("WorldCentroid");
+  plugin_api.getOutputRegistry().enableOutput<WorldCentroid>("WorldCentroid");
 }
 
 std::string WorldCentroidPlugin::getIdString() const {

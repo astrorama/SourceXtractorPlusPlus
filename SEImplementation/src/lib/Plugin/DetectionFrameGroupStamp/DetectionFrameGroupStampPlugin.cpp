@@ -43,7 +43,7 @@ void DetectionFrameGroupStampPlugin::registerPlugin(PluginAPI& plugin_api) {
       return d.getStamp().getHeight();
     }
   );
-  plugin_api.getOutputRegistry().optionalOutput<DetectionFrameGroupStamp>("GroupStamp");
+  plugin_api.getOutputRegistry().enableOutput<DetectionFrameGroupStamp>("GroupStamp");
 }
 
 std::string DetectionFrameGroupStampPlugin::getIdString() const {

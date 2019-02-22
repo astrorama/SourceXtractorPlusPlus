@@ -63,14 +63,11 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
     flags_instances.emplace_back(std::make_pair(name + "_flags", array_id));
   }
 
-  if (flux_instances.size()) {
-    registry.enableOutput<AperturePhotometryArray>();
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
-  }
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {

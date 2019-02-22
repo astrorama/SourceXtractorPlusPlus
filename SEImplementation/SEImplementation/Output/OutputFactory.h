@@ -39,7 +39,7 @@ private:
   
   std::shared_ptr<OutputRegistry> m_output_registry;
   TableOutput::TableHandler m_table_handler;
-  std::vector<std::string> m_optional_properties;
+  std::vector<std::string> m_output_properties;
 
 }; /* End of OutputFactory class */
 

@@ -103,7 +103,7 @@ void MultiframeModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<MultiframeModelFitting>("MultiframeModelFitting");
+  plugin_api.getOutputRegistry().enableOutput<MultiframeModelFitting>("MultiframeModelFitting");
 }
 
 std::string MultiframeModelFittingPlugin::getIdString() const {

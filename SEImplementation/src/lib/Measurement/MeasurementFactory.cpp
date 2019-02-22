@@ -18,7 +18,7 @@ namespace SExtractor {
 
 std::unique_ptr<Measurement> MeasurementFactory::getMeasurement() const {
   if (m_threads_nb > 0) {
-    auto source_to_row = m_output_registry->getSourceToRowConverter(m_optional_properties);
+    auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
     return std::unique_ptr<Measurement>(new MultithreadedMeasurement(source_to_row, m_threads_nb));
   } else {
     return std::unique_ptr<Measurement>(new DummyMeasurement());
@@ -31,7 +31,7 @@ void MeasurementFactory::reportConfigDependencies(Euclid::Configuration::ConfigM
 }
 
 void MeasurementFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_optional_properties = manager.getConfiguration<OutputConfig>().getOptionalProperties();
+  m_output_properties = manager.getConfiguration<OutputConfig>().getOutputProperties();
   m_threads_nb = manager.getConfiguration<MultiThreadingConfig>().getThreadsNb();
 }
 

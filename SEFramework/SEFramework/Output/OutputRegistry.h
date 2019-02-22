@@ -101,22 +101,17 @@ public:
   }
   
   template <typename PropertyType>
-  void enableOutput() {
+  void enableOutput(std::string alias_name) {
     if (m_property_to_names_map.count(typeid(PropertyType)) == 0) {
       throw Elements::Exception() << "No registered ColumnConverters for"
               << " property " << typeid(PropertyType).name();
     }
-    m_output_properties.emplace_back(typeid(PropertyType));
+    m_output_properties.emplace(alias_name, typeid(PropertyType));
   }
   
-  template <typename PropertyType>
-  void optionalOutput(std::string alias_name) {
-    m_optional_properties.emplace(alias_name, typeid(PropertyType));
-  }
-  
-  std::set<std::string> getOptionalOutputNames() {
+  std::set<std::string> getOutputPropertyNames() {
     std::set<std::string> result {};
-    for (auto& pair : m_optional_properties) {
+    for (auto& pair : m_output_properties) {
       result.emplace(pair.first);
     }
     return result;
@@ -144,8 +139,7 @@ private:
   
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
-  std::vector<std::type_index> m_output_properties {};
-  std::multimap<std::string, std::type_index> m_optional_properties {};
+  std::multimap<std::string, std::type_index> m_output_properties {};
   
 };
 

@@ -34,7 +34,7 @@ public:
 
 
 private:
-  std::vector<std::string> m_optional_properties;
+  std::vector<std::string> m_output_properties;
   std::shared_ptr<OutputRegistry> m_output_registry;
 
   unsigned int m_threads_nb;
