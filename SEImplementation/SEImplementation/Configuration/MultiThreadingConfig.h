@@ -22,12 +22,12 @@ public:
 
   void initialize(const UserValues& args) override;
 
-  unsigned int getThreadsNb() const {
+  int getThreadsNb() const {
     return m_threads_nb;
   }
 
 private:
-  unsigned int m_threads_nb;
+  int m_threads_nb;
 };
 
 

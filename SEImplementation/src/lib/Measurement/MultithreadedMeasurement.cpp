@@ -8,11 +8,14 @@
 #include <iostream>
 #include <chrono>
 
-#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
+#include <ElementsKernel/Logging.h>
 
+#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 using namespace SExtractor;
+
+static Elements::Logging logger = Elements::Logging::getLogger("MultithreadedMeasurement");
 
 std::recursive_mutex MultithreadedMeasurement::g_global_mutex;
 
@@ -20,14 +23,16 @@ void MultithreadedMeasurement::startThreads() {
   // Start worker threads
   m_active_threads = m_worker_threads_nb;
   for (int i=0; i<m_worker_threads_nb; i++) {
-    m_worker_threads.emplace_back(std::make_shared<std::thread>(workerThreadStatic, this));
+    m_worker_threads.emplace_back(std::make_shared<std::thread>(workerThreadStatic, this, i));
   }
 
   // Start output thread
-  m_output_thread = std::make_shared<std::thread>(outputThreadStatic, this);
+  m_output_thread = std::make_shared<std::thread>(outputThreadStatic, this, m_worker_threads_nb);
 }
 
 void MultithreadedMeasurement::waitForThreads() {
+  logger.debug() << "Waiting for worker threads";
+
   // set flag to indicate no new input will be coming
   {
     std::unique_lock<std::mutex> input_lock(m_input_queue_mutex);
@@ -40,6 +45,13 @@ void MultithreadedMeasurement::waitForThreads() {
     m_worker_threads[i]->join();
   }
   m_output_thread->join();
+
+  logger.debug() << "All worker threads done!";
+
+  if (m_rethrow) {
+    logger.debug() << "Rethrowing error set by thread " << m_rethrow->first;
+    throw Elements::Exception(m_rethrow->second);
+  }
 }
 
 void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
@@ -57,16 +69,40 @@ void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupIn
   m_new_input.notify_one();
 }
 
-void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* measurement) {
-  measurement->workerThreadLoop();
+void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* measurement, int id) {
+  logger.debug() << "Starting worker thread " << id;
+  try {
+    measurement->workerThreadLoop();
+  }
+  catch (const std::exception &e) {
+    logger.error() << "Worker thread " << id << " got an exception!";
+    logger.error() << "Aborting the execution";
+
+    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
+    measurement->m_abort = true;
+    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
+  }
+  logger.debug() << "Stopping worker thread " << id;
 }
 
-void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement) {
-  measurement->outputThreadLoop();
+void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* measurement, int id) {
+  logger.debug() << "Starting output thread " << id;
+  try {
+    measurement->outputThreadLoop();
+  }
+  catch (const std::exception &e) {
+    logger.error() << "Output thread got an exception!";
+    logger.error() << "Aborting the execution";
+
+    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
+    measurement->m_abort = true;
+    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
+  }
+  logger.debug() << "Stopping output thread " << id;
 }
 
 void MultithreadedMeasurement::workerThreadLoop() {
-  while (true) {
+  while (!m_abort) {
     int order_number;
     std::shared_ptr<SourceGroupInterface> source_group;
     {
@@ -109,7 +145,7 @@ void MultithreadedMeasurement::workerThreadLoop() {
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (true) {
+  while (!m_abort) {
     {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 

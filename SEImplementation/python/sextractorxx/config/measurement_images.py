@@ -86,7 +86,7 @@ class ImageGroup(object):
         self.__subgroups = None
         self.__subgroup_names = set()
         assert len(kwargs) == 1
-        key = kwargs.keys()[0]
+        key = list(kwargs.keys())[0]
         if key == 'images':
             if isinstance(kwargs[key], list):
                 self.__images = kwargs[key]
@@ -205,7 +205,7 @@ def load_fits_image(im, **kwargs):
     return _image_cache[im].image
 
 
-def load_fits_images(image_list, psf_list, weight_list=None):
+def load_fits_images(image_list, psf_list=None, weight_list=None):
     """Creates an image group for the given images.
 
     The parameter images is a list of relative paths to the FITS files containing
@@ -232,7 +232,10 @@ def load_fits_images(image_list, psf_list, weight_list=None):
     :param weight_list: A list of relative paths to the weight files (optional)
     :return: A ImageGroup representing the images
     """
-    assert len(image_list) == len(psf_list)
+    if psf_list is None:
+        psf_list = [None] * len(image_list)
+    else:
+        assert len(image_list) == len(psf_list)
     if weight_list is None:
         weight_list = [None] * len(image_list)
     else:
