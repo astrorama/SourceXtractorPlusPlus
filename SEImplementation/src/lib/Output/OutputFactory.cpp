@@ -22,7 +22,7 @@
 namespace SExtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
-  auto source_to_row = m_output_registry->getSourceToRowConverter(m_optional_properties);
+  auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
   return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler));
 }
 
@@ -32,7 +32,7 @@ void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManage
 
 void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
-  m_optional_properties = output_config.getOptionalProperties();
+  m_output_properties = output_config.getOutputProperties();
   
   auto out_file = output_config.getOutputFile();
   if (out_file != "") {

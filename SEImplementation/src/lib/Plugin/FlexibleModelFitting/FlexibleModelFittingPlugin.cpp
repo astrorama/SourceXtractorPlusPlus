@@ -33,7 +33,7 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<FlexibleModelFitting>("FlexibleModelFitting");
+  plugin_api.getOutputRegistry().enableOutput<FlexibleModelFitting>("FlexibleModelFitting");
 }
 
 std::string FlexibleModelFittingPlugin::getIdString() const {

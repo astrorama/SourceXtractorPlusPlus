@@ -55,7 +55,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
   );
 
   // register as optional output (to have it in the output catalog)
-  plugin_api.getOutputRegistry().optionalOutput<AperturePhotometry>("AperturePhotometry");
+  plugin_api.getOutputRegistry().enableOutput<AperturePhotometry>("AperturePhotometry");
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

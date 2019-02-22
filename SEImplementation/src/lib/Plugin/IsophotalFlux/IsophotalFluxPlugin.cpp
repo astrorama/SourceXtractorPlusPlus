@@ -49,7 +49,7 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
 
 
 
-  plugin_api.getOutputRegistry().optionalOutput<IsophotalFlux>("IsophotalFlux");
+  plugin_api.getOutputRegistry().enableOutput<IsophotalFlux>("IsophotalFlux");
 }
 
 std::string IsophotalFluxPlugin::getIdString() const {

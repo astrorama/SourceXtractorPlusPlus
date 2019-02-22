@@ -59,7 +59,7 @@ public:
   }
   
   template <typename PropertyType>
-  void optionalOutput(std::string alias_name) {
+  void enableOutput(std::string alias_name) {
     if (m_property_to_names_map.count(typeid(PropertyType)) == 0) {
       throw Elements::Exception() << "No registered ColumnConverters for"
               << " property " << typeid(PropertyType).name();
@@ -67,7 +67,7 @@ public:
     m_optional_properties.emplace(alias_name, typeid(PropertyType));
   }
   
-  std::set<std::string> getOptionalOutputNames() {
+  std::set<std::string> getOutputPropertyNames() {
     std::set<std::string> result {};
     for (auto& pair : m_optional_properties) {
       result.emplace(pair.first);

@@ -185,7 +185,7 @@ public:
     // them and we do nothing else
     
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
-      for (auto& name : output_registry->getOptionalOutputNames()) {
+      for (auto& name : output_registry->getOutputPropertyNames()) {
         std::cout << name << '\n';
       }
       return Elements::ExitCode::OK;

@@ -55,8 +55,8 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   // register as optional output (to have it in the output catalog)
-  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometry>("AutoPhotometry");
-  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometryFlag>("AutoPhotometry");
+  plugin_api.getOutputRegistry().enableOutput<AutoPhotometry>("AutoPhotometry");
+  plugin_api.getOutputRegistry().enableOutput<AutoPhotometryFlag>("AutoPhotometry");
 }
 
 std::string AutoPhotometryPlugin::getIdString() const {

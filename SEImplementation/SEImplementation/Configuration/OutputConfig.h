@@ -41,13 +41,13 @@ public:
   
   OutputFileFormat getOutputFileFormat();
   
-  const std::vector<std::string> getOptionalProperties();
+  const std::vector<std::string> getOutputProperties();
 
 private:
  
   std::string m_out_file;
   OutputFileFormat m_format;
-  std::vector<std::string> m_optional_properties;
+  std::vector<std::string> m_output_properties;
 
 }; /* End of OutputConfig class */
 
