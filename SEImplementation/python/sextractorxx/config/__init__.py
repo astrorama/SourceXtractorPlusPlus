@@ -1,4 +1,4 @@
-from .measurement_images import (load_fits_images, print_measurement_images,
+from .measurement_images import (load_fits_images, print_measurement_images, load_fits_image,
                                  ImageGroup, ByKeyword, ByPattern, MeasurementImage,
                                  MeasurementGroup)
 from .model_fitting import (RangeType, Range, print_parameters, ConstantParameter,

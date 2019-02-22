@@ -31,4 +31,9 @@ double SigmoidConverter::engineToWorld(const double engine_value) const {
   return m_min_value + (m_max_value - m_min_value) / (1 + exp(-clamped_value));
 }
 
+double SigmoidConverter::getEngineToWorldDerivative(const double value) const {
+  return (value - m_min_value) * (m_max_value - value) / (m_max_value - m_min_value);
+}
+
+
 }// namespace ModelFitting

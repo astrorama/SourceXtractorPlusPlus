@@ -24,7 +24,6 @@
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 #include "ModelFitting/Parameters/NormalizedConverter.h"
-#include "ModelFitting/Parameters/NormalizedPositiveConverter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/OldSharp.h"
 #include "ModelFitting/Models/AutoSharp.h"

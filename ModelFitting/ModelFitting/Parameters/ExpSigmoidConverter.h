@@ -58,6 +58,8 @@ public:
    */
   double engineToWorld(const double engine_value) const override;
 
+  double getEngineToWorldDerivative(const double value) const override;
+
   /**
    * @brief Destructor
    */

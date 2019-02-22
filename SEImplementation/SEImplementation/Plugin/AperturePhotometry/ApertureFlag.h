@@ -11,7 +11,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Source/SourceFlags.h"
-#include <vector>
+#include <map>
 
 namespace SExtractor {
 
@@ -24,14 +24,14 @@ public:
 
   virtual ~ApertureFlag() = default;
 
-  ApertureFlag(const std::vector<Flags>& flags): m_flags{flags} {}
+  ApertureFlag(const std::map<float, Flags>& flags): m_flags{flags} {}
 
-  const std::vector<Flags>& getFlags() const {
+  const std::map<float, Flags>& getFlags() const {
     return m_flags;
   }
 
 private:
-  std::vector<Flags> m_flags;
+  std::map<float, Flags> m_flags;
 };
 
 } /* namespace SExtractor */

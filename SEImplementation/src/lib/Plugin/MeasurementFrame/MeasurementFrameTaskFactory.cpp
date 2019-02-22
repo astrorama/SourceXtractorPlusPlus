@@ -7,9 +7,7 @@
 
 #include <iostream>
 
-//#include "SEImplementation/Configuration/MeasurementConfig.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
-
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"

@@ -13,7 +13,8 @@
 #include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
@@ -48,15 +49,19 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto image = VectorImage<MeasurementImage::PixelType>::create(1, 1);
   image->setValue(0, 0, 1);
 
-  auto frame = std::make_shared<MeasurementImageFrame>(image);
+  auto variance_map = ConstantImage<WeightImage::PixelType>::create(image->getWidth(), image->getHeight(), .0001);
+
+  auto frame = std::make_shared<MeasurementImageFrame>(image, variance_map, 1e6, nullptr, 0., 9., 0);
   source.setIndexedProperty<DetectionFrame>(0, frame);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
   source.setIndexedProperty<PixelBoundaries>(0, 0, 0, 0, 0);
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 0, 0);
   source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{{0, 0}}});
   source.setIndexedProperty<JacobianSource>(0);
+  source.setIndexedProperty<SaturateFlag>(0, false);
+  source.setIndexedProperty<BlendedFlag>(0, false);
 
-  ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{1.});
+  ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{.5});
   AperturePhotometryTask aperture_photometry_task(std::vector<SeFloat>{.5}, 0, 0, false);
   aperture_flag_task.computeProperties(source);
   aperture_photometry_task.computeProperties(source);
@@ -64,8 +69,8 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto aperture_photometry = source.getProperty<AperturePhotometry>();
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 3.14159 * .25, 10);
 
-  // It is on a boundary
-  BOOST_CHECK(aperture_photometry.getFlags()[0] == Flags::BOUNDARY);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BOUNDARY) == Flags::BOUNDARY);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::SATURATED) == Flags::NONE);
 }
 
 //-----------------------------------------------------------------------------
@@ -89,6 +94,8 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   source.setIndexedProperty<PixelCentroid>(0, 1, 1);
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 1, 1);
   source.setIndexedProperty<JacobianSource>(0);
+  source.setIndexedProperty<SaturateFlag>(0, false);
+  source.setIndexedProperty<BlendedFlag>(0, false);
 
   ApertureFlagTask aperture_flag_task(std::vector<SeFloat>{1.});
   AperturePhotometryTask aperture_photometry_task(std::vector<SeFloat>{1.}, 0, 0, false);
@@ -99,8 +106,8 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 1.45, 10);
   // There is one pixel that belongs to a neighbour
   auto aperture_flag = source.getProperty<ApertureFlag>();
-  BOOST_CHECK((aperture_flag.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BLENDED) == Flags::BLENDED);
+  BOOST_CHECK((aperture_flag.getFlags().at(1.) & Flags::NEIGHBORS) == Flags::NEIGHBORS);
+  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::NEIGHBORS) == Flags::NEIGHBORS);
 }
 
 //-----------------------------------------------------------------------------

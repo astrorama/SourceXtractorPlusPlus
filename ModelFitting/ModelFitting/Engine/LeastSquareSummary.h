@@ -7,6 +7,7 @@
 #ifndef MODELFITTING_LEASTSQUARESUMMARY_H
 #define	MODELFITTING_LEASTSQUARESUMMARY_H
 
+#include <vector>
 #include <boost/any.hpp>
 
 namespace ModelFitting {
@@ -26,6 +27,9 @@ struct LeastSquareSummary {
   /// The number of iterations
   size_t iteration_no {0};
   
+  // 1-sigma margin of error for all the parameters
+  std::vector<double> parameter_sigmas {};
+
   /// Info of the minimization process, as provided by the underlying framework.
   ///
   /// WARNING: Using this result will make your code compatible with only one

@@ -93,6 +93,29 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
   return result;
 }
 
+std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColumns() {
+  py::object output_module = py::import("sextractorxx.config.output");
+  py::list output = py::extract<py::list>(output_module.attr("aperture_columns"));
+  std::map<std::string, std::vector<int>> result;
+  for (int i = 0; i < py::len(output); ++i) {
+    py::tuple t = py::extract<py::tuple>(output[i]);
+    std::string name = py::extract<std::string>(t[0]);
+    auto extract_list = py::extract<py::list>(t[1]);
+
+    if (extract_list.check()) {
+      py::list cs = extract_list;
+      for (int j = 0; j < py::len(cs); ++j) {
+        int c = py::extract<int>(cs[j].attr("id"));
+        result[name].push_back(c);
+      }
+    } else {
+      int c = py::extract<int>(t[1]);
+      result[name].push_back(c);
+    }
+  }
+  return result;
+}
+
 namespace {
 
 std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {

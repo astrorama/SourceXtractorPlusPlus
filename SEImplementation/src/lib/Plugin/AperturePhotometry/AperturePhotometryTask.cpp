@@ -5,11 +5,11 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-#include <SEFramework/Aperture/FluxMeasurement.h>
-
+#include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -67,11 +67,15 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
     flags.push_back(measurement.m_flags);
   }
 
-  // Merge flags with those set on the detection frame
-  auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+  // Merge flags with those set on the detection frame and from the saturate and blended plugins
+  Flags additional_flags(Flags::NONE);
+  additional_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
+  additional_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
-  for (size_t i = 0; i < aperture_flags.size(); ++i) {
-    flags[i] |= aperture_flags[i];
+  auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+  for (size_t i = 0; i < m_apertures.size(); ++i) {
+    auto det_flag = aperture_flags.at(m_apertures[i]);
+    flags[i] |= additional_flags | det_flag;
   }
 
   // set the source properties

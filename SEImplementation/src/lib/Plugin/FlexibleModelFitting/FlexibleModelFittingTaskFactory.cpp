@@ -57,12 +57,26 @@ void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& 
             return prop.getParameterValue(properties[0]);
           }
       );
+      registry.registerColumnConverter<FlexibleModelFitting, double>(name+"_err",
+          [properties](const FlexibleModelFitting& prop) {
+            return prop.getParameterSigma(properties[0]);
+          }
+      );
     } else {
       registry.registerColumnConverter<FlexibleModelFitting, std::vector<double>>(name,
           [properties](const FlexibleModelFitting& prop) {
             std::vector<double> result;
             for (int id : properties) {
               result.push_back(prop.getParameterValue(id));
+            }
+            return result;
+          }
+      );
+      registry.registerColumnConverter<FlexibleModelFitting, std::vector<double>>(name+"_err",
+          [properties](const FlexibleModelFitting& prop) {
+            std::vector<double> result;
+            for (int id : properties) {
+              result.push_back(prop.getParameterSigma(id));
             }
             return result;
           }
