@@ -22,106 +22,60 @@
 
 namespace SExtractor {
 
-inline bool operator<(std::reference_wrapper<SourceInterface> a, std::reference_wrapper<SourceInterface> b) {
-  return &a.get() < &b.get();
+inline bool operator<(SourceGroupInterface::iterator a, SourceGroupInterface::iterator b) {
+  return &(*a) < &(*b);
 }
-
-class CleaningTree : public std::enable_shared_from_this<CleaningTree> {
-public:
-  CleaningTree(SourceGroupInterface::iterator source)
-    : m_source(source) {}
-
-  void addChild(std::shared_ptr<CleaningTree> child) {
-    m_children.emplace_back(child);
-    child->m_parent = shared_from_this();
-  }
-
-  bool hasParent() const {
-    auto parent = m_parent.lock();
-    return parent != nullptr;
-  }
-
-  std::vector<SourceGroupInterface::iterator> getAllDescendants() const {
-    std::vector<SourceGroupInterface::iterator> descendants;
-    for (auto& child : m_children) {
-      descendants.push_back(child->m_source);
-      auto descendants_of_children = child->getAllDescendants();
-      descendants.insert(descendants.end(), descendants_of_children.begin(), descendants_of_children.end());
-    }
-    return descendants;
-  }
-
-  SourceGroupInterface::iterator getSourceIterator() const {
-    return m_source;
-  }
-
-private:
-  SourceGroupInterface::iterator m_source;
-  std::weak_ptr<CleaningTree> m_parent;
-  std::list<std::shared_ptr<CleaningTree>> m_children;
-};
 
 void Cleaning::deblend(SourceGroupInterface& group) const {
   if (group.size() <= 1) {
     return;
   }
 
-//  for (auto it = group.begin(); it != group.end(); ) {
-//    auto parent_source = findParentSource(*it, group);
-//    if (parent_source != group.end()) {
-//      it = group.removeSource(it);
-//    } else {
-//      ++it;
-//    }
-//  }
+  std::vector<SourceGroupInterface::iterator> sources_to_clean;
+  std::vector<SourceGroupInterface::iterator> remaining_sources;
 
-  std::map<std::reference_wrapper<SourceInterface>, std::shared_ptr<CleaningTree>> cleaning_tree_map;
+  // iterate through all sources
   for (auto it = group.begin(); it != group.end(); ++it) {
-    auto parent_source = findParentSource(*it, group);
-    if (parent_source != group.end()) {
-      // Add parent_source to the tree_map if it doesn't exist
-      if (cleaning_tree_map[*parent_source] == nullptr) {
-        cleaning_tree_map[*parent_source] = std::make_shared<CleaningTree>(parent_source);
-      }
-
-      // Add current source to the tree_map if it doesn't exist
-      if (cleaning_tree_map[*it] == nullptr) {
-        cleaning_tree_map[*it] = std::make_shared<CleaningTree>(it);
-      }
-
-      // make the source a child of the parent
-      cleaning_tree_map[*parent_source]->addChild(cleaning_tree_map[*it]);
+    if (shouldClean(*it, group)) {
+      sources_to_clean.push_back(it);
+    } else {
+      remaining_sources.push_back(it);
     }
   }
 
-  // iterate through top level nodes
-  for (auto& cleaning_tree_node : cleaning_tree_map) {
-    if (cleaning_tree_node.second->hasParent()) {
-      continue;
+  if (sources_to_clean.size() > 0) {
+    if (remaining_sources.size() > 1) {
+      std::map<SourceGroupInterface::iterator, std::vector<SourceGroupInterface::iterator>> merging_map;
+      for (auto it : sources_to_clean) {
+        auto influential_source = findMostInfluentialSource(*it, remaining_sources);
+        merging_map[influential_source].push_back(it);
+      }
+
+      for (auto merging_pair : merging_map) {
+        if (merging_pair.second.size() > 0) {
+          auto new_source = mergeSources(*merging_pair.first, merging_pair.second);
+          group.addSource(new_source);
+          group.removeSource(merging_pair.first);
+        }
+      }
+    } else if (remaining_sources.size() == 1) {
+      auto new_source = mergeSources(*remaining_sources[0], sources_to_clean);
+      group.addSource(new_source);
+      group.removeSource(remaining_sources[0]);
     }
 
-    auto descendants = cleaning_tree_node.second->getAllDescendants();
-    auto merged_source = mergeSources(cleaning_tree_node.first, descendants);
-
-    // remove all sources that were cleaned
-    for (auto& descendant : descendants) {
-      group.removeSource(descendant);
+    for (auto& it : sources_to_clean) {
+      group.removeSource(it);
     }
-
-    // remove the parent and replace it with the new merged source
-    group.removeSource(cleaning_tree_node.second->getSourceIterator());
-    group.addSource(merged_source);
   }
 }
 
-SourceGroupInterface::iterator Cleaning::findParentSource(SourceInterface& source, SourceGroupInterface& group) const {
+bool Cleaning::shouldClean(SourceInterface& source, SourceGroupInterface& group) const {
   const auto& pixel_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   std::vector<double> group_influence(pixel_list.size());
-  std::vector<double> total_influence_of_sources(group.size());
 
   // iterate through all other sources in the group
-  int source_nb = 0;
   for (auto it = group.begin(); it != group.end(); ++it) {
     if (&(*it) == &source) { // skip self
       continue;
@@ -132,10 +86,7 @@ SourceGroupInterface::iterator Cleaning::findParentSource(SourceInterface& sourc
     for (auto pixel : pixel_list) {
       auto pixel_value = model.getValue(pixel.m_x, pixel.m_y);
       group_influence[i++] += pixel_value;
-      total_influence_of_sources[source_nb] += pixel_value;
     }
-
-    source_nb++;
   }
 
   unsigned int still_valid_pixels = 0;
@@ -147,26 +98,34 @@ SourceGroupInterface::iterator Cleaning::findParentSource(SourceInterface& sourc
     }
   }
 
-  std::cout << still_valid_pixels << " / " << m_min_area << "\n";
+  return still_valid_pixels < m_min_area;
+}
 
-  if (still_valid_pixels < m_min_area) {
-    SourceGroupInterface::iterator most_influential_source = group.end();
-    double most_influential_source_value = 0;
-    int source_nb = 0;
-    for (auto it = group.begin(); it != group.end(); ++it) {
-      if (&(*it) == &source) { // skip self
-        continue;
-      }
-      if (total_influence_of_sources[source_nb] >= most_influential_source_value) {
-        most_influential_source = it;
-        most_influential_source_value = total_influence_of_sources[source_nb];
-      }
-      source_nb++;
+SourceGroupInterface::iterator Cleaning::findMostInfluentialSource(
+    SourceInterface& source, const std::vector<SourceGroupInterface::iterator>& candidates) const {
+
+  const auto& pixel_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
+  std::vector<double> total_influence_of_sources(candidates.size());
+
+  // iterate through all other sources in the group
+  for (size_t i = 0; i < candidates.size(); i++) {
+    MoffatModelEvaluator model(*candidates[i]);
+    for (auto pixel : pixel_list) {
+      auto pixel_value = model.getValue(pixel.m_x, pixel.m_y);
+      total_influence_of_sources[i] += pixel_value;
     }
-    return most_influential_source;
-  } else {
-    return group.end();
   }
+
+  SourceGroupInterface::iterator most_influential_source(candidates[0]);
+  double most_influential_source_value = 0;
+  for (size_t i = 0; i < candidates.size(); i++) {
+    if (total_influence_of_sources[i] >= most_influential_source_value) {
+      most_influential_source = candidates[i];
+      most_influential_source_value = total_influence_of_sources[i];
+    }
+  }
+  return most_influential_source;
 }
 
 std::shared_ptr<SourceInterface> Cleaning::mergeSources(SourceInterface& parent,

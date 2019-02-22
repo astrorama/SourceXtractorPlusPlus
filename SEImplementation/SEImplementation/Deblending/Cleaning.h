@@ -32,7 +32,10 @@ public:
   void deblend(SourceGroupInterface& group) const override;
 
 private:
-  SourceGroupInterface::iterator findParentSource(SourceInterface& source, SourceGroupInterface& group) const;
+  bool shouldClean(SourceInterface& source, SourceGroupInterface& group) const;
+  SourceGroupInterface::iterator findMostInfluentialSource(
+      SourceInterface& source, const std::vector<SourceGroupInterface::iterator>& candidates) const;
+
   std::shared_ptr<SourceInterface> mergeSources(SourceInterface& parent,
       const std::vector<SourceGroupInterface::iterator> children) const;
 
