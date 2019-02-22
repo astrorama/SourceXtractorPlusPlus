@@ -34,13 +34,24 @@ public:
     m_name_to_converter_map.emplace(column_name,
                                     std::pair<std::type_index, ColumnFromSource>(conv_out_type, conv_func));
   }
-  
+
+  /**
+   * When there are multiple instances of a given property, generate one column output with the given suffix for each
+   * instance
+   * @tparam PropertyType
+   * @param instance_names
+   */
   template <typename PropertyType>
   void registerPropertyInstances(const std::vector<std::pair<std::string, unsigned int>>& instance_names) {
     std::vector<std::string> new_names {};
     for (auto& current_name : m_property_to_names_map[typeid(PropertyType)]) {
       // Get the current converter
       auto converter = m_name_to_converter_map.at(current_name);
+      // Remove the old converter
+      // Do it *before*, because the new name may be the same!
+      m_name_to_converter_map.erase(current_name);
+
+      // Add the new ones
       for (auto instance : instance_names) {
         // Make a copy of the converter and set the index
         auto new_converter = converter;
@@ -51,11 +62,42 @@ public:
         m_name_to_converter_map.emplace(new_name, new_converter);
         new_names.push_back(new_name);
       }
-      // Remove the old converter
-      m_name_to_converter_map.erase(current_name);
     }
     // Replace all the old names with the new ones
     m_property_to_names_map[typeid(PropertyType)] = new_names;
+  }
+
+  /**
+   * When there are multiple instances of a given property, generate one column output with the given name for each
+   * instance replacing an existing registered name
+   * @tparam PropertyType
+   * @param current_name
+   * @param instance_names
+   */
+  template <typename PropertyType>
+  void registerPropertyInstances(const std::string &current_name, const std::vector<std::pair<std::string, unsigned int>>& instance_names) {
+    std::vector<std::string> new_names {};
+    // Get the current converter
+    auto converter = m_name_to_converter_map.at(current_name);
+    // Remove the old converter
+    // Do it *before*, because the new name may be the same!
+    m_name_to_converter_map.erase(current_name);
+
+    // Add the new ones
+    for (auto instance : instance_names) {
+      // Make a copy of the converter and set the index
+      auto new_converter = converter;
+      new_converter.second.index = instance.second;
+      // Register the new converter with the new name
+      auto &new_name = instance.first;
+      m_name_to_converter_map.emplace(new_name, new_converter);
+      new_names.push_back(new_name);
+    }
+
+    // Replace all the old names with the new ones
+    auto& names = m_property_to_names_map[typeid(PropertyType)];
+    names.erase(std::find(names.begin(), names.end(), current_name));
+    std::copy(new_names.begin(), new_names.end(), std::back_inserter(names));
   }
   
   template <typename PropertyType>

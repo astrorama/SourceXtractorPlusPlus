@@ -9,7 +9,6 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
-#include <boost/python.hpp>
 
 #include <iomanip>
 
@@ -20,6 +19,7 @@
 
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
+#include "ElementsKernel/System.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
 
@@ -65,13 +65,12 @@
 
 
 namespace po = boost::program_options;
-namespace py = boost::python;
+namespace fs = boost::filesystem;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
-//FIXME This option doesn't work if no detection image is given
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
@@ -107,28 +106,6 @@ static void setupEnvironment(void) {
   }
 }
 
-static void handleUnexpectedExceptions(void) {
-  std::exception_ptr ex_ptr = std::current_exception();
-
-  if (ex_ptr) {
-    logger.error() << "Unhandled exception!";
-    try {
-      std::rethrow_exception(ex_ptr);
-    }
-    catch (const py::error_already_set &) {
-      auto elements_ex = pyToElementsException(logger);
-      logger.error() << elements_ex.what();
-    }
-    catch (const std::exception &e) {
-      logger.error() << e.what();
-    }
-    catch (...) {
-      logger.error() << "Unknown exception type. This is likely caused by a bug somewhere.";
-    }
-  }
-
-  abort();
-}
 
 class SEMain : public Elements::Program {
   
@@ -188,9 +165,18 @@ public:
     
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
       for (auto& name : output_registry->getOptionalOutputNames()) {
-        std::cout << name << '\n';
+        std::cout << name << std::endl;
       }
       return Elements::ExitCode::OK;
+    }
+
+    // Elements does not verify that the config-file exists. It will just not read it.
+    // We verify that it does exist here.
+    if (args.find("config-file") != args.end()) {
+      auto cfg_file = args.at("config-file").as<fs::path>();
+      if (cfg_file != "" && !fs::exists(cfg_file)) {
+        throw Elements::Exception() << "The configuration file '" << cfg_file << "' does not exist";
+      }
     }
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
@@ -285,8 +271,8 @@ public:
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
     // FIXME we should use average or median rather than value at coordinate 0,0
-    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
+    logger.info() << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+      << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0));
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
@@ -304,9 +290,9 @@ public:
     }
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-            << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-          //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    logger.info() << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
+        << " threshold: "  << detection_frame->getDetectionThreshold();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
@@ -325,6 +311,13 @@ public:
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    size_t n_writen_rows = output->flush();
+
+    if (n_writen_rows > 0) {
+      logger.info() << n_writen_rows << " sources detected";
+    } else {
+      logger.info() << "NO SOURCES DETECTED";
+    }
 
     return Elements::ExitCode::OK;
   }
@@ -375,59 +368,71 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   setupEnvironment();
 
   // Try to be reasonably graceful with unhandled exceptions
-  std::set_terminate(handleUnexpectedExceptions);
+  std::set_terminate(&Elements::ProgramManager::onTerminate);
 
-  // First we create a program which has a sole purpose to get the options for
-  // the plugin paths. Note that we do not want to have this helper program
-  // to handle any other options except of the plugin-directory and plugin, so
-  // we create a subset of the given options with only the necessary ones. We
-  // also turn off the the logging.
-  std::vector<int> masked_indices {};
-  std::vector<std::string> plugin_options_input {};
-  plugin_options_input.emplace_back("DummyProgram");
-  plugin_options_input.emplace_back("--log-level");
-  plugin_options_input.emplace_back("FATAL");
-  for (int i = 0; i < argc; ++i) {
-    std::string option {argv[i]};
-    if (option == "--config-file") {
-      plugin_options_input.emplace_back("--config-file");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
+  try {
+    // First we create a program which has a sole purpose to get the options for
+    // the plugin paths. Note that we do not want to have this helper program
+    // to handle any other options except of the plugin-directory and plugin, so
+    // we create a subset of the given options with only the necessary ones. We
+    // also turn off the the logging.
+    std::vector<int> masked_indices{};
+    std::vector<std::string> plugin_options_input{};
+    plugin_options_input.emplace_back("DummyProgram");
+    plugin_options_input.emplace_back("--log-level");
+    plugin_options_input.emplace_back("WARN");
+    for (int i = 0; i < argc; ++i) {
+      std::string option{argv[i]};
+      if (option == "--config-file") {
+        plugin_options_input.emplace_back("--config-file");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--config-file=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin-directory") {
+        plugin_options_input.emplace_back("--plugin-directory");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin-directory=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin") {
+        plugin_options_input.emplace_back("--plugin");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin=")) {
+        plugin_options_input.emplace_back(option);
+      }
     }
-    if (boost::starts_with(option, "--config-file=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin-directory") {
-      plugin_options_input.emplace_back("--plugin-directory");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin-directory=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin") {
-      plugin_options_input.emplace_back("--plugin");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin=")) {
-      plugin_options_input.emplace_back(option);
-    }
-  }
-  
-  int argc_tmp = plugin_options_input.size();
-  std::vector<const char*> argv_tmp (argc_tmp);
-  for (unsigned int i=0; i<plugin_options_input.size(); ++i){
-    auto& option_str = plugin_options_input[i];
-    argv_tmp[i] = option_str.data();
-  }
 
-  std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
-  Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  plugin_options_program.run(argc_tmp, const_cast<char**>(argv_tmp.data()));
-  
-  Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  Elements::ExitCode exit_code = man.run(argc, argv);
-  return static_cast<Elements::ExitCodeType>(exit_code);
+    int argc_tmp = plugin_options_input.size();
+    std::vector<const char *> argv_tmp(argc_tmp);
+    for (unsigned int i = 0; i < plugin_options_input.size(); ++i) {
+      auto &option_str = plugin_options_input[i];
+      argv_tmp[i] = option_str.data();
+    }
+
+    std::unique_ptr<Elements::Program> plugin_options_main{new PluginOptionsMain{plugin_path, plugin_list}};
+    Elements::ProgramManager plugin_options_program{std::move(plugin_options_main),
+                                                    THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING,
+                                                    THIS_MODULE_VERSION_STRING,
+                                                    THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
+
+    Elements::ProgramManager main{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
+                                 THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
+                                 THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    Elements::ExitCode exit_code = main.run(argc, argv);
+    return static_cast<Elements::ExitCodeType>(exit_code);
+  }
+  catch (const std::exception &e) {
+    logger.fatal() << e.what();
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
+  }
+  catch (...) {
+    logger.fatal() << "Unknown exception type!";
+    logger.fatal() << "Please, report this as a bug";
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::SOFTWARE);
+  }
 }

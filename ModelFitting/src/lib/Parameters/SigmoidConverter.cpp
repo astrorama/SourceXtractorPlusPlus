@@ -32,10 +32,6 @@ double SigmoidConverter::engineToWorld(const double engine_value) const {
 }
 
 double SigmoidConverter::getEngineToWorldDerivative(const double value) const {
-  //xmmin   = x[p] - xmin[p];
-  //maxmx   = xmax[p] - x[p];
-  //maxmmin = xmax[p] - xmin[p];
-  //dxdy[f++] = xmmin * maxmx / maxmmin;
   return (value - m_min_value) * (m_max_value - value) / (m_max_value - m_min_value);
 }
 

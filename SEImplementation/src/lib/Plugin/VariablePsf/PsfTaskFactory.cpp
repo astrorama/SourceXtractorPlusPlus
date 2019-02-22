@@ -5,9 +5,7 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
-//#include "SEImplementation/Configuration/MeasurementConfig.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
-
 #include "SEImplementation/Plugin/Psf/PsfTaskFactory.h"
 
 namespace SExtractor {

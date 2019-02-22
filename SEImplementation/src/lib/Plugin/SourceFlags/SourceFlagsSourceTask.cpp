@@ -20,6 +20,7 @@
  * @author mkuemmel@usm.lmu.de
  */
 
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 
@@ -32,11 +33,9 @@ void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
     Flags source_flag = Flags::NONE;
 
     for (auto instance : group.second) {
-      // add the saturate flag as "4"
       source_flag |= Flags::SATURATED * source.getProperty<SaturateFlag>(instance).getSaturateFlag();
-
-      // add the boundary flag as "8"
       source_flag |= Flags::BOUNDARY * source.getProperty<BoundaryFlag>(instance).getBoundaryFlag();
+      source_flag |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
     }
 
     source_flags.emplace_back(source_flag);

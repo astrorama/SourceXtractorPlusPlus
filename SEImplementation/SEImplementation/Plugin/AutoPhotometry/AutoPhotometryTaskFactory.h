@@ -8,14 +8,9 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASKFACTORY_H_
 #define _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYTASKFACTORY_H_
 
+#include "SEUtils/Types.h"
 #include "SEFramework/Task/TaskFactory.h"
 
-// TEMP
-//#include "SEFramework/Image/Image.h"
-//#include "SEFramework/Image/VectorImage.h"
-//#include "SEFramework/Image/SubtractImage.h"
-//#include "SEFramework/Image/WriteableImage.h"
-//#include "SEFramework/Image/FitsWriter.h"
 
 namespace SExtractor {
 
@@ -40,8 +35,8 @@ private:
   SeFloat m_kron_factor;
   SeFloat m_kron_minrad;
   bool    m_symmetry_usage;
-  std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
   std::vector<std::pair<std::string, unsigned int>> m_auto_names;
+  std::vector<unsigned> m_images;
 };
 
 }

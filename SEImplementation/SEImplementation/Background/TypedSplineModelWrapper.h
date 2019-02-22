@@ -69,7 +69,7 @@ public:
     return tile;
   }
 
-  void saveTile(ImageTile<T>& tile) override {
+  void saveTile(ImageTile<T>& /*tile*/) override {
     assert(false);
   }
 

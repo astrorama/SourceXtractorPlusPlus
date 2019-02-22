@@ -3,8 +3,6 @@
  * @author nikoapos
  */
 
-#include <iostream>
-
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 

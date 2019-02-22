@@ -19,12 +19,15 @@ MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(mana
 
 auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-threading", {
-      {THREADS_NB.c_str(), po::value<unsigned int>()->default_value(4), "Number of worker threads (0=disable all multithreading)"}
+      {THREADS_NB.c_str(), po::value<int>()->default_value(4), "Number of worker threads (0=disable all multithreading)"}
   }}};
 }
 
 void MultiThreadingConfig::initialize(const UserValues& args) {
-    m_threads_nb = args.at(THREADS_NB).as<unsigned int>();
+    m_threads_nb = args.at(THREADS_NB).as<int>();
+    if (m_threads_nb < 0) {
+      throw Elements::Exception("The number of threads can not be negative!");
+    }
 }
 
 } // SExtractor namespace

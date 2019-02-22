@@ -26,7 +26,8 @@ public:
         m_active_threads(0),
         m_group_counter(0),
         m_input_done(false),
-        m_output_counter(0) {}
+        m_output_counter(0),
+        m_abort (false) {}
 
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
 
@@ -37,8 +38,8 @@ public:
   static std::recursive_mutex g_global_mutex;
 
 private:
-  static void workerThreadStatic(MultithreadedMeasurement* measurement);
-  static void outputThreadStatic(MultithreadedMeasurement* measurement);
+  static void workerThreadStatic(MultithreadedMeasurement* measurement, int id);
+  static void outputThreadStatic(MultithreadedMeasurement* measurement, int id);
   void workerThreadLoop();
   void outputThreadLoop();
 
@@ -62,6 +63,9 @@ private:
   std::condition_variable m_new_output;
   std::map<int, std::shared_ptr<SourceGroupInterface>> m_output_queue;
   std::mutex m_output_queue_mutex;
+
+  std::atomic_bool m_abort;
+  std::unique_ptr<std::pair<int, Elements::Exception>> m_rethrow;
 };
 
 }

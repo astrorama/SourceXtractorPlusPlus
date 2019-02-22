@@ -29,6 +29,7 @@ std::shared_ptr<Task> MultiframeModelFittingTaskFactory::createTask(const Proper
 
 void MultiframeModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<LegacyModelFittingConfig>();
+  manager.registerConfiguration<MeasurementConfig>();
 }
 
 void MultiframeModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
