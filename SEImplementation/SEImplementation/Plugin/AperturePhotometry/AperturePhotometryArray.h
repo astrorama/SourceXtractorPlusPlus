@@ -43,9 +43,9 @@ public:
     m_mag_errors = make_unique<NdArray<SeFloat>>(shape);
     m_flags = make_unique<NdArray<int64_t>>(shape);
 
-    for (int entry_idx = 0; entry_idx < nentries; ++entry_idx) {
+    for (size_t entry_idx = 0; entry_idx < nentries; ++entry_idx) {
       const auto& entry = measurements[entry_idx];
-      for (int ap_idx = 0; ap_idx < napertures; ++ap_idx) {
+      for (size_t ap_idx = 0; ap_idx < napertures; ++ap_idx) {
         m_fluxes->at(entry_idx, ap_idx) = entry.getFluxes()[ap_idx];
         m_flux_errors->at(entry_idx, ap_idx) = entry.getFluxErrors()[ap_idx];
         m_mags->at(entry_idx, ap_idx) = entry.getMags()[ap_idx];

@@ -5,8 +5,6 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-
 #include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
@@ -42,8 +40,6 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
 
 void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
   if (args.at(MTHRESH_USE).as<bool>()) {
-    std::cout << "MultiThresholdPartitionConfig" << std::endl;
-
     auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<unsigned int>();
     auto min_area = args.at(MTHRESH_MIN_AREA).as<unsigned int>();
     auto min_contrast = args.at(MTHRESH_MIN_CONTRAST).as<double>();

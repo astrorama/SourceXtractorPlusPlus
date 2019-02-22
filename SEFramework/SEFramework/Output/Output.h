@@ -33,6 +33,9 @@ public:
   }
 
   virtual void outputSource(const SourceInterface& source) = 0;
+
+  /// @return Number of elements written
+  virtual size_t flush() = 0;
 };
 
 }

@@ -3,15 +3,44 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <ElementsKernel/Logging.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/Configuration/PythonConfig.h>
 #include <SEImplementation/Configuration/ModelFittingConfig.h>
+#include <SEUtils/Python.h>
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;
 
+static Elements::Logging logger = Elements::Logging::getLogger("ModelFittingConfig");
+
 namespace SExtractor {
+
+/**
+ * Wrap py::extract *and* the call so Python errors can be properly translated and logged
+ * @tparam R
+ *  Return type
+ * @tparam T
+ *  Variadic template for any arbitrary number of arguments
+ * @param func
+ *  Python function to be called
+ * @param args
+ *  Arguments for the Python function
+ * @return
+ *  Whatever the Python function returns
+ * @throw
+ *  Elements::Exception if either the call or the extract throw a Python exception
+ */
+template <typename R, typename ...T>
+R py_call_wrapper(py::object func, T... args) {
+  try {
+    return py::extract<R>(func(args...));
+  }
+  catch (const py::error_already_set &e) {
+    throw pyToElementsException(logger);
+  }
+}
 
 ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
@@ -22,7 +51,7 @@ void ModelFittingConfig::initialize(const UserValues&) {
     py::object py_value_func = p.second.attr("get_value")();
     auto value_func = [py_value_func] (const SourceInterface& o) -> double {
       ObjectInfo oi {o};
-      return py::extract<double>(py_value_func(oi));
+      return py_call_wrapper<double>(py_value_func, oi);
     };
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
                                                            p.first, value_func);
@@ -32,13 +61,13 @@ void ModelFittingConfig::initialize(const UserValues&) {
     py::object py_init_value_func = p.second.attr("get_init_value")();
     auto init_value_func = [py_init_value_func] (const SourceInterface& o) -> double {
       ObjectInfo oi {o};
-      return py::extract<double>(py_init_value_func(oi));
+      return py_call_wrapper<double>(py_init_value_func, oi);
     };
     py::object py_range_obj = p.second.attr("get_range")();
     py::object py_range_func = py_range_obj.attr("get_limits")();
     auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
       ObjectInfo oi {o};
-      py::tuple range = py::extract<py::tuple>(py_range_func(init, oi));
+      py::tuple range = py_call_wrapper<py::tuple>(py_range_func, init, oi);
       double low = py::extract<double>(range[0]);
       double high = py::extract<double>(range[1]);
       return {low, high};
@@ -121,12 +150,12 @@ void ModelFittingConfig::initialize(const UserValues&) {
     py::object py_value_func = prior.attr("value");
     auto value_func = [py_value_func] (const SourceInterface& o) -> double {
       ObjectInfo oi {o};
-      return py::extract<double>(py_value_func(oi));
+      return py_call_wrapper<double>(py_value_func, oi);
     };
     py::object py_sigma_func = prior.attr("sigma");
     auto sigma_func = [py_sigma_func] (const SourceInterface& o) -> double {
       ObjectInfo oi {o};
-      return py::extract<double>(py_sigma_func(oi));
+      return py_call_wrapper<double>(py_sigma_func, oi);
     };
     m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
   }

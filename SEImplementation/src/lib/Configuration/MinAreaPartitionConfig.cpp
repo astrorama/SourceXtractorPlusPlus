@@ -3,8 +3,6 @@
  * @author nikoapos
  */
 
-#include <iostream>
-
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 
@@ -29,7 +27,6 @@ auto MinAreaPartitionConfig::getProgramOptions() -> std::map<std::string, Option
 
 void MinAreaPartitionConfig::initialize(const UserValues& args) {
   if (args.count(DETECT_MINAREA) != 0) {
-    std::cout << "MinAreaPartitionConfig" << std::endl;
     auto min_pixel_count = args.at(DETECT_MINAREA).as<int>();
     getDependency<PartitionStepConfig>().addPartitionStepCreator(
             [min_pixel_count](std::shared_ptr<SourceFactory>) {

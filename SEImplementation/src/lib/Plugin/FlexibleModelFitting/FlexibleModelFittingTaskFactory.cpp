@@ -5,8 +5,6 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
@@ -29,7 +27,6 @@ void FlexibleModelFittingTaskFactory::reportConfigDependencies(Euclid::Configura
 }
 
 void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  std::cout << "FlexibleModelFittingTaskFactory::configure\n";
   auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
 
   for (auto const& i : model_fitting_config.getParameters()) {
