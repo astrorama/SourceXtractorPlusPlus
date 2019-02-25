@@ -45,39 +45,39 @@ using namespace ModelFitting;
 namespace {
 
 void printLevmarInfo(std::array<double,10> info) {
-  std::cout << "\nMinimization info:\n";
-  std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
-  std::cout << "  ||e||_2: " << info[1] << '\n';
-  std::cout << "  ||J^T e||_inf: " << info[2] << '\n';
-  std::cout << "  ||Dp||_2: " << info[3] << '\n';
-  std::cout << "  mu/max[J^T J]_ii: " << info[4] << '\n';
-  std::cout << "  # iterations: " << info[5] << '\n';
+  std::cerr << "\nMinimization info:\n";
+  std::cerr << "  ||e||_2 at initial p: " << info[0] << '\n';
+  std::cerr << "  ||e||_2: " << info[1] << '\n';
+  std::cerr << "  ||J^T e||_inf: " << info[2] << '\n';
+  std::cerr << "  ||Dp||_2: " << info[3] << '\n';
+  std::cerr << "  mu/max[J^T J]_ii: " << info[4] << '\n';
+  std::cerr << "  # iterations: " << info[5] << '\n';
   switch ((int)info[6]) {
   case 1:
-    std::cout << "  stopped by small gradient J^T e\n";
+    std::cerr << "  stopped by small gradient J^T e\n";
     break;
   case 2:
-    std::cout << "  stopped by small Dp\n";
+    std::cerr << "  stopped by small Dp\n";
     break;
   case 3:
-    std::cout << "  stopped by itmax\n";
+    std::cerr << "  stopped by itmax\n";
     break;
   case 4:
-    std::cout << "  singular matrix. Restart from current p with increased mu\n";
+    std::cerr << "  singular matrix. Restart from current p with increased mu\n";
     break;
   case 5:
-    std::cout << "  no further error reduction is possible. Restart with increased mu\n";
+    std::cerr << "  no further error reduction is possible. Restart with increased mu\n";
     break;
   case 6:
-    std::cout << "  stopped by small ||e||_2\n";
+    std::cerr << "  stopped by small ||e||_2\n";
     break;
   case 7:
-    std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
+    std::cerr << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
     break;
   }
-  std::cout << "  # function evaluations: " << info[7] << '\n';
-  std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
-  std::cout << "  # linear systems solved: " << info[9] << "\n\n";
+  std::cerr << "  # function evaluations: " << info[7] << '\n';
+  std::cerr << "  # Jacobian evaluations: " << info[8] << '\n';
+  std::cerr << "  # linear systems solved: " << info[9] << "\n\n";
 }
 
 }
@@ -197,11 +197,9 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
 
 
 void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
-  std::cout << "FlexibleModelFittingTask::computeProperties()\n";
-
   double pixel_scale = 1;
   FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_manager {};
+  ModelFitting::EngineParameterManager engine_parameter_manager {};
 
   {
     std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -209,7 +207,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Prepare parameters
     for (auto& source : group) {
       for (auto parameter : m_parameters) {
-        parameter_manager.addParameter(source, parameter, parameter->create(parameter_manager, engine_manager, source));
+        parameter_manager.addParameter(source, parameter, parameter->create(parameter_manager, engine_parameter_manager, source));
       }
     }
   }
@@ -219,7 +217,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   int valid_frames = 0;
   for (auto frame : m_frames) {
-     int frame_index = frame->getFrameNb();
+    int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
       valid_frames++;
@@ -236,18 +234,16 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     }
   }
 
-
   if (valid_frames == 0) {
     // Can't do model fitting as no measurement frame overlaps the detected source
     // We still need to provide a property
     for (auto& source : group) {
-      std::unordered_map<int, double> parameter_values;
+      std::unordered_map<int, double> dummy_values;
       for (auto parameter : m_parameters) {
-          parameter_values[parameter->getId()] = 99;
+          dummy_values[parameter->getId()] = 99;
       }
-      source.setProperty<FlexibleModelFitting>(0, 99, parameter_values);
+      source.setProperty<FlexibleModelFitting>(0, 99, dummy_values, dummy_values);
     }
-
     return;
   }
 
@@ -260,18 +256,24 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(engine_manager, res_estimator);
+  auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
   printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 
   // Collect parameters for output
+  int parameter_index=0;
   for (auto& source : group) {
-    std::unordered_map<int, double> parameter_values;
+    std::unordered_map<int, double> parameter_values, parameter_sigmas;
     for (auto parameter : m_parameters) {
       parameter_values[parameter->getId()] = parameter_manager.getParameter(source, parameter)->getValue();
+      if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+        parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
+      } else {
+        parameter_sigmas[parameter->getId()] = 99.; // FIXME need user defined error margin for dependent parameters
+      }
     }
-    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values);
+    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, parameter_values, parameter_sigmas);
   }
 
   updateCheckImages(group, pixel_scale, parameter_manager);
@@ -311,7 +313,6 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       }
 
       auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(), debug_image);
-
 
       std::stringstream checkimage_residual_id;
       checkimage_residual_id << m_checkimage_prefix << "_residual_" << frame_id;

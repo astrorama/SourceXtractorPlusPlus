@@ -29,25 +29,25 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 
 void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the detection frame
-  const auto &detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
 
   // get the images and image information from the frame
-  const auto &detection_image = detection_frame->getSubtractedImage();
-  const auto &detection_variance = detection_frame->getVarianceMap();
-  const auto &variance_threshold = detection_frame->getVarianceThreshold();
-  const auto &threshold_image = detection_frame->getThresholdedImage();
+  const auto& detection_image = detection_frame->getSubtractedImage();
+  const auto& detection_variance = detection_frame->getVarianceMap();
+  const auto& variance_threshold = detection_frame->getVarianceThreshold();
+  const auto& threshold_image = detection_frame->getThresholdedImage();
 
   // get the object center
-  const auto &centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
-  const auto &centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
+  const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
+  const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
   // get the pixel list
-  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
-  std::vector<Flags> all_flags;
+  std::map<float, Flags> all_flags;
 
-  for (auto aperture_size : m_apertures) {
-    auto aperture = CircularAperture(aperture_size);
+  for (auto aperture_diameter : m_apertures) {
+    auto aperture = CircularAperture(aperture_diameter / 2.);
 
     // get the aperture borders on the image
     auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
@@ -98,10 +98,10 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
 
       // check/set the crowded area flag
       if (full_area / total_area > CROWD_THRESHOLD_APER)
-        flag |= Flags::BLENDED;
+        flag |= Flags::NEIGHBORS;
     }
 
-    all_flags.push_back(flag);
+    all_flags.emplace(std::make_pair(aperture_diameter, flag));
   }
 
   // set the source properties
@@ -112,7 +112,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 
-    auto aperture = CircularAperture(m_apertures[0]);
+    auto aperture = CircularAperture(m_apertures[0] / 2.);
     auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
     auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
 

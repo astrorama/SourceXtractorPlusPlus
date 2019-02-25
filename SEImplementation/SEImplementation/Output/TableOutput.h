@@ -20,14 +20,12 @@ public:
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
   
-  virtual ~TableOutput() {
+  size_t flush() override {
     if (!m_rows.empty()) {
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);
-      std::cout << m_rows.size() << " sources detected\n";
-    } else {
-      std::cout << "NO SOURCES DETECTED\n";
     }
+    return m_rows.size();
   }
   
   TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler) 

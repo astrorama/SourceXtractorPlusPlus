@@ -4,9 +4,14 @@
  *  Created on: Jul 18, 2016
  *      Author: mkuemmel@usm.lmu.de
  */
-//#include <math.h>
-#include <iostream>
-#include <SEFramework/Aperture/FluxMeasurement.h>
+
+#include "SEFramework/Aperture/EllipticalAperture.h"
+#include "SEFramework/Aperture/TransformedAperture.h"
+#include "SEFramework/Source/SourceFlags.h"
+#include "SEFramework/Aperture/FluxMeasurement.h"
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -14,9 +19,6 @@
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
-#include "SEFramework/Aperture/EllipticalAperture.h"
-#include "SEFramework/Aperture/TransformedAperture.h"
-#include "SEFramework/Source/SourceFlags.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 
@@ -32,25 +34,26 @@ const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 
 void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   // get the measurement frame
-  const auto &measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
+  const auto& measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
 
   // get the images and image information from the frame
-  const auto &measurement_image = measurement_frame->getSubtractedImage();
-  const auto &variance_map = measurement_frame->getVarianceMap();
-  const auto &variance_threshold = measurement_frame->getVarianceThreshold();
-  const auto &threshold_image = measurement_frame->getThresholdedImage();
+  const auto& measurement_image = measurement_frame->getSubtractedImage();
+  const auto& variance_map = measurement_frame->getVarianceMap();
+  const auto& variance_threshold = measurement_frame->getVarianceThreshold();
+  const auto& threshold_image = measurement_frame->getThresholdedImage();
+  SeFloat gain = measurement_frame->getGain();
 
   // get the object center
-  const auto &centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
-  const auto &centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
+  const auto& centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
+  const auto& centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
 
   // get the shape parameters
-  const auto &cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
-  const auto &cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
-  const auto &cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
+  const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
+  const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
+  const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
   // get the jacobian
-  const auto &jacobian = source.getProperty<JacobianSource>(m_instance);
+  const auto& jacobian = source.getProperty<JacobianSource>(m_instance);
 
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor * source.getProperty<KronRadius>().getKronRadius();
@@ -66,9 +69,14 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
                                  m_use_symmetry);
 
   // compute the derived quantities
-  auto flux_error = sqrt(measurement.m_variance);
+  auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
+
+  // Add the flags from the detection image and from the saturated and blended plugins
+  measurement.m_flags |= source.getProperty<AutoPhotometryFlag>().getFlags();
+  measurement.m_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
+  measurement.m_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
   // set the source properties
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
@@ -86,4 +94,3 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
 }
 
 }
-

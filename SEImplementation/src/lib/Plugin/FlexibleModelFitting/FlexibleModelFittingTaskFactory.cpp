@@ -5,8 +5,6 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
@@ -29,7 +27,6 @@ void FlexibleModelFittingTaskFactory::reportConfigDependencies(Euclid::Configura
 }
 
 void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  std::cout << "FlexibleModelFittingTaskFactory::configure\n";
   auto& model_fitting_config = manager.getConfiguration<ModelFittingConfig>();
 
   for (auto const& i : model_fitting_config.getParameters()) {
@@ -57,12 +54,26 @@ void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& 
             return prop.getParameterValue(properties[0]);
           }
       );
+      registry.registerColumnConverter<FlexibleModelFitting, double>(name+"_err",
+          [properties](const FlexibleModelFitting& prop) {
+            return prop.getParameterSigma(properties[0]);
+          }
+      );
     } else {
       registry.registerColumnConverter<FlexibleModelFitting, std::vector<double>>(name,
           [properties](const FlexibleModelFitting& prop) {
             std::vector<double> result;
             for (int id : properties) {
               result.push_back(prop.getParameterValue(id));
+            }
+            return result;
+          }
+      );
+      registry.registerColumnConverter<FlexibleModelFitting, std::vector<double>>(name+"_err",
+          [properties](const FlexibleModelFitting& prop) {
+            std::vector<double> result;
+            for (int id : properties) {
+              result.push_back(prop.getParameterSigma(id));
             }
             return result;
           }

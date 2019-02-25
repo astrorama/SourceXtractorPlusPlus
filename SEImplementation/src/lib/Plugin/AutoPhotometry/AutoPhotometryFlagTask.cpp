@@ -29,27 +29,27 @@ const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
+void AutoPhotometryFlagTask::computeProperties(SourceInterface& source) const {
   // get the detection frame
-  const auto &detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
 
   // get the images and image information from the frame
-  const auto &detection_image = detection_frame->getSubtractedImage();
-  const auto &detection_variance = detection_frame->getVarianceMap();
-  const auto &variance_threshold = detection_frame->getVarianceThreshold();
-  const auto &threshold_image = detection_frame->getThresholdedImage();
+  const auto& detection_image = detection_frame->getSubtractedImage();
+  const auto& detection_variance = detection_frame->getVarianceMap();
+  const auto& variance_threshold = detection_frame->getVarianceThreshold();
+  const auto& threshold_image = detection_frame->getThresholdedImage();
 
   // get the object center
-  const auto &centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
-  const auto &centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
+  const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
+  const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
   // get the shape parameters
-  const auto &cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
-  const auto &cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
-  const auto &cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
+  const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
+  const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
+  const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
   // get the pixel list
-  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor * source.getProperty<KronRadius>().getKronRadius();
@@ -60,8 +60,8 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
   auto ell_aper = std::make_shared<EllipticalAperture>(cxx, cyy, cxy, kron_radius_auto);
 
   // get the aperture borders on the image
-  const auto &min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
-  const auto &max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
+  const auto& min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
+  const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
@@ -110,23 +110,11 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface &source) const {
 
     // check/set the crowded area flag
     if ((SeFloat) area_full / (SeFloat) area_sum > CROWD_THRESHOLD_AUTO)
-      global_flag |= Flags::BLENDED;
-  }
-
-  // Iterate through groups, and flatten the flags into a vector with one entry per group
-  std::vector<Flags> all_flags;
-
-  for (auto& group : m_instances_per_group) {
-    Flags group_flag = global_flag;
-    for (auto image : group.second) {
-      auto photo = source.getProperty<AutoPhotometry>(image);
-      group_flag |= photo.getFlag();
-    }
-    all_flags.push_back(group_flag);
+      global_flag |= Flags::NEIGHBORS;
   }
 
   // set the source properties
-  source.setProperty<AutoPhotometryFlag>(all_flags);
+  source.setProperty<AutoPhotometryFlag>(global_flag);
 
   // Draw the aperture
   auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage();

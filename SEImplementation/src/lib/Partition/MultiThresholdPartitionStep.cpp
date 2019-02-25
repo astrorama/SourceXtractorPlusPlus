@@ -5,8 +5,6 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
 #include "SEFramework/Image/VectorImage.h"

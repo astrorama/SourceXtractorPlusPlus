@@ -18,7 +18,7 @@ namespace SExtractor {
 void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
   auto frame = group.begin()->getProperty<MeasurementFrame>(m_instance).getFrame();
   auto frame_coordinates = frame->getCoordinateSystem();
-  auto &detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
+  auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
   auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
@@ -38,7 +38,7 @@ void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
 void JacobianSourceTask::computeProperties(SourceInterface &source) const {
   auto frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
   auto frame_coordinates = frame->getCoordinateSystem();
-  auto &detection_boundaries = source.getProperty<PixelBoundaries>();
+  auto& detection_boundaries = source.getProperty<PixelBoundaries>();
   auto detection_frame_coordinates = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   double x = detection_boundaries.getMin().m_x + detection_boundaries.getWidth() / 2.0;

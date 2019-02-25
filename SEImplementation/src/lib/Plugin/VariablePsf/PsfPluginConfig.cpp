@@ -75,7 +75,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
 
     std::vector<std::valarray<SeFloat>> all_data;
     psf_data.column("PSF_MASK").readArrays(all_data, 0, 0);
-    auto &raw_coeff_data = all_data[0];
+    auto& raw_coeff_data = all_data[0];
 
     std::vector<std::shared_ptr<VectorImage<SeFloat>>> coefficients(n_coeffs);
 
@@ -136,7 +136,7 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename)};
-    auto &image_hdu = pFits->pHDU();
+    auto& image_hdu = pFits->pHDU();
 
     auto axes = image_hdu.axes();
     // PSF as image
@@ -198,6 +198,14 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
     {PSF_PIXELSCALE.c_str(), po::value<double>(),
         "Generate a gaussian PSF with given full-width half-maximum"}
   }}};
+}
+
+void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::UserValues &args) {
+  // Fail if there is no PSF file, but PSF_FWHM is set and PSF_PIXELSCALE is not
+  if (args.find(PSF_FILE) == args.end() && args.find(PSF_FWHM) != args.end() &&
+      args.find(PSF_PIXELSCALE) == args.end()) {
+    throw Elements::Exception("psf-pixelscale is required when using psf-fwhm");
+  }
 }
 
 void PsfPluginConfig::initialize(const UserValues &args) {

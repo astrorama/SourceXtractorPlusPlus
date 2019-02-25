@@ -63,7 +63,7 @@ void PointModelFittingPlugin::registerPlugin(SExtractor::PluginAPI &plugin_api) 
     }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<PointModelFitting>("PointModelFitting");
+  plugin_api.getOutputRegistry().enableOutput<PointModelFitting>("PointModelFitting");
 }
 
 } // SExtractor

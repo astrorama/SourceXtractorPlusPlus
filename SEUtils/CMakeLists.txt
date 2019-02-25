@@ -22,8 +22,12 @@ elements_depends_on_subdirs(ElementsKernel)
 #          find_package(CppUnit)
 #===============================================================================
 
-find_package(PythonLibs REQUIRED)
-find_package(Boost REQUIRED COMPONENTS python)
+find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
+if(PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
+    find_package(Boost REQUIRED COMPONENTS python)
+else()
+    find_package(Boost REQUIRED COMPONENTS python3)
+endif()
 find_package(GMock)
 
 #===============================================================================

@@ -220,7 +220,7 @@ void MultiframeModelFittingTask::computeProperties(SourceGroupInterface& group) 
   {
     std::lock_guard<std::mutex> lock{debug_image_mutex};
     if (m_debug_images.size() == 0) {
-      for (auto &frame_indices : m_frame_indices_per_band) {
+      for (auto& frame_indices : m_frame_indices_per_band) {
         for (auto frame_index : frame_indices) {
           auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 

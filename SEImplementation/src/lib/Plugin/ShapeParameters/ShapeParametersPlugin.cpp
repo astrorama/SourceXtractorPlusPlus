@@ -75,7 +75,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<ShapeParameters>("ShapeParameters");
+  plugin_api.getOutputRegistry().enableOutput<ShapeParameters>("ShapeParameters");
 }
 
 std::string ShapeParametersPlugin::getIdString() const {

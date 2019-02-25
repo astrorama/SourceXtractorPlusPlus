@@ -1,38 +1,36 @@
 /*
- * AperturePhotometryConfig.h
- *
- *  Created on: Sep 26, 2016
- *      Author: mschefer
+ * @file AperturePhotometryConfig.h
+ * @author Alejandro Alvarez Ayllon
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H_
-#define _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H
+#define _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H
 
-#include <vector>
-#include "Configuration/Configuration.h"
-#include "SEUtils/Types.h"
+#include <Configuration/Configuration.h>
 
 namespace SExtractor {
 
-class AperturePhotometryConfig : public Euclid::Configuration::Configuration {
-
+class AperturePhotometryConfig: public Euclid::Configuration::Configuration {
 public:
-  /// Destructor
-  virtual ~AperturePhotometryConfig() = default;
+  AperturePhotometryConfig(long manager_id);
 
-  AperturePhotometryConfig(long manager_id) : Configuration(manager_id) {}
+  void initialize(const UserValues& args) override;
 
-  std::map<std::string, OptionDescriptionList> getProgramOptions() override;
+  std::vector<float> getAperturesForImage(unsigned image_id) const;
 
-  void preInitialize(const UserValues& args) override;
+  const std::map<unsigned, std::vector<float>>& getApertures() const;
 
-  const std::vector<SeFloat>& getApertures() const;
+  std::map<std::string, std::vector<unsigned>> getImagesToOutput() const {
+    return m_output_images;
+  }
 
 private:
-  std::vector<SeFloat> m_apertures;
+  // Map the image id to the apertures
+  std::map<unsigned, std::vector<float>> m_apertures;
+  // List of images for which we write a column
+  std::map<std::string, std::vector<unsigned>> m_output_images;
 };
 
-} /* namespace SExtractor */
+}
 
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H_ */
+#endif // _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYCONFIG_H

@@ -51,6 +51,8 @@ public:
    */
   virtual double engineToWorld(const double engine_value) const = 0;
 
+  virtual double getEngineToWorldDerivative(const double value) const = 0;
+
   /**
    * @brief Destructor
    */

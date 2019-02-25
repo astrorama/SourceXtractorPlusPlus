@@ -16,7 +16,7 @@
 #include <SEImplementation/Configuration/MeasurementImageConfig.h>
 #include <Configuration/ConfigManager.h>
 #include <ElementsKernel/Logging.h>
-#include <SEImplementation/Configuration/ApertureConfig.h>
+#include <SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h>
 #include <SEImplementation/Configuration/ModelFittingConfig.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEFramework/Source/SimpleSourceFactory.h>
@@ -38,9 +38,9 @@ namespace py = boost::python;
 int main() {
   Elements::Logging::setLevel("DEBUG");
 
-  auto &config_manager = ConfigManager::getInstance(1);
+  auto& config_manager = ConfigManager::getInstance(1);
   config_manager.registerConfiguration<MeasurementImageConfig>();
-  config_manager.registerConfiguration<ApertureConfig>();
+  config_manager.registerConfiguration<AperturePhotometryConfig>();
   config_manager.registerConfiguration<ModelFittingConfig>();
   config_manager.closeRegistration();
 
@@ -48,31 +48,32 @@ int main() {
   args["python-config-file"].value() = (boost::filesystem::path(getenv("HOME")) / "temp/test_config.py").native();
 
   config_manager.initialize(args);
-  //auto &py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
+  //auto& py = config_manager.getConfiguration<PythonConfig>().getInterpreter();
 
-  auto &mconfig = config_manager.getConfiguration<MeasurementImageConfig>();
-  auto &aconfig = config_manager.getConfiguration<ApertureConfig>();
+  auto& mconfig = config_manager.getConfiguration<MeasurementImageConfig>();
+  auto& aconfig = config_manager.getConfiguration<AperturePhotometryConfig>();
 
-  auto &measurement_images = mconfig.getImagePaths();
+  auto& measurement_images = mconfig.getImagePaths();
 
-  auto aper_out = aconfig.getOutputForImages();
-  for (auto &img_id : aper_out) {
-    std::cout  << "Aperture column for image " << measurement_images[img_id] << std::endl;
-    auto apertures = aconfig.getAperturesForImage(img_id);
-    for (auto a : apertures) {
-      std::cout << '\t' << a << std::endl;
+  auto aper_out = aconfig.getImagesToOutput();
+  for (auto& columns : aper_out) {
+    for (auto& img : columns.second) {
+      std::cout << "Aperture column for image " << measurement_images[img] << std::endl;
+      auto apertures = aconfig.getAperturesForImage(img);
+      for (auto a : apertures) {
+        std::cout << '\t' << a << std::endl;
+      }
     }
   }
-  
-  
+
   SimpleSource source {};
   source.setProperty<WorldCentroid>(5, 10);
   source.setProperty<ShapeParameters>(1,1,1,1,1,1,1,1);
   source.setProperty<IsophotalFlux>(456, 25, 19, 0.3);
-  
+
   ModelFitting::EngineParameterManager mgr {};
   FlexibleModelFittingParameterManager parameter_manager {};
-  
+
   cout << "Parameters:\n";
   for (auto& mfcp : config_manager.getConfiguration<ModelFittingConfig>().getParameters()) {
     auto p = mfcp.second->create(parameter_manager, mgr, source);
@@ -89,7 +90,7 @@ int main() {
     }
     cout << endl;
   }
-  
+
   cout << "\n\nFrames:\n";
   for (auto p : config_manager.getConfiguration<ModelFittingConfig>().getFrames()) {
     cout << p->getFrameNb() << ": number of models " << p->getModels().size() << endl;

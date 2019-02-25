@@ -21,6 +21,9 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
+#include "SEUtils/Python.h"
+
+static Elements::Logging logger = Elements::Logging::getLogger("FlexibleModelFittingParameter");
 
 namespace SExtractor {
 
@@ -85,7 +88,12 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        std::shared_ptr<Parameters>... parameters) {
   auto calc = [value_calculator] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
     std::lock_guard<std::mutex> guard {python_callback_mutex};
-    return boost::python::extract<double>(value_calculator(params...));
+    try {
+      return boost::python::extract<double>(value_calculator(params...));
+    }
+    catch (const boost::python::error_already_set &e) {
+      throw pyToElementsException(logger);
+    }
   };
   return createDependentParameterPtr(calc, *(parameter_manager.getParameter(source, parameters))...);
 }

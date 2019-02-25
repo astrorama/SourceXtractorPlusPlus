@@ -40,7 +40,7 @@ public:
               return prop.getNDetectedPixels();
             }
     );
-    plugin_api.getOutputRegistry().optionalOutput<NDetectedPixels>("NDetectedPixels");
+    plugin_api.getOutputRegistry().enableOutput<NDetectedPixels>("NDetectedPixels");
   }
   virtual std::string getIdString() const {
     return "n_detected_pixels";

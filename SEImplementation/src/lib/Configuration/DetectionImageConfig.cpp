@@ -28,7 +28,7 @@ DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(mana
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
   return { {"Detection image", {
-      {DETECTION_IMAGE.c_str(), po::value<std::string>()->required(),
+      {DETECTION_IMAGE.c_str(), po::value<std::string>(),
           "Path to a fits format image to be used as detection image."},
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
@@ -42,6 +42,13 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
+  // Normally we would define this one as required, but then --list-output-properties would be
+  // unusable unless we also specify --detection-image, which is not very intuitive.
+  // For this reason, we check for its existence here
+  if (args.find(DETECTION_IMAGE) == args.end()) {
+    throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
+  }
+
   auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(
       args.find(DETECTION_IMAGE)->second.as<std::string>());
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
@@ -56,9 +63,15 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
     m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
   }
+  else {
+    m_gain = detection_image_gain;
+  }
 
   if (args.find(DETECTION_IMAGE_SATURATION) != args.end()) {
     m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
+  }
+  else {
+    m_saturation = detection_image_saturate;
   }
 
   m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?

@@ -16,4 +16,9 @@ void EngineParameter::setEngineValue(const double engine_value) {
   BasicParameter::setValue(m_converter->engineToWorld(engine_value));
 }
 
+double EngineParameter::getEngineToWorldDerivative() const {
+  return m_converter->getEngineToWorldDerivative(getValue());
+}
+
+
 } // namespace ModelFitting

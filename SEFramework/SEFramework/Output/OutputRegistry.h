@@ -36,7 +36,13 @@ public:
                                     std::pair<std::type_index, ColumnFromSource>(conv_out_type, conv_func));
     m_name_to_col_info_map.emplace(column_name, ColInfo{column_unit, column_description});
   }
-  
+
+  /**
+   * When there are multiple instances of a given property, generate one column output with the given suffix for each
+   * instance
+   * @tparam PropertyType
+   * @param instance_names
+   */
   template <typename PropertyType>
   void registerPropertyInstances(const std::vector<std::pair<std::string, unsigned int>>& instance_names) {
     std::vector<std::string> new_names {};
@@ -44,6 +50,12 @@ public:
       // Get the current converter
       auto converter = m_name_to_converter_map.at(current_name);
       auto col_info = m_name_to_col_info_map.at(current_name);
+      // Remove the old converter
+      // Do it *before*, because the new name may be the same!
+      m_name_to_converter_map.erase(current_name);
+      m_name_to_col_info_map.erase(current_name);
+
+      // Add the new ones
       for (auto instance : instance_names) {
         // Make a copy of the converter and set the index
         auto new_converter = converter;
@@ -55,31 +67,56 @@ public:
         m_name_to_col_info_map.emplace(new_name, col_info);
         new_names.push_back(new_name);
       }
-      // Remove the old converter
-      m_name_to_converter_map.erase(current_name);
-      m_name_to_col_info_map.erase(current_name);
     }
     // Replace all the old names with the new ones
     m_property_to_names_map[typeid(PropertyType)] = new_names;
   }
+
+  /**
+   * When there are multiple instances of a given property, generate one column output with the given name for each
+   * instance replacing an existing registered name
+   * @tparam PropertyType
+   * @param current_name
+   * @param instance_names
+   */
+  template <typename PropertyType>
+  void registerPropertyInstances(const std::string &current_name, const std::vector<std::pair<std::string, unsigned int>>& instance_names) {
+    std::vector<std::string> new_names {};
+    // Get the current converter
+    auto converter = m_name_to_converter_map.at(current_name);
+    // Remove the old converter
+    // Do it *before*, because the new name may be the same!
+    m_name_to_converter_map.erase(current_name);
+
+    // Add the new ones
+    for (auto instance : instance_names) {
+      // Make a copy of the converter and set the index
+      auto new_converter = converter;
+      new_converter.second.index = instance.second;
+      // Register the new converter with the new name
+      auto& new_name = instance.first;
+      m_name_to_converter_map.emplace(new_name, new_converter);
+      new_names.push_back(new_name);
+    }
+
+    // Replace all the old names with the new ones
+    auto& names = m_property_to_names_map[typeid(PropertyType)];
+    names.erase(std::find(names.begin(), names.end(), current_name));
+    std::copy(new_names.begin(), new_names.end(), std::back_inserter(names));
+  }
   
   template <typename PropertyType>
-  void enableOutput() {
+  void enableOutput(std::string alias_name) {
     if (m_property_to_names_map.count(typeid(PropertyType)) == 0) {
       throw Elements::Exception() << "No registered ColumnConverters for"
               << " property " << typeid(PropertyType).name();
     }
-    m_output_properties.emplace_back(typeid(PropertyType));
+    m_output_properties.emplace(alias_name, typeid(PropertyType));
   }
   
-  template <typename PropertyType>
-  void optionalOutput(std::string alias_name) {
-    m_optional_properties.emplace(alias_name, typeid(PropertyType));
-  }
-  
-  std::set<std::string> getOptionalOutputNames() {
+  std::set<std::string> getOutputPropertyNames() {
     std::set<std::string> result {};
-    for (auto& pair : m_optional_properties) {
+    for (auto& pair : m_output_properties) {
       result.emplace(pair.first);
     }
     return result;
@@ -113,8 +150,7 @@ private:
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
   std::map<std::string, ColInfo> m_name_to_col_info_map {};
-  std::vector<std::type_index> m_output_properties {};
-  std::multimap<std::string, std::type_index> m_optional_properties {};
+  std::multimap<std::string, std::type_index> m_output_properties {};
   
 };
 

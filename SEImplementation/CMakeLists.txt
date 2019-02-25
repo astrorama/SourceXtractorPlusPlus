@@ -16,6 +16,7 @@ elements_subdir(SEImplementation)
 elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table) # From Alexandria
+elements_depends_on_subdirs(NdArray) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
@@ -30,10 +31,13 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(yaml-cpp)
 find_package(WCSLIB REQUIRED)
 
-find_package(PythonInterp REQUIRED)
-find_package(PythonLibs REQUIRED)
-find_package(Boost REQUIRED COMPONENTS python)
-
+find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
+find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
+if(PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
+	find_package(Boost REQUIRED COMPONENTS python)
+else()
+	find_package(Boost REQUIRED COMPONENTS python3)
+endif()
 
 #===============================================================================
 # Declare the library dependencies here
@@ -43,8 +47,6 @@ find_package(Boost REQUIRED COMPONENTS python)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-
-include_directories(../PythonConfig/)
 
 
 elements_add_library(SEImplementation
@@ -59,7 +61,6 @@ elements_add_library(SEImplementation
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
-            
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp Boost PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)

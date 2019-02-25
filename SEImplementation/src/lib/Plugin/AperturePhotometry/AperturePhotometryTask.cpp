@@ -5,11 +5,11 @@
  *      Author: mschefer
  */
 
-#include <iostream>
-#include <SEFramework/Aperture/FluxMeasurement.h>
-
+#include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
+#include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -35,11 +35,12 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto measurement_image = measurement_frame->getSubtractedImage();
   auto variance_map = measurement_frame->getVarianceMap();
   auto variance_threshold = measurement_frame->getVarianceThreshold();
+  SeFloat gain = measurement_frame->getGain();
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_instance);
 
   // get the object center
-  const auto &centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
-  const auto &centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
+  const auto& centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
+  const auto& centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
 
   // m_apertures is the aperture on the detection frame, so we have to wrap it
   // to transform it to the measurement frame
@@ -49,14 +50,16 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   std::vector<SeFloat> mags, mags_error;
   std::vector<Flags> flags;
 
-  for (auto aperture_size : m_apertures) {
-    auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(aperture_size),
-                                                          jacobian.asTuple());
+  for (auto aperture_diameter : m_apertures) {
+    auto aperture = std::make_shared<TransformedAperture>(
+      std::make_shared<CircularAperture>(aperture_diameter / 2.),
+      jacobian.asTuple()
+    );
 
     auto measurement = measureFlux(aperture, centroid_x, centroid_y, measurement_image, variance_map,
                                    variance_threshold, m_use_symmetry);
     // compute the derived quantities
-    auto flux_error = sqrt(measurement.m_variance);
+    auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
     auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
     auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
@@ -67,18 +70,22 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
     flags.push_back(measurement.m_flags);
   }
 
-  // Merge flags with those set on the detection frame
-  auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+  // Merge flags with those set on the detection frame and from the saturate and blended plugins
+  Flags additional_flags(Flags::NONE);
+  additional_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
+  additional_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
-  for (size_t i = 0; i < aperture_flags.size(); ++i) {
-    flags[i] |= aperture_flags[i];
+  auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+  for (size_t i = 0; i < m_apertures.size(); ++i) {
+    auto det_flag = aperture_flags.at(m_apertures[i]);
+    flags[i] |= additional_flags | det_flag;
   }
 
   // set the source properties
   source.setIndexedProperty<AperturePhotometry>(m_instance, fluxes, fluxes_error, mags, mags_error, flags);
 
   // Draw the last aperture
-  auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(m_apertures[0]),
+  auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(m_apertures[0] / 2.),
                                                         jacobian.asTuple());
   auto coord_system = measurement_frame->getCoordinateSystem();
   auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance, measurement_image->getWidth(),

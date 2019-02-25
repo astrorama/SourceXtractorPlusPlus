@@ -22,6 +22,7 @@ public:
 
   std::map<std::string, OptionDescriptionList> getProgramOptions() override;
 
+  void preInitialize(const UserValues& args) override;
   void initialize(const UserValues& args) override;
 
   const std::shared_ptr<VariablePsf>& getPsf() const;

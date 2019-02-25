@@ -9,6 +9,7 @@
 
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
+#include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryArray.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTaskFactory.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryPlugin.h"
 
@@ -17,46 +18,45 @@ namespace SExtractor {
 static StaticPlugin<AutoPhotometryPlugin> aperture_photometry_plugin;
 
 void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<AutoPhotometryTaskFactory, AutoPhotometry, AutoPhotometryFlag>();
+  plugin_api.getTaskFactoryRegistry()
+    .registerTaskFactory<AutoPhotometryTaskFactory, AutoPhotometry, AutoPhotometryFlag, AutoPhotometryArray>();
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_flux",
-          [](const AutoPhotometry& prop){
-            return prop.getFlux();
+          [](const AutoPhotometryArray& prop){
+            return prop.getFluxes();
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_flux_err",
-          [](const AutoPhotometry& prop){
-            return prop.getFluxError();
+          [](const AutoPhotometryArray& prop){
+            return prop.getFluxErrors();
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_mag",
-          [](const AutoPhotometry& prop){
-            return prop.getMag();
+          [](const AutoPhotometryArray& prop){
+            return prop.getMags();
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometry, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_mag_err",
-          [](const AutoPhotometry& prop){
-            return prop.getMagError();
+          [](const AutoPhotometryArray& prop){
+            return prop.getMagErrors();
           }
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryFlag, std::vector<int64_t>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<int64_t >>(
           "auto_flags",
-          [](const AutoPhotometryFlag& prop){
+          [](const AutoPhotometryArray& prop){
             return flags2long(prop.getFlags());
           }
   );
 
-  // register as optional output (to have it in the output catalog)
-  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometry>("AutoPhotometry");
-  plugin_api.getOutputRegistry().optionalOutput<AutoPhotometryFlag>("AutoPhotometry");
+  plugin_api.getOutputRegistry().enableOutput<AutoPhotometryArray>("AutoPhotometry");
 }
 
 std::string AutoPhotometryPlugin::getIdString() const {

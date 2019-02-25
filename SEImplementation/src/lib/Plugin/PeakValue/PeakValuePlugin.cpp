@@ -26,7 +26,7 @@ void PeakValuePlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<PeakValue>("PeakValue");
+  plugin_api.getOutputRegistry().enableOutput<PeakValue>("PeakValue");
 }
 
 std::string PeakValuePlugin::getIdString() const {

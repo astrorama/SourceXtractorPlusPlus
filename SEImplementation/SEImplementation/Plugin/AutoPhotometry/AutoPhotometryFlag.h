@@ -19,14 +19,14 @@ class AutoPhotometryFlag: public Property {
 public:
   virtual ~AutoPhotometryFlag() = default;
 
-  AutoPhotometryFlag(const std::vector<Flags> &flags): m_flags{flags} {}
+  AutoPhotometryFlag(const Flags flags): m_flags{flags} {}
 
-  const std::vector<Flags>& getFlags() const {
+  Flags getFlags() const {
     return m_flags;
   }
 
 private:
-  std::vector<Flags> m_flags;
+  Flags m_flags;
 };
 
 } /* namespace SExtractor */
