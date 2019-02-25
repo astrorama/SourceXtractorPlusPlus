@@ -58,6 +58,8 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
       return prop.getFlags();
     }
   );
+
+  plugin_api.getOutputRegistry().enableOutput<AperturePhotometryArray>("AperturePhotometry");
 }
 
 std::string AperturePhotometryPlugin::getIdString() const {

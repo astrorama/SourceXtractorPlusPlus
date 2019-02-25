@@ -54,7 +54,7 @@ void OutputConfig::initialize(const UserValues& args) {
   std::stringstream properties_str {args.at(OUTPUT_PROPERTIES).as<std::string>()};
   std::string name;
   while (std::getline(properties_str, name, ',')) {
-    m_optional_properties.emplace_back(name);
+    m_output_properties.emplace_back(name);
   }
   
   auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
@@ -69,8 +69,8 @@ OutputConfig::OutputFileFormat OutputConfig::getOutputFileFormat() {
   return m_format;
 }
 
-const std::vector<std::string> OutputConfig::getOptionalProperties() {
-  return m_optional_properties;
+const std::vector<std::string> OutputConfig::getOutputProperties() {
+  return m_output_properties;
 }
 
 } // SEImplementation namespace

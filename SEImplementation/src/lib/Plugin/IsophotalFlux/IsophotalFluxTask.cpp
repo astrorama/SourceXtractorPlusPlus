@@ -16,6 +16,7 @@
 namespace SExtractor {
 
 void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
+  const auto& detection_frame = source.getProperty<DetectionFrame>();
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
   const auto& pixel_variances = source.getProperty<DetectionFramePixelValues>().getVariances();
 
@@ -30,9 +31,9 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
     total_variance += variance;
   }
 
-//  // Add variance from gain
-//  SeFloat gain = 1; // FIXME: get gain from options or fits file
-//  total_variance += total_flux / gain;
+  // Add variance from gain
+  SeFloat gain = detection_frame.getFrame()->getGain();
+  total_variance += total_flux / gain;
 
   auto flux_error = sqrt(total_variance);
 

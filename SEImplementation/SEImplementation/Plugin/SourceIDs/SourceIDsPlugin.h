@@ -51,7 +51,7 @@ public:
               return prop.getDetectionId();
             }
     );
-    plugin_api.getOutputRegistry().optionalOutput<SourceID>("SourceIDs");
+    plugin_api.getOutputRegistry().enableOutput<SourceID>("SourceIDs");
   }
 
   virtual std::string getIdString() const {

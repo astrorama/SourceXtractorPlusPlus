@@ -95,9 +95,9 @@ struct SourceModel {
 
 void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   PixelCoordinate stamp_top_left = group.getProperty<DetectionFrameGroupStamp>().getTopLeft();
-  auto &group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
-  auto &variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
-  auto &thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
+  auto& group_stamp = group.getProperty<DetectionFrameGroupStamp>().getStamp();
+  auto& variance_stamp = group.getProperty<DetectionFrameGroupStamp>().getVarianceStamp();
+  auto& thresholded_stamp = group.getProperty<DetectionFrameGroupStamp>().getThresholdedStamp();
   auto group_psf = group.getProperty<PsfProperty>().getPsf();
 
   EngineParameterManager manager{};
@@ -107,8 +107,8 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
   std::vector<std::unique_ptr<SourceModel>> source_models;
 
   // Setup models for all the sources
-  for (auto &source : group) {
-    auto &pixel_centroid = source.getProperty<PixelCentroid>();
+  for (auto& source : group) {
+    auto& pixel_centroid = source.getProperty<PixelCentroid>();
     auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
     auto pos_range = group_psf.getSize();
@@ -139,8 +139,8 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
     }
   }
 
-  for (auto &source : group) {
-    auto &pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  for (auto& source : group) {
+    auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
     for (auto pixel : pixel_coordinates) {
       pixel -= stamp_top_left;
       weight->at(pixel.m_x, pixel.m_y) = 1;
@@ -185,8 +185,8 @@ void PointModelFittingTask::computeProperties(SExtractor::SourceGroupInterface &
   auto check_image = CheckImages::getInstance().getModelFittingCheckImage();
 
   auto source_iter = group.begin();
-  for (auto &source_model : source_models) {
-    auto &source = *source_iter;
+  for (auto& source_model : source_models) {
+    auto& source = *source_iter;
     ++source_iter;
 
     // renders an image of the model for a single source with the final parameters

@@ -42,7 +42,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
   m_kron_minrad = manager.getConfiguration<AutoPhotometryConfig>().getAutoKronMinrad();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  auto &measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   std::map<std::string, unsigned> pos_in_group;

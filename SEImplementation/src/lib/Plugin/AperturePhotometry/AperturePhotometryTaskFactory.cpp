@@ -9,7 +9,6 @@
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
-#include "SEFramework/Aperture/CircularAperture.h"
 
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
@@ -51,7 +50,7 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
   std::vector<std::pair<std::string, unsigned int>> mag_instances, mag_err_instances;
   std::vector<std::pair<std::string, unsigned int>> flags_instances;
 
-  for (auto &aggregated_ap : m_apertures_per_output) {
+  for (auto& aggregated_ap : m_apertures_per_output) {
     auto& array_id = aggregated_ap.first;
 
     std::string name = m_col_prefix.at(array_id);
@@ -63,14 +62,11 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
     flags_instances.emplace_back(std::make_pair(name + "_flags", array_id));
   }
 
-  if (flux_instances.size()) {
-    registry.enableOutput<AperturePhotometryArray>();
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
-    registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
-  }
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
 }
 
 void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
@@ -81,8 +77,8 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 }
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
-  auto &measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  auto &aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  auto& aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   m_aperture_config = aperture_config.getApertures();

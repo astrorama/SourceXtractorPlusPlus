@@ -45,7 +45,7 @@ void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFl
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-  auto &config = manager.getConfiguration<CheckImagesConfig>();
+  auto& config = manager.getConfiguration<CheckImagesConfig>();
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();

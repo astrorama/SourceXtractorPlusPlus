@@ -33,7 +33,7 @@ void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<PixelCentroid>("PixelCentroid");
+  plugin_api.getOutputRegistry().enableOutput<PixelCentroid>("PixelCentroid");
 }
 
 std::string PixelCentroidPlugin::getIdString() const {

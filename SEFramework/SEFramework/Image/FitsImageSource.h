@@ -69,7 +69,7 @@ public:
 
     if (coord_system) {
       auto headers = coord_system->getFitsHeaders();
-      for (auto &h : headers) {
+      for (auto& h : headers) {
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;
 
