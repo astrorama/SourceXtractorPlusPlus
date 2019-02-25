@@ -21,7 +21,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
-#include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -42,29 +42,11 @@ public:
   }
 };
 
-
-//std::shared_ptr<VectorImage<SeFloat>> convertPsf(const cv::Mat& mat) {
-//  auto image = VectorImage<SeFloat>::create(mat.rows, mat.cols);
-//
-//  for (int y=0; y < image->getHeight(); y++) {
-//    for (int x=0; x < image->getWidth(); x++) {
-//       image->setValue(x, y, mat.at<double>(y, x));
-//    }
-//  }
-//
-//  return image;
-//}
-
 struct MoffatModelFittingFixture {
   std::shared_ptr<SimpleSource> source {new SimpleSource};
-  SimpleSourceGroup group;
-
-  std::shared_ptr<ImagePsf> psf;
   std::shared_ptr<MoffatModelFittingTask> model_fitting_task;
 
   MoffatModelFittingFixture() {
-    group.addSource(source);
-    psf = std::make_shared<ImagePsf>(1, PsfPluginConfig::generateGaussianPsf(5, 1)->getPsf({}));
     model_fitting_task = std::make_shared<MoffatModelFittingTask>(100);
   }
 };
@@ -77,36 +59,36 @@ BOOST_AUTO_TEST_SUITE (MoffatModelFitting_test)
 
 BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 
-  // FIXME
-  BOOST_CHECK(false);
+  auto image = VectorImage<SeFloat>::create(20, 20);
+  std::vector<PixelCoordinate> pixel_coordinates;
 
-  //  auto image = psf->getScaledKernel(10);
-//  std::vector<PixelCoordinate> pixel_coordinates;
-//  for (auto x = 0; x < image->getWidth(); ++x) {
-//    for (auto y = 0; y < image->getHeight(); ++y) {
-//      pixel_coordinates.emplace_back(x, y);
-//    }
-//  }
-//
-//  auto variance_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
-//  variance_image->fillValue(0);
-//
-//  auto detection_frame = std::make_shared<DetectionImageFrame>(
-//    image, nullptr, 10,
-//    std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
-//
-//  source->setProperty<ShapeParameters>(5, 5, 0, 1, 1, 1, 1, 25);
-//  source->setProperty<PixelCentroid>(image->getWidth()/2 - 1, image->getHeight() / 2 - 2);
-//  source->setProperty<PixelBoundaries>(0 , 0, image->getWidth(), image->getHeight());
-//  source->setProperty<IsophotalFlux>(10., 0., 1., 0.);
-//  source->setProperty<PixelCoordinateList>(pixel_coordinates);
-//  source->setProperty<DetectionFrame>(detection_frame);
-//
-//  group.setProperty<DetectionFrameGroupStamp>(image, image, PixelCoordinate(0,0), variance_image);
-//  group.setProperty<PsfProperty>(std::move(*psf));
-//  model_fitting_task->computeProperties(group);
-//
-//  BOOST_CHECK(true);
+  for (auto x = 5; x < 16; ++x) {
+    for (auto y = 5; y < 16; ++y) {
+      pixel_coordinates.emplace_back(x, y);
+      image->setValue(x, y, 100 / (0.01+sqrt((x-10.0)*(x-10.0)+(y-10.0)*(y-10.0))));
+    }
+  }
+
+
+  auto variance_image = VectorImage<SeFloat>::create(image->getWidth(), image->getHeight());
+  variance_image->fillValue(0);
+
+  auto detection_frame = std::make_shared<DetectionImageFrame>(
+    image, nullptr, 10, std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
+
+  source->setProperty<DetectionFrameSourceStamp>(image, image, PixelCoordinate(0,0), variance_image);
+  source->setProperty<PixelCentroid>(13, 12);
+  source->setProperty<ShapeParameters>(10, 10, 0, 0, 0, 0, 0, 0);
+  source->setProperty<IsophotalFlux>(500., 0., 1., 0.);
+  source->setProperty<PixelCoordinateList>(pixel_coordinates);
+  source->setProperty<DetectionFrame>(detection_frame);
+
+  model_fitting_task->computeProperties(*source);
+
+  auto moffat_model = source->getProperty<MoffatModelFitting>();
+  BOOST_CHECK(moffat_model.getIterations() > 0);
+  BOOST_CHECK_CLOSE(moffat_model.getX(), 9.5, 1);
+  BOOST_CHECK_CLOSE(moffat_model.getY(), 9.5, 1);
 }
 
 //-----------------------------------------------------------------------------

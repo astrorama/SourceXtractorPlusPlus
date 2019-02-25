@@ -22,7 +22,7 @@ public:
 
   virtual ~MoffatModelFittingTask() = default;
 
-  virtual void computeProperties(SourceInterface& group) const override;
+  virtual void computeProperties(SourceInterface& source) const override;
 
 private:
 

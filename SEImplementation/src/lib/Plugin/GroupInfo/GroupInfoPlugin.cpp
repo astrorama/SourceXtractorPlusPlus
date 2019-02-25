@@ -27,7 +27,7 @@ void GroupInfoPlugin::registerPlugin(PluginAPI& plugin_api) {
       }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<GroupInfo>("GroupInfo");
+  plugin_api.getOutputRegistry().enableOutput<GroupInfo>("GroupInfo");
 }
 
 std::string GroupInfoPlugin::getIdString() const {

@@ -239,7 +239,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   auto& pixel_centroid = source.getProperty<PixelCentroid>();
   auto& shape_parameters = source.getProperty<ShapeParameters>();
-  auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
+  //auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
   auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
 //  double size_factor = 2;

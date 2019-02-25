@@ -39,7 +39,7 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           }
   );
 
-  plugin_api.getOutputRegistry().optionalOutput<MoffatModelFitting>("MoffatModelFitting");
+  plugin_api.getOutputRegistry().enableOutput<MoffatModelFitting>("MoffatModelFitting");
 }
 
 std::string MoffatModelFittingPlugin::getIdString() const {
