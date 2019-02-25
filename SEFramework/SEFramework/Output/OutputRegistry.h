@@ -89,7 +89,7 @@ public:
       auto new_converter = converter;
       new_converter.second.index = instance.second;
       // Register the new converter with the new name
-      auto &new_name = instance.first;
+      auto& new_name = instance.first;
       m_name_to_converter_map.emplace(new_name, new_converter);
       new_names.push_back(new_name);
     }

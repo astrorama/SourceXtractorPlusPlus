@@ -399,7 +399,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
     int argc_tmp = plugin_options_input.size();
     std::vector<const char *> argv_tmp(argc_tmp);
     for (unsigned int i = 0; i < plugin_options_input.size(); ++i) {
-      auto &option_str = plugin_options_input[i];
+      auto& option_str = plugin_options_input[i];
       argv_tmp[i] = option_str.data();
     }
 

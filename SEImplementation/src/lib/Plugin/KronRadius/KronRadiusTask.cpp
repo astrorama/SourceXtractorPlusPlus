@@ -57,7 +57,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
 // get the pixel list
-  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);

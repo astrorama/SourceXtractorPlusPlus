@@ -63,9 +63,15 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
     m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
   }
+  else {
+    m_gain = detection_image_gain;
+  }
 
   if (args.find(DETECTION_IMAGE_SATURATION) != args.end()) {
     m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
+  }
+  else {
+    m_saturation = detection_image_saturate;
   }
 
   m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?

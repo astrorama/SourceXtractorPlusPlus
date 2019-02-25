@@ -4,6 +4,7 @@
  * @author nikoapos
  */
 
+#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
@@ -11,12 +12,22 @@ namespace SExtractor {
 
 template<typename Combine>
 ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance)
-        : m_flag_image(flag_image), m_flag_instance(flag_instance) {
+  : m_flag_image(flag_image), m_flag_instance(flag_instance) {
 }
 
 
 template<typename Combine>
-void ExternalFlagTask<Combine>::computeProperties(SourceInterface& source) const {
+void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
+  const auto& detection_frame = source.getProperty<DetectionFrame>();
+  const auto& detection_image = detection_frame.getFrame()->getOriginalImage();
+
+  if (m_flag_image->getWidth() != detection_image->getWidth() || m_flag_image->getHeight() != detection_image->getHeight()) {
+    throw Elements::Exception()
+      << "The flag image size does not match the detection image size: "
+      << m_flag_image->getWidth() << "x" << m_flag_image->getHeight() << " != "
+      << detection_image->getWidth() << "x" << detection_image->getHeight();
+  }
+
   std::vector<FlagImage::PixelType> pixel_flags{};
   for (auto& coords : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     pixel_flags.push_back(m_flag_image->getValue(coords.m_x, coords.m_y));
@@ -31,7 +42,7 @@ void ExternalFlagTask<Combine>::computeProperties(SourceInterface& source) const
 namespace ExternalFlagCombineTypes {
 
 struct Or {
-  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType>& pixel_flags) {
+  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType> &pixel_flags) {
     std::int64_t flag = 0;
     int count = 0;
     for (auto pix_flag : pixel_flags) {
@@ -45,7 +56,7 @@ struct Or {
 };
 
 struct And {
-  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType>& pixel_flags) {
+  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType> &pixel_flags) {
     std::int64_t flag = std::numeric_limits<std::int64_t>::max();
     int count = pixel_flags.size();
     for (auto pix_flag : pixel_flags) {
@@ -56,7 +67,7 @@ struct And {
 };
 
 struct Min {
-  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType>& pixel_flags) {
+  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType> &pixel_flags) {
     std::int64_t flag = std::numeric_limits<std::int64_t>::max();
     int count = 0;
     for (auto pix_flag : pixel_flags) {
@@ -75,7 +86,7 @@ struct Min {
 };
 
 struct Max {
-  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType>& pixel_flags) {
+  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType> &pixel_flags) {
     std::int64_t flag = 0;
     int count = 0;
     for (auto pix_flag : pixel_flags) {
@@ -94,7 +105,7 @@ struct Max {
 };
 
 struct Most {
-  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType>& pixel_flags) {
+  static std::pair<std::int64_t, int> combine(const std::vector<FlagImage::PixelType> &pixel_flags) {
     std::map<FlagImage::PixelType, int> counters;
     for (auto pix_flag : pixel_flags) {
       counters[pix_flag] += 1;
@@ -110,7 +121,7 @@ struct Most {
     return {flag, count};
   }
 };
-  
+
 } // end of namespace ExternalFlagCombineTypes
 
 template class ExternalFlagTask<ExternalFlagCombineTypes::Or>;
