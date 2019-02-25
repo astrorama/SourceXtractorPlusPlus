@@ -20,7 +20,7 @@ public:
   virtual ~BlendedFlagTask() = default;
 
   virtual void computeProperties(SourceInterface &source) const {
-    const auto &detection_src_id = source.getProperty<SourceId>();
+    const auto& detection_src_id = source.getProperty<SourceId>();
     source.setProperty<BlendedFlag>(detection_src_id.getDetectionId() != detection_src_id.getSourceId());
   };
 };

@@ -29,20 +29,20 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 
 void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the detection frame
-  const auto &detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
 
   // get the images and image information from the frame
-  const auto &detection_image = detection_frame->getSubtractedImage();
-  const auto &detection_variance = detection_frame->getVarianceMap();
-  const auto &variance_threshold = detection_frame->getVarianceThreshold();
-  const auto &threshold_image = detection_frame->getThresholdedImage();
+  const auto& detection_image = detection_frame->getSubtractedImage();
+  const auto& detection_variance = detection_frame->getVarianceMap();
+  const auto& variance_threshold = detection_frame->getVarianceThreshold();
+  const auto& threshold_image = detection_frame->getThresholdedImage();
 
   // get the object center
-  const auto &centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
-  const auto &centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
+  const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
+  const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
   // get the pixel list
-  const auto &pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   std::map<float, Flags> all_flags;
 

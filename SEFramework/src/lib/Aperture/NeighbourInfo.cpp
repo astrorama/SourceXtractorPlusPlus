@@ -17,7 +17,7 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordi
   auto height = max_pixel.m_y - min_pixel.m_y + 1;
   m_neighbour_image = VectorImage<int>::create(width, height);
 
-  for (auto &pixel_coord : pixel_list) {
+  for (auto& pixel_coord : pixel_list) {
     auto act_x = pixel_coord.m_x - m_offset.m_x;
     auto act_y = pixel_coord.m_y - m_offset.m_y;
 

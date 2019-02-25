@@ -39,8 +39,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_instance);
 
   // get the object center
-  const auto &centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
-  const auto &centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
+  const auto& centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
+  const auto& centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
 
   // m_apertures is the aperture on the detection frame, so we have to wrap it
   // to transform it to the measurement frame

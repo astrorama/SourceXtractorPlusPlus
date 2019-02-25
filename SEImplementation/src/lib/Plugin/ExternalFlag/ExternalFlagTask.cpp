@@ -18,8 +18,8 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 template<typename Combine>
 void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
-  const auto &detection_frame = source.getProperty<DetectionFrame>();
-  const auto &detection_image = detection_frame.getFrame()->getOriginalImage();
+  const auto& detection_frame = source.getProperty<DetectionFrame>();
+  const auto& detection_image = detection_frame.getFrame()->getOriginalImage();
 
   if (m_flag_image->getWidth() != detection_image->getWidth() || m_flag_image->getHeight() != detection_image->getHeight()) {
     throw Elements::Exception()
@@ -29,7 +29,7 @@ void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const
   }
 
   std::vector<FlagImage::PixelType> pixel_flags{};
-  for (auto &coords : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
+  for (auto& coords : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
     pixel_flags.push_back(m_flag_image->getValue(coords.m_x, coords.m_y));
   }
   std::int64_t flag = 0;
@@ -112,7 +112,7 @@ struct Most {
     }
     std::int64_t flag = 0;
     int count = 0;
-    for (auto &pair : counters) {
+    for (auto& pair : counters) {
       if (pair.second > count) {
         flag = pair.first;
         count = pair.second;

@@ -50,7 +50,7 @@ void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &re
   std::vector<std::pair<std::string, unsigned int>> mag_instances, mag_err_instances;
   std::vector<std::pair<std::string, unsigned int>> flags_instances;
 
-  for (auto &aggregated_ap : m_apertures_per_output) {
+  for (auto& aggregated_ap : m_apertures_per_output) {
     auto& array_id = aggregated_ap.first;
 
     std::string name = m_col_prefix.at(array_id);
@@ -77,8 +77,8 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 }
 
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
-  auto &measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  auto &aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  auto& aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
   auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
 
   m_aperture_config = aperture_config.getApertures();

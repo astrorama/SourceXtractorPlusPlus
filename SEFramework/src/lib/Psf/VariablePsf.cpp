@@ -58,8 +58,8 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<doub
 
   // Add the rest of the components
   for (auto i = 1u; i < m_coefficients.size(); ++i) {
-    const auto &exp = m_exponents[i];
-    const auto &coef = m_coefficients[i];
+    const auto& exp = m_exponents[i];
+    const auto& coef = m_coefficients[i];
 
     double acc = 1.;
     for (auto j = 0u; j < scaled_props.size(); ++j) {
@@ -84,7 +84,7 @@ void VariablePsf::selfTest() {
 
   // Pre-condition: There is a degree value per unique group
   std::vector<int> n_component_per_group(m_group_degrees.size());
-  for (auto &component : m_components) {
+  for (auto& component : m_components) {
     if (component.group_id >= (int) m_group_degrees.size()) {
       throw Elements::Exception() << "Component group out of range for " << component.name;
     }

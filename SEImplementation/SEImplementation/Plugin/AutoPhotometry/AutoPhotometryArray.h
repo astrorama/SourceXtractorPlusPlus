@@ -27,7 +27,7 @@ public:
   virtual ~AutoPhotometryArray() = default;
 
   AutoPhotometryArray(const std::vector<AutoPhotometry> &measurements) {
-    for (auto &m : measurements) {
+    for (auto& m : measurements) {
       m_fluxes.push_back(m.getFlux());
       m_flux_errors.push_back(m.getFluxError());
       m_mags.push_back(m.getMag());

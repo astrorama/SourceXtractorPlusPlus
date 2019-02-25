@@ -34,26 +34,26 @@ const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 
 void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   // get the measurement frame
-  const auto &measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
+  const auto& measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
 
   // get the images and image information from the frame
-  const auto &measurement_image = measurement_frame->getSubtractedImage();
-  const auto &variance_map = measurement_frame->getVarianceMap();
-  const auto &variance_threshold = measurement_frame->getVarianceThreshold();
-  const auto &threshold_image = measurement_frame->getThresholdedImage();
+  const auto& measurement_image = measurement_frame->getSubtractedImage();
+  const auto& variance_map = measurement_frame->getVarianceMap();
+  const auto& variance_threshold = measurement_frame->getVarianceThreshold();
+  const auto& threshold_image = measurement_frame->getThresholdedImage();
   SeFloat gain = measurement_frame->getGain();
 
   // get the object center
-  const auto &centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
-  const auto &centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
+  const auto& centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
+  const auto& centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
 
   // get the shape parameters
-  const auto &cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
-  const auto &cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
-  const auto &cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
+  const auto& cxx = source.getProperty<ShapeParameters>().getEllipseCxx();
+  const auto& cyy = source.getProperty<ShapeParameters>().getEllipseCyy();
+  const auto& cxy = source.getProperty<ShapeParameters>().getEllipseCxy();
 
   // get the jacobian
-  const auto &jacobian = source.getProperty<JacobianSource>(m_instance);
+  const auto& jacobian = source.getProperty<JacobianSource>(m_instance);
 
   // get the kron-radius
   SeFloat kron_radius_auto = m_kron_factor * source.getProperty<KronRadius>().getKronRadius();
