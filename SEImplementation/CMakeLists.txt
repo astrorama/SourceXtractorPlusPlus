@@ -28,7 +28,6 @@ elements_depends_on_subdirs(ModelFitting)
 #          find_package(CppUnit)
 #===============================================================================
 
-find_package(yaml-cpp)
 find_package(WCSLIB REQUIRED)
 
 find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
@@ -62,8 +61,7 @@ elements_add_library(SEImplementation
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
-            
-            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB yaml-cpp Boost PythonLibs PythonInterp Configuration
+            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB Boost PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
             
@@ -130,9 +128,6 @@ elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitti
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(PointModelFitting_test tests/src/Plugin/PointModelFitting/PointModelFitting_test.cpp
-					 LINK_LIBRARIES SEImplementation
-					 TYPE Boost)
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
 					 LINK_LIBRARIES SEImplementation
 					 TYPE Boost)
