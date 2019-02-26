@@ -16,15 +16,15 @@
 
 namespace SExtractor {
 
-class DeblendStepConfg : public Euclid::Configuration::Configuration {
+class DeblendStepConfig : public Euclid::Configuration::Configuration {
   
 public:
   
   using DeblendStepCreator = std::function<std::shared_ptr<DeblendStep>(std::shared_ptr<SourceFactory>)>;
   
-  DeblendStepConfg(long manager_id);
+  DeblendStepConfig(long manager_id);
   
-  virtual ~DeblendStepConfg() = default;
+  virtual ~DeblendStepConfig() = default;
   
   void addDeblendStepCreator(DeblendStepCreator step_creator);
   

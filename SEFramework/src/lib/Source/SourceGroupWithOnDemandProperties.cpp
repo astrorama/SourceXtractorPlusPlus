@@ -88,6 +88,10 @@ void SourceGroupWithOnDemandProperties::clearGroupProperties() {
   }
 }
 
+unsigned int SourceGroupWithOnDemandProperties::size() const {
+  return m_sources.size();
+}
+
 } // SExtractor namespace
 
 

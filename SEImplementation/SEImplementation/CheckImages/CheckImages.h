@@ -10,6 +10,7 @@
 
 #include <mutex>
 #include <map>
+#include <iostream>
 
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
@@ -41,12 +42,20 @@ public:
     return m_partition_image;
   }
 
+  std::shared_ptr<WriteableImage<unsigned int>> getGroupImage() const {
+    return m_group_image;
+  }
+
   std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage() const {
     return m_auto_aperture_image;
   }
 
   std::shared_ptr<WriteableImage<unsigned int>> getApertureImage() const {
     return m_aperture_image;
+  }
+
+  std::shared_ptr<WriteableImage<SeFloat>> getMoffatImage() const {
+    return m_moffat_image;
   }
 
   std::shared_ptr<WriteableImage<unsigned int>>
@@ -56,15 +65,15 @@ public:
   getApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
 
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
-      m_background_image = background_image;
+    m_background_image = background_image;
   }
 
   void setVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
-      m_variance_image = variance_image;
+    m_variance_image = variance_image;
   }
 
   void setFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
-      m_filtered_image = filtered_image;
+    m_filtered_image = filtered_image;
   }
 
   std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
@@ -89,7 +98,6 @@ public:
     m_access_mutex.unlock();
   }
 
-
 private:
   CheckImages();
 
@@ -99,8 +107,10 @@ private:
   std::shared_ptr<WriteableImage<DetectionImage::PixelType>> m_check_image_model_fitting;
   std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
+  std::shared_ptr<WriteableImage<unsigned int>> m_group_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
+  std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
   std::map<int, decltype(m_aperture_image)> m_measurement_aperture_images;
   std::map<int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
 
@@ -116,9 +126,11 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
+  std::string m_group_filename;
   std::string m_filtered_filename;
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
+  std::string m_moffat_filename;
 
   std::map<std::string, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 

@@ -23,7 +23,8 @@ public:
   enum class Algorithm {
     NO_GROUPING,
     OVERLAPPING,
-    SPLIT_SOURCES
+    SPLIT_SOURCES,
+    MOFFAT,
   };
 
   /**
@@ -41,8 +42,13 @@ public:
     return m_selected_algorithm;
   }
 
+  double getMoffatThreshold() const {
+    return m_moffat_threshold;
+  }
+
 private:
   Algorithm m_selected_algorithm;
+  double m_moffat_threshold;
 
 }; /* End of GroupingConfig class */
 
