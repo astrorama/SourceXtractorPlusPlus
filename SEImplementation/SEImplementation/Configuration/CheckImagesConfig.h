@@ -49,6 +49,10 @@ public:
     return m_partition_filename;
   }
 
+  const std::string& getGroupFilename() const {
+    return m_group_filename;
+  }
+
   const std::string& getFilteredFilename() const {
     return m_filtered_filename;
   }
@@ -61,6 +65,10 @@ public:
     return m_aperture_filename;
   }
 
+  const std::string& getMoffatFilename() const {
+    return m_moffat_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
@@ -69,9 +77,11 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
+  std::string m_group_filename;
   std::string m_filtered_filename;
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
+  std::string m_moffat_filename;
 
 };
 

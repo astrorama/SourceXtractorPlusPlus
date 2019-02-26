@@ -10,7 +10,7 @@
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Source/SourceFactory.h"
 
-#include "SEImplementation/Configuration/DeblendStepConfg.h"
+#include <SEImplementation/Configuration/DeblendStepConfig.h>
 
 namespace SExtractor {
 
@@ -24,11 +24,11 @@ public:
   virtual ~DeblendingFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override {
-    manager.registerConfiguration<DeblendStepConfg>();
+    manager.registerConfiguration<DeblendStepConfig>();
   }
 
   void configure(Euclid::Configuration::ConfigManager& manager) override {
-    m_steps = manager.getConfiguration<DeblendStepConfg>().getSteps(m_source_factory);
+    m_steps = manager.getConfiguration<DeblendStepConfig>().getSteps(m_source_factory);
   }
   
   std::unique_ptr<Deblending> createDeblending() const {

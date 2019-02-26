@@ -54,4 +54,8 @@ void SimpleSourceGroup::setProperty(std::unique_ptr<Property> property, const Pr
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
+unsigned int SimpleSourceGroup::size() const {
+  return m_sources.size();
+}
+
 } // SExtractor namespace
