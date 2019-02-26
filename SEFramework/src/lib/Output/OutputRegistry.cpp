@@ -11,6 +11,8 @@
 
 #include "SEFramework/Output/OutputRegistry.h"
 
+#include <iostream>
+
 using namespace Euclid::Table;
 
 namespace SExtractor {
@@ -41,6 +43,27 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
     }
     return Row {std::move(cell_values), std::make_shared<ColumnInfo>(move(info_list))};
   };
+}
+
+void OutputRegistry::printPropertyColumnMap(const std::vector<std::string>& properties) {
+  std::set<std::string> properties_set {properties.begin(), properties.end()};
+  for (auto& prop : m_output_properties) {
+    if (!properties.empty() && properties_set.find(prop.first) == properties_set.end()) {
+      continue;
+    }
+    std::cout << prop.first << ":\n";
+    for (auto& col : m_property_to_names_map.at(prop.second)) {
+      std::cout << "  - " << col;
+      auto& info = m_name_to_col_info_map.at(col);
+      if (info.description != "") {
+        std::cout << " : " << info.description;
+      }
+      if (info.unit != "") {
+        std::cout << " (" << info.unit << ")";
+      }
+      std::cout << '\n';
+    }
+  }
 }
 
 

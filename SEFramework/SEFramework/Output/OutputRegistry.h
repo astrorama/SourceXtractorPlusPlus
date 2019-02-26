@@ -127,6 +127,8 @@ public:
   
   SourceToRowConverter getSourceToRowConverter(const std::vector<std::string>& enabled_optional);
   
+  void printPropertyColumnMap(const std::vector<std::string>& properties={});
+  
 private:
   
   class ColumnFromSource {

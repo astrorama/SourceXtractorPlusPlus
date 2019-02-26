@@ -52,6 +52,7 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
+#include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
@@ -70,6 +71,8 @@ using namespace Euclid::Configuration;
 static long config_manager_id = getUniqueManagerId();
 
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
+static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
+static const std::string PROPERTY_COLUMN_MAPPING {"property-column-mapping"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -152,6 +155,10 @@ public:
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
           "List the possible output properties for the given input parameters and exit");
+    options.add_options() (PROPERTY_COLUMN_MAPPING_ALL.c_str(), po::bool_switch(),
+          "Show the columns created for each property");
+    options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
+          "Show the columns created for each property, for the given configuration");
     return options;
   }
 
@@ -165,6 +172,11 @@ public:
       for (auto& name : output_registry->getOutputPropertyNames()) {
         std::cout << name << std::endl;
       }
+      return Elements::ExitCode::OK;
+    }
+    
+    if (args.at(PROPERTY_COLUMN_MAPPING_ALL).as<bool>()) {
+      output_registry->printPropertyColumnMap();
       return Elements::ExitCode::OK;
     }
 
@@ -197,6 +209,11 @@ public:
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
+    
+    if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
+      output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
+      return Elements::ExitCode::OK;
+    }
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
