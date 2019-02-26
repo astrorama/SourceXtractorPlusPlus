@@ -84,9 +84,11 @@ public:
     std::vector<std::string> new_names {};
     // Get the current converter
     auto converter = m_name_to_converter_map.at(current_name);
+    auto col_info = m_name_to_col_info_map.at(current_name);
     // Remove the old converter
     // Do it *before*, because the new name may be the same!
     m_name_to_converter_map.erase(current_name);
+    m_name_to_col_info_map.erase(current_name);
 
     // Add the new ones
     for (auto instance : instance_names) {
@@ -96,6 +98,7 @@ public:
       // Register the new converter with the new name
       auto& new_name = instance.first;
       m_name_to_converter_map.emplace(new_name, new_converter);
+      m_name_to_col_info_map.emplace(new_name, col_info);
       new_names.push_back(new_name);
     }
 
