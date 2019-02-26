@@ -14,6 +14,8 @@
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
+#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
+#include "SEImplementation/CheckImages/MoffatCheckImage.h"
 
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "ElementsKernel/ProgramHeaders.h"
@@ -247,6 +249,14 @@ public:
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
       measurement->addObserver(
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+    }
+    if (CheckImages::getInstance().getGroupImage() != nullptr) {
+      measurement->addObserver(
+          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+    }
+    if (CheckImages::getInstance().getMoffatImage() != nullptr) {
+      measurement->addObserver(
+          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();

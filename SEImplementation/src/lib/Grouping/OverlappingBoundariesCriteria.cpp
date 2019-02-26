@@ -19,7 +19,7 @@ bool OverlappingBoundariesCriteria::shouldGroup(const SourceInterface& first, co
 }
 
 
-} // SEImplementation namespace
+} // SExtractor namespace
 
 
 

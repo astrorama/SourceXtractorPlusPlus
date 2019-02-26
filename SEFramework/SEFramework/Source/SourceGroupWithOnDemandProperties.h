@@ -52,6 +52,8 @@ public:
   
   void merge(const SourceGroupInterface& other) override;
   
+  unsigned int size() const override;
+
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 

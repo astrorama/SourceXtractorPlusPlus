@@ -29,6 +29,8 @@ ExtendedModel::ExtendedModel(ExtendedModel&&) = default;
 ExtendedModel::~ExtendedModel() = default;
 
 double ExtendedModel::getValue(double x, double y) const {
+  x -= getX();
+  y -= getY();
   return std::accumulate(m_component_list.begin(), m_component_list.end(), 0.,
                          [x, y](double a, const std::unique_ptr<ModelComponent>& b) {
                            return a + b->getValue(x, y);
