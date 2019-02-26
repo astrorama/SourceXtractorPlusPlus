@@ -73,84 +73,7 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
-/////////// FIXME copypasta from ModelFitting tests, move somewhere else
-
 namespace {
-
-//// Prints on the screen the info of the levmar minimization
-//void printLevmarInfo(std::array<double,10> info) {
-//  static double total_error = 0;
-//  total_error += info[1];
-//
-//  std::cout << "\nMinimization info:\n";
-//  std::cout << "  ||e||_2 at initial p: " << info[0] << '\n';
-//  std::cout << "  ||e||_2: " << info[1] << '\n';
-//  std::cout << "  ||J^T e||_inf: " << info[2] << '\n';
-//  std::cout << "  ||Dp||_2: " << info[3] << '\n';
-//  std::cout << "  mu/max[J^T J]_ii: " << info[4] << '\n';
-//  std::cout << "  # iterations: " << info[5] << '\n';
-//  switch ((int)info[6]) {
-//  case 1:
-//    std::cout << "  stopped by small gradient J^T e\n";
-//    break;
-//  case 2:
-//    std::cout << "  stopped by small Dp\n";
-//    break;
-//  case 3:
-//    std::cout << "  stopped by itmax\n";
-//    break;
-//  case 4:
-//    std::cout << "  singular matrix. Restart from current p with increased mu\n";
-//    break;
-//  case 5:
-//    std::cout << "  no further error reduction is possible. Restart with increased mu\n";
-//    break;
-//  case 6:
-//    std::cout << "  stopped by small ||e||_2\n";
-//    break;
-//  case 7:
-//    std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
-//    break;
-//  }
-//  std::cout << "  # function evaluations: " << info[7] << '\n';
-//  std::cout << "  # Jacobian evaluations: " << info[8] << '\n';
-//  std::cout << "  # linear systems solved: " << info[9] << "\n\n";
-//  std::cout << "  # total error running count: " << total_error << "\n\n";
-//}
-
-//SeFloat computeReducedChiSquared(std::shared_ptr<const Image<SeFloat>> image,
-//    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights) {
-//  double reduced_chi_squared = 0.0;
-//  for (int y=0; y < image->getHeight(); y++) {
-//    for (int x=0; x < image->getWidth(); x++) {
-//      double tmp = image->getValue(x, y) - model->getValue(x, y);
-//      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
-//    }
-//  }
-//
-//  return reduced_chi_squared / (image->getWidth() * image->getHeight());
-//}
-//
-//void printDebugChi2(SeFloat reduced_chi_squared) {
-//  static double total = 0.0;
-//  static int count = 0;
-//  static std::vector<SeFloat> chi_squares;
-//
-//  chi_squares.push_back(reduced_chi_squared);
-//  total += reduced_chi_squared;
-//  count++;
-//
-//  std::sort(chi_squares.begin(), chi_squares.end());
-//
-//
-//  std::cout << "    Reduced Chi^2: " << reduced_chi_squared << "\n";
-//  std::cout << "Avg Reduced Chi^2: " << (total / count) << "\n";
-//  std::cout << "Med Reduced Chi^2: " << chi_squares[chi_squares.size() / 2] << "\n";
-//  std::cout << "90% Reduced Chi^2: " << chi_squares[chi_squares.size() * 9 / 10] << "\n";
-//}
-
-///////////////////////////////////////////////////////////////////////////////
-
 
 struct SourceModel {
   double m_size;
@@ -161,11 +84,8 @@ struct SourceModel {
   EngineParameter moffat_i0, moffat_index, minkowski_exponent, flat_top_offset;
   EngineParameter moffat_x_scale, moffat_y_scale, moffat_rotation;
 
-  //ManualParameter exp_xs { 1 };
-
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
-      double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess,
-      double dev_flux_guess, double dev_radius_guess, double dev_aspect_guess, double dev_rot_guess) :
+      double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess) :
 
     m_size(size),
     dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
@@ -212,13 +132,6 @@ struct SourceModel {
       extended_models.emplace_back(std::move(component_list), moffat_x_scale, moffat_y_scale, moffat_rotation, m_size, m_size, x, y);
     }
   }
-
-  void debugPrint() const {
-//    std::cout << "\tsize: " << m_size << "\n";
-//    std::cout << "\tx: " << x.getValue() << "\ty: " << y.getValue() << "\n";
-//    std::cout << "\texp i0: " << exp_i0.getValue()<< "\tReff: " << exp_effective_radius.getValue() << "\n";
-//    std::cout << "\tdev i0: " << dev_i0.getValue()<< "\tReff: " << dev_effective_radius.getValue() << "\n";
-  }
 };
 
 }
@@ -239,16 +152,11 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   auto& pixel_centroid = source.getProperty<PixelCentroid>();
   auto& shape_parameters = source.getProperty<ShapeParameters>();
-  //auto& pixel_boundaries = source.getProperty<PixelBoundaries>();
   auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
 
-//  double size_factor = 2;
-//  auto size = std::max<double>(pixel_boundaries.getWidth(), pixel_boundaries.getHeight()) * size_factor;
   auto size = std::max<double>(source_stamp.getWidth(), source_stamp.getHeight());
 
-  //double radius_guess = std::max<double>(half_maximum_boundaries.getWidth(), half_maximum_boundaries.getHeight()) / 2.0;
   double radius_guess = shape_parameters.getEllipseA() / 2.0;
-  //std::cout << radius_guess << "....\n";
 
   double guess_x = pixel_centroid.getCentroidX() - stamp_top_left.m_x;
   double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
@@ -256,14 +164,9 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   double exp_reff_guess = radius_guess;
   double exp_aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
   double exp_rot_guess = shape_parameters.getEllipseTheta();
-  double dev_flux_guess = iso_flux / 2.0;
-  double dev_reff_guess = radius_guess;
-  double dev_aspect_guess = exp_aspect_guess;
-  double dev_rot_guess = exp_rot_guess;
 
   auto source_model = make_unique<SourceModel>(size, guess_x, guess_y, radius_guess * 2,
-      exp_flux_guess, exp_reff_guess, exp_aspect_guess, exp_rot_guess,
-      dev_flux_guess, dev_reff_guess, dev_aspect_guess, dev_rot_guess);
+      exp_flux_guess, exp_reff_guess, exp_aspect_guess, exp_rot_guess);
 
   source_model->createModels(extended_models, point_models);
   source_model->registerParameters(manager);
@@ -322,23 +225,8 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   res_estimator.registerBlockProvider(move(data_vs_model));
 
   // Perform the minimization
-
-  //LevmarEngine engine {m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-
-//  for (auto& source_model : source_models) {
-//    std::cout << "Before: ";
-//    source_model->debugPrint();
-//  }
-
   auto solution = engine.solveProblem(manager, res_estimator);
-
-//  for (auto& source_model : source_models) {
-//    std::cout << "After: ";
-//    source_model->debugPrint();
-//  }
-//  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
-
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
   auto final_stamp = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
@@ -370,7 +258,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
       if (check_image) {
         CheckImages::getInstance().lock();
         check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
-//        check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + source_stamp.getValue(x, y));
         CheckImages::getInstance().unlock();
       }
 
@@ -382,8 +269,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   SeFloat x = stamp_top_left.m_x + source_model->x.getValue();
   SeFloat y = stamp_top_left.m_y + source_model->y.getValue();
-//  ImageCoordinate image_coordinate(x, y);
-//  auto world_coordinate = coordinate_system->imageToWorld(image_coordinate);
 
   source.setProperty<MoffatModelFitting>(
       x, y,
@@ -401,9 +286,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   );
 
   }
-
-  //SeFloat reduced_chi_squared = computeReducedChiSquared(image, final_stamp, weight);
-  //printDebugChi2(reduced_chi_squared);
 }
 
 }
