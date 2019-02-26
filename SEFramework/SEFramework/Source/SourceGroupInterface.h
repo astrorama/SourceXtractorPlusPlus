@@ -46,6 +46,7 @@ public:
   virtual void addSource(std::shared_ptr<SourceInterface> source) = 0;
   virtual iterator removeSource(iterator pos) = 0;
   virtual void merge(const SourceGroupInterface& other) = 0;
+  virtual unsigned int size() const = 0;
   
   /// Convenient method to add all the sources of a collection
   template <typename SourceCollection>

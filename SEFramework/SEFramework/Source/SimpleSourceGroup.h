@@ -42,6 +42,8 @@ public:
   
   iterator removeSource(iterator pos) override;
   
+  unsigned int size() const override;
+
   void merge(const SourceGroupInterface& other) override;
   
   using SourceInterface::getProperty;

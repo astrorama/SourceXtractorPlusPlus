@@ -53,9 +53,11 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_model_variance_filename = config.getModelVarianceFilename();
   m_segmentation_filename = config.getSegmentationFilename();
   m_partition_filename = config.getPartitionFilename();
+  m_group_filename = config.getGroupFilename();
   m_filtered_filename = config.getFilteredFilename();
   m_auto_aperture_filename = config.getAutoApertureFilename();
   m_aperture_filename = config.getApertureFilename();
+  m_moffat_filename = config.getMoffatFilename();
 
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
@@ -78,6 +80,11 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
   }
 
+  if (m_group_filename != "") {
+    m_group_image = FitsWriter::newImage<unsigned int>(m_group_filename,
+        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
+  }
+
   if (m_auto_aperture_filename != "") {
     m_auto_aperture_image = FitsWriter::newImage<unsigned int>(m_auto_aperture_filename,
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
@@ -85,6 +92,12 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 
   if (m_aperture_filename != "") {
     m_aperture_image = FitsWriter::newImage<unsigned int>(m_aperture_filename,
+        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
+    );
+  }
+
+  if (m_moffat_filename != "") {
+    m_moffat_image = FitsWriter::newImage<SeFloat>(m_moffat_filename,
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
     );
   }
