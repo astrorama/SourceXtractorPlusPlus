@@ -11,6 +11,8 @@
 
 #include "SEFramework/Output/OutputRegistry.h"
 
+#include <iostream>
+
 using namespace Euclid::Table;
 
 namespace SExtractor {
@@ -33,12 +35,35 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
     std::vector<Row::cell_type> cell_values {};
     for (const auto& property : out_prop_list) {
       for (const auto& name : m_property_to_names_map.at(property)) {
-        info_list.emplace_back(name, m_name_to_converter_map.at(name).first);
+        auto& col_info = m_name_to_col_info_map.at(name);
+        info_list.emplace_back(name, m_name_to_converter_map.at(name).first,
+                               col_info.unit, col_info.description);
         cell_values.emplace_back(m_name_to_converter_map.at(name).second(source));
       }
     }
     return Row {std::move(cell_values), std::make_shared<ColumnInfo>(move(info_list))};
   };
+}
+
+void OutputRegistry::printPropertyColumnMap(const std::vector<std::string>& properties) {
+  std::set<std::string> properties_set {properties.begin(), properties.end()};
+  for (auto& prop : m_output_properties) {
+    if (!properties.empty() && properties_set.find(prop.first) == properties_set.end()) {
+      continue;
+    }
+    std::cout << prop.first << ":\n";
+    for (auto& col : m_property_to_names_map.at(prop.second)) {
+      std::cout << "  - " << col;
+      auto& info = m_name_to_col_info_map.at(col);
+      if (info.description != "") {
+        std::cout << " : " << info.description;
+      }
+      if (info.unit != "") {
+        std::cout << " (" << info.unit << ")";
+      }
+      std::cout << '\n';
+    }
+  }
 }
 
 
