@@ -1,8 +1,28 @@
 #!/bin/bash
 set -e
 
+if [[ -z "${BINARY_TAG}" ]]; then
+    echo "ERROR: Please, define BINARY_TAG"
+    exit 2
+fi
+
+LINUXDEPLOY=$(which linuxdeploy-x86_64.AppImage 2> /dev/null)
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: linuxdeploy-x86_64.AppImage not in PATH"
+    exit 2
+fi
+
+PIP3=$(which pip3 2> /dev/null)
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: pip3 required"
+    exit 2
+fi
+
+echo "Using ${LINUXDEPLOY}"
+echo "Using ${PIP3}"
+
 ISDEBUG=0
-if [[ "$BINARY_TAG" =~ dbg$ ]]; then
+if [[ "${BINARY_TAG}" =~ dbg$ ]]; then
     ISDEBUG=1
     echo "WARNING: Using a debug binary tag ($BINARY_TAG)"
     echo "WARNING: This is the one that will be used for the AppImage"
