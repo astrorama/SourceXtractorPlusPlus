@@ -16,17 +16,17 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string CHECK_MODEL_FITTING { "checkimage-modelfitting" };
-static const std::string CHECK_RESIDUAL { "checkimage-residual" };
-static const std::string CHECK_MODEL_BACKGROUND { "checkimage-background" };
-static const std::string CHECK_MODEL_VARIANCE { "checkimage-variance" };
-static const std::string CHECK_SEGMENTATION { "checkimage-segmentation" };
-static const std::string CHECK_PARTITION { "checkimage-partition" };
-static const std::string CHECK_GROUPING { "checkimage-grouping" };
+static const std::string CHECK_MODEL_FITTING { "check-image-model-fitting" };
+static const std::string CHECK_RESIDUAL { "check-image-residual" };
+static const std::string CHECK_MODEL_BACKGROUND { "check-image-background" };
+static const std::string CHECK_MODEL_VARIANCE { "check-image-variance" };
+static const std::string CHECK_SEGMENTATION { "check-image-segmentation" };
+static const std::string CHECK_PARTITION { "check-image-partition" };
+static const std::string CHECK_GROUPING { "check-image-grouping" };
 static const std::string CHECK_FILTERED { "checkimage-filtered" };
-static const std::string CHECK_AUTO_APERTURE { "checkimage-auto-aperture" };
-static const std::string CHECK_APERTURE { "checkimage-aperture" };
-static const std::string CHECK_MOFFAT { "checkimage-moffat" };
+static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
+static const std::string CHECK_APERTURE { "check-image-aperture" };
+static const std::string CHECK_MOFFAT { "check-image-moffat" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}

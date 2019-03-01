@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string MAX_TILE_MEMORY {"max-tile-memory"};
+static const std::string MAX_TILE_MEMORY {"tile-memory-limit"};
 static const std::string TILE_SIZE {"tile-size"};
 
 MemoryConfig::MemoryConfig(long manager_id) : Configuration(manager_id) {

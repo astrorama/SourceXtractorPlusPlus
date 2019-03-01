@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string THREADS_NB {"threads-nb"};
+static const std::string THREADS_NB {"thread-count"};
 
 MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id) {
 }

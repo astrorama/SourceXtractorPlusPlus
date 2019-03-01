@@ -17,7 +17,7 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string MTHRESH_USE {"partition-multithreshold"};
-static const std::string MTHRESH_THRESHOLDS_NB {"partition-thresholds-nb"};
+static const std::string MTHRESH_THRESHOLDS_NB {"partition-threshold-count"};
 static const std::string MTHRESH_MIN_AREA {"partition-min-area"};
 static const std::string MTHRESH_MIN_CONTRAST {"partition-min-contrast"};
 
