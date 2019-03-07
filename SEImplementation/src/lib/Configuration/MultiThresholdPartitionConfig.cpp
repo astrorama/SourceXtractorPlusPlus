@@ -30,8 +30,8 @@ MultiThresholdPartitionConfig::MultiThresholdPartitionConfig(long manager_id) : 
 auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-thresholding", {
       {MTHRESH_USE.c_str(), po::bool_switch(), "activates multithreshold partitioning"},
-      {MTHRESH_THRESHOLDS_NB.c_str(), po::value<unsigned int>()->default_value(32), "# of thresholds"},
-      {MTHRESH_MIN_AREA.c_str(), po::value<unsigned int>()->default_value(3), "min area in pixels to consider partitioning"},
+      {MTHRESH_THRESHOLDS_NB.c_str(), po::value<int>()->default_value(32), "# of thresholds"},
+      {MTHRESH_MIN_AREA.c_str(), po::value<int>()->default_value(3), "min area in pixels to consider partitioning"},
       {MTHRESH_MIN_CONTRAST.c_str(), po::value<double>()->default_value(0.005), "min contrast of for partitioning"}
   }}};
 
@@ -40,9 +40,16 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
 
 void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
   if (args.at(MTHRESH_USE).as<bool>()) {
-    auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<unsigned int>();
-    auto min_area = args.at(MTHRESH_MIN_AREA).as<unsigned int>();
+    auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<int>();
+    auto min_area = args.at(MTHRESH_MIN_AREA).as<int>();
     auto min_contrast = args.at(MTHRESH_MIN_CONTRAST).as<double>();
+
+    if (min_area <= 0) {
+        throw Elements::Exception() << "Invalid " << MTHRESH_MIN_AREA << " value: " << min_area;
+    }
+    if (threshold_nb <= 0) {
+        throw Elements::Exception() << "Invalid " << MTHRESH_THRESHOLDS_NB << " value: " << threshold_nb;
+    }
 
     getDependency<PartitionStepConfig>().addPartitionStepCreator(
       [=](std::shared_ptr<SourceFactory> source_factory) {

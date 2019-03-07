@@ -19,14 +19,17 @@ LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configurat
 
 auto LegacyModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Model Fitting", {
-      {MFIT_MAX_ITERATIONS.c_str(), po::value<unsigned int>()->default_value(1000), "Maximum number of iterations allowed for model fitting"},
+      {MFIT_MAX_ITERATIONS.c_str(), po::value<int>()->default_value(1000), "Maximum number of iterations allowed for model fitting"},
   }}};
 
   return {};
 }
 
 void LegacyModelFittingConfig::initialize(const UserValues& args) {
-  m_max_iterations = args.at(MFIT_MAX_ITERATIONS).as<unsigned int>();
+  m_max_iterations = args.at(MFIT_MAX_ITERATIONS).as<int>();
+  if (m_max_iterations <= 0) {
+    throw Elements::Exception() << "Invalid " << MFIT_MAX_ITERATIONS << " value: " << m_max_iterations;
+  }
 }
 
 } /* namespace SExtractor */
