@@ -6,7 +6,6 @@
 #include <limits>
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/History/SourceHistory.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -54,8 +53,6 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
       new_source->setProperty<PixelCoordinateList>(source_pixels);
       new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
 
-      // FIXME temporarily disabling History functionality
-      //new_source->addHistoryEntry(std::unique_ptr<HistoryEntry>(new SourceHistory(source)));
       sources.push_back(new_source);
     }
     return sources;

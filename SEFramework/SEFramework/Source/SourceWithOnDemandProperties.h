@@ -12,8 +12,6 @@
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-#include "SEFramework/History/History.h"
-
 namespace SExtractor {
 
 class TaskProvider;
@@ -26,7 +24,7 @@ class TaskProvider;
  *
  */
 
-class SourceWithOnDemandProperties : public SourceInterface, public History {
+class SourceWithOnDemandProperties : public SourceInterface {
 
 public:
 
