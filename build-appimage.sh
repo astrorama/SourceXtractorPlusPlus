@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 if [[ -z "${BINARY_TAG}" ]]; then
     echo "ERROR: Please, define BINARY_TAG"
@@ -17,6 +16,8 @@ if [[ $? -ne 0 ]]; then
     echo "ERROR: pip3 required"
     exit 2
 fi
+
+set -e
 
 echo "Using ${LINUXDEPLOY}"
 echo "Using ${PIP3}"
