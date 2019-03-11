@@ -23,17 +23,17 @@ public:
   void initialize(const UserValues& args) override;
 
   // maximum memory allocated to ImageTiles in megabytes
-  unsigned int getTileMaxMemory() const {
+  int getTileMaxMemory() const {
     return m_max_memory;
   }
 
-  unsigned int getTileSize() const {
+  int getTileSize() const {
     return m_tile_size;
   }
 
 private:
-  unsigned int m_max_memory;
-  unsigned int m_tile_size;
+  int m_max_memory;
+  int m_tile_size;
 };
 
 
