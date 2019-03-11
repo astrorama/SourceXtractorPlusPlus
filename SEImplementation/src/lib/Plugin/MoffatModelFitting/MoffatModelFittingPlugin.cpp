@@ -22,21 +22,27 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           "smf_x",
           [](const MoffatModelFitting& prop) {
             return prop.getX();
-          }
+          },
+          "[pixel]",
+          "X-position of the Moffat fit"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MoffatModelFitting, double>(
           "smf_y",
           [](const MoffatModelFitting& prop) {
             return prop.getY();
-          }
+          },
+          "[pixel]",
+          "Y-position of the Moffat fit"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<MoffatModelFitting, int>(
           "smf_iter",
           [](const MoffatModelFitting& prop){
             return prop.getIterations();
-          }
+          },
+          "",
+          "Number of iterations in the Moffat fitting"
   );
 
   plugin_api.getOutputRegistry().enableOutput<MoffatModelFitting>("MoffatModelFitting");

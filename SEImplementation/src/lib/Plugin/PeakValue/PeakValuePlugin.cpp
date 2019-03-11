@@ -23,7 +23,9 @@ void PeakValuePlugin::registerPlugin(PluginAPI& plugin_api) {
           "peak_value",
           [](const PeakValue& prop){
             return prop.getMaxValue();
-          }
+          },
+          "[count]",
+          "Highest pixel value in the detection image"
   );
 
   plugin_api.getOutputRegistry().enableOutput<PeakValue>("PeakValue");

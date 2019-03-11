@@ -28,35 +28,45 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
     "aperture_flux",
     [](const AperturePhotometryArray &prop) {
       return prop.getFluxes();
-    }
+    },
+    "[count]",
+    "Aperture flux"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_flux_err",
     [](const AperturePhotometryArray &prop) {
       return prop.getFluxErrors();
-    }
+    },
+    "[count]",
+    "Aperture flux error"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_mag",
     [](const AperturePhotometryArray &prop) {
       return prop.getMags();
-    }
+    },
+    "[mag]",
+    "Aperture magnitude"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<SeFloat>>(
     "aperture_mag_err",
     [](const AperturePhotometryArray &prop) {
       return prop.getMagErrors();
-    }
+    },
+    "[mag]",
+    "Aperture magnitude error"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AperturePhotometryArray, NdArray<int64_t>>(
     "aperture_flags",
     [](const AperturePhotometryArray &prop) {
       return prop.getFlags();
-    }
+    },
+    "",
+    "Aperture flags"
   );
 
   plugin_api.getOutputRegistry().enableOutput<AperturePhotometryArray>("AperturePhotometry");
