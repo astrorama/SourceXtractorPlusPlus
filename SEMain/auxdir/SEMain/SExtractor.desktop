@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SExtractor
+Type=Application
+Terminal=true
+NoDisplay=true
+Exec=SExtractor
+Icon=SExtractor
+

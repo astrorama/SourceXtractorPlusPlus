@@ -16,7 +16,7 @@ elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR_LIBRARIES}
+                     LINK_LIBRARIES ElementsKernel Boost Levmar 
                      INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 

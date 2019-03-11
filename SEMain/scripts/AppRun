@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# File: scripts/AppRun
+# Created on: 01/21/19
+# Author: aalvarez
+#
+# Copyright (C) 2012-2020 Euclid Science Ground Segment
+#
+# This library is free software; you can redistribute it and/or modify it under
+# the terms of the GNU Lesser General Public License as published by the Free
+# Software Foundation; either version 3.0 of the License, or (at your option)
+# any later version.
+#
+# This library is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+# details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this library; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+
+# Entry point for the AppImage
+# We need to properly set up the PYTHONPATH so the SExtractor modules can be found
+# within the image
+
+export APPIMAGE_MOUNT="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
+
+PYTHONDIRNAME="$(ls -1 ${APPIMAGE_MOUNT}/usr/lib64/ | grep '^python')"
+
+LIB="${APPIMAGE_MOUNT}/usr/lib"
+LIB64="${APPIMAGE_MOUNT}/usr/lib64"
+LIBPYTHON="${APPIMAGE_MOUNT}/usr/lib64/${PYTHONDIRNAME}/site-packages"
+
+export PYTHONPATH="${LIB}:${LIB64}:${LIBPYTHON}"
+source "${APPIMAGE_MOUNT}/bin/activate"
+
+exec -a "${APPIMAGE_MOUNT}/SExtractor" "${APPIMAGE_MOUNT}/usr/bin/SExtractor" $@
