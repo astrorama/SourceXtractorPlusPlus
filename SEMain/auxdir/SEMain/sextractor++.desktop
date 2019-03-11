@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=SExtractor
+Name=sextractor++
 Type=Application
 Terminal=true
 NoDisplay=true
-Exec=SExtractor
-Icon=SExtractor
+Exec=sextractor++
+Icon=sextractor++
 

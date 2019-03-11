@@ -22,7 +22,7 @@
 #
 
 # Entry point for the AppImage
-# We need to properly set up the PYTHONPATH so the SExtractor modules can be found
+# We need to properly set up the PYTHONPATH so the sextractor++ modules can be found
 # within the image
 
 export APPIMAGE_MOUNT="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
@@ -36,4 +36,4 @@ LIBPYTHON="${APPIMAGE_MOUNT}/usr/lib64/${PYTHONDIRNAME}/site-packages"
 export PYTHONPATH="${LIB}:${LIB64}:${LIBPYTHON}"
 source "${APPIMAGE_MOUNT}/bin/activate"
 
-exec -a "${APPIMAGE_MOUNT}/SExtractor" "${APPIMAGE_MOUNT}/usr/bin/SExtractor" $@
+exec -a "${APPIMAGE_MOUNT}/sextractor++" "${APPIMAGE_MOUNT}/usr/bin/sextractor++" $@

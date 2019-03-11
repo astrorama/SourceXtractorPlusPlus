@@ -97,13 +97,13 @@ fi
 # Bundle
 linuxdeploy-x86_64.AppImage \
     --appdir "${APPDIR}" \
-    -d "${RSCDIR}/SExtractor.desktop" -i "${RSCDIR}/SExtractor.png" \
+    -d "${RSCDIR}/sextractor++.desktop" -i "${RSCDIR}/sextractor++.png" \
     --custom-apprun="${SCRIPTDIR}/AppRun" \
     -o appimage
 
 # Try it
 unset PYTHONPATH
-./SExtractor-x86_64.AppImage --version
+./sextractor++-x86_64.AppImage --version
 if [[ $? != 0 ]]; then
     echo "Failed to build the AppImage!"
     exit 1
