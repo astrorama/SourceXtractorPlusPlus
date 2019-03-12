@@ -3,7 +3,7 @@ from __future__ import division, print_function
 from enum import Enum
 
 import libSEImplementation as cpp
-
+from .measurement_images import MeasurementGroup
 
 class RangeType(Enum):
     LINEAR = 1
@@ -161,6 +161,8 @@ def _set_model_to_frames(group, model):
 
 
 def add_model(group, model):
+    if not isinstance(group, MeasurementGroup):
+        raise TypeError('Models can only be added on MeasurementGroup, got {}'.format(type(group)))
     if not hasattr(group, 'models'):
         group.models = []
     group.models.append(model)
