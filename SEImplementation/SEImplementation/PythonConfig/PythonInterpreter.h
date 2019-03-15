@@ -9,6 +9,7 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <SEFramework/CoordinateSystem/CoordinateSystem.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
 
@@ -53,6 +54,8 @@ public:
   std::map<int, std::vector<int>> getFrameModelsMap();
 
   std::map<std::string, boost::python::object> getModelFittingParams();
+
+  void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
 
 private:
   

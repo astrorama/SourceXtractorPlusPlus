@@ -272,4 +272,18 @@ class DeVaucouleursModel(SersicModelBase):
         else:
             return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
+            
+class WorldCoordinate:
+    def __init__(self, ra, dec):
+        self.ra = ra
+        self.dec = dec
+            
+def pixel_to_world_coordinate(x, y):
+    global coordinate_system
+    wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x,y)) 
+    return WorldCoordinate(wc.alpha, wc.delta)
 
+def set_coordinate_system(cs):
+    global coordinate_system
+    coordinate_system = cs
+    
