@@ -16,14 +16,14 @@ public:
   ListenerCounter(ProgressListener &progress_listener, std::atomic_int &counter) : m_progress_listener{
     progress_listener}, m_counter(counter) {}
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface> &message) override {
+  void handleMessage(const std::shared_ptr<SourceGroupInterface>&) override {
     ++m_counter;
     m_progress_listener.ping();
   }
 
 private:
-  std::atomic_int &m_counter;
   ProgressListener &m_progress_listener;
+  std::atomic_int &m_counter;
 };
 
 ProgressListener::ProgressListener(Elements::Logging &logger, boost::posix_time::time_duration min_interval) :
