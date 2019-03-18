@@ -1,7 +1,7 @@
 from __future__ import division, print_function
 from .measurement_images import MeasurementImage, MeasurementGroup
 
-import libSEImplementation as cpp
+import _SExtractorPy as cpp
 
 apertures_for_image = {}
 
