@@ -23,12 +23,21 @@
 namespace SExtractor {
 
 /**
+ * @struct SegmentationProgress
+ * @brief Used to notify observers of the progress of the processing of the image.
+ */
+struct SegmentationProgress {
+  int position, total;
+  std::string unit;
+};
+
+/**
  * @class Segmentation
  * @brief Segmentation takes an image and splits it into individual Sources for further refinement. Each Source
  * results in a notification of the Segmentation's Observers.
  *
  */
-class Segmentation : public Observable<std::shared_ptr<SourceInterface>> {
+class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress> {
 
 public:
   class LabellingListener;
@@ -54,7 +63,7 @@ public:
 
 protected:
   void publishSource(std::shared_ptr<SourceInterface> source) const {
-    notifyObservers(source);
+    Observable<std::shared_ptr<SourceInterface>>::notifyObservers(source);
   }
 
 private:
@@ -71,7 +80,11 @@ public:
 
   void publishSource(std::shared_ptr<SourceInterface> source) const {
     source->setProperty<DetectionFrame>(m_detection_frame);
-    m_segmentation.notifyObservers(source);
+    m_segmentation.Observable<std::shared_ptr<SourceInterface>>::notifyObservers(source);
+  }
+
+  void notifyProgress(int position, int total, const std::string &unit) {
+    m_segmentation.Observable<SegmentationProgress>::notifyObservers(SegmentationProgress{position, total, unit});
   }
 
 private:

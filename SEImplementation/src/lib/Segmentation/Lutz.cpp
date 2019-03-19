@@ -52,7 +52,8 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
 
   //std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
 
-  for (int y=0; y<image.getHeight(); y++) {
+  int lines = image.getHeight();
+  for (int y = 0; y < lines; y++) {
     LutzStatus ps = LutzStatus::COMPLETE;
     LutzStatus cs = LutzStatus::NONOBJECT;
 
@@ -194,6 +195,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
         }
       }
     }
+    listener.notifyProgress(y, lines);
   }
 
   //FitsWriter::writeFile<unsigned int>(*check_image, "segCheck.fits");

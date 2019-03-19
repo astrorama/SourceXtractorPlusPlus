@@ -76,6 +76,7 @@ static long config_manager_id = getUniqueManagerId();
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
 static const std::string PROPERTY_COLUMN_MAPPING {"property-column-mapping"};
+static const std::string FEEDBACK_INTERVAL {"feedback-interval"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -162,6 +163,9 @@ public:
           "Show the columns created for each property");
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
+    options.add_options()(FEEDBACK_INTERVAL.c_str(),
+          po::value<int>()->default_value(5),
+          "Interval for displaying progress, in seconds");
     return options;
   }
 
@@ -235,24 +239,27 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
-    ProgressListener progress_listener{logger, boost::posix_time::seconds{5}};
+    auto feedback_interval = args.at(FEEDBACK_INTERVAL).as<int>();
+    ProgressListener progress_listener{logger, boost::posix_time::seconds{feedback_interval}};
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
-    segmentation->addObserver(partition);
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
     sorter->addObserver(output);
 
-    deblending->addObserver(progress_listener.getDetectionListener());
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_listener.getSegmentationListener());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_listener.getDetectionListener());
+    deblending->addObserver(progress_listener.getDeblendingListener());
     measurement->addObserver(progress_listener.getMeasurementListener());
     sorter->addObserver(progress_listener.getEmissionListener());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
-      segmentation->addObserver(
+      segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
@@ -339,6 +346,8 @@ public:
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
+
+    progress_listener.print(true);
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";
