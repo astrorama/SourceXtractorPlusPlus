@@ -34,7 +34,7 @@ public:
   }
 
   void notifyProgress(int line, int total) override {
-    m_listener.notifyProgress(line, total, "lines");
+    m_listener.notifyProgress(line, total);
   }
 
 private:

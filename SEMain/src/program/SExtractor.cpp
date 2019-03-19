@@ -58,11 +58,12 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
+#include "SEMain/ProgressPrinterFactory.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEMain/Progress.h"
+#include "SEMain/ProgressListener.h"
 #include "SEMain/Sorter.h"
 
 
@@ -76,7 +77,6 @@ static long config_manager_id = getUniqueManagerId();
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
 static const std::string PROPERTY_COLUMN_MAPPING {"property-column-mapping"};
-static const std::string FEEDBACK_INTERVAL {"feedback-interval"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -129,6 +129,7 @@ class SEMain : public Elements::Program {
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
+  ProgressPrinterFactory progress_printer_factory {};
 
 public:
   
@@ -155,6 +156,7 @@ public:
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
+    progress_printer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -163,9 +165,6 @@ public:
           "Show the columns created for each property");
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
-    options.add_options()(FEEDBACK_INTERVAL.c_str(),
-          po::value<int>()->default_value(5),
-          "Interval for displaying progress, in seconds");
     return options;
   }
 
@@ -239,8 +238,9 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
-    auto feedback_interval = args.at(FEEDBACK_INTERVAL).as<int>();
-    ProgressListener progress_listener{logger, boost::posix_time::seconds{feedback_interval}};
+    auto progress_printer = progress_printer_factory.createPrinter();
+    ProgressListener progress_listener{progress_printer};
+
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
@@ -251,11 +251,11 @@ public:
     measurement->addObserver(sorter);
     sorter->addObserver(output);
 
-    segmentation->Observable<SegmentationProgress>::addObserver(progress_listener.getSegmentationListener());
-    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_listener.getDetectionListener());
-    deblending->addObserver(progress_listener.getDeblendingListener());
-    measurement->addObserver(progress_listener.getMeasurementListener());
-    sorter->addObserver(progress_listener.getEmissionListener());
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_listener.getSegmentationObserver());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_listener.getDetectionObserver());
+    deblending->addObserver(progress_listener.getDeblendingObserver());
+    measurement->addObserver(progress_listener.getMeasurementObserver());
+    sorter->addObserver(progress_listener.getEmissionObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
@@ -347,7 +347,7 @@ public:
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
 
-    progress_listener.print(true);
+    progress_printer->print(true);
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";

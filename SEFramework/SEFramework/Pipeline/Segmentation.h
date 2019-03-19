@@ -28,7 +28,6 @@ namespace SExtractor {
  */
 struct SegmentationProgress {
   int position, total;
-  std::string unit;
 };
 
 /**
@@ -83,8 +82,8 @@ public:
     m_segmentation.Observable<std::shared_ptr<SourceInterface>>::notifyObservers(source);
   }
 
-  void notifyProgress(int position, int total, const std::string &unit) {
-    m_segmentation.Observable<SegmentationProgress>::notifyObservers(SegmentationProgress{position, total, unit});
+  void notifyProgress(int position, int total) {
+    m_segmentation.Observable<SegmentationProgress>::notifyObservers(SegmentationProgress{position, total});
   }
 
 private:
