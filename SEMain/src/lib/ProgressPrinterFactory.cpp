@@ -1,6 +1,8 @@
+#include <unistd.h>
 #include "SEMain/ProgressPrinterFactory.h"
 #include "SEMain/ProgressPrinterConfiguration.h"
 #include "SEMain/ProgressLogger.h"
+#include "SEMain/ProgressBar.h"
 
 namespace SExtractor {
 
@@ -16,6 +18,9 @@ void ProgressPrinterFactory::configure(Euclid::Configuration::ConfigManager& man
 }
 
 std::shared_ptr<ProgressPrinter> ProgressPrinterFactory::createPrinter() const {
+  if (::isatty(::fileno(stderr))) {
+    return std::make_shared<ProgressBar>(std::cerr);
+  }
   return std::make_shared<ProgressLogger>(m_min_interval);
 }
 
