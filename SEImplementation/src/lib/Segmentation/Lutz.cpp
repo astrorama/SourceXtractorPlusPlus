@@ -195,7 +195,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
         }
       }
     }
-    listener.notifyProgress(y, lines);
+    listener.notifyProgress(y + 1, lines);
   }
 
   //FitsWriter::writeFile<unsigned int>(*check_image, "segCheck.fits");
