@@ -27,12 +27,14 @@ public:
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   
   template <typename PropertyType, typename OutType>
-  void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter) {
+  void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter,
+                               std::string column_unit="", std::string column_description="") {
     m_property_to_names_map[typeid(PropertyType)].emplace_back(column_name);
     std::type_index conv_out_type = typeid(OutType);
     ColumnFromSource conv_func {converter};
     m_name_to_converter_map.emplace(column_name,
                                     std::pair<std::type_index, ColumnFromSource>(conv_out_type, conv_func));
+    m_name_to_col_info_map.emplace(column_name, ColInfo{column_unit, column_description});
   }
 
   /**
@@ -47,9 +49,11 @@ public:
     for (auto& current_name : m_property_to_names_map[typeid(PropertyType)]) {
       // Get the current converter
       auto converter = m_name_to_converter_map.at(current_name);
+      auto col_info = m_name_to_col_info_map.at(current_name);
       // Remove the old converter
       // Do it *before*, because the new name may be the same!
       m_name_to_converter_map.erase(current_name);
+      m_name_to_col_info_map.erase(current_name);
 
       // Add the new ones
       for (auto instance : instance_names) {
@@ -60,6 +64,7 @@ public:
         auto& postfix = instance.first;
         auto new_name = current_name + "_" + postfix;
         m_name_to_converter_map.emplace(new_name, new_converter);
+        m_name_to_col_info_map.emplace(new_name, col_info);
         new_names.push_back(new_name);
       }
     }
@@ -79,9 +84,11 @@ public:
     std::vector<std::string> new_names {};
     // Get the current converter
     auto converter = m_name_to_converter_map.at(current_name);
+    auto col_info = m_name_to_col_info_map.at(current_name);
     // Remove the old converter
     // Do it *before*, because the new name may be the same!
     m_name_to_converter_map.erase(current_name);
+    m_name_to_col_info_map.erase(current_name);
 
     // Add the new ones
     for (auto instance : instance_names) {
@@ -91,6 +98,7 @@ public:
       // Register the new converter with the new name
       auto& new_name = instance.first;
       m_name_to_converter_map.emplace(new_name, new_converter);
+      m_name_to_col_info_map.emplace(new_name, col_info);
       new_names.push_back(new_name);
     }
 
@@ -119,6 +127,8 @@ public:
   
   SourceToRowConverter getSourceToRowConverter(const std::vector<std::string>& enabled_optional);
   
+  void printPropertyColumnMap(const std::vector<std::string>& properties={});
+  
 private:
   
   class ColumnFromSource {
@@ -137,8 +147,14 @@ private:
     std::function<Euclid::Table::Row::cell_type(const SourceInterface&, std::size_t index)> m_convert_func;
   };
   
+  struct ColInfo {
+    std::string unit;
+    std::string description;
+  };
+  
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
+  std::map<std::string, ColInfo> m_name_to_col_info_map {};
   std::multimap<std::string, std::type_index> m_output_properties {};
   
 };

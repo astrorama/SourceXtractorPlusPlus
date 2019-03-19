@@ -28,13 +28,16 @@ std::map<std::string, Configuration::OptionDescriptionList> CleaningConfig::getP
   return { {"Cleaning", {
       {USE_CLEANING.c_str(), po::bool_switch(),
          "Enables the cleaning of sources (removes false detections near bright objects)"},
-      {CLEANING_MINAREA.c_str(), po::value<unsigned int>()->default_value(3), "min. # of pixels above threshold"}
+      {CLEANING_MINAREA.c_str(), po::value<int>()->default_value(3), "min. # of pixels above threshold"}
   }}};
 }
 
 void CleaningConfig::initialize(const UserValues& args) {
-  auto min_area = args.at(CLEANING_MINAREA).as<unsigned int>();
+  auto min_area = args.at(CLEANING_MINAREA).as<int>();
   if (args.at(USE_CLEANING).as<bool>()) {
+    if (min_area <= 0) {
+        throw Elements::Exception() << "Invalid " << CLEANING_MINAREA << " value: " << min_area;
+    }
     getDependency<DeblendStepConfig>().addDeblendStepCreator(
         [min_area](std::shared_ptr<SourceFactory> source_factory) {
           return std::make_shared<Cleaning>(source_factory, min_area);

@@ -1,5 +1,6 @@
-/build*
-/InstallArea
-/tests
+*.AppImage
 *.pyc
+/InstallArea
+/build.*
+/tests
 __pycache__

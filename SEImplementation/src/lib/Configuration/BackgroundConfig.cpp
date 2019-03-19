@@ -24,9 +24,9 @@ BackgroundConfig::BackgroundConfig(long manager_id) :
 
 std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::getProgramOptions() {
   return { {"Detection image", {
-      {BACKGROUND_VALUE.c_str(), po::value<SeFloat>(),
+      {BACKGROUND_VALUE.c_str(), po::value<double>(),
           "Background value to be subtracted from the detection image."},
-      {THRESHOLD_VALUE.c_str(), po::value<SeFloat>()->default_value((1.5)),
+      {THRESHOLD_VALUE.c_str(), po::value<double>()->default_value((1.5)),
           "Detection threshold above the background."},
   }}};
 }
@@ -34,11 +34,11 @@ std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::ge
 void BackgroundConfig::initialize(const UserValues& args) {
   if (args.find(BACKGROUND_VALUE) != args.end()) {
     m_background_level_absolute = true;
-    m_background_level = args.find(BACKGROUND_VALUE)->second.as<SeFloat>();
+    m_background_level = args.find(BACKGROUND_VALUE)->second.as<double>();
   }
   if (args.find(THRESHOLD_VALUE) != args.end()) {
     m_detection_threshold_absolute = true;
-    m_detection_threshold = args.find(THRESHOLD_VALUE)->second.as<SeFloat>();
+    m_detection_threshold = args.find(THRESHOLD_VALUE)->second.as<double>();
   }
 }
 

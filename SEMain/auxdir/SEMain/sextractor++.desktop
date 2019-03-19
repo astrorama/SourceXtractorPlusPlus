@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=sextractor++
+Type=Application
+Terminal=true
+NoDisplay=true
+Exec=sextractor++
+Icon=sextractor++
+

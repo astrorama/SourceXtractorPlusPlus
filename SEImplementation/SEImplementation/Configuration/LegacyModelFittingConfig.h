@@ -24,12 +24,12 @@ public:
 
   void initialize(const UserValues& args) override;
 
-  unsigned int getMaxIterations() const {
+  int getMaxIterations() const {
     return m_max_iterations;
   }
 
 private:
-  unsigned int m_max_iterations;
+  int m_max_iterations;
 
 };
 

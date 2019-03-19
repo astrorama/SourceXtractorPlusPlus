@@ -35,9 +35,10 @@ private:
 
       for (int iy = y; iy < y+height; iy++) {
         for (int ix = x; ix < x+width; ix++) {
-
           DetectionImage::PixelType total = 0;
+          DetectionImage::PixelType total_ignoring_threshold = 0;
           DetectionImage::PixelType conv_weight = 0;
+          DetectionImage::PixelType conv_weight_ignoring_threshold = 0;
 
           for (int cy = 0; cy < m_kernel->getHeight(); cy++) {
             for (int cx = 0; cx < m_kernel->getWidth(); cx++) {
@@ -45,17 +46,23 @@ private:
               auto x2 = ix + cx - hx;
               auto y2 = iy + cy - hy;
 
-              if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight() && m_variance->getValue(x2, y2) < m_threshold) {
-                total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
-                conv_weight += m_kernel->getValue(cx, cy);
+              if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
+                if ( m_variance->getValue(x2, y2) < m_threshold) {
+                  total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
+                  conv_weight += m_kernel->getValue(cx, cy);
+                }
+                total_ignoring_threshold += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
+                conv_weight_ignoring_threshold += m_kernel->getValue(cx, cy);
               }
-
             }
           }
-          tile.getImage()->setValue(ix - x, iy - y, total/conv_weight);
+          if (conv_weight > 0) {
+            tile.getImage()->setValue(ix - x, iy - y, total / conv_weight);
+          } else {
+            tile.getImage()->setValue(ix - x, iy - y, total_ignoring_threshold  / conv_weight_ignoring_threshold);
+          }
         }
       }
-
     }
 
   private:
