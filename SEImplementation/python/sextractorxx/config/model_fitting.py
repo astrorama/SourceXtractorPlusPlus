@@ -2,7 +2,7 @@ from __future__ import division, print_function
 
 from enum import Enum
 
-import libSEImplementation as cpp
+import _SExtractorPy as cpp
 from .measurement_images import MeasurementGroup
 
 class RangeType(Enum):

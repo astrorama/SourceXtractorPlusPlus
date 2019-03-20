@@ -4,7 +4,7 @@ import os
 import re
 from astropy.io import fits
 
-import libSEImplementation as cpp
+import _SExtractorPy as cpp
 
 measurement_images = {}
 
