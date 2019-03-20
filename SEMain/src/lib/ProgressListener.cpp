@@ -59,12 +59,11 @@ private:
 
 ProgressListener::ProgressListener(const std::shared_ptr<ProgressPrinter> &printer) :
   m_printer{printer},
-  m_detected{0}, m_deblended{0}, m_measured{0}, m_emitted{0},
+  m_detected{0}, m_deblended{0}, m_measured{0},
   m_segmentation_listener{std::make_shared<ProgressCounter>(*this, m_segmentation_progress)},
   m_detection_listener{std::make_shared<SourceCounter>(*this, m_detected)},
   m_deblending_listener{std::make_shared<GroupCounter>(*this, m_deblended)},
-  m_measurement_listener{std::make_shared<GroupCounter>(*this, m_measured)},
-  m_emission_listener{std::make_shared<GroupCounter>(*this, m_emitted)} {
+  m_measurement_listener{std::make_shared<GroupCounter>(*this, m_measured)} {
 }
 
 std::shared_ptr<ProgressListener::segmentation_observer_t>& ProgressListener::getSegmentationObserver() {
@@ -83,16 +82,11 @@ std::shared_ptr<ProgressListener::group_observer_t>& ProgressListener::getMeasur
   return m_measurement_listener;
 }
 
-std::shared_ptr<ProgressListener::group_observer_t>& ProgressListener::getEmissionObserver() {
-  return m_emission_listener;
-}
-
 void ProgressListener::print(void) {
   m_printer->update("Detected", m_detected);
   m_printer->update("Deblended", m_deblended);
-  m_printer->update("Segmentation", m_segmentation_progress.position, m_segmentation_progress.total);
   m_printer->update("Measured", m_measured, m_deblended);
-  m_printer->update("Emitted", m_emitted, m_deblended);
+  m_printer->update("Segmentation", m_segmentation_progress.position, m_segmentation_progress.total);
   m_printer->print();
 }
 

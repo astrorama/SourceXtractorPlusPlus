@@ -18,10 +18,11 @@ void ProgressPrinterFactory::configure(Euclid::Configuration::ConfigManager& man
 }
 
 std::shared_ptr<ProgressPrinter> ProgressPrinterFactory::createPrinter() const {
+  std::initializer_list<std::string> entries{"Detected", "Deblended", "Measured", "Segmentation"};
   if (::isatty(::fileno(stderr))) {
-    return std::make_shared<ProgressBar>(std::cerr);
+    return std::make_shared<ProgressBar>(std::cerr, entries);
   }
-  return std::make_shared<ProgressLogger>(m_min_interval);
+  return std::make_shared<ProgressLogger>(m_min_interval, entries);
 }
 
 } // end SExtractor

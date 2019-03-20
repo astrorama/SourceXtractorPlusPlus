@@ -15,14 +15,15 @@ namespace SExtractor {
 
 class ProgressBar: public ProgressPrinter {
 public:
-  virtual ~ProgressBar() = default;
-  ProgressBar(std::ostream &);
+  virtual ~ProgressBar();
+  ProgressBar(std::ostream &, const std::initializer_list<std::string> &entries);
 
   void print(bool done = false) override;
 
 protected:
   std::ostream &m_out;
   boost::posix_time::ptime m_started;
+  size_t m_progress_row, m_value_position, m_bar_width;
 };
 
 } // end SExtractor

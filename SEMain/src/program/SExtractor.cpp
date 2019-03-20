@@ -255,7 +255,6 @@ public:
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_listener.getDetectionObserver());
     deblending->addObserver(progress_listener.getDeblendingObserver());
     measurement->addObserver(progress_listener.getMeasurementObserver());
-    sorter->addObserver(progress_listener.getEmissionObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {

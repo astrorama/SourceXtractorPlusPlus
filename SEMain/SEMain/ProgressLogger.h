@@ -19,7 +19,8 @@ class ProgressLogger: public ProgressPrinter {
 public:
   virtual ~ProgressLogger() = default;
 
-  ProgressLogger(const boost::posix_time::time_duration &min_interval);
+  ProgressLogger(const boost::posix_time::time_duration& min_interval,
+                 const std::initializer_list<std::string>& entries);
 
   void print(bool done = false) override;
 
