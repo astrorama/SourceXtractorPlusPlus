@@ -4,9 +4,7 @@
 
 namespace SExtractor {
 
-ProgressLogger::ProgressLogger(const boost::posix_time::time_duration& min_interval,
-                               const std::initializer_list<std::string>& entries) :
-  ProgressPrinter{entries},
+ProgressLogger::ProgressLogger(const boost::posix_time::time_duration& min_interval) :
   m_logger{Elements::Logging::getLogger("Progress")}, m_min_interval{min_interval},
   m_started{boost::posix_time::second_clock::local_time()},
   m_last_logged{boost::posix_time::second_clock::local_time() - m_min_interval} {

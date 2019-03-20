@@ -17,14 +17,10 @@ class ProgressPrinter {
 public:
   virtual ~ProgressPrinter() = default;
 
-  ProgressPrinter(const std::initializer_list<std::string> entries) {
-    for (auto &e : entries) {
-      m_progress_info[e] = std::make_pair(0, -1);
-    }
-  }
+  ProgressPrinter() = default;
 
   void update(const std::string& label, int count, int total = -1) {
-    m_progress_info.at(label) = std::make_pair(count, total);
+    m_progress_info[label] = std::make_pair(count, total);
   }
 
   virtual void print(bool done = false) = 0;
