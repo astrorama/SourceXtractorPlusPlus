@@ -11,8 +11,8 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string CELLSIZE_VALUE {"cellsize-value" };
-static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-value" };
+static const std::string CELLSIZE_VALUE {"background-cell-size" };
+static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-size" };
 
 SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
     Configuration(manager_id),
