@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 
+#include "ElementsKernel/Logging.h"
+
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
@@ -15,6 +17,8 @@
 #include "SEFramework/Image/Image.h"
 
 namespace SExtractor {
+
+static Elements::Logging lutzLogger = Elements::Logging::getLogger("Lutz");
 
 class Lutz {
 public:
@@ -40,7 +44,7 @@ public:
   Lutz() {}
   virtual ~Lutz() = default;
 
-  void labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0));
+  void labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0), bool do_log=true);
 };
 
 class LutzList : public Lutz, public Lutz::LutzListener {
@@ -54,7 +58,7 @@ public:
   }
 
   void labelImage(const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0)) {
-    Lutz::labelImage(*this, image, offset);
+    Lutz::labelImage(*this, image, offset, false);
   }
 
 protected:

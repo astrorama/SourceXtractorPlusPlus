@@ -39,7 +39,7 @@ enum class LutzMarker {
 };
 
 
-void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset) {
+void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset, bool do_log) {
   int width = image.getWidth() + 1; // one extra pixel
 
   std::vector<LutzMarker> marker(image.getWidth()+1);
@@ -53,6 +53,8 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
   //std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
 
   for (int y=0; y<image.getHeight(); y++) {
+    if (do_log && (y % 1000 == 0) && y>0)
+      lutzLogger.info() << "line " << y;
     LutzStatus ps = LutzStatus::COMPLETE;
     LutzStatus cs = LutzStatus::NONOBJECT;
 
