@@ -23,7 +23,7 @@ static const std::string CHECK_MODEL_VARIANCE { "check-image-variance" };
 static const std::string CHECK_SEGMENTATION { "check-image-segmentation" };
 static const std::string CHECK_PARTITION { "check-image-partition" };
 static const std::string CHECK_GROUPING { "check-image-grouping" };
-static const std::string CHECK_FILTERED { "checkimage-filtered" };
+static const std::string CHECK_FILTERED { "check-image-filtered" };
 static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
 static const std::string CHECK_MOFFAT { "check-image-moffat" };
