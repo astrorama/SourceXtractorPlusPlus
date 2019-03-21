@@ -12,11 +12,19 @@ find_package(Levmar)
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
+if (NOT LEVMAR_FOUND)
+    add_definitions(-DWITHOUT_LEVMAR)
+    message("Levmar library not found, compiling without Levmar support!")
+    message("This will generate a version of sextractor++ without model fitting")
+else ()
+    set (LEVMAR Levmar)
+endif ()
+
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost Levmar 
+                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR}
                      INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 
