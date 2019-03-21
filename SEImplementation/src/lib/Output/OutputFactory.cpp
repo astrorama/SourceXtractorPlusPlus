@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <system_error>
 #include <CCfits/CCfits>
 
 #include "Table/AsciiWriter.h"

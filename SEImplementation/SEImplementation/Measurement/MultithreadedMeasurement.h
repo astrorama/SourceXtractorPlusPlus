@@ -8,6 +8,7 @@
 #ifndef _SEIMPLEMENTATION_OUTPUT_MULTITHREADEDMEASUREMENT_H_
 #define _SEIMPLEMENTATION_OUTPUT_MULTITHREADEDMEASUREMENT_H_
 
+#include <atomic>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
