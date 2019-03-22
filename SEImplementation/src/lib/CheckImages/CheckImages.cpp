@@ -170,7 +170,7 @@ void CheckImages::saveImages() {
     FitsWriter::writeFile(*m_filtered_image, m_filtered_filename, m_coordinate_system);
   }
 
-  // if possible, save the filtered image
+  // if possible, save the thresholded image
   if (m_thresholded_image != nullptr && m_thresholded_filename != "") {
     FitsWriter::writeFile(*m_thresholded_image, m_thresholded_filename, m_coordinate_system);
   }
