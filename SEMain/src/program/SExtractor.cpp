@@ -58,12 +58,12 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
-#include "SEMain/ProgressPrinterFactory.h"
+#include "SEMain/ProgressReporterFactory.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEMain/ProgressListener.h"
+#include "SEMain/ProgressMediator.h"
 #include "SEMain/Sorter.h"
 
 
@@ -129,7 +129,7 @@ class SEMain : public Elements::Program {
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
-  ProgressPrinterFactory progress_printer_factory {};
+  ProgressReporterFactory progress_printer_factory {};
 
 public:
   
@@ -200,8 +200,8 @@ public:
 
     // Create the progress listener and printer ASAP
     progress_printer_factory.configure(config_manager);
-    auto progress_printer = progress_printer_factory.createProgressPrinter();
-    ProgressListener progress_listener{progress_printer};
+    auto progress_printer = progress_printer_factory.createProgressReporter();
+    ProgressMediator progress_listener{progress_printer};
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();

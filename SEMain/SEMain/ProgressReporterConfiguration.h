@@ -1,5 +1,5 @@
 /*
- * ProgressPrinterConfiguration.h
+ * ProgressReporterConfiguration.h
  *
  *  Created on: Mar 19, 2019
  *      Author: Alejandro Alvarez Ayllon
@@ -14,9 +14,13 @@
 
 namespace SExtractor {
 
-class ProgressPrinterConfiguration: public Euclid::Configuration::Configuration {
+/**
+ * @class ProgressReporterConfiguration
+ * Configuration for the progress reporting.
+ */
+class ProgressReporterConfiguration: public Euclid::Configuration::Configuration {
 public:
-  ProgressPrinterConfiguration(long manager_id);
+  ProgressReporterConfiguration(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void preInitialize(const UserValues& args) override;

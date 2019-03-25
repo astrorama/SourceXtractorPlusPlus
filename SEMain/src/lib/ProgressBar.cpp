@@ -9,13 +9,17 @@
 
 namespace SExtractor {
 
-static struct sigaction sigint_new, sigint_prev;
+static struct sigaction sigterm;
+static std::map<int, struct sigaction> prev_signal;
 
-static void handleSigint(int s, siginfo_t *, void *) {
+/**
+ * Intercept several terminating signals so the terminal style can be restored
+ */
+static void handleTerminatingSignal(int s) {
   ProgressBar::getInstance()->restoreTerminal();
 
   // Call the previous handler
-  ::sigaction(s, &sigint_prev, nullptr);
+  ::sigaction(s, &prev_signal[s], nullptr);
   ::raise(s);
 }
 
@@ -42,10 +46,17 @@ ProgressBar::ProgressBar()
 
   // C++ guarantees that a static object is initialized once, and in a thread-safe manner
   // As this class is a singleton, we can do this here
-  ::memset(&sigint_new, 0, sizeof(sigint_new));
-  sigint_new.sa_flags = SA_SIGINFO;
-  sigint_new.sa_sigaction = handleSigint;
-  ::sigaction(SIGINT, &sigint_new, &sigint_prev);
+  ::memset(&sigterm, 0, sizeof(sigterm));
+
+  sigterm.sa_handler = handleTerminatingSignal;
+  ::sigaction(SIGINT, &sigterm, &prev_signal[SIGINT]);
+  ::sigaction(SIGTERM, &sigterm, &prev_signal[SIGTERM]);
+  ::sigaction(SIGABRT, &sigterm, &prev_signal[SIGABRT]);
+  ::sigaction(SIGSEGV, &sigterm, &prev_signal[SIGSEGV]);
+  ::sigaction(SIGHUP, &sigterm, &prev_signal[SIGHUP]);
+
+  // Swap screen buffer
+  std::cerr << SWAP_SCREEN_BUFFER;
 }
 
 ProgressBar::~ProgressBar() {
@@ -64,7 +75,7 @@ void ProgressBar::restoreTerminal() {
   std::cerr.flush();
 }
 
-void ProgressBar::updateTerminal() {
+void ProgressBar::prepareTerminal() {
   // Reserve the bottom side for the progress report
   struct winsize w;
   ioctl(STDERR_FILENO, TIOCGWINSZ, &w);
@@ -79,34 +90,30 @@ void ProgressBar::updateTerminal() {
   m_bar_width = w.ws_col - m_value_position - 2;
 }
 
-void ProgressBar::setElements(const std::vector<std::string>& entries) {
-  // Put always the value at the same distance: length of the longest attribute + space + (space|[) (starts at 1!)
-  size_t max_attr_len = 0;
-  m_progress_info.clear();
+void ProgressBar::update(const std::map<std::string, std::pair<int, int>>& info) {
+  this->ProgressReporter::update(info);
 
-  for (auto& e : entries) {
-    max_attr_len = std::max(max_attr_len, e.size());
-    m_progress_info[e] = std::make_pair(0, -1);
+  // On first call, prepare and spawn the progress report block
+  if (!m_progress_thread) {
+    // Put always the value at the same distance: length of the longest attribute + space + (space|[) (starts at 1!)
+    size_t max_attr_len = 0;
+
+    for (auto& e : info) {
+      max_attr_len = std::max(max_attr_len, e.first.size());
+    }
+
+    m_value_position = max_attr_len + 3;
+
+    // Prepare the scrolling area
+    prepareTerminal();
+
+    // Start printer
+    m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread);
   }
-
-  m_value_position = max_attr_len + 3;
-
-  // Swap screen buffer
-  std::cerr << SWAP_SCREEN_BUFFER;
-
-  // Prepare scrolling area
-  updateTerminal();
-
-  // Start printer
-  m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread);
-}
-
-void ProgressBar::print() {
-  // Printing is done on a separate thread
 }
 
 void ProgressBar::done() {
-  this->ProgressPrinter::done();
+  this->ProgressReporter::done();
   if (m_progress_thread)
     m_progress_thread->join();
   restoreTerminal();

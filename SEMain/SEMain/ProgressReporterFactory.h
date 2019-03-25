@@ -1,5 +1,5 @@
 /*
- * ProgressPrinterFactory.h
+ * ProgressReporterFactory.h
  *
  *  Created on: Mar 19, 2019
  *      Author: Alejandro Alvarez Ayllon
@@ -10,21 +10,25 @@
 
 #include <boost/date_time/posix_time/posix_time_config.hpp>
 #include "SEFramework/Configuration/Configurable.h"
-#include "SEMain/ProgressPrinter.h"
+#include "SEMain/ProgressReporter.h"
 
 namespace SExtractor {
 
-class ProgressPrinterFactory : public Configurable {
+/**
+ * @class ProgressReporterFactory
+ * Abstracts away the creation of concrete ProgressReporters
+ */
+class ProgressReporterFactory : public Configurable {
 public:
-  virtual ~ProgressPrinterFactory() = default;
+  virtual ~ProgressReporterFactory() = default;
 
-  ProgressPrinterFactory();
+  ProgressReporterFactory();
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  std::shared_ptr<ProgressPrinter> createProgressPrinter(void) const;
+  std::shared_ptr<ProgressReporter> createProgressReporter(void) const;
 
 private:
   boost::posix_time::time_duration m_min_interval;
