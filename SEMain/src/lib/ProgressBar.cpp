@@ -1,12 +1,15 @@
+#include "SEMain/ProgressBar.h"
+#include "ModelFitting/ModelFitting/utils.h"
+
 #include <sys/ioctl.h>
 #include <iostream>
 #include <boost/date_time.hpp>
 #include <signal.h>
-#include "SEMain/ProgressBar.h"
+#include <boost/thread.hpp>
 
 namespace SExtractor {
 
-static struct sigaction sigint_new, sigint_prev, sigwinch;
+static struct sigaction sigint_new, sigint_prev;
 
 static void handleSigint(int s, siginfo_t *, void *) {
   ProgressBar::getInstance()->restoreTerminal();
@@ -16,10 +19,6 @@ static void handleSigint(int s, siginfo_t *, void *) {
   ::raise(s);
 }
 
-static void handleSigwinch(int) {
-  ProgressBar::getInstance()->updateTerminal();
-  ProgressBar::getInstance()->print();
-}
 
 static const std::string CSI = {"\033["};
 static const std::string SGR_RESET = {"\033[0m"};
@@ -47,17 +46,9 @@ ProgressBar::ProgressBar()
   sigint_new.sa_flags = SA_SIGINFO;
   sigint_new.sa_sigaction = handleSigint;
   ::sigaction(SIGINT, &sigint_new, &sigint_prev);
-
-  ::memset(&sigwinch, 0, sizeof(sigwinch));
-  sigwinch.sa_handler = handleSigwinch;
-  ::sigaction(SIGWINCH, &sigwinch, nullptr);
-
-  // Swap screen buffer
-  std::cerr << SWAP_SCREEN_BUFFER;
 }
 
 ProgressBar::~ProgressBar() {
-  restoreTerminal();
 }
 
 std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
@@ -66,10 +57,11 @@ std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
 }
 
 void ProgressBar::restoreTerminal() {
-  // Restore full scroll, attributes, and jump to the end
-  std::cerr << "\033[r\033[0\033[" << m_progress_row + m_progress_info.size() << ";0H" << SHOW_CURSOR << std::endl;
+  // Restore full scroll and  attributes
+  std::cerr << "\033[r\033[0" << SHOW_CURSOR << std::endl;
   // Restore screen buffer
   std::cerr << RESTORE_SCREEN_BUFFER;
+  std::cerr.flush();
 }
 
 void ProgressBar::updateTerminal() {
@@ -99,66 +91,89 @@ void ProgressBar::setElements(const std::vector<std::string>& entries) {
 
   m_value_position = max_attr_len + 3;
 
+  // Swap screen buffer
+  std::cerr << SWAP_SCREEN_BUFFER;
+
+  // Prepare scrolling area
   updateTerminal();
-  print();
+
+  // Start printer
+  m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread);
 }
 
-void ProgressBar::print(bool /*done*/) {
-  auto now = boost::posix_time::second_clock::local_time();
-  auto elapsed = now - m_started;
+void ProgressBar::print() {
+  // Printing is done on a separate thread
+}
 
-  // Store position and attributes, hide cursor
-  std::cerr << SAVE_CURSOR << HIDE_CURSOR;
+void ProgressBar::done() {
+  this->ProgressPrinter::done();
+  if (m_progress_thread)
+    m_progress_thread->join();
+  restoreTerminal();
+}
 
-  // Move cursor to bottom
-  std::cerr << CSI << m_progress_row << ";0H";
+void ProgressBar::printThread() {
+  auto self = ProgressBar::getInstance();
 
-  // Now, print the actual progress
-  for (auto entry : m_progress_info) {
-    // When there is no total, show an absolute count
-    if (entry.second.second < 0) {
-      std::cerr << CLEAR_LINE << SGR_BOLD << entry.first << SGR_RESET << CSI << m_value_position << 'G' << ' '
-                << entry.second.first << std::endl;
-    }
-      // Otherwise, report progress as a bar
-    else {
-      float ratio = 0;
-      if (entry.second.second > 0) {
-        ratio = entry.second.first / float(entry.second.second);
-        if (ratio > 1)
-          ratio = 1.;
+  while (!self->m_done) {
+    auto now = boost::posix_time::second_clock::local_time();
+    auto elapsed = now - self->m_started;
+
+    // Store position and attributes, hide cursor
+    std::cerr << SAVE_CURSOR << HIDE_CURSOR;
+
+    // Move cursor to bottom
+    std::cerr << CSI << self->m_progress_row << ";0H";
+
+    // Now, print the actual progress
+    for (auto entry : self->m_progress_info) {
+      // When there is no total, show an absolute count
+      if (entry.second.second < 0) {
+        std::cerr << CLEAR_LINE << SGR_BOLD << entry.first << SGR_RESET << CSI << self->m_value_position << 'G' << ' '
+                  << entry.second.first << std::endl;
       }
+        // Otherwise, report progress as a bar
+      else {
+        float ratio = 0;
+        if (entry.second.second > 0) {
+          ratio = entry.second.first / float(entry.second.second);
+          if (ratio > 1)
+            ratio = 1.;
+        }
 
-      // Build the report string
-      std::ostringstream bar;
-      bar << entry.second.first << " / " << entry.second.second
-          << " (" << std::fixed << std::setprecision(2) << ratio * 100. << "%)";
+        // Build the report string
+        std::ostringstream bar;
+        bar << entry.second.first << " / " << entry.second.second
+            << " (" << std::fixed << std::setprecision(2) << ratio * 100. << "%)";
 
 
-      // Attach as many spaces as needed to fill the screen width, minus brackets
-      bar << std::string(m_bar_width - bar.str().size(), ' ');
+        // Attach as many spaces as needed to fill the screen width, minus brackets
+        bar << std::string(self->m_bar_width - bar.str().size(), ' ');
 
-      std::cerr << SGR_BOLD << entry.first << SGR_RESET << CSI << m_value_position << 'G' << '[';
+        std::cerr << SGR_BOLD << entry.first << SGR_RESET << CSI << self->m_value_position << 'G' << '[';
 
-      // Completed
-      auto bar_content = bar.str();
-      int completed = bar_content.size() * ratio;
+        // Completed
+        auto bar_content = bar.str();
+        int completed = bar_content.size() * ratio;
 
-      std::cerr << SGR_FG_WHITE << SGR_BG_GREEN << bar_content.substr(0, completed) << SGR_BG_RESET << SGR_FG_RESET;
+        std::cerr << SGR_FG_WHITE << SGR_BG_GREEN << bar_content.substr(0, completed) << SGR_BG_RESET << SGR_FG_RESET;
 
-      // Rest
-      std::cerr << SGR_FG_WHITE << SGR_BG_GRAY << bar_content.substr(completed) << SGR_BG_RESET << SGR_FG_RESET;
+        // Rest
+        std::cerr << SGR_FG_WHITE << SGR_BG_GRAY << bar_content.substr(completed) << SGR_BG_RESET << SGR_FG_RESET;
 
-      // Closing bracket
-      std::cerr << ']' << std::endl;
+        // Closing bracket
+        std::cerr << ']' << std::endl;
+      }
     }
+
+    // Elapsed time
+    std::cerr << CLEAR_LINE << SGR_BOLD << "Elapsed" << CSI << self->m_value_position << "G " << SGR_RESET << elapsed;
+
+    // Restore
+    std::cerr << RESTORE_CURSOR;
+
+    boost::this_thread::sleep(boost::posix_time::seconds(1));
   }
-
-  // Elapsed time
-  std::cerr << CLEAR_LINE << SGR_BOLD << "Elapsed" << CSI << m_value_position << "G " << SGR_RESET << elapsed;
-
-  // Restore
-  std::cerr << RESTORE_CURSOR;
 }
 
 } // end SExtractor

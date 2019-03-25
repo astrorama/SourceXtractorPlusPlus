@@ -170,7 +170,7 @@ public:
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    
+
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
     
@@ -198,6 +198,11 @@ public:
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(config_manager);
+    auto progress_printer = progress_printer_factory.createProgressPrinter();
+    ProgressListener progress_listener{progress_printer};
+
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
     TileManager::getInstance()->setOptions(memory_config.getTileSize(),
@@ -215,7 +220,6 @@ public:
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
-    progress_printer_factory.configure(config_manager);
     
     if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
       output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
@@ -238,9 +242,6 @@ public:
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
-
-    auto progress_printer = progress_printer_factory.createProgressPrinter();
-    ProgressListener progress_listener{progress_printer};
 
     auto sorter = std::make_shared<Sorter>();
 
@@ -347,8 +348,7 @@ public:
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
 
-    progress_printer->print(true);
-    progress_printer.reset();
+    progress_printer->done();
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";

@@ -21,7 +21,8 @@ public:
 
   ProgressLogger(const boost::posix_time::time_duration& min_interval);
 
-  void print(bool done = false) override;
+  void print() override;
+  void done() override;
 
 protected:
   Elements::Logging m_logger;

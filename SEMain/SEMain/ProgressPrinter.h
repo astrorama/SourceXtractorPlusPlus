@@ -23,10 +23,14 @@ public:
     m_progress_info[label] = std::make_pair(count, total);
   }
 
-  virtual void print(bool done = false) = 0;
+  virtual void print() = 0;
+  virtual void done() {
+    m_done = true;
+  }
 
 protected:
   std::map<std::string, std::pair<int, int>> m_progress_info;
+  bool m_done = false;
 };
 
 } // end SExtractor

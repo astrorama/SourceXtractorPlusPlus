@@ -10,10 +10,10 @@ ProgressLogger::ProgressLogger(const boost::posix_time::time_duration& min_inter
   m_last_logged{boost::posix_time::second_clock::local_time() - m_min_interval} {
 }
 
-void ProgressLogger::print(bool done) {
+void ProgressLogger::print() {
   auto now = boost::posix_time::second_clock::local_time();
 
-  if (now - m_last_logged > m_min_interval || done) {
+  if (now - m_last_logged > m_min_interval || m_done) {
     auto elapsed = now - m_started;
     m_last_logged = now;
 
@@ -32,6 +32,11 @@ void ProgressLogger::print(bool done) {
 
     m_logger.info() << "Elapsed: " << elapsed;
   }
+}
+
+void ProgressLogger::done() {
+  this->ProgressPrinter::done();
+  print();
 }
 
 } // end SExtractor

@@ -8,8 +8,10 @@
 #ifndef _SEMAIN_PROGRESSBAR_H
 #define _SEMAIN_PROGRESSBAR_H
 
-#include <boost/date_time/posix_time/ptime.hpp>
 #include "SEMain/ProgressPrinter.h"
+#include <boost/date_time/posix_time/ptime.hpp>
+#include <boost/thread.hpp>
+#include <vector>
 
 namespace SExtractor {
 
@@ -28,11 +30,16 @@ public:
 
   void updateTerminal();
 
-  void print(bool done = false) override;
+  void print() override;
+
+  void done() override;
 
 protected:
   boost::posix_time::ptime m_started;
   size_t m_progress_row, m_value_position, m_bar_width;
+  std::unique_ptr<boost::thread> m_progress_thread;
+
+  static void printThread();
 };
 
 } // end SExtractor
