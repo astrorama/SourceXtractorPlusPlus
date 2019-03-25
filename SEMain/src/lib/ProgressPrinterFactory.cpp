@@ -5,7 +5,7 @@
 
 namespace SExtractor {
 
-ProgressPrinterFactory::ProgressPrinterFactory() {}
+ProgressPrinterFactory::ProgressPrinterFactory(): m_disable_progress_bar{false} {}
 
 void ProgressPrinterFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<ProgressPrinterConfiguration>();
@@ -14,12 +14,13 @@ void ProgressPrinterFactory::reportConfigDependencies(Euclid::Configuration::Con
 void ProgressPrinterFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto progress_config = manager.getConfiguration<ProgressPrinterConfiguration>();
   m_min_interval = progress_config.getMinPrintInterval();
+  m_disable_progress_bar = progress_config.isProgressBarDisabled();
 }
 
-std::shared_ptr<ProgressPrinter> ProgressPrinterFactory::createPrinter() const {
+std::shared_ptr<ProgressPrinter> ProgressPrinterFactory::createProgressPrinter() const {
   std::vector<std::string> entries{"Detected", "Deblended", "Measured", "Segmentation"};
 
-  if (::isatty(::fileno(stderr))) {
+  if (::isatty(::fileno(stderr)) && !m_disable_progress_bar) {
     auto progress_bar = ProgressBar::getInstance();
     progress_bar->setElements(entries);
     return progress_bar;

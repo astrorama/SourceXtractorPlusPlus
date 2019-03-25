@@ -215,6 +215,7 @@ public:
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
+    progress_printer_factory.configure(config_manager);
     
     if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
       output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
@@ -238,7 +239,7 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
-    auto progress_printer = progress_printer_factory.createPrinter();
+    auto progress_printer = progress_printer_factory.createProgressPrinter();
     ProgressListener progress_listener{progress_printer};
 
     auto sorter = std::make_shared<Sorter>();

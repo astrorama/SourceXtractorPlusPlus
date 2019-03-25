@@ -26,8 +26,13 @@ public:
     return m_min_interval;
   }
 
+  bool isProgressBarDisabled() const {
+    return m_disable_progress_bar;
+  }
+
 private:
   boost::posix_time::time_duration m_min_interval;
+  bool m_disable_progress_bar;
 };
 
 } // end SExtractor

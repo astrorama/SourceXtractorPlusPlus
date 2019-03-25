@@ -18,6 +18,7 @@ static void handleSigint(int s, siginfo_t *, void *) {
 
 static void handleSigwinch(int) {
   ProgressBar::getInstance()->updateTerminal();
+  ProgressBar::getInstance()->print();
 }
 
 static const std::string CSI = {"\033["};
@@ -30,6 +31,8 @@ static const std::string SHOW_CURSOR{"\033[?25h"};
 static const std::string CLEAR_LINE{"\033[2K"};
 static const std::string SAVE_CURSOR{"\0337"};
 static const std::string RESTORE_CURSOR{"\0338"};
+static const std::string SWAP_SCREEN_BUFFER{"\033[?1049h"};
+static const std::string RESTORE_SCREEN_BUFFER{"\033[?1049l"};
 
 
 ProgressBar::ProgressBar()
@@ -45,6 +48,9 @@ ProgressBar::ProgressBar()
   ::memset(&sigwinch, 0, sizeof(sigwinch));
   sigwinch.sa_handler = handleSigwinch;
   ::sigaction(SIGWINCH, &sigwinch, nullptr);
+
+  // Swap screen buffer
+  std::cerr << SWAP_SCREEN_BUFFER;
 }
 
 ProgressBar::~ProgressBar() {
@@ -59,6 +65,8 @@ std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
 void ProgressBar::restoreTerminal() {
   // Restore full scroll, attributes, and jump to the end
   std::cerr << "\033[r\033[0\033[" << m_progress_row + m_progress_info.size() << ";0H" << SHOW_CURSOR << std::endl;
+  // Restore screen buffer
+  std::cerr << RESTORE_SCREEN_BUFFER;
 }
 
 void ProgressBar::updateTerminal() {

@@ -24,10 +24,11 @@ public:
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  std::shared_ptr<ProgressPrinter> createPrinter(void) const;
+  std::shared_ptr<ProgressPrinter> createProgressPrinter(void) const;
 
 private:
   boost::posix_time::time_duration m_min_interval;
+  bool m_disable_progress_bar;
 };
 
 }
