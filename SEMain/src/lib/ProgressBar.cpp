@@ -25,7 +25,10 @@ static const std::string CSI = {"\033["};
 static const std::string SGR_RESET = {"\033[0m"};
 static const std::string SGR_BOLD = {"\033[1m"};
 static const std::string SGR_BG_GREEN = {"\033[42m"};
+static const std::string SGR_BG_GRAY = {"\033[100m"};
+static const std::string SGR_FG_WHITE = {"\033[37m"};
 static const std::string SGR_BG_RESET = {"\033[49m"};
+static const std::string SGR_FG_RESET = {"\033[39m"};
 static const std::string HIDE_CURSOR{"\033[?25l"};
 static const std::string SHOW_CURSOR{"\033[?25h"};
 static const std::string CLEAR_LINE{"\033[2K"};
@@ -112,13 +115,10 @@ void ProgressBar::print(bool /*done*/) {
 
   // Now, print the actual progress
   for (auto entry : m_progress_info) {
-    // Entry label
-    std::cerr << CLEAR_LINE << SGR_BOLD << entry.first << SGR_RESET;
-    std::cerr << CSI << m_value_position << 'G';
-
     // When there is no total, show an absolute count
     if (entry.second.second < 0) {
-      std::cerr << ' ' << entry.second.first << std::endl;
+      std::cerr << CLEAR_LINE << SGR_BOLD << entry.first << SGR_RESET << CSI << m_value_position << 'G' << ' '
+                << entry.second.first << std::endl;
     }
       // Otherwise, report progress as a bar
     else {
@@ -138,16 +138,16 @@ void ProgressBar::print(bool /*done*/) {
       // Attach as many spaces as needed to fill the screen width, minus brackets
       bar << std::string(m_bar_width - bar.str().size(), ' ');
 
-      std::cerr << '[';
+      std::cerr << SGR_BOLD << entry.first << SGR_RESET << CSI << m_value_position << 'G' << '[';
 
       // Completed
       auto bar_content = bar.str();
       int completed = bar_content.size() * ratio;
 
-      std::cerr << SGR_BG_GREEN << bar_content.substr(0, completed) << SGR_BG_RESET;
+      std::cerr << SGR_FG_WHITE << SGR_BG_GREEN << bar_content.substr(0, completed) << SGR_BG_RESET << SGR_FG_RESET;
 
       // Rest
-      std::cerr << bar_content.substr(completed);
+      std::cerr << SGR_FG_WHITE << SGR_BG_GRAY << bar_content.substr(completed) << SGR_BG_RESET << SGR_FG_RESET;
 
       // Closing bracket
       std::cerr << ']' << std::endl;

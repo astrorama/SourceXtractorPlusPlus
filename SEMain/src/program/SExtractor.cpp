@@ -348,6 +348,7 @@ public:
     size_t n_writen_rows = output->flush();
 
     progress_printer->print(true);
+    progress_printer.reset();
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";
