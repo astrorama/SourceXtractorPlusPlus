@@ -90,8 +90,8 @@ void ProgressBar::prepareTerminal() {
   m_bar_width = w.ws_col - m_value_position - 2;
 }
 
-void ProgressBar::update(const std::map<std::string, std::pair<int, int>>& info) {
-  this->ProgressReporter::update(info);
+void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+  this->ProgressReporter::handleMessage(info);
 
   // On first call, prepare and spawn the progress report block
   if (!m_progress_thread) {
@@ -112,8 +112,8 @@ void ProgressBar::update(const std::map<std::string, std::pair<int, int>>& info)
   }
 }
 
-void ProgressBar::done() {
-  this->ProgressReporter::done();
+void ProgressBar::handleMessage(const bool& done) {
+  this->ProgressReporter::handleMessage(done);
   if (m_progress_thread)
     m_progress_thread->join();
   restoreTerminal();

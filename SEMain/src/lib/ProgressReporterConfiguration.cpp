@@ -31,6 +31,7 @@ void ProgressReporterConfiguration::initialize(const Configuration::UserValues& 
   auto nseconds = args.at(PROGRESS_MIN_INTERVAL).as<int>();
   m_min_interval = boost::posix_time::seconds(nseconds);
   m_disable_progress_bar = args.at(PROGRESS_BAR_DISABLED).as<bool>();
+  m_log_file_set = (args.find("log-file") !=  args.end()) && !args.at("log-file").empty();
 }
 
 } // end SExtractor

@@ -34,9 +34,14 @@ public:
     return m_disable_progress_bar;
   }
 
+  bool isLogFileSet() const {
+    return m_log_file_set;
+  }
+
 private:
   boost::posix_time::time_duration m_min_interval;
   bool m_disable_progress_bar;
+  bool m_log_file_set;
 };
 
 } // end SExtractor

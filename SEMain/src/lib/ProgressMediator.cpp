@@ -57,14 +57,12 @@ private:
   std::atomic_int& m_counter;
 };
 
-ProgressMediator::ProgressMediator(const std::shared_ptr<ProgressReporter>& reporter) :
-  m_reporter{reporter},
+ProgressMediator::ProgressMediator() :
   m_segmentation_progress{0, 0}, m_detected{0}, m_deblended{0}, m_measured{0},
   m_segmentation_listener{std::make_shared<ProgressCounter>(*this, m_segmentation_progress)},
   m_detection_listener{std::make_shared<SourceCounter>(*this, m_detected)},
   m_deblending_listener{std::make_shared<GroupCounter>(*this, m_deblended)},
   m_measurement_listener{std::make_shared<GroupCounter>(*this, m_measured)} {
-  update();
 }
 
 std::shared_ptr<ProgressMediator::segmentation_observer_t>& ProgressMediator::getSegmentationObserver() {
@@ -84,12 +82,16 @@ std::shared_ptr<ProgressMediator::group_observer_t>& ProgressMediator::getMeasur
 }
 
 void ProgressMediator::update(void) {
-  m_reporter->update(std::map<std::string, std::pair<int, int>>{
+  this->ProgressObservable::notifyObservers(std::map<std::string, std::pair<int, int>>{
     {"Detected",     {m_detected,                       -1}},
     {"Deblended",    {m_deblended,                      -1}},
     {"Measured",     {m_measured,                       m_deblended}},
     {"Segmentation", {m_segmentation_progress.position, m_segmentation_progress.total}}
   });
+}
+
+void ProgressMediator::done() {
+  this->DoneObservable::notifyObservers(true);
 }
 
 } // end SExtractor

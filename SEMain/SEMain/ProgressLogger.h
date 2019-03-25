@@ -31,8 +31,9 @@ public:
    */
   ProgressLogger(const boost::posix_time::time_duration& min_interval);
 
-  void update(const std::map<std::string, std::pair<int, int>> & info) override;
-  void done() override;
+  void handleMessage(const std::map<std::string, std::pair<int, int>>& info) override;
+
+  void handleMessage(const bool& done) override;
 
 protected:
   Elements::Logging m_logger;

@@ -40,12 +40,12 @@ public:
    * This class intercepts the first call to update to decide on the size of the bottom
    * block, and start the thread.
    */
-  void update(const std::map<std::string, std::pair<int, int>> & info) override;
+  void handleMessage(const std::map<std::string, std::pair<int, int>> & info) override;
 
   /**
    * Give the printing thread a chance to exit.
    */
-  void done() override;
+  void handleMessage(const bool &done) override;
 
   /**
    * Restore the terminal style. It needs to be called from a signal handler, so it has

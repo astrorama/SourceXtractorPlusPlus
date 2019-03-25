@@ -34,13 +34,13 @@ void ProgressLogger::print() {
   }
 }
 
-void ProgressLogger::update(const std::map<std::string, std::pair<int, int>>& info) {
-  this->ProgressReporter::update(info);
+void ProgressLogger::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+  this->ProgressReporter::handleMessage(info);
   print();
 }
 
-void ProgressLogger::done() {
-  this->ProgressReporter::done();
+void ProgressLogger::handleMessage(const bool &done) {
+  this->ProgressReporter::handleMessage(done);
   print();
 }
 

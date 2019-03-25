@@ -10,7 +10,7 @@
 
 #include <boost/date_time/posix_time/posix_time_config.hpp>
 #include "SEFramework/Configuration/Configurable.h"
-#include "SEMain/ProgressReporter.h"
+#include "SEMain/ProgressMediator.h"
 
 namespace SExtractor {
 
@@ -28,11 +28,12 @@ public:
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  std::shared_ptr<ProgressReporter> createProgressReporter(void) const;
+  std::shared_ptr<ProgressMediator> createProgressMediator(void) const;
 
 private:
   boost::posix_time::time_duration m_min_interval;
   bool m_disable_progress_bar;
+  bool m_log_file;
 };
 
 }

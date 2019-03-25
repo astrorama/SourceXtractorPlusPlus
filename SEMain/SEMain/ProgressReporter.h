@@ -10,8 +10,12 @@
 
 #include <map>
 #include <string>
+#include "SEUtils/Observable.h"
 
 namespace SExtractor {
+
+typedef Observer<std::map<std::string, std::pair<int,int>>> ProgressObserver;
+typedef Observer<bool> DoneObserver;
 
 /**
  * @class ProgressReporter
@@ -19,7 +23,7 @@ namespace SExtractor {
  * the software can switch the way of informing the user about the progress.
  * Details of what is reported is abstracted via key/value.
  */
-class ProgressReporter {
+class ProgressReporter: public ProgressObserver, public DoneObserver {
 public:
 
   virtual ~ProgressReporter() = default;
@@ -33,15 +37,15 @@ public:
    *    and the value a pair, where the first is the number of entities processed, and
    *    the second the total, or -1 if unknown.
    */
-  virtual void update(const std::map<std::string, std::pair<int, int>> & info) {
+  void handleMessage(const std::map<std::string, std::pair<int, int>> & info) override {
     m_progress_info = info;
   }
 
   /**
    * To be called when the full processing is done.
    */
-  virtual void done() {
-    m_done = true;
+  void handleMessage(const bool& done) override {
+    m_done = done;
   }
 
 protected:

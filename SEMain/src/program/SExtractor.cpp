@@ -63,7 +63,6 @@
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEMain/ProgressMediator.h"
 #include "SEMain/Sorter.h"
 
 
@@ -200,8 +199,7 @@ public:
 
     // Create the progress listener and printer ASAP
     progress_printer_factory.configure(config_manager);
-    auto progress_printer = progress_printer_factory.createProgressReporter();
-    ProgressMediator progress_listener{progress_printer};
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
@@ -253,10 +251,10 @@ public:
     measurement->addObserver(sorter);
     sorter->addObserver(output);
 
-    segmentation->Observable<SegmentationProgress>::addObserver(progress_listener.getSegmentationObserver());
-    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_listener.getDetectionObserver());
-    deblending->addObserver(progress_listener.getDeblendingObserver());
-    measurement->addObserver(progress_listener.getMeasurementObserver());
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
+    deblending->addObserver(progress_mediator->getDeblendingObserver());
+    measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
@@ -348,7 +346,7 @@ public:
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
 
-    progress_printer->done();
+    progress_mediator->done();
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";
