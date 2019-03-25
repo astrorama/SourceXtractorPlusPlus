@@ -47,12 +47,6 @@ public:
    */
   void handleMessage(const bool &done) override;
 
-  /**
-   * Restore the terminal style. It needs to be called from a signal handler, so it has
-   * to be public.
-   */
-  void restoreTerminal();
-
 protected:
   boost::posix_time::ptime m_started;
   size_t m_progress_row, m_value_position, m_bar_width;
@@ -61,12 +55,21 @@ protected:
   /**
    * Prepare the terminal scrolling area, adapt the progress bar width to the screen size, etc.
    */
-  void prepareTerminal();
+  void prepareTerminal(bool resize);
+
+  /**
+   * Restore the terminal style.
+   */
+  void restoreTerminal();
 
   /**
    * This method runs on a separate thread, and updates the report every second.
    */
   static void printThread();
+
+  // Signal handlers
+  static void handleTerminatingSignal(int);
+  static void handleTerminalResize(int);
 };
 
 } // end SExtractor

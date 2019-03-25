@@ -9,18 +9,25 @@
 
 namespace SExtractor {
 
-static struct sigaction sigterm;
+static struct sigaction sigterm, sigwinch;
 static std::map<int, struct sigaction> prev_signal;
 
 /**
  * Intercept several terminating signals so the terminal style can be restored
  */
-static void handleTerminatingSignal(int s) {
+void ProgressBar::handleTerminatingSignal(int s) {
   ProgressBar::getInstance()->restoreTerminal();
 
   // Call the previous handler
   ::sigaction(s, &prev_signal[s], nullptr);
   ::raise(s);
+}
+
+/**
+ * Intercept terminal window resize
+ */
+void ProgressBar::handleTerminalResize(int) {
+  ProgressBar::getInstance()->prepareTerminal(true);
 }
 
 
@@ -39,6 +46,7 @@ static const std::string SAVE_CURSOR{"\0337"};
 static const std::string RESTORE_CURSOR{"\0338"};
 static const std::string SWAP_SCREEN_BUFFER{"\033[?1049h"};
 static const std::string RESTORE_SCREEN_BUFFER{"\033[?1049l"};
+static const std::string CLEAR_SCREEN{"\033[2J"};
 
 
 ProgressBar::ProgressBar()
@@ -48,12 +56,15 @@ ProgressBar::ProgressBar()
   // As this class is a singleton, we can do this here
   ::memset(&sigterm, 0, sizeof(sigterm));
 
-  sigterm.sa_handler = handleTerminatingSignal;
+  sigterm.sa_handler = &handleTerminatingSignal;
   ::sigaction(SIGINT, &sigterm, &prev_signal[SIGINT]);
   ::sigaction(SIGTERM, &sigterm, &prev_signal[SIGTERM]);
   ::sigaction(SIGABRT, &sigterm, &prev_signal[SIGABRT]);
   ::sigaction(SIGSEGV, &sigterm, &prev_signal[SIGSEGV]);
   ::sigaction(SIGHUP, &sigterm, &prev_signal[SIGHUP]);
+
+  sigwinch.sa_handler = &handleTerminalResize;
+  ::sigaction(SIGWINCH, &sigwinch, nullptr);
 
   // Swap screen buffer
   std::cerr << SWAP_SCREEN_BUFFER;
@@ -75,10 +86,14 @@ void ProgressBar::restoreTerminal() {
   std::cerr.flush();
 }
 
-void ProgressBar::prepareTerminal() {
+void ProgressBar::prepareTerminal(bool resize) {
   // Reserve the bottom side for the progress report
   struct winsize w;
   ioctl(STDERR_FILENO, TIOCGWINSZ, &w);
+
+  if (resize) {
+    std::cerr << CLEAR_SCREEN;
+  }
 
   m_progress_row = w.ws_row - m_progress_info.size();
   // Scroll up so lines are preserved
@@ -105,7 +120,7 @@ void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>
     m_value_position = max_attr_len + 3;
 
     // Prepare the scrolling area
-    prepareTerminal();
+    prepareTerminal(false);
 
     // Start printer
     m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread);
