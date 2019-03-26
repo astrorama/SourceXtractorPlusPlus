@@ -74,15 +74,6 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "abcor",
-          [](const ShapeParameters& prop){
-            return prop.getAbcor();
-          },
-          "[]",
-          "Corrected value for ellipse_b/ellipse_a"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "area",
           [](const ShapeParameters& prop){
             return prop.getArea();
