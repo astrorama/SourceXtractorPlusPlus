@@ -7,10 +7,14 @@
 #include <cmath>
 #include <mutex>
 
+#ifndef WITHOUT_LEVMAR
 #include <levmar.h>
+#endif
+
 #include "ModelFitting/Engine/LevmarEngine.h"
 
 #include <iostream>
+#include <ElementsKernel/Exception.h>
 
 namespace ModelFitting {
 
@@ -28,6 +32,10 @@ namespace {
 
 LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_manager,
                                               ResidualEstimator& residual_estimator) {
+
+#ifdef WITHOUT_LEVMAR
+  throw Elements::Exception() << "Binary compiled without Levmar! No model fitting possible";
+#else
   // Create a tuple which keeps the references to the given manager and estimator
   auto adata = std::tie(parameter_manager, residual_estimator);
 
@@ -82,6 +90,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   summary.iteration_no = info[5];
   summary.underlying_framework_info = info;
   return summary;
+#endif
 }
 
 } // end of namespace ModelFitting

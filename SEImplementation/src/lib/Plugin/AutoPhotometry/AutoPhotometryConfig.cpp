@@ -17,7 +17,7 @@ namespace SExtractor {
 
 namespace {
 const std::string AUTO_KRON_FACTOR {"auto-kron-factor"};
-const std::string AUTO_KRON_MINRAD {"auto-kron-minrad"};
+const std::string AUTO_KRON_MINRAD {"auto-kron-min-radius"};
 }
 
 auto AutoPhotometryConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {

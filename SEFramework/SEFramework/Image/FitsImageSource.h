@@ -44,12 +44,6 @@ public:
 
     m_width = naxes[0];
     m_height = naxes[1];
-
-//    // Read FITS keywords
-//    double gain = 1, saturate = 0, flux_scale = 1;
-//    readFitsKeyword("GAIN", gain);
-//    readFitsKeyword("SATURATE", saturate);
-//    readFitsKeyword("FLXSCALE", flux_scale);
   }
 
   FitsImageSource(const std::string &filename, int width, int height,

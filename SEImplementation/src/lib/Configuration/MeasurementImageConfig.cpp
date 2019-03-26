@@ -1,4 +1,4 @@
-/* 
+/*
  * @file MeasurementImageConfig.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
@@ -54,11 +54,9 @@ void validateImagePaths(const PyMeasurementImage& image) {
 std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImage& py_image) {
   auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file);
   std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-//  std::cout << "XXw: " << image->getWidth() << " h: " << image->getHeight() << "\n";
-//  std::cout << "flux_scale " << py_image.flux_scale << "\n";
-//  if (py_image.flux_scale != 1.) {
-//    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
-//  }
+  if (py_image.flux_scale != 1.) {
+    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
+  }
   return image;
 }
 

@@ -4,7 +4,7 @@ import os
 import re
 from astropy.io import fits
 
-import libSEImplementation as cpp
+import _SExtractorPy as cpp
 
 measurement_images = {}
 
@@ -232,6 +232,8 @@ def load_fits_images(image_list, psf_list=None, weight_list=None):
     :param weight_list: A list of relative paths to the weight files (optional)
     :return: A ImageGroup representing the images
     """
+    if len(image_list) == 0:
+        raise ValueError('An empty list passed to load_fits_images')
     if psf_list is None:
         psf_list = [None] * len(image_list)
     else:

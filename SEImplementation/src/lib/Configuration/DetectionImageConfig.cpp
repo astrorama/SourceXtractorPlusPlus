@@ -3,6 +3,7 @@
  * @date 06/06/16
  * @author mschefer
  */
+#include <SEFramework/Image/MultiplyImage.h>
 #include "Configuration/ConfigManager.h"
 
 #include "SEFramework/Image/FitsReader.h"
@@ -54,11 +55,13 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
 
-  double detection_image_gain = 0, detection_image_saturate = 0;
+  double detection_image_gain = 0, detection_image_saturate = 0, flux_scale = 0;
   fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
   fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
-  //fits_image_source->readFitsKeyword("GAIN", m_gain);
-  //fits_image_source->readFitsKeyword("SATURATE", m_saturation);
+
+  if (fits_image_source->readFitsKeyword("FLXSCALE", flux_scale) && flux_scale != 0) {
+    m_detection_image = MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, flux_scale);
+  }
 
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
     m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();

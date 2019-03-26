@@ -13,7 +13,7 @@ namespace bp = boost::python;
 
 namespace SExtractor {
 
-BOOST_PYTHON_MODULE(libSEImplementation) {
+BOOST_PYTHON_MODULE(_SExtractorPy) {
   
   bp::class_<ObjectInfo>("ObjectInfo", bp::init<SourceInterface&>())
       .def("get_centroid_x", &ObjectInfo::getCentroidX)
