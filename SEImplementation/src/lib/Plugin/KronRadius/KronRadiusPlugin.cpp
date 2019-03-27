@@ -32,7 +32,7 @@ void KronRadiusPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const KronRadius& prop){
             return prop.getFlag();
           },
-          "",
+          "[]",
           "Flags for the Kron radius"
   );
 

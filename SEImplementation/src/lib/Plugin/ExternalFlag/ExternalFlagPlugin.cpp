@@ -23,14 +23,18 @@ void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
           "isophotal_image_flags",
           [](const ExternalFlag& prop){
             return prop.getFlag();
-          }
+          },
+          "[]",
+          "Flags for the isophotal magnitude"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ExternalFlag, int>(
           "isophotal_image_flags_pixel_count",
           [](const ExternalFlag& prop){
             return prop.getCount();
-          }
+          },
+          "[]",
+          "Flags provided from input images"
   );
 
   // External flags are always in the output if there is configuration for

@@ -59,7 +59,7 @@ void OutputRegistry::printPropertyColumnMap(const std::vector<std::string>& prop
         std::cout << " : " << info.description;
       }
       if (info.unit != "") {
-        std::cout << " (" << info.unit << ")";
+        std::cout << " " << info.unit << ""; // place here braces "()" around the units, if desired
       }
       std::cout << '\n';
     }
