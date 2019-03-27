@@ -30,6 +30,7 @@
 #include <random>
 #include "ElementsKernel/ProgramHeaders.h"
 #include "ElementsKernel/Real.h"
+#include "SEUtils/IsClose.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Convolution/DirectConvolution.h"
 #include "SEFramework/Convolution/DFT.h"
@@ -180,11 +181,6 @@ public:
       logger.warn() << "Convoluted images are not equal!";
     }
   }
-
-  bool isClose(SeFloat a, SeFloat b, SeFloat atol=1e-8, SeFloat rtol=1e-5) const {
-    return std::abs(a - b) <= (atol + rtol * std::abs(b));
-  }
-
 };
 
 MAIN_FOR(BenchConvolution)

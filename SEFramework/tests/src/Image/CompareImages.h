@@ -9,6 +9,7 @@
 #define _COMPAREIMAGES_H
 
 #include "SEFramework/Image/Image.h"
+#include "SEUtils/IsClose.h"
 
 namespace SExtractor {
 
@@ -21,7 +22,7 @@ boost::test_tools::predicate_result compareImages(
     for (int y = 0; y < ref->getHeight(); ++y) {
       auto expected = ref->getValue(x, y);
       auto value = val->getValue(x, y);
-      if (expected != value) {
+      if (!isClose(expected, value)) {
         res = false;
         res.message() << "Not matching values at position " << x << "," << y
                       << ": " << expected << " != " << value << "\n";

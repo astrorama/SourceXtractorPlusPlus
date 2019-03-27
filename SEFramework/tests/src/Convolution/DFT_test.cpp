@@ -5,6 +5,7 @@
 #include <boost/test/unit_test.hpp>
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Convolution/DFT.h"
+#include "SEUtils/IsClose.h"
 
 using namespace SExtractor;
 
@@ -20,11 +21,6 @@ struct DFT_Fixture {
     })} {
   }
 };
-
-
-bool isClose(float a, float b, float atol=1e-6, float rtol=1e-5) {
-  return std::abs(a - b) <= (atol + rtol * std::abs(b));
-}
 
 
 BOOST_AUTO_TEST_SUITE (DFT_test)
