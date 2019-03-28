@@ -62,6 +62,50 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background, T, convolution_types) {
 
 //-----------------------------------------------------------------------------
 
+BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background_with_offset, T, convolution_types) {
+  auto image = VectorImage<SeFloat>::create(
+    5, 5, std::vector<SeFloat>{
+      1.0, 2.0, 3.0, 4.0, 5.0,
+      1.1, 2.1, 3.1, 4.1, 5.1,
+      1.2, 2.2, 3.2, 4.2, 5.2,
+      1.3, 2.3, 3.3, 4.3, 5.3,
+      1.4, 2.4, 3.4, 4.4, 5.4,
+    }
+  );
+  auto variance = VectorImage<SeFloat>::create(
+    5, 5, std::vector<SeFloat>{
+      1.0, 0.8, 0.7, 1.0, 0.6,
+      1.0, 0.6, 0.8, 0.6, 1.0,
+      1.0, 1.0, 0.1, 0.2, 1.0,
+      1.0, 0.6, 0.8, 0.6, 1.0,
+      1.0, 0.9, 1.0, 1.0, 1.0,
+    }
+  );
+  auto kernel = VectorImage<SeFloat>::create(
+    3, 3, std::vector<SeFloat>{
+      0.0, 0.5, 0.0,
+      0.5, 1.0, 0.5,
+      0.0, 0.5, 0.0
+    }
+  );
+
+  auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
+  auto result = image_source->getImageTile(1, 1, 3, 4)->getImage();
+
+  auto expected = VectorImage<SeFloat>::create(
+    3, 4, std::vector<SeFloat>{
+      2.100, 3.20000, 4.20000,
+      3.200, 3.53333, 3.86667,
+      2.300, 3.20000, 4.20000,
+      2.380, 3.38000, 4.38000,
+    }
+  );
+
+  BOOST_CHECK(compareImages(expected, result));
+}
+
+//-----------------------------------------------------------------------------
+
 static std::shared_ptr<VectorImage<SeFloat>> generateImage(int size) {
   std::default_random_engine random_generator;
   std::uniform_real_distribution<SeFloat> random_dist{0, 1};

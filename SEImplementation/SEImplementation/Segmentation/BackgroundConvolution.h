@@ -109,16 +109,23 @@ protected:
 
   virtual void
   generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile,
-               int offset_x, int offset_y, int width, int height) const override {
-    // Clip the image and variance map to the given size
+               int start_x, int start_y, int width, int height) const override {
+    int hx = m_convolution.getWidth() / 2;
+    int hy = m_convolution.getHeight() / 2;
+    int clip_x = std::max(start_x - hx, 0);
+    int clip_y = std::max(start_y - hy, 0);
+    int clip_w = std::min(width + hx * 2, image->getWidth() - clip_x);
+    int clip_h = std::min(height + hy * 2, image->getHeight() - clip_y);
+
+    // Clip the image and variance map to the given size, accounting for the margins for the convolution
     auto clipped_img = FunctionalImage<DetectionImage::PixelType>::create(
-      width, height, [image, offset_x, offset_y](int x, int y) {
-        return image->getValue(offset_x + x, offset_y + y);
+      clip_w, clip_h, [image, clip_x, clip_y](int x, int y) {
+        return image->getValue(clip_x + x, clip_y + y);
       }
     );
     auto clipped_variance = FunctionalImage<DetectionImage::PixelType>::create(
-      width, height, [this, offset_x, offset_y](int x, int y) {
-        return m_variance->getValue(offset_x + x, offset_y + y);
+      clip_w, clip_h, [this, clip_x, clip_y](int x, int y) {
+        return m_variance->getValue(clip_x + x, clip_y + y);
       }
     );
 
@@ -129,13 +136,13 @@ protected:
     // 1  0  1     0  1  0     1  0  1
     // 1  1  1     0  0  0     1  1  1
     auto mask = FunctionalImage<DetectionImage::PixelType>::create(
-      width, height,
+      clipped_variance->getWidth(), clipped_variance->getHeight(),
       [this, clipped_variance](int x, int y) -> DetectionImage::PixelType {
         return clipped_variance->getValue(x, y) < m_threshold;
       }
     );
     auto mask_neg = FunctionalImage<DetectionImage::PixelType>::create(
-      width, height,
+      mask->getWidth(), mask->getHeight(),
       [mask](int x, int y) -> DetectionImage::PixelType {
         return mask->getValue(x, y) == 0.;
       }
@@ -162,16 +169,24 @@ protected:
 
     // Copy out the value of the convolved image, divided by the negative mask, replacing
     // any non-masked cell
+    int off_x = start_x - clip_x;
+    int off_y = start_y - clip_y;
     for (int y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x) {
         // We want to use the masked convolution only if the resulting convolved mask
         // is not 0. Since we are dealing with floats, we can not just compare to 0, because
         // there will likely be a very small value greater than 0
-        if (std::abs(conv_mask->getValue(x, y)) > m_kernel_min / 2.) {
-          tile.setValue(x, y, conv_masked->getValue(x, y) / conv_mask->getValue(x, y));
+        if (std::abs(conv_mask->getValue(x + off_x, y + off_y)) > m_kernel_min / 2.) {
+          tile.setValue(
+            x + start_x, y + start_y,
+            conv_masked->getValue(x + off_x, y + off_y) / conv_mask->getValue(x + off_x, y + off_y)
+          );
         }
         else {
-          tile.setValue(x, y, conv_img->getValue(x, y) / conv_mask_neg->getValue(x, y));
+          tile.setValue(
+            x + start_x, y + start_y,
+            conv_img->getValue(x + off_x, y + off_y) / conv_mask_neg->getValue(x + off_x, y + off_y)
+          );
         }
       }
     }
