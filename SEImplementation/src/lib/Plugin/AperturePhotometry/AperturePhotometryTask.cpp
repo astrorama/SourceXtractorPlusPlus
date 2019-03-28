@@ -8,6 +8,7 @@
 #include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
@@ -31,6 +32,8 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
   auto measurement_image = measurement_frame->getSubtractedImage();
   auto variance_map = measurement_frame->getVarianceMap();
