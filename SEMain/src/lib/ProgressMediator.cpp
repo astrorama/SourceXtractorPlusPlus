@@ -14,7 +14,7 @@ namespace SExtractor {
 class ProgressMediator::ProgressCounter : public Observer<SegmentationProgress> {
 public:
   ProgressCounter(ProgressMediator& progress_listener, SegmentationProgress& segmentation_progress) :
-    m_progress_listener{progress_listener}, m_segmentation_progress{segmentation_progress} {
+    m_progress_listener(progress_listener), m_segmentation_progress(segmentation_progress) {
   }
 
   void handleMessage(const SegmentationProgress& progress) override {
@@ -30,7 +30,7 @@ private:
 class ProgressMediator::SourceCounter : public Observer<std::shared_ptr<SourceInterface>> {
 public:
   SourceCounter(ProgressMediator& progress_listener, std::atomic_int& counter) :
-    m_progress_listener{progress_listener}, m_counter(counter) {}
+    m_progress_listener(progress_listener), m_counter(counter) {}
 
   void handleMessage(const std::shared_ptr<SourceInterface>&) override {
     ++m_counter;
@@ -45,7 +45,7 @@ private:
 class ProgressMediator::GroupCounter : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
   GroupCounter(ProgressMediator& progress_listener, std::atomic_int& counter) :
-    m_progress_listener{progress_listener}, m_counter(counter) {}
+    m_progress_listener(progress_listener), m_counter(counter) {}
 
   void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override {
     m_counter += group->size();
