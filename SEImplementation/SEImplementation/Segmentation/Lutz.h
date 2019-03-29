@@ -18,8 +18,6 @@
 
 namespace SExtractor {
 
-static Elements::Logging lutzLogger = Elements::Logging::getLogger("Lutz");
-
 class Lutz {
 public:
   class PixelGroup {
@@ -44,7 +42,7 @@ public:
   Lutz() {}
   virtual ~Lutz() = default;
 
-  void labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0), bool do_log=true);
+  void labelImage(LutzListener& listener, const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0));
 };
 
 class LutzList : public Lutz, public Lutz::LutzListener {
@@ -58,7 +56,7 @@ public:
   }
 
   void labelImage(const DetectionImage& image, PixelCoordinate offset = PixelCoordinate(0,0)) {
-    Lutz::labelImage(*this, image, offset, false);
+    Lutz::labelImage(*this, image, offset);
   }
 
 protected:
