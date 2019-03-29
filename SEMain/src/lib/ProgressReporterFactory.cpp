@@ -21,15 +21,19 @@ void ProgressReporterFactory::configure(Euclid::Configuration::ConfigManager& ma
 std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediator() const {
   auto mediator = std::make_shared<ProgressMediator>();
 
-  if (::isatty(::fileno(stderr)) && !m_disable_progress_bar) {
+#ifndef WITHOUT_NCURSES
+  if (!m_disable_progress_bar && ProgressBar::isTerminalCapable()) {
     mediator->ProgressObservable::addObserver(ProgressBar::getInstance());
     mediator->DoneObservable::addObserver(ProgressBar::getInstance());
   }
   if (!::isatty(::fileno(stderr)) || m_log_file) {
+#endif
     auto logger = std::make_shared<ProgressLogger>(m_min_interval);
     mediator->ProgressObservable::addObserver(logger);
     mediator->DoneObservable::addObserver(logger);
+#ifndef WITHOUT_NCURSES
   }
+#endif
   mediator->update();
   return mediator;
 }

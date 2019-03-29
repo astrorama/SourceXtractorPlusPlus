@@ -47,6 +47,11 @@ public:
    */
   void handleMessage(const bool &done) override;
 
+  /**
+   * @return true if the attached terminal has the required capabilities to render the progress bar
+   */
+  static bool isTerminalCapable();
+
 protected:
   boost::posix_time::ptime m_started;
   size_t m_progress_row, m_value_position, m_bar_width;

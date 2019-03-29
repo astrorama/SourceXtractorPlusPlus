@@ -6,6 +6,8 @@
 #include <boost/date_time.hpp>
 #include <signal.h>
 #include <boost/thread.hpp>
+#include <curses.h>
+#include <term.h>
 
 namespace SExtractor {
 
@@ -30,24 +32,37 @@ void ProgressBar::handleTerminalResize(int) {
   ProgressBar::getInstance()->prepareTerminal(true);
 }
 
+static const std::string ENTER_CUP{"smcup"};
+static const std::string EXIT_CUP{"rmcup"};
+static const std::string SHOW_CURSOR{"cvvis"};
+static const std::string HIDE_CURSOR{"civis"};
+static const std::string CLEAR_SCREEN{"clear"};
+static const std::string SAVE_CURSOR{"sc"};
+static const std::string RESTORE_CURSOR{"rc"};
+static const std::string CURSOR_POSITION{"cup"};
+static const std::string CLEAR_LINE{"el"};
+static const std::string COLUMN{"hpa"};
+static const std::string RESTORE_COLORS{"op"};
+static const std::string RESTORE_STYLE{"sgr0"};
+static const std::string BOLD{"bold"};
+static const std::string SET_BACKGROUND{"setab"};
+static const std::string SET_FOREGROUND{"setaf"};
+static const std::string CHANGE_SCROLLING{"csr"};
+static const std::string SCROLL_FORWARD{"ind"};
+static int COLOR_BRIGHT = 010;
 
-static const std::string CSI = {"\033["};
-static const std::string SGR_RESET = {"\033[0m"};
-static const std::string SGR_BOLD = {"\033[1m"};
-static const std::string SGR_BG_GREEN = {"\033[42m"};
-static const std::string SGR_BG_GRAY = {"\033[100m"};
-static const std::string SGR_FG_WHITE = {"\033[37m"};
-static const std::string SGR_BG_RESET = {"\033[49m"};
-static const std::string SGR_FG_RESET = {"\033[39m"};
-static const std::string HIDE_CURSOR{"\033[?25l"};
-static const std::string SHOW_CURSOR{"\033[?25h"};
-static const std::string CLEAR_LINE{"\033[2K"};
-static const std::string SAVE_CURSOR{"\0337"};
-static const std::string RESTORE_CURSOR{"\0338"};
-static const std::string SWAP_SCREEN_BUFFER{"\033[?1049h"};
-static const std::string RESTORE_SCREEN_BUFFER{"\033[?1049l"};
-static const std::string CLEAR_SCREEN{"\033[2J"};
 
+/**
+ * Return the capability string corresponding to the given code
+ */
+template<typename ...Args>
+static std::string capability(const std::string& cap, Args... args) {
+  char *fmt = tigetstr(cap.c_str());
+  if (!fmt) {
+    return "";
+  }
+  return tparm(fmt, std::forward<Args>(args)...);
+}
 
 ProgressBar::ProgressBar()
   : m_started{boost::posix_time::second_clock::local_time()} {
@@ -67,10 +82,21 @@ ProgressBar::ProgressBar()
   ::sigaction(SIGWINCH, &sigwinch, nullptr);
 
   // Swap screen buffer
-  std::cerr << SWAP_SCREEN_BUFFER;
+  std::cerr << capability(ENTER_CUP);
 }
 
 ProgressBar::~ProgressBar() {
+  ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
+  ::sigaction(SIGTERM, &prev_signal[SIGTERM], nullptr);
+  ::sigaction(SIGABRT, &prev_signal[SIGABRT], nullptr);
+  ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
+  ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
+  ::sigaction(SIGWINCH, nullptr, nullptr);
+}
+
+bool ProgressBar::isTerminalCapable() {
+  setupterm(nullptr, fileno(stderr), nullptr);
+  return isatty(fileno(stderr)) && tigetstr(ENTER_CUP.c_str()) != nullptr;
 }
 
 std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
@@ -80,9 +106,9 @@ std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
 
 void ProgressBar::restoreTerminal() {
   // Restore full scroll and  attributes
-  std::cerr << "\033[r\033[0" << SHOW_CURSOR << std::endl;
+  std::cerr << capability(CHANGE_SCROLLING, 0, 0) << capability(RESTORE_STYLE) << capability(SHOW_CURSOR) << std::endl;
   // Restore screen buffer
-  std::cerr << RESTORE_SCREEN_BUFFER;
+  std::cerr << capability(EXIT_CUP);
   std::cerr.flush();
 }
 
@@ -92,14 +118,14 @@ void ProgressBar::prepareTerminal(bool resize) {
   ioctl(STDERR_FILENO, TIOCGWINSZ, &w);
 
   if (resize) {
-    std::cerr << CLEAR_SCREEN;
+    std::cerr << capability(CLEAR_SCREEN);
   }
 
-  m_progress_row = w.ws_row - m_progress_info.size();
+  m_progress_row = w.ws_row - m_progress_info.size() - 1;
   // Scroll up so lines are preserved
-  std::cerr << "\033[" << m_progress_info.size() << 'S';
+  std::cerr << capability(SCROLL_FORWARD, m_progress_info.size());
   // Block scrolling
-  std::cerr << "\033[0;" << m_progress_row - 1 << 'r';
+  std::cerr << capability(CHANGE_SCROLLING, 0, m_progress_row - 1);
 
   // Precompute the width of the bars (remember brackets!)
   m_bar_width = w.ws_col - m_value_position - 2;
@@ -142,17 +168,17 @@ void ProgressBar::printThread() {
     auto elapsed = now - self->m_started;
 
     // Store position and attributes, hide cursor
-    std::cerr << SAVE_CURSOR << HIDE_CURSOR;
+    std::cerr << capability(SAVE_CURSOR) << capability(HIDE_CURSOR);
 
     // Move cursor to bottom
-    std::cerr << CSI << self->m_progress_row << ";0H";
+    std::cerr << capability(CURSOR_POSITION, self->m_progress_row, 0);
 
     // Now, print the actual progress
     for (auto entry : self->m_progress_info) {
       // When there is no total, show an absolute count
       if (entry.second.second < 0) {
-        std::cerr << CLEAR_LINE << SGR_BOLD << entry.first << SGR_RESET << CSI << self->m_value_position << 'G' << ' '
-                  << entry.second.first << std::endl;
+        std::cerr << capability(CLEAR_LINE) << capability(BOLD) << entry.first << capability(RESTORE_STYLE)
+                  << capability(COLUMN, self->m_value_position) << entry.second.first << std::endl;
       }
         // Otherwise, report progress as a bar
       else {
@@ -172,16 +198,19 @@ void ProgressBar::printThread() {
         // Attach as many spaces as needed to fill the screen width, minus brackets
         bar << std::string(self->m_bar_width - bar.str().size(), ' ');
 
-        std::cerr << SGR_BOLD << entry.first << SGR_RESET << CSI << self->m_value_position << 'G' << '[';
+        std::cerr << capability(BOLD) << entry.first << capability(RESTORE_STYLE) << capability(RESTORE_COLORS)
+                  << capability(COLUMN, self->m_value_position) << '[';
 
         // Completed
         auto bar_content = bar.str();
         int completed = bar_content.size() * ratio;
 
-        std::cerr << SGR_FG_WHITE << SGR_BG_GREEN << bar_content.substr(0, completed) << SGR_BG_RESET << SGR_FG_RESET;
+        std::cerr << capability(SET_FOREGROUND, COLOR_WHITE | COLOR_BRIGHT) << capability(SET_BACKGROUND, COLOR_GREEN)
+                  << bar_content.substr(0, completed) << capability(RESTORE_COLORS);
 
         // Rest
-        std::cerr << SGR_FG_WHITE << SGR_BG_GRAY << bar_content.substr(completed) << SGR_BG_RESET << SGR_FG_RESET;
+        std::cerr << capability(SET_FOREGROUND, COLOR_WHITE | COLOR_BRIGHT) << capability(SET_BACKGROUND, COLOR_BLACK | COLOR_BRIGHT)
+                  << bar_content.substr(completed) << capability(RESTORE_COLORS);
 
         // Closing bracket
         std::cerr << ']' << std::endl;
@@ -189,10 +218,11 @@ void ProgressBar::printThread() {
     }
 
     // Elapsed time
-    std::cerr << CLEAR_LINE << SGR_BOLD << "Elapsed" << CSI << self->m_value_position << "G " << SGR_RESET << elapsed;
+    std::cerr << capability(CLEAR_LINE) << capability(BOLD) << "Elapsed" << capability(RESTORE_STYLE)
+              << capability(COLUMN, self->m_value_position) << elapsed;
 
     // Restore
-    std::cerr << RESTORE_CURSOR;
+    std::cerr << capability(RESTORE_CURSOR);
 
     boost::this_thread::sleep(boost::posix_time::seconds(1));
   }
