@@ -54,7 +54,7 @@ public:
 
 protected:
   boost::posix_time::ptime m_started;
-  size_t m_progress_row, m_value_position, m_bar_width;
+  size_t m_progress_row, m_value_position, m_bar_width, m_height;
   std::unique_ptr<boost::thread> m_progress_thread;
 
   /**

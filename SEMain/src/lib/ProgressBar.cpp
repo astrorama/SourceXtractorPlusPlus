@@ -106,7 +106,7 @@ std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
 
 void ProgressBar::restoreTerminal() {
   // Restore full scroll and  attributes
-  std::cerr << capability(CHANGE_SCROLLING, 0, 0) << capability(RESTORE_STYLE) << capability(SHOW_CURSOR) << std::endl;
+  std::cerr << capability(CHANGE_SCROLLING, 0, m_height) << capability(RESTORE_STYLE) << capability(SHOW_CURSOR) << std::endl;
   // Restore screen buffer
   std::cerr << capability(EXIT_CUP);
   std::cerr.flush();
@@ -116,6 +116,7 @@ void ProgressBar::prepareTerminal(bool resize) {
   // Reserve the bottom side for the progress report
   struct winsize w;
   ioctl(STDERR_FILENO, TIOCGWINSZ, &w);
+  m_height = w.ws_row;
 
   if (resize) {
     std::cerr << capability(CLEAR_SCREEN);
