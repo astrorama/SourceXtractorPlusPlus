@@ -311,7 +311,7 @@ public:
         << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
         << " threshold: "  << detection_frame->getDetectionThreshold();
 
-    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
@@ -326,6 +326,7 @@ public:
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
