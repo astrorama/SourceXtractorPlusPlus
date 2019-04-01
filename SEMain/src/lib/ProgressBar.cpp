@@ -57,7 +57,7 @@ static int COLOR_BRIGHT = 010;
  */
 template<typename ...Args>
 static std::string capability(const std::string& cap, Args... args) {
-  char *fmt = tigetstr(cap.c_str());
+  char *fmt = tigetstr(const_cast<char*>(cap.c_str()));
   if (!fmt) {
     return "";
   }
@@ -96,7 +96,7 @@ ProgressBar::~ProgressBar() {
 
 bool ProgressBar::isTerminalCapable() {
   setupterm(nullptr, fileno(stderr), nullptr);
-  return isatty(fileno(stderr)) && tigetstr(ENTER_CUP.c_str()) != nullptr;
+  return isatty(fileno(stderr)) && tigetstr(const_cast<char*>(ENTER_CUP.c_str())) != nullptr;
 }
 
 std::shared_ptr<ProgressBar> ProgressBar::getInstance() {
