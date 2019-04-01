@@ -64,6 +64,9 @@ private:
               tile.getImage()->setValue(ix - x, iy - y, total_ignoring_threshold  / conv_weight_ignoring_threshold);
             }
           }
+          else {
+            tile.getImage()->setValue(ix - x, iy - y, 0);
+          }
         }
       }
     }
