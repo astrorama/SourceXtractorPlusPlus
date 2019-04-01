@@ -94,16 +94,7 @@ public:
                               std::shared_ptr<VectorImage<SeFloat>> kernel)
     : ProcessingImageSource<DetectionImage::PixelType>(image),
       m_variance(variance), m_threshold(threshold), m_convolution(kernel) {
-    m_kernel_min = std::numeric_limits<DetectionImage::PixelType>::max();
-    for (int y = 0; y < kernel->getHeight(); ++y) {
-      for (int x = 0; x < kernel->getWidth(); ++x) {
-        auto v = std::abs(kernel->getValue(x, y));
-        if (v > 0. && v < m_kernel_min) {
-          m_kernel_min = v;
-        }
-      }
     }
-  }
 
 protected:
 
@@ -135,7 +126,7 @@ protected:
       }
     );
 
-    // Get the mask, and the negative
+    // Get the mask
     // For instance, with a threshold of 0.5
     // Variance     Mask       Negative
     // 1  1  1     0  0  0     1  1  1
@@ -147,52 +138,33 @@ protected:
         return clipped_variance->getValue(x, y) < m_threshold;
       }
     );
-    auto mask_neg = FunctionalImage<DetectionImage::PixelType>::create(
-      mask->getWidth(), mask->getHeight(),
-      [mask](int x, int y) -> DetectionImage::PixelType {
-        return mask->getValue(x, y) == 0.;
-      }
-    );
 
     // Get the image masking out values where the variance is greater than the threshold
     auto masked_img = MultiplyImage<DetectionImage::PixelType>::create(clipped_img, mask);
 
-    // Convolve the original image with the kernel, padding with 0
-    auto conv_img = VectorImage<DetectionImage::PixelType>::create(clipped_img);
-    m_convolution.convolve(conv_img);
-
-    // Convolve the masked image, padding with 0 as well
+    // Convolve the masked image, padding with 0
     auto conv_masked = VectorImage<DetectionImage::PixelType>::create(masked_img);
     m_convolution.convolve(conv_masked);
 
-    // Convolve the mask, and the negative
+    // Convolve the mask
     // This gives us in each cell the sum of the kernel values that have been used,
-    // so we can divide the previous convolutions.
+    // so we can divide the previous convolution.
     auto conv_mask = VectorImage<DetectionImage::PixelType>::create(mask);
-    auto conv_mask_neg = VectorImage<DetectionImage::PixelType>::create(mask_neg);
     m_convolution.convolve(conv_mask);
-    m_convolution.convolve(conv_mask_neg);
 
-    // Copy out the value of the convolved image, divided by the negative mask, replacing
-    // any non-masked cell
+    // Copy out the value of the convolved image, divided by the negative mask, applying
+    // again the mask to the convolved result
     int off_x = start_x - clip_x;
     int off_y = start_y - clip_y;
     for (int y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x) {
-        // We want to use the masked convolution only if the resulting convolved mask
-        // is not 0. Since we are dealing with floats, we can not just compare to 0, because
-        // there will likely be a very small value greater than 0
-        if (std::abs(conv_mask->getValue(x + off_x, y + off_y)) > m_kernel_min / 2.) {
+        if (mask->getValue(x + off_x, y + off_y)) {
           tile.setValue(
             x + start_x, y + start_y,
             conv_masked->getValue(x + off_x, y + off_y) / conv_mask->getValue(x + off_x, y + off_y)
           );
-        }
-        else {
-          tile.setValue(
-            x + start_x, y + start_y,
-            conv_img->getValue(x + off_x, y + off_y) / conv_mask_neg->getValue(x + off_x, y + off_y)
-          );
+        } else {
+          tile.setValue(x + start_x, y + start_y, 0);
         }
       }
     }
@@ -200,7 +172,7 @@ protected:
 
 private:
   std::shared_ptr<DetectionImage> m_variance;
-  DetectionImage::PixelType m_threshold, m_kernel_min;
+  DetectionImage::PixelType m_threshold;
   ConvolutionType m_convolution;
 };
 

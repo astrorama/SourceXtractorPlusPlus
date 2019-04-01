@@ -43,17 +43,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background, T, convolution_types) {
   auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
   auto result = image_source->getImageTile(0, 0, 5, 5)->getImage();
 
-  // When applying the kernel for getting the value of a cell, is there is no value corresponding to a
-  // variance below the threshold, the kernel is applied as one would normally expect.
-  // Otherwise, *only* the values that are below the threshold are actually used for the given cell.
+  // When applying the kernel for getting the value of a cell, the convolution is done only for pixels
+  // with a variance below the threshold: basically, on a masked image.
+  // The convolved image is masked again, so pixels that are next to a pixel below the threshold remain 0.
   // For this test, there are only two cells below the threshold (0.1 and 0.2, corresponding to 3.2 and 4.2)
   auto expected = VectorImage<SeFloat>::create(
     5, 5, std::vector<SeFloat>{
-      1.275, 2.020, 3.02000, 4.02000, 4.775,
-      1.300, 2.100, 3.20000, 4.20000, 4.900,
-      1.400, 3.200, 3.53333, 3.86667, 4.200,
-      1.500, 2.300, 3.20000, 4.20000, 5.100,
-      1.625, 2.380, 3.38000, 4.38000, 5.125,
+      0.00, 0.00, 0.00, 0.00, 0.00,
+      0.00, 0.00, 0.00, 0.00, 0.00,
+      0.00, 0.00, 3.53333, 3.86667, 0.00,
+      0.00, 0.00, 0.00, 0.00, 0.00,
+      0.00, 0.00, 0.00, 0.00, 0.00,
     }
   );
 
@@ -94,10 +94,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background_with_offset, T, convolution_ty
 
   auto expected = VectorImage<SeFloat>::create(
     3, 4, std::vector<SeFloat>{
-      2.100, 3.20000, 4.20000,
-      3.200, 3.53333, 3.86667,
-      2.300, 3.20000, 4.20000,
-      2.380, 3.38000, 4.38000,
+      0.00, 0.00, 0.00,
+      0.00, 3.53333, 3.86667,
+      0.00, 0.00, 0.00,
+      0.00, 0.00, 0.00,
     }
   );
 
@@ -127,7 +127,7 @@ struct KernelSize {
 typedef boost::mpl::list<KernelSize<5>, KernelSize<7>, KernelSize<9>, KernelSize<11>> kernel_sizes;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE (kerneln_background, T, kernel_sizes) {
-  // For a big kernel, just compare both do the same
+  // For a big kernel, just compare they both do the same
   // Doing it manually would be painful, but the previous test, with small sizes,
   // can be easily followed up by hand
 
