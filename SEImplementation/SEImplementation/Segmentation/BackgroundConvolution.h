@@ -46,26 +46,32 @@ protected:
         DetectionImage::PixelType conv_weight = 0;
         DetectionImage::PixelType conv_weight_ignoring_threshold = 0;
 
-        for (int cy = 0; cy < m_kernel->getHeight(); cy++) {
-          for (int cx = 0; cx < m_kernel->getWidth(); cx++) {
+        if (m_variance->getValue(ix, iy) < m_threshold) {
 
-            auto x2 = ix + cx - hx;
-            auto y2 = iy + cy - hy;
+          for (int cy = 0; cy < m_kernel->getHeight(); cy++) {
+            for (int cx = 0; cx < m_kernel->getWidth(); cx++) {
 
-            if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
-              if (m_variance->getValue(x2, y2) < m_threshold) {
-                total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
-                conv_weight += m_kernel->getValue(cx, cy);
+              auto x2 = ix + cx - hx;
+              auto y2 = iy + cy - hy;
+
+              if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight()) {
+                if (m_variance->getValue(x2, y2) < m_threshold) {
+                  total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
+                  conv_weight += m_kernel->getValue(cx, cy);
+                }
+                total_ignoring_threshold += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
+                conv_weight_ignoring_threshold += m_kernel->getValue(cx, cy);
               }
-              total_ignoring_threshold += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
-              conv_weight_ignoring_threshold += m_kernel->getValue(cx, cy);
+              if (conv_weight > 0) {
+                tile.getImage()->setValue(ix - x, iy - y, total / conv_weight);
+              } else {
+                tile.getImage()->setValue(ix - x, iy - y, total_ignoring_threshold / conv_weight_ignoring_threshold);
+              }
             }
           }
         }
-        if (conv_weight > 0) {
-          tile.getImage()->setValue(ix - x, iy - y, total / conv_weight);
-        } else {
-          tile.getImage()->setValue(ix - x, iy - y, total_ignoring_threshold / conv_weight_ignoring_threshold);
+        else {
+          tile.getImage()->setValue(ix - x, iy - y, 0);
         }
       }
     }

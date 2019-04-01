@@ -57,6 +57,10 @@ public:
     return m_filtered_filename;
   }
 
+  const std::string& getThresholdedFilename() const {
+    return m_thresholded_filename;
+  }
+
   const std::string& getAutoApertureFilename() const {
     return m_auto_aperture_filename;
   }
@@ -79,6 +83,7 @@ private:
   std::string m_partition_filename;
   std::string m_group_filename;
   std::string m_filtered_filename;
+  std::string m_thresholded_filename;
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
   std::string m_moffat_filename;
