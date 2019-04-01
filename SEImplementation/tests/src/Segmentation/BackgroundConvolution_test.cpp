@@ -3,7 +3,7 @@
 #include <boost/mpl/list.hpp>
 #include <random>
 
-#include "SEFramework/tests/src/Image/CompareImages.h"
+#include "SEUtils/CompareImages.h"
 
 using namespace SExtractor;
 
