@@ -25,16 +25,10 @@ namespace SExtractor {
  * @see https://en.wikipedia.org/wiki/ANSI_escape_code
  */
 class ProgressBar: public ProgressReporter {
-private:
-  ProgressBar();
-
 public:
   virtual ~ProgressBar();
 
-  /**
-   * There is only one terminal, so this implementation is a singleton.
-   */
-  static std::shared_ptr<ProgressBar> getInstance();
+  ProgressBar();
 
   /**
    * This class intercepts the first call to update to decide on the size of the bottom
@@ -54,27 +48,12 @@ public:
 
 protected:
   boost::posix_time::ptime m_started;
-  size_t m_progress_row, m_value_position, m_bar_width, m_height;
   std::unique_ptr<boost::thread> m_progress_thread;
-
-  /**
-   * Prepare the terminal scrolling area, adapt the progress bar width to the screen size, etc.
-   */
-  void prepareTerminal(bool resize);
-
-  /**
-   * Restore the terminal style.
-   */
-  void restoreTerminal();
 
   /**
    * This method runs on a separate thread, and updates the report every second.
    */
-  static void printThread();
-
-  // Signal handlers
-  static void handleTerminatingSignal(int);
-  static void handleTerminalResize(int);
+  static void printThread(void*);
 };
 
 } // end SExtractor

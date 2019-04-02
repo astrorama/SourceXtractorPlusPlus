@@ -23,8 +23,9 @@ std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediato
 
 #ifndef WITHOUT_NCURSES
   if (!m_disable_progress_bar && ProgressBar::isTerminalCapable()) {
-    mediator->ProgressObservable::addObserver(ProgressBar::getInstance());
-    mediator->DoneObservable::addObserver(ProgressBar::getInstance());
+    auto progress_bar = std::make_shared<ProgressBar>();
+    mediator->ProgressObservable::addObserver(progress_bar);
+    mediator->DoneObservable::addObserver(progress_bar);
   }
   if (!::isatty(::fileno(stderr)) || m_log_file) {
 #endif
