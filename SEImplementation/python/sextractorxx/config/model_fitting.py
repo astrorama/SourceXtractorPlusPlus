@@ -4,6 +4,11 @@ from enum import Enum
 
 import libSEImplementation as cpp
 
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from astropy.coordinates import Angle
+
+import math
 
 class RangeType(Enum):
     LINEAR = 1
@@ -283,7 +288,51 @@ def pixel_to_world_coordinate(x, y):
     wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x,y)) 
     return WorldCoordinate(wc.alpha, wc.delta)
 
+def get_sky_coord(x,y):
+    coord = pixel_to_world_coordinate(x, y)
+    sky_coord = SkyCoord(ra=coord.ra*u.degree, dec=coord.dec*u.degree)
+    return sky_coord
+
+def radius_to_wc_angle(x, y, rad):
+    return (separation_angle(x, y, x+rad, y) + separation_angle(x, y, x, y+rad)) / 2.0 
+
+def separation_angle(x1, y1, x2, y2):
+    c1 = get_sky_coord(x1, y1)
+    c2 = get_sky_coord(x2, y2)
+    return c1.separation(c2).degree
+
+def get_position_angle(x1, y1, x2, y2):
+    c1 = get_sky_coord(x1, y1)
+    c2 = get_sky_coord(x2, y2)
+    return c1.position_angle(c2).degree
+
 def set_coordinate_system(cs):
     global coordinate_system
     coordinate_system = cs
+
+def get_world_position_parameters(x, y):
+    ra = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).ra, x, y)
+    dec = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).dec, x, y)
+    return (ra, dec)
+
+def get_world_position_angle_parameters(x, y, radius, angle):
+    ra = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).ra, x, y)
+    dec = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).dec, x, y)
     
+    def wc_rad_func(x, y, radius, angle):
+        x2 = x + math.cos(angle) * radius
+        y2 = y + math.sin(angle) * radius
+        
+        return separation_angle(x, y, x2, y2)
+        
+    def wc_angle_func(x, y, radius, angle):
+        x2 = x + math.cos(angle) * radius
+        y2 = y + math.sin(angle) * radius
+        
+        return get_position_angle(x, y, x2, y2)
+    
+    wc_rad = DependentParameter(wc_rad_func, x, y, radius, angle)
+    wc_angle = DependentParameter(wc_angle_func, x, y, radius, angle)
+    
+    return (ra, dec, wc_rad, wc_angle)
+
