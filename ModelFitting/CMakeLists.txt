@@ -9,6 +9,7 @@ elements_depends_on_subdirs(SEUtils)
 #    The module is using the Boost C++ library
 find_package(Boost)
 find_package(Levmar)
+find_package(GSL)
 
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
@@ -16,18 +17,26 @@ find_package(Levmar)
 if (NOT LEVMAR_FOUND)
     set(WITHOUT_LEVMAR ON PARENT_SCOPE)
     add_definitions(-DWITHOUT_LEVMAR)
-    message(WARNING "
-Levmar library not found, compiling without Levmar support!
-This will generate a version of sourcextractor++ without model fitting")
+    message("Levmar library not found, compiling without Levmar support!")
 else ()
     set (LEVMAR Levmar)
+endif ()
+if (NOT GSL_FOUND)
+    add_definitions(-DWITHOUT_GSL)
+    message("Levmar library not found, compiling without GSL support!")
+else ()
+    set (GSL GSL)
+endif ()
+
+if (NOT LEVMAR_FOUND AND NOT GSL_FOUND)
+    message(WARNING "This will generate a version of sextractor++ without model fitting")
 endif ()
 
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR}
+                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL}
                      INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 

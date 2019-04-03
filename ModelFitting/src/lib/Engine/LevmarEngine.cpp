@@ -34,10 +34,18 @@
 
 namespace ModelFitting {
 
+#ifndef WITHOUT_LEVMAR
+static std::shared_ptr<LeastSquareEngine> createLevmarEngine() {
+  return std::make_shared<LevmarEngine>();
+}
+
+static LeastSquareEngine::StaticEngine levmar_engine{"Levmar", createLevmarEngine};
+#endif
+
 LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
                double epsilon2, double epsilon3, double delta)
       : m_itmax{itmax}, m_opts{tau, epsilon1, epsilon2, epsilon3, delta} { }
-      
+
 LevmarEngine::~LevmarEngine() = default;
 
 // The Levmar library seems to have some problems with multithreading, this mutex is used to ensure only one thread
@@ -93,7 +101,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          &adata // No additional data needed
                         );
   levmar_mutex.unlock();
-  
+
   // Create and return the summary object
   LeastSquareSummary summary {};
 

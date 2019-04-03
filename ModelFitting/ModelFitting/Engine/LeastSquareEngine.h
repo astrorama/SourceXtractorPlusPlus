@@ -67,7 +67,20 @@ public:
   /// estimator.
   virtual LeastSquareSummary solveProblem(EngineParameterManager& parameter_manager,
                                           ResidualEstimator& residual_estimator) = 0;
-  
+
+  using FactoryMethod = std::function<std::shared_ptr<LeastSquareEngine>()>;
+
+  static void registerEngine(const std::string& name, FactoryMethod factory_method);
+
+  static std::vector<std::string> getImplementations();
+
+  static std::shared_ptr<LeastSquareEngine> create(const std::string &name);
+
+  struct StaticEngine {
+    StaticEngine(const std::string& name, LeastSquareEngine::FactoryMethod factory_method) {
+      LeastSquareEngine::registerEngine(name, factory_method);
+    }
+  };
 };
 
 } // end of namespace ModelFitting

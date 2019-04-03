@@ -136,10 +136,15 @@ int main() {
   manager.registerParameter(y_scale);
   manager.registerParameter(rot_angle);
   
-  // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {};
+  // Finally we create a least square engine and we solve the problem
+  std::cout << "Registered engines: " << std::endl;
+  for (auto &e : LeastSquareEngine::getImplementations()) {
+    std::cout << '\t' << e << std::endl;
+  }
+  std::cout << "Using Levmar by default" << std::endl;
+  auto engine = LeastSquareEngine::create("Levmar");
   auto t1 = chrono::steady_clock::now();
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
   
   // We print the results
