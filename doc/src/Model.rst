@@ -13,7 +13,7 @@ SExtractor++ can fit models to the images of detected objects. The fit is perfor
 .. math::
   :label: loss_func
 
-  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{f_j(Q_j) - \mu_j}{s_j}\right)^2
+  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{Q_j - \mu_j}{s_j}\right)^2
 
 with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model pixel coordinates :math:`\boldsymbol{x}`.
 
@@ -79,6 +79,35 @@ In order to avoid invalid values and also to facilitate convergence, a change of
 The "model" variable :math:`q_j` is bounded by the lower limit :math:`a_j` and the upper limit :math:`b_j` by construction.
 The "engine" variable :math:`Q_j` can take any value, and is actually the parameter that is being adjusted in the fit, although it does not have any physical meaning.
 
+In |SExtractor++| three different types of transforms :math:`f_j()` are applied, depending on the parameter (:numref:`change_of_variable_table`).
+
+.. _change_of_variable_table:
+
+.. list-table:: Types of changes of variables applied to model parameters
+  :header-rows: 1
+
+  * - Type
+    - Model :math:`\stackrel{f^{-1}}{\to}` Engine
+    - Engine :math:`\stackrel{f}{\to}` Model
+    - Examples
+  * - Unbounded (linear)
+    - :math:`Q_j = q_j`
+    - :math:`q_j = Q_j`
+    - | Position angles
+      | 
+  * - :param:`RangeType.LINEAR`
+    - :math:`Q_j = \ln \frac{q_j - a_j}{b_j - q_j}`
+    - :math:`q_j = \frac{b_j - a_j}{1 + \exp -Q_j} + a_j`
+    - | positions
+      | Sersic index
+  * - :param:`RangeType.EXPONENTIAL`
+    - :math:`Q_j = \ln \frac{\ln q_j - \ln a_j}{\ln b_j - \ln q_j}`
+    - :math:`q_j = a_j \frac{\ln b_j - \ln a_j}{1 + \exp -Q_j}`
+    - | fluxes
+      | aspect ratios
+
+In practice, this approach works well, and was found to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
+
 Regularization
 ~~~~~~~~~~~~~~
 
@@ -86,6 +115,14 @@ Although minimizing the (modified) weighted sum of least squares gives a solutio
 The discrepancy is particularly significant in very faint (|SNR| :math:`\le 20`) and barely resolved galaxies, for which there is a tendency to overestimate the elongation, known as the "noise bias" in the weak-lensing community :cite:`2004MNRAS_353_529H,2012MNRAS_424_2757M,2012MNRAS_425_1951R,2012MNRAS_427_2711K`.
 To mitigate this issue, |SExtractor++| implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme on selected engine parameters, in the form of an additional penalty term in :eq:`loss_func`.
 This term acts as a Gaussian prior on the selected *engine* parameters. However for the associated *model* parameters, the change of variables can make the (improper) prior far from Gaussian.
+
+.. _fig_aspectprior:
+
+.. figure:: figures/aspectprior.*
+   :figwidth: 100%
+   :align: center
+
+   Effect of the Gaussian prior on a model parameter controlling aspect ratio. *Left:* change of variables between the model (in abscissa) and the engine (in ordinate) parameters. *Right*: equivalent (improper) prior applied to the aspect ratio for :math:`\mu_{\rm aspect} = 0` and :math:`s_{\rm aspect} = 1` in equation :eq:`loss_func`.
 
 .. _model_minimization_def:
 
