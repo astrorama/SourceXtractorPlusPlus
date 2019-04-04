@@ -25,36 +25,46 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           "auto_flux",
           [](const AutoPhotometryArray& prop){
             return prop.getFluxes();
-          }
-  );
+          },
+          "[count]",
+          "Flux within a Kron-like elliptical aperture"
+          );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_flux_err",
           [](const AutoPhotometryArray& prop){
             return prop.getFluxErrors();
-          }
-  );
+          },
+          "[count]",
+          "Flux error within a Kron-like elliptical aperture"
+          );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_mag",
           [](const AutoPhotometryArray& prop){
             return prop.getMags();
-          }
-  );
+          },
+          "[count]",
+          "Magnitude within a Kron-like elliptical aperture"
+          );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<SeFloat>>(
           "auto_mag_err",
           [](const AutoPhotometryArray& prop){
             return prop.getMagErrors();
-          }
-  );
+          },
+          "[count]",
+          "Magnitude error within a Kron-like elliptical aperture"
+          );
 
   plugin_api.getOutputRegistry().registerColumnConverter<AutoPhotometryArray, std::vector<int64_t >>(
           "auto_flags",
           [](const AutoPhotometryArray& prop){
             return flags2long(prop.getFlags());
-          }
-  );
+          },
+          "",
+          "Flags for the Kron-like elliptical aperture photometry"
+          );
 
   plugin_api.getOutputRegistry().enableOutput<AutoPhotometryArray>("AutoPhotometry");
 }

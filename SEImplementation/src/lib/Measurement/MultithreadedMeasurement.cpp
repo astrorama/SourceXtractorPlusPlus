@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <chrono>
-
+#include <atomic>
 #include <ElementsKernel/Logging.h>
 
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
