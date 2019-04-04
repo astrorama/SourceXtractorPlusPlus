@@ -76,6 +76,10 @@ public:
     m_filtered_image = filtered_image;
   }
 
+  void setThresholdedCheckImage(std::shared_ptr<Image<SeFloat>> thresholded_image) {
+    m_thresholded_image = thresholded_image;
+  }
+
   std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
   void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
 
@@ -117,6 +121,7 @@ private:
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<Image<SeFloat>> m_filtered_image;
+  std::shared_ptr<Image<SeFloat>> m_thresholded_image;
   std::shared_ptr<WeightImage> m_variance_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
@@ -128,6 +133,7 @@ private:
   std::string m_partition_filename;
   std::string m_group_filename;
   std::string m_filtered_filename;
+  std::string m_thresholded_filename;
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
   std::string m_moffat_filename;

@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 
+#include "ElementsKernel/Logging.h"
+
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
