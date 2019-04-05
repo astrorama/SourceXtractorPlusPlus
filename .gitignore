@@ -4,3 +4,6 @@
 /build.*
 /tests
 __pycache__
+/.cproject
+/.project
+/.settings/
