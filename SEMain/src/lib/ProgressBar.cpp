@@ -6,49 +6,42 @@
 #include <boost/date_time.hpp>
 #include <signal.h>
 #include <boost/thread.hpp>
-#include <curses.h>
+#include <ncurses.h>
 #include <term.h>
+#include <mutex>
 
 namespace SExtractor {
 
 static struct sigaction sigterm, sigwinch;
 static std::map<int, struct sigaction> prev_signal;
+static std::mutex terminal_mutex;
 
 // Forward declaration
 static void handleTerminatingSignal(int s);
+
 static void handleTerminalResize(int s);
 
-// Terminal capabilities
-static const std::string ENTER_CUP{"smcup"};
-static const std::string EXIT_CUP{"rmcup"};
-static const std::string SHOW_CURSOR{"cvvis"};
-static const std::string HIDE_CURSOR{"civis"};
-static const std::string CLEAR_SCREEN{"clear"};
-static const std::string SAVE_CURSOR{"sc"};
-static const std::string RESTORE_CURSOR{"rc"};
-static const std::string CURSOR_POSITION{"cup"};
-static const std::string CLEAR_LINE{"el"};
-static const std::string COLUMN{"hpa"};
-static const std::string RESTORE_COLORS{"op"};
-static const std::string RESTORE_STYLE{"sgr0"};
-static const std::string BOLD{"bold"};
-static const std::string SET_BACKGROUND{"setab"};
-static const std::string SET_FOREGROUND{"setaf"};
-static const std::string CHANGE_SCROLLING{"csr"};
-static const std::string SCROLL_FORWARD{"ind"};
-static int COLOR_BRIGHT = 010;
+class WinStream : public std::streambuf {
+private:
+  WINDOW *m_window;
 
-/**
- * Return the capability string corresponding to the given code
- */
-template<typename ...Args>
-static std::string capability(const std::string& cap, Args... args) {
-  char *fmt = tigetstr(const_cast<char *>(cap.c_str()));
-  if (!fmt) {
-    return "";
+public:
+  WinStream(WINDOW *win) : m_window(win) {
   }
-  return tparm(fmt, std::forward<Args>(args)...);
-}
+
+  std::streambuf::int_type overflow(std::streambuf::int_type c) override {
+    if (c != traits_type::eof()) {
+      waddch(m_window, c);
+    }
+    return c;
+  }
+
+  int sync() override {
+    std::lock_guard<std::mutex> lock(terminal_mutex);
+    wrefresh(m_window);
+    return 0;
+  }
+};
 
 /**
  * Wrap the terminal. There is one single logical instance, so everything is static.
@@ -57,16 +50,20 @@ static std::string capability(const std::string& cap, Args... args) {
  * ProgressBar can *not* be a singleton if we isolate this data and code here.
  */
 struct Terminal {
-  struct winsize m_winsize;
   int m_infolines, m_progress_row, m_value_position;
   int m_bar_width;
+  std::streambuf *m_cerr_original_rdbuf;
+  std::unique_ptr<std::streambuf> m_cerr_sink;
+  WINDOW *m_progress_window, *m_log_window;
 
   void restore() {
-    // Restore full scroll and  attributes
-    std::cerr << capability(CHANGE_SCROLLING, 0, m_winsize.ws_row)
-              << capability(RESTORE_STYLE) << capability(SHOW_CURSOR)
-              << capability(EXIT_CUP);
-    std::cerr.flush();
+    // Exit ncurses
+    delwin(m_progress_window);
+    delwin(m_log_window);
+    endwin();
+
+    // Restore cerr
+    std::cerr.rdbuf(m_cerr_original_rdbuf);
 
     // Restore signal handlers
     ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
@@ -74,10 +71,10 @@ struct Terminal {
     ::sigaction(SIGABRT, &prev_signal[SIGABRT], nullptr);
     ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
-    ::sigaction(SIGWINCH, nullptr, nullptr);
+    //::sigaction(SIGWINCH, nullptr, nullptr);
   }
 
-  void prepare(bool resize) {
+  void prepare() {
     // C++ guarantees that a static object is initialized once, and in a thread-safe manner
     // We do it here so this setup only happens *if* the progress bar is used
     struct Helper {
@@ -92,28 +89,36 @@ struct Terminal {
         ::sigaction(SIGHUP, &sigterm, &prev_signal[SIGHUP]);
 
         sigwinch.sa_handler = &handleTerminalResize;
-        ::sigaction(SIGWINCH, &sigwinch, nullptr);
-
-        // Swap screen buffer
-        std::cerr << capability(ENTER_CUP);
+        //::sigaction(SIGWINCH, &sigwinch, nullptr);
       }
     } _helper;
 
+    // Enter ncurses
+    SCREEN *term = newterm(nullptr, stderr, stdin);
+    set_term(term);
+    curs_set(0);
+
     // Reserve the bottom side for the progress report
-    ioctl(STDERR_FILENO, TIOCGWINSZ, &m_winsize);
-
-    if (resize) {
-      std::cerr << capability(CLEAR_SCREEN);
-    }
-
-    m_progress_row = m_winsize.ws_row - m_infolines - 1;
-    // Scroll up so lines are preserved
-    std::cerr << capability(SCROLL_FORWARD, m_infolines);
-    // Block scrolling
-    std::cerr << capability(CHANGE_SCROLLING, 0, m_progress_row - 1);
+    m_progress_row = LINES - m_infolines - 1;
 
     // Precompute the width of the bars (remember brackets!)
-    m_bar_width = m_winsize.ws_col - m_value_position - 2;
+    m_bar_width = COLS - m_value_position - 2;
+
+    // Create windows
+    m_progress_window = newwin(m_infolines + 1, COLS, m_progress_row, 0);
+    m_log_window = newwin(m_progress_row, COLS, 0, 0);
+    scrollok(m_log_window, TRUE);
+
+    // Capture stderr to intercept Elements logging and the like
+    m_cerr_original_rdbuf = std::cerr.rdbuf();
+    m_cerr_sink.reset(new WinStream(m_log_window));
+    std::cerr.rdbuf(m_cerr_sink.get());
+
+    // Color pairs
+    use_default_colors();
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_GREEN);
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
   }
 };
 
@@ -135,13 +140,12 @@ static void handleTerminatingSignal(int s) {
  * Intercept terminal window resize
  */
 static void handleTerminalResize(int) {
-  terminal.prepare(true);
+//  terminal.prepare(true);
 }
 
 
 ProgressBar::ProgressBar()
   : m_started{boost::posix_time::second_clock::local_time()} {
-  terminal.prepare(false);
 }
 
 ProgressBar::~ProgressBar() {
@@ -150,7 +154,7 @@ ProgressBar::~ProgressBar() {
 
 bool ProgressBar::isTerminalCapable() {
   setupterm(nullptr, fileno(stderr), nullptr);
-  return isatty(fileno(stderr)) && tigetstr(const_cast<char *>(ENTER_CUP.c_str())) != nullptr;
+  return isatty(fileno(stderr));
 }
 
 void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
@@ -169,7 +173,7 @@ void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>
     terminal.m_infolines = info.size();
 
     // Prepare the scrolling area
-    terminal.prepare(false);
+    terminal.prepare();
 
     // Start printer
     m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread, this);
@@ -184,25 +188,26 @@ void ProgressBar::handleMessage(const bool& done) {
 }
 
 void ProgressBar::printThread(void *d) {
-  auto self = static_cast<ProgressBar*>(d);
-  while (!self->m_done) {
+  auto self = static_cast<ProgressBar *>(d);
+  while (!self->m_done && !isendwin()) {
     auto now = boost::posix_time::second_clock::local_time();
     auto elapsed = now - self->m_started;
 
-    std::ostringstream buffer;
-
-    // Store position and attributes, hide cursor
-    buffer << capability(SAVE_CURSOR) << capability(HIDE_CURSOR);
-
-    // Move cursor to bottom
-    buffer << capability(CURSOR_POSITION, terminal.m_progress_row, 0);
+    // Restore position to the beginning
+    wclear(terminal.m_progress_window);
+    wmove(terminal.m_progress_window, 0, 0);
 
     // Now, print the actual progress
+    int line = 0;
     for (auto entry : self->m_progress_info) {
+      wmove(terminal.m_progress_window, line, 0);
       // When there is no total, show an absolute count
       if (entry.second.second < 0) {
-        buffer << capability(CLEAR_LINE) << capability(BOLD) << entry.first << capability(RESTORE_STYLE)
-               << capability(COLUMN, terminal.m_value_position) << entry.second.first << std::endl;
+        wattron(terminal.m_progress_window, A_BOLD);
+        waddstr(terminal.m_progress_window, entry.first.c_str());
+        wattroff(terminal.m_progress_window, A_BOLD);
+        wmove(terminal.m_progress_window, line, terminal.m_value_position);
+        wprintw(terminal.m_progress_window, "%d", entry.second.first);
       }
         // Otherwise, report progress as a bar
       else {
@@ -218,40 +223,52 @@ void ProgressBar::printThread(void *d) {
         bar << entry.second.first << " / " << entry.second.second
             << " (" << std::fixed << std::setprecision(2) << ratio * 100. << "%)";
 
-
         // Attach as many spaces as needed to fill the screen width, minus brackets
         bar << std::string(terminal.m_bar_width - bar.str().size(), ' ');
 
-        buffer << capability(BOLD) << entry.first << capability(RESTORE_STYLE) << capability(RESTORE_COLORS)
-                  << capability(COLUMN, terminal.m_value_position) << '[';
+        // Print label
+        wattron(terminal.m_progress_window, A_BOLD);
+        waddstr(terminal.m_progress_window, entry.first.c_str());
+        wattroff(terminal.m_progress_window, A_BOLD);
+        mvwaddch(
+          terminal.m_progress_window,
+          line, terminal.m_value_position,
+          '['
+        );
 
         // Completed
         auto bar_content = bar.str();
         int completed = bar_content.size() * ratio;
 
-        buffer << capability(SET_FOREGROUND, COLOR_WHITE | COLOR_BRIGHT) << capability(SET_BACKGROUND, COLOR_GREEN)
-                  << bar_content.substr(0, completed) << capability(RESTORE_COLORS);
+        wattron(terminal.m_progress_window, COLOR_PAIR(1));
+        waddstr(terminal.m_progress_window, bar_content.substr(0, completed).c_str());
+        wattroff(terminal.m_progress_window, COLOR_PAIR(1));
 
         // Rest
-        buffer << capability(SET_FOREGROUND, COLOR_WHITE | COLOR_BRIGHT)
-                  << capability(SET_BACKGROUND, COLOR_BLACK | COLOR_BRIGHT)
-                  << bar_content.substr(completed) << capability(RESTORE_COLORS);
+        wattron(terminal.m_progress_window, COLOR_PAIR(2));
+        waddstr(terminal.m_progress_window, bar_content.substr(completed).c_str());
+        wattroff(terminal.m_progress_window, COLOR_PAIR(2));
 
         // Closing bracket
-        buffer << ']' << std::endl;
+        waddch(terminal.m_progress_window, ']');
       }
+      ++line;
     }
-
     // Elapsed time
-    buffer << capability(CLEAR_LINE) << capability(BOLD) << "Elapsed" << capability(RESTORE_STYLE)
-              << capability(COLUMN, terminal.m_value_position) << elapsed;
+    wattron(terminal.m_progress_window, A_BOLD);
+    mvwaddstr(terminal.m_progress_window, line, 0, "Elapsed");
+    wattroff(terminal.m_progress_window, A_BOLD);
+    mvwaddstr(
+      terminal.m_progress_window,
+      line, terminal.m_value_position + 1,
+      (boost::lexical_cast<std::string>(elapsed)).c_str()
+    );
 
-    // Restore
-    buffer << capability(RESTORE_CURSOR);
-
-    // Flush to cerr
-    std::cerr << buffer.str();
-
+    // Flush
+    {
+      std::lock_guard<std::mutex> lock(terminal_mutex);
+      wrefresh(terminal.m_progress_window);
+    }
     boost::this_thread::sleep(boost::posix_time::seconds(1));
   }
 }
