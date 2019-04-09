@@ -49,12 +49,15 @@ public:
  * when unwinding the stack. (Probably because it was a singleton?)
  * ProgressBar can *not* be a singleton if we isolate this data and code here.
  */
-struct Terminal {
-  int m_infolines, m_progress_row, m_value_position;
-  int m_bar_width;
+class Terminal {
+private:
+  int m_progress_lines, m_progress_y;
   std::streambuf *m_cerr_original_rdbuf;
   std::unique_ptr<std::streambuf> m_cerr_sink;
+
+public:
   WINDOW *m_progress_window, *m_log_window;
+  int m_value_position, m_bar_width;
 
   void restore() {
     // Exit ncurses
@@ -71,10 +74,10 @@ struct Terminal {
     ::sigaction(SIGABRT, &prev_signal[SIGABRT], nullptr);
     ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
-    //::sigaction(SIGWINCH, nullptr, nullptr);
+    ::sigaction(SIGWINCH, nullptr, nullptr);
   }
 
-  void prepare() {
+  void prepare(int gress_lines, int max_label_width) {
     // C++ guarantees that a static object is initialized once, and in a thread-safe manner
     // We do it here so this setup only happens *if* the progress bar is used
     struct Helper {
@@ -89,7 +92,7 @@ struct Terminal {
         ::sigaction(SIGHUP, &sigterm, &prev_signal[SIGHUP]);
 
         sigwinch.sa_handler = &handleTerminalResize;
-        //::sigaction(SIGWINCH, &sigwinch, nullptr);
+        ::sigaction(SIGWINCH, &sigwinch, nullptr);
       }
     } _helper;
 
@@ -98,27 +101,46 @@ struct Terminal {
     set_term(term);
     curs_set(0);
 
-    // Reserve the bottom side for the progress report
-    m_progress_row = LINES - m_infolines - 1;
+    // Setup colors
+    use_default_colors();
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_GREEN);
+    init_pair(2, COLOR_WHITE, COLOR_BLACK);
 
-    // Precompute the width of the bars (remember brackets!)
-    m_bar_width = COLS - m_value_position - 2;
+    // Compute window and progress bar sizes
+    m_progress_lines = gress_lines;
+    m_value_position = max_label_width + 3;
+    initializeSizes();
 
     // Create windows
-    m_progress_window = newwin(m_infolines + 1, COLS, m_progress_row, 0);
-    m_log_window = newwin(m_progress_row, COLS, 0, 0);
+    m_progress_window = newwin(m_progress_lines, COLS, m_progress_y, 0);
+    m_log_window = newwin(m_progress_y, COLS, 0, 0);
     scrollok(m_log_window, TRUE);
 
     // Capture stderr to intercept Elements logging and the like
     m_cerr_original_rdbuf = std::cerr.rdbuf();
     m_cerr_sink.reset(new WinStream(m_log_window));
     std::cerr.rdbuf(m_cerr_sink.get());
+  }
 
-    // Color pairs
-    use_default_colors();
-    start_color();
-    init_pair(1, COLOR_WHITE, COLOR_GREEN);
-    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+  void resize() {
+    std::lock_guard<std::mutex> lock(terminal_mutex);
+    endwin();
+    refresh();
+
+    initializeSizes();
+    mvwin(m_progress_window, m_progress_y, 0);
+    wresize(m_progress_window, m_progress_lines + 1, COLS);
+    wresize(m_log_window, m_progress_y, COLS);
+    refresh();
+  }
+
+private:
+  void initializeSizes() {
+    // Reserve the bottom side for the progress report
+    m_progress_y = LINES - m_progress_lines;
+    // Precompute the width of the bars (remember brackets!)
+    m_bar_width = COLS - m_value_position - 2;
   }
 };
 
@@ -140,7 +162,7 @@ static void handleTerminatingSignal(int s) {
  * Intercept terminal window resize
  */
 static void handleTerminalResize(int) {
-//  terminal.prepare(true);
+  terminal.resize();
 }
 
 
@@ -169,11 +191,8 @@ void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>
       max_attr_len = std::max(max_attr_len, e.first.size());
     }
 
-    terminal.m_value_position = max_attr_len + 3;
-    terminal.m_infolines = info.size();
-
-    // Prepare the scrolling area
-    terminal.prepare();
+    // Prepare the terminal
+    terminal.prepare(info.size() + 1, max_attr_len);
 
     // Start printer
     m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread, this);
