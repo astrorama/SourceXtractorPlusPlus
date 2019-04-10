@@ -36,16 +36,5 @@ double FlattenedMoffatComponent::getValue(double x, double y) {
   }
 }
 
-void FlattenedMoffatComponent::updateRasterizationInfo(double scale, double r_max) {
-}
-
-std::vector<ModelComponent::ModelSample> FlattenedMoffatComponent::getSharpSampling() {
-  return {};
-}
-
-bool FlattenedMoffatComponent::insideSharpRegion(double x, double y) {
-  return false;
-}
-
 }
 

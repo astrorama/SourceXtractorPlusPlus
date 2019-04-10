@@ -14,10 +14,6 @@
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
-#include "ModelFitting/Models/OnlySmooth.h"
-#include "ModelFitting/Models/OldSharp.h"
-#include "ModelFitting/Models/AutoSharp.h"
-
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
@@ -95,7 +91,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   manager.storeParameter(k);
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
+  sersic_component.emplace_back(new SersicModelComponent(*i0, n, *k));
 
   // FIXME this seems too arbitrary, what can we do that's better? use REff * constant?
   auto& boundaries = source.getProperty<PixelBoundaries>();
@@ -142,7 +138,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   manager.storeParameter(k);
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
+  sersic_component.emplace_back(new SersicModelComponent(*i0, n, *k));
 
   // FIXME this seems too arbitrary, what can we do that's better? use REff * constant?
   auto& boundaries = source.getProperty<PixelBoundaries>();
@@ -193,7 +189,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       *manager.getParameter(source, m_effective_radius), *manager.getParameter(source, m_sersic_index));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, *manager.getParameter(source, m_sersic_index), *k));
+  sersic_component.emplace_back(new SersicModelComponent(*i0, *manager.getParameter(source, m_sersic_index), *k));
 
   manager.storeParameter(pixel_x);
   manager.storeParameter(pixel_y);

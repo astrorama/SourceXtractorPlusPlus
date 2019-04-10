@@ -43,24 +43,4 @@ double RotatedModelComponent::getValue(double x, double y) {
   return m_component->getValue(new_x, new_y);
 }
 
-void RotatedModelComponent::updateRasterizationInfo(double scale, double r_max) {
-  m_component->updateRasterizationInfo(scale, r_max);
-}
-
-auto RotatedModelComponent::getSharpSampling() -> std::vector<ModelSample> {
-  std::vector<ModelSample> result{};
-  for (auto& sample : m_component->getSharpSampling()) {
-    double new_x = std::get<0>(sample) * m_cos + std::get<1>(sample) * m_sin;
-    double new_y = std::get<1>(sample) * m_cos - std::get<0>(sample) * m_sin;
-    result.emplace_back(new_x, new_y, std::get<2>(sample));
-  }
-  return result;
-}
-
-bool RotatedModelComponent::insideSharpRegion(double x, double y) {
-  double new_x = x * m_cos - y* m_sin;
-  double new_y = x * m_sin + y * m_cos;
-  return m_component->insideSharpRegion(new_x, new_y);
-}
-
 } // end of namespace ModelFitting

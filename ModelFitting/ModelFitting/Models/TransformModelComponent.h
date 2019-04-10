@@ -27,12 +27,6 @@ public:
 
   double getValue(double x, double y) override;
 
-  void updateRasterizationInfo(double scale, double r_max) override;
-
-  std::vector<ModelSample> getSharpSampling() override;
-
-  bool insideSharpRegion(double x, double y) override;
-
 private:
 
   std::unique_ptr<ModelComponent> m_component;

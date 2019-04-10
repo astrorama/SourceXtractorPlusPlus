@@ -7,8 +7,6 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include "ModelFitting/Parameters/ManualParameter.h"
-#include "ModelFitting/Models/OnlySmooth.h"
-#include "ModelFitting/Models/AutoSharp.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/ScaledModelComponent.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
@@ -40,24 +38,12 @@ int main() {
   ManualParameter exp_n {1.};
   ManualParameter exp_k {1.};
   
-  // We want to create a CircularlySymmetricModelComponent. For this reason we
-  // need a SharpRegionManager, which describes how the sharp region is computed.
-  // There are three different options:
-  // - OnlySmooth : The profile is treated as there is no sharp region.
-  // -   OldSharp : The behavior of the SExtractor2. The profile MUST be zero
-  //                outside the sharp radius.
-  // -  AutoSharp : The sharp region is automatically calculated.
-  //
-  // For the exponential profile we know that it is smooth enough, so we use
-  // the OnlySmooth SharpRegionManager. This is increasing the performance.
-  auto exp_reg_man = make_unique<OnlySmooth>();
-  
   // Here we create the CircularlySymmetricModelComponent. The profile type is
   // a template parameter of the class and we want to use a SersicProfile. That
   // means we should use the type CircularlySymmetricModelComponent<SersicProfile>.
   // For simplicity, an alias of this type is pre-defined with the name
   // SersicModelComponent.
-  auto exp = make_unique<SersicModelComponent>(move(exp_reg_man), exp_i0, exp_n, exp_k);
+  auto exp = make_unique<SersicModelComponent>(exp_i0, exp_n, exp_k);
   
   // We use the ScaledModelComponent decorator for applying the axes scaling.
   // For this we need two more parameters describing the scaling factors.
@@ -77,15 +63,12 @@ int main() {
   // We perform the same steps with above to create the second model component,
   // with the following differences:
   // - We use the De Vaucouleurs profile instead of the exponential
-  // - We use the AutoSharp SharpRegionManager because the center of the profile
-  //   is too sharp
   // - We rotate it by 30 degrees to the opposite direction
   // Note that because we use the same scaling factors we reuse the same parameters.
   ManualParameter dev_i0 {525.3};
   ManualParameter dev_n {4.};
   ManualParameter dev_k {7.66924944};
-  auto dev_reg_man = make_unique<AutoSharp>();
-  auto dev = make_unique<SersicModelComponent>(move(dev_reg_man), dev_i0, dev_n, dev_k);
+  auto dev = make_unique<SersicModelComponent>(dev_i0, dev_n, dev_k);
   auto scaled_dev = make_unique<ScaledModelComponent>(move(dev), x_scale, y_scale);
   ManualParameter dev_rot_angle {-M_PI / 6.};
   auto rotated_dev = make_unique<RotatedModelComponent>(move(scaled_dev), dev_rot_angle);

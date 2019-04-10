@@ -14,8 +14,6 @@
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
-#include "ModelFitting/Models/OnlySmooth.h"
-#include "ModelFitting/Models/AutoSharp.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Image/OpenCvPsf.h"
 #include "ModelFitting/Image/OpenCvMatImageTraits.h"
@@ -86,15 +84,13 @@ int main() {
     ManualParameter exp_i0 {rand_double() * 1E2 + .1};
     ManualParameter exp_n {1.};
     ManualParameter exp_k {1.};
-    auto exp_reg_man = make_unique<OnlySmooth>();
-    auto exp = make_unique<SersicModelComponent>(move(exp_reg_man), exp_i0, exp_n, exp_k);
+    auto exp = make_unique<SersicModelComponent>(exp_i0, exp_n, exp_k);
     component_list.emplace_back(move(exp));
     // and a De Vacouleurs
     ManualParameter dev_i0 {rand_double() * 5E3 + 1.};
     ManualParameter dev_n {4.};
     ManualParameter dev_k {7.66924944};
-    auto dev_reg_man = make_unique<AutoSharp>();
-    auto dev = make_unique<SersicModelComponent>(move(dev_reg_man), dev_i0, dev_n, dev_k);
+    auto dev = make_unique<SersicModelComponent>(dev_i0, dev_n, dev_k);
     
     // Finally we create the extended model and we add it to the list
     extended_models.emplace_back(std::move(component_list), x_scale, y_scale, 

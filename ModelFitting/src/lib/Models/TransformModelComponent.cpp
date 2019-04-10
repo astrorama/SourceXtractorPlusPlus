@@ -40,30 +40,4 @@ double TransformModelComponent::getValue(double x, double y) {
   return m_component->getValue(new_x, new_y);
 }
 
-void TransformModelComponent::updateRasterizationInfo(double scale, double r_max) {
-  double x_scale = std::sqrt(m_transform[0] * m_transform[0] + m_transform[1] * m_transform[1]);
-  double y_scale = std::sqrt(m_transform[2] * m_transform[2] + m_transform[3] * m_transform[3]);
-  double new_scale = scale / std::min(x_scale, y_scale);
-  double new_r_max = r_max / std::min(x_scale, y_scale);
-  m_component->updateRasterizationInfo(new_scale, new_r_max);
-}
-
-std::vector<TransformModelComponent::ModelSample> TransformModelComponent::getSharpSampling() {
-  double area_correction = std::sqrt((m_transform[0] * m_transform[0] + m_transform[1] * m_transform[1]) *
-      (m_transform[2] * m_transform[2] + m_transform[3] * m_transform[3])); // FIXME correction factor for angle?
-  std::vector<ModelSample> result {};
-  for (auto& sample : m_component->getSharpSampling()) {
-    double new_x = std::get<0>(sample) * m_transform[0] + std::get<1>(sample) * m_transform[2];
-    double new_y = std::get<0>(sample) * m_transform[1] + std::get<1>(sample) * m_transform[3];
-    result.emplace_back(new_x, new_y, std::get<2>(sample) * area_correction);
-  }
-  return result;
-}
-
-bool TransformModelComponent::insideSharpRegion(double x, double y) {
-  double new_x = x * m_inv_transform[0] + y * m_inv_transform[2];
-  double new_y = x * m_inv_transform[1] + y * m_inv_transform[3];
-  return m_component->insideSharpRegion(new_x, new_y);
-}
-
 }

@@ -9,7 +9,6 @@
 
 #include <memory> // For std::unique_ptr
 #include <vector>
-#include "ModelFitting/Models/SharpRegionManager.h"
 #include "ModelFitting/Models/ModelComponent.h"
 #include "ModelFitting/Models/SersicProfile.h"
 
@@ -21,22 +20,14 @@ class CircularlySymmetricModelComponent : public ModelComponent {
 public:
   
   template <typename... ProfileParameters>
-  CircularlySymmetricModelComponent(std::unique_ptr<SharpRegionManager> sharp_manager,
-                                    ProfileParameters&&... proj_parameters);
+  CircularlySymmetricModelComponent(ProfileParameters&&... proj_parameters);
   
   virtual ~CircularlySymmetricModelComponent();
   
   virtual double getValue(double x, double y);
   
-  virtual void updateRasterizationInfo(double scale, double r_max);
-  
-  virtual std::vector<ModelSample> getSharpSampling();
-  
-  virtual bool insideSharpRegion(double x, double y);
-  
 private:
   
-  std::unique_ptr<SharpRegionManager> m_sharp_manager;
   Profile m_profile;
   
 }; // end of class CircularlySymmetricModelComponent

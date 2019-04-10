@@ -31,9 +31,6 @@
 
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
-#include "ModelFitting/Models/OnlySmooth.h"
-#include "ModelFitting/Models/OldSharp.h"
-#include "ModelFitting/Models/AutoSharp.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/ScaledModelComponent.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
@@ -120,7 +117,7 @@ public:
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
+      auto exp = make_unique<SersicModelComponent>(exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
@@ -137,7 +134,7 @@ public:
       ManualParameter dev_i0 { source.dev_flux * pow(10, 3.33) / (7.2 * M_PI * source.dev_rad * source.dev_rad * source.dev_aspect) };
 
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
+      auto exp = make_unique<SersicModelComponent>(dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);

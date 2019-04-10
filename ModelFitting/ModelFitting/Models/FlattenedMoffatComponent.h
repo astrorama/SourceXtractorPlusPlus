@@ -26,10 +26,6 @@ public:
 
   virtual double getValue(double x, double y) override;
 
-  virtual void updateRasterizationInfo(double scale, double r_max) override;
-  virtual std::vector<ModelSample> getSharpSampling() override;
-  virtual bool insideSharpRegion(double x, double y) override;
-
 private:
 
   double m_max_intensity;

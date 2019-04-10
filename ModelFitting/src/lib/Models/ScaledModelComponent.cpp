@@ -29,25 +29,4 @@ double ScaledModelComponent::getValue(double x, double y) {
   return m_component->getValue(x / m_x_scale, y / m_y_scale);
 }
 
-void ScaledModelComponent::updateRasterizationInfo(double scale, double r_max) {
-  double new_scale = scale / std::min(m_x_scale, m_y_scale);
-  double new_r_max = r_max / std::min(m_x_scale, m_y_scale);
-  m_component->updateRasterizationInfo(new_scale, new_r_max);
-}
-
-auto ScaledModelComponent::getSharpSampling() -> std::vector<ModelSample> {
-  double area_correction = m_x_scale * m_y_scale;
-  std::vector<ModelSample> result{};
-  for (auto& sample : m_component->getSharpSampling()) {
-    result.emplace_back(std::get<0>(sample) * m_x_scale,
-                        std::get<1>(sample) * m_y_scale,
-                        std::get<2>(sample) * area_correction);
-  }
-  return result;
-}
-
-bool ScaledModelComponent::insideSharpRegion(double x, double y) {
-  return m_component->insideSharpRegion(x / m_x_scale, y / m_y_scale);
-}
-
 } // end of namespace ModelFitting

@@ -16,7 +16,6 @@
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 #include "ModelFitting/Parameters/NormalizedConverter.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
-#include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
@@ -71,8 +70,7 @@ int main() {
   ManualParameter k {1.};
   
   // We create the component list of the extended model with the single exponential
-  auto reg_man = make_unique<OnlySmooth>();
-  auto exp = make_unique<SersicModelComponent>(move(reg_man), i0, n, k);
+  auto exp = make_unique<SersicModelComponent>(i0, n, k);
   vector<unique_ptr<ModelComponent>> component_list {};
   component_list.emplace_back(move(exp));
   
@@ -167,8 +165,7 @@ int main() {
   printLevmarInfo(boost::any_cast<array<double,10>>(solution.underlying_framework_info));
 
   // We create the component list of the extended model with the single exponential
-  reg_man = make_unique<OnlySmooth>();
-  exp = make_unique<SersicModelComponent>(move(reg_man), i0, n, k);
+  exp = make_unique<SersicModelComponent>(i0, n, k);
   component_list.clear();
   component_list.emplace_back(move(exp));
   extended_models.clear();
