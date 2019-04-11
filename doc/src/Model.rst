@@ -13,7 +13,7 @@ SExtractor++ can fit models to the images of detected objects. The fit is perfor
 .. math::
   :label: loss_func
 
-  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{Q_j - \mu_j}{s_j}\right)^2
+  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{q_j - \mu_j}{s_j}\right)^2
 
 with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model pixel coordinates :math:`\boldsymbol{x}`.
 
@@ -26,18 +26,13 @@ The first term in :eq:`loss_func` is a modified `weighted sum of squares <http:/
 .. math::
   :label: modified_lsq
 
-  g(u) = \left\{
-    \begin{array}{rl}
-       u_0 \log \left(1 + \frac{u}{u_0}\right) & \mbox{if } u \ge 0,\\
-      -u_0 \log \left(1 - \frac{u}{u_0}\right) & \mbox{otherwise}.\\
-    \end{array}
-  \right.
+  g(u) = u_0\,\mathrm{arsinh}\,\frac{u}{u_0}.
 
 :math:`u_0` sets the level below which :math:`g(u)\approx u`.
 In practice, choosing :math:`u_0 = \kappa \sigma_i` with :math:`\kappa = 10` makes the first term in :eq:`loss_func` behave like a traditional weighted sum of squares for residuals close to the noise level.
 
 .. caution::
-  The cost function in :eq:`loss_func` is optimized for Gaussian noise and makes model-fitting in |SExtractor++| appropriate only for image noise with a |pdf| symmetrical around the mean.
+  The cost function in :eq:`loss_func` is optimized for noise distributions with a Gaussian core and makes model-fitting in |SExtractor++| appropriate only for image noise with a |pdf| symmetrical around the mean.
 
 .. _fig_robustgalfit:
 
@@ -79,7 +74,7 @@ In order to avoid invalid values and also to facilitate convergence, a change of
 The "model" variable :math:`q_j` is bounded by the lower limit :math:`a_j` and the upper limit :math:`b_j` by construction.
 The "engine" variable :math:`Q_j` can take any value, and is actually the parameter that is being adjusted in the fit, although it does not have any physical meaning.
 
-In |SExtractor++| three different types of transforms :math:`f_j()` are applied, depending on the parameter (:numref:`change_of_variable_table`).
+In |SExtractor++| three different types of transforms :math:`f_j()` can be applied, depending on the parameter (:numref:`change_of_variable_table`).
 
 .. _change_of_variable_table:
 
@@ -112,9 +107,12 @@ Regularization
 ~~~~~~~~~~~~~~
 
 Although minimizing the (modified) weighted sum of least squares gives a solution that fits best the data, it does not necessarily correspond to the most probable solution given what we know about celestial objects.
-The discrepancy is particularly significant in very faint (|SNR| :math:`\le 20`) and barely resolved galaxies, for which there is a tendency to overestimate the elongation, known as the "noise bias" in the weak-lensing community :cite:`2004MNRAS_353_529H,2012MNRAS_424_2757M,2012MNRAS_425_1951R,2012MNRAS_427_2711K`.
-To mitigate this issue, |SExtractor++| implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme on selected engine parameters, in the form of an additional penalty term in :eq:`loss_func`.
-This term acts as a Gaussian prior on the selected *engine* parameters. However for the associated *model* parameters, the change of variables can make the (improper) prior far from Gaussian.
+The discrepancy is particularly significant in very faint (|SNR| :math:`\le 20`) and barely resolved galaxies.
+For instance, there is a tendency to overestimate the elongation of such galaxies, known as the "noise bias" in the weak-lensing community :cite:`2004MNRAS_353_529H,2012MNRAS_424_2757M,2012MNRAS_425_1951R,2012MNRAS_427_2711K`.
+The second term in :eq:`loss_func` implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme to mitigate this issue.
+This penalty term acts as a Gaussian prior on the selected model parameters.
+Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values).
+In that case a change of variable must be applied (:numref:`fig_aspectprior`).
 
 .. _fig_aspectprior:
 
