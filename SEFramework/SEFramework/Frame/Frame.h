@@ -201,8 +201,8 @@ private:
 
   void applyFilter() {
     if (m_filter != nullptr) {
-      m_filtered_image = m_filter->processImage(getSubtractedImage(), getUninterpolatedVarianceMap(), getVarianceThreshold());
-      m_filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUninterpolatedVarianceMap(), getVarianceThreshold());
+      m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(), getVarianceThreshold());
+      m_filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(), getVarianceThreshold());
     } else {
       m_filtered_image = getSubtractedImage();
       m_filtered_variance_map = getUnfilteredVarianceMap();
