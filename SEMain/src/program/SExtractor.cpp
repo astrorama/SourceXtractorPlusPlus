@@ -58,11 +58,12 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
+#include "SEMain/ProgressReporterFactory.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEUtils/Python.h"
+#include "SEMain/Sorter.h"
 
 
 namespace po = boost::program_options;
@@ -127,6 +128,7 @@ class SEMain : public Elements::Program {
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
+  ProgressReporterFactory progress_printer_factory {};
 
 public:
   
@@ -153,6 +155,7 @@ public:
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
+    progress_printer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -166,7 +169,7 @@ public:
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    
+
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
     
@@ -193,6 +196,10 @@ public:
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
+
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(config_manager);
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
@@ -234,16 +241,24 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
+    auto sorter = std::make_shared<Sorter>();
+
     // Link together the pipeline's steps
-    segmentation->addObserver(partition);
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
-    measurement->addObserver(output);
+    measurement->addObserver(sorter);
+    sorter->addObserver(output);
+
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
+    deblending->addObserver(progress_mediator->getDeblendingObserver());
+    measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
-      segmentation->addObserver(
+      segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
@@ -330,6 +345,8 @@ public:
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
+
+    progress_mediator->done();
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";

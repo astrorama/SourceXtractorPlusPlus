@@ -25,7 +25,7 @@ class SimpleSourceGroup : public SourceGroupInterface {
 public:
   
   virtual ~SimpleSourceGroup() = default;
-  
+
   iterator begin() override;
   
   iterator end() override;

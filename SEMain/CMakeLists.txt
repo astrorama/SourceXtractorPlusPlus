@@ -25,6 +25,7 @@ elements_depends_on_subdirs(SEImplementation)
 # Examples:
 #          find_package(CppUnit)
 #===============================================================================
+find_package(Ncurses)
 
 #===============================================================================
 # Declare the library dependencies here
@@ -34,8 +35,18 @@ elements_depends_on_subdirs(SEImplementation)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEMain src/lib/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEImplementation
+file(GLOB LIB_SRC src/lib/*.cpp)
+
+if (NOT NCURSES_FOUND)
+    file(GLOB PROGRESSBAR_SRC src/lib/ProgressBar.cpp)
+    list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
+    add_definitions("-DWITHOUT_NCURSES")
+else ()
+    set (NCURSES Ncurses)
+endif ()
+
+elements_add_library(SEMain ${LIB_SRC}
+                     LINK_LIBRARIES ElementsKernel Configuration SEImplementation ${NCURSES}
                      PUBLIC_HEADERS SEMain)
 
 #===============================================================================

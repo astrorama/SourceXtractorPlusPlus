@@ -37,6 +37,7 @@ public:
   class LutzListener {
   public:
     virtual void publishGroup(PixelGroup& pixel_group) = 0;
+    virtual void notifyProgress(int /*line*/, int /*total*/) {};
   };
 
   Lutz() {}
