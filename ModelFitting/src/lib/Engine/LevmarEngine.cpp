@@ -23,24 +23,18 @@
 #include <cmath>
 #include <mutex>
 
-#ifndef WITHOUT_LEVMAR
 #include <levmar.h>
-#endif
-
+#include <ElementsKernel/Exception.h>
 #include "ModelFitting/Engine/LevmarEngine.h"
 
-#include <iostream>
-#include <ElementsKernel/Exception.h>
 
 namespace ModelFitting {
 
-#ifndef WITHOUT_LEVMAR
-static std::shared_ptr<LeastSquareEngine> createLevmarEngine() {
-  return std::make_shared<LevmarEngine>();
+static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
+  return std::make_shared<LevmarEngine>(max_iterations);
 }
 
-static LeastSquareEngine::StaticEngine levmar_engine{"Levmar", createLevmarEngine};
-#endif
+static LeastSquareEngine::StaticEngine levmar_engine{"levmar", createLevmarEngine};
 
 LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
                double epsilon2, double epsilon3, double delta)
@@ -54,7 +48,6 @@ namespace {
   std::mutex levmar_mutex;
 }
 
-#ifndef WITHOUT_LEVMAR
 LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_manager,
                                               ResidualEstimator& residual_estimator) {
   // Create a tuple which keeps the references to the given manager and estimator
@@ -112,6 +105,5 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   summary.underlying_framework_info = info;
   return summary;
 }
-#endif
 
 } // end of namespace ModelFitting

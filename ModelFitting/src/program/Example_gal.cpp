@@ -40,7 +40,7 @@
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngine.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
@@ -57,8 +57,12 @@ using namespace ModelFitting;
 // - Y_SCALE : 0.25
 // - ROT_ANGLE : 2.3
 
-int main() {
-  
+int main(int argc, char **argv) {
+  std::string engine_impl("levmar");
+  if (argc > 1) {
+    engine_impl = argv[1];
+  }
+
   // We read the image from the aux dir. Note that we will use a cv:Mat type,
   // so the ModelFitting/Image/OpenCvMatImageTraits.h must be included.
   cv::Mat image;
@@ -163,9 +167,9 @@ int main() {
   cout << "Background = " << back.getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {1000, 1E-3, 1E-8, 1E-8, 1E-8, 1E-4};
+  auto engine = LeastSquareEngine::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
   
   // We print the results

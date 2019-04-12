@@ -4,32 +4,24 @@
  * @author Alejandro Alvarez Ayllon
  */
 
+#include <gsl/gsl_multifit_nlinear.h>
+#include <gsl/gsl_blas.h>
 #include <ElementsKernel/Exception.h>
 #include "ModelFitting/Engine/GSLEngine.h"
 
-#ifndef WITHOUT_GSL
-
-#include <gsl/gsl_multifit_nlinear.h>
-#include <gsl/gsl_blas.h>
-
-#endif
 
 namespace ModelFitting {
 
-#ifndef WITHOUT_GSL
 
-static std::shared_ptr<LeastSquareEngine> createLevmarEngine() {
-  return std::make_shared<GSLEngine>();
+static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
+  return std::make_shared<GSLEngine>(max_iterations);
 }
 
-static LeastSquareEngine::StaticEngine levmar_engine{"GSL", createLevmarEngine};
-#endif
+static LeastSquareEngine::StaticEngine levmar_engine{"gsl", createLevmarEngine};
 
 GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol):
   m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol} {
 }
-
-#ifndef WITHOUT_GSL
 
 // Provide an iterator for gsl_vector
 class GslVectorIterator: public std::iterator<std::output_iterator_tag, double> {
@@ -124,12 +116,6 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
     pm.updateEngineValues(GslVectorConstIterator{x});
     ResidualEstimator& re = std::get<1>(*extra_ptr);
     re.populateResiduals(GslVectorIterator{f});
-
-    double e = 0;
-    for (int i = 0; i < f->size; ++i) {
-      e += gsl_vector_get(f, i);
-    }
-
     return GSL_SUCCESS;
   };
   gsl_multifit_nlinear_fdf fdf;
@@ -210,7 +196,5 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   gsl_multifit_nlinear_free(workspace);
   return summary;
 }
-
-#endif
 
 } // end namespace ModelFitting

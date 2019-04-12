@@ -48,7 +48,7 @@ using namespace std;
 using namespace ModelFitting;
 
 int main(int argc, char **argv) {
-  std::string engine_impl("Levmar");
+  std::string engine_impl("levmar");
   if (argc > 1) {
     engine_impl = argv[1];
   }

@@ -5,6 +5,7 @@
  */
 
 #include <ElementsKernel/Exception.h>
+#include <boost/algorithm/string.hpp>
 #include "ModelFitting/Engine/LeastSquareEngine.h"
 
 namespace ModelFitting {
@@ -21,7 +22,7 @@ void LeastSquareEngine::registerEngine(const std::string& name, FactoryMethod fa
   if (getEngineFactories().find(name) != getEngineFactories().end()) {
     throw Elements::Exception() << "A LeastSquareEngine named " << name << " has already been registered";
   }
-  getEngineFactories()[name] = factory_method;
+  getEngineFactories()[boost::algorithm::to_lower_copy(name)] = factory_method;
 }
 
 std::vector<std::string> LeastSquareEngine::getImplementations() {
@@ -32,12 +33,12 @@ std::vector<std::string> LeastSquareEngine::getImplementations() {
   return keys;
 }
 
-std::shared_ptr<LeastSquareEngine> LeastSquareEngine::create(const std::string& name) {
-  auto factory = getEngineFactories().find(name);
+std::shared_ptr<LeastSquareEngine> LeastSquareEngine::create(const std::string& name, unsigned max_iterations) {
+  auto factory = getEngineFactories().find(boost::algorithm::to_lower_copy(name));
   if (factory == getEngineFactories().end()) {
     throw Elements::Exception() << "No LeastSquareEngine named " << name << " has been registered";
   }
-  return factory->second();
+  return factory->second(max_iterations);
 }
 
 } // end namespace ModelFitting

@@ -30,8 +30,7 @@
 #include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
-
+#include "ModelFitting/Engine/LeastSquareEngine.h"
 #include "ModelFitting/Engine/ChiSquareComparator.h"
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/AsinhChiSquareComparator.h"
@@ -106,11 +105,13 @@ void printLevmarInfo(std::array<double, 10> info) {
 
 }
 
-FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations, double modified_chi_squared_scale,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
-  : m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
+FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squares_engine,
+    unsigned int max_iterations, double modified_chi_squared_scale,
+    std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
+    std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
+    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
+  : m_least_squares_engine(least_squares_engine),
+    m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
     m_parameters(parameters), m_frames(frames), m_priors(priors) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
@@ -304,8 +305,8 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   }
 
   // Model fitting
-  LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
+  auto engine = LeastSquareEngine::create(m_least_squares_engine, m_max_iterations);
+  auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
 
   int total_data_points = 0;

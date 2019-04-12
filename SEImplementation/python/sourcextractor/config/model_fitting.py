@@ -512,6 +512,16 @@ def set_modified_chi_squared_scale(scale):
     params_dict["modified_chi_squared_scale"] = scale
 
 
+def set_engine(engine):
+    """
+    Parameters
+    ----------
+    engine : str
+        Minimization engine for the model fitting : levmar or gsl
+    """
+    params_dict["engine"] = engine
+
+
 class ModelBase(cpp.Id):
     """
     Base class for all models.

@@ -68,13 +68,13 @@ public:
   virtual LeastSquareSummary solveProblem(EngineParameterManager& parameter_manager,
                                           ResidualEstimator& residual_estimator) = 0;
 
-  using FactoryMethod = std::function<std::shared_ptr<LeastSquareEngine>()>;
+  using FactoryMethod = std::function<std::shared_ptr<LeastSquareEngine>(unsigned)>;
 
   static void registerEngine(const std::string& name, FactoryMethod factory_method);
 
   static std::vector<std::string> getImplementations();
 
-  static std::shared_ptr<LeastSquareEngine> create(const std::string &name);
+  static std::shared_ptr<LeastSquareEngine> create(const std::string &name, unsigned max_iterations = 1000);
 
   struct StaticEngine {
     StaticEngine(const std::string& name, LeastSquareEngine::FactoryMethod factory_method) {

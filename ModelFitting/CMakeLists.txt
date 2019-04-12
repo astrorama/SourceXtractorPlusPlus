@@ -14,16 +14,20 @@ find_package(GSL)
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
+file (GLOB ENGINE_SRC src/lib/Engine/*.cpp)
+
 if (NOT LEVMAR_FOUND)
-    set(WITHOUT_LEVMAR ON PARENT_SCOPE)
-    add_definitions(-DWITHOUT_LEVMAR)
+    file(GLOB LEVMAR_SRC src/lib/Engine/LevmarEngine.cpp)
+    list(REMOVE_ITEM  ENGINE_SRC ${LEVMAR_SRC})
     message("Levmar library not found, compiling without Levmar support!")
 else ()
     set (LEVMAR Levmar)
 endif ()
+
 if (NOT GSL_FOUND)
-    add_definitions(-DWITHOUT_GSL)
-    message("Levmar library not found, compiling without GSL support!")
+    file(GLOB GSL_SRC src/lib/Engine/GSLEngine.cpp)
+    list(REMOVE_ITEM ENGINE_SRC ${GSL_SRC})
+    message("GSL library not found, compiling without GSL support!")
 else ()
     set (GSL GSL)
 endif ()
@@ -34,7 +38,7 @@ endif ()
 
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
-                     src/lib/Engine/*.cpp
+                     ${ENGINE_SRC}
                      src/lib/Models/*.cpp
                      LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL}
                      INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS}

@@ -51,7 +51,7 @@ public:
  * "Simple" exponential function, so it is easier to understand and visualize what's going on
  */
 int main(int argc, char **argv) {
-  std::string engine_impl("Levmar");
+  std::string engine_impl("levmar");
   if (argc > 1) {
     engine_impl = argv[1];
   }
