@@ -17,8 +17,8 @@
  */
 
 /**
- * @file src/program/PerfConvolution.cpp
- * @date 08/20/18
+ * @file src/program/BenchBackgroundConvolution.cpp
+ * @date 27/03/19
  * @author aalvarez
  */
 
@@ -30,13 +30,9 @@
 #include <random>
 #include "ElementsKernel/ProgramHeaders.h"
 #include "ElementsKernel/Real.h"
-#include "SEUtils/IsClose.h"
+#include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Convolution/DirectConvolution.h"
-#include "SEFramework/Convolution/DFT.h"
-#ifdef WITH_OPENCV
-#include "SEFramework/Convolution/OpenCVConvolution.h"
-#endif
+#include "SEUtils/IsClose.h"
 
 #if BOOST_VERSION < 105600
 #include <boost/units/detail/utility.hpp>
@@ -49,9 +45,9 @@ namespace po = boost::program_options;
 namespace timer = boost::timer;
 using namespace SExtractor;
 
-static Elements::Logging logger = Elements::Logging::getLogger("BenchConvolution");
+static Elements::Logging logger = Elements::Logging::getLogger("BenchBackgroundConvolution");
 
-class BenchConvolution : public Elements::Program {
+class BenchBackgroundConvolution : public Elements::Program {
 private:
   std::default_random_engine random_generator;
   std::uniform_real_distribution<SeFloat> random_dist{0, 1};
@@ -62,9 +58,10 @@ public:
     po::options_description options{};
     options.add_options()
       ("image-start", po::value<int>()->default_value(100), "Image start size")
-      ("kernel-start", po::value<int>()->default_value(3), "Kernel start size")
-      ("step-size", po::value<int>()->default_value(4), "Step size")
+      ("image-step-size", po::value<int>()->default_value(3), "Image step size")
       ("image-nsteps", po::value<int>()->default_value(1), "Number of steps for the image")
+      ("kernel-start", po::value<int>()->default_value(3), "Kernel start size")
+      ("kernel-step-size", po::value<int>()->default_value(4), "Kernel step size")
       ("kernel-nsteps", po::value<int>()->default_value(2), "Number of steps for the kernel")
       ("repeat", po::value<int>()->default_value(5), "Repeat")
       ("measures", po::value<int>()->default_value(10), "Number of measures");
@@ -81,12 +78,13 @@ public:
     return img;
   }
 
-  Elements::ExitCode mainMethod(std::map<std::string, po::variable_value> &args) override {
+  Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
 
     auto img_start = args["image-start"].as<int>();
-    auto krn_start = args["kernel-start"].as<int>();
-    auto step_size = args["step-size"].as<int>();
+    auto img_step_size = args["image-step-size"].as<int>();
     auto img_nsteps = args["image-nsteps"].as<int>();
+    auto krn_start = args["kernel-start"].as<int>();
+    auto krn_step_size = args["kernel-step-size"].as<int>();
     auto krn_nsteps = args["kernel-nsteps"].as<int>();
     auto repeat = args["repeat"].as<int>();
     auto measures = args["measures"].as<int>();
@@ -94,71 +92,58 @@ public:
     std::cout << "Image,Kernel,Implementation,Time" << std::endl;
 
     for (int img_step = 0; img_step < img_nsteps; ++img_step) {
-      auto img_size = img_start + img_step * step_size;
+      auto img_size = img_start + img_step * img_step_size;
       auto image = generateImage(img_size);
+      auto variance = generateImage(img_size);
 
       for (int krn_step = 0; krn_step < krn_nsteps; ++krn_step) {
-        auto krn_size = krn_start + krn_step * step_size;
+        auto krn_size = krn_start + krn_step * krn_step_size;
 
         logger.info() << "Using an image of " << img_size << "x" << img_size;
         logger.info() << "Using a kernel of " << krn_size << "x" << krn_size;
 
         auto kernel = generateImage(krn_size);
 
-#ifdef WITH_OPENCV
-        logger.info() << "Timing OpenCV implementation";
-        auto opencv_result = benchmark<OpenCVConvolution>(image, kernel, repeat, measures);
-#endif
-
-        if (krn_size <= 10 || img_size <= 20) {
-          logger.info() << "Timing Direct implementation";
-          auto direct_result = benchmark<DirectConvolution<SeFloat>>(image, kernel, repeat, measures);
-
-#ifdef WITH_OPENCV
-          logger.info() << "Compare OpenCV vs Direct Result";
-          verifyResults(opencv_result, direct_result);
-#endif
-        }
+        logger.info() << "Timing Direct implementation";
+        auto direct_result = benchmark<BgConvolutionImageSource>(image, variance, kernel, repeat, measures);
 
         logger.info() << "Timing DFT implementation";
-        auto dft_result = benchmark<DFTConvolution<SeFloat>>(image, kernel, repeat, measures);
+        auto dft_result = benchmark<BgDFTConvolutionImageSource>(image, variance, kernel, repeat, measures);
 
-#ifdef WITH_OPENCV
-        logger.info() << "Compare OpenCV vs DFT Result";
-        verifyResults(opencv_result, dft_result);
-#endif
+        logger.info() << "Comparing results";
+        verifyResults(direct_result, dft_result);
       }
     }
 
     return Elements::ExitCode::OK;
   }
 
-  template<typename Convolution>
+  template<typename BackgroundConvolution>
   std::shared_ptr<VectorImage<SeFloat>>
-  benchmark(std::shared_ptr<VectorImage<SeFloat>> &image, std::shared_ptr<VectorImage<SeFloat>> &kernel,
-    int repeat, int measures) {
-    auto conv_name = demangle(typeid(Convolution).name());
+  benchmark(std::shared_ptr<VectorImage<SeFloat>>& image, std::shared_ptr<VectorImage<SeFloat>>& variance,
+            std::shared_ptr<VectorImage<SeFloat>>& kernel, int repeat, int measures) {
+    auto conv_name = demangle(typeid(BackgroundConvolution).name());
 
-    Convolution convolution(kernel);
+    auto bg_convolution = std::make_shared<BackgroundConvolution>(image, variance, 0.5, kernel);
 
-    std::shared_ptr<VectorImage<SeFloat>> copied;
+    std::shared_ptr<VectorImage<SeFloat>> result;
 
     for (int m = 0; m < measures; ++m) {
-      logger.info() << conv_name << " " << m+1 << "/" << measures;
+      logger.info() << conv_name << " " << m + 1 << "/" << measures;
       timer::cpu_timer timer;
       timer.stop();
 
       for (int r = 0; r < repeat; ++r) {
-        copied = VectorImage<SeFloat>::create(*image);
         timer.start();
-        convolution.convolve(copied);
+        result = bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight())->getImage();
         timer.stop();
       }
 
-      std::cout << image->getWidth() << ',' << kernel->getWidth() << ",\"" << conv_name << "\"," << timer.elapsed().wall << std::endl;
+      std::cout << image->getWidth() << ',' << kernel->getWidth() << ",\"" << conv_name << "\"," << timer.elapsed().wall
+                << std::endl;
     }
 
-    return copied;
+    return result;
   }
 
   void verifyResults(std::shared_ptr<VectorImage<SeFloat>> a, std::shared_ptr<VectorImage<SeFloat>> b) {
@@ -167,23 +152,19 @@ public:
       for (int y = 0; y < a->getHeight(); ++y) {
         auto av = a->getValue(x, y);
         auto bv = b->getValue(x, y);
-        if (!isClose(av, bv)) {
+        if (!isClose(av, bv, 1e-3, 1e-3)) {
           logger.info() << "Mismatch at " << x << ',' << y << ": "
-            << av << " != " << bv;
+                        << av << " != " << bv;
           all_equal = false;
         }
       }
     }
     if (all_equal) {
       logger.info() << "All elements are equal!";
-    }
-    else {
+    } else {
       logger.warn() << "Convoluted images are not equal!";
     }
   }
 };
 
-MAIN_FOR(BenchConvolution)
-
-
-
+MAIN_FOR(BenchBackgroundConvolution)

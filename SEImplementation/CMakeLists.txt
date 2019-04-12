@@ -20,6 +20,7 @@ elements_depends_on_subdirs(NdArray) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
+elements_depends_on_subdirs(SEUtils)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -140,6 +141,9 @@ elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
 					 LINK_LIBRARIES SEImplementation
 					 TYPE Boost)
+elements_add_unit_test(BackgroundConvolution_test tests/src/Segmentation/BackgroundConvolution_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

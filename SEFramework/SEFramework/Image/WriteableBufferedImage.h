@@ -21,7 +21,7 @@ protected:
   WriteableBufferedImage(std::shared_ptr<const ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager)
       : BufferedImage<T>(source, tile_manager) {}
 
-  using BufferedImage<T>::getEntryForThisThread;
+  using BufferedImage<T>::m_current_tile;
 
 public:
 
@@ -35,15 +35,12 @@ public:
   virtual void setValue(int x, int y, T value) override {
     assert(x >= 0 && y >=0 && x < BufferedImage<T>::m_source->getWidth() && y < BufferedImage<T>::m_source->getHeight());
 
-    auto& current_tile = getEntryForThisThread();
-
-    if (current_tile == nullptr || !current_tile->isPixelInTile(x, y)) {
-      current_tile =
-          BufferedImage<T>::m_tile_manager->getTileForPixel(x, y, BufferedImage<T>::m_source);
+    if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
+      m_current_tile = BufferedImage<T>::m_tile_manager->getTileForPixel(x, y, BufferedImage<T>::m_source);
     }
 
-    current_tile->setModified(true);
-    current_tile->setValue(x, y, value);
+    m_current_tile->setModified(true);
+    m_current_tile->setValue(x, y, value);
   }
 
 };

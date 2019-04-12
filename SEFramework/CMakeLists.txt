@@ -133,6 +133,9 @@ elements_add_unit_test(RecenterImage_test tests/src/Image/RecenterImage_test.cpp
 elements_add_unit_test(MirrorImage_test tests/src/Image/MirrorImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(FunctionalImage_test tests/src/Image/FunctionalImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)

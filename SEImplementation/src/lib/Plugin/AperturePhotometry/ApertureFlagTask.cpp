@@ -19,6 +19,7 @@
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 namespace SExtractor {
 
@@ -28,6 +29,8 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 }
 
 void ApertureFlagTask::computeProperties(SourceInterface &source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   // get the detection frame
   const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
 
