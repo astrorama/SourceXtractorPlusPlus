@@ -171,6 +171,10 @@ ProgressBar::ProgressBar()
 }
 
 ProgressBar::~ProgressBar() {
+  if (m_progress_thread) {
+    m_progress_thread->interrupt();
+    m_progress_thread->join();
+  }
   terminal.restore();
 }
 
@@ -208,7 +212,7 @@ void ProgressBar::handleMessage(const bool& done) {
 
 void ProgressBar::printThread(void *d) {
   auto self = static_cast<ProgressBar *>(d);
-  while (!self->m_done && !isendwin()) {
+  while (!self->m_done && !boost::this_thread::interruption_requested()) {
     auto now = boost::posix_time::second_clock::local_time();
     auto elapsed = now - self->m_started;
 
@@ -288,7 +292,13 @@ void ProgressBar::printThread(void *d) {
       std::lock_guard<std::mutex> lock(terminal_mutex);
       wrefresh(terminal.m_progress_window);
     }
-    boost::this_thread::sleep(boost::posix_time::seconds(1));
+
+    try {
+      boost::this_thread::sleep(boost::posix_time::seconds(1));
+    }
+    catch (const boost::thread_interrupted&) {
+      break;
+    }
   }
 }
 
