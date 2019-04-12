@@ -145,6 +145,8 @@ void printLevmarInfo(std::array<double,10> info) {
   case 7:
     std::cout << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
     break;
+  default:
+    std::cout << "  unknown stop reason " << (int)info[6] << "\n";
   }
   std::cout << "  # function evaluations: " << info[7] << '\n';
   std::cout << "  # Jacobian evaluations: " << info[8] << '\n';

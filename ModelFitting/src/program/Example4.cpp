@@ -47,8 +47,12 @@
 using namespace std;
 using namespace ModelFitting;
 
-int main() {
-  
+int main(int argc, char **argv) {
+  std::string engine_impl("Levmar");
+  if (argc > 1) {
+    engine_impl = argv[1];
+  }
+
   auto frames_path = Elements::pathSearchInEnvVariable("multiframe.fits", "ELEMENTS_AUX_PATH");
   auto frames = readFrames(frames_path[0].string());
   
@@ -66,7 +70,7 @@ int main() {
   //                         for a specific world value
   // - SigmoidConverter : Converts the parameter using the sigmoid function
   // - ExpSigmoidConverter : Converts the parameter using the exponential sigmoid function
-  EngineParameter i0 {1., make_unique<ExpSigmoidConverter>(1, 100)};
+  EngineParameter i0 {12., make_unique<ExpSigmoidConverter>(1, 100)};
   ManualParameter n {1.};
   ManualParameter k {1.};
   
@@ -78,8 +82,8 @@ int main() {
   
   // We create the extended model. All of its parameters will be optimized by
   // the minimization engine.
-  EngineParameter x {10, make_unique<NormalizedConverter>(150.)};
-  EngineParameter y {20, make_unique<NormalizedConverter>(150.)};
+  EngineParameter x {10, make_unique<NormalizedConverter>(30.)};
+  EngineParameter y {20, make_unique<NormalizedConverter>(30.)};
   EngineParameter x_scale {.5, make_unique<SigmoidConverter>(0, 1)};
   EngineParameter y_scale {.5, make_unique<SigmoidConverter>(0, 1)};
   EngineParameter rot_angle {2., make_unique<SigmoidConverter>(0, 2*M_PI)};
@@ -141,8 +145,8 @@ int main() {
   for (auto &e : LeastSquareEngine::getImplementations()) {
     std::cout << '\t' << e << std::endl;
   }
-  std::cout << "Using Levmar by default" << std::endl;
-  auto engine = LeastSquareEngine::create("Levmar");
+  std::cout << "Using engine " << engine_impl << std::endl;
+  auto engine = LeastSquareEngine::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
   auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();

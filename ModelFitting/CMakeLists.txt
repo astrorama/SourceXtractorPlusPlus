@@ -37,7 +37,7 @@ elements_add_library(ModelFitting
                      src/lib/Engine/*.cpp
                      src/lib/Models/*.cpp
                      LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL}
-                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS}
+                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
@@ -127,4 +127,7 @@ if (OPENCV_FOUND AND CCFITS_FOUND)
     elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
                             LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
                             INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+
+    elements_add_executable(Example_SimpleFit src/program/Example_SimpleFit.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS})
 endif ()
