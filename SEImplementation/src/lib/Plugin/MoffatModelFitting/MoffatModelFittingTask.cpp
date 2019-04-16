@@ -55,7 +55,7 @@
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LeastSquareEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 #include "ModelFitting/Engine/AsinhChiSquareComparator.h"
 
@@ -248,7 +248,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   res_estimator.registerBlockProvider(move(data_vs_model));
 
   // Perform the minimization
-  auto engine = LeastSquareEngine::create(m_least_squares_engine, m_max_iterations);
+  auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
   auto solution = engine->solveProblem(manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 

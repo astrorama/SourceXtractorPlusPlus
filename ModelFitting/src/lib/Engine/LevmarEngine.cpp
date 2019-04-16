@@ -25,6 +25,7 @@
 
 #include <levmar.h>
 #include <ElementsKernel/Exception.h>
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 
 
@@ -34,7 +35,7 @@ static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterat
   return std::make_shared<LevmarEngine>(max_iterations);
 }
 
-static LeastSquareEngine::StaticEngine levmar_engine{"levmar", createLevmarEngine};
+static LeastSquareEngineManager::StaticEngine levmar_engine{"levmar", createLevmarEngine};
 
 LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
                double epsilon2, double epsilon3, double delta)

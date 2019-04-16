@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <ModelFitting/Parameters/NeutralConverter.h>
-#include <ModelFitting/Engine/LeastSquareEngine.h>
+#include <ModelFitting/Engine/LeastSquareEngineManager.h>
 #include <ModelFitting/Engine/EngineParameterManager.h>
 #include <ModelFitting/utils.h>
 #include <chrono>
@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   res_estimator.registerBlockProvider(make_unique<ExpResidualProvider>(A, lambda, b, y, t));
 
   std::cout << "Using engine " << engine_impl << std::endl;
-  auto engine = LeastSquareEngine::create(engine_impl);
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = std::chrono::steady_clock::now();
   auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = std::chrono::steady_clock::now();

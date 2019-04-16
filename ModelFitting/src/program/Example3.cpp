@@ -40,7 +40,7 @@
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LeastSquareEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
   cout << "angle (2.3) = " << rot_angle.getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  auto engine = LeastSquareEngine::create(engine_impl);
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
   auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();

@@ -8,6 +8,7 @@
 #include <gsl/gsl_blas.h>
 #include <ElementsKernel/Exception.h>
 #include <iostream>
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/GSLEngine.h"
 
 
@@ -18,7 +19,7 @@ static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterat
   return std::make_shared<GSLEngine>(max_iterations);
 }
 
-static LeastSquareEngine::StaticEngine levmar_engine{"gsl", createLevmarEngine};
+static LeastSquareEngineManager::StaticEngine levmar_engine{"gsl", createLevmarEngine};
 
 GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol, double delta):
   m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol}, m_delta{delta} {

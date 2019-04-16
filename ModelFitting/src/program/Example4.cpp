@@ -40,7 +40,7 @@
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
@@ -142,11 +142,11 @@ int main(int argc, char **argv) {
   
   // Finally we create a least square engine and we solve the problem
   std::cout << "Registered engines: " << std::endl;
-  for (auto &e : LeastSquareEngine::getImplementations()) {
+  for (auto &e : LeastSquareEngineManager::getImplementations()) {
     std::cout << '\t' << e << std::endl;
   }
   std::cout << "Using engine " << engine_impl << std::endl;
-  auto engine = LeastSquareEngine::create(engine_impl);
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
   auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();

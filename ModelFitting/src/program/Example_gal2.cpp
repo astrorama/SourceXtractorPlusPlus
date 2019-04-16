@@ -42,7 +42,7 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/WorldValueResidual.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
@@ -172,7 +172,7 @@ int main(int argc, char **argv) {
   cout << "Background = " << back.getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  auto engine = LeastSquareEngine::create(engine_impl);
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
   auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
