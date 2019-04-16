@@ -35,8 +35,10 @@ public:
    * @param ftol
    *    Tolerance for the change in \f\chi^2\f
    *    Some versions of the GSL library ignore this.
+   * @param delta
+   *    Step size for finite difference Jacobian
    */
-  GSLEngine(int itmax = 1000, double xtol=1e-8, double gtol=1e-8, double ftol=1e-8);
+  GSLEngine(int itmax = 1000, double xtol=1e-8, double gtol=1e-8, double ftol=1e-8, double delta=1e-4);
 
   /// Destructor
   virtual ~GSLEngine() = default;
@@ -50,7 +52,7 @@ public:
 
 private:
   int m_itmax;
-  double m_xtol, m_gtol, m_ftol;
+  double m_xtol, m_gtol, m_ftol, m_delta;
 };
 
 } // end of namespace ModelFitting

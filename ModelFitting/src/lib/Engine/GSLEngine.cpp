@@ -7,6 +7,7 @@
 #include <gsl/gsl_multifit_nlinear.h>
 #include <gsl/gsl_blas.h>
 #include <ElementsKernel/Exception.h>
+#include <iostream>
 #include "ModelFitting/Engine/GSLEngine.h"
 
 
@@ -19,8 +20,8 @@ static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterat
 
 static LeastSquareEngine::StaticEngine levmar_engine{"gsl", createLevmarEngine};
 
-GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol):
-  m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol} {
+GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol, double delta):
+  m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol}, m_delta{delta} {
 }
 
 // Provide an iterator for gsl_vector
@@ -83,6 +84,17 @@ public:
   }
 };
 
+static void gsl_callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w) {
+  gsl_vector *f = gsl_multifit_nlinear_residual(w);
+  gsl_vector *x = gsl_multifit_nlinear_position(w);
+  double sum = 0;
+  for (size_t i = 0; i < f->size; ++i) {
+    double y = gsl_vector_get(f, i);
+    sum += y * y;
+  }
+  std::cout << iter << '\t' << sum << std::endl;
+}
+
 LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager& parameter_manager,
                                            ModelFitting::ResidualEstimator& residual_estimator) {
   // Create a tuple which keeps the references to the given manager and estimator
@@ -94,6 +106,9 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
 
   // Initialize parameters
   gsl_multifit_nlinear_parameters params = gsl_multifit_nlinear_default_parameters();
+  params.h_df = m_delta;
+  params.solver = gsl_multifit_nlinear_solver_svd;
+  params.scale = gsl_multifit_nlinear_scale_levenberg;
 
   // Allocate the workspace for the resolver. It may return null if there is no memory.
   gsl_multifit_nlinear_workspace *workspace = gsl_multifit_nlinear_alloc(

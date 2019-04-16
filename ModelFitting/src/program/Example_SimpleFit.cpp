@@ -11,6 +11,7 @@
 #include <ModelFitting/Engine/EngineParameterManager.h>
 #include <ModelFitting/utils.h>
 #include <chrono>
+#include <ModelFitting/Parameters/NormalizedConverter.h>
 #include "utils.h"
 
 using namespace ModelFitting;
