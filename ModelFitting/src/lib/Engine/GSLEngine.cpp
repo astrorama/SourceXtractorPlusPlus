@@ -106,10 +106,22 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   const gsl_multifit_nlinear_type *type = gsl_multifit_nlinear_trust;
 
   // Initialize parameters
+  // NOTE: These settings are set from experimenting with the examples/runs, and are those
+  //       that match closer Levmar residuals, without increasing runtime too much
   gsl_multifit_nlinear_parameters params = gsl_multifit_nlinear_default_parameters();
-  params.h_df = m_delta;
-  params.solver = gsl_multifit_nlinear_solver_svd;
+  // gsl_multifit_nlinear_trs_lm is the only one that converges reasonably fast
+  // gsl_multifit_nlinear_trs_lmaccel *seems* to be faster when fitting a single source, but turns out to be slower
+  // when fitting a whole image
+  params.trs = gsl_multifit_nlinear_trs_lm;
+  // This is the only scale method that converges reasonably in SExtractor++
+  // When using gsl_multifit_nlinear_scale_more or gsl_multifit_nlinear_scale_marquardt the results are *very* bad
   params.scale = gsl_multifit_nlinear_scale_levenberg;
+  // Others work too, but this one is faster
+  params.solver = gsl_multifit_nlinear_solver_cholesky;
+  // This is the default, and requires half the operations than GSL_MULTIFIT_NLINEAR_CTRDIFF
+  params.fdtype = GSL_MULTIFIT_NLINEAR_FWDIFF;
+  // Passed via constructor
+  params.h_df = m_delta;
 
   // Allocate the workspace for the resolver. It may return null if there is no memory.
   gsl_multifit_nlinear_workspace *workspace = gsl_multifit_nlinear_alloc(
@@ -198,7 +210,7 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   summary.underlying_framework_info = std::array<double, 10>{
     chisq0, // ||e||_2 at initial p
     chisq,  // ||e||_2
-    0., // ||J^T e||_inf
+    gsl_blas_dnrm2(workspace->g), // ||J^T e||_inf
     gsl_blas_dnrm2(workspace->dx), // ||Dp||_2
     0., // mu/max[J^T J]_ii
     static_cast<double>(summary.iteration_no), // Number of iterations
