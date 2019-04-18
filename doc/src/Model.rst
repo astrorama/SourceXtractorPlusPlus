@@ -103,6 +103,31 @@ In |SExtractor++| three different types of transforms :math:`f_j()` can be appli
 
 In practice, this approach works well, and was found to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
 
+In practice
+^^^^^^^^^^^
+
+Free parameters are declared using the :param:`FreeParameter()` construct:
+
+<variable> = :param:`FreeParameter (` <initial_value> ,  <range> :param:`)`
+
+The initial value may be a simple number supplied by the user, e.g.:
+
+.. code-block:: python
+
+  ratio = FreeParameter(1, range)
+
+or a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_function>`_ based on e.g., actual measurements:
+
+.. code-block:: python
+
+  ratio = FreeParameter(lambda o: o.get_radius(), range)
+
+The range is specified using the :param:`Range` construct:
+
+<range> = :param:`Range (` <min_value> , <max_value> ,  <range_type> :param:`)`
+
+
+
 Regularization
 ~~~~~~~~~~~~~~
 
