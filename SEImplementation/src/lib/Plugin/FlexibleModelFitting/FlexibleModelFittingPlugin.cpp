@@ -23,14 +23,18 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           "fmf_reduced_chi_2",
           [](const FlexibleModelFitting& prop) {
             return prop.getReducedChiSquared();
-          }
+          },
+          "[]",
+          "Reduced chi-square of the model fitting"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int>(
           "fmf_iterations",
           [](const FlexibleModelFitting& prop) {
             return prop.getIterations();
-          }
+          },
+          "[]",
+          "Number of iterations in the model fitting"
   );
 
   plugin_api.getOutputRegistry().enableOutput<FlexibleModelFitting>("FlexibleModelFitting");

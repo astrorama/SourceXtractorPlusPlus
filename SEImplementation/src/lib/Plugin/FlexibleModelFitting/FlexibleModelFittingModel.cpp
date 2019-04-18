@@ -128,7 +128,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
   auto i0 = std::make_shared<DependentParameter<BasicParameter, BasicParameter, BasicParameter>>(
-     [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 1.684925 * radius * radius *  aspect); },
+     [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.001684925 * radius * radius * aspect); },
      *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
      *manager.getParameter(source, m_aspect_ratio));
 
@@ -189,7 +189,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
      *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_sersic_index));
 
   auto k = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
-      [](double eff_radius, double n) { return computeBn(n) * pow(eff_radius, 1.0 / n); },
+      [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
       *manager.getParameter(source, m_effective_radius), *manager.getParameter(source, m_sersic_index));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;

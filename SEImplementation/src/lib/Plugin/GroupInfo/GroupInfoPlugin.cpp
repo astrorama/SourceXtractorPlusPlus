@@ -24,7 +24,9 @@ void GroupInfoPlugin::registerPlugin(PluginAPI& plugin_api) {
       "group_id",
       [](const GroupInfo& prop){
         return prop.getGroupId();
-      }
+      },
+      "",
+      "Running group number"
   );
 
   plugin_api.getOutputRegistry().enableOutput<GroupInfo>("GroupInfo");

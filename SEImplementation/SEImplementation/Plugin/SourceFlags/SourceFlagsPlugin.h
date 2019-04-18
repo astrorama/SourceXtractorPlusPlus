@@ -41,7 +41,9 @@ public:
       "source_flags",
       [](const SourceFlags &prop) {
         return flags2long(prop.getSourceFlags());
-      }
+      },
+      "[]",
+      "The source flags"
     );
     plugin_api.getOutputRegistry().enableOutput<SourceFlags>("SourceFlags");
   }
