@@ -12,6 +12,8 @@
 
 #include <iomanip>
 
+#include "ElementsKernel/Main.h"
+
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
@@ -448,16 +450,10 @@ ELEMENTS_API int main(int argc, char* argv[]) {
       argv_tmp[i] = option_str.data();
     }
 
-    std::unique_ptr<Elements::Program> plugin_options_main{new PluginOptionsMain{plugin_path, plugin_list}};
-    Elements::ProgramManager plugin_options_program{std::move(plugin_options_main),
-                                                    THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING,
-                                                    THIS_MODULE_VERSION_STRING,
-                                                    THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    CREATE_MANAGER_WITH_ARGS(plugin_options_program, PluginOptionsMain, plugin_path, plugin_list);
     plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
 
-    Elements::ProgramManager main{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
-                                 THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-                                 THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    CREATE_MANAGER_WITH_ARGS(main, SEMain, plugin_path, plugin_list);
     Elements::ExitCode exit_code = main.run(argc, argv);
     return static_cast<Elements::ExitCodeType>(exit_code);
   }
