@@ -29,6 +29,7 @@ public:
 
 private:
   unsigned int m_max_iterations {0};
+  double m_modified_chi_squared_scale {10};
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
