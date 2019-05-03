@@ -9,6 +9,7 @@
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
 #include "SEFramework/Aperture/FluxMeasurement.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryFlag.h"
@@ -33,6 +34,8 @@ const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   // get the measurement frame
   const auto& measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
 

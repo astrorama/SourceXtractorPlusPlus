@@ -2,7 +2,8 @@ from __future__ import division, print_function
 
 from enum import Enum
 
-import libSEImplementation as cpp
+import _SExtractorPy as cpp
+from .measurement_images import MeasurementGroup
 
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -166,6 +167,8 @@ def _set_model_to_frames(group, model):
 
 
 def add_model(group, model):
+    if not isinstance(group, MeasurementGroup):
+        raise TypeError('Models can only be added on MeasurementGroup, got {}'.format(type(group)))
     if not hasattr(group, 'models'):
         group.models = []
     group.models.append(model)

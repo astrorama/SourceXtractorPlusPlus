@@ -5,6 +5,7 @@
 #include <boost/test/unit_test.hpp>
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Convolution/DFT.h"
+#include "SEUtils/IsClose.h"
 
 using namespace SExtractor;
 
@@ -20,11 +21,6 @@ struct DFT_Fixture {
     })} {
   }
 };
-
-
-bool isClose(float a, float b, float atol=1e-6, float rtol=1e-5) {
-  return std::abs(a - b) <= (atol + rtol * std::abs(b));
-}
 
 
 BOOST_AUTO_TEST_SUITE (DFT_test)
@@ -54,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE ( Convolve_test, DFT_Fixture ) {
     for (auto y = 0; y < expected->getHeight(); ++y) {
       auto ev = expected->getValue(x, y);
       auto iv = image->getValue(x, y);
-      if (!isClose(ev, iv)) {
+      if (!isClose(ev, iv, 1e-5, 1e-4)) {
         BOOST_ERROR("Mismatch at " << x << 'x' << y << ": " << ev << " != " << iv);
       }
     }
@@ -82,7 +78,7 @@ BOOST_FIXTURE_TEST_CASE ( Convolve_not_squared_test, DFT_Fixture ) {
     for (auto y = 0; y < expected->getHeight(); ++y) {
       auto ev = expected->getValue(x, y);
       auto iv = image->getValue(x, y);
-      if (!isClose(ev, iv)) {
+      if (!isClose(ev, iv, 1e-5, 1e-4)) {
         BOOST_ERROR("Mismatch at " << x << 'x' << y << ": " << ev << " != " << iv);
       }
     }

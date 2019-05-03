@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string BACKGROUND_VALUE {"background-value" };
-static const std::string THRESHOLD_VALUE {"threshold-value" };
+static const std::string THRESHOLD_VALUE {"detection-threshold" };
 
 BackgroundConfig::BackgroundConfig(long manager_id) :
     Configuration(manager_id),

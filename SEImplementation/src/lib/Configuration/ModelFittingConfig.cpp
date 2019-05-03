@@ -106,9 +106,9 @@ void ModelFittingConfig::initialize(const UserValues&) {
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     int n_id = py::extract<int>(p.second.attr("n").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingSersicModel>(
-        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
+        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id], m_parameters[n_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
-        m_parameters[angle_id], m_parameters[n_id]);
+        m_parameters[angle_id]);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {

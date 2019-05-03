@@ -25,6 +25,7 @@
 
 #include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
+#include <SEImplementation/Measurement/MultithreadedMeasurement.h>
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -39,6 +40,8 @@ public:
   virtual ~SaturateFlagSourceTask() = default;
 
   virtual void computeProperties(SourceInterface &source) const {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
     bool saturate_flag = false;
 
     const auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();

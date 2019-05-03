@@ -18,8 +18,8 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string OUTPUT_FILE {"output-file"};
-static const std::string OUTPUT_FILE_FORMAT {"output-file-format"};
+static const std::string OUTPUT_FILE {"output-catalog-filename"};
+static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 
 static std::map<std::string, OutputConfig::OutputFileFormat> format_map {

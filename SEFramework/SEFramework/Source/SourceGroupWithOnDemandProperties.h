@@ -33,7 +33,7 @@ public:
    * @brief Destructor
    */
   virtual ~SourceGroupWithOnDemandProperties() = default;
-  
+
   iterator begin() override;
   
   iterator end() override;

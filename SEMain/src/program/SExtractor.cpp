@@ -12,6 +12,8 @@
 
 #include <iomanip>
 
+#include "ElementsKernel/Main.h"
+
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
@@ -58,11 +60,12 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEMain/SExtractorConfig.h"
+#include "SEMain/ProgressReporterFactory.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
-#include "SEUtils/Python.h"
+#include "SEMain/Sorter.h"
 
 
 namespace po = boost::program_options;
@@ -127,6 +130,7 @@ class SEMain : public Elements::Program {
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
+  ProgressReporterFactory progress_printer_factory {};
 
 public:
   
@@ -153,6 +157,7 @@ public:
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
+    progress_printer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -166,7 +171,7 @@ public:
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    
+
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
     
@@ -193,6 +198,10 @@ public:
 
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
+
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(config_manager);
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
@@ -234,16 +243,24 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
+    auto sorter = std::make_shared<Sorter>();
+
     // Link together the pipeline's steps
-    segmentation->addObserver(partition);
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
-    measurement->addObserver(output);
+    measurement->addObserver(sorter);
+    sorter->addObserver(output);
+
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
+    deblending->addObserver(progress_mediator->getDeblendingObserver());
+    measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
-      segmentation->addObserver(
+      segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
@@ -311,7 +328,7 @@ public:
         << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
         << " threshold: "  << detection_frame->getDetectionThreshold();
 
-    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
@@ -326,9 +343,12 @@ public:
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();
+
+    progress_mediator->done();
 
     if (n_writen_rows > 0) {
       logger.info() << n_writen_rows << " sources detected";
@@ -430,16 +450,10 @@ ELEMENTS_API int main(int argc, char* argv[]) {
       argv_tmp[i] = option_str.data();
     }
 
-    std::unique_ptr<Elements::Program> plugin_options_main{new PluginOptionsMain{plugin_path, plugin_list}};
-    Elements::ProgramManager plugin_options_program{std::move(plugin_options_main),
-                                                    THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING,
-                                                    THIS_MODULE_VERSION_STRING,
-                                                    THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    CREATE_MANAGER_WITH_ARGS(plugin_options_program, PluginOptionsMain, plugin_path, plugin_list);
     plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
 
-    Elements::ProgramManager main{std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
-                                 THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-                                 THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
+    CREATE_MANAGER_WITH_ARGS(main, SEMain, plugin_path, plugin_list);
     Elements::ExitCode exit_code = main.run(argc, argv);
     return static_cast<Elements::ExitCodeType>(exit_code);
   }

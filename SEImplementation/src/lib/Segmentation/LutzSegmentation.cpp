@@ -33,6 +33,10 @@ public:
     m_listener.publishSource(source);
   }
 
+  void notifyProgress(int line, int total) override {
+    m_listener.notifyProgress(line, total);
+  }
+
 private:
   Segmentation::LabellingListener& m_listener;
   std::shared_ptr<SourceFactory> m_source_factory;

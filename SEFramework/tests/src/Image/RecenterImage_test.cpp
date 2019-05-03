@@ -10,7 +10,7 @@
 #include "SEFramework/Image/RecenterImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
-#include "CompareImages.h"
+#include "SEUtils/CompareImages.h"
 
 using namespace SExtractor;
 

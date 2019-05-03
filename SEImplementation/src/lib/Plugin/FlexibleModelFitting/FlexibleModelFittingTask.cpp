@@ -257,7 +257,6 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
-  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 

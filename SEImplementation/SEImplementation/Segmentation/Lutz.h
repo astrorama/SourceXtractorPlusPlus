@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_H_
 
+#include "ElementsKernel/Logging.h"
+
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
@@ -35,6 +37,7 @@ public:
   class LutzListener {
   public:
     virtual void publishGroup(PixelGroup& pixel_group) = 0;
+    virtual void notifyProgress(int /*line*/, int /*total*/) {};
   };
 
   Lutz() {}

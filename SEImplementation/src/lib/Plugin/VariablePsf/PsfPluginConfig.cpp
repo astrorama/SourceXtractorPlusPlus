@@ -19,9 +19,9 @@ static auto logger = Elements::Logging::getLogger("PsfPlugin");
 
 namespace SExtractor {
 
-static const std::string PSF_FILE{"psf-file"};
+static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
-static const std::string PSF_PIXELSCALE {"psf-pixelscale" };
+static const std::string PSF_PIXELSCALE {"psf-pixel-scale" };
 
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {

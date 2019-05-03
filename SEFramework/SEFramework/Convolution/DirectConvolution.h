@@ -21,13 +21,16 @@ public:
 
   virtual ~DirectConvolution() = default;
 
-  void convolve(std::shared_ptr<WriteableImage<T>> image) const {
+  template <typename ...Args>
+  void convolve(std::shared_ptr<WriteableImage<T>> image, Args... padding_args) const {
     auto padded_width = image->getWidth() + m_kernel->getWidth() - 1;
     auto padded_height = image->getHeight() + m_kernel->getHeight() - 1;
     auto lpad = m_kernel->getWidth() / 2;
     auto tpad = m_kernel->getHeight() / 2;
 
-    auto padded = VectorImage<T>::create(TPadding::create(image, padded_width, padded_height));
+    auto padded = VectorImage<T>::create(
+      TPadding::create(image, padded_width, padded_height, std::forward<Args>(padding_args)...)
+    );
 
     for (int iy = tpad; iy < padded->getHeight() - tpad; ++iy) {
       for (int ix = lpad; ix < padded->getWidth() - lpad; ++ix) {

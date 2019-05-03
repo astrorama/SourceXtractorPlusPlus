@@ -7,7 +7,7 @@
 
 #include <iostream>
 #include <chrono>
-
+#include <atomic>
 #include <ElementsKernel/Logging.h>
 
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
@@ -131,7 +131,7 @@ void MultithreadedMeasurement::workerThreadLoop() {
 
     {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
-      m_output_queue[order_number] = source_group;
+      m_output_queue.emplace_back(order_number, source_group);
       source_group = nullptr;
       m_new_output.notify_one();
     }
@@ -150,14 +150,14 @@ void MultithreadedMeasurement::outputThreadLoop() {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
       // Wait for something in the output queue
-      if (m_output_queue.empty() || m_output_queue.begin()->first != m_output_counter) {
+      if (m_output_queue.empty()) {
         m_new_output.wait_for(output_lock, std::chrono::milliseconds(100));
       }
 
       // Process the output queue
-      while(!m_output_queue.empty() && m_output_queue.begin()->first == m_output_counter) {
-        notifyObservers(m_output_queue.begin()->second);
-        m_output_queue.erase(m_output_counter++);
+      while(!m_output_queue.empty()) {
+        notifyObservers(m_output_queue.front().second);
+        m_output_queue.pop_front();
       }
     }
 

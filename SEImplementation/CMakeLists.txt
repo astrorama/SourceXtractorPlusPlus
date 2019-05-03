@@ -20,6 +20,7 @@ elements_depends_on_subdirs(NdArray) # From Alexandria
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
+elements_depends_on_subdirs(SEUtils)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -47,6 +48,8 @@ endif()
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 
+file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
+list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
 
 elements_add_library(SEImplementation
             src/lib/Background/*.cpp
@@ -54,13 +57,13 @@ elements_add_library(SEImplementation
             src/lib/Segmentation/*.cpp
             src/lib/Grouping/*.cpp
             src/lib/Configuration/*.cpp
-            src/lib/PythonConfig/*.cpp
             src/lib/Output/*.cpp
            	src/lib/Measurement/*.cpp
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
+			${SE_PYTHON_SRC}
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB Boost PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
@@ -68,7 +71,14 @@ elements_add_library(SEImplementation
 elements_add_executable(tt src/program/tt.cpp
                      LINK_LIBRARIES SEImplementation)
 
-            
+#===============================================================================
+# SEImplementation has a part that needs to be reachable from Python.
+#===============================================================================
+elements_add_python_module(SExtractorPy
+		src/lib/PythonConfig/PythonModule.cpp
+		LINK_LIBRARIES SEImplementation
+		INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
+)
 
 #===============================================================================
 # Declare the executables here
@@ -131,6 +141,9 @@ elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
 					 LINK_LIBRARIES SEImplementation
 					 TYPE Boost)
+elements_add_unit_test(BackgroundConvolution_test tests/src/Segmentation/BackgroundConvolution_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here
