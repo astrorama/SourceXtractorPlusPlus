@@ -33,9 +33,11 @@ public:
   const std::vector<std::pair<std::string, std::vector<int>>>& getOutputs() const;
   
   unsigned int getMaxIterations() const { return m_max_iterations; }
+  double getModifiedChiSquaredScale() const { return m_modified_chi_squared_scale; }
 
 private:
   unsigned int m_max_iterations {0};
+  double m_modified_chi_squared_scale {10.};
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;

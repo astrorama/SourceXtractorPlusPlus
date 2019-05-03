@@ -16,7 +16,7 @@ namespace SExtractor {
 
 std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
-    return std::make_shared<FlexibleModelFittingTask>(m_max_iterations, m_parameters, m_frames, m_priors);
+    return std::make_shared<FlexibleModelFittingTask>(m_max_iterations, m_modified_chi_squared_scale, m_parameters, m_frames, m_priors);
   } else {
     return nullptr;
   }
@@ -40,6 +40,7 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   }
 
   m_max_iterations = model_fitting_config.getMaxIterations();
+  m_modified_chi_squared_scale = model_fitting_config.getModifiedChiSquaredScale();
 
   m_outputs = model_fitting_config.getOutputs();
 }
