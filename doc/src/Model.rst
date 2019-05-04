@@ -8,14 +8,14 @@ Model fitting
 Fitting procedure
 -----------------
 
-SExtractor++ can fit models to the images of detected objects. The fit is performed by minimizing the loss function
+|SExtractor++| can fit models to the images of detected objects. The fit is performed by minimizing the loss function
 
 .. math::
   :label: loss_func
 
   \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{q_j - \mu_j}{s_j}\right)^2
 
-with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model pixel coordinates :math:`\boldsymbol{x}`.
+with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model central coordinates :math:`\boldsymbol{x}`.
 
 Modified least squares
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -59,22 +59,94 @@ The vector :math:`\tilde{\boldsymbol{m}}(\boldsymbol{q})` is obtained by convolv
 where :math:`h` is a 2-dimensional interpolant (interpolating function), :math:`\boldsymbol{x}_i` is the coordinate vector of image pixel :math:`i`, :math:`\boldsymbol{x}_j` the coordinate vector of model sample :math:`j`, and :math:`\eta` is the image-to-model sampling step ratio (sampling factor) which is by default defined by the PSF model sampling.
 We adopt a Lánczos-4 function :cite:`duchon1979` as interpolant.
 
-Change of variables
-~~~~~~~~~~~~~~~~~~~
+Model parameters
+~~~~~~~~~~~~~~~~
+
+In |SExtractor++|, any of the model parameters $q_j$ may be a constant parameter, a free parameter, or a dependent parameter.
+
+Constant parameters
+^^^^^^^^^^^^^^^^^^^
+
+In the model fitting configuration, constant parameters are declared using the :param:`ConstantParameter()` construct:
+
+<variable> = :param:`ConstantParameter (` <value> `)`
+
+<value> can be a numerical value, for instance:
+
+.. code-block:: python
+
+  size = ConstantParameter(42)
+
+One can also use a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_function>`_ based on e.g., actual measurements for the current object:
+
+.. code-block:: python
+
+  size = ConstantParameter(lambda o: 2 * o.get_radius())
+
+Free parameters
+^^^^^^^^^^^^^^^
+
+Free parameters are adjusted by minimizing :math:`\lambda(\boldsymbol{q})` in :eq:`loss_func`. They are declared using the :param:`FreeParameter()` construct:
+
+<variable> = :param:`FreeParameter (` <initial_value> :param:`,`  <range> :param:`)`
+
+The free parameter initial value follows the same rules as the constant parameter value: it may be defined as a simple number supplied by the user, e.g.:
+
+.. code-block:: python
+
+  size = FreeParameter(42, range)
+
+or as a lambda expression, such as:
+
+.. code-block:: python
+
+  size = FreeParameter(lambda o: 2.5 * o.get_radius(), range)
 
 Many model parameters are valid only over a restricted domain.
 Fluxes, for instance, cannot be negative. 
-In order to avoid invalid values and also to facilitate convergence, a change of variables is applied individually to each model parameter:
+The purpose of the range argument is to define the boundaries of the domain.
+In |SExtractor++|, this domain restriction is achieved through a change of variables, applied individually to every model parameter:
 
 .. math::
   :label: change_of_variables
 
-  q_j = f_j(a_j, b_j, Q_j).
+  q_j = f_j(q^\mathsf{(min)}_j, q^\mathsf{(max)}_j, Q_j).
 
-The "model" variable :math:`q_j` is bounded by the lower limit :math:`a_j` and the upper limit :math:`b_j` by construction.
+The "model" variable :math:`q_j` is bounded by the lower limit :math:`q^\mathsf{(min)}_j` and the upper limit :math:`q^\mathsf{(max)}_j` by construction.
 The "engine" variable :math:`Q_j` can take any value, and is actually the parameter that is being adjusted in the fit, although it does not have any physical meaning.
 
-In |SExtractor++| three different types of transforms :math:`f_j()` can be applied, depending on the parameter (:numref:`change_of_variable_table`).
+Parameter range
+"""""""""""""""
+
+The :param:`Range` construct is used to set :math:`q^\mathsf{(min)}_j`, :math:`q^\mathsf{(max)}_j`, and :math:`f_j()`:
+
+<range> = :param:`Range (` (<q_min> , <q_max>) ,  <range_type> :param:`)`
+
+The first argument is a `tuple <https://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_ of 2 numbers specifying the lower and upper limits of the range.
+The range type defines :math:`f_j()`.
+Currently supported range types are linear (:param:`RangeType.LINEAR`) and exponential (:param:`RangeType.EXPONENTIAL`).
+Linear ranges are appropriate for parameters such as positions or shape indices:
+
+.. code-block:: python
+
+  range = Range((-1,1), RangeType.LINEAR)
+
+Exponential ranges are better suited to strictly positive parameters with a large dynamic range, such as fluxes and aspect ratios:
+
+.. code-block:: python
+
+  range = Range((0.01,100), RangeType.EXPONENTIAL)
+
+The relation between model and engine parameters is plotted :numref:`fig_rangetypes` for both examples.
+:numref:`change_of_variable_table` details the formula applied for currently supported range types.
+
+.. _fig_rangetypes:
+
+.. figure:: figures/rangetypes.*
+   :figwidth: 100%
+   :align: center
+
+   Engine vs model parameters. *Left:* example of a linear range (x position parameter in the range :math:`]-1, 1[`). *Right*: example of an exponential range (aspect ratio parameter in the range :math:`]0.01,100[`). Note the logarithmic scale of the abcissa in the second example.
 
 .. _change_of_variable_table:
 
@@ -91,42 +163,65 @@ In |SExtractor++| three different types of transforms :math:`f_j()` can be appli
     - | Position angles
       | 
   * - :param:`RangeType.LINEAR`
-    - :math:`Q_j = \ln \frac{q_j - a_j}{b_j - q_j}`
-    - :math:`q_j = \frac{b_j - a_j}{1 + \exp -Q_j} + a_j`
+    - :math:`Q_j = \ln \frac{q_j - q^\mathsf{(min)}_j}{q^\mathsf{(max)}_j - q_j}`
+    - :math:`q_j = \frac{q^\mathsf{(max)}_j - q^\mathsf{(min)}_j}{1 + \exp -Q_j} + q^\mathsf{(min)}_j`
     - | positions
       | Sersic index
   * - :param:`RangeType.EXPONENTIAL`
-    - :math:`Q_j = \ln \frac{\ln q_j - \ln a_j}{\ln b_j - \ln q_j}`
-    - :math:`q_j = a_j \frac{\ln b_j - \ln a_j}{1 + \exp -Q_j}`
+    - :math:`Q_j = \ln \frac{\ln q_j - \ln q^\mathsf{(min)}_j}{\ln q^\mathsf{(max)}_j - \ln q_j}`
+    - :math:`q_j = q^\mathsf{(min)}_j \frac{\ln q^\mathsf{(max)}_j - \ln q^\mathsf{(min)}_j}{1 + \exp -Q_j}`
     - | fluxes
       | aspect ratios
 
-In practice, this approach works well, and was found to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
+In practice, we find this approach to ease convergence and to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
 
-In practice
-^^^^^^^^^^^
+Predefined free parameters
+""""""""""""""""""""""""""
 
-Free parameters are declared using the :param:`FreeParameter()` construct:
-
-<variable> = :param:`FreeParameter (` <initial_value> ,  <range> :param:`)`
-
-The initial value may be a simple number supplied by the user, e.g.:
+|SExtractor++| comes with two pre-defined free parameters for easily initializing positions and fluxes:
 
 .. code-block:: python
 
-  ratio = FreeParameter(1, range)
-
-or a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_function>`_ based on e.g., actual measurements:
+  def get_pos_parameters():
+    return (
+        FreeParameter(lambda o: o.get_centroid_x(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR)),
+        FreeParameter(lambda o: o.get_centroid_y(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR))
+    )
 
 .. code-block:: python
 
-  ratio = FreeParameter(lambda o: o.get_radius(), range)
+  def get_flux_parameter(type=FluxParameterType.ISO, scale=1):
+    func_map = {
+        FluxParameterType.ISO : 'get_iso_flux'
+    }
+    return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
-The range is specified using the :param:`Range` construct:
-
-<range> = :param:`Range (` <min_value> , <max_value> ,  <range_type> :param:`)`
 
 
+
+
+Dependent parameters
+^^^^^^^^^^^^^^^^^^^^
+
+It is often useful to define dependencies between parameters. Dependent parameters are declared using the :param:`DependentParameter()` construct:
+
+<variable> = :param:`DependentParameter (` <function> ` :param:`,` <function_arg1> :param:`,` <function_arg2> :param:`, ... )`
+
+For instance, one may wish to adjust the sizes of two components of a model in parallel:
+
+.. code-block:: python
+
+  size1 = Freeparameter(lambda o: 2 * o.get_radius(), Range((0.01, 100.0), RangeType.EXPONENTIAL))
+  size2 = DependentParameter(lambda s: 1.2 * s, size1)
+
+Parameter dependencies are useful for computing new output columns from fitted parameters:
+
+.. code-block:: python
+
+  MAG_ZEROPOINT = 33.568
+  mag = DependentParameter(lambda f: -2.5 * np.log10(f) + MAG_ZEROPOINT, flux)
+
+Parameter dependencies may also be used to apply changes of variables for setting complex priors, as we shall see in the next section.
 
 Regularization
 ~~~~~~~~~~~~~~
