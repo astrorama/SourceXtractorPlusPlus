@@ -13,7 +13,11 @@
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
+
+#include "ModelFitting/Engine/ChiSquareComparator.h"
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
+#include "ModelFitting/Engine/AsinhChiSquareComparator.h"
+
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
@@ -82,11 +86,12 @@ void printLevmarInfo(std::array<double,10> info) {
 
 }
 
-FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations,
+FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
     std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
-  : m_max_iterations(max_iterations), m_parameters(parameters), m_frames(frames), m_priors(priors) {}
+  : m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
+    m_parameters(parameters), m_frames(frames), m_priors(priors) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
@@ -229,7 +234,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
       // Setup residuals
       auto data_vs_model =
-          createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
+          createDataVsModelResiduals(image, std::move(frame_model), weight, AsinhChiSquareComparator(m_modified_chi_squared_scale));
       res_estimator.registerBlockProvider(std::move(data_vs_model));
     }
   }
@@ -257,7 +262,6 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   // Model fitting
   LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
-  printLevmarInfo(boost::any_cast<std::array<double,10>>(solution.underlying_framework_info));
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 

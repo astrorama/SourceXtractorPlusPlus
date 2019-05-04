@@ -39,7 +39,8 @@ public:
     return m_kernel->getHeight();
   }
 
-  void convolve(std::shared_ptr<WriteableImage<T>> image_ptr) const {
+  template <typename ...Args>
+  void convolve(std::shared_ptr<WriteableImage<T>> image_ptr, Args... padding_args) const {
     // Dimension of the working padded images
     auto padded_width = image_ptr->getWidth() + m_kernel->getWidth() - 1;
     auto padded_height = image_ptr->getHeight() + m_kernel->getHeight() - 1;
@@ -51,7 +52,7 @@ public:
     auto total_size = padded_height * padded_width;
 
     // Padded image
-    auto padded = TPadding::create(image_ptr, padded_width, padded_height);
+    auto padded = TPadding::create(image_ptr, padded_width, padded_height, std::forward<Args>(padding_args)...);
 
     // Buffers
     std::vector<real_t> real_buffer(total_size * 2);

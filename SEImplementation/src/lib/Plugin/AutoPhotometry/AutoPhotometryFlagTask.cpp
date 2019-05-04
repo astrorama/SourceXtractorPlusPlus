@@ -9,6 +9,7 @@
 #include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SourceFlags.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -30,6 +31,8 @@ const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AutoPhotometryFlagTask::computeProperties(SourceInterface& source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   // get the detection frame
   const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
 

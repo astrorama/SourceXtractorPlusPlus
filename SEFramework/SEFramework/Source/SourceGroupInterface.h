@@ -35,7 +35,7 @@ public:
   class GroupIterator;
   using iterator = GroupIterator<SourceInterface>;
   using const_iterator = GroupIterator<const SourceInterface>;
-  
+
   virtual iterator begin() = 0;
   virtual iterator end() = 0;
   virtual const_iterator cbegin() = 0;

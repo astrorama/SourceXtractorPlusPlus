@@ -15,6 +15,7 @@ elements_subdir(SEBenchmarks)
 #===============================================================================
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEFramework)
+elements_depends_on_subdirs(SEImplementation)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -48,6 +49,8 @@ endif ()
 #===============================================================================
 elements_add_executable(BenchConvolution src/program/BenchConvolution.cpp
         LINK_LIBRARIES ModelFitting SEFramework ${Boost_LIBRARIES} ${OpenCV_LIBS})
+elements_add_executable(BenchBackgroundConvolution src/program/BenchBackgroundConvolution.cpp
+        LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
 
 #===============================================================================
 # Declare the Boost tests here

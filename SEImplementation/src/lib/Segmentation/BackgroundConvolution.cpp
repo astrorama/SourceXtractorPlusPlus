@@ -6,12 +6,26 @@
  */
 
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
+#include <ElementsKernel/Logging.h>
 
 namespace SExtractor {
 
-std::shared_ptr<DetectionImage> BackgroundConvolution::processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance, SeFloat threshold) const {
-  auto result_image = BufferedImage<DetectionImage::PixelType>::create(std::make_shared<BgConvolutionImageSource>(image, variance, threshold, m_convolution_filter));
-  return result_image;
+Elements::Logging logger = Elements::Logging::getLogger("ImageConvolution");
+
+std::shared_ptr<DetectionImage>
+BackgroundConvolution::processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance,
+                                    SeFloat threshold) const {
+
+  if (m_convolution_filter->getWidth() > 5) {
+    logger.debug() << "Using DFT algorithm for the image convolution";
+    return BufferedImage<DetectionImage::PixelType>::create(
+      std::make_shared<BgDFTConvolutionImageSource>(image, variance, threshold, m_convolution_filter)
+    );
+  }
+  logger.debug() << "Using direct algorithm for the image convolution";
+  return BufferedImage<DetectionImage::PixelType>::create(
+    std::make_shared<BgConvolutionImageSource>(image, variance, threshold, m_convolution_filter)
+  );
 }
 
 void BackgroundConvolution::normalize() {
@@ -30,7 +44,6 @@ void BackgroundConvolution::normalize() {
   }
 
 }
-
 
 
 }

@@ -41,8 +41,7 @@
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 
-#include "ModelFitting/Engine/LogChiSquareComparator.h"
-#include "ModelFitting/Engine/ChiSquareComparator.h"
+#include "ModelFitting/Engine/AsinhChiSquareComparator.h"
 
 
 #include "ModelFitting/Engine/EngineParameterManager.h"
@@ -219,7 +218,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   auto image = VectorImage<SeFloat>::create(source_stamp);
 
   auto data_vs_model =
-      createDataVsModelResiduals(image, std::move(frame_model), weight, LogChiSquareComparator{});
+      createDataVsModelResiduals(image, std::move(frame_model), weight, AsinhChiSquareComparator{});
 
   ResidualEstimator res_estimator {};
   res_estimator.registerBlockProvider(move(data_vs_model));
