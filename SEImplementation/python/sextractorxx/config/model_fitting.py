@@ -307,7 +307,10 @@ def separation_angle(x1, y1, x2, y2):
 def get_position_angle(x1, y1, x2, y2):
     c1 = get_sky_coord(x1, y1)
     c2 = get_sky_coord(x2, y2)
-    return c1.position_angle(c2).degree
+    angle = c1.position_angle(c2).degree
+    
+    # return angle normalized to range: -90 <= angle < 90
+    return (angle + 90.0) % 180.0 - 90.0
 
 def set_coordinate_system(cs):
     global coordinate_system

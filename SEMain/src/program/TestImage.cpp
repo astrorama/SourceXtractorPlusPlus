@@ -275,6 +275,9 @@ public:
           >> source.dev_flux >> source.dev_rad >> source.dev_aspect >> source.dev_rot
           >> source.point_flux;
 
+      source.exp_rot *= -M_PI / 180.0;
+      source.dev_rot *= -M_PI / 180.0;
+
       sources.emplace_back(std::move(source));
     }
 
@@ -287,8 +290,8 @@ public:
 
     for (const auto& source : sources) {
       file << source.x << " " << source.y << " "
-          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << source.exp_rot << " "
-          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << source.dev_rot << " "
+          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << (source.exp_rot * -180.0 / M_PI) << " "
+          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << (source.dev_rot * -180.0 / M_PI) << " "
           << source.point_flux << "\n";
     }
   }
@@ -342,6 +345,7 @@ public:
             >> source.dev_rad >> source.dev_aspect >> dev_angle_degree
             >> source.exp_rad >> source.exp_aspect >> exp_angle_degree;
 
+        // FIXME should change sign?
         source.dev_rot = dev_angle_degree * M_PI / 180.0;
         source.exp_rot = exp_angle_degree * M_PI / 180.0;
 
