@@ -190,10 +190,14 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = { "max_iterations" : 100 }
+params_dict = { "max_iterations" : 100, "modified_chi_squared_scale" : 10 }
 
 def set_max_iterations(iterations):
     params_dict["max_iterations"] = iterations
+    
+def set_modified_chi_squared_scale(scale):
+    params_dict["modified_chi_squared_scale"] = scale
+
 
 class ModelBase(cpp.Id):
     pass
