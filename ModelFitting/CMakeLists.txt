@@ -10,6 +10,7 @@ elements_depends_on_subdirs(SEUtils)
 find_package(Boost)
 find_package(Levmar)
 find_package(GSL 2.2.1)
+find_package(Ceres)
 
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
@@ -30,18 +31,24 @@ if (NOT GSL_FOUND)
 else ()
     set (GSL GSL)
 endif ()
+if (NOT CERES_FOUND)
+    file(GLOB CERES_SRC src/lib/Engine/CeresEngine.cpp)
+    list(REMOVE_ITEM ENGINE_SRC ${CERES_SRC})
+    message("Ceres solver nor found, compiling without Ceres support!")
+else ()
+    set (CERES Ceres)
+endif ()
 
-if (NOT LEVMAR_FOUND AND NOT GSL_FOUND)
-    set(WITHOUT_MODELFITTING ON PARENT_SCOPE)
-    message(WARNING "Levmar and GSL not found. This will generate a version of sourcextractor++ without model fitting")
+if (NOT LEVMAR_FOUND AND NOT GSL_FOUND AND NOT CERES_FOUND)
+    message("This will generate a version of sextractor++ without model fitting")
 endif ()
 
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
                      ${ENGINE_SRC}
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL}
-                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS}
+                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL} ${CERES}
+                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS} ${CERES_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
