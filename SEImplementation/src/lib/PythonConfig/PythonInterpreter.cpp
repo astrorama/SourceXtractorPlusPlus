@@ -245,7 +245,7 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");
-  python_function(CoordinateSystemWrapper(coordinate_system));
+  python_function(coordinate_system);
 }
 
 }
