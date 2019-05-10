@@ -47,9 +47,10 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def("__str__", &PyAperture::toString)
     .def("__repr__", &PyAperture::toString);
 
-  bp::class_<CoordinateSystemWrapper>("CoordinateSystem", bp::no_init)
-      .def("image_to_world", &CoordinateSystemWrapper::imageToWorld)
-      .def("world_to_image", &CoordinateSystemWrapper::worldToImage);
+  bp::class_<CoordinateSystem, boost::noncopyable>("CoordinateSystem", bp::no_init)
+      .def("image_to_world", &CoordinateSystem::imageToWorld)
+      .def("world_to_image", &CoordinateSystem::worldToImage);
+  bp::register_ptr_to_python<std::shared_ptr<CoordinateSystem>>();
 
   bp::class_<WorldCoordinate>("WorldCoordinate")
       .def(bp::init<double, double>())
