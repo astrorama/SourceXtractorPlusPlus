@@ -34,6 +34,17 @@ class Range(object):
         }
         res += ',{}]'.format(type_str[self.__type])
         return res
+    
+class Unbounded(object):
+    
+    def __init__(self, normalization_factor):
+        self.__normalization_factor = normalization_factor
+    
+    def get_normalization_factor(self):
+        return self.__normalization_factor
+    
+    def __str__(self):
+        res = '[{}]'.format(str(__normalization_factor))
 
 
 constant_parameter_dict = {}

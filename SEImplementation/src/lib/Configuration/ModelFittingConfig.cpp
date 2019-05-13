@@ -5,6 +5,7 @@
 
 #include <ElementsKernel/Logging.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/Configuration/PythonConfig.h>
 #include <SEImplementation/Configuration/ModelFittingConfig.h>
@@ -73,8 +74,16 @@ void ModelFittingConfig::initialize(const UserValues&) {
       return {low, high};
     };
     bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
+
+
+    std::shared_ptr<FlexibleModelFittingConverterFactory> converter;
+    if (is_exponential) {
+      converter = std::make_shared<FlexibleModelFittingExponentialRangeConverterFactory>(range_func);
+    } else {
+      converter = std::make_shared<FlexibleModelFittingLinearRangeConverterFactory>(range_func);
+    }
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(
-                          p.first, init_value_func, range_func, is_exponential);
+                          p.first, init_value_func, converter);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
