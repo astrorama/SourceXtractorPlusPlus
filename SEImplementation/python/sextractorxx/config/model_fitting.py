@@ -37,14 +37,20 @@ class Range(object):
     
 class Unbounded(object):
     
-    def __init__(self, normalization_factor):
+    def __init__(self, normalization_factor=1):
         self.__normalization_factor = normalization_factor
     
     def get_normalization_factor(self):
-        return self.__normalization_factor
+        return self.__normalization_factor if hasattr(self.__normalization_factor, '__call__') else lambda v,o: self.__normalization_factor
     
     def __str__(self):
-        res = '[{}]'.format(str(__normalization_factor))
+        res = '['
+        if hasattr(self.__normalization_factor, '__call__'):
+            res += 'func'
+        else:
+            res += '{}'.format(self.__normalization_factor)
+        res += ']'
+        return res
 
 
 constant_parameter_dict = {}
@@ -92,7 +98,7 @@ class ConstantParameter(ParameterBase):
 
 class FreeParameter(ParameterBase):
 
-    def __init__(self, init_value, range=None):
+    def __init__(self, init_value, range=Unbounded()):
         ParameterBase.__init__(self)
         self.__init_value = init_value
         self.__range = range

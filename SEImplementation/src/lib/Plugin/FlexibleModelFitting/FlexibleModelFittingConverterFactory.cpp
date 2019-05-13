@@ -7,6 +7,7 @@
 
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
+#include "ModelFitting/Parameters/NormalizedConverter.h"
 #include "ModelFitting/utils.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
@@ -32,6 +33,14 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFac
   auto converter = make_unique<SigmoidConverter>(minimum_value, maximum_value);
   return converter;
 }
+
+std::unique_ptr<ModelFitting::CoordinateConverter> FlexibleModelFittingUnboundedConverterFactory::getConverter(
+    double initial_value, const SourceInterface& source) const {
+  double factor = m_normalization_factor(initial_value, source);
+  auto converter = make_unique<NormalizedConverter>(factor);
+  return converter;
+}
+
 
 }
 

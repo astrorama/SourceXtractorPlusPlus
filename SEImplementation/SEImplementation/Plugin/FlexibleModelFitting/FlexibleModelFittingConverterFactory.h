@@ -53,15 +53,18 @@ private:
   RangeFunc m_range;
 };
 
-//class FlexibleModelFittingUnboundedConverterFactory : public FlexibleModelFittingConverterFactory {
-//public:
-//  FlexibleModelFittingUnboundedConverterFactory(ValueFunc normalization_factor);
-//
-//  std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const override;
-//
-//private:
-//  ValueFunc m_normalization_factor;
-//};
+class FlexibleModelFittingUnboundedConverterFactory : public FlexibleModelFittingConverterFactory {
+public:
+  using ValueFunc = std::function<double(double, const SourceInterface&)>;
+
+  FlexibleModelFittingUnboundedConverterFactory(ValueFunc normalization_factor)
+      : m_normalization_factor(normalization_factor) {}
+
+  std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const override;
+
+private:
+  ValueFunc m_normalization_factor;
+};
 
 }
 

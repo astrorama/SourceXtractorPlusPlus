@@ -3,6 +3,8 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <string>
+
 #include <ElementsKernel/Logging.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h>
@@ -64,23 +66,36 @@ void ModelFittingConfig::initialize(const UserValues&) {
       ObjectInfo oi {o};
       return py_call_wrapper<double>(py_init_value_func, oi);
     };
-    py::object py_range_obj = p.second.attr("get_range")();
-    py::object py_range_func = py_range_obj.attr("get_limits")();
-    auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
-      ObjectInfo oi {o};
-      py::tuple range = py_call_wrapper<py::tuple>(py_range_func, init, oi);
-      double low = py::extract<double>(range[0]);
-      double high = py::extract<double>(range[1]);
-      return {low, high};
-    };
-    bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
 
+    py::object py_range_obj = p.second.attr("get_range")();
 
     std::shared_ptr<FlexibleModelFittingConverterFactory> converter;
-    if (is_exponential) {
-      converter = std::make_shared<FlexibleModelFittingExponentialRangeConverterFactory>(range_func);
+    std::string type_string(py::extract<char const*>(py_range_obj.attr("__class__").attr("__name__")));
+    if (type_string == "Unbounded") {
+      py::object py_factor_func = py_range_obj.attr("get_normalization_factor")();
+      auto factor_func = [py_factor_func] (double init, const SourceInterface& o) -> double {
+        ObjectInfo oi {o};
+        return py_call_wrapper<double>(py_factor_func, init, oi);
+      };
+      converter = std::make_shared<FlexibleModelFittingUnboundedConverterFactory>(factor_func);
+    } else if (type_string == "Range") {
+      py::object py_range_func = py_range_obj.attr("get_limits")();
+      auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
+        ObjectInfo oi {o};
+        py::tuple range = py_call_wrapper<py::tuple>(py_range_func, init, oi);
+        double low = py::extract<double>(range[0]);
+        double high = py::extract<double>(range[1]);
+        return {low, high};
+      };
+      bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
+
+      if (is_exponential) {
+        converter = std::make_shared<FlexibleModelFittingExponentialRangeConverterFactory>(range_func);
+      } else {
+        converter = std::make_shared<FlexibleModelFittingLinearRangeConverterFactory>(range_func);
+      }
     } else {
-      converter = std::make_shared<FlexibleModelFittingLinearRangeConverterFactory>(range_func);
+      throw Elements::Exception("Unknown converter type: " + type_string);
     }
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(
                           p.first, init_value_func, converter);
