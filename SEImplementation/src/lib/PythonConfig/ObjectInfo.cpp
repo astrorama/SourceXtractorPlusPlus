@@ -13,11 +13,13 @@ namespace SExtractor {
 ObjectInfo::ObjectInfo(const SourceInterface& source) : m_source(source) { }
 
 SeFloat ObjectInfo::getCentroidX() const {
-  return m_source.get().getProperty<PixelCentroid>().getCentroidX();
+  // On the Python side we use FITS coordinates, starting at 1
+  return m_source.get().getProperty<PixelCentroid>().getCentroidX() + 1.0;
 }
 
 SeFloat ObjectInfo::getCentroidY() const {
-  return m_source.get().getProperty<PixelCentroid>().getCentroidY();
+  // On the Python side we use FITS coordinates, starting at 1
+  return m_source.get().getProperty<PixelCentroid>().getCentroidY() + 1.0;
 }
 
 SeFloat ObjectInfo::getIsoFlux() const {
