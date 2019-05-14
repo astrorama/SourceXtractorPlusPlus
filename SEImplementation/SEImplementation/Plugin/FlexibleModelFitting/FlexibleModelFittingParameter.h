@@ -27,6 +27,7 @@ extern std::mutex python_callback_mutex;
 
 class SourceInterface;
 class FlexibleModelFittingParameterManager;
+class FlexibleModelFittingConverterFactory;
 
 class FlexibleModelFittingParameter {
 public:
@@ -66,24 +67,17 @@ private:
 };
 
 class FlexibleModelFittingFreeParameter : public FlexibleModelFittingParameter {
-  
 public:
   
   /// The signature of a function providing the initial value. It gets as a
   /// parameter a source and returns the initial value.
   using InitialValueFunc = std::function<double(const SourceInterface&)>;
 
-  /// The signature of a function providing the range of a parameter. It gets as
-  /// as input the initial value of the parameter and the source, and it returns
-  /// a pair containing the minimum and maximum values of the range.
-  using RangeFunc = std::function<std::pair<double, double>(double, const SourceInterface&)>;
-
   FlexibleModelFittingFreeParameter(int id, InitialValueFunc initial_value,
-                                    RangeFunc range, bool is_exponential_range)
+      std::shared_ptr<FlexibleModelFittingConverterFactory> converter_factory)
           : FlexibleModelFittingParameter(id),
             m_initial_value(initial_value),
-            m_range(range),
-            m_is_exponential_range(is_exponential_range) {}
+            m_converter_factory(converter_factory) {}
 
   std::shared_ptr<ModelFitting::BasicParameter> create(
                                   FlexibleModelFittingParameterManager& parameter_manager,
@@ -93,8 +87,7 @@ public:
 private:
 
   InitialValueFunc m_initial_value;
-  RangeFunc m_range;
-  bool m_is_exponential_range;
+  std::shared_ptr<FlexibleModelFittingConverterFactory> m_converter_factory;
 };
 
 class FlexibleModelFittingDependentParameter : public FlexibleModelFittingParameter {
