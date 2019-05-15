@@ -170,13 +170,8 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
 static double computeBn(double n) {
   // Using approximation from MacArthur, L.A., Courteau, S., & Holtzman, J.A. 2003, ApJ, 582, 689
-  // FIXME solve for increased precision? or is it too slow?
-  if (n <= 0.36) {
-    return 0.01945 - 0.8902 * n + 10.95 * n * n - 19.67 * n * n * n + 13.43 * n * n * n * n;
-  } else {
-    return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
-        + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
-  }
+  return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
+      + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
 }
 
 void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameterManager& manager,
