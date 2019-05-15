@@ -33,11 +33,7 @@ find_package(WCSLIB REQUIRED)
 
 find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
-if(PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
-	find_package(Boost REQUIRED COMPONENTS python)
-else()
-	find_package(Boost REQUIRED COMPONENTS python3)
-endif()
+find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 
 #===============================================================================
 # Declare the library dependencies here
@@ -64,8 +60,8 @@ elements_add_library(SEImplementation
             src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
 			${SE_PYTHON_SRC}
-            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB Boost PythonLibs PythonInterp Configuration
-            INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
+            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB BoostPython PythonLibs PythonInterp Configuration
+            INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
             
 elements_add_executable(tt src/program/tt.cpp

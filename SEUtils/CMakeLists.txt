@@ -23,11 +23,7 @@ elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
-if(PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
-    find_package(Boost REQUIRED COMPONENTS python)
-else()
-    find_package(Boost REQUIRED COMPONENTS python3)
-endif()
+find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(GMock)
 
 #===============================================================================
@@ -39,8 +35,8 @@ find_package(GMock)
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 elements_add_library(SEUtils src/lib/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost PythonLibs
-                     INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
+                     LINK_LIBRARIES ElementsKernel BoostPython PythonLibs
+                     INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEUtils)
 
 #===============================================================================

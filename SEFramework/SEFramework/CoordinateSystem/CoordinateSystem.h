@@ -21,6 +21,8 @@ struct WorldCoordinate {
   WorldCoordinate(double alpha, double delta) : m_alpha(alpha), m_delta(delta) {}
 };
 
+// Note: (0,0) is the center of the first pixel
+
 struct ImageCoordinate {
   double m_x, m_y;
 
