@@ -36,6 +36,21 @@ using namespace ModelFitting;
 // Reference for Sersic related quantities:
 // See https://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
 
+
+// Note about pixel coordinates:
+
+// The model fitting is made in pixel coordinates of the detection image
+
+// Internally we use a coordinate system with (0,0) at the center of the first pixel. But for compatibility with
+// SExtractor 2, all pixel coordinates visible to the end user need to follow the FITS convention of (1,1) being the
+// center of the coordinate system.
+
+// The ModelFitting module uses the more common standard of (0, 0) being the corner of the first pixel.
+
+// So we first convert the Python parameter to our internal coordinates, then do the transformation of coordinate,
+// subtract the offset to the image cut-out and shift the result by 0.5 pixels
+
+
 void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterManager& manager,
                                          const SourceInterface& source,
                                          std::vector<ModelFitting::PointModel>& point_models,
@@ -46,11 +61,11 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   manager.storeParameter(pixel_x);
@@ -69,11 +84,11 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -116,11 +131,11 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -155,13 +170,8 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
 static double computeBn(double n) {
   // Using approximation from MacArthur, L.A., Courteau, S., & Holtzman, J.A. 2003, ApJ, 582, 689
-  // FIXME solve for increased precision? or is it too slow?
-  if (n <= 0.36) {
-    return 0.01945 - 0.8902 * n + 10.95 * n * n - 19.67 * n * n * n + 13.43 * n * n * n * n;
-  } else {
-    return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
-        + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
-  }
+  return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
+      + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
 }
 
 void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameterManager& manager,
@@ -174,11 +184,11 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_x - offset.m_x;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y))).m_y - offset.m_y;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   ManualParameter x_scale(1); // we don't scale the x coordinate

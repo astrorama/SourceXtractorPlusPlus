@@ -15,13 +15,14 @@
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
-#include "ModelFitting/Parameters/ExpSigmoidConverter.h"
-#include "ModelFitting/Parameters/SigmoidConverter.h"
+#include "SEUtils/Python.h"
 
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
-#include "SEUtils/Python.h"
+
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 
 static Elements::Logging logger = Elements::Logging::getLogger("FlexibleModelFittingParameter");
 
@@ -47,20 +48,10 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
   std::lock_guard<std::mutex> guard {python_callback_mutex};
   double initial_value = m_initial_value(source);
 
-  double minimum_value, maximum_value;
-  std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
-  
-  //std::cout << initial_value << " " << minimum_value << " " << maximum_value << "\n";
-
-  std::unique_ptr<CoordinateConverter> converter;
-  if (m_is_exponential_range) {
-    converter = make_unique<ExpSigmoidConverter>(minimum_value, maximum_value);
-  } else {
-    converter = make_unique<SigmoidConverter>(minimum_value, maximum_value);
-  }
-  
+  auto converter = m_converter_factory->getConverter(initial_value, source);
   auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
   engine_manager.registerParameter(*parameter);
+
   return parameter;
 }
 
