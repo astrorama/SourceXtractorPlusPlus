@@ -6,8 +6,8 @@ from .model_fitting import (RangeType, Range, Unbounded, print_parameters, Const
                             FluxParameterType, get_flux_parameter, add_model,
                             PointSourceModel, SersicModel, ExponentialModel,
                             DeVaucouleursModel, print_model_fitting_info, add_prior, set_max_iterations,
-                            pixel_to_world_coordinate, radius_to_wc_angle, separation_angle, get_position_angle,
-                            get_world_position_parameters, get_world_position_angle_parameters,
+                            pixel_to_world_coordinate, radius_to_wc_angle, get_separation_angle, get_position_angle,
+                            get_world_position_parameters, get_world_parameters,
                             set_modified_chi_squared_scale)
 
 from .aperture import *

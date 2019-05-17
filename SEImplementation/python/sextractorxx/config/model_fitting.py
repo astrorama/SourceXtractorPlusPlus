@@ -309,7 +309,7 @@ class WorldCoordinate:
             
 def pixel_to_world_coordinate(x, y):
     global coordinate_system
-    wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x,y)) 
+    wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x-1, y-1)) # -1 as we go FITS -> internal 
     return WorldCoordinate(wc.alpha, wc.delta)
 
 def get_sky_coord(x,y):
@@ -320,7 +320,7 @@ def get_sky_coord(x,y):
 def radius_to_wc_angle(x, y, rad):
     return (separation_angle(x, y, x+rad, y) + separation_angle(x, y, x, y+rad)) / 2.0 
 
-def separation_angle(x1, y1, x2, y2):
+def get_separation_angle(x1, y1, x2, y2):
     c1 = get_sky_coord(x1, y1)
     c2 = get_sky_coord(x2, y2)
     return c1.separation(c2).degree
@@ -342,24 +342,50 @@ def get_world_position_parameters(x, y):
     dec = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).dec, x, y)
     return (ra, dec)
 
-def get_world_position_angle_parameters(x, y, radius, angle):
+def get_world_parameters(x, y, radius, angle, ratio):
     ra = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).ra, x, y)
     dec = DependentParameter(lambda x,y: pixel_to_world_coordinate(x, y).dec, x, y)
     
-    def wc_rad_func(x, y, radius, angle):
-        x2 = x + math.cos(angle) * radius
-        y2 = y + math.sin(angle) * radius
+    def get_major_axis(x, y, radius, angle, ratio):
+        if ratio <= 1:
+            x2 = x + math.cos(angle) * radius
+            y2 = y + math.sin(angle) * radius
+        else:
+            x2 = x + math.sin(angle) * radius * ratio
+            y2 = y + math.cos(angle) * radius * ratio
+            
+        return x2, y2
         
-        return separation_angle(x, y, x2, y2)
+    def get_minor_axis(x, y, radius, angle, ratio):
+        if ratio <= 1:
+            x2 = x + math.sin(angle) * radius * ratio
+            y2 = y + math.cos(angle) * radius * ratio
+        else:
+            x2 = x + math.cos(angle) * radius
+            y2 = y + math.sin(angle) * radius
+            
+        return x2, y2
         
-    def wc_angle_func(x, y, radius, angle):
-        x2 = x + math.cos(angle) * radius
-        y2 = y + math.sin(angle) * radius
+    def wc_rad_func(x, y, radius, angle, ratio):
+        x2, y2 = get_major_axis(x, y, radius, angle, ratio)
+        return get_separation_angle(x, y, x2, y2)
         
+    def wc_angle_func(x, y, radius, angle, ratio):
+        x2, y2 = get_major_axis(x, y, radius, angle, ratio)
         return get_position_angle(x, y, x2, y2)
     
-    wc_rad = DependentParameter(wc_rad_func, x, y, radius, angle)
-    wc_angle = DependentParameter(wc_angle_func, x, y, radius, angle)
+    def wc_ratio_func(x, y, radius, angle, ratio):
+        minor_x, minor_y = get_minor_axis(x, y, radius, angle, ratio)
+        minor_angle = get_separation_angle(x,y, minor_x, minor_y) 
+        
+        major_x, major_y = get_major_axis(x, y, radius, angle, ratio)
+        major_angle = get_separation_angle(x,y, major_x, major_y)
+        
+        return minor_angle / major_angle
     
-    return (ra, dec, wc_rad, wc_angle)
+    wc_rad = DependentParameter(wc_rad_func, x, y, radius, angle, ratio)
+    wc_angle = DependentParameter(wc_angle_func, x, y, radius, angle, ratio)
+    wc_ratio = DependentParameter(wc_ratio_func, x, y, radius, angle, ratio)
+    
+    return (ra, dec, wc_rad, wc_angle, wc_ratio)
 
