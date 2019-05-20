@@ -47,11 +47,6 @@ void MultithreadedMeasurement::waitForThreads() {
   m_output_thread->join();
 
   logger.debug() << "All worker threads done!";
-
-  if (m_rethrow) {
-    logger.debug() << "Rethrowing error set by thread " << m_rethrow->first;
-    throw Elements::Exception(m_rethrow->second);
-  }
 }
 
 void MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
@@ -75,12 +70,10 @@ void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* meas
     measurement->workerThreadLoop();
   }
   catch (const std::exception &e) {
-    logger.error() << "Worker thread " << id << " got an exception!";
-    logger.error() << "Aborting the execution";
-
-    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
-    measurement->m_abort = true;
-    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
+    logger.fatal() << "Worker thread " << id << " got an exception!";
+    logger.fatal() << "Aborting the execution";
+    logger.fatal() << e.what();
+    abort();
   }
   logger.debug() << "Stopping worker thread " << id;
 }
@@ -91,18 +84,16 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* meas
     measurement->outputThreadLoop();
   }
   catch (const std::exception &e) {
-    logger.error() << "Output thread got an exception!";
-    logger.error() << "Aborting the execution";
-
-    std::unique_lock<std::mutex> output_lock(measurement->m_output_queue_mutex);
-    measurement->m_abort = true;
-    measurement->m_rethrow.reset(new std::pair<int, Elements::Exception>{id, Elements::Exception{e.what()}});
+    logger.fatal() << "Output thread got an exception!";
+    logger.fatal() << "Aborting the execution";
+    logger.fatal() << e.what();
+    abort();
   }
   logger.debug() << "Stopping output thread " << id;
 }
 
 void MultithreadedMeasurement::workerThreadLoop() {
-  while (!m_abort) {
+  while (true) {
     int order_number;
     std::shared_ptr<SourceGroupInterface> source_group;
     {
@@ -145,7 +136,7 @@ void MultithreadedMeasurement::workerThreadLoop() {
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (!m_abort) {
+  while (true) {
     {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
