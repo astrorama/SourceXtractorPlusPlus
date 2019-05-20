@@ -4,10 +4,12 @@
  */
 
 #include <boost/python.hpp>
+
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
 
+#include <SEImplementation/PythonConfig/PythonModule.h>
 
 namespace bp = boost::python;
 
@@ -44,6 +46,21 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def_readonly("apertures", &PyAperture::apertures)
     .def("__str__", &PyAperture::toString)
     .def("__repr__", &PyAperture::toString);
+
+  bp::class_<CoordinateSystem, boost::noncopyable>("CoordinateSystem", bp::no_init)
+      .def("image_to_world", &CoordinateSystem::imageToWorld)
+      .def("world_to_image", &CoordinateSystem::worldToImage);
+  bp::register_ptr_to_python<std::shared_ptr<CoordinateSystem>>();
+
+  bp::class_<WorldCoordinate>("WorldCoordinate")
+      .def(bp::init<double, double>())
+      .def_readwrite("alpha", &WorldCoordinate::m_alpha)
+      .def_readwrite("delta", &WorldCoordinate::m_delta);
+
+  bp::class_<ImageCoordinate>("ImageCoordinate")
+      .def(bp::init<double, double>())
+      .def_readwrite("x", &ImageCoordinate::m_x)
+      .def_readwrite("y", &ImageCoordinate::m_y);
 }
 
 } // namespace SExtractor

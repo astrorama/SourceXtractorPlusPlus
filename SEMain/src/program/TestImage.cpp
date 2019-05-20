@@ -29,6 +29,8 @@
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
+#include "SEImplementation/CoordinateSystem/WCS.h"
+
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
@@ -96,6 +98,7 @@ public:
         ("model-size", po::value<double>()->default_value(0.0), "Model size for the rasterization of sources, defaults to size")
         ("max-tile-memory", po::value<int>()->default_value(512), "Maximum memory used for image tiles cache in megabytes")
         ("tile-size", po::value<int>()->default_value(256), "Image tiles size in pixels")
+        ("copy-coordinate-system", po::value<string>()->default_value(""), "Copy the coordinate system from another FITS file")
         ;
 
     return config_options;
@@ -272,6 +275,9 @@ public:
           >> source.dev_flux >> source.dev_rad >> source.dev_aspect >> source.dev_rot
           >> source.point_flux;
 
+      source.exp_rot *= -M_PI / 180.0;
+      source.dev_rot *= -M_PI / 180.0;
+
       sources.emplace_back(std::move(source));
     }
 
@@ -284,8 +290,8 @@ public:
 
     for (const auto& source : sources) {
       file << source.x << " " << source.y << " "
-          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << source.exp_rot << " "
-          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << source.dev_rot << " "
+          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << (source.exp_rot * -180.0 / M_PI) << " "
+          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << (source.dev_rot * -180.0 / M_PI) << " "
           << source.point_flux << "\n";
     }
   }
@@ -339,6 +345,7 @@ public:
             >> source.dev_rad >> source.dev_aspect >> dev_angle_degree
             >> source.exp_rad >> source.exp_aspect >> exp_angle_degree;
 
+        // FIXME should change sign?
         source.dev_rot = dev_angle_degree * M_PI / 180.0;
         source.exp_rot = exp_angle_degree * M_PI / 180.0;
 
@@ -401,6 +408,12 @@ public:
       vpsf = PsfPluginConfig::readPsf(psf_filename);
     } else {
       vpsf = PsfPluginConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
+    }
+
+    std::shared_ptr<CoordinateSystem> coordinate_system;
+    auto copy_coordinate_system = args["copy-coordinate-system"].as<std::string>();
+    if (copy_coordinate_system != "") {
+      coordinate_system = std::make_shared<WCS>(copy_coordinate_system);
     }
 
     auto raster_model_size = model_size / vpsf->getPixelScale() + std::max(vpsf->getWidth(), vpsf->getHeight());
@@ -473,7 +486,7 @@ public:
     logger.info("Rendering...");
 
     auto filename = args["output"].as<std::string>();
-    auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size);
+    auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size, coordinate_system);
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
     FrameModel<ImagePsf, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {

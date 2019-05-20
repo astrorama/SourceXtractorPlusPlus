@@ -116,8 +116,13 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = 2 * std::max(boundaries.getWidth(), boundaries.getHeight());
 
+  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
+      [](double angle) { return -angle; },
+      *manager.getParameter(source, m_angle));
+  manager.storeParameter(minus_angle);
+
   extended_models.emplace_back(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
+      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
       size, size, *pixel_x, *pixel_y, jacobian);
 }
 
@@ -163,8 +168,13 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = 2 * std::max(boundaries.getWidth(), boundaries.getHeight());
 
+  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
+      [](double angle) { return -angle; },
+      *manager.getParameter(source, m_angle));
+  manager.storeParameter(minus_angle);
+
   extended_models.emplace_back(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
+      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
       size, size, *pixel_x, *pixel_y, jacobian);
 }
 

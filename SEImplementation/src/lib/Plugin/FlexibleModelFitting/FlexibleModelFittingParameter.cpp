@@ -17,12 +17,14 @@
 
 #include "SEUtils/Python.h"
 
+#include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
+#include "SEImplementation/PythonConfig/PythonInterpreter.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
 static Elements::Logging logger = Elements::Logging::getLogger("FlexibleModelFittingParameter");
 
@@ -77,9 +79,12 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        const SourceInterface& source,
                                        boost::python::object value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
-  auto calc = [value_calculator] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
+  auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
     std::lock_guard<std::mutex> guard {python_callback_mutex};
     try {
+      PythonInterpreter::getSingleton().setCoordinateSystem(coordinate_system);
       return boost::python::extract<double>(value_calculator(params...));
     }
     catch (const boost::python::error_already_set &e) {
