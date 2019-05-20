@@ -21,8 +21,7 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConvert
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
-  auto converter = make_unique<ExpSigmoidConverter>(minimum_value, maximum_value);
-  return converter;
+  return make_unique<ExpSigmoidConverter>(minimum_value, maximum_value);
 }
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFactory::getConverter(
@@ -30,15 +29,13 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFac
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
-  auto converter = make_unique<SigmoidConverter>(minimum_value, maximum_value);
-  return converter;
+  return make_unique<SigmoidConverter>(minimum_value, maximum_value);
 }
 
 std::unique_ptr<ModelFitting::CoordinateConverter> FlexibleModelFittingUnboundedConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
   double factor = m_normalization_factor(initial_value, source);
-  auto converter = make_unique<NormalizedConverter>(factor);
-  return converter;
+  return make_unique<NormalizedConverter>(factor);
 }
 
 
