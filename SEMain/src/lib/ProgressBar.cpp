@@ -9,6 +9,7 @@
 #include <ncurses.h>
 #include <term.h>
 #include <mutex>
+#include <boost/algorithm/string/trim.hpp>
 
 namespace SExtractor {
 
@@ -135,6 +136,24 @@ public:
     refresh();
   }
 
+  std::vector<std::string> getScreenText() {
+    std::lock_guard<std::mutex> lock(terminal_mutex);
+    // Scan line by line
+    std::vector<std::string> term_lines;
+    for (int i = 0; i < m_progress_y; ++i) {
+      // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
+      std::vector<char> buffer(COLS + 1, '\0');
+      mvwinnstr(m_log_window, i, 0, buffer.data(), COLS);
+      term_lines.push_back(buffer.data());
+      boost::algorithm::trim(term_lines.back());
+    }
+    // Prune trailing empty lines
+    while (!term_lines.empty() && term_lines.back().empty()) {
+      term_lines.pop_back();
+    }
+    return term_lines;
+  }
+
 private:
   void initializeSizes() {
     // Reserve the bottom side for the progress report
@@ -151,7 +170,14 @@ static Terminal terminal;
  * Intercept several terminating signals so the terminal style can be restored
  */
 static void handleTerminatingSignal(int s) {
+  auto text = terminal.getScreenText();
   terminal.restore();
+
+  // After restoring the buffer, dump the text that was shown so any error
+  // remains visible
+  for (auto &l : text) {
+    std::cerr << l << std::endl;
+  }
 
   // Call the previous handler
   ::sigaction(s, &prev_signal[s], nullptr);
