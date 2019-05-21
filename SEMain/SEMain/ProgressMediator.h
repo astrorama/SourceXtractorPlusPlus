@@ -12,6 +12,7 @@
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEUtils/Observable.h"
 #include <atomic>
+#include <mutex>
 
 namespace SExtractor {
 
@@ -74,6 +75,10 @@ private:
   std::shared_ptr<segmentation_observer_t> m_segmentation_listener;
   std::shared_ptr<source_observer_t> m_detection_listener;
   std::shared_ptr<group_observer_t> m_deblending_listener, m_measurement_listener;
+
+  // Mediator serializes the notifications, so the observers do not need to worry about
+  // being called from multiple threads
+  std::mutex m_mutex;
 
   // This is a set of internal classes that implement the Observer pattern for different stages.
   class ProgressCounter;

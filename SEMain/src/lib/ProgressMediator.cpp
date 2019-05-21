@@ -82,6 +82,7 @@ std::shared_ptr<ProgressMediator::group_observer_t>& ProgressMediator::getMeasur
 }
 
 void ProgressMediator::update(void) {
+  std::lock_guard<std::mutex> guard(m_mutex);
   this->ProgressObservable::notifyObservers(std::map<std::string, std::pair<int, int>>{
     {"Detected",     {m_detected,                       -1}},
     {"Deblended",    {m_deblended,                      -1}},
@@ -91,6 +92,7 @@ void ProgressMediator::update(void) {
 }
 
 void ProgressMediator::done() {
+  std::lock_guard<std::mutex> guard(m_mutex);
   this->DoneObservable::notifyObservers(true);
 }
 
