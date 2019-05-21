@@ -4,6 +4,7 @@
  */
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
@@ -61,6 +62,10 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
       .def(bp::init<double, double>())
       .def_readwrite("x", &ImageCoordinate::m_x)
       .def_readwrite("y", &ImageCoordinate::m_y);
+
+  bp::class_<std::vector<double> >("_DoubleVector")
+    .def(bp::vector_indexing_suite<std::vector<double> >())
+  ;
 }
 
 } // namespace SExtractor

@@ -6,7 +6,6 @@
  */
 
 #include <iostream>
-#include <boost/python.hpp>
 
 #include "ModelFitting/utils.h"
 
@@ -77,19 +76,14 @@ template<typename ... Parameters>
 std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        FlexibleModelFittingParameterManager& parameter_manager,
                                        const SourceInterface& source,
-                                       boost::python::object value_calculator,
+                                       FlexibleModelFittingDependentParameter::ValueFunc value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
     std::lock_guard<std::mutex> guard {python_callback_mutex};
-    try {
-      PythonInterpreter::getSingleton().setCoordinateSystem(coordinate_system);
-      return boost::python::extract<double>(value_calculator(params...));
-    }
-    catch (const boost::python::error_already_set &e) {
-      throw pyToElementsException(logger);
-    }
+    std::vector<double> materialized{params...};
+    return value_calculator(coordinate_system, materialized);
   };
   return createDependentParameterPtr(calc, *(parameter_manager.getParameter(source, parameters))...);
 }

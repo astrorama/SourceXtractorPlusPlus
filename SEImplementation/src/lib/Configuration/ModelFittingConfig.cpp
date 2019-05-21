@@ -109,8 +109,19 @@ void ModelFittingConfig::initialize(const UserValues&) {
       int id = py::extract<int>(param_ids[i]);
       params.push_back(m_parameters[id]);
     }
+
+    auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      try {
+        PythonInterpreter::getSingleton().setCoordinateSystem(cs);
+        return py::extract<double>(py_func(*py::tuple(params)));
+      }
+      catch (const py::error_already_set&) {
+        throw pyToElementsException(logger);
+      }
+    };
+
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
-                                                      p.first, py_func, params);
+                                                      p.first, dependent_func, params);
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
