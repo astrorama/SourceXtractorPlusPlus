@@ -13,8 +13,7 @@
 #include <functional>
 #include <vector>
 #include <mutex>
-
-#include <boost/python/object.hpp>
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace ModelFitting {
   class BasicParameter;
@@ -93,8 +92,12 @@ private:
 class FlexibleModelFittingDependentParameter : public FlexibleModelFittingParameter {
   
 public:
+
+  /// The signature of a function that evaluates the dependent parameter. It gets
+  /// as parameters the values of those parameters on which this one depends.
+  using ValueFunc = std::function<double(const std::shared_ptr<CoordinateSystem>&, const std::vector<double>&)>;
   
-  FlexibleModelFittingDependentParameter(int id, boost::python::object value_calculator,
+  FlexibleModelFittingDependentParameter(int id, ValueFunc value_calculator,
                                          std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters)
           : FlexibleModelFittingParameter(id),
             m_value_calculator(value_calculator),
@@ -106,8 +109,8 @@ public:
                                   const SourceInterface& source) const override;
 
 private:
-  
-  boost::python::object m_value_calculator;
+
+  ValueFunc m_value_calculator;
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   
 };

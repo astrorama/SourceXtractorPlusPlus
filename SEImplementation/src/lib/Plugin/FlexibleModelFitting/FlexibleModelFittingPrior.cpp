@@ -6,7 +6,6 @@
  */
 
 #include <iostream>
-#include <boost/python.hpp>
 #include <mutex>
 
 #include "ModelFitting/utils.h"
