@@ -25,6 +25,8 @@ int FitsImageSource<int>::getDataType() const { return TINT; }
 template <>
 int FitsImageSource<long>::getDataType() const { return TLONGLONG; }
 
+template <>
+int FitsImageSource<long long>::getDataType() const { return TLONGLONG; }
 
 template <>
 int FitsImageSource<double>::getImageType() const { return DOUBLE_IMG; }
@@ -41,6 +43,9 @@ int FitsImageSource<int>::getImageType() const { return LONG_IMG; }
 //FIXME what if compiled on 32bit system?
 template <>
 int FitsImageSource<long>::getImageType() const { return LONGLONG_IMG; }
+
+template <>
+int FitsImageSource<long long>::getImageType() const { return LONGLONG_IMG; }
 
 //FIXME add missing types
 

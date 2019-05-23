@@ -7,8 +7,12 @@
 #include <utility>
 #include <boost/python.hpp>
 #include <Python.h>
-#include <SEImplementation/PythonConfig/PythonInterpreter.h>
+
 #include <SEUtils/Python.h>
+
+#include <SEImplementation/PythonConfig/PythonModule.h>
+
+#include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
 namespace py = boost::python;
 
@@ -236,6 +240,12 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
     result.emplace(std::make_pair(id, par));
   }
   return result;
+}
+
+void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
+  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  auto python_function = model_fitting_module.attr("set_coordinate_system");
+  python_function(coordinate_system);
 }
 
 }
