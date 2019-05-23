@@ -9,11 +9,15 @@
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTING_H_
 
 #include <unordered_map>
+#include <ElementsKernel/Logging.h>
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Source/SourceFlags.h"
 
 namespace SExtractor {
+
+extern Elements::Logging model_fitting_logger;
 
 // FlexibleModelFitting property class to contain the results from the model fitting
 
@@ -21,10 +25,11 @@ class FlexibleModelFitting : public Property {
 public:
   virtual ~FlexibleModelFitting() = default;
 
-  FlexibleModelFitting(unsigned int iterations, SeFloat chi_squared,
+  FlexibleModelFitting(unsigned int iterations, SeFloat chi_squared, Flags flags,
       std::unordered_map<int, double> parameter_values, std::unordered_map<int, double> parameter_sigmas) :
     m_iterations(iterations),
     m_chi_squared(chi_squared),
+    m_flags(flags),
     m_parameter_values(parameter_values),
     m_parameter_sigmas(parameter_sigmas) {}
 
@@ -34,6 +39,10 @@ public:
 
   SeFloat getReducedChiSquared() const {
     return m_chi_squared;
+  }
+
+  Flags getFlags() const {
+    return m_flags;
   }
 
   SeFloat getParameterValue(int index) const {
@@ -47,6 +56,7 @@ public:
 private:
   unsigned int m_iterations;
   SeFloat m_chi_squared;
+  Flags m_flags;
   std::unordered_map<int, double> m_parameter_values;
   std::unordered_map<int, double> m_parameter_sigmas;
 };
