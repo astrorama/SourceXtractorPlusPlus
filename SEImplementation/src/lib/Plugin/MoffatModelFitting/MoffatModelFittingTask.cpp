@@ -266,8 +266,8 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
-  SeFloat x = stamp_top_left.m_x + source_model->x.getValue();
-  SeFloat y = stamp_top_left.m_y + source_model->y.getValue();
+  SeFloat x = stamp_top_left.m_x + source_model->x.getValue() + 0.5f;
+  SeFloat y = stamp_top_left.m_y + source_model->y.getValue() + 0.5f;
 
   source.setProperty<MoffatModelFitting>(
       x, y,

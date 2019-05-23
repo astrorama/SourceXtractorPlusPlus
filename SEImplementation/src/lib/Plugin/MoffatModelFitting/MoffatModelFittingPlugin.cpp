@@ -21,7 +21,7 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getOutputRegistry().registerColumnConverter<MoffatModelFitting, double>(
           "smf_x",
           [](const MoffatModelFitting& prop) {
-            return prop.getX();
+            return prop.getX() + 1.0;
           },
           "[pixel]",
           "X-position of the Moffat fit"
@@ -30,7 +30,7 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getOutputRegistry().registerColumnConverter<MoffatModelFitting, double>(
           "smf_y",
           [](const MoffatModelFitting& prop) {
-            return prop.getY();
+            return prop.getY() + 1.0;
           },
           "[pixel]",
           "Y-position of the Moffat fit"
