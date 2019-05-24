@@ -237,11 +237,12 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     return image->getData().end();
   }
 
-  static void addImageToImage(ImageInterfaceTypePtr& image1, const ImageInterfaceTypePtr& image2,
+  // Adds the source_image to the traget image scaled by scale_factor and centered at x, y
+  static void addImageToImage(ImageInterfaceTypePtr& target_image, const ImageInterfaceTypePtr& source_image,
                               double scale_factor, double x, double y) {
     // Calculate the size in pixels of the image2 after in the scale of image1
-    double scaled_width = width(image2) * scale_factor;
-    double scaled_height = height(image2) * scale_factor;
+    double scaled_width = width(source_image) * scale_factor;
+    double scaled_height = height(source_image) * scale_factor;
     // Calculate the window of the image1 which is affected
     int x_min = std::floor(x - scaled_width / 2.);
     int x_max = std::ceil(x + scaled_width / 2.);
@@ -255,18 +256,18 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     // Create the scaled and shifted window
     auto window = factory(window_width, window_height);
 
-    //shiftResize(image2, window, scale_factor, x_shift, y_shift);
-    shiftResizeLancszos(image2, window, scale_factor, x_shift, y_shift);
+    //shiftResize(source_image, window, scale_factor, x_shift, y_shift);
+    shiftResizeLancszos(source_image, window, scale_factor, x_shift, y_shift);
 
     // We need to correct the window for the scaling, so it has the same integral
     // with the image2
     double corr_factor = 1. / (scale_factor * scale_factor);
     // Add the window to the image1
-    for(int x_im=std::max(x_min,0); x_im<std::min<int>(x_max, width(image1)); ++x_im) {
-      for (int y_im=std::max(y_min,0); y_im<std::min<int>(y_max, height(image1)); ++y_im) {
+    for(int x_im=std::max(x_min,0); x_im<std::min<int>(x_max, width(target_image)); ++x_im) {
+      for (int y_im=std::max(y_min,0); y_im<std::min<int>(y_max, height(target_image)); ++y_im) {
         int x_win = x_im - x_min;
         int y_win = y_im - y_min;
-        at(image1, x_im, y_im) += corr_factor * at(window, x_win, y_win);
+        at(target_image, x_im, y_im) += corr_factor * at(window, x_win, y_win);
       }
     }
   }
@@ -280,8 +281,8 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     int window_height = height(window);
     for(int x_win=0; x_win < window_width; x_win++) {
       for(int y_win=0; y_win < window_height; y_win++) {
-        double x = (x_win - 0.5 - x_shift) / scale_factor;
-        double y = (y_win - 0.5 - y_shift) / scale_factor;
+        double x = (x_win + 0.5 - x_shift) / scale_factor - 0.5;
+        double y = (y_win + 0.5 - y_shift) / scale_factor - 0.5;
 
         int xi = std::floor(x);
         int yi = std::floor(y);
@@ -298,7 +299,6 @@ struct ImageTraits<ImageInterfaceTypePtr> {
                                            y_delta * ((1.0 - x_delta) * v01 + x_delta * v11);
       }
     }
-
   }
 
   static void shiftResizeLancszos(const ImageInterfaceTypePtr& source, ImageInterfaceTypePtr& window, double scale_factor, double x_shift, double y_shift) {
@@ -306,8 +306,8 @@ struct ImageTraits<ImageInterfaceTypePtr> {
     int window_height = height(window);
     for(int x_win=0; x_win < window_width; x_win++) {
       for(int y_win=0; y_win < window_height; y_win++) {
-        float x = (x_win - x_shift) / scale_factor;
-        float y = (y_win - y_shift) / scale_factor;
+        float x = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
+        float y = (y_win + 0.5 - y_shift) / scale_factor + 0.5;
 
         at(window, x_win, y_win) = interpolate_pix(&source->getData()[0], x, y, source->getWidth(), source->getHeight(), INTERP_LANCZOS4);
       }
@@ -315,13 +315,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
 
   }
 
-
 }; // end of class ImageTraits<ImageInterfaceTypePtr>
-
-//ImageInterfaceTypePtr operator*(std::shared_ptr<const Image<ImageInterfaceType::PixelType>> image, ImageInterfaceType::PixelType factor) {
-//  auto mult_image = SExtractor::MultiplyImage<ImageInterfaceType::PixelType>::create(image, factor);
-//  return ImageInterfaceType::create(*mult_image);
-//}
 
 } // end of namespace ModelFitting
 

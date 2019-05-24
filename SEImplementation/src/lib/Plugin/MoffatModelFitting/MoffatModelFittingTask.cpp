@@ -90,8 +90,8 @@ struct SourceModel {
     dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
     dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
 
-    x([x_guess](double dx) { return dx + x_guess - 0.5; }, dx),
-    y([y_guess](double dy) { return dy + y_guess - 0.5; }, dy),
+    x([x_guess](double dx) { return dx + x_guess + 0.5; }, dx),
+    y([y_guess](double dy) { return dy + y_guess + 0.5; }, dy),
 
     // FIXME
     exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
@@ -266,8 +266,8 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
-  SeFloat x = stamp_top_left.m_x + source_model->x.getValue() + 0.5f;
-  SeFloat y = stamp_top_left.m_y + source_model->y.getValue() + 0.5f;
+  SeFloat x = stamp_top_left.m_x + source_model->x.getValue() - 0.5f;
+  SeFloat y = stamp_top_left.m_y + source_model->y.getValue() - 0.5f;
 
   source.setProperty<MoffatModelFitting>(
       x, y,
