@@ -50,6 +50,14 @@ public:
 
   virtual ~DependentParameter() = default;
 
+  double getValue() const override final {
+    // If there are no observers, this dependent parameter is lazy
+    if (!isObserved()) {
+      const_cast<DependentParameter*>(this)->update((*m_param_values)[0]);
+    }
+    return BasicParameter::getValue();
+  }
+
 protected:
 
   void setValue(const double new_value) = delete;
@@ -108,7 +116,12 @@ private:
     m_updaters->emplace_back(new ReferenceUpdater{
           param, (*m_param_values)[i],
           ReferenceUpdater::PreAction{},
-          [this](double){this->update((*m_param_values)[0]);}
+          [this](double){
+            // Do not bother updating live if there are no observers
+            if (this->isObserved()) {
+              this->update((*m_param_values)[0]);
+            }
+          }
     });
   }
 

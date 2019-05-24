@@ -30,4 +30,8 @@ bool BasicParameter::removeObserver(std::size_t id) {
   return m_observer_map->erase(id);
 }
 
+bool BasicParameter::isObserved() const {
+  return !m_observer_map->empty();
+}
+
 }// namespace ModelFitting

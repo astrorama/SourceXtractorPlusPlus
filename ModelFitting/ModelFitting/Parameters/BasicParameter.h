@@ -43,7 +43,7 @@ public:
   /*
    * @brief Getter to access the private parameter value
    */
-  double getValue() const {
+  virtual double getValue() const {
     return *m_value;
   }
 
@@ -56,6 +56,8 @@ public:
   std::size_t addObserver(ParameterObserver observer);
   
   bool removeObserver(std::size_t id);
+
+  bool isObserved() const;
 
 protected:
 
