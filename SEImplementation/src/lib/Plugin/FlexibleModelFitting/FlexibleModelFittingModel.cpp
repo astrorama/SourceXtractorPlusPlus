@@ -61,11 +61,11 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   manager.storeParameter(pixel_x);
@@ -84,11 +84,11 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -136,11 +136,11 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -194,11 +194,11 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   ManualParameter x_scale(1); // we don't scale the x coordinate

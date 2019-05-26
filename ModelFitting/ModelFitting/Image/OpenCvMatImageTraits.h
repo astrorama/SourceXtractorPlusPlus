@@ -106,8 +106,8 @@ struct ImageTraits<cv::Mat> {
     int window_height = height(window);
     for(int x_win=0; x_win < window_width; x_win++) {
       for(int y_win=0; y_win < window_height; y_win++) {
-        double x = (x_win - 0.5 - x_shift) / scale_factor;
-        double y = (y_win - 0.5 - y_shift) / scale_factor;
+        double x = (x_win - 0.5 - x_shift) / scale_factor + 0.5;
+        double y = (y_win - 0.5 - y_shift) / scale_factor + 0.5;
 
         int xi = std::floor(x);
         int yi = std::floor(y);

@@ -59,8 +59,15 @@ elements_add_unit_test(DependentParameter_test
                        tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )            
 
+
 find_package(CCfits)
 find_package(OpenCV)
+
+if (OPENCV_FOUND)
+    elements_add_unit_test(OpenCvMatImageTraits_test
+                           tests/src/Image/OpenCvMatImageTraits_test.cpp
+                           LINK_LIBRARIES ModelFitting TYPE Boost ${OpenCV_LIBS})
+endif ()
 
 if (OPENCV_FOUND AND CCFITS_FOUND)
     elements_add_executable(Example1 src/program/Example1.cpp

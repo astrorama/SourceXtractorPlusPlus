@@ -19,6 +19,7 @@ namespace SExtractor {
 
 static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string DETECTION_IMAGE_GAIN { "detection-image-gain" };
+static const std::string DETECTION_IMAGE_FLUX_SCALE {"detection-image-flux-scale"};
 static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
@@ -33,6 +34,8 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
           "Path to a fits format image to be used as detection image."},
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
+      {DETECTION_IMAGE_FLUX_SCALE.c_str(), po::value<double>(),
+          "Detection image flux scale"},
       {DETECTION_IMAGE_SATURATION.c_str(), po::value<double>(),
           "Detection image saturation level (0 = no saturation)"},
       {DETECTION_IMAGE_INTERPOLATION.c_str(), po::value<bool>()->default_value(true),
@@ -59,7 +62,14 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
   fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
 
-  if (fits_image_source->readFitsKeyword("FLXSCALE", flux_scale) && flux_scale != 0) {
+  if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
+    flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
+  }
+  else {
+    fits_image_source->readFitsKeyword("FLXSCALE", flux_scale);
+  }
+
+  if (flux_scale != 0) {
     m_detection_image = MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, flux_scale);
   }
 
