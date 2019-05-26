@@ -6,11 +6,11 @@ Measurements
 ============
 
 Once sources have been detected and deblended, they enter the measurement phase.
-|SExtractor++| performs three categories of measurements: isophotal, full, and model-fitting.
+|SExtractor++| performs three categories of measurements: isophotal, aperture, and model-fitting.
 
 .. _isophotal_measurements:
 
-Isophotal
+Isophotal measurements 
 
 Full
 

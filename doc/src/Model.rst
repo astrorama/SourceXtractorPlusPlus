@@ -13,7 +13,7 @@ Fitting procedure
 .. math::
   :label: loss_func
 
-  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{q_j - \mu_j}{s_j}\right)^2
+  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{f_j(\boldsymbol{q}) - \mu_j}{s_j}\right)^2
 
 with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model central coordinates :math:`\boldsymbol{x}`.
 
@@ -62,7 +62,7 @@ We adopt a Lánczos-4 function :cite:`duchon1979` as interpolant.
 Model parameters
 ~~~~~~~~~~~~~~~~
 
-In |SExtractor++|, any of the model parameters $q_j$ may be a constant parameter, a free parameter, or a dependent parameter.
+In |SExtractor++|, any of the model parameters :math:`q_j` may be a constant parameter, a free parameter, or a dependent parameter.
 
 Constant parameters
 ^^^^^^^^^^^^^^^^^^^
@@ -230,7 +230,7 @@ Although minimizing the (modified) weighted sum of least squares gives a solutio
 The discrepancy is particularly significant in very faint (|SNR| :math:`\le 20`) and barely resolved galaxies.
 For instance, there is a tendency to overestimate the elongation of such galaxies, known as the "noise bias" in the weak-lensing community :cite:`2004MNRAS_353_529H,2012MNRAS_424_2757M,2012MNRAS_425_1951R,2012MNRAS_427_2711K`.
 The second term in :eq:`loss_func` implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme to mitigate this issue.
-This penalty term acts as a Gaussian prior on the selected model parameters.
+This penalty term acts as a Gaussian prior on the selected parameters.
 Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values).
 In that case a change of variable must be applied (:numref:`fig_aspectprior`).
 
