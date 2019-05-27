@@ -344,6 +344,7 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
+    CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     size_t n_writen_rows = output->flush();

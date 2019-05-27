@@ -61,6 +61,10 @@ public:
     return m_thresholded_filename;
   }
 
+  const std::string& getSnrFilename() const {
+    return m_snr_filename;
+  }
+
   const std::string& getAutoApertureFilename() const {
     return m_auto_aperture_filename;
   }
@@ -84,6 +88,7 @@ private:
   std::string m_group_filename;
   std::string m_filtered_filename;
   std::string m_thresholded_filename;
+  std::string m_snr_filename;
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
   std::string m_moffat_filename;

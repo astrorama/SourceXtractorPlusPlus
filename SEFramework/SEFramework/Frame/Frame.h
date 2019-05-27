@@ -16,6 +16,7 @@
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
+#include "SEFramework/Image/SnrImage.h"
 #include "SEFramework/Image/InterpolatedImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
@@ -101,6 +102,11 @@ public:
   // Get the filtered image with the detection threshold subtracted from it
   std::shared_ptr<Image<T>> getThresholdedImage() const {
     return ThresholdedImage<T>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
+  }
+
+  // Get the SNR image
+  std::shared_ptr<Image<T>> getSnrImage() const {
+    return SnrImage<T>::create(getFilteredImage(), getVarianceMap());
   }
 
   //
