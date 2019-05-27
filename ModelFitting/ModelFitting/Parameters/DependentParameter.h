@@ -46,21 +46,21 @@ public:
   m_calculator {new ValueCalculator{std::move(calculator)}},
   m_param_values {new std::array<double, PARAM_NO>{parameters.getValue()...}} {
     inputParameterLoop(parameters...);
+    m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
 
   virtual ~DependentParameter() = default;
 
-  double getValue() const override final {
-    // If there are no observers, this dependent parameter is lazy
-    if (!isObserved()) {
-      const_cast<DependentParameter*>(this)->update((*m_param_values)[0]);
-    }
-    return BasicParameter::getValue();
-  }
-
 protected:
 
   void setValue(const double new_value) = delete;
+  void getValueHook(void) {
+    if (!this->isObserved()) {
+      this->update((*m_param_values)[0]);
+    }
+  }
+
+  using BasicParameter::m_get_value_hook;
 
 private:
 

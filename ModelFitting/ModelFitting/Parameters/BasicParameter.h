@@ -43,7 +43,17 @@ public:
   /*
    * @brief Getter to access the private parameter value
    */
-  virtual double getValue() const {
+  double getValue() const {
+    /**
+     * This is a terrible hack to allow DependentParameter to be evaluated lazily while respecting
+     * the API of ModelFitting. BasicParameter can, and is, passed around by value, which implies we need to
+     * reinvent the "virtual wheel" if we want to change the behaviour of this method.
+     * Models do not rely on getValue, as they use ReferenceUpdater instead, so this hack should not affect
+     * the performance of the model fitting.
+     */
+    if (m_get_value_hook) {
+      m_get_value_hook();
+    }
     return *m_value;
   }
 
@@ -60,6 +70,9 @@ public:
   bool isObserved() const;
 
 protected:
+  typedef std::function<void(void)> GetValueHook;
+
+  GetValueHook m_get_value_hook;
 
   BasicParameter(const double value) :
       m_value {new double{value}} {
@@ -77,7 +90,6 @@ private:
   std::shared_ptr<std::map<std::size_t, ParameterObserver>> m_observer_map {
                                     new std::map<std::size_t, ParameterObserver>{}};
   std::shared_ptr<std::size_t> m_last_obs_id {new std::size_t{0}};
-
 };
 
 }
