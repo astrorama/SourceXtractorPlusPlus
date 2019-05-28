@@ -30,6 +30,8 @@
 #include "SEImplementation/Plugin/SnrLevel/SnrLevel.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 namespace SExtractor {
 
 namespace {
@@ -41,6 +43,8 @@ class SnrLevelSourceTask : public SourceTask {
 public:
   virtual ~SnrLevelSourceTask() = default;
   virtual void computeProperties(SourceInterface& source) const {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
     long int n_snr_level=0;
 
     // get the detection frame and the SNR image
