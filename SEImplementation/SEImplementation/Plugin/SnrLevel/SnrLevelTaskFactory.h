@@ -23,7 +23,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_SNRLEVELTASKFACTORY_H_
 
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/NDetectedPixels/NDetectedPixelsSourceTask.h"
+#include "SEImplementation/Plugin/SnrLevel/SnrLevelSourceTask.h"
 
 namespace SExtractor {
 class SnrLevelTaskFactory : public TaskFactory {

@@ -43,7 +43,7 @@ public:
     );
     plugin_api.getOutputRegistry().enableOutput<SnrLevel>("SnrLevel");
   }
-  virtual std::string getSnrLevel() const {
+  virtual std::string getIdString() const {
     return "n_snr_level";
   }
 private:

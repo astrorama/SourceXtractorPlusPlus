@@ -43,28 +43,20 @@ public:
   virtual void computeProperties(SourceInterface& source) const {
     long int n_snr_level=0;
 
-    // get the detection frame
+    // get the detection frame and the SNR image
     const auto& detection_frame  = source.getProperty<DetectionFrame>().getFrame();
+    const auto& snr_image    = detection_frame->getSnrImage();
 
-    // get the images and image information from the frame
-    const auto& snr_image    = detection_frame->getSnrImage;
+    //std::cout << "width: " << snr_image->getWidth() << " height: " << snr_image->getHeight() <<std::endl;
 
+    // go over all pixels
     for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-      auto act_value = snr_image.getValue(pixel_coord.m_x, coord.m_y);
+      auto act_value = snr_image->getValue(pixel_coord.m_x, pixel_coord.m_y);
 
       if (act_value >= SNR_MIN_LEVEL)
         n_snr_level += 1;
-      //min_x = std::min(min_x, pixel_coord.m_x);
-      //min_y = std::min(min_y, pixel_coord.m_y);
-      //max_x = std::max(max_x, pixel_coord.m_x);
-      //max_y = std::max(max_y, pixel_coord.m_y);
     }
-
-
-    // old stuff...
-    const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
-    long int n_pixels = (long int)pixel_values.size();
-    source.setProperty<SnrLevel>(n_pixels);
+    source.setProperty<SnrLevel>(n_snr_level);
 };
 private:
 }; // End of SnrLevelSourceTask class
