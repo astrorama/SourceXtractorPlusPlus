@@ -34,35 +34,35 @@
 
 namespace SExtractor {
 
-namespace {
-  // the typical radius for determining the Kron-radius
-  const SeFloat SNR_MIN_LEVEL = 3.0;
-}
-
 class SnrLevelSourceTask : public SourceTask {
+
 public:
+  SnrLevelSourceTask(double snr_level): m_snr_level(snr_level) {};
+
   virtual ~SnrLevelSourceTask() = default;
+
   virtual void computeProperties(SourceInterface& source) const {
     std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
     long int n_snr_level=0;
 
     // get the detection frame and the SNR image
-    const auto& detection_frame  = source.getProperty<DetectionFrame>().getFrame();
-    const auto& snr_image    = detection_frame->getSnrImage();
-
-    //std::cout << "width: " << snr_image->getWidth() << " height: " << snr_image->getHeight() <<std::endl;
+    //const auto& detection_frame  = source.getProperty<DetectionFrame>().getFrame();
+    const auto& snr_image    = source.getProperty<DetectionFrame>().getFrame()->getSnrImage();
 
     // go over all pixels
-    for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-      auto act_value = snr_image->getValue(pixel_coord.m_x, pixel_coord.m_y);
+    for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList())
+      // enhance the counter if the SNR is above the level
+      if (snr_image->getValue(pixel_coord.m_x, pixel_coord.m_y) >= m_snr_level)
+	n_snr_level += 1;
 
-      if (act_value >= SNR_MIN_LEVEL)
-        n_snr_level += 1;
-    }
+    // set the property
     source.setProperty<SnrLevel>(n_snr_level);
 };
+
 private:
+  double m_snr_level;
+
 }; // End of SnrLevelSourceTask class
 } // namespace SExtractor
 

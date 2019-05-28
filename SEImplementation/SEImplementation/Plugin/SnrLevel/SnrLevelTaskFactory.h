@@ -24,21 +24,35 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/SnrLevel/SnrLevelSourceTask.h"
+#include "SEImplementation/Plugin/SnrLevel/SnrLevelConfig.h"
 
 namespace SExtractor {
 class SnrLevelTaskFactory : public TaskFactory {
 public:
   SnrLevelTaskFactory() {}
   virtual ~SnrLevelTaskFactory() = default;
+
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+    manager.registerConfiguration<SnrLevelConfig>();
+  };
+
+  void configure(Euclid::Configuration::ConfigManager& manager) {
+    auto snr_level_config = manager.getConfiguration<SnrLevelConfig>();
+    m_snr_level = snr_level_config.getSnrLevel();
+  };
+
   // TaskFactory implementation
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
     if (property_id == PropertyId::create<SnrLevel>()) {
-      return std::make_shared<SnrLevelSourceTask>();
+      return std::make_shared<SnrLevelSourceTask>(m_snr_level);
     }
     else{
       return nullptr;
     }
   }
+
+private:
+  double m_snr_level;
 }; // end of SnrLevelTaskFactory class
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SNRLEVELTASKFACTORY_H_ */
