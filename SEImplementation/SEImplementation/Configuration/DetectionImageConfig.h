@@ -32,7 +32,8 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   
   void initialize(const UserValues& args) override;
-  
+
+  std::string getDetectionImagePath() const;
   std::shared_ptr<DetectionImage> getDetectionImage() const;
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const;
   
@@ -41,6 +42,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   int getInterpolationGap() const { return m_interpolation_gap; }
 
 private:
+  std::string m_detection_image_path;
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
   double m_gain;

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <SEImplementation/Background/BackgroundAnalyzerFactory.h>
+#include <boost/filesystem.hpp>
 
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
@@ -50,6 +51,8 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& saturation_levels = manager.getConfiguration<MeasurementImageConfig>().getSaturationLevels();
   const auto& thresholds = manager.getConfiguration<MeasurementImageConfig>().getWeightThresholds();
 
+  const auto& image_paths = manager.getConfiguration<MeasurementImageConfig>().getImagePaths();
+
   BackgroundAnalyzerFactory background_analyzer_factory;
   background_analyzer_factory.configure(manager);
   auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
@@ -63,6 +66,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
             measurement_images[i]->getHeight(), false), measurement_frame->getVarianceThreshold());
 
     measurement_frame->setBackgroundLevel(background_model.getLevelMap());
+    measurement_frame->setLabel(boost::filesystem::basename(image_paths[i]));
 
     if (weight_images[i] != nullptr) {
       if (is_weight_absolute[i]) {

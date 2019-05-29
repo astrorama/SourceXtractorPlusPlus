@@ -12,12 +12,15 @@
 #include <map>
 #include <iostream>
 
+#include <boost/filesystem/path.hpp>
+
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Image/WriteableImage.h"
+#include "SEFramework/Frame/Frame.h"
 
 
 namespace SExtractor {
@@ -59,10 +62,10 @@ public:
   }
 
   std::shared_ptr<WriteableImage<unsigned int>>
-  getAutoApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
+  getAutoApertureImage(std::shared_ptr<const MeasurementImageFrame> frame);
 
   std::shared_ptr<WriteableImage<unsigned int>>
-  getApertureImage(unsigned instance, int width, int height, const std::shared_ptr<CoordinateSystem> &);
+  getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame);
 
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
     m_background_image = background_image;
@@ -115,8 +118,8 @@ private:
   std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
   std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
-  std::map<int, decltype(m_aperture_image)> m_measurement_aperture_images;
-  std::map<int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
+  std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_aperture_image)> m_measurement_aperture_images;
+  std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
@@ -125,20 +128,20 @@ private:
   std::shared_ptr<WeightImage> m_variance_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
-  std::string m_model_fitting_image_filename;
-  std::string m_residual_filename;
-  std::string m_model_background_filename;
-  std::string m_model_variance_filename;
-  std::string m_segmentation_filename;
-  std::string m_partition_filename;
-  std::string m_group_filename;
-  std::string m_filtered_filename;
-  std::string m_thresholded_filename;
-  std::string m_auto_aperture_filename;
-  std::string m_aperture_filename;
-  std::string m_moffat_filename;
+  boost::filesystem::path m_model_fitting_image_filename;
+  boost::filesystem::path m_residual_filename;
+  boost::filesystem::path m_model_background_filename;
+  boost::filesystem::path m_model_variance_filename;
+  boost::filesystem::path m_segmentation_filename;
+  boost::filesystem::path m_partition_filename;
+  boost::filesystem::path m_group_filename;
+  boost::filesystem::path m_filtered_filename;
+  boost::filesystem::path m_thresholded_filename;
+  boost::filesystem::path m_auto_aperture_filename;
+  boost::filesystem::path m_aperture_filename;
+  boost::filesystem::path m_moffat_filename;
 
-  std::map<std::string, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
+  std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 
   std::mutex m_access_mutex;
 };

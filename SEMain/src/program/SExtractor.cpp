@@ -227,6 +227,7 @@ public:
     }
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto detection_image_path = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImagePath();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
@@ -280,6 +281,7 @@ public:
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
         detection_image_saturation, interpolation_gap);
+    detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
