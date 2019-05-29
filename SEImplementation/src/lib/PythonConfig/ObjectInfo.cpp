@@ -23,11 +23,11 @@ SeFloat ObjectInfo::getCentroidY() const {
 }
 
 SeFloat ObjectInfo::getIsoFlux() const {
-  return m_source.get().getProperty<IsophotalFlux>().getFlux();
+  return std::max<double>(m_source.get().getProperty<IsophotalFlux>().getFlux(), 0.0001);
 }
 
 SeFloat ObjectInfo::getRadius() const {
-  return m_source.get().getProperty<ShapeParameters>().getEllipseA() / 2.0;
+  return std::max<double>(m_source.get().getProperty<ShapeParameters>().getEllipseA() / 2.0, 0.01);
 }
 
 SeFloat ObjectInfo::getAngle() const {
