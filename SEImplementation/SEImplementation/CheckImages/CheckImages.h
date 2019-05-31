@@ -33,10 +33,6 @@ public:
 
   void saveImages();
 
-  std::shared_ptr<WriteableImage<DetectionImage::PixelType>> getModelFittingCheckImage() const {
-    return m_check_image_model_fitting;
-  }
-
   std::shared_ptr<WriteableImage<unsigned int>> getSegmentationImage() const {
     return m_segmentation_image;
   }
@@ -67,6 +63,9 @@ public:
   std::shared_ptr<WriteableImage<unsigned int>>
   getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame);
 
+  std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
+  getModelFittingImage(std::shared_ptr<const MeasurementImageFrame> frame);
+
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
     m_background_image = background_image;
   }
@@ -83,8 +82,8 @@ public:
     m_thresholded_image = thresholded_image;
   }
 
-  std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
-  void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
+  //std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
+  //void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
 
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
@@ -111,7 +110,6 @@ private:
   static std::unique_ptr<CheckImages> m_instance;
 
   // check image
-  std::shared_ptr<WriteableImage<DetectionImage::PixelType>> m_check_image_model_fitting;
   std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_group_image;
@@ -120,6 +118,7 @@ private:
   std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
   std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_aperture_image)> m_measurement_aperture_images;
   std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
+  std::map<std::shared_ptr<const MeasurementImageFrame>, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;

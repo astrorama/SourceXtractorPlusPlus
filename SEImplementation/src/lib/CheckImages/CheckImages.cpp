@@ -23,7 +23,7 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager 
   manager.registerConfiguration<CheckImagesConfig>();
 }
 
-std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
+/*std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
   if (m_custom_images.count(id) != 0) {
     auto image = std::dynamic_pointer_cast<WriteableImage<SeFloat>>(std::get<0>(m_custom_images[id]));
     if (image != nullptr) {
@@ -41,7 +41,7 @@ std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std
 
 void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image) {
   m_custom_images[id] = std::make_tuple(image, true);
-}
+}*/
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
@@ -61,15 +61,6 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_moffat_filename = config.getMoffatFilename();
 
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
-
-  if (m_model_fitting_image_filename != "") {
-    m_check_image_model_fitting = FitsWriter::newImage<DetectionImage::PixelType>(m_model_fitting_image_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
-  }
-  else if (m_residual_filename != "") {
-    m_check_image_model_fitting = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
-      "sextractor_check_model_%%%%%%.fits", m_detection_image->getWidth(), m_detection_image->getHeight());
-  }
 
   if (m_segmentation_filename != "") {
     m_segmentation_image = FitsWriter::newImage<unsigned int>(m_segmentation_filename.native(),
@@ -158,6 +149,33 @@ CheckImages::getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame
   return i->second;
 }
 
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
+CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
+  if (m_model_fitting_image_filename.empty()) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  auto i = m_check_image_model_fitting.find(frame);
+  if (i == m_check_image_model_fitting.end()) {
+    auto filename = m_model_fitting_image_filename.stem();
+    filename += "_" + frame->getLabel();
+    filename.replace_extension(m_model_fitting_image_filename.extension());
+    auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
+    i = m_check_image_model_fitting.emplace(
+      std::make_pair(
+        frame,
+        FitsWriter::newImage<MeasurementImage::PixelType>(
+          frame_filename.native(),
+          frame->getOriginalImage()->getWidth(),
+          frame->getOriginalImage()->getHeight(),
+          frame->getCoordinateSystem()
+        ))).first;
+  }
+  return i->second;
+}
+
 void CheckImages::saveImages() {
   lock();
 
@@ -182,9 +200,15 @@ void CheckImages::saveImages() {
   }
 
   // if possible, create and save the residual image
-  if (m_check_image_model_fitting != nullptr && m_residual_filename != "") {
-    auto residual_image = SubtractImage<SeFloat>::create(m_detection_image, m_check_image_model_fitting);
-    FitsWriter::writeFile(*residual_image, m_residual_filename.native(), m_coordinate_system);
+  if (m_residual_filename != "") {
+    for (auto &ci : m_check_image_model_fitting) {
+      auto residual_image = SubtractImage<SeFloat>::create(ci.first->getSubtractedImage(), ci.second);
+      auto filename = m_residual_filename.stem();
+      filename += "_" + ci.first->getLabel();
+      filename.replace_extension(m_residual_filename.extension());
+      auto frame_filename = m_residual_filename.parent_path() / filename;
+      FitsWriter::writeFile(*residual_image, filename.native(), ci.first->getCoordinateSystem());
+    }
   }
 
   for (auto const& entry : m_custom_images) {

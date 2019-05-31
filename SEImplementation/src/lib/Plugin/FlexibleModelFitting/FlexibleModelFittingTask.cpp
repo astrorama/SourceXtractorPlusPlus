@@ -323,28 +323,20 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       auto final_stamp = frame_model.getImage();
 
       auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-
-      CheckImages::getInstance().lock();
       auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
-      std::stringstream checkimage_id;
-      checkimage_id << m_checkimage_prefix << "_debug_" << frame_id;
-      auto debug_image = CheckImages::getInstance().getWriteableCheckImage(checkimage_id.str(),
-          frame->getSubtractedImage()->getWidth(), frame->getSubtractedImage()->getHeight());
-
-      for (int x=0; x<final_stamp->getWidth(); x++) {
-        for (int y=0; y<final_stamp->getHeight(); y++) {
-          auto x_coord = stamp_rect.getTopLeft().m_x + x;
-          auto y_coord = stamp_rect.getTopLeft().m_y + y;
-          debug_image->setValue(x_coord, y_coord, debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x,y));
+      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
+      if (debug_image) {
+        CheckImages::getInstance().lock();
+        for (int x = 0; x < final_stamp->getWidth(); x++) {
+          for (int y = 0; y < final_stamp->getHeight(); y++) {
+            auto x_coord = stamp_rect.getTopLeft().m_x + x;
+            auto y_coord = stamp_rect.getTopLeft().m_y + y;
+            debug_image->setValue(x_coord, y_coord,
+                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+          }
         }
       }
-
-      auto residual_image = SubtractImage<SeFloat>::create(frame->getSubtractedImage(), debug_image);
-
-      std::stringstream checkimage_residual_id;
-      checkimage_residual_id << m_checkimage_prefix << "_residual_" << frame_id;
-      CheckImages::getInstance().setCustomCheckImage(checkimage_residual_id.str(), residual_image);
 
       CheckImages::getInstance().unlock();
     }
