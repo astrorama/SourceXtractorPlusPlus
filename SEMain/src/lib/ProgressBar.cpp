@@ -78,7 +78,7 @@ public:
     ::sigaction(SIGWINCH, nullptr, nullptr);
   }
 
-  void prepare(int gress_lines, int max_label_width) {
+  void prepare(int progress_lines, int max_label_width) {
     // C++ guarantees that a static object is initialized once, and in a thread-safe manner
     // We do it here so this setup only happens *if* the progress bar is used
     struct Helper {
@@ -102,6 +102,9 @@ public:
     set_term(term);
     curs_set(0);
 
+    // Get input, but leave Ctrl+<Key> to the terminal
+    cbreak();
+
     // Setup colors
     use_default_colors();
     start_color();
@@ -109,7 +112,7 @@ public:
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
 
     // Compute window and progress bar sizes
-    m_progress_lines = gress_lines;
+    m_progress_lines = progress_lines;
     m_value_position = max_label_width + 3;
     initializeSizes();
 
@@ -225,7 +228,7 @@ void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>
     terminal.prepare(info.size() + 1, max_attr_len);
 
     // Start printer
-    m_progress_thread = make_unique<boost::thread>(ProgressBar::printThread, this);
+    m_progress_thread = make_unique<boost::thread>(ProgressBar::uiThread, this);
   }
 }
 
@@ -236,95 +239,96 @@ void ProgressBar::handleMessage(const bool& done) {
   terminal.restore();
 }
 
-void ProgressBar::printThread(void *d) {
+void ProgressBar::uiThread(void *d) {
   auto self = static_cast<ProgressBar *>(d);
   while (!self->m_done && !boost::this_thread::interruption_requested()) {
-    auto now = boost::posix_time::second_clock::local_time();
-    auto elapsed = now - self->m_started;
+    self->updateProgress();
 
-    // Restore position to the beginning
-    wclear(terminal.m_progress_window);
-    wmove(terminal.m_progress_window, 0, 0);
+    // Wait for a second, or a user key-press
+    timeout(1000);
+    int key = getch();
+  }
+}
 
-    // Now, print the actual progress
-    int line = 0;
-    for (auto entry : self->m_progress_info) {
-      wmove(terminal.m_progress_window, line, 0);
-      // When there is no total, show an absolute count
-      if (entry.second.second < 0) {
-        wattron(terminal.m_progress_window, A_BOLD);
-        waddstr(terminal.m_progress_window, entry.first.c_str());
-        wattroff(terminal.m_progress_window, A_BOLD);
-        wmove(terminal.m_progress_window, line, terminal.m_value_position);
-        wprintw(terminal.m_progress_window, "%d", entry.second.first);
+void ProgressBar::updateProgress(void) {
+  auto now = boost::posix_time::second_clock::local_time();
+  auto elapsed = now - m_started;
+
+  // Restore position to the beginning
+  wclear(terminal.m_progress_window);
+  wmove(terminal.m_progress_window, 0, 0);
+
+  // Now, print the actual progress
+  int line = 0;
+  for (auto entry : m_progress_info) {
+    wmove(terminal.m_progress_window, line, 0);
+    // When there is no total, show an absolute count
+    if (entry.second.second < 0) {
+      wattron(terminal.m_progress_window, A_BOLD);
+      waddstr(terminal.m_progress_window, entry.first.c_str());
+      wattroff(terminal.m_progress_window, A_BOLD);
+      wmove(terminal.m_progress_window, line, terminal.m_value_position);
+      wprintw(terminal.m_progress_window, "%d", entry.second.first);
+    }
+      // Otherwise, report progress as a bar
+    else {
+      float ratio = 0;
+      if (entry.second.second > 0) {
+        ratio = entry.second.first / float(entry.second.second);
+        if (ratio > 1)
+          ratio = 1.;
       }
-        // Otherwise, report progress as a bar
-      else {
-        float ratio = 0;
-        if (entry.second.second > 0) {
-          ratio = entry.second.first / float(entry.second.second);
-          if (ratio > 1)
-            ratio = 1.;
-        }
 
-        // Build the report string
-        std::ostringstream bar;
-        bar << entry.second.first << " / " << entry.second.second
-            << " (" << std::fixed << std::setprecision(2) << ratio * 100. << "%)";
+      // Build the report string
+      std::ostringstream bar;
+      bar << entry.second.first << " / " << entry.second.second
+          << " (" << std::fixed << std::setprecision(2) << ratio * 100. << "%)";
 
-        // Attach as many spaces as needed to fill the screen width, minus brackets
-        bar << std::string(terminal.m_bar_width - bar.str().size(), ' ');
+      // Attach as many spaces as needed to fill the screen width, minus brackets
+      bar << std::string(terminal.m_bar_width - bar.str().size(), ' ');
 
-        // Print label
-        wattron(terminal.m_progress_window, A_BOLD);
-        waddstr(terminal.m_progress_window, entry.first.c_str());
-        wattroff(terminal.m_progress_window, A_BOLD);
-        mvwaddch(
-          terminal.m_progress_window,
-          line, terminal.m_value_position,
-          '['
-        );
+      // Print label
+      wattron(terminal.m_progress_window, A_BOLD);
+      waddstr(terminal.m_progress_window, entry.first.c_str());
+      wattroff(terminal.m_progress_window, A_BOLD);
+      mvwaddch(
+        terminal.m_progress_window,
+        line, terminal.m_value_position,
+        '['
+      );
 
-        // Completed
-        auto bar_content = bar.str();
-        int completed = bar_content.size() * ratio;
+      // Completed
+      auto bar_content = bar.str();
+      int completed = bar_content.size() * ratio;
 
-        wattron(terminal.m_progress_window, COLOR_PAIR(1));
-        waddstr(terminal.m_progress_window, bar_content.substr(0, completed).c_str());
-        wattroff(terminal.m_progress_window, COLOR_PAIR(1));
+      wattron(terminal.m_progress_window, COLOR_PAIR(1));
+      waddstr(terminal.m_progress_window, bar_content.substr(0, completed).c_str());
+      wattroff(terminal.m_progress_window, COLOR_PAIR(1));
 
-        // Rest
-        wattron(terminal.m_progress_window, COLOR_PAIR(2));
-        waddstr(terminal.m_progress_window, bar_content.substr(completed).c_str());
-        wattroff(terminal.m_progress_window, COLOR_PAIR(2));
+      // Rest
+      wattron(terminal.m_progress_window, COLOR_PAIR(2));
+      waddstr(terminal.m_progress_window, bar_content.substr(completed).c_str());
+      wattroff(terminal.m_progress_window, COLOR_PAIR(2));
 
-        // Closing bracket
-        waddch(terminal.m_progress_window, ']');
-      }
-      ++line;
+      // Closing bracket
+      waddch(terminal.m_progress_window, ']');
     }
-    // Elapsed time
-    wattron(terminal.m_progress_window, A_BOLD);
-    mvwaddstr(terminal.m_progress_window, line, 0, "Elapsed");
-    wattroff(terminal.m_progress_window, A_BOLD);
-    mvwaddstr(
-      terminal.m_progress_window,
-      line, terminal.m_value_position + 1,
-      (boost::lexical_cast<std::string>(elapsed)).c_str()
-    );
+    ++line;
+  }
+  // Elapsed time
+  wattron(terminal.m_progress_window, A_BOLD);
+  mvwaddstr(terminal.m_progress_window, line, 0, "Elapsed");
+  wattroff(terminal.m_progress_window, A_BOLD);
+  mvwaddstr(
+    terminal.m_progress_window,
+    line, terminal.m_value_position + 1,
+    (boost::lexical_cast<std::string>(elapsed)).c_str()
+  );
 
-    // Flush
-    {
-      std::lock_guard<std::mutex> lock(terminal_mutex);
-      wrefresh(terminal.m_progress_window);
-    }
-
-    try {
-      boost::this_thread::sleep(boost::posix_time::seconds(1));
-    }
-    catch (const boost::thread_interrupted&) {
-      break;
-    }
+  // Flush
+  {
+    std::lock_guard<std::mutex> lock(terminal_mutex);
+    wrefresh(terminal.m_progress_window);
   }
 }
 

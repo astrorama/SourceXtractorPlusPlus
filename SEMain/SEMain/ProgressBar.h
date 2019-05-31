@@ -51,9 +51,14 @@ protected:
   std::unique_ptr<boost::thread> m_progress_thread;
 
   /**
-   * This method runs on a separate thread, and updates the report every second.
+   * This method runs on a separate thread, handling UI drawing and events.
    */
-  static void printThread(void*);
+  static void uiThread(void *);
+
+  /**
+   * Re-draw progress report.
+   */
+  void updateProgress(void);
 };
 
 } // end SExtractor
