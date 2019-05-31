@@ -15,52 +15,143 @@ namespace SExtractor {
 
 static struct sigaction sigterm, sigwinch;
 static std::map<int, struct sigaction> prev_signal;
-static std::mutex terminal_mutex;
+static std::recursive_mutex terminal_mutex;
 
-// Forward declaration
+// Forward declaration of signal handlers
 static void handleTerminatingSignal(int s);
-
 static void handleTerminalResize(int s);
 
+/**
+ * Custom implementation of a stream buffer, so std::cerr can be transparently redirected into
+ * the ncurses pad
+ */
 class PadStream : public std::streambuf {
 private:
   WINDOW *m_pad;
-  int m_height, m_width;
-  int m_y, m_x;
-  int m_line_offset;
+  // Screen coordinates!
+  int m_display_height, m_display_width;
+  int m_display_y, m_display_x;
+  // Number of total lines being written so far
+  int m_written_lines;
+  // Last line being *displayed*
+  int m_displayed_line;
+
+  static const int BUFFER_INCREASE_STEP_SIZE = 10;
 
 public:
-  PadStream(WINDOW *win, int height, int width, int y, int x)
-    : m_pad(win),
-      m_height(height), m_width(width), m_y(y), m_x(x),
-      m_line_offset(0) {
+
+  /**
+   * Constructor
+   * @param display_height
+   *    Displayed height on the screen. The actual pad height is handled internally.
+   * @param display_width
+   *    Displayed width on the screen.
+   * @param display_y
+   *    Y position on the screen.
+   * @param display_x
+   *    X position on the screen.
+   */
+  PadStream(int display_height, int display_width, int display_y, int display_x)
+    : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width)),
+      m_display_height(display_height), m_display_width(display_width), m_display_y(display_y), m_display_x(display_x),
+      m_written_lines(0), m_displayed_line(0) {
+    scrollok(m_pad, TRUE);
   }
 
+  /**
+   * Destructor
+   */
+  virtual ~PadStream() {
+    delwin(m_pad);
+  }
+
+  /**
+   * Called when the buffer is overflowed, so the character c is written to the destination
+   */
   std::streambuf::int_type overflow(std::streambuf::int_type c) override {
     if (c != traits_type::eof()) {
       waddch(m_pad, c);
+      if (c == '\n') {
+        // If the current line is the last one, follow the log
+        if (m_displayed_line == m_written_lines) {
+          ++m_displayed_line;
+        }
+        ++m_written_lines;
+        // Increase buffer if we ran out of lines on the pad
+        if (getmaxy(m_pad) <= m_written_lines) {
+          wresize(m_pad, m_written_lines + BUFFER_INCREASE_STEP_SIZE, m_display_width);
+        }
+      }
     }
     return c;
   }
 
+  /**
+   * Called so synchronize the buffer. This implementation will refresh the display.
+   */
   int sync() override {
-    std::lock_guard<std::mutex> lock(terminal_mutex);
-    prefresh(m_pad, m_line_offset, 0, m_y, m_x, m_y + m_height - 1, m_width - 1);
+    // Calculate the Y offset within the pad to start displaying
+    int pad_y = std::max(m_displayed_line - m_display_height, 0);
+    prefresh(m_pad,
+      pad_y, 0, // Pad coordinates
+      m_display_y, m_display_x, // Start screen coordinates
+      m_display_y + m_display_height - 1, m_display_x + m_display_width - 1 // End screen coordinates
+    );
     return 0;
   }
 
-  void resize(int height, int width, int y, int x) {
-    m_height = height;
-    m_width = width;
-    m_y = y;
-    m_x = x;
-    wresize(m_pad, width, height);
+  /**
+   * Update the screen coordinates/size.
+   * @param display_height
+   * @param display_width
+   * @param display_y
+   * @param display_x
+   */
+  void resize(int display_height, int display_width, int display_y, int display_x) {
+    m_display_height = display_height;
+    m_display_width = display_width;
+    m_display_y = display_y;
+    m_display_x = display_x;
+    // Resize to make place for the new width only if it is bigger.
+    // Note that the pad height depends on the number of written lines, not displayed size!
+    if (display_width > getmaxx(m_pad)) {
+      wresize(m_pad, getmaxy(m_pad), display_width);
+    }
+    sync();
   }
 
-  // scroll is a ncurses macro :(
+  /**
+   * Allow to scroll the pad
+   * @note Scroll is a ncurses macro, so we can not use it as a name :(
+   */
   void move(int d) {
-    m_line_offset += d;
+    m_displayed_line += d;
+    if (m_displayed_line < 0) {
+      m_displayed_line = 0;
+    } else if (m_displayed_line > getcury(m_pad)) {
+      m_displayed_line = getcury(m_pad);
+    }
     sync();
+  }
+
+  /**
+   * Dump into a vector the content of the buffer
+   */
+  std::vector<std::string> getText() {
+    // Scan line by line
+    std::vector<std::string> term_lines;
+    for (int i = 0; i < m_written_lines; ++i) {
+      // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
+      std::vector<char> buffer(COLS + 1, '\0');
+      mvwinnstr(m_pad, i, 0, buffer.data(), COLS);
+      term_lines.push_back(buffer.data());
+      boost::algorithm::trim(term_lines.back());
+    }
+    // Prune trailing empty lines
+    while (!term_lines.empty() && term_lines.back().empty()) {
+      term_lines.pop_back();
+    }
+    return term_lines;
   }
 };
 
@@ -75,19 +166,18 @@ private:
   std::streambuf *m_cerr_original_rdbuf;
 
 public:
-  WINDOW *m_progress_window, *m_log_pad;
+  WINDOW *m_progress_window;
   std::unique_ptr<PadStream> m_cerr_sink;
   int m_progress_lines, m_progress_y;
   int m_value_position, m_bar_width;
 
   void restore() {
-    // Exit ncurses
-    delwin(m_progress_window);
-    delwin(m_log_pad);
-    endwin();
-
     // Restore cerr
     std::cerr.rdbuf(m_cerr_original_rdbuf);
+
+    // Exit ncurses
+    delwin(m_progress_window);
+    endwin();
 
     // Restore signal handlers
     ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
@@ -140,44 +230,25 @@ public:
 
     // Create windows
     m_progress_window = newwin(m_progress_lines, COLS, m_progress_y, 0);
-    m_log_pad = newpad(1000, COLS);
-    scrollok(m_log_pad, TRUE);
 
     // Capture stderr to intercept Elements logging and the like
     m_cerr_original_rdbuf = std::cerr.rdbuf();
-    m_cerr_sink.reset(new PadStream(m_log_pad, m_progress_y, COLS, 0, 0));
+    m_cerr_sink.reset(new PadStream(m_progress_y, COLS, 0, 0));
     std::cerr.rdbuf(m_cerr_sink.get());
   }
 
   void resize() {
-    std::lock_guard<std::mutex> lock(terminal_mutex);
+    std::lock_guard<std::recursive_mutex> lock(terminal_mutex);
     endwin();
     refresh();
 
     initializeSizes();
+    wresize(m_progress_window, m_progress_lines, COLS);
     mvwin(m_progress_window, m_progress_y, 0);
-    wresize(m_progress_window, m_progress_lines + 1, COLS);
     m_cerr_sink->resize(m_progress_y, COLS, 0, 0);
     refresh();
   }
 
-  std::vector<std::string> getScreenText() {
-    std::lock_guard<std::mutex> lock(terminal_mutex);
-    // Scan line by line
-    std::vector<std::string> term_lines;
-    for (int i = 0; i < m_progress_y; ++i) {
-      // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
-      std::vector<char> buffer(COLS + 1, '\0');
-      mvwinnstr(m_log_pad, i, 0, buffer.data(), COLS);
-      term_lines.push_back(buffer.data());
-      boost::algorithm::trim(term_lines.back());
-    }
-    // Prune trailing empty lines
-    while (!term_lines.empty() && term_lines.back().empty()) {
-      term_lines.pop_back();
-    }
-    return term_lines;
-  }
 
 private:
   void initializeSizes() {
@@ -195,12 +266,12 @@ static Terminal terminal;
  * Intercept several terminating signals so the terminal style can be restored
  */
 static void handleTerminatingSignal(int s) {
-  auto text = terminal.getScreenText();
+  auto text = terminal.m_cerr_sink->getText();
   terminal.restore();
 
   // After restoring the buffer, dump the text that was shown so any error
   // remains visible
-  for (auto &l : text) {
+  for (auto& l : text) {
     std::cerr << l << std::endl;
   }
 
@@ -226,7 +297,6 @@ ProgressBar::~ProgressBar() {
     m_progress_thread->interrupt();
     m_progress_thread->join();
   }
-  terminal.restore();
 }
 
 bool ProgressBar::isTerminalCapable() {
@@ -259,6 +329,12 @@ void ProgressBar::handleMessage(const bool& done) {
   if (m_progress_thread)
     m_progress_thread->join();
   terminal.restore();
+  // Dump back the written content
+  auto text = terminal.m_cerr_sink->getText();
+  terminal.restore();
+  for (auto& l : text) {
+    std::cerr << l << std::endl;
+  }
 }
 
 void ProgressBar::uiThread(void *d) {
@@ -363,7 +439,7 @@ void ProgressBar::updateProgress(void) {
 
   // Flush
   {
-    std::lock_guard<std::mutex> lock(terminal_mutex);
+    std::lock_guard<std::recursive_mutex> lock(terminal_mutex);
     wrefresh(terminal.m_progress_window);
   }
 }
