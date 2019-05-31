@@ -126,10 +126,14 @@ public:
    */
   void move(int d) {
     m_displayed_line += d;
-    if (m_displayed_line < 0) {
+    if (m_displayed_line > getcury(m_pad) + 1) {
+      m_displayed_line = getcury(m_pad) + 1;
+    }
+    else if (m_displayed_line < 0) {
       m_displayed_line = 0;
-    } else if (m_displayed_line > getcury(m_pad)) {
-      m_displayed_line = getcury(m_pad);
+    }
+    else if (m_written_lines > m_display_height && m_displayed_line < m_display_height) {
+      m_displayed_line = m_display_height;
     }
     sync();
   }
