@@ -22,25 +22,45 @@ static void handleTerminatingSignal(int s);
 
 static void handleTerminalResize(int s);
 
-class WinStream : public std::streambuf {
+class PadStream : public std::streambuf {
 private:
-  WINDOW *m_window;
+  WINDOW *m_pad;
+  int m_height, m_width;
+  int m_y, m_x;
+  int m_line_offset;
 
 public:
-  WinStream(WINDOW *win) : m_window(win) {
+  PadStream(WINDOW *win, int height, int width, int y, int x)
+    : m_pad(win),
+      m_height(height), m_width(width), m_y(y), m_x(x),
+      m_line_offset(0) {
   }
 
   std::streambuf::int_type overflow(std::streambuf::int_type c) override {
     if (c != traits_type::eof()) {
-      waddch(m_window, c);
+      waddch(m_pad, c);
     }
     return c;
   }
 
   int sync() override {
     std::lock_guard<std::mutex> lock(terminal_mutex);
-    wrefresh(m_window);
+    prefresh(m_pad, m_line_offset, 0, m_y, m_x, m_y + m_height - 1, m_width - 1);
     return 0;
+  }
+
+  void resize(int height, int width, int y, int x) {
+    m_height = height;
+    m_width = width;
+    m_y = y;
+    m_x = x;
+    wresize(m_pad, width, height);
+  }
+
+  // scroll is a ncurses macro :(
+  void move(int d) {
+    m_line_offset += d;
+    sync();
   }
 };
 
@@ -52,18 +72,18 @@ public:
  */
 class Terminal {
 private:
-  int m_progress_lines, m_progress_y;
   std::streambuf *m_cerr_original_rdbuf;
-  std::unique_ptr<std::streambuf> m_cerr_sink;
 
 public:
-  WINDOW *m_progress_window, *m_log_window;
+  WINDOW *m_progress_window, *m_log_pad;
+  std::unique_ptr<PadStream> m_cerr_sink;
+  int m_progress_lines, m_progress_y;
   int m_value_position, m_bar_width;
 
   void restore() {
     // Exit ncurses
     delwin(m_progress_window);
-    delwin(m_log_window);
+    delwin(m_log_pad);
     endwin();
 
     // Restore cerr
@@ -102,8 +122,10 @@ public:
     set_term(term);
     curs_set(0);
 
-    // Get input, but leave Ctrl+<Key> to the terminal
+    // Get input without echo, but leave Ctrl+<Key> to the terminal
     cbreak();
+    keypad(stdscr, TRUE);
+    noecho();
 
     // Setup colors
     use_default_colors();
@@ -118,12 +140,12 @@ public:
 
     // Create windows
     m_progress_window = newwin(m_progress_lines, COLS, m_progress_y, 0);
-    m_log_window = newwin(m_progress_y, COLS, 0, 0);
-    scrollok(m_log_window, TRUE);
+    m_log_pad = newpad(1000, COLS);
+    scrollok(m_log_pad, TRUE);
 
     // Capture stderr to intercept Elements logging and the like
     m_cerr_original_rdbuf = std::cerr.rdbuf();
-    m_cerr_sink.reset(new WinStream(m_log_window));
+    m_cerr_sink.reset(new PadStream(m_log_pad, m_progress_y, COLS, 0, 0));
     std::cerr.rdbuf(m_cerr_sink.get());
   }
 
@@ -135,7 +157,7 @@ public:
     initializeSizes();
     mvwin(m_progress_window, m_progress_y, 0);
     wresize(m_progress_window, m_progress_lines + 1, COLS);
-    wresize(m_log_window, m_progress_y, COLS);
+    m_cerr_sink->resize(m_progress_y, COLS, 0, 0);
     refresh();
   }
 
@@ -146,7 +168,7 @@ public:
     for (int i = 0; i < m_progress_y; ++i) {
       // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
       std::vector<char> buffer(COLS + 1, '\0');
-      mvwinnstr(m_log_window, i, 0, buffer.data(), COLS);
+      mvwinnstr(m_log_pad, i, 0, buffer.data(), COLS);
       term_lines.push_back(buffer.data());
       boost::algorithm::trim(term_lines.back());
     }
@@ -247,6 +269,20 @@ void ProgressBar::uiThread(void *d) {
     // Wait for a second, or a user key-press
     timeout(1000);
     int key = getch();
+    switch (key) {
+      case KEY_DOWN:
+        terminal.m_cerr_sink->move(1);
+        break;
+      case KEY_UP:
+        terminal.m_cerr_sink->move(-1);
+        break;
+      case KEY_NPAGE:
+        terminal.m_cerr_sink->move(terminal.m_progress_y);
+        break;
+      case KEY_PPAGE:
+        terminal.m_cerr_sink->move(-terminal.m_progress_y);
+        break;
+    }
   }
 }
 
