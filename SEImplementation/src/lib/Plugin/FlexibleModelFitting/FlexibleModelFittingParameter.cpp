@@ -31,7 +31,7 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
-std::mutex python_callback_mutex {};
+std::recursive_mutex python_callback_mutex {};
 
 FlexibleModelFittingParameter::FlexibleModelFittingParameter(int id) : m_id(id) { }
 
@@ -46,7 +46,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
-  std::lock_guard<std::mutex> guard {python_callback_mutex};
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
   double initial_value = m_initial_value(source);
 
   auto converter = m_converter_factory->getConverter(initial_value, source);
@@ -60,7 +60,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParame
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& /*engine_manager*/,
                                                             const SourceInterface& source) const {
-  std::lock_guard<std::mutex> guard {python_callback_mutex};
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
   return std::make_shared<ManualParameter>(m_value(source));
 }
 
@@ -81,7 +81,7 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
-    std::lock_guard<std::mutex> guard {python_callback_mutex};
+    std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
     std::vector<double> materialized{params...};
     return value_calculator(coordinate_system, materialized);
   };

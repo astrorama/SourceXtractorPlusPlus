@@ -22,7 +22,7 @@ namespace ModelFitting {
 
 namespace SExtractor {
 
-extern std::mutex python_callback_mutex;
+extern std::recursive_mutex python_callback_mutex;
 
 class SourceInterface;
 class FlexibleModelFittingParameterManager;
