@@ -21,13 +21,19 @@ static std::recursive_mutex terminal_mutex;
 static void handleTerminatingSignal(int s);
 static void handleTerminalResize(int s);
 
+static const int PAIR_PROGRESS_BAR = 1;
+static const int PAIR_PROGRESS_BAR_2 = 2;
+static const int PAIR_SCROLL = 3;
+static const int PAIR_SCROLL_ACTIVE = 4;
+
+
 /**
  * Custom implementation of a stream buffer, so std::cerr can be transparently redirected into
  * the ncurses pad
  */
 class PadStream : public std::streambuf {
 private:
-  WINDOW *m_pad;
+  WINDOW *m_pad, *m_scroll;
   // Screen coordinates!
   int m_display_height, m_display_width;
   int m_display_y, m_display_x;
@@ -52,7 +58,8 @@ public:
    *    X position on the screen.
    */
   PadStream(int display_height, int display_width, int display_y, int display_x)
-    : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width)),
+    : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width - 5)),
+      m_scroll(newpad(display_height, 1)),
       m_display_height(display_height), m_display_width(display_width), m_display_y(display_y), m_display_x(display_x),
       m_written_lines(0), m_displayed_line(0) {
     scrollok(m_pad, TRUE);
@@ -63,6 +70,7 @@ public:
    */
   virtual ~PadStream() {
     delwin(m_pad);
+    delwin(m_scroll);
   }
 
   /**
@@ -90,13 +98,37 @@ public:
    * Called so synchronize the buffer. This implementation will refresh the display.
    */
   int sync() override {
+    std::lock_guard<std::recursive_mutex> lock(terminal_mutex);
+
     // Calculate the Y offset within the pad to start displaying
     int pad_y = std::max(m_displayed_line - m_display_height, 0);
-    prefresh(m_pad,
-      pad_y, 0, // Pad coordinates
-      m_display_y, m_display_x, // Start screen coordinates
-      m_display_y + m_display_height - 1, m_display_x + m_display_width - 1 // End screen coordinates
+    pnoutrefresh(m_pad,
+             pad_y, 0, // Pad coordinates
+             m_display_y, m_display_x, // Start screen coordinates
+             m_display_y + m_display_height - 1, m_display_x + m_display_width - 3 // End screen coordinates
     );
+
+    // Draw scroll marker
+    werase(m_scroll);
+
+    int max_selectable_line = m_written_lines;
+    int min_selectable_line = std::min(m_written_lines, m_display_height);
+    int displayed_line_offset = m_displayed_line - min_selectable_line;
+    float p = displayed_line_offset / float(max_selectable_line - min_selectable_line);
+
+    int scroll_marker_pos = p * (m_display_height - 1);
+    for (int i = 0; i < m_display_height; ++i) {
+      if (i == scroll_marker_pos)
+        waddch(m_scroll, '|' | COLOR_PAIR(PAIR_SCROLL_ACTIVE));
+      else
+        waddch(m_scroll, ACS_CKBOARD | COLOR_PAIR(PAIR_SCROLL));
+    }
+    pnoutrefresh(m_scroll,
+             0, 0,
+             m_display_y, m_display_x + m_display_width - 1,
+             m_display_y + m_display_height - 1, m_display_x + m_display_width - 1
+    );
+    doupdate();
     return 0;
   }
 
@@ -128,11 +160,9 @@ public:
     m_displayed_line += d;
     if (m_displayed_line > getcury(m_pad) + 1) {
       m_displayed_line = getcury(m_pad) + 1;
-    }
-    else if (m_displayed_line < 0) {
+    } else if (m_displayed_line < 0) {
       m_displayed_line = 0;
-    }
-    else if (m_written_lines > m_display_height && m_displayed_line < m_display_height) {
+    } else if (m_written_lines > m_display_height && m_displayed_line < m_display_height) {
       m_displayed_line = m_display_height;
     }
     sync();
@@ -146,8 +176,8 @@ public:
     std::vector<std::string> term_lines;
     for (int i = 0; i < m_written_lines; ++i) {
       // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
-      std::vector<char> buffer(COLS + 1, '\0');
-      mvwinnstr(m_pad, i, 0, buffer.data(), COLS);
+      std::vector<char> buffer(m_display_width + 1, '\0');
+      mvwinnstr(m_pad, i, 0, buffer.data(), m_display_width - 2);
       term_lines.push_back(buffer.data());
       boost::algorithm::trim(term_lines.back());
     }
@@ -224,8 +254,10 @@ public:
     // Setup colors
     use_default_colors();
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_GREEN);
-    init_pair(2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(PAIR_PROGRESS_BAR, COLOR_WHITE, COLOR_GREEN);
+    init_pair(PAIR_PROGRESS_BAR_2, COLOR_WHITE, COLOR_BLACK);
+    init_pair(PAIR_SCROLL, COLOR_BLACK, COLOR_WHITE);
+    init_pair(PAIR_SCROLL_ACTIVE, COLOR_BLACK, COLOR_WHITE);
 
     // Compute window and progress bar sizes
     m_progress_lines = progress_lines;
