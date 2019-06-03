@@ -403,7 +403,7 @@ void ProgressBar::updateProgress(void) {
   auto elapsed = now - m_started;
 
   // Restore position to the beginning
-  wclear(terminal.m_progress_window);
+  werase(terminal.m_progress_window);
   wmove(terminal.m_progress_window, 0, 0);
 
   // Now, print the actual progress
