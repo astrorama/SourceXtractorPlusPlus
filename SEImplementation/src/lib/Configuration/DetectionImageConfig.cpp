@@ -53,8 +53,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
   }
 
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(
-      args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
+  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
 
@@ -89,6 +89,10 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
   m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
       std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
+}
+
+std::string DetectionImageConfig::getDetectionImagePath() const {
+  return m_detection_image_path;
 }
 
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {

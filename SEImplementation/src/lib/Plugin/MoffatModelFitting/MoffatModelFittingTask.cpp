@@ -57,10 +57,6 @@
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
-#include "SEImplementation/CheckImages/CheckImages.h"
-
-#include "SEFramework/Property/DetectionFrame.h"
-
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
@@ -229,7 +225,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
   auto final_stamp = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
-  auto check_image = CheckImages::getInstance().getModelFittingCheckImage();
 
   {
 
@@ -252,13 +247,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
       // build final stamp
       final_stamp->setValue(x, y, final_stamp->getValue(x, y) + final_image->getValue(x, y));
-
-      // if requested, updates a check image made by adding all source models
-      if (check_image) {
-        CheckImages::getInstance().lock();
-        check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
-        CheckImages::getInstance().unlock();
-      }
 
       total_flux += final_image->getValue(x, y);
     }
