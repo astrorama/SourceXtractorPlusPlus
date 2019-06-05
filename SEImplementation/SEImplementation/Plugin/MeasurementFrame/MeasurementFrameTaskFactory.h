@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAME_MEASUREMENTFRAMETASKFACTORY_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAME_MEASUREMENTFRAMETASKFACTORY_H_
 
+#include <map>
+
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SExtractor {
@@ -26,7 +28,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
-  std::vector<std::shared_ptr<MeasurementImageFrame>> m_measurement_frames;
+  std::map<int, std::shared_ptr<MeasurementImageFrame>> m_measurement_frames;
 };
 
 }

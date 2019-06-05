@@ -8,6 +8,8 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_
 #define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_
 
+#include <map>
+
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 #include "PsfPluginConfig.h"
@@ -25,7 +27,7 @@ public:
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  std::vector<std::shared_ptr<VariablePsf>> m_vpsf;
+  std::map<int, std::shared_ptr<VariablePsf>> m_vpsf;
 };
 
 } // end SExtractor

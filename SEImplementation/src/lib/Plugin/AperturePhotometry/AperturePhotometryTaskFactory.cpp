@@ -79,14 +79,14 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
   auto& aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
-  auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
+  const auto& ids = measurement_config.getImageIds();
 
   m_aperture_config = aperture_config.getApertures();
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  for (unsigned int i = 0; i < measurement_images_nb; ++i) {
-    for (auto a : aperture_config.getAperturesForImage(i)) {
+  for (unsigned int i = 0; i < ids.size(); ++i) {
+    for (auto a : aperture_config.getAperturesForImage(ids[i])) {
       if (std::find(m_all_apertures.begin(), m_all_apertures.end(), a) == m_all_apertures.end()) {
         m_all_apertures.emplace_back(a);
       }
