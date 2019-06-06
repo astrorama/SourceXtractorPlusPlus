@@ -16,13 +16,13 @@ namespace SExtractor {
 std::map<std::string, ValueGetter> component_value_getters {
     {"X_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      auto top_x = measurement_frame_group.getTopLeft().m_x;
-      return top_x + measurement_frame_group.getWidth() / 2;
+      double top_x = measurement_frame_group.getTopLeft().m_x;
+      return top_x + measurement_frame_group.getWidth() / 2.;
     }},
     {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      auto top_y = measurement_frame_group.getTopLeft().m_y;
-      return top_y + measurement_frame_group.getHeight() / 2;
+      double top_y = measurement_frame_group.getTopLeft().m_y;
+      return top_y + measurement_frame_group.getHeight() / 2.;
     }}
 };
 
@@ -41,7 +41,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   // The result may not be normalized!
   auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
   auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf_normalized});
+  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf});
 }
 
 }
