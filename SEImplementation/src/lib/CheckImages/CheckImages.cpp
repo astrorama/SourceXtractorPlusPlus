@@ -151,7 +151,7 @@ CheckImages::getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
 CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
-  if (m_model_fitting_image_filename.empty()) {
+  if (m_model_fitting_image_filename.empty() && m_residual_filename.empty()) {
     return nullptr;
   }
 
@@ -159,19 +159,26 @@ CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementI
 
   auto i = m_check_image_model_fitting.find(frame);
   if (i == m_check_image_model_fitting.end()) {
-    auto filename = m_model_fitting_image_filename.stem();
-    filename += "_" + frame->getLabel();
-    filename.replace_extension(m_model_fitting_image_filename.extension());
-    auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
-    i = m_check_image_model_fitting.emplace(
-      std::make_pair(
-        frame,
-        FitsWriter::newImage<MeasurementImage::PixelType>(
-          frame_filename.native(),
-          frame->getOriginalImage()->getWidth(),
-          frame->getOriginalImage()->getHeight(),
-          frame->getCoordinateSystem()
-        ))).first;
+    std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> writeable_image;
+
+    if (m_model_fitting_image_filename.empty()) {
+      writeable_image = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
+        "sextractor_check_model_%%%%%%.fits",
+        frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight()
+      );
+    } else {
+      auto filename = m_model_fitting_image_filename.stem();
+      filename += "_" + frame->getLabel();
+      filename.replace_extension(m_model_fitting_image_filename.extension());
+      auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
+      writeable_image = FitsWriter::newImage<MeasurementImage::PixelType>(
+        frame_filename.native(),
+        frame->getOriginalImage()->getWidth(),
+        frame->getOriginalImage()->getHeight(),
+        frame->getCoordinateSystem()
+      );
+    }
+    i = m_check_image_model_fitting.emplace(std::make_pair(frame, writeable_image)).first;
   }
   return i->second;
 }
