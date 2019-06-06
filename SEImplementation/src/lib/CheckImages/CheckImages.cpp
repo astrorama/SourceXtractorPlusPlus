@@ -23,7 +23,7 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager 
   manager.registerConfiguration<CheckImagesConfig>();
 }
 
-/*std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
+std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
   if (m_custom_images.count(id) != 0) {
     auto image = std::dynamic_pointer_cast<WriteableImage<SeFloat>>(std::get<0>(m_custom_images[id]));
     if (image != nullptr) {
@@ -41,7 +41,7 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager 
 
 void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image) {
   m_custom_images[id] = std::make_tuple(image, true);
-}*/
+}
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();

@@ -82,8 +82,8 @@ public:
     m_thresholded_image = thresholded_image;
   }
 
-  //std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
-  //void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
+  std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
+  void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
 
   virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
