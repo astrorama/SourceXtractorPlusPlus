@@ -23,7 +23,7 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager 
   manager.registerConfiguration<CheckImagesConfig>();
 }
 
-/*std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
+std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
   if (m_custom_images.count(id) != 0) {
     auto image = std::dynamic_pointer_cast<WriteableImage<SeFloat>>(std::get<0>(m_custom_images[id]));
     if (image != nullptr) {
@@ -41,7 +41,7 @@ void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager 
 
 void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image) {
   m_custom_images[id] = std::make_tuple(image, true);
-}*/
+}
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
@@ -151,7 +151,7 @@ CheckImages::getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
 CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
-  if (m_model_fitting_image_filename.empty()) {
+  if (m_model_fitting_image_filename.empty() && m_residual_filename.empty()) {
     return nullptr;
   }
 
@@ -159,19 +159,26 @@ CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementI
 
   auto i = m_check_image_model_fitting.find(frame);
   if (i == m_check_image_model_fitting.end()) {
-    auto filename = m_model_fitting_image_filename.stem();
-    filename += "_" + frame->getLabel();
-    filename.replace_extension(m_model_fitting_image_filename.extension());
-    auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
-    i = m_check_image_model_fitting.emplace(
-      std::make_pair(
-        frame,
-        FitsWriter::newImage<MeasurementImage::PixelType>(
-          frame_filename.native(),
-          frame->getOriginalImage()->getWidth(),
-          frame->getOriginalImage()->getHeight(),
-          frame->getCoordinateSystem()
-        ))).first;
+    std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> writeable_image;
+
+    if (m_model_fitting_image_filename.empty()) {
+      writeable_image = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
+        "sextractor_check_model_%%%%%%.fits",
+        frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight()
+      );
+    } else {
+      auto filename = m_model_fitting_image_filename.stem();
+      filename += "_" + frame->getLabel();
+      filename.replace_extension(m_model_fitting_image_filename.extension());
+      auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
+      writeable_image = FitsWriter::newImage<MeasurementImage::PixelType>(
+        frame_filename.native(),
+        frame->getOriginalImage()->getWidth(),
+        frame->getOriginalImage()->getHeight(),
+        frame->getCoordinateSystem()
+      );
+    }
+    i = m_check_image_model_fitting.emplace(std::make_pair(frame, writeable_image)).first;
   }
   return i->second;
 }
