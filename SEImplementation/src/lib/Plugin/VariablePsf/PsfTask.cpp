@@ -16,13 +16,13 @@ namespace SExtractor {
 std::map<std::string, ValueGetter> component_value_getters {
     {"X_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      auto top_x = measurement_frame_group.getTopLeft().m_x;
-      return top_x + measurement_frame_group.getWidth() / 2;
+      double top_x = measurement_frame_group.getTopLeft().m_x;
+      return top_x + measurement_frame_group.getWidth() / 2.;
     }},
     {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      auto top_y = measurement_frame_group.getTopLeft().m_y;
-      return top_y + measurement_frame_group.getHeight() / 2;
+      double top_y = measurement_frame_group.getTopLeft().m_y;
+      return top_y + measurement_frame_group.getHeight() / 2.;
     }}
 };
 
