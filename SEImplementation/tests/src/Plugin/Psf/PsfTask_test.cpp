@@ -66,17 +66,20 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
   center_y = (center_y - 20.)/30.;
 
   auto expected = VectorImage<SeFloat>::create(3, 3);
+  double sum;
   for (int i = 0; i < expected->getHeight(); ++i) {
     for (int j = 0; j < expected->getWidth(); ++j) {
       expected->at(i, j) = constant->at(i, j) + y->at(i, j) * center_y + x->at(i, j) * center_x;
+      sum += expected->at(i, j);
     }
   }
+  auto expected_normalized = MultiplyImage<SeFloat>::create(expected, 1./sum);
 
   group.setProperty<MeasurementFrameGroupRectangle>(measurement_rectangle);
 
   varPsfTask.computeProperties(group);
   auto psf_prop = group.getProperty<PsfProperty>();
-  checkEqual(psf_prop.getPsf().getKernel(), expected);
+  checkEqual(psf_prop.getPsf().getKernel(), expected_normalized);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

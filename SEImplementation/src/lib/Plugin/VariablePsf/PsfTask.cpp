@@ -41,7 +41,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   // The result may not be normalized!
   auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
   auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf});
+  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf_normalized});
 }
 
 }
