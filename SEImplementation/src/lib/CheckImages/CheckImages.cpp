@@ -59,6 +59,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_auto_aperture_filename = config.getAutoApertureFilename();
   m_aperture_filename = config.getApertureFilename();
   m_moffat_filename = config.getMoffatFilename();
+  m_psf_filename = config.getPsfFilename();
 
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
@@ -179,6 +180,33 @@ CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementI
       );
     }
     i = m_check_image_model_fitting.emplace(std::make_pair(frame, writeable_image)).first;
+  }
+  return i->second;
+}
+
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
+CheckImages::getPsfImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
+  if (m_psf_filename.empty()) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  auto i = m_check_image_psf.find(frame);
+  if (i == m_check_image_psf.end()) {
+    auto filename = m_psf_filename.stem();
+    filename += "_" + frame->getLabel();
+    filename.replace_extension(m_psf_filename.extension());
+    auto frame_filename = m_psf_filename.parent_path() / filename;
+    i = m_check_image_psf.emplace(
+      std::make_pair(
+        frame,
+        FitsWriter::newImage<MeasurementImage::PixelType>(
+          frame_filename.native(),
+          frame->getOriginalImage()->getWidth(),
+          frame->getOriginalImage()->getHeight(),
+          frame->getCoordinateSystem()
+        ))).first;
   }
   return i->second;
 }
