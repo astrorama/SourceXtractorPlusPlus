@@ -1,4 +1,4 @@
-#include "SEMain/ProgressBar.h"
+#include "SEMain/ProgressNCurses.h"
 #include "ModelFitting/ModelFitting/utils.h"
 
 #include <sys/ioctl.h>
@@ -324,23 +324,23 @@ static void handleTerminalResize(int) {
 }
 
 
-ProgressBar::ProgressBar()
+ProgressNCurses::ProgressNCurses()
   : m_started{boost::posix_time::second_clock::local_time()} {
 }
 
-ProgressBar::~ProgressBar() {
+ProgressNCurses::~ProgressNCurses() {
   if (m_progress_thread) {
     m_progress_thread->interrupt();
     m_progress_thread->join();
   }
 }
 
-bool ProgressBar::isTerminalCapable() {
+bool ProgressNCurses::isTerminalCapable() {
   setupterm(nullptr, fileno(stderr), nullptr);
   return isatty(fileno(stderr));
 }
 
-void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+void ProgressNCurses::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
   this->ProgressReporter::handleMessage(info);
 
   // On first call, prepare and spawn the progress report block
@@ -356,11 +356,11 @@ void ProgressBar::handleMessage(const std::map<std::string, std::pair<int, int>>
     terminal.prepare(info.size() + 1, max_attr_len);
 
     // Start printer
-    m_progress_thread = make_unique<boost::thread>(ProgressBar::uiThread, this);
+    m_progress_thread = make_unique<boost::thread>(ProgressNCurses::uiThread, this);
   }
 }
 
-void ProgressBar::handleMessage(const bool& done) {
+void ProgressNCurses::handleMessage(const bool& done) {
   this->ProgressReporter::handleMessage(done);
   if (m_progress_thread)
     m_progress_thread->join();
@@ -373,8 +373,8 @@ void ProgressBar::handleMessage(const bool& done) {
   }
 }
 
-void ProgressBar::uiThread(void *d) {
-  auto self = static_cast<ProgressBar *>(d);
+void ProgressNCurses::uiThread(void *d) {
+  auto self = static_cast<ProgressNCurses *>(d);
   while (!self->m_done && !boost::this_thread::interruption_requested()) {
     self->updateProgress();
 
@@ -398,7 +398,7 @@ void ProgressBar::uiThread(void *d) {
   }
 }
 
-void ProgressBar::updateProgress(void) {
+void ProgressNCurses::updateProgress(void) {
   auto now = boost::posix_time::second_clock::local_time();
   auto elapsed = now - m_started;
 

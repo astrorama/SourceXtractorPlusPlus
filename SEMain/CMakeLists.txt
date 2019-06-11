@@ -38,7 +38,7 @@ find_package(Ncurses)
 file(GLOB LIB_SRC src/lib/*.cpp)
 
 if (NOT NCURSES_FOUND)
-    file(GLOB PROGRESSBAR_SRC src/lib/ProgressBar.cpp)
+    file(GLOB PROGRESSBAR_SRC src/lib/ProgressNCurses.cpp)
     list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
     add_definitions("-DWITHOUT_NCURSES")
 else ()
