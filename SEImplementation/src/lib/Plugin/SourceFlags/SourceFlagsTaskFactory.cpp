@@ -32,10 +32,10 @@ void SourceFlagsTaskFactory::reportConfigDependencies(Euclid::Configuration::Con
 
 void SourceFlagsTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
+  const auto& ids = measurement_config.getImageIds();
 
-  for (unsigned i = 0; i < measurement_images_nb; ++i) {
-    m_instances_per_group["global"].emplace_back(i);
+  for (unsigned i = 0; i < ids.size(); ++i) {
+    m_instances_per_group["global"].emplace_back(ids[i]);
   }
 }
 

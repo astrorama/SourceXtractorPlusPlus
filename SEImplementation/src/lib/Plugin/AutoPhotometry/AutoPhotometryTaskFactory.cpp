@@ -43,13 +43,13 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
   auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
+  const auto& ids = measurement_config.getImageIds();
 
   std::map<std::string, unsigned> pos_in_group;
 
-  for (unsigned int i = 0; i < measurement_images_nb; ++i) {
-    m_auto_names.emplace_back(std::make_pair(std::to_string(i), i));
-    m_images.push_back(i);
+  for (unsigned int i = 0; i < ids.size(); ++i) {
+    m_auto_names.emplace_back(std::make_pair(std::to_string(i), ids[i]));
+    m_images.push_back(ids[i]);
   }
 }
 

@@ -96,15 +96,15 @@ std::string DetectionImageConfig::getDetectionImagePath() const {
 }
 
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {
-  if (getCurrentState() < State::FINAL) {
-    throw Elements::Exception() << "getDetectionImage() call on not finalized DetectionImageConfig";
+  if (getCurrentState() < State::INITIALIZED) {
+    throw Elements::Exception() << "getDetectionImage() call on not initialized DetectionImageConfig";
   }
   return m_detection_image;
 }
 
 std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() const {
-  if (getCurrentState() < State::FINAL) {
-    throw Elements::Exception() << "getCoordinateSystem() call on not finalized DetectionImageConfig";
+  if (getCurrentState() < State::INITIALIZED) {
+    throw Elements::Exception() << "getCoordinateSystem() call on not initialized DetectionImageConfig";
   }
   return m_coordinate_system;
 }

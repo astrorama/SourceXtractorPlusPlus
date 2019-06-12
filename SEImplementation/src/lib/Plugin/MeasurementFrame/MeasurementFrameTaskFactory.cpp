@@ -23,17 +23,11 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
   if (property_id.getTypeId() == PropertyId::create<MeasurementFrame>().getTypeId()) {
     auto instance = property_id.getIndex();
 
-    if (instance < m_measurement_frames.size()) {
-      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_frames[instance]);
-    } else if (instance == 0) {
-      // By default if no measurement image is provided we use the detection image as the first measurement image
-      return std::make_shared<DefaultMeasurementFrameTask>(instance);
-    } else {
-      return nullptr;
-    }
-  } else {
-    return nullptr;
+    try {
+      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_frames.at(instance));
+    } catch (const std::out_of_range&) {}
   }
+  return nullptr;
 }
 
 void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -52,6 +46,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   const auto& thresholds = manager.getConfiguration<MeasurementImageConfig>().getWeightThresholds();
 
   const auto& image_paths = manager.getConfiguration<MeasurementImageConfig>().getImagePaths();
+  const auto& ids = manager.getConfiguration<MeasurementImageConfig>().getImageIds();
 
   BackgroundAnalyzerFactory background_analyzer_factory;
   background_analyzer_factory.configure(manager);
@@ -79,7 +74,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
       measurement_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    m_measurement_frames.emplace_back(measurement_frame);
+    m_measurement_frames[ids[i]] = measurement_frame;
   }
 }
 
