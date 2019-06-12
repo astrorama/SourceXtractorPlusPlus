@@ -47,18 +47,8 @@ public:
   static bool isTerminalCapable();
 
 protected:
-  boost::posix_time::ptime m_started;
-  std::unique_ptr<boost::thread> m_progress_thread;
-
-  /**
-   * This method runs on a separate thread, handling UI drawing and events.
-   */
-  static void uiThread(void *);
-
-  /**
-   * Re-draw progress report.
-   */
-  void updateProgress(void);
+  class Dashboard;
+  std::unique_ptr<Dashboard> m_dashboard;
 };
 
 } // end SExtractor
