@@ -30,7 +30,9 @@ public:
                            std::shared_ptr<DetectionImage> variance, SeFloat threshold,
                            std::shared_ptr<VectorImage<SeFloat>> kernel)
     : ProcessingImageSource<DetectionImage::PixelType>(image),
-      m_variance(variance), m_threshold(threshold), m_kernel(kernel) {}
+      m_variance(variance), m_threshold(threshold) {
+    m_kernel = VectorImage<SeFloat>::create(MirrorImage<SeFloat>::create(kernel));
+  }
 
 protected:
   virtual void

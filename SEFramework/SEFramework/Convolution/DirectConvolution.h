@@ -7,6 +7,7 @@
 #ifndef _SEFRAMEWORK_CONVOLUTION_DIRECTCONVOLUTION_H
 #define _SEFRAMEWORK_CONVOLUTION_DIRECTCONVOLUTION_H
 
+#include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -16,7 +17,7 @@ template <typename T = SeFloat, class TPadding = PaddedImage<T, Reflect101Coordi
 class DirectConvolution {
 public:
   DirectConvolution(std::shared_ptr<const Image<T>> img)
-    : m_kernel{img} {
+    : m_kernel{MirrorImage<T>::create(img)} {
   }
 
   virtual ~DirectConvolution() = default;
