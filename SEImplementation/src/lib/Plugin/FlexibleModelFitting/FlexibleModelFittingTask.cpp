@@ -189,12 +189,13 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
   auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
   auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
+  std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
   std::vector<TransformedModel> extended_models;
 
   for (auto& source : group) {
     for (auto model : frame->getModels()) {
-      model->addForSource(manager, source, point_models, extended_models, jacobian, ref_coordinates, frame_coordinates,
+      model->addForSource(manager, source, constant_models, point_models, extended_models, jacobian, ref_coordinates, frame_coordinates,
                           stamp_rect.getTopLeft());
     }
   }
@@ -202,7 +203,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
   // Full frame model with all sources
   FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-    {}, std::move(point_models), std::move(extended_models), group_psf);
+    std::move(constant_models), std::move(point_models), std::move(extended_models), group_psf);
 
   return frame_model;
 }
@@ -313,9 +314,6 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
 
   int frame_id = 0;
   for (auto frame : m_frames) {
-    std::vector<PointModel> point_models;
-    std::vector<TransformedModel> extended_models;
-
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {
@@ -367,9 +365,6 @@ SeFloat FlexibleModelFittingTask::computeReducedChiSquared(SourceGroupInterface&
   SeFloat avg_reduced_chi_squared = 0;
   int valid_frames = 0;
   for (auto frame : m_frames) {
-    std::vector<PointModel> point_models;
-    std::vector<TransformedModel> extended_models;
-
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(group, frame_index)) {

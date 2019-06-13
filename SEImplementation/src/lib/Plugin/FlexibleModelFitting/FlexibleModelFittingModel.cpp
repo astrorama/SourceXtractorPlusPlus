@@ -56,6 +56,7 @@ static const double MODEL_SIZE_FACTOR = 1.2;
 
 void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterManager& manager,
                                          const SourceInterface& source,
+                                         std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                                          std::vector<ModelFitting::PointModel>& point_models,
                                          std::vector<ModelFitting::TransformedModel>& /*extended_models*/,
                                          std::tuple<double, double, double, double> /*jacobian*/,
@@ -79,6 +80,7 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
 void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -130,6 +132,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -187,6 +190,7 @@ static double computeBn(double n) {
 
 void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -228,6 +232,18 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian);
 }
+
+void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,
+                          const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& constant_models,
+                          std::vector<ModelFitting::PointModel>& /* point_models */,
+                          std::vector<ModelFitting::TransformedModel>& /* extended_models */,
+                          std::tuple<double, double, double, double> /* jacobian */,
+                          std::shared_ptr<CoordinateSystem> /* reference_coordinates */,
+                          std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
+  constant_models.emplace_back(*manager.getParameter(source, m_value));
+}
+
 
 }
 

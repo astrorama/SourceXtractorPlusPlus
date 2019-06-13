@@ -43,6 +43,8 @@ public:
   
   std::map<int, boost::python::object> getPriors();
   
+  std::map<int, boost::python::object> getConstantModels();
+
   std::map<int, boost::python::object> getPointSourceModels();
   
   std::map<int, boost::python::object> getSersicModels();

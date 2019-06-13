@@ -8,6 +8,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGMODEL_H_
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGMODEL_H_
 
+#include "ModelFitting/Models/ConstantModel.h"
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/TransformedModel.h"
 
@@ -24,6 +25,7 @@ public:
 
   virtual void addForSource(FlexibleModelFittingParameterManager& manager,
                             const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
@@ -44,6 +46,7 @@ public:
 
   virtual void addForSource(FlexibleModelFittingParameterManager& manager,
                             const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
@@ -74,6 +77,7 @@ public:
 
   virtual void addForSource(FlexibleModelFittingParameterManager& manager,
                             const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
@@ -108,6 +112,7 @@ public:
 
   virtual void addForSource(FlexibleModelFittingParameterManager& manager,
                             const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
@@ -144,6 +149,7 @@ public:
 
   virtual void addForSource(FlexibleModelFittingParameterManager& manager,
                             const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
                             std::vector<ModelFitting::TransformedModel>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
@@ -159,6 +165,27 @@ private:
   std::shared_ptr<FlexibleModelFittingParameter> m_aspect_ratio;
   std::shared_ptr<FlexibleModelFittingParameter> m_angle;
 };
+
+class FlexibleModelFittingConstantModel : public FlexibleModelFittingModel {
+public:
+  FlexibleModelFittingConstantModel(std::shared_ptr<FlexibleModelFittingParameter> value)
+      : m_value(value) {}
+
+  virtual ~FlexibleModelFittingConstantModel() {}
+
+  virtual void addForSource(FlexibleModelFittingParameterManager& manager,
+                            const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
+                            std::vector<ModelFitting::PointModel>& point_models,
+                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
+                            std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
+
+private:
+  std::shared_ptr<FlexibleModelFittingParameter> m_value;
+};
+
 
 }
 
