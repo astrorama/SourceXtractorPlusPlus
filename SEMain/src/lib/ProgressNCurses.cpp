@@ -535,7 +535,7 @@ public:
   Dashboard() : m_done(false) {
     std::lock_guard<std::recursive_mutex> lock(s_screen.m_mutex);
 
-    s_screen.initialize(stdout, stdin);
+    s_screen.initialize(stderr, stdin);
     m_log_widget = make_unique<LogWidget>(LINES - 1, COLS, 0, 0);
     m_cerr_original_rdbuf = std::cerr.rdbuf();
     std::cerr.rdbuf(m_log_widget.get());
@@ -674,7 +674,7 @@ ProgressNCurses::~ProgressNCurses() {
 }
 
 bool ProgressNCurses::isTerminalCapable() {
-  return isatty(fileno(stdout));
+  return isatty(fileno(stderr));
 }
 
 void ProgressNCurses::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
