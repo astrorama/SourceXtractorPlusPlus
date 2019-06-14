@@ -249,7 +249,7 @@ class ConstantModel(ModelBase):
 
     def __init__(self, value):
         ModelBase.__init__(self)
-        self.value = value
+        self.value = value if isinstance(value, ParameterBase) else ConstantParameter(value)
         global constant_model_dict
         constant_model_dict[self.id] = self
 
