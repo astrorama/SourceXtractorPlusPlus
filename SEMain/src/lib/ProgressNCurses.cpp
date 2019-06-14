@@ -275,8 +275,6 @@ public:
     m_active_line += d;
     if (m_active_line > getcury(m_pad) + 1) {
       m_active_line = getcury(m_pad) + 1;
-    } else if (m_active_line < 0) {
-      m_active_line = 0;
     } else if (m_written_lines > m_display_height && m_active_line < m_display_height) {
       m_active_line = m_display_height;
     } else if (m_written_lines < m_display_height && m_active_line < m_written_lines) {
