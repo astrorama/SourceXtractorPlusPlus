@@ -271,7 +271,7 @@ public:
    * Allow to scroll the pad
    * @note Scroll is a ncurses macro, so we can not use it as a name :(
    */
-  void move(int d) {
+  void scrollText(int d) {
     m_active_line += d;
     if (m_active_line > getcury(m_pad) + 1) {
       m_active_line = getcury(m_pad) + 1;
@@ -625,16 +625,16 @@ private:
         std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
         switch (key) {
           case KEY_DOWN:
-            m_log_widget->move(1);
+            m_log_widget->scrollText(1);
             break;
           case KEY_UP:
-            m_log_widget->move(-1);
+            m_log_widget->scrollText(-1);
             break;
           case KEY_NPAGE:
-            m_log_widget->move(LINES);
+            m_log_widget->scrollText(LINES);
             break;
           case KEY_PPAGE:
-            m_log_widget->move(-LINES);
+            m_log_widget->scrollText(-LINES);
             break;
           case KEY_RESIZE:
             notifyResize();
