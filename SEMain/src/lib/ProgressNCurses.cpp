@@ -204,7 +204,7 @@ public:
       m_display_height(display_height), m_display_width(display_width), m_display_y(display_y), m_display_x(display_x),
       m_written_lines(0), m_active_line(0) {
     scrollok(m_pad, TRUE);
-    m_scroll_bar_color = s_screen.initColor(COLOR_BLACK, COLOR_WHITE);
+    m_scroll_bar_color = s_screen.initColor(COLOR_WHITE, COLOR_BLACK);
     m_scroll_ind_color = s_screen.initColor(COLOR_WHITE, COLOR_WHITE);
   }
 
@@ -318,9 +318,9 @@ private:
     int scroll_marker_pos = p * (m_display_height - 1);
     for (int i = 0; i < m_display_height; ++i) {
       if (i == scroll_marker_pos)
-        waddch(m_scroll, '|' | COLOR_PAIR(m_scroll_ind_color));
+        waddch(m_scroll, ACS_CKBOARD | COLOR_PAIR(m_scroll_ind_color));
       else
-        waddch(m_scroll, ACS_CKBOARD | COLOR_PAIR(m_scroll_bar_color));
+        waddch(m_scroll, '|' | COLOR_PAIR(m_scroll_bar_color));
     }
     pnoutrefresh(m_scroll,
                  0, 0,
