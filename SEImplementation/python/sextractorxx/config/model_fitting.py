@@ -203,6 +203,7 @@ def print_model_fitting_info(group, show_params=False, prefix=''):
             print_model_fitting_info(x[1], show_params, prefix + '    ')
 
 
+constant_model_dict = {}
 point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
@@ -244,6 +245,19 @@ class PointSourceModel(CoordinateModelBase):
             return 'PointSource[x_coord={}, y_coord={}, flux={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id)
 
+class ConstantModel(ModelBase):
+
+    def __init__(self, value):
+        ModelBase.__init__(self)
+        self.value = value
+        global constant_model_dict
+        constant_model_dict[self.id] = self
+
+    def to_string(self, show_params=False):
+        if show_params:
+            return 'ConstantModel[value={}]'.format(self.value)
+        else:
+            return 'ConstantModel[value={}]'.format(self.value.id)
 
 class SersicModelBase(CoordinateModelBase):
 

@@ -158,6 +158,13 @@ void ModelFittingConfig::initialize(const UserValues&) {
                                                       p.first, dependent_func, params);
   }
   
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {
+    int value_id = py::extract<int>(p.second.attr("value").attr("id"));
+    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(
+        m_parameters[value_id]);
+  }
+
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
