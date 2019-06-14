@@ -2,7 +2,7 @@
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/ProgressReporterConfiguration.h"
 #include "SEMain/ProgressLogger.h"
-#include "SEMain/ProgressBar.h"
+#include "SEMain/ProgressNCurses.h"
 
 namespace SExtractor {
 
@@ -29,8 +29,8 @@ std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediato
   auto mediator = std::make_shared<ProgressMediator>();
 
 #ifndef WITHOUT_NCURSES
-  if (!m_disable_progress_bar && ProgressBar::isTerminalCapable()) {
-    auto progress_bar = std::make_shared<ProgressBar>();
+  if (!m_disable_progress_bar && ProgressNCurses::isTerminalCapable()) {
+    auto progress_bar = std::make_shared<ProgressNCurses>();
     mediator->ProgressObservable::addObserver(progress_bar);
     mediator->DoneObservable::addObserver(progress_bar);
   }
