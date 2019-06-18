@@ -49,8 +49,8 @@ void TransformModelComponent::updateRasterizationInfo(double scale, double r_max
 }
 
 std::vector<TransformModelComponent::ModelSample> TransformModelComponent::getSharpSampling() {
-  double area_correction = std::sqrt((m_transform[0] * m_transform[0] + m_transform[1] * m_transform[1]) *
-      (m_transform[2] * m_transform[2] + m_transform[3] * m_transform[3])); // FIXME correction factor for angle?
+  auto area_correction = fabs(m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
+
   std::vector<ModelSample> result {};
   for (auto& sample : m_component->getSharpSampling()) {
     double new_x = std::get<0>(sample) * m_transform[0] + std::get<1>(sample) * m_transform[2];
