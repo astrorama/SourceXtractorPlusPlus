@@ -30,7 +30,7 @@ public:
    */
   ProgressLogger(const std::chrono::steady_clock::duration& min_interval);
 
-  void handleMessage(const std::map<std::string, std::pair<int, int>>& info) override;
+  void handleMessage(const std::map<std::string, Progress>& info) override;
 
   void handleMessage(const bool& done) override;
 

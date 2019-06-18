@@ -16,7 +16,14 @@
 
 namespace SExtractor {
 
-typedef Observable<std::map<std::string, std::pair<int,int>>> ProgressObservable;
+struct Progress {
+  int m_done, m_total;
+
+  Progress(): m_done(0), m_total(0) {}
+  Progress(int done, int total): m_done(done), m_total(total) {}
+};
+
+typedef Observable<std::map<std::string, Progress>> ProgressObservable;
 typedef Observable<bool> DoneObservable;
 
 /**

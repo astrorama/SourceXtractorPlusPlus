@@ -19,13 +19,13 @@ void ProgressLogger::print() {
 
     for (auto entry : m_progress_info) {
       // When there is no total, log an absolute count
-      if (entry.second.second <= 0) {
-        m_logger.info() << entry.first << ": " << entry.second.first;
+      if (entry.second.m_total <= 0) {
+        m_logger.info() << entry.first << ": " << entry.second.m_done;
       }
         // Otherwise, report progress
       else {
-        float percent = (entry.second.first * 100.) / entry.second.second;
-        m_logger.info() << entry.first << ": " << entry.second.first << " / " << entry.second.second
+        float percent = (entry.second.m_done * 100.) / entry.second.m_total;
+        m_logger.info() << entry.first << ": " << entry.second.m_done << " / " << entry.second.m_total
                         << " (" << std::fixed << std::setprecision(2) << percent << "%)";
       }
     }
@@ -40,7 +40,7 @@ void ProgressLogger::print() {
   }
 }
 
-void ProgressLogger::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+void ProgressLogger::handleMessage(const std::map<std::string, Progress>& info) {
   this->ProgressReporter::handleMessage(info);
   print();
 }
