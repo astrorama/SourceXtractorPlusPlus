@@ -63,8 +63,6 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
-
-  std::string m_checkimage_prefix;
 };
 
 }

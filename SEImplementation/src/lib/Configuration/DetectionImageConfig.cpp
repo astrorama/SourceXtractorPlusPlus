@@ -53,8 +53,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
   }
 
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(
-      args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
+  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
 
@@ -91,16 +91,20 @@ void DetectionImageConfig::initialize(const UserValues& args) {
       std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
 }
 
+std::string DetectionImageConfig::getDetectionImagePath() const {
+  return m_detection_image_path;
+}
+
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {
-  if (getCurrentState() < State::FINAL) {
-    throw Elements::Exception() << "getDetectionImage() call on not finalized DetectionImageConfig";
+  if (getCurrentState() < State::INITIALIZED) {
+    throw Elements::Exception() << "getDetectionImage() call on not initialized DetectionImageConfig";
   }
   return m_detection_image;
 }
 
 std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() const {
-  if (getCurrentState() < State::FINAL) {
-    throw Elements::Exception() << "getCoordinateSystem() call on not finalized DetectionImageConfig";
+  if (getCurrentState() < State::INITIALIZED) {
+    throw Elements::Exception() << "getCoordinateSystem() call on not initialized DetectionImageConfig";
   }
   return m_coordinate_system;
 }

@@ -46,6 +46,7 @@ public:
   m_calculator {new ValueCalculator{std::move(calculator)}},
   m_param_values {new std::array<double, PARAM_NO>{parameters.getValue()...}} {
     inputParameterLoop(parameters...);
+    m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
 
   virtual ~DependentParameter() = default;
@@ -53,6 +54,13 @@ public:
 protected:
 
   void setValue(const double new_value) = delete;
+  void getValueHook(void) {
+    if (!this->isObserved()) {
+      this->update((*m_param_values)[0]);
+    }
+  }
+
+  using BasicParameter::m_get_value_hook;
 
 private:
 
@@ -108,7 +116,12 @@ private:
     m_updaters->emplace_back(new ReferenceUpdater{
           param, (*m_param_values)[i],
           ReferenceUpdater::PreAction{},
-          [this](double){this->update((*m_param_values)[0]);}
+          [this](double){
+            // Do not bother updating live if there are no observers
+            if (this->isObserved()) {
+              this->update((*m_param_values)[0]);
+            }
+          }
     });
   }
 

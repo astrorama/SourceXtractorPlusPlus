@@ -16,7 +16,9 @@ class OpenCVConvolution {
 public:
   OpenCVConvolution(std::shared_ptr<const VectorImage<SeFloat>> img)
     : m_kernel(img->getWidth(), img->getHeight(), CV_32F) {
-    std::copy(img->getData().begin(), img->getData().end(), m_kernel.begin<float>());
+    cv::Mat aux(img->getWidth(), img->getHeight(), CV_32F);
+    std::copy(img->getData().begin(), img->getData().end(), aux.begin<float>());
+    cv::flip(aux, m_kernel, -1);
   }
 
   virtual ~OpenCVConvolution() = default;

@@ -19,25 +19,19 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto psf_config = manager.getConfiguration<PsfPluginConfig>();
   auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
-  auto default_psf = psf_config.getPsf();
-  auto psf_paths = measurement_config.getPsfsPaths();
+  const auto& psf_paths = measurement_config.getPsfsPaths();
+  const auto& ids = manager.getConfiguration<MeasurementImageConfig>().getImageIds();
 
-  if (psf_paths.empty()) {
-    m_vpsf.emplace_back(default_psf);
-  }
-  else {
-    for (auto pp : psf_paths) {
-      if (pp.empty()) {
-        m_vpsf.emplace_back(default_psf);
-      }
-      else {
-        m_vpsf.emplace_back(PsfPluginConfig::readPsf(pp));
-      }
+  assert(psf_paths.size() == ids.size());
+
+  for (unsigned int i=0; i<psf_paths.size(); i++) {
+    if (!psf_paths[i].empty()) {
+      m_vpsf[ids[i]] = PsfPluginConfig::readPsf(psf_paths[i]);
     }
   }
 
   for (auto& vpsf : m_vpsf) {
-    if (!vpsf) {
+    if (!vpsf.second) {
       throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF, or that there is a valid default PSF";
     }
   }
@@ -45,7 +39,11 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
 
 std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
   auto instance = property_id.getIndex();
-  return std::make_shared<PsfTask>(instance, m_vpsf[instance]);
+  try {
+    return std::make_shared<PsfTask>(instance, m_vpsf.at(instance));
+  } catch (const std::out_of_range&) {
+    return nullptr;
+  }
 }
 
 } // end SExtractor

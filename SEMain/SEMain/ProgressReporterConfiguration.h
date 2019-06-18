@@ -10,7 +10,7 @@
 
 
 #include <Configuration/Configuration.h>
-#include <boost/date_time/posix_time/posix_time_config.hpp>
+#include <chrono>
 
 namespace SExtractor {
 
@@ -26,7 +26,7 @@ public:
   void preInitialize(const UserValues& args) override;
   void initialize(const UserValues& args) override;
 
-  boost::posix_time::time_duration getMinPrintInterval() const {
+  std::chrono::steady_clock::duration getMinPrintInterval() const {
     return m_min_interval;
   }
 
@@ -39,7 +39,7 @@ public:
   }
 
 private:
-  boost::posix_time::time_duration m_min_interval;
+  std::chrono::steady_clock::duration m_min_interval;
   bool m_disable_progress_bar;
   bool m_log_file_set;
 };

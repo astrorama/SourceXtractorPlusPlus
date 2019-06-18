@@ -8,7 +8,7 @@
 #ifndef _SEMAIN_PROGRESSPRINTERFACTORY_H
 #define _SEMAIN_PROGRESSPRINTERFACTORY_H
 
-#include <boost/date_time/posix_time/posix_time_config.hpp>
+#include <chrono>
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEMain/ProgressMediator.h"
 
@@ -31,7 +31,7 @@ public:
   std::shared_ptr<ProgressMediator> createProgressMediator(void) const;
 
 private:
-  boost::posix_time::time_duration m_min_interval;
+  std::chrono::steady_clock::duration m_min_interval;
   bool m_disable_progress_bar;
   bool m_log_file;
 };

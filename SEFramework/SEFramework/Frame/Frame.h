@@ -151,6 +151,10 @@ public:
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
   }
 
+  std::string getLabel() const {
+    return m_label;
+  }
+
   //
   // Setters
   //
@@ -197,6 +201,10 @@ public:
     m_filtered_variance_map = nullptr;
   }
 
+  void setLabel(const std::string &label) {
+    m_label = label;
+  }
+
 private:
 
   void applyFilter() {
@@ -227,6 +235,8 @@ private:
   std::shared_ptr<Image<T>> m_interpolated_image;
   std::shared_ptr<Image<T>> m_filtered_image;
   std::shared_ptr<Image<T>> m_filtered_variance_map;
+
+  std::string m_label;
 };
 
 using DetectionImageFrame = Frame<DetectionImage::PixelType>;
