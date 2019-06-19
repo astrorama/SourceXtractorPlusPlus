@@ -10,7 +10,7 @@
 
 namespace SExtractor {
 
-Elements::Logging logger = Elements::Logging::getLogger("ImageConvolution");
+Elements::Logging logger = Elements::Logging::getLogger("Segmentation");
 
 std::shared_ptr<DetectionImage>
 BackgroundConvolution::processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance,

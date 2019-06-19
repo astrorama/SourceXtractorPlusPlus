@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
-static Elements::Logging logger = Elements::Logging::getLogger("FlexibleModelFittingParameter");
+static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
 namespace SExtractor {
 

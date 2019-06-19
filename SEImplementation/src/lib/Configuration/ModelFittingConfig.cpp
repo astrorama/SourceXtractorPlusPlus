@@ -16,7 +16,7 @@
 using namespace Euclid::Configuration;
 namespace py = boost::python;
 
-static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
+static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
 namespace SExtractor {
 
