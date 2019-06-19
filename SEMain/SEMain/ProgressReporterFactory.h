@@ -33,7 +33,6 @@ public:
 private:
   std::chrono::steady_clock::duration m_min_interval;
   bool m_disable_progress_bar;
-  bool m_log_file;
 };
 
 }
