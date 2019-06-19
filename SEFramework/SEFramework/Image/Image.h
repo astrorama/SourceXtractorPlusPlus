@@ -35,6 +35,9 @@ public:
    */
   virtual ~Image() = default;
 
+  /// Get a string identifying this image in a human readable manner
+  virtual std::string getRepr() const = 0;
+
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const = 0;
   

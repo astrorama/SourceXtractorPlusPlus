@@ -48,6 +48,10 @@ public:
         image, ConstantImage<T>::create(image->getWidth(), image->getHeight(), value_to_subtract)));
   }
 
+  std::string getRepr() const override {
+    return "SubstractImage(" + m_image->getRepr() + "," + m_image->getRepr() + ")";
+  }
+
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) - m_image_to_subtract->getValue(x, y);

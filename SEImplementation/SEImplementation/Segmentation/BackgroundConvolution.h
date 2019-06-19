@@ -37,7 +37,7 @@ public:
 protected:
 
   std::string getRepr() const override {
-    return "BgConvolutionImageSource";
+    return "BgConvolutionImageSource(" + getImageRepr() + ")";
   }
 
   virtual void
@@ -112,7 +112,7 @@ protected:
   using ConvolutionType = DFTConvolution<DetectionImage::PixelType, PaddedType>;
 
   std::string getRepr() const override {
-    return "BgDFTConvolutionImageSource";
+    return "BgDFTConvolutionImageSource(" + getImageRepr() + ")";
   }
 
   virtual void

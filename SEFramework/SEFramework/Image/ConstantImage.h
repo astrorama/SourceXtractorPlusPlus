@@ -29,6 +29,11 @@ public:
 
   virtual ~ConstantImage() = default;
 
+  std::string getRepr() const override {
+    return "ConstantImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" +
+           std::to_string(m_constant_value) + ")";
+  }
+
   int getHeight() const override {
     return m_height;
   }

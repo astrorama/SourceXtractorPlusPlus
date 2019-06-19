@@ -72,6 +72,10 @@ public:
     return std::shared_ptr<PaddedImage<T, CoordinateInterpolation>>(new PaddedImage{std::forward<Args>(args)...});
   }
 
+  std::string getRepr() const override {
+    return "PaddedImage(" + m_img->getRepr() + ")";
+  }
+
   T getValue(int x, int y) const override {
     int tx = CoordinateInterpolation(m_img->getWidth(), x - m_lpad);
     int ty = CoordinateInterpolation(m_img->getHeight(), y - m_tpad);
@@ -112,6 +116,10 @@ public:
   template<typename... Args>
   static std::shared_ptr<PaddedImage<T, nullptr>> create(Args &&... args) {
     return std::shared_ptr<PaddedImage<T, nullptr>>(new PaddedImage{std::forward<Args>(args)...});
+  }
+
+  std::string getRepr() const override {
+    return "PaddedImage(" + m_img->getRepr() + ")";
   }
 
   T getValue(int x, int y) const override {
