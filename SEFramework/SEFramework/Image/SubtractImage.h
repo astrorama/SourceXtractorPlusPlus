@@ -49,7 +49,7 @@ public:
   }
 
   std::string getRepr() const override {
-    return "SubstractImage(" + m_image->getRepr() + "," + m_image->getRepr() + ")";
+    return "SubstractImage(" + m_image->getRepr() + "," + m_image_to_subtract->getRepr() + ")";
   }
 
   using Image<T>::getValue;
