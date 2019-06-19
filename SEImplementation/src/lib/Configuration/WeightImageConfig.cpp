@@ -116,6 +116,11 @@ public:
        {}
 
 protected:
+
+  std::string getRepr() const override {
+    return "WeightMapImageSource";
+  }
+
   virtual void generateTile(std::shared_ptr<Image<WeightImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
     switch (m_weight_type) {
       case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
