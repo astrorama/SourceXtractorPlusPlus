@@ -118,7 +118,7 @@ public:
 protected:
 
   std::string getRepr() const override {
-    return "WeightMapImageSource";
+    return "WeightMapImageSource(" + getImageRepr() + ")";
   }
 
   virtual void generateTile(std::shared_ptr<Image<WeightImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
