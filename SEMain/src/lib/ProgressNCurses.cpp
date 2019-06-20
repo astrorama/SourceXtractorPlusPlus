@@ -151,6 +151,12 @@ private:
   std::atomic_int m_signal;
 
   void signalMonitor(void) {
+    // SIGTERM and SIGINT should not be handled by this thread!
+    sigset_t set;
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGINT);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+
     std::unique_lock<std::mutex> signal_lock(m_signal_mutex);
     m_signal_cv.wait(signal_lock, [this](){return m_signal || boost::this_thread::interruption_requested();});
     if (m_signal) {
@@ -655,6 +661,12 @@ private:
    * UI loop
    */
   void uiThread() {
+    // SIGTERM and SIGINT should not be handled by this thread!
+    sigset_t set;
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGINT);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+
     while (!m_done && !boost::this_thread::interruption_requested()) {
       timeout(1000);
       int key = wgetch(stdscr);
@@ -689,7 +701,8 @@ private:
    * without waiting for the uiThread, as the signal may have been triggered there
    */
   void signalCallback(int) {
-    std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
+    // Holding the mutex here is risky, as the signal may have been triggered while some other
+    // thread has it
     auto log_lines = m_log_widget->getText();
 
     // Terminate ncurses
