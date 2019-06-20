@@ -124,14 +124,13 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       logger.debug() << "Initializing MeasurementImageConfig";
 
+      auto flux_scale = py_image.flux_scale;
+
       m_measurement_images.push_back(createMeasurementImage(py_image));
       m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
       m_psfs_paths.push_back(py_image.psf_file);
-      m_weight_images.push_back(createWeightMap(py_image));
-      m_absolute_weights.push_back(py_image.weight_absolute);
-      m_weight_thresholds.push_back(extractWeightThreshold(py_image));
-      m_gains.push_back(py_image.gain);
-      m_saturation_levels.push_back(py_image.saturation);
+      m_gains.push_back(py_image.gain / flux_scale);
+      m_saturation_levels.push_back(py_image.saturation * flux_scale);
       m_image_ids.push_back(py_image.id);
       m_paths.push_back(py_image.file);
 
@@ -141,12 +140,25 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       logger.info() << "\tGain: " << py_image.gain;
       logger.info() << "\tSaturation: " << py_image.saturation;
       logger.info() << "\tFlux scale: " << py_image.flux_scale;
+
+      m_absolute_weights.push_back(py_image.weight_absolute);
+      m_weight_thresholds.push_back(extractWeightThreshold(py_image));
+
+      auto weight_map = createWeightMap(py_image);
+      if (weight_map != nullptr && flux_scale != 1. && py_image.weight_absolute) {
+        m_weight_images.push_back(MultiplyImage<WeightImage::PixelType>::create(
+            weight_map, py_image.flux_scale * py_image.flux_scale));
+      } else {
+        m_weight_images.push_back(weight_map);
+      }
     }
   } else {
     logger.debug() << "No measurement image provided, using the detection image for measurements";
 
     auto detection_image = getDependency<DetectionImageConfig>();
     auto weight_image = getDependency<WeightImageConfig>();
+
+    // note: flux scale was already applied
 
     m_measurement_images.push_back(detection_image.getDetectionImage());
     m_coordinate_systems.push_back(detection_image.getCoordinateSystem());

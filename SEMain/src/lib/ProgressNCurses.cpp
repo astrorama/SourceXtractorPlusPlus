@@ -15,11 +15,13 @@
 namespace SExtractor {
 
 // Signal handlers
-static struct sigaction sigterm;
+static struct sigaction sigterm_action, sigstop_action, sigcont_action;
 static std::map<int, struct sigaction> prev_signal;
 
 // Forward declaration of signal handlers
 static void handleTerminatingSignal(int s);
+static void handleStopSignal(int s);
+static void handleContinuationSignal(int s);
 
 
 /**
@@ -46,15 +48,24 @@ public:
   void initialize(FILE *outfd, FILE *infd) {
     // Start monitor
     m_signal_monitor = make_unique<boost::thread>(std::bind(&Screen::signalMonitor, this));
-    // Setup signal handlers
-    ::memset(&sigterm, 0, sizeof(sigterm));
 
-    sigterm.sa_handler = &handleTerminatingSignal;
-    ::sigaction(SIGINT, &sigterm, &prev_signal[SIGINT]);
-    ::sigaction(SIGTERM, &sigterm, &prev_signal[SIGTERM]);
-    ::sigaction(SIGABRT, &sigterm, &prev_signal[SIGABRT]);
-    ::sigaction(SIGSEGV, &sigterm, &prev_signal[SIGSEGV]);
-    ::sigaction(SIGHUP, &sigterm, &prev_signal[SIGHUP]);
+    // Setup signal handlers
+    ::memset(&sigterm_action, 0, sizeof(sigterm_action));
+    ::memset(&sigstop_action, 0, sizeof(sigstop_action));
+    ::memset(&sigcont_action, 0, sizeof(sigcont_action));
+
+    sigterm_action.sa_handler = &handleTerminatingSignal;
+    ::sigaction(SIGINT, &sigterm_action, &prev_signal[SIGINT]);
+    ::sigaction(SIGTERM, &sigterm_action, &prev_signal[SIGTERM]);
+    ::sigaction(SIGABRT, &sigterm_action, &prev_signal[SIGABRT]);
+    ::sigaction(SIGSEGV, &sigterm_action, &prev_signal[SIGSEGV]);
+    ::sigaction(SIGHUP, &sigterm_action, &prev_signal[SIGHUP]);
+
+    sigstop_action.sa_handler = &handleStopSignal;
+    ::sigaction(SIGTSTP, &sigstop_action, &prev_signal[SIGTSTP]);
+
+    sigcont_action.sa_handler = &handleContinuationSignal;
+    ::sigaction(SIGCONT, &sigcont_action, &prev_signal[SIGCONT]);
 
     // Enter ncurses
     SCREEN *term = newterm(nullptr, outfd, infd);
@@ -92,6 +103,7 @@ public:
     ::sigaction(SIGABRT, &prev_signal[SIGABRT], nullptr);
     ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
+    ::sigaction(SIGCONT, &prev_signal[SIGCONT], nullptr);
     // Clean up callbacks
     std::lock_guard<std::recursive_mutex> s_lock(m_mutex);
     m_signal_callbacks.clear();
@@ -139,6 +151,12 @@ private:
   std::atomic_int m_signal;
 
   void signalMonitor(void) {
+    // SIGTERM and SIGINT should not be handled by this thread!
+    sigset_t set;
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGINT);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+
     std::unique_lock<std::mutex> signal_lock(m_signal_mutex);
     m_signal_cv.wait(signal_lock, [this](){return m_signal || boost::this_thread::interruption_requested();});
     if (m_signal) {
@@ -167,6 +185,36 @@ static void handleTerminatingSignal(int s) {
 }
 
 /**
+ * Intercept SIGTSTP (Ctrl+Z)
+ */
+static void handleStopSignal(int s) {
+  // Restore handler
+  ::sigaction(s, &prev_signal[s], nullptr);
+
+  // Exit ncurses
+  {
+    std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
+    endwin();
+  }
+
+  // Trigger the previous handler
+  ::raise(s);
+}
+
+/**
+ * Intercept SIGCONT (after fg, for instance)
+ */
+static void handleContinuationSignal(int) {
+  // Restore handlers
+  ::sigaction(SIGCONT, &sigcont_action, nullptr);
+  ::sigaction(SIGTSTP, &sigstop_action, nullptr);
+
+  // Re-enter ncurses
+  std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
+  doupdate();
+}
+
+/**
  * Custom implementation of a stream buffer, so std::cerr can be transparently redirected into
  * the ncurses pad
  */
@@ -183,7 +231,7 @@ private:
   // Colors
   int m_scroll_bar_color, m_scroll_ind_color;
 
-  static const int BUFFER_INCREASE_STEP_SIZE = 10;
+  static const int BUFFER_INCREASE_STEP_SIZE = 10, BUFFER_MAX_SIZE=16384;
 
 public:
 
@@ -229,7 +277,7 @@ public:
         if (m_active_line == m_written_lines) {
           ++m_active_line;
         }
-        ++m_written_lines;
+        m_written_lines = std::min({m_written_lines+1, BUFFER_MAX_SIZE});
         // Increase buffer if we ran out of lines on the pad
         if (getmaxy(m_pad) <= m_written_lines) {
           wresize(m_pad, m_written_lines + BUFFER_INCREASE_STEP_SIZE, m_display_width);
@@ -425,12 +473,10 @@ public:
 
     // Restore position to the beginning
     werase(m_window);
-    wmove(m_window, 0, 0);
 
     // Now, print the actual progress
     int line = 0;
     for (auto& entry : info) {
-      wmove(m_window, line, 0);
       drawProgressLine(value_position, bar_width, line, entry.first, entry.second.m_total, entry.second.m_done);
       ++line;
     }
@@ -440,7 +486,6 @@ public:
 
     // Flush
     wrefresh(m_window);
-    doupdate();
   }
 
 private:
@@ -470,14 +515,14 @@ private:
    */
   void drawProgressLine(size_t value_position, size_t bar_width, int line, const std::string& label,
                         int total, int done) const {
+    // Label
+    wattron(m_window, A_BOLD);
+    mvwaddstr(m_window, line, 0, label.c_str());
+    wattroff(m_window, A_BOLD);
 
     // Total number is unknown
     if (total <= 0) {
-      wattron(m_window, A_BOLD);
-      waddstr(m_window, label.c_str());
-      wattroff(m_window, A_BOLD);
-      wmove(m_window, line, value_position + 1);
-      wprintw(m_window, "%d", done);
+      mvwprintw(m_window, line, value_position + 1, "%d", done);
       return;
     }
 
@@ -496,7 +541,7 @@ private:
 
     // Print label
     wattron(m_window, A_BOLD);
-    waddstr(m_window, label.c_str());
+    mvwaddstr(m_window, line, 0, label.c_str());
     wattroff(m_window, A_BOLD);
     mvwaddch(m_window, line, value_position, '[');
 
@@ -616,6 +661,12 @@ private:
    * UI loop
    */
   void uiThread() {
+    // SIGTERM and SIGINT should not be handled by this thread!
+    sigset_t set;
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGINT);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+
     while (!m_done && !boost::this_thread::interruption_requested()) {
       timeout(1000);
       int key = wgetch(stdscr);
@@ -641,6 +692,7 @@ private:
       }
       std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
       m_progress_widget->update(m_progress_info);
+      doupdate();
     }
   }
 
@@ -649,7 +701,8 @@ private:
    * without waiting for the uiThread, as the signal may have been triggered there
    */
   void signalCallback(int) {
-    std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
+    // Holding the mutex here is risky, as the signal may have been triggered while some other
+    // thread has it
     auto log_lines = m_log_widget->getText();
 
     // Terminate ncurses
