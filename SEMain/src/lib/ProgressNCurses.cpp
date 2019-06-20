@@ -451,7 +451,7 @@ public:
   /**
    * Update and redraw the progress information
    */
-  void update(const std::map<std::string, std::pair<int, int>>& info) {
+  void update(const std::map<std::string, Progress>& info) {
     // Precalculate layout, so labels are aligned
     size_t value_position = sizeof("Elapsed");
 
@@ -477,7 +477,7 @@ public:
     // Now, print the actual progress
     int line = 0;
     for (auto& entry : info) {
-      drawProgressLine(value_position, bar_width, line, entry.first, entry.second.second, entry.second.first);
+      drawProgressLine(value_position, bar_width, line, entry.first, entry.second.m_total, entry.second.m_done);
       ++line;
     }
 
@@ -622,7 +622,7 @@ public:
   /**
    * Update the progress information
    */
-  void update(const std::map<std::string, std::pair<int, int>>& info) {
+  void update(const std::map<std::string, Progress>& info) {
     std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
 
     // Resize if needed the widgets
@@ -641,7 +641,7 @@ private:
   std::unique_ptr<LogWidget> m_log_widget;
   std::unique_ptr<ProgressWidget> m_progress_widget;
   std::unique_ptr<boost::thread> m_ui_thread;
-  std::map<std::string, std::pair<int, int>> m_progress_info;
+  std::map<std::string, Progress> m_progress_info;
   std::atomic_bool m_done;
   std::mutex m_progress_info_mutex;
 
@@ -728,7 +728,7 @@ bool ProgressNCurses::isTerminalCapable() {
   return isatty(fileno(stderr));
 }
 
-void ProgressNCurses::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+void ProgressNCurses::handleMessage(const std::map<std::string, Progress>& info) {
   if (m_dashboard)
     m_dashboard->update(info);
 }

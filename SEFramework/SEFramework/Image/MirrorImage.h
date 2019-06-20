@@ -27,6 +27,10 @@ public:
     return std::shared_ptr<MirrorImage<T>>(new MirrorImage{std::forward<Args>(args)...});
   }
 
+  std::string getRepr() const override {
+    return "MirrorImage(" + m_img->getRepr() + ")";
+  }
+
   int getWidth() const override {
     return m_img->getWidth();
   }

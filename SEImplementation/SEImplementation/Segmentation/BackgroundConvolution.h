@@ -35,6 +35,11 @@ public:
   }
 
 protected:
+
+  std::string getRepr() const override {
+    return "BgConvolutionImageSource(" + getImageRepr() + ")";
+  }
+
   virtual void
   generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile,
                int x, int y, int width, int height) const override {
@@ -105,6 +110,10 @@ protected:
 
   // Discrete Fourier Transform convolution, which is faster for big kernels
   using ConvolutionType = DFTConvolution<DetectionImage::PixelType, PaddedType>;
+
+  std::string getRepr() const override {
+    return "BgDFTConvolutionImageSource(" + getImageRepr() + ")";
+  }
 
   virtual void
   generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile,

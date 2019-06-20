@@ -111,9 +111,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   }
 
   // give some feedback on the parameters
-  bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
-  bck_model_logger.info() << "Filter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")!";
-  bck_model_logger.info() << "The variance threshold is: "<< weightVarThreshold << "!";
+  bck_model_logger.debug() << "\tBackground cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")";
+  bck_model_logger.debug() << "\tFilter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")";
+  bck_model_logger.debug() << "\tThe bad pixel threshold is: "<< weightVarThreshold;
 
   // iterate over cells in y
   gridIndex=0;
@@ -171,8 +171,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
             //if (!itsMask->getValue(int(xIndex), int(yIndex)))
               if (itsMask->getValue(int(xIndex), int(yIndex) & itsMaskType)){
                 gridData[pixIndex] = -BIG;
-                //std::cout << "Replacing data value ";
-                bck_model_logger.info() << "Replacing data value";
+                bck_model_logger.debug() << "\tReplacing data value";
               }
       }
 
@@ -327,7 +326,6 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
 
 void SE2BackgroundModeller::filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize, const size_t* filterSize, const float &filterThreshold)
 {
-  //logger.info() << "<<FILTERING>>";
   // replace undefined values
   replaceUNDEF(bckVals,  sigmaVals, gridSize);
 
@@ -371,9 +369,7 @@ void SE2BackgroundModeller::replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,co
     return;
 
   // give some feedback that undefined data is replaced
-  //Utils::generalLogger("Replacing undefined data!");
-  //std::cout << "Replacing undefined data!" << std::endl;
-  bck_model_logger.info() << "Replacing undefined data!";
+  bck_model_logger.debug() << "\tReplacing undefined data";
 
   // vector for the final
   // background values
@@ -473,11 +469,6 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   if (filterSize[0]<2 && filterSize[1]<2)
     return;
 
-  // give some feedback
-  //std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
-  //bck_model_logger.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
-  // this does *not* work:
-  //SExtractor::se2BckLog.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // Note: I am converting the "size_t" to int's since
   //       there are computations done down.
 
@@ -639,14 +630,12 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
   if (lowIndex>0){
     if (lowIndex<nr){
       // make a log message
-      //std::cout << "Re-calculating the scaling due to leading zeros!" << std::endl;
-      bck_model_logger.info() << "Re-calculating the scaling due to leading zeros!";
+      bck_model_logger.debug() << "\tRe-calculating the scaling due to leading zeros";
       sigFac = SE2BackgroundUtils::fqMedian(ratio+lowIndex, nr-lowIndex);
     }
     else {
       //warning("Null or negative global weighting factor:","defaulted to 1");
-      //std::cout << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
-      bck_model_logger.info() << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
+      bck_model_logger.debug() << "\tNull or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
       sigFac = 1.0;
     }
   }
@@ -659,8 +648,7 @@ void SE2BackgroundModeller::rescaleThreshold(PIXTYPE &weightVarThreshold, const 
 {
   // the threshold needs to be larger than zero
   if (weightThreshold<0.0){
-    throw Elements::Exception() << "The weight threshold is: " << weightThreshold << " but can not be smaller than 0.0!";
-    //Utils::throwElementsException(std::string("The weight threshold is: ")+tostr(weightThreshold)+std::string(" but can not be smaller than 0.0!"));
+    throw Elements::Exception() << "The weight threshold is: " << weightThreshold << " but can not be smaller than 0.0";
   }
 
   // check the type flag

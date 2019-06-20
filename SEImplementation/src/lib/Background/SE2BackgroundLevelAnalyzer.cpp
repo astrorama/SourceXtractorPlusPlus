@@ -34,13 +34,13 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
 
   // double a single paramter if necessary
   if (m_cell_size.size()<1){
-    throw Elements::Exception() << "Can not convert to 'int': '" << cell_size << "'!";
+    throw Elements::Exception() << "Can not convert to 'int': '" << cell_size;
   }
   else if (m_cell_size.size()<2){
     m_cell_size.push_back(m_cell_size[0]);
   }
   if (m_cell_size.size()<1){
-    throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box << "'!";
+    throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box;
   }
   else if (m_smoothing_box.size()<2){
     m_smoothing_box.push_back(m_smoothing_box[0]);
@@ -52,36 +52,27 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask,
     WeightImage::PixelType variance_threshold) const {
 
+  bck_model_logger.debug() << "Analyzing background for " << image->getRepr();
+
   if (mask!=nullptr)
   {
-    //std::string bbb("mask.fits");
-    //FitsWriter::writeFile(*mask, bbb);
-    //std::cout << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
-    //se2BckLog.info() << "Mask: " << mask->getWidth() << "," << mask->getHeight() << std::endl;
-    //se2BckLog.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
-    bck_model_logger.info() << "Mask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
+    bck_model_logger.debug() << "\tMask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")";
 
     // make sure the dimensions are the same
     if (image->getWidth()!=mask->getWidth())
-      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " mask=" << mask->getWidth() << "!";
+      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " mask=" << mask->getWidth();
     if (image->getHeight()!=mask->getHeight())
-      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask=" << mask->getHeight() << "!";
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask=" << mask->getHeight();
   }
 
   if (variance_map!=nullptr)
   {
-  //std::string bbb("variance.fits");
-  //FitsWriter::writeFile(*variance_map, bbb);
-  //std::cout << "Variance: " << variance_map->getWidth() << "," << variance_map->getHeight() << std::endl;
-    //se2BckLog.info() << "Variance image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")!";
-    bck_model_logger.info() << "Variance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")!";
-    //bck_model_logger.info() << variance_map->getValue(0,0) << " " << variance_map->getValue(10,10);
-    //bck_model_logger.info() << "Threshold: " << variance_threshold;
+    bck_model_logger.debug() << "\tVariance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")";
     // make sure the dimensions are the same
     if (image->getWidth()!=variance_map->getWidth())
-      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth() << "!";
+      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth();
     if (image->getHeight()!=variance_map->getHeight())
-      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight() << "!";
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight();
   }
 
   // create the background model
@@ -111,9 +102,9 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   // create the background model and the rms model
   bck_modeller->createSE2Models(splModelBckPtr, splModelVarPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
 
-  bck_model_logger.info() << "Median background value: "<< splModelBckPtr->getMedian() << "!";
-  bck_model_logger.info() << "Median variance value: "<< splModelVarPtr->getMedian() << "!";
-  bck_model_logger.info() << "Scaling value: "<< sigFac << "!";
+  bck_model_logger.debug() << "\tMedian background value: "<< splModelBckPtr->getMedian();
+  bck_model_logger.debug() << "\tMedian variance value: "<< splModelVarPtr->getMedian();
+  bck_model_logger.debug() << "\tScaling value: "<< sigFac;
 
   // possibly write out the rms image (for testing and so on)
   //std::string bbb("rms.fits");
@@ -152,7 +143,7 @@ std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string in
     }
     catch ( const boost::bad_lexical_cast &exc ) // conversion failed, exception thrown by lexical_cast and caught
     {
-      throw Elements::Exception() << "Can not convert to 'int': '" << stringVec[index].substr(first, last-first+1) << "'!";
+      throw Elements::Exception() << "Can not convert to 'int': '" << stringVec[index].substr(first, last-first+1) << "'";
     }
   }
 

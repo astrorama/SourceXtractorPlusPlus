@@ -29,6 +29,10 @@ public:
     return std::shared_ptr<FunctionalImage<T>>(new FunctionalImage{std::forward<Args>(args)...});
   }
 
+  std::string getRepr() const override {
+    return "FunctionalImage<" + std::string(m_functor.target_type().name()) + ">";
+  }
+
   T getValue(int x, int y) const override {
     return m_functor(x, y);
   }

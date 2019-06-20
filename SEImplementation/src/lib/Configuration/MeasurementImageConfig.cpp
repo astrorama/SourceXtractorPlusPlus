@@ -47,7 +47,6 @@ std::map<std::string, WeightImageConfig::WeightType> weight_type_map {
 };
 
 void validateImagePaths(const PyMeasurementImage& image) {
-  logger.debug() << "adding: " << image.file << " weight: " << image.weight_file << " psf: " << image.psf_file;
   if (!fs::exists(image.file)) {
     throw Elements::Exception() << "File " << image.file << " does not exist";
   }
@@ -134,6 +133,14 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       m_saturation_levels.push_back(py_image.saturation * flux_scale);
       m_image_ids.push_back(py_image.id);
       m_paths.push_back(py_image.file);
+
+      logger.info() << "Loaded measurement image: " << py_image.file;
+      logger.info() << "\tWeight: " << py_image.weight_file;
+      logger.info() << "\tPSF: " << py_image.psf_file;
+      logger.info() << "\tGain: " << py_image.gain;
+      logger.info() << "\tSaturation: " << py_image.saturation;
+      logger.info() << "\tFlux scale: " << py_image.flux_scale;
+
       m_absolute_weights.push_back(py_image.weight_absolute);
       m_weight_thresholds.push_back(extractWeightThreshold(py_image));
 

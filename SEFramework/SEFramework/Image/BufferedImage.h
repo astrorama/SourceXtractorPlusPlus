@@ -37,6 +37,10 @@ public:
     return std::shared_ptr<BufferedImage<T>>(new BufferedImage<T>(source, tile_manager));
   }
 
+  virtual std::string getRepr() const override {
+    return "BufferedImage(" + m_source->getRepr() + ")";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const override {
     assert(x >= 0 && y >=0 && x < m_source->getWidth() && y < m_source->getHeight());

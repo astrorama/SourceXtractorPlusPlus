@@ -16,6 +16,9 @@ namespace SExtractor {
 class ImageSourceBase {
 public:
   virtual ~ImageSourceBase() = default;
+
+  /// Human readable representation of this source
+  virtual std::string getRepr() const = 0;
 };
 
 template <typename T>

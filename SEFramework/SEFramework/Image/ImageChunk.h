@@ -33,6 +33,10 @@ public:
   virtual ~ImageChunk() {
   }
 
+  std::string getRepr() const override {
+    return "ImageChunk<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" + m_image->getRepr() + ")";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const final {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);

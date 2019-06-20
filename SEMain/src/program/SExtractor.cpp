@@ -306,10 +306,6 @@ public:
     // re-set the variance check image to what's in the detection_frame()
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    // FIXME we should use average or median rather than value at coordinate 0,0
-    logger.info() << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-      << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0));
-
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
     // Override background level and threshold if requested by the user

@@ -11,10 +11,11 @@
 #include <map>
 #include <string>
 #include "SEUtils/Observable.h"
+#include "SEMain/ProgressMediator.h"
 
 namespace SExtractor {
 
-typedef Observer<std::map<std::string, std::pair<int,int>>> ProgressObserver;
+typedef Observer<std::map<std::string, Progress>> ProgressObserver;
 typedef Observer<bool> DoneObserver;
 
 /**
@@ -37,7 +38,7 @@ public:
    *    and the value a pair, where the first is the number of entities processed, and
    *    the second the total, or -1 if unknown.
    */
-  void handleMessage(const std::map<std::string, std::pair<int, int>> & info) override {
+  void handleMessage(const std::map<std::string, Progress> & info) override {
     m_progress_info = info;
   }
 
@@ -49,7 +50,7 @@ public:
   }
 
 protected:
-  std::map<std::string, std::pair<int, int>> m_progress_info;
+  std::map<std::string, Progress> m_progress_info;
   bool m_done = false;
 };
 

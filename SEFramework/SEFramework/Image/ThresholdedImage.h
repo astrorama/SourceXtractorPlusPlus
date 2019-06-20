@@ -44,6 +44,10 @@ public:
     return std::shared_ptr<ThresholdedImage<T>>(new ThresholdedImage<T>(image, variance_map, threshold_multiplier));
   }
 
+  std::string getRepr() const override {
+    return "ThresholdedImage(" + m_image->getRepr() + ")";
+  }
+
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) - sqrt(m_variance_map->getValue(x, y)) * m_threshold_multiplier;
