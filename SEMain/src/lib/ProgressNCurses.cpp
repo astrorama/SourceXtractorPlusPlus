@@ -225,7 +225,7 @@ private:
   // Colors
   int m_scroll_bar_color, m_scroll_ind_color;
 
-  static const int BUFFER_INCREASE_STEP_SIZE = 10;
+  static const int BUFFER_INCREASE_STEP_SIZE = 10, BUFFER_MAX_SIZE=16384;
 
 public:
 
@@ -271,7 +271,7 @@ public:
         if (m_active_line == m_written_lines) {
           ++m_active_line;
         }
-        ++m_written_lines;
+        m_written_lines = std::min({m_written_lines+1, BUFFER_MAX_SIZE});
         // Increase buffer if we ran out of lines on the pad
         if (getmaxy(m_pad) <= m_written_lines) {
           wresize(m_pad, m_written_lines + BUFFER_INCREASE_STEP_SIZE, m_display_width);
