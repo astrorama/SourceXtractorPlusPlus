@@ -13,6 +13,9 @@
 #include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ProcessingImageSource.h"
+#include <SEFramework/Image/MultiplyImage.h>
+
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
@@ -34,7 +37,10 @@ WeightImageConfig::WeightImageConfig(long manager_id) :
     m_absolute_weight(false),
     m_weight_scaling(1),
     m_weight_threshold(0),
-    m_symmetry_usage(true) {}
+    m_symmetry_usage(true) {
+
+  declareDependency<DetectionImageConfig>();
+}
 
 std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::getProgramOptions() {
   return { {"Weight image", {
@@ -78,6 +84,11 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
   if (m_weight_image != nullptr) {
     m_weight_image = convertWeightMap(m_weight_image, m_weight_type, m_weight_scaling);
+
+    auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale();
+    if (flux_scale != 1. && m_absolute_weight) {
+      m_weight_image = MultiplyImage<WeightImage::PixelType>::create(m_weight_image, flux_scale * flux_scale);
+    }
   }
 
   if (args.count(WEIGHT_THRESHOLD) != 0) {
