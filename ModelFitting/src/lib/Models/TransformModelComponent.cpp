@@ -35,9 +35,12 @@ TransformModelComponent::~TransformModelComponent() {
 }
 
 double TransformModelComponent::getValue(double x, double y) {
+  auto area_correction = fabs(m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
+  //auto area_correction = 1.;
+
   double new_x = x * m_inv_transform[0] + y * m_inv_transform[2];
   double new_y = x * m_inv_transform[1] + y * m_inv_transform[3];
-  return m_component->getValue(new_x, new_y);
+  return m_component->getValue(new_x, new_y) / area_correction;
 }
 
 void TransformModelComponent::updateRasterizationInfo(double scale, double r_max) {
@@ -49,7 +52,8 @@ void TransformModelComponent::updateRasterizationInfo(double scale, double r_max
 }
 
 std::vector<TransformModelComponent::ModelSample> TransformModelComponent::getSharpSampling() {
-  auto area_correction = fabs(m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
+  //auto area_correction = fabs(m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
+  auto area_correction = 1.;
 
   std::vector<ModelSample> result {};
   for (auto& sample : m_component->getSharpSampling()) {
