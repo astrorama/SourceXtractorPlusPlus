@@ -142,6 +142,9 @@ elements_add_unit_test(BufferedImage_test tests/src/Image/BufferedImage_test.cpp
 elements_add_unit_test(InterpolatedImage_test tests/src/Image/InterpolatedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(InterpolatedImageSource_test tests/src/Image/InterpolatedImageSource_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
