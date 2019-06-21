@@ -30,7 +30,7 @@ protected:
   std::string getRepr() const override;
 
   void generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile,
-                    int x, int y, int width, int height) const override;
+                    int start_x, int start_y, int width, int height) const override;
 
 private:
   std::shared_ptr<DetectionImage> m_variance;
