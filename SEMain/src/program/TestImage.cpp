@@ -64,6 +64,50 @@ struct TestImageSource {
   double point_flux;
 };
 
+//
+class DummyWCS : public CoordinateSystem {
+public:
+  DummyWCS(int image_width, int image_height, double rotation, double scale, double shift_x, double shift_y)
+      : m_image_width(image_width), m_image_height(image_height),
+        m_rotation(rotation), m_scale(1.0/scale), m_shift_x(shift_x), m_shift_y(shift_y) {}
+  virtual ~DummyWCS() {}
+
+  virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const {
+    return WorldCoordinate(image_coordinate.m_x, image_coordinate.m_y);
+  }
+
+  virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const {
+    return ImageCoordinate(world_coordinate.m_alpha, world_coordinate.m_delta);
+  }
+
+  virtual std::map<std::string, std::string> getFitsHeaders() const override {
+    auto c = cos(m_rotation);
+    auto s = sin(m_rotation);
+
+    return {
+      {"CTYPE1", "'RA---TAN'"},
+      {"CTYPE2", "'DEC--TAN'"},
+      {"CRVAL1", std::to_string(0.0)},
+      {"CRVAL2", std::to_string(0.0)},
+      {"CRPIX1", std::to_string(m_image_width / 2.0 + 1.5 + m_shift_x)},
+      {"CRPIX2", std::to_string(m_image_height / 2.0 + 1.5 + m_shift_y)},
+
+      {"CD1_1", std::to_string(0.001 * c * m_scale)},
+      {"CD1_2", std::to_string(0.001 * s * m_scale)},
+      {"CD2_1", std::to_string(0.001 * -s * m_scale)},
+      {"CD2_2", std::to_string(0.001 * c * m_scale)}
+    };
+  }
+
+private:
+  int m_image_width, m_image_height;
+  double m_rotation = 0.0;
+  double m_scale = 1.0;
+  double m_shift_x = 0.0;
+  double m_shift_y = 0.0;
+};
+
+
 class TestImage : public Elements::Program {
 
 public:
@@ -384,7 +428,7 @@ public:
     TileManager::getInstance()->setOptions(tile_size, tile_size, max_tile_memory);
 
     auto image_size = args["size"].as<double>();
-    auto rot_angle = args["rotation"].as<double>();
+    auto rot_angle = args["rotation"].as<double>() / 180.0 * M_PI;
     auto scale = args["scale"].as<double>();
     auto shift_x = args["shift-x"].as<double>();
     auto shift_y = args["shift-y"].as<double>();
@@ -414,6 +458,8 @@ public:
     auto copy_coordinate_system = args["copy-coordinate-system"].as<std::string>();
     if (copy_coordinate_system != "") {
       coordinate_system = std::make_shared<WCS>(copy_coordinate_system);
+    } else {
+      coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
     }
 
     auto raster_model_size = model_size / vpsf->getPixelScale() + std::max(vpsf->getWidth(), vpsf->getHeight());
@@ -436,15 +482,6 @@ public:
       }
     }
     auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), vpsf->getPsf(psf_vals));
-
-    //addExtendedSource(extended_models, image_size / 2.0, image_size / 2.0, 150000, 2.0, 1, 0,  100000, .1);
-//    boost::random::uniform_real_distribution<> random_i0(point_min_i0, point_max_i0);
-//    for (int i = 0; i<point_sources_nb; i++) {
-//      ManualParameter x (random_x(rng));
-//      ManualParameter y (random_y(rng));
-//      ManualParameter i0 (random_i0(rng));
-//      point_models.emplace_back(x,y,i0);
-//    }
 
     std::vector<TestImageSource> sources;
 
