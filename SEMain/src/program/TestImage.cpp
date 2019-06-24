@@ -347,8 +347,8 @@ public:
     for (auto& source : sources) {
       source.x -= center;
       source.y -= center;
-      double x = (source.x * c - source.y * s) / scale + shift_x;
-      double y = (source.x * s + source.y * c) / scale + shift_y;
+      double x = (source.x * c - source.y * s) * scale + shift_x;
+      double y = (source.x * s + source.y * c) * scale + shift_y;
       source.x = x + center;
       source.y = y + center;
 
