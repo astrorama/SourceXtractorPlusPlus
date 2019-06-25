@@ -1,4 +1,5 @@
-#include "SEImplementation/Segmentation/BackgroundConvolution.h"
+#include "SEImplementation/Segmentation/BgConvolutionImageSource.h"
+#include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include <boost/test/unit_test.hpp>
 #include <boost/mpl/list.hpp>
 #include <random>
