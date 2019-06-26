@@ -66,7 +66,7 @@ public:
     dumpImage(padded, real_buffer.begin());
 
     // Pad, center and mirror the kernel, centering at 0, 0 and  wrapping around the coordinates
-    padMirroredKernel(padded_width, padded_height, real_buffer.begin() + total_size);
+    padKernel(padded_width, padded_height, real_buffer.begin() + total_size);
 
     FFT<T>::executeForward(fwd_plan, real_buffer, complex_buffer);
 
@@ -93,9 +93,8 @@ public:
   }
 
 protected:
-  void padMirroredKernel(int width, int height, typename std::vector<T>::iterator out) const {
-    auto mirrored = MirrorImage<T>::create(m_kernel);
-    auto padded = PaddedImage<T>::create(mirrored, width, height);
+  void padKernel(int width, int height, typename std::vector<T>::iterator out) const {
+    auto padded = PaddedImage<T>::create(m_kernel, width, height);
     auto center = PixelCoordinate{width / 2, height / 2};
     if (width % 2 == 0) center.m_x--;
     if (height % 2 == 0) center.m_y--;

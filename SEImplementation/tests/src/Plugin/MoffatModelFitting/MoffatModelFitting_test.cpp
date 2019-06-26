@@ -87,8 +87,8 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 
   auto moffat_model = source->getProperty<MoffatModelFitting>();
   BOOST_CHECK(moffat_model.getIterations() > 0);
-  BOOST_CHECK_CLOSE(moffat_model.getX(), 9.5, 1);
-  BOOST_CHECK_CLOSE(moffat_model.getY(), 9.5, 1);
+  BOOST_CHECK_CLOSE(moffat_model.getX(), 10.0, 1);
+  BOOST_CHECK_CLOSE(moffat_model.getY(), 10.0, 1);
 }
 
 //-----------------------------------------------------------------------------

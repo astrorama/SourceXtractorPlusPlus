@@ -4,14 +4,14 @@
 
 namespace SExtractor {
 
-ProgressLogger::ProgressLogger(const boost::posix_time::time_duration& min_interval) :
+ProgressLogger::ProgressLogger(const std::chrono::steady_clock::duration& min_interval) :
   m_logger{Elements::Logging::getLogger("Progress")}, m_min_interval{min_interval},
-  m_started{boost::posix_time::second_clock::local_time()},
-  m_last_logged{boost::posix_time::second_clock::local_time() - m_min_interval} {
+  m_started{std::chrono::steady_clock::now()},
+  m_last_logged{m_started - m_min_interval} {
 }
 
 void ProgressLogger::print() {
-  auto now = boost::posix_time::second_clock::local_time();
+  auto now = std::chrono::steady_clock::now();
 
   if (now - m_last_logged > m_min_interval || m_done) {
     auto elapsed = now - m_started;
@@ -19,27 +19,33 @@ void ProgressLogger::print() {
 
     for (auto entry : m_progress_info) {
       // When there is no total, log an absolute count
-      if (entry.second.second < 0) {
-        m_logger.info() << entry.first << ": " << entry.second.first;
+      if (entry.second.m_total <= 0) {
+        m_logger.info() << entry.first << ": " << entry.second.m_done;
       }
         // Otherwise, report progress
       else {
-        float percent = (entry.second.first * 100.) / entry.second.second;
-        m_logger.info() << entry.first << ": " << entry.second.first << " / " << entry.second.second
+        float percent = (entry.second.m_done * 100.) / entry.second.m_total;
+        m_logger.info() << entry.first << ": " << entry.second.m_done << " / " << entry.second.m_total
                         << " (" << std::fixed << std::setprecision(2) << percent << "%)";
       }
     }
 
-    m_logger.info() << "Elapsed: " << elapsed;
+    auto h = std::chrono::duration_cast<std::chrono::hours>(elapsed);
+    auto m = std::chrono::duration_cast<std::chrono::minutes>(elapsed - h);
+    auto s = std::chrono::duration_cast<std::chrono::seconds>(elapsed - h - m);
+    m_logger.info() << "Elapsed: " << std::setfill('0')
+                    << std::setw(2) << h.count() << ':'
+                    << std::setw(2) << m.count() << ':'
+                    << std::setw(2) << s.count();
   }
 }
 
-void ProgressLogger::handleMessage(const std::map<std::string, std::pair<int, int>>& info) {
+void ProgressLogger::handleMessage(const std::map<std::string, Progress>& info) {
   this->ProgressReporter::handleMessage(info);
   print();
 }
 
-void ProgressLogger::handleMessage(const bool &done) {
+void ProgressLogger::handleMessage(const bool& done) {
   this->ProgressReporter::handleMessage(done);
   print();
 }

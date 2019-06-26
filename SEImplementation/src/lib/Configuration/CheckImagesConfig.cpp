@@ -29,6 +29,7 @@ static const std::string CHECK_SNR { "check-image-snr" };
 static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
 static const std::string CHECK_MOFFAT { "check-image-moffat" };
+static const std::string CHECK_PSF { "check-image-psf" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -61,6 +62,8 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the aperture check image"},
       {CHECK_MOFFAT.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the moffat check image"},
+      {CHECK_PSF.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the PSF check image"},
   }}};
 }
 
@@ -78,6 +81,7 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_auto_aperture_filename = args.find(CHECK_AUTO_APERTURE)->second.as<std::string>();
   m_aperture_filename = args.find(CHECK_APERTURE)->second.as<std::string>();
   m_moffat_filename = args.find(CHECK_MOFFAT)->second.as<std::string>();
+  m_psf_filename = args.find(CHECK_PSF)->second.as<std::string>();
 }
 
 } // SExtractor namespace

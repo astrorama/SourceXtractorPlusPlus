@@ -227,6 +227,7 @@ public:
     }
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto detection_image_path = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImagePath();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
@@ -280,6 +281,7 @@ public:
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
         detection_image_saturation, interpolation_gap);
+    detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
@@ -303,10 +305,6 @@ public:
     }
     // re-set the variance check image to what's in the detection_frame()
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
-
-    // FIXME we should use average or median rather than value at coordinate 0,0
-    logger.info() << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-      << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0));
 
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 

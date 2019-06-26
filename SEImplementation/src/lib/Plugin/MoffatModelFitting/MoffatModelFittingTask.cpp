@@ -57,10 +57,6 @@
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
-#include "SEImplementation/CheckImages/CheckImages.h"
-
-#include "SEFramework/Property/DetectionFrame.h"
-
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
@@ -90,8 +86,8 @@ struct SourceModel {
     dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
     dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
 
-    x([x_guess](double dx) { return dx + x_guess - 0.5; }, dx),
-    y([y_guess](double dy) { return dy + y_guess - 0.5; }, dy),
+    x([x_guess](double dx) { return dx + x_guess + 0.5; }, dx),
+    y([y_guess](double dy) { return dy + y_guess + 0.5; }, dy),
 
     // FIXME
     exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
@@ -229,7 +225,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
   auto final_stamp = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
-  auto check_image = CheckImages::getInstance().getModelFittingCheckImage();
 
   {
 
@@ -253,21 +248,14 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
       // build final stamp
       final_stamp->setValue(x, y, final_stamp->getValue(x, y) + final_image->getValue(x, y));
 
-      // if requested, updates a check image made by adding all source models
-      if (check_image) {
-        CheckImages::getInstance().lock();
-        check_image->setValue(pixel.m_x, pixel.m_y, check_image->getValue(pixel) + final_image->getValue(x, y));
-        CheckImages::getInstance().unlock();
-      }
-
       total_flux += final_image->getValue(x, y);
     }
   }
 
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
-  SeFloat x = stamp_top_left.m_x + source_model->x.getValue();
-  SeFloat y = stamp_top_left.m_y + source_model->y.getValue();
+  SeFloat x = stamp_top_left.m_x + source_model->x.getValue() - 0.5f;
+  SeFloat y = stamp_top_left.m_y + source_model->y.getValue() - 0.5f;
 
   source.setProperty<MoffatModelFitting>(
       x, y,

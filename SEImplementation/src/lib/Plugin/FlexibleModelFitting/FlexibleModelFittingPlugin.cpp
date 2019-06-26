@@ -14,6 +14,8 @@
 
 namespace SExtractor {
 
+Elements::Logging model_fitting_logger = Elements::Logging::getLogger("ModelFitting");
+
 static StaticPlugin<FlexibleModelFittingPlugin> flexible_modelfitting_plugin;
 
 void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
@@ -35,6 +37,15 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           },
           "[]",
           "Number of iterations in the model fitting"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int64_t>(
+          "fmf_flags",
+          [](const FlexibleModelFitting& prop) {
+            return flags2long(prop.getFlags());
+          },
+          "[]",
+          "Model fitting flags"
   );
 
   plugin_api.getOutputRegistry().enableOutput<FlexibleModelFitting>("FlexibleModelFitting");

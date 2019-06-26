@@ -6,7 +6,6 @@
  */
 
 #include <iostream>
-#include <boost/python.hpp>
 
 #include "ModelFitting/utils.h"
 
@@ -26,13 +25,13 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
-static Elements::Logging logger = Elements::Logging::getLogger("FlexibleModelFittingParameter");
+static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
 namespace SExtractor {
 
 using namespace ModelFitting;
 
-std::mutex python_callback_mutex {};
+std::recursive_mutex python_callback_mutex {};
 
 FlexibleModelFittingParameter::FlexibleModelFittingParameter(int id) : m_id(id) { }
 
@@ -47,7 +46,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
-  std::lock_guard<std::mutex> guard {python_callback_mutex};
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
   double initial_value = m_initial_value(source);
 
   auto converter = m_converter_factory->getConverter(initial_value, source);
@@ -61,7 +60,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParame
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& /*engine_manager*/,
                                                             const SourceInterface& source) const {
-  std::lock_guard<std::mutex> guard {python_callback_mutex};
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
   return std::make_shared<ManualParameter>(m_value(source));
 }
 
@@ -77,19 +76,14 @@ template<typename ... Parameters>
 std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        FlexibleModelFittingParameterManager& parameter_manager,
                                        const SourceInterface& source,
-                                       boost::python::object value_calculator,
+                                       FlexibleModelFittingDependentParameter::ValueFunc value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
-    std::lock_guard<std::mutex> guard {python_callback_mutex};
-    try {
-      PythonInterpreter::getSingleton().setCoordinateSystem(coordinate_system);
-      return boost::python::extract<double>(value_calculator(params...));
-    }
-    catch (const boost::python::error_already_set &e) {
-      throw pyToElementsException(logger);
-    }
+    std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
+    std::vector<double> materialized{params...};
+    return value_calculator(coordinate_system, materialized);
   };
   return createDependentParameterPtr(calc, *(parameter_manager.getParameter(source, parameters))...);
 }

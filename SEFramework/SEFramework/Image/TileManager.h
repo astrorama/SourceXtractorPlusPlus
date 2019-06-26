@@ -23,7 +23,6 @@
 namespace SExtractor {
 
 
-
 struct TileKey {
   std::shared_ptr<const ImageSourceBase> m_source;
   int m_tile_x, m_tile_y;
@@ -31,7 +30,18 @@ struct TileKey {
   bool operator==(const TileKey& other) const {
     return m_source == other.m_source && m_tile_x == other.m_tile_x && m_tile_y == other.m_tile_y;
   }
+
+  std::string getRepr() const {
+    std::ostringstream str;
+    str << m_source.get() << "[" << m_source->getRepr() << "] " << m_tile_x << ","  << m_tile_y;
+    return str.str();
+  }
 };
+
+inline std::ostream& operator << (std::ostream &out, const TileKey &tk) {
+  out << tk.getRepr();
+  return out;
+}
 
 }
 
@@ -95,7 +105,9 @@ public:
     TileKey key {std::static_pointer_cast<const ImageSourceBase>(source), x, y};
     auto it = m_tile_map.find(key);
     if (it != m_tile_map.end()) {
-      //std::cout << "Found in cache!\n";
+#ifndef NDEBUG
+      m_tile_logger.debug() << "Cache hit " << key;
+#endif
       return std::dynamic_pointer_cast<ImageTile<T>>(it->second);
     } else {
       auto tile = source->getImageTile(x, y,
@@ -132,8 +144,9 @@ public:
 private:
 
   void removeTile(TileKey tile_key) {
-    m_tile_logger.debug() << "Evicting tile (" << tile_key.m_source << " " << tile_key.m_tile_x << ","
-                          << tile_key.m_tile_y << ") from cache";
+#ifndef NDEBUG
+    m_tile_logger.debug() << "Cache eviction " << tile_key;
+#endif
 
     auto& tile = m_tile_map.at(tile_key);
 
@@ -153,8 +166,9 @@ private:
   }
 
   void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {
-    m_tile_logger.debug() << "Cache miss (" << key.m_source << " " << key.m_tile_x << ","
-                          << key.m_tile_y << ")";
+#ifndef NDEBUG
+    m_tile_logger.debug() << "Cache miss " << key;
+#endif
 
     m_tile_map[key] = tile;
     m_tile_list.push_front(key);

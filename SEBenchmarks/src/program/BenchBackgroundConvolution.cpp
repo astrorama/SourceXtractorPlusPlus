@@ -30,7 +30,8 @@
 #include <random>
 #include "ElementsKernel/ProgramHeaders.h"
 #include "ElementsKernel/Real.h"
-#include "SEImplementation/Segmentation/BackgroundConvolution.h"
+#include "SEImplementation/Segmentation/BgConvolutionImageSource.h"
+#include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEUtils/IsClose.h"
 

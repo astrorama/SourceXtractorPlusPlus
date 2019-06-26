@@ -1,5 +1,5 @@
 /*
- * ProgressBar.h
+ * ProgressNCurses.h
  *
  *  Created on: Mar 19, 2019
  *      Author: Alejandro Alvarez Ayllon
@@ -16,7 +16,7 @@
 namespace SExtractor {
 
 /**
- * @class ProgressBar
+ * @class ProgressNCurses
  * This concrete implementation of ProgressReporter uses a progress bar
  * on the bottom of the terminal to report the progress. std::cerr is used, as std::cout could have been used
  * for the output catalog.
@@ -24,17 +24,17 @@ namespace SExtractor {
  * It relies on raw ANSI escape codes, instead of ncurses, to avoid introducing an extra dependency.
  * @see https://en.wikipedia.org/wiki/ANSI_escape_code
  */
-class ProgressBar: public ProgressReporter {
+class ProgressNCurses: public ProgressReporter {
 public:
-  virtual ~ProgressBar();
+  virtual ~ProgressNCurses();
 
-  ProgressBar();
+  ProgressNCurses();
 
   /**
    * This class intercepts the first call to update to decide on the size of the bottom
    * block, and start the thread.
    */
-  void handleMessage(const std::map<std::string, std::pair<int, int>> & info) override;
+  void handleMessage(const std::map<std::string, Progress> & info) override;
 
   /**
    * Give the printing thread a chance to exit.
@@ -47,13 +47,8 @@ public:
   static bool isTerminalCapable();
 
 protected:
-  boost::posix_time::ptime m_started;
-  std::unique_ptr<boost::thread> m_progress_thread;
-
-  /**
-   * This method runs on a separate thread, and updates the report every second.
-   */
-  static void printThread(void*);
+  class Dashboard;
+  std::unique_ptr<Dashboard> m_dashboard;
 };
 
 } // end SExtractor

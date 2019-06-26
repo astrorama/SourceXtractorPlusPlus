@@ -77,6 +77,10 @@ public:
     return m_moffat_filename;
   }
 
+  const std::string& getPsfFilename() const {
+    return m_psf_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
@@ -92,7 +96,7 @@ private:
   std::string m_auto_aperture_filename;
   std::string m_aperture_filename;
   std::string m_moffat_filename;
-
+  std::string m_psf_filename;
 };
 
 }

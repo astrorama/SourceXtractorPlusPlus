@@ -10,8 +10,7 @@
 
 #include "SEMain/ProgressReporter.h"
 #include <ElementsKernel/Logging.h>
-#include <boost/date_time/posix_time/posix_time_duration.hpp>
-#include <boost/date_time/posix_time/ptime.hpp>
+#include <chrono>
 
 namespace SExtractor {
 
@@ -29,16 +28,16 @@ public:
    * @param min_interval
    *    Do not log an update if less than `min_interval` has elapsed since the last logged update.
    */
-  ProgressLogger(const boost::posix_time::time_duration& min_interval);
+  ProgressLogger(const std::chrono::steady_clock::duration& min_interval);
 
-  void handleMessage(const std::map<std::string, std::pair<int, int>>& info) override;
+  void handleMessage(const std::map<std::string, Progress>& info) override;
 
   void handleMessage(const bool& done) override;
 
 protected:
   Elements::Logging m_logger;
-  boost::posix_time::time_duration m_min_interval;
-  boost::posix_time::ptime m_started, m_last_logged;
+  std::chrono::steady_clock::duration m_min_interval;
+  std::chrono::steady_clock::time_point m_started, m_last_logged;
 
   void print();
 };

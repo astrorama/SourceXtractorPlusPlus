@@ -33,6 +33,9 @@ namespace SExtractor {
 
 using namespace ModelFitting;
 
+static const double MODEL_MIN_SIZE = 4.0;
+static const double MODEL_SIZE_FACTOR = 1.2;
+
 // Reference for Sersic related quantities:
 // See https://ned.ipac.caltech.edu/level5/March05/Graham/Graham2.html
 
@@ -53,6 +56,7 @@ using namespace ModelFitting;
 
 void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterManager& manager,
                                          const SourceInterface& source,
+                                         std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                                          std::vector<ModelFitting::PointModel>& point_models,
                                          std::vector<ModelFitting::TransformedModel>& /*extended_models*/,
                                          std::tuple<double, double, double, double> /*jacobian*/,
@@ -61,11 +65,11 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   manager.storeParameter(pixel_x);
@@ -76,6 +80,7 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
 
 void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -84,11 +89,11 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -112,9 +117,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
 
-  // FIXME this seems too arbitrary, what can we do that's better? use REff * constant?
   auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = 2 * std::max(boundaries.getWidth(), boundaries.getHeight());
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
       [](double angle) { return -angle; },
@@ -128,6 +132,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -136,11 +141,11 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
@@ -164,9 +169,8 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
 
-  // FIXME this seems too arbitrary, what can we do that's better? use REff * constant?
   auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = 2 * std::max(boundaries.getWidth(), boundaries.getHeight());
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
       [](double angle) { return -angle; },
@@ -186,6 +190,7 @@ static double computeBn(double n) {
 
 void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<ModelFitting::TransformedModel>& extended_models,
                           std::tuple<double, double, double, double> jacobian,
@@ -194,11 +199,11 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
 
   auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
   auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
       [reference_coordinates, coordinates, offset](double x, double y) {
-        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y - 0.5;
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
   ManualParameter x_scale(1); // we don't scale the x coordinate
@@ -220,14 +225,25 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   manager.storeParameter(i0);
   manager.storeParameter(k);
 
-  // FIXME this seems too arbitrary, what can we do that's better? use REff * constant?
   auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = 2 * std::max(boundaries.getWidth(), boundaries.getHeight());
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   extended_models.emplace_back(
       std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian);
 }
+
+void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,
+                          const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& constant_models,
+                          std::vector<ModelFitting::PointModel>& /* point_models */,
+                          std::vector<ModelFitting::TransformedModel>& /* extended_models */,
+                          std::tuple<double, double, double, double> /* jacobian */,
+                          std::shared_ptr<CoordinateSystem> /* reference_coordinates */,
+                          std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
+  constant_models.emplace_back(*manager.getParameter(source, m_value));
+}
+
 
 }
 

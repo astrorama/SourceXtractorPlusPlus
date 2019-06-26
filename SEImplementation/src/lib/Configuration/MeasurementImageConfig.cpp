@@ -5,18 +5,24 @@
 
 #include <utility>
 #include <limits>
+
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+
 #include <ElementsKernel/Logging.h>
+
 #include <SEFramework/Image/FitsImageSource.h>
 #include <SEFramework/Image/BufferedImage.h>
 #include <SEFramework/Image/FitsReader.h>
 #include <SEFramework/Image/MultiplyImage.h>
+
 #include <SEImplementation/CoordinateSystem/WCS.h>
 #include <SEImplementation/Configuration/WeightImageConfig.h>
-#include <SEImplementation/Configuration/MeasurementImageConfig.h>
 #include <SEImplementation/Configuration/PythonConfig.h>
+#include <SEImplementation/Configuration/DetectionImageConfig.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
+
+#include <SEImplementation/Configuration/MeasurementImageConfig.h>
 
 using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
@@ -25,6 +31,8 @@ namespace SExtractor {
 
 MeasurementImageConfig::MeasurementImageConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
+  declareDependency<WeightImageConfig>();
+  declareDependency<DetectionImageConfig>();
 }
 
 namespace {
@@ -39,7 +47,6 @@ std::map<std::string, WeightImageConfig::WeightType> weight_type_map {
 };
 
 void validateImagePaths(const PyMeasurementImage& image) {
-  logger.debug() << "adding: " << image.file << " weight: " << image.weight_file << " psf: " << image.psf_file;
   if (!fs::exists(image.file)) {
     throw Elements::Exception() << "File " << image.file << " does not exist";
   }
@@ -110,23 +117,59 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
 void MeasurementImageConfig::initialize(const UserValues&) {
   auto images = getDependency<PythonConfig>().getInterpreter().getMeasurementImages();
 
-  for (auto& p : images) {
-    
-    PyMeasurementImage& py_image = p.second;
-    validateImagePaths(py_image);
+  if (images.size() > 0) {
+    for (auto& p : images) {
+      PyMeasurementImage& py_image = p.second;
+      validateImagePaths(py_image);
 
-    logger.debug() << "Initializing MeasurementImageConfig";
+      logger.debug() << "Initializing MeasurementImageConfig";
 
-    m_measurement_images.push_back(createMeasurementImage(py_image));
-    m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
-    m_psfs_paths.push_back(py_image.psf_file);
-    m_weight_images.push_back(createWeightMap(py_image));
-    m_absolute_weights.push_back(py_image.weight_absolute);
-    m_weight_thresholds.push_back(extractWeightThreshold(py_image));
-    m_gains.push_back(py_image.gain);
-    m_saturation_levels.push_back(py_image.saturation);
-    m_image_ids.push_back(py_image.id);
-    m_paths.push_back(py_image.file);
+      auto flux_scale = py_image.flux_scale;
+
+      m_measurement_images.push_back(createMeasurementImage(py_image));
+      m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
+      m_psfs_paths.push_back(py_image.psf_file);
+      m_gains.push_back(py_image.gain / flux_scale);
+      m_saturation_levels.push_back(py_image.saturation * flux_scale);
+      m_image_ids.push_back(py_image.id);
+      m_paths.push_back(py_image.file);
+
+      logger.info() << "Loaded measurement image: " << py_image.file;
+      logger.info() << "\tWeight: " << py_image.weight_file;
+      logger.info() << "\tPSF: " << py_image.psf_file;
+      logger.info() << "\tGain: " << py_image.gain;
+      logger.info() << "\tSaturation: " << py_image.saturation;
+      logger.info() << "\tFlux scale: " << py_image.flux_scale;
+
+      m_absolute_weights.push_back(py_image.weight_absolute);
+      m_weight_thresholds.push_back(extractWeightThreshold(py_image));
+
+      auto weight_map = createWeightMap(py_image);
+      if (weight_map != nullptr && flux_scale != 1. && py_image.weight_absolute) {
+        m_weight_images.push_back(MultiplyImage<WeightImage::PixelType>::create(
+            weight_map, py_image.flux_scale * py_image.flux_scale));
+      } else {
+        m_weight_images.push_back(weight_map);
+      }
+    }
+  } else {
+    logger.debug() << "No measurement image provided, using the detection image for measurements";
+
+    auto detection_image = getDependency<DetectionImageConfig>();
+    auto weight_image = getDependency<WeightImageConfig>();
+
+    // note: flux scale was already applied
+
+    m_measurement_images.push_back(detection_image.getDetectionImage());
+    m_coordinate_systems.push_back(detection_image.getCoordinateSystem());
+    m_psfs_paths.push_back("");
+    m_weight_images.push_back(weight_image.getWeightImage());
+    m_absolute_weights.push_back(weight_image.isWeightAbsolute());
+    m_weight_thresholds.push_back(weight_image.getWeightThreshold());
+    m_gains.push_back(detection_image.getGain());
+    m_saturation_levels.push_back(detection_image.getSaturation());
+    m_image_ids.push_back(0);
+    m_paths.push_back(detection_image.getDetectionImagePath());
   }
 }
 

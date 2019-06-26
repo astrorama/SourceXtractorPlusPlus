@@ -39,9 +39,9 @@ BOOST_FIXTURE_TEST_CASE ( Convolve_test, DFT_Fixture ) {
   dft.convolve(image);
 
   auto expected = VectorImage<SeFloat>::create(5, 5, std::vector<float>{
-    9.0, 8.0, 7.0, 0.0, 0.0,
-    6.0, 5.0, 4.0, 0.0, 0.0,
-    3.0, 2.0, 1.0, 0.0, 0.0,
+    1.0, 2.0, 3.0, 0.0, 0.0,
+    4.0, 5.0, 6.0, 0.0, 0.0,
+    7.0, 8.0, 9.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0,
   });
@@ -69,9 +69,9 @@ BOOST_FIXTURE_TEST_CASE ( Convolve_not_squared_test, DFT_Fixture ) {
   dft.convolve(image);
 
   auto expected = VectorImage<SeFloat>::create(5, 3, std::vector<SeFloat>{
-    3.0, 11.5, 10.0, 7.0, 0.0,
-    1.5,  7.0,  5.5, 4.0, 0.0,
-    0.0,  3.0,  2.0, 1.0, 0.0,
+    2.0,  3.5,  5.0, 3.0, 0.0,
+    3.5,  8.0,  9.5, 6.0, 0.0,
+    0.0,  7.0,  8.0, 9.0, 0.0,
   });
 
   for (auto x = 0; x < expected->getWidth(); ++x) {

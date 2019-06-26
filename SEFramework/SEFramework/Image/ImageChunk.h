@@ -33,6 +33,10 @@ public:
   virtual ~ImageChunk() {
   }
 
+  std::string getRepr() const override {
+    return "ImageChunk<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" + m_image->getRepr() + ")";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const final {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
@@ -86,10 +90,17 @@ protected:
     }
   }
 
+  UniversalImageChunk(std::vector<T> &&data, int width, int height):
+    ImageChunk<T>(nullptr, width, height, width), m_chunk_vector(std::move(data))
+  {
+    assert(static_cast<int>(m_chunk_vector.size()) == width * height);
+    this->setDataPtr(&m_chunk_vector[0]);
+  }
+
 public:
-  static std::shared_ptr<UniversalImageChunk<T>> create(
-      std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) {
-    return std::shared_ptr<UniversalImageChunk<T>>(new UniversalImageChunk<T>(image, x, y, width, height));
+  template <typename... Args>
+  static std::shared_ptr<UniversalImageChunk<T>> create(Args&&... args) {
+    return std::shared_ptr<UniversalImageChunk<T>>(new UniversalImageChunk<T>(std::forward<Args>(args)...));
   }
 
   virtual ~UniversalImageChunk() {

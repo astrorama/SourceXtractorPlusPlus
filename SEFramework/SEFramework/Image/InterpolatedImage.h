@@ -26,6 +26,10 @@ public:
     return std::shared_ptr<InterpolatedImage<T>>(new InterpolatedImage<T>(image, variance_map, variance_threshold, max_gap));
   }
 
+  virtual std::string getRepr() const override {
+    return "InterpolatedImage(" + m_image->getRepr() + "," + m_variance_map->getRepr() + ")";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const override {
     if (isPixelGood(x, y)) {

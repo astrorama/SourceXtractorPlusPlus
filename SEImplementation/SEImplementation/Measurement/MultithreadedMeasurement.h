@@ -27,8 +27,7 @@ public:
         m_worker_threads_nb(worker_threads_nb),
         m_active_threads(0),
         m_group_counter(0),
-        m_input_done(false),
-        m_abort (false) {}
+        m_input_done(false) {}
 
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
 
@@ -63,9 +62,6 @@ private:
   std::condition_variable m_new_output;
   std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_output_queue;
   std::mutex m_output_queue_mutex;
-
-  std::atomic_bool m_abort;
-  std::unique_ptr<std::pair<int, Elements::Exception>> m_rethrow;
 };
 
 }

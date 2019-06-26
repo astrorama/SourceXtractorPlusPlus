@@ -12,12 +12,13 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/SubtractImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
 #include "SEFramework/Image/SnrImage.h"
-#include "SEFramework/Image/InterpolatedImage.h"
+#include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SExtractor {
@@ -77,8 +78,10 @@ public:
   std::shared_ptr<Image<T>> getInterpolatedImage() const {
     if (m_interpolation_gap > 0) {
       if (m_interpolated_image == nullptr) {
-        const_cast<Frame<T>*>(this)->m_interpolated_image = InterpolatedImage<T>::create(
-            getOriginalImage(), getUnfilteredVarianceMap(), getVarianceThreshold(), m_interpolation_gap);
+        const_cast<Frame<T>*>(this)->m_interpolated_image = BufferedImage<T>::create(
+          std::make_shared<InterpolatedImageSource<T>>(getOriginalImage(), getUnfilteredVarianceMap(),
+                                                       getVarianceThreshold(), m_interpolation_gap)
+        );
       }
       return m_interpolated_image;
     } else {
@@ -122,7 +125,13 @@ public:
 
   std::shared_ptr<WeightImage> getUnfilteredVarianceMap() const {
     if (m_interpolation_gap > 0) {
-      return InterpolatedImage<WeightImage::PixelType>::create(m_variance_map, m_variance_map, getVarianceThreshold(), m_interpolation_gap);
+      if (!m_interpolated_variance) {
+        const_cast<Frame*>(this)->m_interpolated_variance = BufferedImage<WeightImage::PixelType>::create(
+          std::make_shared<InterpolatedImageSource<WeightImage::PixelType>>(m_variance_map, m_variance_map,
+                                                                            getVarianceThreshold(), m_interpolation_gap)
+        );
+      }
+      return m_interpolated_variance;
     } else {
       return m_variance_map;
     }
@@ -155,6 +164,10 @@ public:
   T getDetectionThreshold() const {
     // FIXME using the 0,0 pixel makes no sense
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
+  }
+
+  std::string getLabel() const {
+    return m_label;
   }
 
   //
@@ -203,6 +216,10 @@ public:
     m_filtered_variance_map = nullptr;
   }
 
+  void setLabel(const std::string &label) {
+    m_label = label;
+  }
+
 private:
 
   void applyFilter() {
@@ -231,8 +248,11 @@ private:
 
   std::shared_ptr<ImageFilter> m_filter;
   std::shared_ptr<Image<T>> m_interpolated_image;
+  std::shared_ptr<Image<WeightImage::PixelType>> m_interpolated_variance;
   std::shared_ptr<Image<T>> m_filtered_image;
   std::shared_ptr<Image<T>> m_filtered_variance_map;
+
+  std::string m_label;
 };
 
 using DetectionImageFrame = Frame<DetectionImage::PixelType>;

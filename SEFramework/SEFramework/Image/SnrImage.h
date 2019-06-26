@@ -44,6 +44,10 @@ public:
     return std::shared_ptr<SnrImage<T>>(new SnrImage<T>(image, variance_map));
   }
 
+  std::string getRepr() const override {
+    return "SNRImage(" + m_image->getRepr() + "," + m_variance_map->getRepr() + ")";
+  }
+
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) / sqrt(m_variance_map->getValue(x, y));

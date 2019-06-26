@@ -16,13 +16,14 @@ namespace SExtractor {
 
 /// Flagging of bad sources
 enum class Flags : int64_t {
-  NONE      = 0,      ///< No flag is set
-  BIASED    = 1 << 0, ///< The object has bad pixels
-  BLENDED   = 1 << 1, ///< The object was originally blended with another one.
-  SATURATED = 1 << 2, ///< At least one pixel of the object is saturated.
-  BOUNDARY  = 1 << 3, ///< The object is truncates (to close to an image boundary).
-  NEIGHBORS = 1 << 4, ///< The object has neighbors, bright and close enough
-  OUTSIDE   = 1 << 5, ///< The object is completely outside of the measurement frame
+  NONE      = 0,         ///< No flag is set
+  BIASED    = 1ll << 0,  ///< The object has bad pixels
+  BLENDED   = 1ll << 1,  ///< The object was originally blended with another one.
+  SATURATED = 1ll << 2,  ///< At least one pixel of the object is saturated.
+  BOUNDARY  = 1ll << 3,  ///< The object is truncates (to close to an image boundary).
+  NEIGHBORS = 1ll << 4,  ///< The object has neighbors, bright and close enough
+  OUTSIDE   = 1ll << 5,  ///< The object is completely outside of the measurement frame,
+  ERROR     = 1ll << 10, ///< Error flag: something bad happened during the measurement, model fitting, etc.
 };
 
 
