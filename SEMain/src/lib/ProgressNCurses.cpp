@@ -105,7 +105,6 @@ public:
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
     ::sigaction(SIGCONT, &prev_signal[SIGCONT], nullptr);
     // Clean up callbacks
-    std::lock_guard<std::recursive_mutex> s_lock(m_mutex);
     m_signal_callbacks.clear();
   }
 
@@ -139,7 +138,9 @@ public:
     m_signal = s;
     m_signal_cv.notify_all();
     std::unique_lock<std::mutex> resent_lock(m_resent_mutex);
-    m_resent_cv.wait(resent_lock);
+    // Do not wait too much, as a signal could have been triggered while the screen mutex was hold.
+    // Just give it a chance, and then continue with the default handler
+    m_resent_cv.wait_for(resent_lock, std::chrono::seconds(1));
   }
 
 private:
