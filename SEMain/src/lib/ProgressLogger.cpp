@@ -7,7 +7,7 @@ namespace SExtractor {
 ProgressLogger::ProgressLogger(const std::chrono::steady_clock::duration& min_interval) :
   m_logger{Elements::Logging::getLogger("Progress")}, m_min_interval{min_interval},
   m_started{std::chrono::steady_clock::now()},
-  m_last_logged{m_started - m_min_interval} {
+  m_last_logged{m_started - m_min_interval}, m_done{false} {
 }
 
 void ProgressLogger::print() {
@@ -19,13 +19,13 @@ void ProgressLogger::print() {
 
     for (auto entry : m_progress_info) {
       // When there is no total, log an absolute count
-      if (entry.second.m_total <= 0) {
-        m_logger.info() << entry.first << ": " << entry.second.m_done;
+      if (entry.m_total <= 0) {
+        m_logger.info() << entry.m_label << ": " << entry.m_done;
       }
         // Otherwise, report progress
       else {
-        float percent = (entry.second.m_done * 100.) / entry.second.m_total;
-        m_logger.info() << entry.first << ": " << entry.second.m_done << " / " << entry.second.m_total
+        float percent = (entry.m_done * 100.) / entry.m_total;
+        m_logger.info() << entry.m_label << ": " << entry.m_done << " / " << entry.m_total
                         << " (" << std::fixed << std::setprecision(2) << percent << "%)";
       }
     }
@@ -40,13 +40,13 @@ void ProgressLogger::print() {
   }
 }
 
-void ProgressLogger::handleMessage(const std::map<std::string, Progress>& info) {
-  this->ProgressReporter::handleMessage(info);
+void ProgressLogger::handleMessage(const std::list<ProgressInfo>& info) {
+  m_progress_info = info;
   print();
 }
 
 void ProgressLogger::handleMessage(const bool& done) {
-  this->ProgressReporter::handleMessage(done);
+  m_done = done;
   print();
 }
 
