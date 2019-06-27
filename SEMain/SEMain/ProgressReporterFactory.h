@@ -9,24 +9,26 @@
 #define _SEMAIN_PROGRESSPRINTERFACTORY_H
 
 #include <chrono>
-#include "SEFramework/Configuration/Configurable.h"
 #include "SEMain/ProgressMediator.h"
 
 namespace SExtractor {
 
 /**
  * @class ProgressReporterFactory
- * Abstracts away the creation of concrete ProgressReporters
+ *  Abstracts away the creation of concrete ProgressReporters
+ * @note
+ *  This class is not a Configurable because it needs to be started before the rest of the
+ *  configurables. Otherwise, their logging can not be intercepted.
  */
-class ProgressReporterFactory : public Configurable {
+class ProgressReporterFactory {
 public:
   virtual ~ProgressReporterFactory() = default;
 
   ProgressReporterFactory();
 
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+  void addOptions(boost::program_options::options_description &options) const;
 
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void configure(const std::map<std::string, boost::program_options::variable_value> &args);
 
   std::shared_ptr<ProgressMediator> createProgressMediator(void) const;
 

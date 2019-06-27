@@ -157,7 +157,6 @@ public:
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
-    progress_printer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -166,6 +165,7 @@ public:
           "Show the columns created for each property");
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
+    progress_printer_factory.addOptions(options);
     return options;
   }
 
@@ -196,12 +196,13 @@ public:
       }
     }
 
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(args);
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
+
+    // Initialize the rest of the components
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
-
-    // Create the progress listener and printer ASAP
-    progress_printer_factory.configure(config_manager);
-    auto progress_mediator = progress_printer_factory.createProgressMediator();
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
