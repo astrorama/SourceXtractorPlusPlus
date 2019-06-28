@@ -78,7 +78,7 @@ public:
     if (m_interpolation_gap > 0) {
       if (m_interpolated_image == nullptr) {
         const_cast<Frame<T>*>(this)->m_interpolated_image = BufferedImage<T>::create(
-          std::make_shared<InterpolatedImageSource<T>>(getOriginalImage(), getUnfilteredVarianceMap(),
+          std::make_shared<InterpolatedImageSource<T>>(getOriginalImage(), getOriginalVarianceMap(),
                                                        getVarianceThreshold(), m_interpolation_gap)
         );
       }
@@ -131,7 +131,7 @@ public:
     }
   }
 
-  std::shared_ptr<WeightImage> getUninterpolatedVarianceMap() const {
+  std::shared_ptr<WeightImage> getOriginalVarianceMap() const {
     return m_variance_map;
   }
 
