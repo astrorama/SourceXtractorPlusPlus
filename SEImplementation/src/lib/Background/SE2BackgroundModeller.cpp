@@ -169,7 +169,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0], pixIndex++)
             //if (!itsMask->getValue(int(xIndex), int(yIndex)))
-              if (itsMask->getValue(int(xIndex), int(yIndex) & itsMaskType)){
+              if (itsMask->getValue(int(xIndex), int(yIndex)) & itsMaskType){
                 gridData[pixIndex] = -BIG;
                 bck_model_logger.debug() << "\tReplacing data value";
               }
