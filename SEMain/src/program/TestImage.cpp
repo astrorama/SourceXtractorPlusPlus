@@ -23,6 +23,7 @@
 #include <CCfits/CCfits>
 #include "SEFramework/Image/SubtractImage.h"
 
+#include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
 #include "SEFramework/Image/FitsImageSource.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
@@ -42,6 +43,7 @@
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
+#include "ModelFitting/Image/NullPsf.h"
 
 
 namespace po = boost::program_options;
@@ -107,6 +109,30 @@ private:
   double m_shift_y = 0.0;
 };
 
+template <typename ImageType>
+class DummyPsf {
+public:
+  DummyPsf() : m_kernel(VectorImage<SeFloat>::create(1, 1)) {}
+
+  double getPixelScale() const {
+    return 1.0;
+  }
+
+  std::size_t getSize() const {
+    return 1;
+  }
+
+  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
+    return m_kernel;
+  }
+
+  void convolve(ImageType& /*image*/) const {
+  }
+
+private:
+  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  m_kernel;
+
+};
 
 class TestImage : public Elements::Program {
 
@@ -127,6 +153,7 @@ public:
         ("psf-fwhm", po::value<double>()->default_value(5.0),
             "Full width half maximum for generated gaussian psf (used when no psf file is provided)")
         ("psf-scale", po::value<double>()->default_value(0.2), "Pixel scale for generated gaussian psf")
+        ("disable-psf", po::bool_switch(), "Disable psf convolution")
         ("random-sources", po::value<int>()->default_value(0), "Nb of random sources to add")
         ("source-list", po::value<string>()->default_value(""), "Use sources from file")
         ("source-catalog", po::value<string>()->default_value(""), "Use sources from file (skymaker format)")
@@ -526,16 +553,27 @@ public:
     auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size, coordinate_system);
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
-    FrameModel<ImagePsf, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
-      pixel_scale,
-      (std::size_t) image_size, (std::size_t) image_size,
-      std::move(constant_models),
-      std::move(point_models),
-      std::move(extended_models),
-      *psf
-    };
+    if (args["disable-psf"].as<bool>()) {
+      FrameModel<DummyPsf<std::shared_ptr<WriteableImage<SeFloat>>>, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+        pixel_scale,
+        (std::size_t) image_size, (std::size_t) image_size,
+        std::move(constant_models),
+        std::move(point_models),
+        std::move(extended_models),
+      };
+      frame_model.rasterToImage(target_image);
+    } else {
+      FrameModel<ImagePsf, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+        pixel_scale,
+        (std::size_t) image_size, (std::size_t) image_size,
+        std::move(constant_models),
+        std::move(point_models),
+        std::move(extended_models),
+        *psf
+      };
+      frame_model.rasterToImage(target_image);
+    }
 
-    frame_model.rasterToImage(target_image);
 
     logger.info("Adding noise...");
 
