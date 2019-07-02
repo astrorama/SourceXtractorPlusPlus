@@ -105,7 +105,6 @@ public:
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
     ::sigaction(SIGCONT, &prev_signal[SIGCONT], nullptr);
     // Clean up callbacks
-    std::lock_guard<std::recursive_mutex> s_lock(m_mutex);
     m_signal_callbacks.clear();
   }
 
@@ -139,7 +138,9 @@ public:
     m_signal = s;
     m_signal_cv.notify_all();
     std::unique_lock<std::mutex> resent_lock(m_resent_mutex);
-    m_resent_cv.wait(resent_lock);
+    // Do not wait too much, as a signal could have been triggered while the screen mutex was hold.
+    // Just give it a chance, and then continue with the default handler
+    m_resent_cv.wait_for(resent_lock, std::chrono::seconds(1));
   }
 
 private:
@@ -451,13 +452,13 @@ public:
   /**
    * Update and redraw the progress information
    */
-  void update(const std::map<std::string, Progress>& info) {
+  void update(const std::list<ProgressInfo>& info) {
     // Precalculate layout, so labels are aligned
     size_t value_position = sizeof("Elapsed");
 
     for (auto& entry: info) {
-      if (entry.first.size() > value_position) {
-        value_position = entry.first.size();
+      if (entry.m_label.size() > value_position) {
+        value_position = entry.m_label.size();
       }
     }
     value_position++; // Plus space
@@ -477,7 +478,7 @@ public:
     // Now, print the actual progress
     int line = 0;
     for (auto& entry : info) {
-      drawProgressLine(value_position, bar_width, line, entry.first, entry.second.m_total, entry.second.m_done);
+      drawProgressLine(value_position, bar_width, line, entry.m_label, entry.m_total, entry.m_done);
       ++line;
     }
 
@@ -622,7 +623,7 @@ public:
   /**
    * Update the progress information
    */
-  void update(const std::map<std::string, Progress>& info) {
+  void update(const std::list<ProgressInfo>& info) {
     std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
 
     // Resize if needed the widgets
@@ -641,7 +642,7 @@ private:
   std::unique_ptr<LogWidget> m_log_widget;
   std::unique_ptr<ProgressWidget> m_progress_widget;
   std::unique_ptr<boost::thread> m_ui_thread;
-  std::map<std::string, Progress> m_progress_info;
+  std::list<ProgressInfo> m_progress_info;
   std::atomic_bool m_done;
   std::mutex m_progress_info_mutex;
 
@@ -728,7 +729,7 @@ bool ProgressNCurses::isTerminalCapable() {
   return isatty(fileno(stderr));
 }
 
-void ProgressNCurses::handleMessage(const std::map<std::string, Progress>& info) {
+void ProgressNCurses::handleMessage(const std::list<ProgressInfo>& info) {
   if (m_dashboard)
     m_dashboard->update(info);
 }

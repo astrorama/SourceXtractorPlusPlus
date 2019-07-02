@@ -1,25 +1,29 @@
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
-#include "SEMain/ProgressReporterConfiguration.h"
 #include "SEMain/ProgressLogger.h"
 #include "SEMain/ProgressNCurses.h"
 
 namespace SExtractor {
 
+namespace po = boost::program_options;
+
+static const std::string PROGRESS_MIN_INTERVAL{"progress-min-interval"};
+static const std::string PROGRESS_BAR_DISABLED{"progress-bar-disable"};
+
 ProgressReporterFactory::ProgressReporterFactory(): m_disable_progress_bar{false} {}
 
-void ProgressReporterFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<ProgressReporterConfiguration>();
-  manager.registerConfiguration<OutputConfig>();
+void ProgressReporterFactory::addOptions(boost::program_options::options_description& options) const {
+  options.add_options() (PROGRESS_MIN_INTERVAL.c_str(), po::value<int>()->default_value(5),
+     "Minimal interval to wait before printing a new log entry with the progress report");
+  options.add_options() (PROGRESS_BAR_DISABLED.c_str(), po::bool_switch(),
+          "Disable progress bar display");
 }
 
-void ProgressReporterFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto progress_config = manager.getConfiguration<ProgressReporterConfiguration>();
-  auto output_config = manager.getConfiguration<OutputConfig>();
-  m_min_interval = progress_config.getMinPrintInterval();
-  m_disable_progress_bar = progress_config.isProgressBarDisabled();
+void ProgressReporterFactory::configure(const std::map<std::string, boost::program_options::variable_value> &args) {
+  m_min_interval = std::chrono::seconds(args.at(PROGRESS_MIN_INTERVAL).as<int>());
+  m_disable_progress_bar = args.at(PROGRESS_BAR_DISABLED).as<bool>();
   // If the output is written to stdout, we can't use the terminal for the fancy ncurses interface
-  if (output_config.getOutputFile().empty()) {
+  if (args.at("output-catalog-filename").as<std::string>().empty()) {
     m_disable_progress_bar = true;
   }
 }
