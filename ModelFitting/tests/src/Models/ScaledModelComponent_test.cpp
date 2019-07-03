@@ -90,21 +90,29 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_thrice_test) {
 
 BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_x_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH);
+  auto reference = raster(*linear_model_component, 5);
 
   ManualParameter scale_x{2.}, scale_y{1.};
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
 
-  auto target = raster(scaled_model_component, 5);
+  auto target = raster(scaled_model_component, 7);
 
   std::vector<float> expected {
-    0.000, 0.000, 0.000, 0.000, 0.000,
-    0.586, 0.882, 1.000, 0.882, 0.586,
-    1.000, 1.500, 2.000, 1.500, 1.000,
-    0.586, 0.882, 1.000, 0.882, 0.586,
-    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+    0.197, 0.586, 0.882, 1.000, 0.882, 0.586, 0.197,
+    0.500, 1.000, 1.500, 2.000, 1.500, 1.000, 0.500,
+    0.197, 0.586, 0.882, 1.000, 0.882, 0.586, 0.197,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000, 0.000, 0.000,
   };
 
-  BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-3));
+  BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));
+
+  double reference_integrated = std::accumulate(reference.begin(), reference.end(), 0.);
+  double target_integrated = std::accumulate(target.begin(), target.end(), 0.);
+
+  BOOST_CHECK(checkIsClose(reference_integrated*2, target_integrated, 1e-8, 1e-2));
 }
 
 //-----------------------------------------------------------------------------
