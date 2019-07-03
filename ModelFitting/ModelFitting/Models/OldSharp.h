@@ -11,18 +11,40 @@
 
 namespace ModelFitting {
 
+/**
+ * Legacy implementation of the sharp region manager, matching the logic from SExtractor 2.
+ *
+ * @details
+ * The number of samples at a given distance is always 72, and the sharp region is decided at
+ * construction: the first sampling distance is first_r, and each step is incremented multiplying by  by log_incr.
+ * The sharp region is determined by the distance r_sharp_pix, and taking into account the pixel scale:
+ *  scale * r_sharp_pix
+ */
 class OldSharp : public SharpRegionManager {
   
 public:
-  
+
+  /**
+   * Constructor
+   * @param r_sharp_pix
+   *    Sharp region
+   * @param log_incr
+   *    Increment multiplicative step
+   * @param first_r
+   *    First radius
+   */
   OldSharp(double r_sharp_pix=4., double log_incr=1.122, double first_r=1E-4);
-  
+
   virtual ~OldSharp();
-  
+
+  /**
+   * @note
+   *    Only the scale parameter is used
+   */
   void updateRasterizationInfo(double scale, double, Profile) override;
-  
+
   bool insideSharpRegion(double r) override;
-  
+
   std::pair<double, int> nextRadiusAndAngleNo(double prev_r) override;
   
 private:
