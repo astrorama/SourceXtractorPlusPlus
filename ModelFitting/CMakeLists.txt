@@ -72,6 +72,15 @@ elements_add_unit_test(OldSharp_test
 elements_add_unit_test(CircularSymmetricModelComponent_test
                        tests/src/Models/CircularlySymmetricModelComponent_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(RotatedModelComponent_test
+                       tests/src/Models/RotatedModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(ScaledModelComponent_test
+                       tests/src/Models/ScaledModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(TransformModelComponent_test
+                       tests/src/Models/TransformModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
 
 
 find_package(CCfits)

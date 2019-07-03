@@ -61,6 +61,16 @@ boost::test_tools::predicate_result compareCollections(
   return res;
 }
 
+boost::test_tools::predicate_result checkIsClose(double ref, const double val, double atol = 1e-8, double rtol = 1e-5) {
+  boost::test_tools::predicate_result res(true);
+  if (!isClose(ref, val, atol, rtol)) {
+    res = false;
+    res.message() << "Values not close enough: " << ref << " " << val << " with absolute tolerance " << atol
+                  << " and relative " << rtol << "\n";
+  }
+  return res;
+}
+
 } // end SExtractor
 
 #endif // _COMPAREIMAGES_H

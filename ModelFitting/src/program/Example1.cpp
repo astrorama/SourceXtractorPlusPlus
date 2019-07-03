@@ -61,14 +61,14 @@ int main() {
   
   // We use the ScaledModelComponent decorator for applying the axes scaling.
   // For this we need two more parameters describing the scaling factors.
-  ManualParameter x_scale {2.};
-  ManualParameter y_scale {.5};
+  ManualParameter x_scale {1.};
+  ManualParameter y_scale {1.};
   auto scaled_exp = make_unique<ScaledModelComponent>(move(exp), x_scale, y_scale);
   
   // Similarly we use the RotatedModelComponent decorator to rotate the already
   // scaled component by 30 degrees
   ManualParameter exp_rot_angle {M_PI / 6.};
-  auto rotated_exp = make_unique<RotatedModelComponent>(move(scaled_exp), exp_rot_angle);
+  //auto rotated_exp = make_unique<RotatedModelComponent>(move(scaled_exp), exp_rot_angle);
   
   //
   // Creation of the second model component (De Vaucouleurs profile)
@@ -111,8 +111,8 @@ int main() {
   
   // To create the extended model we first create a vector with its model components
   vector<unique_ptr<ModelComponent>> component_list {};
-  component_list.emplace_back(move(rotated_exp));
-  component_list.emplace_back(move(rotated_dev));
+  component_list.emplace_back(move(scaled_exp));
+  //component_list.emplace_back(move(rotated_dev));
   
   // We finally create the extended model
   ExtendedModel extended_model {move(component_list), model_scale, model_scale,
@@ -132,7 +132,7 @@ int main() {
   // class is provided. For the cv::Mat this specialization is defined in the
   // ModelFitting/Image/OpenCvMatImageTraits.h file, which is included at the
   // top of this file.
-  auto image = extended_model.getRasterizedImage<cv::Mat>(.1, 201, 301);
+  auto image = extended_model.getRasterizedImage<cv::Mat>(1, 255, 255);
   writeToFits(image, "example1.fits");
   
 }
