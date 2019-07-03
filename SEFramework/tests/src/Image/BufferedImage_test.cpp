@@ -7,7 +7,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "SEFramework/Image/BufferedImage.h"
-#include "SEUtils/CompareImages.h"
+#include "SEUtils/TestUtils.h"
 
 using namespace SExtractor;
 
