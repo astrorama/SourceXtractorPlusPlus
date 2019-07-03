@@ -15,21 +15,34 @@
 
 namespace ModelFitting {
 
+/**
+ * A model component that uses a 1D function - or profile - to build a circular and symmetric 2D model.
+ * @see SersicProfile as an example of such a profile
+ */
 template <typename Profile>
 class CircularlySymmetricModelComponent : public ModelComponent {
   
 public:
-  
+
+  /**
+   * Constructor
+   * @param sharp_manager
+   *    The model component delegates to this region manager the determination of the sharp area.
+   *    Note that you may build two different components with the same profile but different strategies
+   *    for the sharp region.
+   * @param proj_parameters
+   *    Parameters that are forwarded to the profile
+   */
   template <typename... ProfileParameters>
   CircularlySymmetricModelComponent(std::unique_ptr<SharpRegionManager> sharp_manager,
                                     ProfileParameters&&... proj_parameters);
-  
+
   virtual ~CircularlySymmetricModelComponent();
   
   virtual double getValue(double x, double y);
   
   virtual void updateRasterizationInfo(double scale, double r_max);
-  
+
   virtual std::vector<ModelSample> getSharpSampling();
   
   virtual bool insideSharpRegion(double x, double y);

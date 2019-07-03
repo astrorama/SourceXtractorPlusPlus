@@ -15,10 +15,23 @@
 
 namespace ModelFitting {
 
+/**
+ * Decorates a model component, transforming the *axes* by the given transformation matrix
+ *
+ * @note
+ *  Unlike ScaledModelComponent, this transformation keeps the integrated value
+ */
 class TransformModelComponent : public ModelComponent {
 
 public:
 
+  /**
+   * Constructor
+   * @param component
+   *    The component to be decorated. The ownership is acquired by the new object.
+   * @param transform
+   *    The transformation matrix (row major order)
+   */
   TransformModelComponent(std::unique_ptr<ModelComponent> component, std::tuple<double, double, double, double> transform);
 
   TransformModelComponent(TransformModelComponent&& other);
