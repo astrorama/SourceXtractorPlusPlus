@@ -97,19 +97,6 @@ std::vector<double> raster(ModelComponent& model_component, int size) {
   return v;
 }
 
-double sumCentralPixels(std::vector<double> const& v, int size, int w, int h) {
-  int offset_x = size / 2 - w / 2;
-  int offset_y = size / 2 - h / 2;
-
-  double sum = 0;
-  for (int ix = 0; ix < w; ++ix) {
-    for (int iy = 0; iy < h; ++iy) {
-      sum += v[ix + offset_x + (iy + offset_y) * size];
-    }
-  }
-  return sum;
-}
-
 } // end namespace ModelFitting
 
 #endif // _TEST_HELPER_H
