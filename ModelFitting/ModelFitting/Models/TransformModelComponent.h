@@ -30,7 +30,7 @@ public:
    * @param component
    *    The component to be decorated. The ownership is acquired by the new object.
    * @param transform
-   *    The transformation matrix (row major order)
+   *    The transformation matrix (column major order!)
    */
   TransformModelComponent(std::unique_ptr<ModelComponent> component, std::tuple<double, double, double, double> transform);
 

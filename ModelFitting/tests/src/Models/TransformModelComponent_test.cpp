@@ -130,9 +130,9 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_sharp_scale_integral_test) {
 BOOST_AUTO_TEST_CASE (TransformModelComponent_rotate_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  double angle = M_PI / 4;
-  std::tuple<double, double, double, double> transform{std::cos(angle), -std::sin(angle),
-                                                       std::sin(angle), std::cos(angle)};
+  double angle = -M_PI / 4;
+  std::tuple<double, double, double, double> transform{std::cos(angle), std::sin(angle),
+                                                       -std::sin(angle), std::cos(angle)};
   TransformModelComponent transform_model_component(std::move(linear_model_component), transform);
   auto target = raster(transform_model_component, 5);
 
@@ -164,8 +164,8 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_rotate_circular) {
   BOOST_CHECK(compareCollections(expected, reference, 1e-8, 1e-2));
 
   double angle = M_PI / 4;
-  std::tuple<double, double, double, double> transform{std::cos(angle), -std::sin(angle),
-                                                       std::sin(angle), std::cos(angle)};
+  std::tuple<double, double, double, double> transform{std::cos(angle), std::sin(angle),
+                                                       -std::sin(angle), std::cos(angle)};
   TransformModelComponent transform_model_component(std::move(linear_model_component), transform);
   auto target = raster(transform_model_component, 5);
 
@@ -188,8 +188,8 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_sharp_rotate_circular) {
   };
 
   double angle = M_PI / 4;
-  std::tuple<double, double, double, double> transform{std::cos(angle), -std::sin(angle),
-                                                       std::sin(angle), std::cos(angle)};
+  std::tuple<double, double, double, double> transform{std::cos(angle), std::sin(angle),
+                                                       -std::sin(angle), std::cos(angle)};
   TransformModelComponent transform_model_component(std::move(linear_model_component), transform);
   auto target = raster(transform_model_component, 5);
 
@@ -213,18 +213,6 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_shear_test) {
     0.764, 2.000, 2.000, 0.764, 0.000,
     1.000, 1.586, 1.000, 0.000, 0.000,
   };
-  /*
-  Note that the test fails, and, unlike the sharp shear tests, the result given is
-  this one:
-  std::vector<float> expected {
-    1.000, 0.764, 0.172, 0.000, 0.000,
-    1.586, 2.000, 1.586, 0.764, 0.000,
-    1.000, 2.000, 3.000, 2.000, 1.000,
-    0.000, 0.764, 1.586, 2.000, 1.586,
-    0.000, 0.000, 0.172, 0.764, 1.000
-  };
-  It looks like the shear is affecting a different axis
-  */
 
   BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));
 }
