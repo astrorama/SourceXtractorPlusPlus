@@ -13,6 +13,7 @@
 #include <tuple>
 #include <vector>
 #include <valarray>
+#include <numeric>
 
 #include <cstdlib>
 #include <ctime>
@@ -508,7 +509,12 @@ public:
         throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i].name;
       }
     }
-    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), vpsf->getPsf(psf_vals));
+
+    // Generate and normalize the PSF
+    auto p = vpsf->getPsf(psf_vals);
+    auto psf_sum = std::accumulate(p->getData().begin(), p->getData().end(), 0.);
+    p = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(p, 1. / psf_sum));
+    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), p);
 
     std::vector<TestImageSource> sources;
 
