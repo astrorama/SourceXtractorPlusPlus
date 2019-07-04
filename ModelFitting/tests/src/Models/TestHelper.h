@@ -23,21 +23,21 @@ public:
     NONE, X_AXIS, Y_AXIS, BOTH
   };
 
-  LinearModelComponent(double center_value, double slope, Decay decay = Decay::BOTH)
+  LinearModelComponent(double center_value, double slope, Decay decay = Decay::BOTH, int sharp_size = 0)
     : m_center{center_value}, m_slope{slope}, m_scale{1.},
-      m_r_max{std::numeric_limits<double>::infinity()}, m_decay{decay} {}
+      m_r_max{std::numeric_limits<double>::infinity()}, m_sharp{sharp_size}, m_decay{decay} {}
 
   double getValue(double x, double y) override {
     double d = 0;
     switch (m_decay) {
       case X_AXIS:
-        d = std::abs(x * m_scale);
+        d = std::abs(x);
         break;
       case Y_AXIS:
-        d = std::abs(y * m_scale);
+        d = std::abs(y);
         break;
       case BOTH:
-        d = std::sqrt((x * x + y * y) * m_scale);
+        d = std::sqrt((x * x + y * y));
         break;
       default:
         d = 0;
@@ -51,18 +51,31 @@ public:
   void updateRasterizationInfo(double scale, double r_max) override {
     m_scale = scale;
     m_r_max = r_max;
+    m_sharp = std::min(m_sharp, static_cast<int>(m_r_max));
   }
 
   std::vector<ModelSample> getSharpSampling() override {
-    return {};
+    std::vector<ModelSample> samples;
+    if (m_sharp) {
+      double size = m_sharp * m_scale;
+      double min = std::floor(-size / 2);
+      double max = std::ceil(size / 2);
+      for (double x = min; x <= max; x += m_scale) {
+        for (double y = min; y <= max; y += m_scale) {
+          samples.emplace_back(x, y, getValue(x, y) * m_scale * m_scale);
+        }
+      }
+    }
+    return samples;
   }
 
-  bool insideSharpRegion(double, double) override {
-    return false;
+  bool insideSharpRegion(double x, double y) override {
+    return std::sqrt(x * x + y * y) < m_sharp;
   }
 
 private:
   double m_center, m_slope, m_scale, m_r_max;
+  int m_sharp;
   Decay m_decay;
 };
 

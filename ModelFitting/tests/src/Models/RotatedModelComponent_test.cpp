@@ -106,6 +106,38 @@ BOOST_AUTO_TEST_CASE (RotatedModelComponent_45_circular_test) {
 
 //-----------------------------------------------------------------------------
 
+BOOST_AUTO_TEST_CASE (RotatedModelComponent_45_sharp_test) {
+  auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH, 3);
+  auto reference = raster(*linear_model_component, 5);
+
+  std::vector<float> expected {
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 1.000, 2.000, 1.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+  };
+
+  BOOST_CHECK(compareCollections(expected, reference, 1e-8, 1e-2));
+
+  ManualParameter rotation{M_PI / 4};
+  RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
+  auto target = raster(rotated_model_component, 5);
+
+  // In this case, it is the sample what rotates
+  std::vector<float> expected2 {
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 1.000, 0.586, 1.000, 0.000,
+    0.000, 0.586, 2.000, 0.586, 0.000,
+    0.000, 1.000, 0.586, 1.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+  };
+
+  BOOST_CHECK(compareCollections(expected2, target, 1e-8, 1e-2));
+}
+
+//-----------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_SUITE_END ()
 
 //-----------------------------------------------------------------------------

@@ -5,6 +5,7 @@
  */
 
 #include <cmath> // for std::cos, std::sin
+#include <iostream>
 #include "ModelFitting/Models/RotatedModelComponent.h"
 
 namespace ModelFitting {

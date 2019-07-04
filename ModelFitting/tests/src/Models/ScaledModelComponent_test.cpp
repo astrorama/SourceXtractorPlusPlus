@@ -117,6 +117,72 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_x_test) {
 
 //-----------------------------------------------------------------------------
 
+BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_2_test) {
+  auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH);
+  auto reference = raster(*linear_model_component, 5);
+
+  std::vector<float> reference_expected {
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 1.000, 2.000, 1.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+  };
+
+  BOOST_CHECK(compareCollections(reference_expected, reference, 1e-8, 1e-2));
+
+  ManualParameter scale_x{2.}, scale_y{2.};
+  ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
+  scaled_model_component.updateRasterizationInfo(1., 10.);
+
+  auto target = raster(scaled_model_component, 5);
+
+  std::vector<float> expected {
+    0.586, 0.882, 1.000, 0.882, 0.586,
+    0.882, 1.293, 1.500, 1.293, 0.882,
+    1.000, 1.500, 2.000, 1.500, 1.000,
+    0.882, 1.293, 1.500, 1.293, 0.882,
+    0.586, 0.882, 1.000, 0.882, 0.586,
+  };
+
+  BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_sharp_test) {
+  auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH, 3);
+  auto reference = raster(*linear_model_component, 5);
+
+  std::vector<float> reference_expected {
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 1.000, 2.000, 1.000, 0.000,
+    0.000, 0.586, 1.000, 0.586, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+  };
+
+  BOOST_CHECK(compareCollections(reference_expected, reference, 1e-8, 1e-2));
+
+  ManualParameter scale_x{2.}, scale_y{2.};
+  ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
+  scaled_model_component.updateRasterizationInfo(1., 10.);
+
+  auto target = raster(scaled_model_component, 5);
+
+  std::vector<float> expected {
+    0.586, 0.882, 1.000, 0.882, 0.586,
+    0.882, 1.293, 1.500, 1.293, 0.882,
+    1.000, 1.500, 2.000, 1.500, 1.000,
+    0.882, 1.293, 1.500, 1.293, 0.882,
+    0.586, 0.882, 1.000, 0.882, 0.586,
+  };
+
+  BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));
+}
+
+//-----------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_SUITE_END ()
 
 //-----------------------------------------------------------------------------
