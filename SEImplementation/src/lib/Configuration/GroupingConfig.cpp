@@ -31,7 +31,7 @@ GroupingConfig::GroupingConfig(long manager_id)
 
 std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getProgramOptions() {
   return { {"Grouping", {
-      {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_SPLIT),
+      {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_NONE),
           "Grouping algorithm to be used."},
       {GROUPING_MOFFAT_THRESHOLD.c_str(), po::value<double>()->default_value(0.02),
           "Threshold used for Moffat grouping."},
