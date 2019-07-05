@@ -138,7 +138,7 @@ public:
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
 
-  po::options_description defineSpecificProgramOptions() override {
+  std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
@@ -166,7 +166,12 @@ public:
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
     progress_printer_factory.addOptions(options);
-    return options;
+
+    // Allow to pass Python options as positional following --
+    po::positional_options_description p;
+    p.add("python-argv", -1);
+
+    return {options, p};
   }
 
 
