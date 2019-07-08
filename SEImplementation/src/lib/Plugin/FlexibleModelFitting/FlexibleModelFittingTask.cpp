@@ -291,6 +291,8 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     int parameter_index = 0;
     for (auto& source : group) {
       std::unordered_map<int, double> parameter_values, parameter_sigmas;
+      auto source_flags = Flags::NONE;
+
       for (auto parameter : m_parameters) {
         bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
         bool accesed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
@@ -312,9 +314,10 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
           }
           parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
           parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+          source_flags |= Flags::PARTIAL_FIT;
         }
       }
-      source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, Flags::NONE, parameter_values,
+      source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
                                                parameter_sigmas);
     }
 
