@@ -13,7 +13,7 @@ namespace fs = boost::filesystem;
 namespace {
 
 const std::string PYTHON_CONFIG_FILE { "python-config-file" };
-const std::string PYTHON_ARGV { "define" };
+const std::string PYTHON_ARGV { "python-arg" };
 
 }
 

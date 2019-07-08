@@ -169,7 +169,7 @@ public:
 
     // Allow to pass Python options as positional following --
     po::positional_options_description p;
-    p.add("define", -1);
+    p.add("python-arg", -1);
 
     return {options, p};
   }
