@@ -7,6 +7,7 @@
 
 #include <mutex>
 
+#include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/TransformedModel.h"
@@ -228,6 +229,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       }
     }
 
+    // Reset access checks, as a dependent parameter could have triggered it
+    parameter_manager.clearAccessCheck();
+
     // Add models for all frames
     ResidualEstimator res_estimator{};
 
@@ -257,9 +261,15 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       for (auto& source : group) {
         std::unordered_map<int, double> dummy_values;
         for (auto parameter : m_parameters) {
-          dummy_values[parameter->getId()] = 99;
+          auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
+          auto manual_parameter = std::dynamic_pointer_cast<ManualParameter>(modelfitting_parameter);
+          if (manual_parameter) {
+            manual_parameter->setValue(std::numeric_limits<double>::quiet_NaN());
+          }
+          dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         }
-        source.setProperty<FlexibleModelFitting>(0, 99, Flags::OUTSIDE, dummy_values, dummy_values);
+        source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), Flags::OUTSIDE,
+                                                 dummy_values, dummy_values);
       }
       return;
     }
@@ -282,11 +292,26 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     for (auto& source : group) {
       std::unordered_map<int, double> parameter_values, parameter_sigmas;
       for (auto parameter : m_parameters) {
-        parameter_values[parameter->getId()] = parameter_manager.getParameter(source, parameter)->getValue();
-        if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
-          parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
-        } else {
-          parameter_sigmas[parameter->getId()] = 99.; // FIXME need user defined error margin for dependent parameters
+        bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
+        bool accesed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
+        auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
+
+        if (is_dependent_parameter || accesed_by_modelfitting) {
+          parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
+          if (!is_dependent_parameter) {
+            parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
+          } else {
+            parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+          }
+        }
+        else {
+          // Need to cascade the NaN to any potential dependent parameter
+          auto engine_parameter = std::dynamic_pointer_cast<EngineParameter>(modelfitting_parameter);
+          if (engine_parameter) {
+            engine_parameter->setEngineValue(std::numeric_limits<double>::quiet_NaN());
+          }
+          parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+          parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         }
       }
       source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, Flags::NONE, parameter_values,
@@ -300,12 +325,13 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     for (auto& source : group) {
       std::unordered_map<int, double> dummy_values;
       for (auto parameter : m_parameters) {
-        dummy_values[parameter->getId()] = 99;
+        dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
       model_fitting_logger.error() << "Failed to fit the source "
                                    << source.getProperty<SourceID>().getId()
                                    << ": " << e.what();
-      source.setProperty<FlexibleModelFitting>(0, 99, Flags::ERROR, dummy_values, dummy_values);
+      source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), Flags::ERROR,
+                                               dummy_values, dummy_values);
     }
   }
 }
