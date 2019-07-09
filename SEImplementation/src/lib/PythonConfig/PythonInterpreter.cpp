@@ -52,12 +52,20 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
   try {
     // Setup argv
     // Python expects to have the ownership!
-    wchar_t **py_argv = static_cast<wchar_t **>(PyMem_MALLOC(argv.size() + 1));
+#if PY_MAJOR_VERSION == 2
+    using py_argv_char_t = char;
+#  define py_argv_assign(d, s, l) d = strndup(s, l)
+#else
+    using py_argv_char_t = wchar_t;
+#  define py_argv_assign(d, s, l) d = Py_DecodeLocale(s, &l)
+#endif
+
+    py_argv_char_t **py_argv = static_cast<py_argv_char_t**>(PyMem_MALLOC((argv.size() + 1) * sizeof(py_argv_char_t*)));
     size_t wlen = filename.size();
-    py_argv[0] = Py_DecodeLocale(filename.c_str(), &wlen);
+    py_argv_assign(py_argv[0], filename.c_str(), wlen);
     for (size_t i = 0; i < argv.size(); ++i) {
       wlen = argv[i].size();
-      py_argv[i + 1] = Py_DecodeLocale(argv[i].c_str(), &wlen);
+      py_argv_assign(py_argv[i + 1], argv[i].c_str(), wlen);
     }
     PySys_SetArgv(argv.size() + 1, py_argv);
 
