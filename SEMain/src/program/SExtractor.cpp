@@ -138,7 +138,7 @@ public:
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
 
-  po::options_description defineSpecificProgramOptions() override {
+  std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
@@ -157,7 +157,6 @@ public:
     measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
-    progress_printer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
@@ -166,7 +165,13 @@ public:
           "Show the columns created for each property");
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
-    return options;
+    progress_printer_factory.addOptions(options);
+
+    // Allow to pass Python options as positional following --
+    po::positional_options_description p;
+    p.add("python-arg", -1);
+
+    return {options, p};
   }
 
 
@@ -196,12 +201,13 @@ public:
       }
     }
 
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(args);
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
+
+    // Initialize the rest of the components
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
-
-    // Create the progress listener and printer ASAP
-    progress_printer_factory.configure(config_manager);
-    auto progress_mediator = progress_printer_factory.createProgressMediator();
 
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();

@@ -23,8 +23,8 @@ public:
   
   void runCode(const std::string& code);
   
-  void runFile(const std::string& filename);
-  
+  void runFile(const std::string& filename, const std::vector<std::string>& argv);
+
   virtual ~PythonInterpreter() = default;
   
   std::map<int, PyMeasurementImage> getMeasurementImages();

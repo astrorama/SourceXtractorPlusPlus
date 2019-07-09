@@ -1,4 +1,4 @@
-/* 
+/*
  * @file PythonInterpreter.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
@@ -48,8 +48,20 @@ void PythonInterpreter::runCode(const std::string &code) {
   }
 }
 
-void PythonInterpreter::runFile(const std::string &filename) {
+void PythonInterpreter::runFile(const std::string &filename, const std::vector<std::string> &argv) {
   try {
+    // Setup argv
+    // Python expects to have the ownership!
+    wchar_t **py_argv = static_cast<wchar_t **>(PyMem_MALLOC(argv.size() + 1));
+    size_t wlen = filename.size();
+    py_argv[0] = Py_DecodeLocale(filename.c_str(), &wlen);
+    for (size_t i = 0; i < argv.size(); ++i) {
+      wlen = argv[i].size();
+      py_argv[i + 1] = Py_DecodeLocale(argv[i].c_str(), &wlen);
+    }
+    PySys_SetArgv(argv.size() + 1, py_argv);
+
+    // Run the file
     py::object main_module = py::import("__main__");
     py::setattr(main_module, "__file__", py::object(filename));
     py::object main_namespace = main_module.attr("__dict__");

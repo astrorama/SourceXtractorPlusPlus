@@ -15,7 +15,7 @@
 
 namespace SExtractor {
 
-typedef Observer<std::map<std::string, Progress>> ProgressObserver;
+typedef Observer<std::list<ProgressInfo>> ProgressObserver;
 typedef Observer<bool> DoneObserver;
 
 /**
@@ -38,20 +38,12 @@ public:
    *    and the value a pair, where the first is the number of entities processed, and
    *    the second the total, or -1 if unknown.
    */
-  void handleMessage(const std::map<std::string, Progress> & info) override {
-    m_progress_info = info;
-  }
+  using ProgressObserver::handleMessage;
 
   /**
    * To be called when the full processing is done.
    */
-  void handleMessage(const bool& done) override {
-    m_done = done;
-  }
-
-protected:
-  std::map<std::string, Progress> m_progress_info;
-  bool m_done = false;
+  using DoneObserver::handleMessage;
 };
 
 } // end SExtractor

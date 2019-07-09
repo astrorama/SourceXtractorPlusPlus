@@ -30,7 +30,7 @@ public:
    */
   ProgressLogger(const std::chrono::steady_clock::duration& min_interval);
 
-  void handleMessage(const std::map<std::string, Progress>& info) override;
+  void handleMessage(const std::list<ProgressInfo>& info) override;
 
   void handleMessage(const bool& done) override;
 
@@ -38,6 +38,8 @@ protected:
   Elements::Logging m_logger;
   std::chrono::steady_clock::duration m_min_interval;
   std::chrono::steady_clock::time_point m_started, m_last_logged;
+  std::list<ProgressInfo> m_progress_info;
+  std::atomic_bool m_done;
 
   void print();
 };

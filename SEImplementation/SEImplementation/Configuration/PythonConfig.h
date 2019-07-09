@@ -18,7 +18,7 @@ public:
   PythonConfig(long manager_id);
   
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
-  
+
   void preInitialize(const UserValues& args) override;
 
   void initialize(const UserValues& args) override;
