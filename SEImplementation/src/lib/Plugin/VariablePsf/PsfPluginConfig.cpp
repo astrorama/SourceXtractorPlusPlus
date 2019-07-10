@@ -2,7 +2,7 @@
  * PsfPluginConfig.cpp
  *
  *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón (greatly adapted from mschefer's code)
+ *      Author: Alejandro ��lvarez Ayll��n (greatly adapted from mschefer's code)
  */
 
 #include <Configuration/ProgramOptionsHelper.h>
@@ -11,6 +11,7 @@
 #include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
+#include "SEFramework/Image/FitsWriter.h"
 
 namespace po = boost::program_options;
 using Euclid::Configuration::Configuration;
@@ -23,6 +24,16 @@ static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXELSCALE {"psf-pixel-scale" };
 
+static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
+
+  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  std::vector<double> pos_vector = {190.0, 870.0};
+  auto act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf.fits");
+
+  // thats kind of the emergency functionality
+  return PsfPluginConfig::generateGaussianPsf(1.0, 0.1);
+}
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
   try {
@@ -149,7 +160,7 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
         CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
 	    return readPsfEx(pFits);
 	} catch (CCfits::FitsException &e) {
-	    throw Elements::Exception() << "I am where I want to be... " << e.message();
+	    return readStackedPsf(pFits);
 	}
     }
   } catch (CCfits::FitsException &e) {
