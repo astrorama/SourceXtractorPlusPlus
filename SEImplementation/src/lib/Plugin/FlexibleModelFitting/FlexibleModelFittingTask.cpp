@@ -216,6 +216,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     double pixel_scale = 1;
     FlexibleModelFittingParameterManager parameter_manager;
     ModelFitting::EngineParameterManager engine_parameter_manager{};
+    int n_free_parameters = 0;
 
     {
       std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -223,6 +224,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       // Prepare parameters
       for (auto& source : group) {
         for (auto parameter : m_parameters) {
+          if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+            ++n_free_parameters;
+          }
           parameter_manager.addParameter(source, parameter,
                                          parameter->create(parameter_manager, engine_parameter_manager, source));
         }
@@ -236,6 +240,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     ResidualEstimator res_estimator{};
 
     int valid_frames = 0;
+    int n_good_pixels = 0;
     for (auto frame : m_frames) {
       int frame_index = frame->getFrameNb();
       // Validate that each frame covers the model fitting region
@@ -247,6 +252,12 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
         auto image = createImageCopy(group, frame_index);
         auto weight = createWeightImage(group, frame_index);
 
+        for (int y = 0; y < weight->getHeight(); ++y) {
+          for (int x = 0; x < weight->getWidth(); ++x) {
+            n_good_pixels += (weight->at(x, y) != 0.);
+          }
+        }
+
         // Setup residuals
         auto data_vs_model =
           createDataVsModelResiduals(image, std::move(frame_model), weight,
@@ -255,8 +266,17 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       }
     }
 
+    // Check that we had enough data for the fit
+    Flags group_flags = Flags::NONE;
     if (valid_frames == 0) {
-      // Can't do model fitting as no measurement frame overlaps the detected source
+      group_flags = Flags::OUTSIDE;
+    }
+    else if (n_good_pixels < n_free_parameters) {
+      group_flags = Flags::INSUFFICIENT_DATA;
+    }
+
+    if (group_flags != Flags::NONE) {
+      // Can't do model fitting as no measurement frame overlaps the detected source, or there are not enough pixels
       // We still need to provide a property
       for (auto& source : group) {
         std::unordered_map<int, double> dummy_values;
@@ -268,7 +288,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
           }
           dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         }
-        source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), Flags::OUTSIDE,
+        source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), group_flags,
                                                  dummy_values, dummy_values);
       }
       return;
