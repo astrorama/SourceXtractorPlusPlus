@@ -44,7 +44,10 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::map<int, std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
   std::vector<std::pair<std::string, std::vector<int>>> m_outputs;
-  
+
+  /// The initialization code calls Python. It gets wrapped here so we can catch any
+  /// potential error and translate into a Elements exception
+  void initializeInner();
 };
 
 }
