@@ -145,7 +145,12 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
     }
     // PSFEx format
     else {
-      return readPsfEx(pFits);
+      try {
+        CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
+	    return readPsfEx(pFits);
+	} catch (CCfits::FitsException &e) {
+	    throw Elements::Exception() << "I am where I want to be... " << e.message();
+	}
     }
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSF file: " << e.message();
