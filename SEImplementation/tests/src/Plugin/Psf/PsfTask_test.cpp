@@ -66,7 +66,7 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
   center_y = (center_y - 20.)/30.;
 
   auto expected = VectorImage<SeFloat>::create(3, 3);
-  double sum;
+  double sum = 0.;
   for (int i = 0; i < expected->getHeight(); ++i) {
     for (int j = 0; j < expected->getWidth(); ++j) {
       expected->at(i, j) = constant->at(i, j) + y->at(i, j) * center_y + x->at(i, j) * center_x;
