@@ -11,10 +11,10 @@
 
 namespace SExtractor {
 
-void GroupInfoTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+void GroupInfoTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
 }
 
-void GroupInfoTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+void GroupInfoTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
 }
 
 std::shared_ptr<Task> GroupInfoTaskFactory::createTask(const PropertyId& property_id) const {

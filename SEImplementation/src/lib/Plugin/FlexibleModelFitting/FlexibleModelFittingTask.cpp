@@ -49,6 +49,7 @@ using namespace ModelFitting;
 
 namespace {
 
+__attribute__((unused))
 void printLevmarInfo(std::array<double, 10> info) {
   std::cerr << "\nMinimization info:\n";
   std::cerr << "  ||e||_2 at initial p: " << info[0] << '\n';
