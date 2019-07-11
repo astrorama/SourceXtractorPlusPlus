@@ -71,14 +71,7 @@ public:
   };
 
   /**
-   * Reconstructs a PSF based on the given values for each of the component.
-   * @param values
-   *    Component values. Note that they have to be in the same order (and as many)
-   *    as components were passed to the constructor (none for constant PSF).
-   * @return
-   *    The reconstructed PSF
-   * @throws
-   *    If the number of values does not match the number of components
+   *
    */
   std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
 
@@ -99,20 +92,11 @@ private:
   std::vector<int> m_gridx_values;
   std::vector<int> m_gridy_values;
 
-  //CCfits::ExtHDU m_psf_data;
-
-  //double m_pixel_scale;
   std::vector<Component> m_components;
-  //::vector<int> m_group_degrees;
-  //std::vector<std::shared_ptr<VectorImage<SeFloat>>> m_coefficients;
-  //std::vector<std::vector<int>> m_exponents;
 
-  /// Verify that the preconditions of getPsf are met at construction time
-  //void selfTest();
-
-  /// Normalizes the values
-  //std::vector<double> scaleProperties(const std::vector<double> &values) const;
-
+  /*
+   * Check the file, load the positions and so on
+   */
   void setup(std::shared_ptr<CCfits::FITS> pFits);
 };
 

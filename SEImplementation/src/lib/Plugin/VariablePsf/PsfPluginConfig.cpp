@@ -24,17 +24,46 @@ static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXELSCALE {"psf-pixel-scale" };
 
+/*
+ * Reading in a stacked PSF as it is being developed for co-added images in Euclid
+ *
+ * Some dummy code that tests the basic operations. Not yet operational, since
+ * the VariablePsf class is not abstract and so on
+ */
 static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
 
+  // read in the stacked file;
+  // extract one PSF;
+  // write to a FITS file;
+  std::shared_ptr<VectorImage<SeFloat>> act_psf;
+  std::vector<double> pos_vector;
   std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
-  std::vector<double> pos_vector = {190.0, 870.0};
-  auto act_psf = act_stack->getPsf(pos_vector);
-  FitsWriter::writeFile(*act_psf, "mypsf.fits");
+  pos_vector = {900.0, 1300.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_1.fits");
+  pos_vector = {15000.0, 4500.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_2.fits");
+  pos_vector = {10000.0, 12345.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_3.fits");
+  pos_vector = {16789.0, 70.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_4.fits");
+  pos_vector = {9876.0, 7654.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_5.fits");
+  pos_vector = {11843.0, 1528.0, 400.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_6.fits");
 
   // thats kind of the emergency functionality
   return PsfPluginConfig::generateGaussianPsf(1.0, 0.1);
 }
 
+/*
+ * Reading in a stacked PSF as it is being developed for co-added images in Euclid
+ */
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
   try {
     CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
