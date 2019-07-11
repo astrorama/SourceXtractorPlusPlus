@@ -212,151 +212,135 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
 
 
 void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
-  try {
-    double pixel_scale = 1;
-    FlexibleModelFittingParameterManager parameter_manager;
-    ModelFitting::EngineParameterManager engine_parameter_manager{};
-    int n_free_parameters = 0;
+  double pixel_scale = 1;
+  FlexibleModelFittingParameterManager parameter_manager;
+  ModelFitting::EngineParameterManager engine_parameter_manager{};
+  int n_free_parameters = 0;
 
-    {
-      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
-      // Prepare parameters
-      for (auto& source : group) {
-        for (auto parameter : m_parameters) {
-          if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
-            ++n_free_parameters;
-          }
-          parameter_manager.addParameter(source, parameter,
-                                         parameter->create(parameter_manager, engine_parameter_manager, source));
-        }
-      }
-    }
-
-    // Reset access checks, as a dependent parameter could have triggered it
-    parameter_manager.clearAccessCheck();
-
-    // Add models for all frames
-    ResidualEstimator res_estimator{};
-
-    int valid_frames = 0;
-    int n_good_pixels = 0;
-    for (auto frame : m_frames) {
-      int frame_index = frame->getFrameNb();
-      // Validate that each frame covers the model fitting region
-      if (isFrameValid(group, frame_index)) {
-        valid_frames++;
-
-        auto frame_model = createFrameModel(group, pixel_scale, parameter_manager, frame);
-
-        auto image = createImageCopy(group, frame_index);
-        auto weight = createWeightImage(group, frame_index);
-
-        for (int y = 0; y < weight->getHeight(); ++y) {
-          for (int x = 0; x < weight->getWidth(); ++x) {
-            n_good_pixels += (weight->at(x, y) != 0.);
-          }
-        }
-
-        // Setup residuals
-        auto data_vs_model =
-          createDataVsModelResiduals(image, std::move(frame_model), weight,
-                                     AsinhChiSquareComparator(m_modified_chi_squared_scale));
-        res_estimator.registerBlockProvider(std::move(data_vs_model));
-      }
-    }
-
-    // Check that we had enough data for the fit
-    Flags group_flags = Flags::NONE;
-    if (valid_frames == 0) {
-      group_flags = Flags::OUTSIDE;
-    }
-    else if (n_good_pixels < n_free_parameters) {
-      group_flags = Flags::INSUFFICIENT_DATA;
-    }
-
-    if (group_flags != Flags::NONE) {
-      // Can't do model fitting as no measurement frame overlaps the detected source, or there are not enough pixels
-      // We still need to provide a property
-      for (auto& source : group) {
-        std::unordered_map<int, double> dummy_values;
-        for (auto parameter : m_parameters) {
-          auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
-          auto manual_parameter = std::dynamic_pointer_cast<ManualParameter>(modelfitting_parameter);
-          if (manual_parameter) {
-            manual_parameter->setValue(std::numeric_limits<double>::quiet_NaN());
-          }
-          dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-        }
-        source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), group_flags,
-                                                 dummy_values, dummy_values);
-      }
-      return;
-    }
-
-    // Add priors
+    // Prepare parameters
     for (auto& source : group) {
-      for (auto prior : m_priors) {
-        prior->setupPrior(parameter_manager, source, res_estimator);
-      }
-    }
-
-    // Model fitting
-    LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-    auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
-    size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
-    SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
-
-    // Collect parameters for output
-    int parameter_index = 0;
-    for (auto& source : group) {
-      std::unordered_map<int, double> parameter_values, parameter_sigmas;
-      auto source_flags = Flags::NONE;
-
       for (auto parameter : m_parameters) {
-        bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
-        bool accesed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
-        auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
-
-        if (is_dependent_parameter || accesed_by_modelfitting) {
-          parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
-          if (!is_dependent_parameter) {
-            parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
-          } else {
-            parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-          }
+        if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+          ++n_free_parameters;
         }
-        else {
-          // Need to cascade the NaN to any potential dependent parameter
-          auto engine_parameter = std::dynamic_pointer_cast<EngineParameter>(modelfitting_parameter);
-          if (engine_parameter) {
-            engine_parameter->setEngineValue(std::numeric_limits<double>::quiet_NaN());
-          }
-          parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-          parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-          source_flags |= Flags::PARTIAL_FIT;
+        parameter_manager.addParameter(source, parameter,
+                                       parameter->create(parameter_manager, engine_parameter_manager, source));
+      }
+    }
+  }
+
+  // Reset access checks, as a dependent parameter could have triggered it
+  parameter_manager.clearAccessCheck();
+
+  // Add models for all frames
+  ResidualEstimator res_estimator{};
+
+  int valid_frames = 0;
+  int n_good_pixels = 0;
+  for (auto frame : m_frames) {
+    int frame_index = frame->getFrameNb();
+    // Validate that each frame covers the model fitting region
+    if (isFrameValid(group, frame_index)) {
+      valid_frames++;
+
+      auto frame_model = createFrameModel(group, pixel_scale, parameter_manager, frame);
+
+      auto image = createImageCopy(group, frame_index);
+      auto weight = createWeightImage(group, frame_index);
+
+      for (int y = 0; y < weight->getHeight(); ++y) {
+        for (int x = 0; x < weight->getWidth(); ++x) {
+          n_good_pixels += (weight->at(x, y) != 0.);
         }
       }
-      source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
-                                               parameter_sigmas);
-    }
 
-    updateCheckImages(group, pixel_scale, parameter_manager);
+      // Setup residuals
+      auto data_vs_model =
+        createDataVsModelResiduals(image, std::move(frame_model), weight,
+                                   AsinhChiSquareComparator(m_modified_chi_squared_scale));
+      res_estimator.registerBlockProvider(std::move(data_vs_model));
+    }
   }
-  // Handle exceptions gracefully
-  catch (const Elements::Exception& e) {
+
+  // Check that we had enough data for the fit
+  Flags group_flags = Flags::NONE;
+  if (valid_frames == 0) {
+    group_flags = Flags::OUTSIDE;
+  }
+  else if (n_good_pixels < n_free_parameters) {
+    group_flags = Flags::INSUFFICIENT_DATA;
+  }
+
+  if (group_flags != Flags::NONE) {
+    // Can't do model fitting as no measurement frame overlaps the detected source, or there are not enough pixels
+    // We still need to provide a property
     for (auto& source : group) {
       std::unordered_map<int, double> dummy_values;
       for (auto parameter : m_parameters) {
+        auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
+        auto manual_parameter = std::dynamic_pointer_cast<ManualParameter>(modelfitting_parameter);
+        if (manual_parameter) {
+          manual_parameter->setValue(std::numeric_limits<double>::quiet_NaN());
+        }
         dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
-      model_fitting_logger.error() << "Failed to fit the source "
-                                   << source.getProperty<SourceID>().getId()
-                                   << ": " << e.what();
-      source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), Flags::ERROR,
+      source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), group_flags,
                                                dummy_values, dummy_values);
     }
+    return;
   }
+
+  // Add priors
+  for (auto& source : group) {
+    for (auto prior : m_priors) {
+      prior->setupPrior(parameter_manager, source, res_estimator);
+    }
+  }
+
+  // Model fitting
+  LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
+  auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
+  size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
+  SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
+
+  // Collect parameters for output
+  int parameter_index = 0;
+  for (auto& source : group) {
+    std::unordered_map<int, double> parameter_values, parameter_sigmas;
+    auto source_flags = Flags::NONE;
+
+    for (auto parameter : m_parameters) {
+      bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
+      bool accesed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
+      auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
+
+      if (is_dependent_parameter || accesed_by_modelfitting) {
+        parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
+        if (!is_dependent_parameter) {
+          parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
+        } else {
+          parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+        }
+      }
+      else {
+        // Need to cascade the NaN to any potential dependent parameter
+        auto engine_parameter = std::dynamic_pointer_cast<EngineParameter>(modelfitting_parameter);
+        if (engine_parameter) {
+          engine_parameter->setEngineValue(std::numeric_limits<double>::quiet_NaN());
+        }
+        parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+        parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+        source_flags |= Flags::PARTIAL_FIT;
+      }
+    }
+    source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
+                                             parameter_sigmas);
+  }
+
+  updateCheckImages(group, pixel_scale, parameter_manager);
 }
 
 void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
