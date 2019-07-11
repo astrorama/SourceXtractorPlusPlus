@@ -36,8 +36,7 @@ public:
 private:
 
   bool isFrameValid(SourceGroupInterface& group, int frame_index) const;
-  std::tuple<double, double, double, double> computeJacobianForFrame(
-                                                            SourceGroupInterface& group, int frame_index) const;
+
   std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceGroupInterface& group, int frame_index) const;
   std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceGroupInterface& group, int frame_index) const;
 
