@@ -53,7 +53,7 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
   pos_vector = {9876.0, 7654.0};
   act_psf = act_stack->getPsf(pos_vector);
   FitsWriter::writeFile(*act_psf, "mypsf_5.fits");
-  pos_vector = {11843.0, 1528.0, 400.0};
+  pos_vector = {11843.0, 1528.0};
   act_psf = act_stack->getPsf(pos_vector);
   FitsWriter::writeFile(*act_psf, "mypsf_6.fits");
 
