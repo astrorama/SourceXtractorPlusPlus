@@ -77,7 +77,7 @@ In the model fitting configuration, constant parameters are declared using the :
 
   size = ConstantParameter(42)
 
-One can also use a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_function>`_ based on e.g., actual measurements for the current object:
+One can also use a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_function>`_ based on actual measurements for the current object:
 
 .. code-block:: python
 
@@ -118,7 +118,7 @@ The "engine" variable :math:`Q_j` can take any value, and is actually the parame
 Parameter range
 """""""""""""""
 
-The :param:`Range` construct is used to set :math:`q^\mathsf{(min)}_j`, :math:`q^\mathsf{(max)}_j`, and :math:`f_j()`:
+The :param:`Range()` construct is used to set :math:`q^\mathsf{(min)}_j`, :math:`q^\mathsf{(max)}_j`, and :math:`f_j()`:
 
 <range> = :param:`Range (` (<q_min> , <q_max>) ,  <range_type> :param:`)`
 
@@ -175,6 +175,7 @@ The relation between model and engine parameters is plotted :numref:`fig_rangety
 
 In practice, we find this approach to ease convergence and to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
 
+
 Predefined free parameters
 """"""""""""""""""""""""""
 
@@ -196,9 +197,9 @@ Predefined free parameters
     }
     return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
+Note the use of lambda functions in the first argument to :param:`Range()`.
 
-
-
+.. _dependent_def:
 
 Dependent parameters
 ^^^^^^^^^^^^^^^^^^^^
@@ -230,9 +231,22 @@ Although minimizing the (modified) weighted sum of least squares gives a solutio
 The discrepancy is particularly significant in very faint (|SNR| :math:`\le 20`) and barely resolved galaxies.
 For instance, there is a tendency to overestimate the elongation of such galaxies, known as the "noise bias" in the weak-lensing community :cite:`2004MNRAS_353_529H,2012MNRAS_424_2757M,2012MNRAS_425_1951R,2012MNRAS_427_2711K`.
 The second term in :eq:`loss_func` implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme to mitigate this issue.
-This penalty term acts as a Gaussian prior on the selected parameters.
+This penalty term acts as a Gaussian prior on the selected (free or dependent) parameters.
+
+Priors are inserted using the :func:`add_prior()` function:
+
+:param:`add_prior (` <parameter> :param:`,`  <center_value> :param:`,` <standard_deviation> :param:`)`
+
+For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 5% standard deviation:
+
+.. code-block:: python
+
+  flux = get_flux_parameter()
+  add_prior(flux, lambda o: o.get_iso_flux(), lambda o: 0.05 * o.get_iso_flux())
+
 Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values).
-In that case a change of variable must be applied (:numref:`fig_aspectprior`).
+In that case a change of variable must be applied.
+This is easily down using a `dependent parameter <_dependent_def>` (:numref:`fig_aspectprior`).
 
 .. _fig_aspectprior:
 
