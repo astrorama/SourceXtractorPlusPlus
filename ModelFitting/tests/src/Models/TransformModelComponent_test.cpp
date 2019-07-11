@@ -22,7 +22,6 @@ using namespace SExtractor;
 BOOST_AUTO_TEST_SUITE (TransformModelComponent_test)
 
 //-----------------------------------------------------------------------------
-
 BOOST_AUTO_TEST_CASE (TransformModelComponent_noop_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
@@ -199,19 +198,19 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_sharp_rotate_circular) {
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE (TransformModelComponent_shear_test) {
-  auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::BOTH);
+  auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH);
 
-  std::tuple<double, double, double, double> transform{1., -1.,
-                                                       0.,  1.};
+  std::tuple<double, double, double, double> transform{1., 0.,
+                                                       1., 1.};
   TransformModelComponent shear_model_component(std::move(linear_model_component), transform);
   auto target = raster(shear_model_component, 5);
 
   std::vector<float> expected {
-    0.000, 0.000, 1.000, 1.586, 1.000,
-    0.000, 0.764, 2.000, 2.000, 0.764,
-    0.172, 1.586, 3.000, 1.586, 0.172,
-    0.764, 2.000, 2.000, 0.764, 0.000,
-    1.000, 1.586, 1.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.586, 1.000, 0.586, 0.000, 0.000,
+    0.000, 1.000, 2.000, 1.000, 0.000,
+    0.000, 0.000, 0.586, 1.000, 0.586,
+    0.000, 0.000, 0.000, 0.000, 0.000,
   };
 
   BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));
@@ -220,20 +219,20 @@ BOOST_AUTO_TEST_CASE (TransformModelComponent_shear_test) {
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE (TransformModelComponent_sharp_shear_test) {
-  auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::BOTH, 9.);
+  auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH, 9.);
 
-  std::tuple<double, double, double, double> transform{1., -1.,
-                                                       0.,  1.};
+  std::tuple<double, double, double, double> transform{1., 0.,
+                                                       1., 1.};
   TransformModelComponent shear_model_component(std::move(linear_model_component), transform);
   shear_model_component.updateRasterizationInfo(1., 10.);
   auto target = raster(shear_model_component, 5);
 
   std::vector<float> expected {
-    0.000, 0.000, 1.000, 2.350, 1.764,
-    0.000, 0.764, 2.000, 2.000, 0.764,
-    0.172, 1.586, 3.000, 1.586, 0.172,
-    0.764, 2.000, 2.000, 0.764, 0.000,
-    1.000, 1.586, 1.000, 0.000, 0.000,
+    0.000, 0.000, 0.000, 0.000, 0.000,
+    0.586, 1.000, 0.586, 0.000, 0.000,
+    0.000, 1.000, 2.000, 1.000, 0.000,
+    0.000, 0.000, 0.586, 1.000, 0.586,
+    0.000, 0.000, 0.000, 0.000, 0.000,
   };
 
   BOOST_CHECK(compareCollections(expected, target, 1e-8, 1e-2));

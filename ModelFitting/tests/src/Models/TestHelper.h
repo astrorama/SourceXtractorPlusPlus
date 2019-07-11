@@ -79,6 +79,7 @@ private:
   Decay m_decay;
 };
 
+
 /**
  * Helper function to raster a model component into a vector of doubles.
  * It will use a sampling based approach, if there is any, *or* smooth otherwise.
