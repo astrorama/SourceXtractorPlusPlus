@@ -44,6 +44,10 @@ public:
    */
   virtual ~MultiplyImage() = default;
 
+  std::string getRepr() const override {
+    return "MultiplyImage(" + m_image->getRepr() + "," + m_image_to_multiply->getRepr() + ")";
+  }
+
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) * m_image_to_multiply->getValue(x, y);

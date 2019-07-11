@@ -35,6 +35,11 @@ public:
     return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(naxes, gridCellSize, nGrid, gridData));
   }
 
+  /// Human readable representation
+  std::string getRepr() const override {
+    return "TypedSplineModel";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const {
     return (T)m_spline_model->getValue((size_t)x, (size_t)y);

@@ -25,7 +25,7 @@ static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interp
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id),
-    m_gain(0), m_saturation(0), m_interpolation_gap(0) {
+    m_gain(0), m_saturation(0), m_flux_scale(1.0), m_interpolation_gap(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
@@ -58,19 +58,15 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
   m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
 
-  double detection_image_gain = 0, detection_image_saturate = 0, flux_scale = 0;
+  double detection_image_gain = 0, detection_image_saturate = 0;
   fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
   fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
 
   if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
-    flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
+    m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
   }
   else {
-    fits_image_source->readFitsKeyword("FLXSCALE", flux_scale);
-  }
-
-  if (flux_scale != 0) {
-    m_detection_image = MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, flux_scale);
+    fits_image_source->readFitsKeyword("FLXSCALE", m_flux_scale);
   }
 
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
@@ -89,6 +85,13 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
   m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
       std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
+
+  // Adapt image and parameters to take flux_scale into consideration
+  if (m_flux_scale != 1.0) {
+    m_detection_image = MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, m_flux_scale);
+    m_gain /= m_flux_scale;
+    m_saturation *= m_flux_scale;
+  }
 }
 
 std::string DetectionImageConfig::getDetectionImagePath() const {

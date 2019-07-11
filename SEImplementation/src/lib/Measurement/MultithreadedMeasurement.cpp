@@ -15,7 +15,7 @@
 
 using namespace SExtractor;
 
-static Elements::Logging logger = Elements::Logging::getLogger("MultithreadedMeasurement");
+static Elements::Logging logger = Elements::Logging::getLogger("Multithreading");
 
 std::recursive_mutex MultithreadedMeasurement::g_global_mutex;
 

@@ -12,6 +12,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SExtractor {
 
@@ -48,6 +49,10 @@ public:
         image, ConstantImage<T>::create(image->getWidth(), image->getHeight(), value_to_subtract)));
   }
 
+  std::string getRepr() const override {
+    return "SubstractImage(" + m_image->getRepr() + "," + m_image_to_subtract->getRepr() + ")";
+  }
+
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
     return m_image->getValue(x, y) - m_image_to_subtract->getValue(x, y);
@@ -59,6 +64,17 @@ public:
   
   int getHeight() const override {
     return m_image->getHeight();
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    auto sub = m_image_to_subtract->getChunk(x, y, width, height);
+    auto img = VectorImage<T>::create(m_image->getChunk(x, y, width, height));
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        img->at(ix, iy) -= sub->getValue(ix, iy);
+      }
+    }
+    return UniversalImageChunk<T>::create(std::move(img->getData()), width, height);
   }
 
 private:

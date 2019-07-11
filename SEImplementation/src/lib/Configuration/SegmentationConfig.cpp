@@ -31,7 +31,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static Elements::Logging segConfigLogger = Elements::Logging::getLogger("SegmentationConfig");
+static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };

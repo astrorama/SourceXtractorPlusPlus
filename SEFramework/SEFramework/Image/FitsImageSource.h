@@ -26,7 +26,7 @@ class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_th
 public:
 
   FitsImageSource(const std::string &filename)
-    : m_fptr(nullptr) {
+    : m_filename(filename), m_fptr(nullptr) {
     int status = 0;
 
     fits_open_file(&m_fptr, filename.c_str(), READONLY, &status);
@@ -47,7 +47,8 @@ public:
   }
 
   FitsImageSource(const std::string &filename, int width, int height,
-                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr) : m_fptr(nullptr) {
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr)
+    : m_filename(filename), m_fptr(nullptr) {
     m_width = width;
     m_height = height;
 
@@ -103,6 +104,10 @@ public:
     if (m_fptr != nullptr) {
       fits_close_file(m_fptr, &status);
     }
+  }
+
+  virtual std::string getRepr() const override {
+    return m_filename;
   }
 
   virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
@@ -170,6 +175,7 @@ private:
   int getDataType() const;
   int getImageType() const;
 
+  std::string m_filename;
   int m_width;
   int m_height;
 

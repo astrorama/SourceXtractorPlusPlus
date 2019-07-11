@@ -81,6 +81,10 @@ public:
     return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
   }
 
+  std::string getRepr() const override {
+    return "VectorImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
+  }
+
   int getHeight() const override {
     return m_height;
   }

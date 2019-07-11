@@ -5,12 +5,14 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Segmentation/BgConvolutionImageSource.h"
+#include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include <ElementsKernel/Logging.h>
 
 namespace SExtractor {
 
-Elements::Logging logger = Elements::Logging::getLogger("ImageConvolution");
+Elements::Logging logger = Elements::Logging::getLogger("Segmentation");
 
 std::shared_ptr<DetectionImage>
 BackgroundConvolution::processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance,

@@ -39,6 +39,10 @@ public:
     return m_temp_file.getPath();
   }
 
+  virtual std::string getRepr() const override {
+    return getFullPath();
+  }
+
   virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
     return m_image_source->getImageTile(x, y, width, height);
   }

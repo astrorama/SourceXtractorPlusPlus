@@ -46,6 +46,10 @@ public:
 protected:
   virtual void generateTile(std::shared_ptr<Image<T>> image, ImageTile<T>& tile, int x, int y, int width, int height) const = 0;
 
+  std::string getImageRepr() const {
+    return m_image->getRepr();
+  }
+
 private:
   std::shared_ptr<Image<T>> m_image;
 };

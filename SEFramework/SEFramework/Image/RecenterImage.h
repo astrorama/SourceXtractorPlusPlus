@@ -28,6 +28,10 @@ public:
     return std::shared_ptr<RecenterImage<T>>(new RecenterImage{std::forward<Args>(args)...});
   }
 
+  std::string getRepr() const override {
+    return "RecenterImage(" + m_img->getRepr() + ")";
+  }
+
   int getWidth() const override {
     return m_img->getWidth();
   }

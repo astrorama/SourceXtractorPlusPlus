@@ -84,7 +84,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
       coefficients[i] = VectorImage<SeFloat>::create(width, height, offset, offset + n_pixels);
     }
 
-    logger.debug() << "Loaded variable PSF(" << width << ", " << height << ") with "
+    logger.debug() << "Loaded variable PSF " << pFits->name() << " (" << width << ", " << height << ") with "
                    <<  n_coeffs << " coefficients";
     auto ll = logger.debug();
     ll << "Components: ";

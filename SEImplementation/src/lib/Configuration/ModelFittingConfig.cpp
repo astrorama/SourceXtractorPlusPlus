@@ -16,7 +16,7 @@
 using namespace Euclid::Configuration;
 namespace py = boost::python;
 
-static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
+static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
 namespace SExtractor {
 
@@ -84,6 +84,15 @@ ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_
 }
 
 void ModelFittingConfig::initialize(const UserValues&) {
+  try {
+    initializeInner();
+  }
+  catch (py::error_already_set &e) {
+    throw pyToElementsException(logger);
+  }
+}
+
+void ModelFittingConfig::initializeInner() {
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
     auto py_value_func = PyObjectHolder(p.second.attr("get_value")());
     auto value_func = [py_value_func] (const SourceInterface& o) -> double {
