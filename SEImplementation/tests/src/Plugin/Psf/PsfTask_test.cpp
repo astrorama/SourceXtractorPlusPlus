@@ -1,5 +1,5 @@
 /*
- * VariablePsf.h
+ * PsfTask_test.cpp
  *
  *  Created on: Jun 25, 2018
  *      Author: Alejandro Álvarez Ayllón
