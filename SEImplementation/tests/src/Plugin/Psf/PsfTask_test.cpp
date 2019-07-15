@@ -7,9 +7,10 @@
 
 #include <boost/test/unit_test.hpp>
 #include <numeric>
-#include <SEImplementation/Plugin/Psf/PsfProperty.h>
-#include <SEFramework/Source/SimpleSourceGroup.h>
-#include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
+#include "SEImplementation/Plugin/Psf/PsfProperty.h"
+#include "SEFramework/Source/SimpleSourceGroup.h"
+#include "SEFramework/Image/MultiplyImage.h"
+#include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 using namespace SExtractor;
@@ -79,7 +80,7 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
 
   varPsfTask.computeProperties(group);
   auto psf_prop = group.getProperty<PsfProperty>();
-  checkEqual(psf_prop.getPsf().getKernel(), expected_normalized);
+  checkEqual(psf_prop.getPsf(), expected_normalized);
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

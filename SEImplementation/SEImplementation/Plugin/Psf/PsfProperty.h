@@ -10,23 +10,29 @@
 
 #include <SEFramework/Property/Property.h>
 #include <SEFramework/Image/VectorImage.h>
-#include <SEImplementation/Image/ImagePsf.h>
 
 namespace SExtractor {
 
-class PsfProperty: public Property {
+class PsfProperty : public Property {
 public:
   virtual ~PsfProperty() = default;
-  PsfProperty(ImagePsf &&psf): m_psf(std::move(psf)) {};
+
+  PsfProperty(double pixel_sampling, std::shared_ptr<VectorImage <SeFloat>> psf) :
+    m_pixel_sampling(pixel_sampling), m_psf(psf) {};
 
   PsfProperty();
 
-  const ImagePsf& getPsf() const {
+  double getPixelSampling() const {
+    return m_pixel_sampling;
+  }
+
+  std::shared_ptr<VectorImage<SeFloat>> getPsf() const {
     return m_psf;
   }
 
 private:
-  ImagePsf m_psf;
+  double m_pixel_sampling;
+  std::shared_ptr<VectorImage<SeFloat>> m_psf;
 };
 
 } // end SExtractor
