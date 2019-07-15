@@ -16,6 +16,14 @@ _type_column_map = {
 
 
 def print_output_columns(file=sys.stderr):
+    """
+    Print a human-readable representation of the configured output columns.
+
+    Parameters
+    ----------
+    file : file object
+        Where to print the representation. Defaults to sys.stderr
+    """
     if model_fitting_parameter_columns:
         print('Model fitting parameter outputs:', file=file)
         for n, ids in model_fitting_parameter_columns:
@@ -27,8 +35,31 @@ def print_output_columns(file=sys.stderr):
 
 
 def add_output_column(name, params):
+    """
+    Add a new set of columns to the output catalog.
+
+    Parameters
+    ----------
+    name : str
+        Name/prefix of the new set of columns
+    params : list of columns
+        List of properties to add to the output with the given name/prefix. They must be subtype
+        of one of the known ones: ParameterBase for model fitting, or Aperture for aperture photometry.
+
+    Raises
+    ------
+    ValueError
+        If the name has already been used
+    TypeError
+        If any of the parameters are not of a known type (see params)
+
+    See Also
+    --------
+    aperture.add_aperture_photometry
+    model_fitting.ParameterBase
+    """
     if name in _used_names:
-        raise Exception('Column {} is already set'.format(name))
+        raise ValueError('Column {} is already set'.format(name))
     _used_names.add(name)
 
     if not isinstance(params, list):
@@ -42,4 +73,4 @@ def add_output_column(name, params):
             known_subclass = True
 
     if not known_subclass:
-        raise Exception('{} is not a known column type'.format(str(param_type)))
+        raise TypeError('{} is not a known column type'.format(str(param_type)))
