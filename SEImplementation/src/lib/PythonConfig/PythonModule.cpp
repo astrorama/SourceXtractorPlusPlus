@@ -6,10 +6,10 @@
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
+#include <SEFramework/Source/SourceFlags.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
-
 #include <SEImplementation/PythonConfig/PythonModule.h>
 
 namespace bp = boost::python;
@@ -66,6 +66,17 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
       .def(bp::init<double, double>())
       .def_readwrite("x", &ImageCoordinate::m_x)
       .def_readwrite("y", &ImageCoordinate::m_y);
+
+  bp::enum_<Flags>("Flags", "Source flags")
+      .value("NONE", Flags::NONE)
+      .value("BIASED", Flags::BIASED)
+      .value("SATURATED", Flags::SATURATED)
+      .value("BOUNDARY", Flags::BOUNDARY)
+      .value("NEIGHBORS", Flags::NEIGHBORS)
+      .value("OUTSIDE", Flags::OUTSIDE)
+      .value("PARTIAL_FIT", Flags::PARTIAL_FIT)
+      .value("INSUFFICIENT_DATA", Flags::INSUFFICIENT_DATA)
+      .value("ERROR", Flags::ERROR);
 
   bp::class_<std::vector<double> >("_DoubleVector")
     .def(bp::vector_indexing_suite<std::vector<double> >());
