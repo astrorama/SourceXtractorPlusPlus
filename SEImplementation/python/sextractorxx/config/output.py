@@ -1,4 +1,7 @@
 from __future__ import division, print_function
+
+import sys
+
 from .model_fitting import ParameterBase
 from .aperture import Aperture
 
@@ -11,15 +14,16 @@ _type_column_map = {
     Aperture: aperture_columns
 }
 
-def print_output_columns():
+
+def print_output_columns(file=sys.stderr):
     if model_fitting_parameter_columns:
-        print('Model fitting parameter outputs:')
+        print('Model fitting parameter outputs:', file=file)
         for n, ids in model_fitting_parameter_columns:
-            print('    {} : {}'.format(n, ids))
+            print('    {} : {}'.format(n, ids), file=file)
     if aperture_columns:
-        print('Aperture outputs:')
+        print('Aperture outputs:', file=file)
         for n, ids in aperture_columns:
-            print('    {} : {}'.format(n, ids))
+            print('    {} : {}'.format(n, ids), file=file)
 
 
 def add_output_column(name, params):

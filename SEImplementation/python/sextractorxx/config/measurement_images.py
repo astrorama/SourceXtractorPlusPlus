@@ -2,6 +2,8 @@ from __future__ import division, print_function
 
 import os
 import re
+import sys
+
 from astropy.io import fits
 
 import _SExtractorPy as cpp
@@ -69,14 +71,14 @@ class MeasurementImage(cpp.MeasurementImage):
             self.meta['WEIGHT_FILENAME'])
 
 
-def print_measurement_images():
-    print('Measurement images:')
+def print_measurement_images(file=sys.stderr):
+    print('Measurement images:', file=file)
     for i in measurement_images:
         im = measurement_images[i]
-        print('Image {}'.format(i))
-        print('      File: {}'.format(im.file))
-        print('       PSF: {}'.format(im.psf_file))
-        print('    Weight: {}'.format(im.weight_file))
+        print('Image {}'.format(i), file=file)
+        print('      File: {}'.format(im.file), file=file)
+        print('       PSF: {}'.format(im.psf_file), file=file)
+        print('    Weight: {}'.format(im.weight_file), file=file)
 
 
 class ImageGroup(object):
@@ -94,7 +96,6 @@ class ImageGroup(object):
                 self.__images = [kwargs[key]]
         if key == 'subgroups':
             self.__subgroups = kwargs[key]
-            print(self.__subgroups)
             for name, _ in self.__subgroups:
                 self.__subgroup_names.add(name)
 
@@ -148,17 +149,17 @@ class ImageGroup(object):
             raise Exception('ImageGroup is not subgrouped yet')
         return (x for x in self.__subgroups if x[0] == name).next()[1]
 
-    def printToScreen(self, prefix='', show_images=False):
+    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
         if self.__subgroups is None:
-            print('{}Image List ({})'.format(prefix, len(self.__images)))
+            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im))
+                    print('{}{}'.format(prefix, im), file=file)
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)))
+            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name))
-                group.printToScreen(prefix + '    ', show_images)
+                print('{}  {}:'.format(prefix, name), file=file)
+                group.printToScreen(prefix + '    ', show_images, file)
 
 
 class ImageCacheEntry(object):
@@ -368,15 +369,15 @@ class MeasurementGroup(object):
     def is_leaf(self):
         return self.__subgroups is None
 
-    def printToScreen(self, prefix='', show_images=False, show_params=False):
+    def printToScreen(self, prefix='', show_images=False, show_params=False, file=sys.stderr):
         if self.__images:
-            print('{}Image List ({})'.format(prefix, len(self.__images)))
+            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im))
+                    print('{}{}'.format(prefix, im), file=file)
         if self.__subgroups:
             print('{}Sub-groups: {}'.format(prefix, ','.join(
-                x for x, _ in self.__subgroups)))
+                x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name))
-                group.printToScreen(prefix + '    ', show_images, show_params)
+                print('{}  {}:'.format(prefix, name), file=file)
+                group.printToScreen(prefix + '    ', show_images, show_params, file=file)

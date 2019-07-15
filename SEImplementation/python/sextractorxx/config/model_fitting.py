@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 
+import sys
 from enum import Enum
 
 import _SExtractorPy as cpp
@@ -192,15 +193,15 @@ def add_model(group, model):
     _set_model_to_frames(group, model)
 
 
-def print_model_fitting_info(group, show_params=False, prefix=''):
+def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stderr):
     if hasattr(group, 'models') and group.models:
-        print('{}Models:'.format(prefix))
+        print('{}Models:'.format(prefix), file=file)
         for m in group.models:
-            print('{}  {}'.format(prefix, m.to_string(show_params)))
+            print('{}  {}'.format(prefix, m.to_string(show_params)), file=file)
     for x in group:
         if isinstance(x, tuple):
-            print('{}{}:'.format(prefix, x[0]))
-            print_model_fitting_info(x[1], show_params, prefix + '    ')
+            print('{}{}:'.format(prefix, x[0]), file=file)
+            print_model_fitting_info(x[1], show_params, prefix + '    ', file=file)
 
 
 constant_model_dict = {}
