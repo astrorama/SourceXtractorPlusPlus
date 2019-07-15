@@ -298,10 +298,15 @@ class ImageGroup(object):
         ------
         ValueError
             If the group has not been split.
+        KeyError
+            If the group has not been found.
         """
         if self.__subgroups is None:
             raise ValueError('ImageGroup is not subgrouped yet')
-        return (x for x in self.__subgroups if x[0] == name).next()[1]
+        try:
+            return next(x for x in self.__subgroups if x[0] == name)[1]
+        except StopIteration:
+            raise KeyError('Group {} not found'.format(name))
 
     def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
         """
@@ -629,10 +634,20 @@ class MeasurementGroup(object):
         Returns
         -------
         MeasurementGroup
+
+        Raises
+        ------
+        ValueError
+            If the group does not have subgroups.
+        KeyError
+            If the group has not been found.
         """
         if self.__subgroups is None:
-            raise Exception('Does not contain subgroups')
-        return (x for x in self.__subgroups if x[0] == name).next()[1]
+            raise ValueError('Does not contain subgroups')
+        try:
+            return next(x for x in self.__subgroups if x[0] == name)[1]
+        except StopIteration:
+            raise KeyError('Group {} not found'.format(name))
 
     def __len__(self):
         """
@@ -655,7 +670,7 @@ class MeasurementGroup(object):
         """
         return self.__subgroups is None
 
-    def printToScreen(self, prefix='', show_images=False, show_params=False, file=sys.stderr):
+    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -665,8 +680,6 @@ class MeasurementGroup(object):
             Print each line with this prefix. Used internally for indentation.
         show_images : bool
             Show the images belonging to a leaf group.
-        show_params : bool
-            Unused
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
@@ -680,4 +693,4 @@ class MeasurementGroup(object):
                 x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, show_params, file=file)
+                group.printToScreen(prefix + '    ', show_images, file=file)
