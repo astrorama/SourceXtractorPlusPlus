@@ -490,7 +490,7 @@ public:
       coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
     }
 
-    auto raster_model_size = model_size / vpsf->getPixelScale() + std::max(vpsf->getWidth(), vpsf->getHeight());
+    auto raster_model_size = model_size / vpsf->getPixelSampling() + std::max(vpsf->getWidth(), vpsf->getHeight());
     if (raster_model_size * raster_model_size > std::numeric_limits<int>::max()) {
       logger.fatal() << "The expected required memory for model rasterization exceeds the maximum size for an integer";
       logger.fatal() << "Please, either reduce the model size, the image size, or increase the PSF pixel scale";
@@ -514,7 +514,7 @@ public:
     auto p = vpsf->getPsf(psf_vals);
     auto psf_sum = std::accumulate(p->getData().begin(), p->getData().end(), 0.);
     p = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(p, 1. / psf_sum));
-    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), p);
+    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelSampling(), p);
 
     std::vector<TestImageSource> sources;
 

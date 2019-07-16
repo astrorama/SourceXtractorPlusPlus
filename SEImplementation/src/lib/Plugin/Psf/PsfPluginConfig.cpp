@@ -21,7 +21,7 @@ namespace SExtractor {
 
 static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
-static const std::string PSF_PIXELSCALE {"psf-pixel-scale" };
+static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
 
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
@@ -31,8 +31,8 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     int n_components;
     psf_data.readKey("POLNAXIS", n_components);
 
-    double pixel_scale;
-    psf_data.readKey("PSF_SAMP", pixel_scale);
+    double pixel_sampling;
+    psf_data.readKey("PSF_SAMP", pixel_sampling);
 
     std::vector<VariablePsf::Component> components(n_components);
 
@@ -95,7 +95,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
        }
     }
 
-    return std::make_shared<VariablePsf>(pixel_scale, components, group_degrees, coefficients);
+    return std::make_shared<VariablePsf>(pixel_sampling, components, group_degrees, coefficients);
 
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSFEx file: " << e.message();
@@ -103,13 +103,12 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
 }
 
 static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
-  double pixel_scale;
+  double pixel_sampling;
   try {
-    image_hdu.readKey("SCALE", pixel_scale);
+    image_hdu.readKey("SAMPLING", pixel_sampling);
   }
   catch (CCfits::HDU::NoSuchKeyword&) {
-    logger.debug() << "No scale";
-    pixel_scale = 1.;
+    pixel_sampling = 1.;
   }
 
   if (image_hdu.axis(0) != image_hdu.axis(1)) {
@@ -124,14 +123,13 @@ static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
   auto kernel = VectorImage<SeFloat>::create(size, size);
   std::copy(begin(data), end(data), kernel->getData().begin());
 
-  logger.debug() << "Loaded image PSF(" << size << ", " << size << ") with pixel scale " << pixel_scale;
+  logger.debug() << "Loaded image PSF(" << size << ", " << size << ") with sampling step " << pixel_sampling;
 
-  return std::make_shared<VariablePsf>(pixel_scale, kernel);
+  return std::make_shared<VariablePsf>(pixel_sampling, kernel);
 }
 
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
-/// number of pixels. The pixel scale is read by the header keyword SCALE which
-/// must be present
+/// number of pixels.
 std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filename) {
   try {
     // Read the HDU from the file
@@ -152,41 +150,32 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
   }
 }
 
-std::shared_ptr<VariablePsf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_scale) {
-  int supersample = 10;
-  int size = int(fwhm / pixel_scale + 1) * 6 + 1;
+std::shared_ptr<VariablePsf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling) {
+  int size = int(fwhm / pixel_sampling + 1) * 6 + 1;
   auto kernel = VectorImage<SeFloat>::create(size, size);
 
   // convert full width half maximum to standard deviation
-  double sigma_squared = (fwhm / (pixel_scale * 2.355)) * (fwhm / (pixel_scale * 2.355));
+  double sigma_squared = (fwhm / (pixel_sampling * 2.355)) * (fwhm / (pixel_sampling * 2.355));
 
   double total = 0;
-  for (int y=0; y < size; y++) {
-    for (int x=0; x < size; x++) {
-
-      double pixel_value = 0.0;
-      for (int iy = -(supersample/2); iy <= supersample/2; iy++) {
-        for (int ix = -(supersample/2); ix <=  supersample/2; ix++) {
-          double sx = (x-size/2) + ix * (1.0 / supersample);
-          double sy = (y-size/2) + iy * (1.0 / supersample);
-          auto sub_pixel_value = exp(- (sx*sx + sy*sy) / (2 * sigma_squared) );
-          pixel_value += sub_pixel_value;
-        }
-      }
-      pixel_value /= (supersample * supersample);
+  for (int y = 0; y < size; y++) {
+    for (int x = 0; x < size; x++) {
+      double sx = (x - size / 2);
+      double sy = (y - size / 2);
+      double pixel_value = exp(-(sx * sx + sy * sy) / (2 * sigma_squared));
       total += pixel_value;
       kernel->setValue(x, y, pixel_value);
     }
   }
-  for (int y=0; y < size; y++) {
-    for (int x=0; x < size; x++) {
+  for (int y = 0; y < size; y++) {
+    for (int x = 0; x < size; x++) {
       kernel->setValue(x, y, kernel->getValue(x, y) / total);
     }
   }
 
-  logger.debug() << "Using gaussian PSF(" << fwhm << ") with pixel scale " << pixel_scale;
+  logger.info() << "Using gaussian PSF(" << fwhm << ") with pixel sampling step size " << pixel_sampling << " (size " << size << ")";
 
-  return std::make_shared<VariablePsf>(pixel_scale, kernel);
+  return std::make_shared<VariablePsf>(pixel_sampling, kernel);
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::getProgramOptions() {
@@ -194,17 +183,17 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
     {PSF_FILE.c_str(), po::value<std::string>(),
         "Psf image file (FITS format)."},
     {PSF_FWHM.c_str(), po::value<double>(),
-       "Generate a gaussian PSF with given full-width half-maximum"},
-    {PSF_PIXELSCALE.c_str(), po::value<double>(),
-        "Generate a gaussian PSF with given full-width half-maximum"}
+       "Generate a gaussian PSF with the given full-width half-maximum (in pixels)"},
+    {PSF_PIXEL_SAMPLING.c_str(), po::value<double>(),
+        "Generate a gaussian PSF with the given pixel sampling step size"}
   }}};
 }
 
 void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::UserValues &args) {
-  // Fail if there is no PSF file, but PSF_FWHM is set and PSF_PIXELSCALE is not
+  // Fail if there is no PSF file, but PSF_FWHM is set and PSF_PIXEL_SAMPLING is not
   if (args.find(PSF_FILE) == args.end() && args.find(PSF_FWHM) != args.end() &&
-      args.find(PSF_PIXELSCALE) == args.end()) {
-    throw Elements::Exception("psf-pixelscale is required when using psf-fwhm");
+      args.find(PSF_PIXEL_SAMPLING) == args.end()) {
+    throw Elements::Exception(PSF_PIXEL_SAMPLING + " is required when using " + PSF_FWHM);
   }
 }
 
@@ -213,7 +202,7 @@ void PsfPluginConfig::initialize(const UserValues &args) {
     m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
   } else if (args.find(PSF_FWHM) != args.end()) {
     m_vpsf = generateGaussianPsf(args.find(PSF_FWHM)->second.as<double>(),
-                                args.find(PSF_PIXELSCALE)->second.as<double>());
+                                args.find(PSF_PIXEL_SAMPLING)->second.as<double>());
   }
 }
 
