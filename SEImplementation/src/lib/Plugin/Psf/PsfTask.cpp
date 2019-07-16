@@ -45,7 +45,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
   // The result may not be normalized!
   auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
   auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-  group.setIndexedProperty<PsfProperty>(m_instance, ImagePsf{m_vpsf->getPixelScale(), psf_normalized});
+  group.setIndexedProperty<PsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
 
   // Check image
   if (group.size()) {
@@ -58,7 +58,7 @@ void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
       auto y = component_value_getters["Y_IMAGE"](group, m_instance);
 
       ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
-        check_image, psf_normalized, m_vpsf->getPixelScale(), x, y);
+        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
     }
   }
 }

@@ -33,7 +33,7 @@ public:
    * Constructor
    */
   VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits):
-    VariablePsf(0.1, VectorImage<SeFloat>::create(11, 11)), m_pFits(pFits), m_psf_size(0), m_pixel_scale(0.0){
+    VariablePsf(0.1, VectorImage<SeFloat>::create(11, 11)), m_pFits(pFits), m_psf_size(0), m_pixel_sampling(0.0){
     setup(pFits);
   };
 
@@ -59,8 +59,8 @@ public:
   /**
    * @return The pixel scale, as passed to the constructor
    */
-  double getPixelScale() const{
-    return m_pixel_scale;
+  double getPixelSampling() const{
+    return m_pixel_sampling;
   };
 
   /**
@@ -81,7 +81,7 @@ private:
   int m_psf_size;
   int m_grid_offset;
 
-  double m_pixel_scale;
+  double m_pixel_sampling;
 
   long m_nrows;
 

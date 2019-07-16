@@ -12,17 +12,17 @@
 
 namespace SExtractor {
 
-VariablePsf::VariablePsf(double pixel_scale, const std::vector<Component> &components,
+VariablePsf::VariablePsf(double pixel_sampling, const std::vector<Component> &components,
             const std::vector<int> &group_degrees,
             const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients):
-  m_pixel_scale(pixel_scale), m_components(components), m_group_degrees(group_degrees), m_coefficients(coefficients)
+  m_pixel_sampling(pixel_sampling), m_components(components), m_group_degrees(group_degrees), m_coefficients(coefficients)
 {
   selfTest();
   calculateExponents();
 }
 
-VariablePsf::VariablePsf(double pixel_scale, const std::shared_ptr<VectorImage<SeFloat>> &constant):
-  m_pixel_scale(pixel_scale), m_coefficients{constant}
+VariablePsf::VariablePsf(double pixel_sampling, const std::shared_ptr<VectorImage<SeFloat>> &constant):
+  m_pixel_sampling(pixel_sampling), m_coefficients{constant}
 {
   selfTest();
   calculateExponents();
@@ -36,8 +36,8 @@ int VariablePsf::getHeight() const {
   return m_coefficients[0]->getHeight();
 }
 
-double VariablePsf::getPixelScale() const {
-  return m_pixel_scale;
+double VariablePsf::getPixelSampling() const {
+  return m_pixel_sampling;
 }
 
 const std::vector<VariablePsf::Component>& VariablePsf::getComponents() const {

@@ -155,7 +155,7 @@ class ImageGroup(object):
                 for im in self.__images:
                     print('{}{}'.format(prefix, im))
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(x for x, _ in self.__subgroups)))
+            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)))
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name))
                 group.printToScreen(prefix + '    ', show_images)

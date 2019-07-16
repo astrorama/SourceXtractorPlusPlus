@@ -6,6 +6,7 @@
  */
 
 #include <mutex>
+#include <SEImplementation/Image/ImagePsf.h>
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/PointModel.h"
@@ -188,8 +189,14 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
     group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-  auto group_psf = group.getProperty<PsfProperty>(frame_index).getPsf();
+  auto psf_property = group.getProperty<PsfProperty>(frame_index);
   auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
+
+  // The model fitting module expects to get a PSF with a pixel scale, but we have the pixel sampling step size
+  // It will be used to compute the rastering grid size, and after convolving with the PSF the result will be
+  // downscaled before copied into the frame image.
+  // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
+  auto group_psf = ImagePsf(pixel_scale * psf_property.getPixelSampling(), psf_property.getPsf());
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;

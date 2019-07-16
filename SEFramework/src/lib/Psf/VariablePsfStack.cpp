@@ -48,8 +48,14 @@ void VariablePsfStack::setup(std::shared_ptr<CCfits::FITS> pFits){
       throw Elements::Exception() << "PSF kernel must have odd size, but has: " << m_psf_size;
     }
 
-    // TODO: store the pixel scale here!
-    //psf_data.readKey("STMPSIZE", m_pixel_scale);
+    try {
+      // try to get the sampling
+      psf_data.readKey("SAMPLING", m_pixel_sampling);
+    }
+    catch (CCfits::HDU::NoSuchKeyword&) {
+      // use a default value
+      m_pixel_sampling = 1.;
+    }
 
     // read the nrows value
     m_nrows = position_data.rows();

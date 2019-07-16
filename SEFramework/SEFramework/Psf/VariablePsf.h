@@ -29,8 +29,6 @@ namespace SExtractor {
  *
  * The coefficients must be given on that order (note that the constant would be the first element)
  *
- * @todo
- * - Convert into a template
  */
 class VariablePsf {
 public:
@@ -49,22 +47,24 @@ public:
 
   /**
    * Constructor
-   * @param pixel_scale
-   *    Unused by the class itself, but as it is an attribute of a PSF, it is stored
+   * @param pixel_sampling
+   *    Unused by the class itself, it is an attribute of the PSF.
+   *    It is the sampling step size of the PSF on image pixels. i.e. a value of 0.5 means that
+   *    a PSF pixel has been sampled every 0.5 pixels on the corresponding image.
    * @param components
    *    List of components (or variables) to be used by the Variable PSF
    * @param group_degrees
    *    Polynomial degree. Each group has its own degree, so there has to be as many as different group_id
    *    there are on the components
    */
-  VariablePsf(double pixel_scale, const std::vector<Component> &components, const std::vector<int> &group_degrees,
+  VariablePsf(double pixel_sampling, const std::vector<Component> &components, const std::vector<int> &group_degrees,
     const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients);
 
   /**
    * Convenience constructor that initializes the variable PSF with just a constant value
    * (So it is not variable anymore)
    */
-  VariablePsf(double pixel_scale, const std::shared_ptr<VectorImage<SeFloat>> &constant);
+  VariablePsf(double pixel_sampling, const std::shared_ptr<VectorImage<SeFloat>> &constant);
 
   /**
    * Destructor
@@ -82,9 +82,9 @@ public:
   int getHeight() const;
 
   /**
-   * @return The pixel scale, as passed to the constructor
+   * @return The pixel sampling
    */
-  double getPixelScale() const;
+  double getPixelSampling() const;
 
   /**
    * @return A reference to the list of components
@@ -104,7 +104,7 @@ public:
   std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
 
 private:
-  double m_pixel_scale;
+  double m_pixel_sampling;
   std::vector<Component> m_components;
   std::vector<int> m_group_degrees;
   std::vector<std::shared_ptr<VectorImage<SeFloat>>> m_coefficients;
