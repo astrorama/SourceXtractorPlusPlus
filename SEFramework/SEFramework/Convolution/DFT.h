@@ -7,6 +7,7 @@
 #ifndef _SEFRAMEWORK_CONVOLUTION_DFT_H
 #define _SEFRAMEWORK_CONVOLUTION_DFT_H
 
+#include "ModelFitting/ModelFitting/utils.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/RecenterImage.h"
@@ -25,6 +26,16 @@ public:
   typedef T real_t;
   typedef typename FFT<T>::complex_t complex_t;
 
+  struct ConvolutionContext {
+  private:
+    int m_padded_width, m_padded_height, m_total_size;
+    std::vector<complex_t> m_kernel_transform, m_complex_buffer;
+    std::vector<real_t> m_real_buffer;
+    typename FFT<T>::plan_ptr_t m_fwd_plan, m_inv_plan;
+
+    friend class DFTConvolution<T, TPadding>;
+  };
+
   DFTConvolution(std::shared_ptr<const Image<T>> img)
     : m_kernel{img} {
   }
@@ -40,52 +51,78 @@ public:
   }
 
   template <typename ...Args>
-  void convolve(std::shared_ptr<WriteableImage<T>> image_ptr, Args... padding_args) const {
+  std::unique_ptr<ConvolutionContext> prepare(const std::shared_ptr<Image<T>> model_ptr) const {
+    auto context = make_unique<ConvolutionContext>();
+
     // Dimension of the working padded images
-    auto padded_width = image_ptr->getWidth() + m_kernel->getWidth() - 1;
-    auto padded_height = image_ptr->getHeight() + m_kernel->getHeight() - 1;
+    context->m_padded_width = model_ptr->getWidth() + m_kernel->getWidth() - 1;
+    context->m_padded_height = model_ptr->getHeight() + m_kernel->getHeight() - 1;
 
     // For performance, use a size that is convenient for FFTW
-    padded_width = fftRoundDimension(padded_width);
-    padded_height = fftRoundDimension(padded_height);
+    context->m_padded_width = fftRoundDimension(context->m_padded_width);
+    context->m_padded_height = fftRoundDimension(context->m_padded_height);
 
-    auto total_size = padded_height * padded_width;
+    // Total number of pixels
+    context->m_total_size = context->m_padded_width * context->m_padded_height;
 
+    // Pre-allocate buffers for the transformations
+    context->m_real_buffer.resize(context->m_total_size);
+    context->m_complex_buffer.resize(context->m_total_size);
+    context->m_kernel_transform.resize(context->m_total_size);
+
+    // Since we already have the buffers, get the plans too
+    context->m_fwd_plan = FFT<T>::createForwardPlan(1, context->m_padded_width, context->m_padded_height,
+                                                    context->m_real_buffer, context->m_complex_buffer);
+    context->m_inv_plan = FFT<T>::createInversePlan(1, context->m_padded_width, context->m_padded_height,
+                                                    context->m_complex_buffer, context->m_real_buffer);
+
+    // Transform here the kernel into frequency space
+    padKernel(context->m_padded_width, context->m_padded_height, context->m_real_buffer.begin());
+    FFT<T>::executeForward(context->m_fwd_plan, context->m_real_buffer, context->m_complex_buffer);
+    std::copy(std::begin(context->m_complex_buffer), std::end(context->m_complex_buffer),
+              std::begin(context->m_kernel_transform));
+
+    return context;
+  }
+
+  template <typename ...Args>
+  void convolve(std::shared_ptr<WriteableImage<T>> image_ptr,
+                std::unique_ptr<ConvolutionContext>& context,
+                Args... padding_args) const {
     // Padded image
-    auto padded = TPadding::create(image_ptr, padded_width, padded_height, std::forward<Args>(padding_args)...);
-
-    // Buffers
-    std::vector<real_t> real_buffer(total_size * 2);
-    std::vector<complex_t> complex_buffer(total_size * 2);
-
-    // Get the plans now, so these buffers can be used for the planning
-    auto fwd_plan = FFT<T>::createForwardPlan(2, padded_width, padded_height, real_buffer, complex_buffer);
-    auto idft_plan = FFT<T>::createInversePlan(1, padded_width, padded_height, complex_buffer, real_buffer);
+    auto padded = TPadding::create(image_ptr,
+                                   context->m_padded_width, context->m_padded_height,
+                                   std::forward<Args>(padding_args)...);
 
     // Create a matrix with the padded image
-    dumpImage(padded, real_buffer.begin());
+    dumpImage(padded, context->m_real_buffer.begin());
 
-    // Pad, center and mirror the kernel, centering at 0, 0 and  wrapping around the coordinates
-    padKernel(padded_width, padded_height, real_buffer.begin() + total_size);
-
-    FFT<T>::executeForward(fwd_plan, real_buffer, complex_buffer);
+    // Transform the image
+    FFT<T>::executeForward(context->m_fwd_plan, context->m_real_buffer, context->m_complex_buffer);
 
     // Multiply the two DFT
-    for (int i = 0; i < total_size; ++i) {
-      complex_buffer[i] *= complex_buffer[i + total_size];
+    for (int i = 0; i < context->m_total_size; ++i) {
+      context->m_complex_buffer[i] *= context->m_kernel_transform[i];
     }
 
     // Inverse DFT
-    FFT<T>::executeInverse(idft_plan, complex_buffer, real_buffer);
+    FFT<T>::executeInverse(context->m_inv_plan, context->m_complex_buffer, context->m_real_buffer);
 
     // Copy to the output, removing the pad
-    auto wpad = (padded_width - image_ptr->getWidth()) / 2;
-    auto hpad = (padded_height - image_ptr->getHeight()) / 2;
+    auto wpad = (context->m_padded_width - image_ptr->getWidth()) / 2;
+    auto hpad = (context->m_padded_height - image_ptr->getHeight()) / 2;
     for (int y = 0; y < image_ptr->getHeight(); ++y) {
       for (int x = 0; x < image_ptr->getWidth(); ++x) {
-        image_ptr->setValue(x, y, real_buffer[x + wpad + (y + hpad) * padded_width] / total_size);
+        image_ptr->setValue(x, y,
+          context->m_real_buffer[x + wpad + (y + hpad) * context->m_padded_width] / context->m_total_size);
       }
     }
+  }
+
+  template <typename ...Args>
+  void convolve(std::shared_ptr<WriteableImage<T>> image_ptr, Args... padding_args) const {
+    auto context = prepare(image_ptr);
+    convolve(image_ptr, context, std::forward(padding_args)...);
   }
 
   std::shared_ptr<const Image<T>> getKernel() const {
