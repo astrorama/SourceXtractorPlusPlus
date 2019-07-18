@@ -19,13 +19,24 @@
 
 namespace SExtractor {
 
-
+/**
+ * Convolution strategy based on the Discrete Fourier Transform
+ * @tparam T
+ *  The pixel type
+ * @tparam TPadding
+ *  The padding strategy
+ */
 template<typename T = SeFloat, class TPadding = PaddedImage<T, Reflect101Coordinates>>
 class DFTConvolution {
 public:
   typedef T real_t;
   typedef typename FFT<T>::complex_t complex_t;
 
+  /**
+   * This strategy has the concept of a "context": things that can be precomputed only once
+   * and reused afterwards. This is useful, for instance, when the image is convolved multiple times
+   * with the same kernel (i.e. ModelFitting)
+   */
   struct ConvolutionContext {
   private:
     int m_padded_width, m_padded_height, m_total_size;
@@ -36,21 +47,44 @@ public:
     friend class DFTConvolution<T, TPadding>;
   };
 
+  /**
+   * Constructor
+   * @param img
+   *    Convolution kernel
+   */
   DFTConvolution(std::shared_ptr<const Image<T>> img)
     : m_kernel{img} {
   }
 
+  /**
+   * Destructor
+   */
   virtual ~DFTConvolution() = default;
 
+  /**
+   * @return
+   *    The width of the kernel
+   */
   std::size_t getWidth() const {
     return m_kernel->getWidth();
   }
 
+  /**
+   * @return
+   *    The height of the kernel
+   */
   std::size_t getHeight() const {
     return m_kernel->getHeight();
   }
 
-  template <typename ...Args>
+  /**
+   * Pre-computes the transform of the kernel, adapted to the image passed by model_ptr
+   * @param model_ptr
+   *    Reference image. Only its size is used to compute the necessary padding, and kernel size
+   *    before transformation
+   * @return
+   *    A context than can be used by `convolve` to avoid re-computing the kernel multiple times
+   */
   std::unique_ptr<ConvolutionContext> prepare(const std::shared_ptr<Image<T>> model_ptr) const {
     auto context = make_unique<ConvolutionContext>();
 
@@ -85,10 +119,25 @@ public:
     return context;
   }
 
+  /**
+   * Convolve the image with the stored kernel, using the given context storing the pre-computed
+   * kernel transform, and pre-allocated buffers
+   * @tparam Args
+   *    Types of the parameters to be forwarded to the padding strategy
+   * @param image_ptr
+   *    The image to convolve
+   * @param context
+   *    The prepared context
+   * @param padding_args
+   *    Forwarded to the padding strategy
+   */
   template <typename ...Args>
   void convolve(std::shared_ptr<WriteableImage<T>> image_ptr,
                 std::unique_ptr<ConvolutionContext>& context,
                 Args... padding_args) const {
+    assert(image_ptr->getWidth() <= context->m_padded_width);
+    assert(image_ptr->getHeight() <= context->m_padded_height);
+
     // Padded image
     auto padded = TPadding::create(image_ptr,
                                    context->m_padded_width, context->m_padded_height,
@@ -119,12 +168,28 @@ public:
     }
   }
 
+  /**
+   * Convolve the image with the stored kernel
+   * @tparam Args
+   *    Types of the parameters to be forwarded to the padding strategy
+   * @param image_ptr
+   *    The image to convolve
+   * @param padding_args
+   *    Forwarded to the padding strategy
+   * @note
+   *    The context will be computed on the fly, and discarded. If multiple, similar, convolutions are
+   *    to be done, use a combination of prepare/convolve
+   */
   template <typename ...Args>
   void convolve(std::shared_ptr<WriteableImage<T>> image_ptr, Args... padding_args) const {
     auto context = prepare(image_ptr);
     convolve(image_ptr, context, std::forward(padding_args)...);
   }
 
+  /**
+   * @return
+   *    The convolution kernel
+   */
   std::shared_ptr<const Image<T>> getKernel() const {
     return m_kernel;
   }
