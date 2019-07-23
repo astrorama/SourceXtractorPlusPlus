@@ -6,6 +6,7 @@
  */
 
 #include <cmath>
+#include <assert.h>
 #include "ModelFitting/Models/TransformModelComponent.h"
 
 namespace ModelFitting {
@@ -20,12 +21,17 @@ TransformModelComponent::TransformModelComponent(
   m_transform[3] = std::get<3>(transform);
 
   double inv_det = 1.  / (m_transform[0] * m_transform[3] - m_transform[2] * m_transform[1]);
-  m_inv_transform[0] = m_transform[0] * inv_det; m_inv_transform[1] = m_transform[2] * inv_det;
-  m_inv_transform[2] = m_transform[1] * inv_det; m_inv_transform[3] = m_transform[3] * inv_det;
+  m_inv_transform[0] = m_transform[3] * inv_det; m_inv_transform[1] = -m_transform[1] * inv_det;
+  m_inv_transform[2] = -m_transform[2] * inv_det; m_inv_transform[3] = m_transform[0] * inv_det;
+
+  assert(m_transform[0] * m_inv_transform[0] + m_transform[1] * m_inv_transform[2] >= 1 - 1e-8);
+  assert(m_transform[0] * m_inv_transform[1] + m_transform[1] * m_inv_transform[3] <= 1e-8);
+  assert(m_transform[2] * m_inv_transform[0] + m_transform[3] * m_inv_transform[2] <= 1e-8);
+  assert(m_transform[2] * m_inv_transform[1] + m_transform[3] * m_inv_transform[3] >= 1 - 1e-8);
 }
 
 TransformModelComponent::TransformModelComponent(TransformModelComponent&& other) {
-  for (int i=0; i<4; i++) {
+  for (int i = 0; i < 4; i++) {
     m_transform[i] = other.m_transform[i];
     m_inv_transform[i] = other.m_inv_transform[i];
   }

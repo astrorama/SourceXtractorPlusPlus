@@ -4,7 +4,7 @@
 #include <boost/mpl/list.hpp>
 #include <random>
 
-#include "SEUtils/CompareImages.h"
+#include "SEUtils/TestUtils.h"
 
 using namespace SExtractor;
 

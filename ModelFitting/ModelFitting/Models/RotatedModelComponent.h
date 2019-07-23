@@ -14,10 +14,23 @@
 
 namespace ModelFitting {
 
+/**
+ * Decorates a model component, rotating the coordinates by the given angle.
+ * As there is no scaling, the integrated value remains.
+ */
 class RotatedModelComponent : public ModelComponent {
   
 public:
-  
+
+  /**
+   * Constructor
+   * @param component
+   *    The component to be decorated. The ownership is acquired by the new object.
+   * @param rotation_angle
+   *    The rotation angle in radians.
+   * @note
+   *    Rotation is done anti-clockwise!
+   */
   RotatedModelComponent(std::unique_ptr<ModelComponent> component,
                         BasicParameter& rotation_angle);
 

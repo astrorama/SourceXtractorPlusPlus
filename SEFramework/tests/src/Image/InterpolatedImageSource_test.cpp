@@ -9,7 +9,7 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEUtils/CompareImages.h"
+#include "SEUtils/TestUtils.h"
 
 using namespace SExtractor;
 
