@@ -90,15 +90,23 @@ public:
     return {
       {"CTYPE1", "'RA---TAN'"},
       {"CTYPE2", "'DEC--TAN'"},
-      {"CRVAL1", std::to_string(0.0)},
-      {"CRVAL2", std::to_string(0.0)},
+      {"CUNIT1", "'deg'"},
+      {"CUNIT2", "'deg'"},
+      {"RADSYS", "'ICRS'"},
+      {"WCSAXES", "2"},
+      {"LATPOLE", std::to_string(10.0)},
+      {"LONPOLE", std::to_string(180.0)},
+      {"CDELT1", std::to_string(1.0)},
+      {"CDELT2", std::to_string(1.0)},
+      {"CRVAL1", std::to_string(10.0)},
+      {"CRVAL2", std::to_string(10.0)},
       {"CRPIX1", std::to_string(m_image_width / 2.0 + 1.5 + m_shift_x)},
       {"CRPIX2", std::to_string(m_image_height / 2.0 + 1.5 + m_shift_y)},
 
-      {"CD1_1", std::to_string(0.001 * c * m_scale)},
-      {"CD1_2", std::to_string(0.001 * s * m_scale)},
-      {"CD2_1", std::to_string(0.001 * -s * m_scale)},
-      {"CD2_2", std::to_string(0.001 * c * m_scale)}
+      {"PC1_1", std::to_string(0.001 * c * m_scale)},
+      {"PC1_2", std::to_string(0.001 * s * m_scale)},
+      {"PC2_1", std::to_string(0.001 * -s * m_scale)},
+      {"PC2_2", std::to_string(0.001 * c * m_scale)}
     };
   }
 
