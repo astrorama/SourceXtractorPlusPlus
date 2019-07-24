@@ -42,6 +42,14 @@ int FlexibleModelFittingParameter::getId() const {
 FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(int id, ValueFunc value)
         : FlexibleModelFittingParameter(id), m_value(value) { }
 
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
+                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
+                                                            ModelFitting::EngineParameterManager& /*engine_manager*/,
+                                                            const SourceInterface& source) const {
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
+  return std::make_shared<ManualParameter>(m_value(source));
+}
+
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
@@ -56,13 +64,12 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
   return parameter;
 }
 
-std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
-                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
-                                                            ModelFitting::EngineParameterManager& /*engine_manager*/,
-                                                            const SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
-  return std::make_shared<ManualParameter>(m_value(source));
+double FlexibleModelFittingFreeParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const {
+  auto modelfitting_parameter = parameter_manager.getParameter(source, shared_from_this());
+  return free_parameter_sigmas[parameter_manager.getParameterIndex(source, shared_from_this())];
 }
+
 
 namespace {
 
@@ -133,6 +140,52 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingDependentParam
         m_parameters[5], m_parameters[6], m_parameters[7], m_parameters[8], m_parameters[9]);
   }
   throw Elements::Exception() << "Dependent parameters can depend on maximum 10 other parameters";
+}
+
+std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivatives(
+    const SourceInterface& source, const std::vector<double>& param_values) const {
+  assert(param_values.size() == m_parameters.size());
+
+  std::vector<double> result(param_values.size());
+  auto cs = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  // TODO use an adaptive algorithm instead of fixed epsilon
+  double epsilon = 1e-6;
+
+  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
+
+  for (unsigned int i = 0; i < result.size(); i++) {
+    auto params_plus_delta = param_values;
+    auto params_minus_delta = param_values;
+    params_plus_delta[i] += epsilon;
+    params_minus_delta[i] -= epsilon;
+
+    result[i] = (m_value_calculator(cs, params_plus_delta) - m_value_calculator(cs, params_minus_delta)) / (2.0 * epsilon);
+  }
+
+  return result;
+}
+
+double FlexibleModelFittingDependentParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const {
+  auto dependees = getDependees();
+  std::vector<double> values;
+
+  for (auto& dependee : dependees) {
+    values.emplace_back(parameter_manager.getParameter(source, dependee)->getValue());
+  }
+
+  double sigma = 0.0;
+  auto partial_derivatives = getPartialDerivatives(source, values);
+
+  assert(dependees.size() == partial_derivatives.size());
+  for (unsigned int i = 0; i < partial_derivatives.size(); i++) {
+    auto dependee_sigma = dependees[i]->getSigma(parameter_manager, source, free_parameter_sigmas);
+    sigma += partial_derivatives[i] * partial_derivatives[i] * dependee_sigma * dependee_sigma;
+  }
+  sigma = sqrt(sigma);
+
+  return sigma;
 }
 
 }
