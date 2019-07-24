@@ -40,6 +40,8 @@ public:
   
   virtual int getId() const final;
 
+  // returns the estimated 1-sigma margin of error for the parameter on a given source, takes the vector of errors
+  // for the free parameters from the minimization engine as input
   virtual double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const = 0;
 

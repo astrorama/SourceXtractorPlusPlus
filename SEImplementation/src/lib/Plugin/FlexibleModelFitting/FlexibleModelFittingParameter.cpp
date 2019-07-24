@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include <boost/math/tools/numerical_differentiation.hpp>
+
 #include "ModelFitting/utils.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
@@ -26,6 +28,8 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
+
+namespace bmd = boost::math::tools;
 
 namespace SExtractor {
 
@@ -149,18 +153,17 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
   std::vector<double> result(param_values.size());
   auto cs = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
-  // TODO use an adaptive algorithm instead of fixed epsilon
-  double epsilon = 1e-6;
-
   std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
 
   for (unsigned int i = 0; i < result.size(); i++) {
-    auto params_plus_delta = param_values;
-    auto params_minus_delta = param_values;
-    params_plus_delta[i] += epsilon;
-    params_minus_delta[i] -= epsilon;
 
-    result[i] = (m_value_calculator(cs, params_plus_delta) - m_value_calculator(cs, params_minus_delta)) / (2.0 * epsilon);
+    auto f = [&](double x) {
+        auto params = param_values;
+        params[i] = x;
+        return m_value_calculator(cs, params);
+    };
+
+    result[i] = bmd::finite_difference_derivative(f, param_values[i]);
   }
 
   return result;
