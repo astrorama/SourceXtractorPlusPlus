@@ -57,11 +57,12 @@ void TransformModelComponent::updateRasterizationInfo(double scale, double r_max
 }
 
 std::vector<TransformModelComponent::ModelSample> TransformModelComponent::getSharpSampling() {
-  std::vector<ModelSample> result {};
-  for (auto& sample : m_component->getSharpSampling()) {
+  std::vector<ModelSample> result = m_component->getSharpSampling();
+  for (auto& sample : result) {
     double new_x = std::get<0>(sample) * m_transform[0] + std::get<1>(sample) * m_transform[2];
     double new_y = std::get<0>(sample) * m_transform[1] + std::get<1>(sample) * m_transform[3];
-    result.emplace_back(new_x, new_y, std::get<2>(sample));
+    std::get<0>(sample) = new_x;
+    std::get<1>(sample) = new_y;
   }
   return result;
 }
