@@ -102,26 +102,6 @@ bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int fra
   return stamp_rect.getWidth() > 0 && stamp_rect.getHeight() > 0;
 }
 
-std::tuple<double, double, double, double>
-FlexibleModelFittingTask::computeJacobianForFrame(SourceGroupInterface& group, int frame_index) const {
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_coordinates = frame->getCoordinateSystem();
-  auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
-  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
-
-  double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
-  double y = detection_group_stamp.getTopLeft().m_y + detection_group_stamp.getStamp().getHeight() / 2.0;
-
-  auto frame_origin = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y)));
-  auto frame_dx = frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x + 1.0, y)));
-  auto frame_dy = frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y + 1.0)));
-
-  return std::make_tuple(frame_dx.m_x - frame_origin.m_x, frame_dx.m_y - frame_origin.m_y,
-                         frame_dy.m_x - frame_origin.m_x, frame_dy.m_y - frame_origin.m_y);
-}
-
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createImageCopy(
   SourceGroupInterface& group, int frame_index) const {
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);

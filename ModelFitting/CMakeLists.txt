@@ -3,6 +3,7 @@ elements_subdir(ModelFitting)
 
 # Declare Elements module dependencies
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(SEUtils)
 
 # Declare library dependencies
 #    The module is using the Boost C++ library
@@ -57,7 +58,29 @@ elements_add_unit_test(EngineParameter_test
                        
 elements_add_unit_test(DependentParameter_test              
                        tests/src/Parameters/DependentParameter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )            
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(SersicProfile_test
+                       tests/src/Models/SersicProfile_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(AutoSharp_test
+                       tests/src/Models/AutoSharp_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(OldSharp_test
+                       tests/src/Models/OldSharp_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(CircularSymmetricModelComponent_test
+                       tests/src/Models/CircularlySymmetricModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(RotatedModelComponent_test
+                       tests/src/Models/RotatedModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(ScaledModelComponent_test
+                       tests/src/Models/ScaledModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(TransformModelComponent_test
+                       tests/src/Models/TransformModelComponent_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
 
 
 find_package(CCfits)

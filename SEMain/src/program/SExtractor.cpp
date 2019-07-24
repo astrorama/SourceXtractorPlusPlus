@@ -422,7 +422,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
     std::vector<std::string> plugin_options_input{};
     plugin_options_input.emplace_back("DummyProgram");
     plugin_options_input.emplace_back("--log-level");
-    plugin_options_input.emplace_back("WARN");
+    plugin_options_input.emplace_back("ERROR");
     for (int i = 0; i < argc; ++i) {
       std::string option{argv[i]};
       if (option == "--config-file") {

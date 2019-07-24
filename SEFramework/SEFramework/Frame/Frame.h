@@ -60,7 +60,7 @@ public:
             m_variance_threshold(1e6),
             m_interpolation_gap(0)
             {
-              if (variance_map==nullptr) {
+              if (variance_map == nullptr && detection_image != nullptr) {
                 m_variance_map = ConstantImage<WeightImage::PixelType>::create(detection_image->getWidth(), detection_image->getHeight(), .0001);
               }
             }

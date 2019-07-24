@@ -13,6 +13,7 @@
 
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 
 namespace SExtractor {
 
@@ -35,6 +36,7 @@ public:
       const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter) const {
     auto key = std::make_tuple(std::cref(source), parameter);
     m_accessed_params.insert(key);
+    followDependencies(source, parameter);
     return m_params.at(key);
   }
 
@@ -66,6 +68,18 @@ private:
   std::map<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<FlexibleModelFittingParameter>>, std::shared_ptr<ModelFitting::BasicParameter>> m_params;
   mutable std::set<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<FlexibleModelFittingParameter>>> m_accessed_params;
   std::vector<std::shared_ptr<ModelFitting::BasicParameter>> m_storage;
+
+  // Propagate access to dependees
+  void followDependencies(const SourceInterface& source, std::shared_ptr<FlexibleModelFittingParameter> parameter) const {
+    auto dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
+    if (dependent_parameter) {
+      for (auto &dependee : dependent_parameter->getDependees()) {
+        auto key_dependee = std::make_tuple(std::cref(source), dependee);
+        m_accessed_params.insert(key_dependee);
+        followDependencies(source, dependee);
+      }
+    }
+  }
 };
 
 }
