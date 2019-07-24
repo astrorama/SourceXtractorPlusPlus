@@ -8,7 +8,7 @@
 #include <boost/test/unit_test.hpp>
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/SersicProfile.h"
-#include "SEUtils/SEUtils/IsClose.h"
+#include "SEUtils/IsClose.h"
 
 using namespace ModelFitting;
 using namespace SExtractor;

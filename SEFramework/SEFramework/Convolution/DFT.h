@@ -7,7 +7,7 @@
 #ifndef _SEFRAMEWORK_CONVOLUTION_DFT_H
 #define _SEFRAMEWORK_CONVOLUTION_DFT_H
 
-#include "ModelFitting/ModelFitting/utils.h"
+#include "ModelFitting/utils.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/RecenterImage.h"

@@ -12,7 +12,7 @@
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/utils.h"
-#include "SEUtils/SEUtils/IsClose.h"
+#include "SEUtils/IsClose.h"
 
 using namespace ModelFitting;
 using namespace SExtractor;
