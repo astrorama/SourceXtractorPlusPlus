@@ -212,7 +212,7 @@ For instance, one may wish to adjust the sizes of two components of a model in p
 
 .. code-block:: python
 
-  size1 = Freeparameter(lambda o: 2 * o.get_radius(), Range((0.01, 100.0), RangeType.EXPONENTIAL))
+  size1 = FreeParameter(lambda o: 2 * o.get_radius(), Range((0.01, 100.0), RangeType.EXPONENTIAL))
   size2 = DependentParameter(lambda s: 1.2 * s, size1)
 
 Parameter dependencies are useful for computing new output columns from fitted parameters:
@@ -237,24 +237,84 @@ Priors are inserted using the :func:`add_prior()` function:
 
 :param:`add_prior (` <parameter> :param:`,`  <center_value> :param:`,` <standard_deviation> :param:`)`
 
-For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 5% standard deviation:
+For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 10% standard deviation:
 
 .. code-block:: python
 
   flux = get_flux_parameter()
-  add_prior(flux, lambda o: o.get_iso_flux(), lambda o: 0.05 * o.get_iso_flux())
+  add_prior(flux, lambda o: o.get_iso_flux(), lambda o: 0.1 * o.get_iso_flux())
 
-Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values).
+
+Non-Gaussian priors
+^^^^^^^^^^^^^^^^^^^
+
+Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values, but not both).
 In that case a change of variable must be applied.
-This is easily down using a `dependent parameter <_dependent_def>` (:numref:`fig_aspectprior`).
+This is easily accomplished using a `dependent parameter <_dependent_def>`_.
+For example, to penalize `Sérsic index <https://en.wikipedia.org/wiki/Sersic_profile>`_ values :math:`n` above :math:`n_0`, one can apply the change of variable:
 
-.. _fig_aspectprior:
+.. math::
+  :label: change_of_prior
 
-.. figure:: figures/aspectprior.*
+  N = e^{n - n_0},
+
+which can be implemented as (assuming :math:`n_0=4` and a Gaussian prior on :math:`N` centered on 0 with unit standard deviation):
+
+.. code-block:: python
+
+  n = Freeparameter(2.0, Range((0.3, 8.0), RangeType.LINEAR))
+  n0 = 4
+  nc = DependentParameter(lambda nt: np.exp(nt - n0), n)
+  add_prior(nc, 0.0, 1.0)
+
+:numref:`fig_sersicpriors` shows the resulting prior on :math:`n` , and its regularizing effect on the solution.
+
+.. _fig_sersicpriors:
+
+.. figure:: figures/sersicpriors.*
    :figwidth: 100%
    :align: center
 
-   Effect of the Gaussian prior on a model parameter controlling aspect ratio. *Left:* change of variables between the model (in abscissa) and the engine (in ordinate) parameters. *Right*: equivalent (improper) prior applied to the aspect ratio for :math:`\mu_{\rm aspect} = 0` and :math:`s_{\rm aspect} = 1` in equation :eq:`loss_func`.
+   Effect of a non-Gaussian prior generated through a change of variable (see text).
+   *Left:* Effective prior on the Sérsic index.
+   *Right*: Distribution of Sérsic indices obtained for Sérsic fits on noisy data before (blue) and after (green) applying the prior.
+
+.. caution::
+   Although any function valid over the parameter range could in principle be used for the change of variable, only functions producing `concave <https://en.wikipedia.org/wiki/Concave_function>`_ priors are likely to play nice with the current minimization algorithm and lead to consistent results.
+
+Combinations of parameters
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Priors are also useful for penalizing some values taken by specific combinations of parameters.
+For example, the following code applied to images taken in the :math:`g` and :math:`r` bands sets a Gaussian prior on the color index :math:`g - r` of the detected point sources (centered on :math:`g - r  = 0.5`, with standard deviation 0.3):
+
+.. code-block:: python
+
+  ...
+  MAG_ZEROPOINT = 32.19
+  flux_g = get_flux_parameter()
+  flux_r = get_flux_parameter()
+  mag_g = DependentParameter(lambda f: -2.5 * np.log10(f) + MAG_ZEROPOINT, flux_g)
+  mag_r = DependentParameter(lambda f: -2.5 * np.log10(f) + MAG_ZEROPOINT, flux_r)
+  col = DependentParameter(lambda g,r: g - r, mag_g, mag_r)
+  add_prior(col, 0.5, 0.3)
+
+  group_g = mesgroup['g']
+  group_r = mesgroup['r']
+  add_model(group_g, PointSourceModel(x, y, flux_g))
+  add_model(group_r, PointSourceModel(x, y, flux_r))
+  add_output_column('mag_g', mag_g)
+  add_output_column('mag_r', mag_r)
+  ...
+
+:numref:`fig_colorprior` shows the impact of the prior on the color-magnitude diagram.
+
+.. _fig_colorprior:
+
+.. figure:: figures/colorprior.*
+   :figwidth: 100%
+   :align: center
+
 
 .. _model_minimization_def:
 
