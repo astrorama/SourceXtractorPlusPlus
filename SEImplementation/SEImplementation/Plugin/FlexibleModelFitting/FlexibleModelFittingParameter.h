@@ -28,7 +28,7 @@ class SourceInterface;
 class FlexibleModelFittingParameterManager;
 class FlexibleModelFittingConverterFactory;
 
-class FlexibleModelFittingParameter {
+class FlexibleModelFittingParameter : public std::enable_shared_from_this<FlexibleModelFittingParameter>{
 public:
   FlexibleModelFittingParameter(int id);
   virtual ~FlexibleModelFittingParameter() = default;
@@ -39,6 +39,12 @@ public:
                                   const SourceInterface& source) const = 0;
   
   virtual int getId() const final;
+
+  // returns the estimated 1-sigma margin of error for the parameter on a given source, takes the vector of errors
+  // for the free parameters from the minimization engine as input
+  virtual double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const = 0;
+
 
 private:
   int m_id;
@@ -58,6 +64,12 @@ public:
                                   FlexibleModelFittingParameterManager& parameter_manager,
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
+
+  double getSigma(FlexibleModelFittingParameterManager&, const SourceInterface&,
+      const std::vector<double>&) const override {
+    return 0.0;
+  }
+
 
 private:
 
@@ -82,6 +94,9 @@ public:
                                   FlexibleModelFittingParameterManager& parameter_manager,
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
+
+  double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const override;
 
 private:
 
@@ -111,6 +126,11 @@ public:
   const std::vector<std::shared_ptr<FlexibleModelFittingParameter>>& getDependees() const {
     return m_parameters;
   }
+
+  double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const override;
+
+  std::vector<double> getPartialDerivatives(const SourceInterface& source, const std::vector<double>& param_values) const;
 
 private:
 
