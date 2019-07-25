@@ -319,5 +319,14 @@ struct ImageTraits<ImageInterfaceTypePtr> {
 
 } // end of namespace ModelFitting
 
+namespace SExtractor {
+
+// Make those types available to the SExtractor namespace for convenience
+using ModelFitting::ImageInterfaceType;
+using ModelFitting::ImageInterfaceTypePtr;
+using ModelFitting::WriteableInterfaceType;
+using ModelFitting::WriteableInterfaceTypePtr;
+
+}
 
 #endif /* _SEIMPLEMENTATION_IMAGE_IMAGEINTERFACETRAITS_H_ */

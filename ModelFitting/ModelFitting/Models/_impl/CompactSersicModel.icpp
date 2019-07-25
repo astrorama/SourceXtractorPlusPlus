@@ -1,0 +1,81 @@
+/*
+ * CompactSersicModel.icpp
+ *
+ *  Created on: Jul 25, 2019
+ *      Author: mschefer
+ */
+
+
+#include <iostream>
+#include <cmath> // for std::sqrt
+#include "ElementsKernel/Exception.h"
+#include "ModelFitting/Image/ImageTraits.h"
+
+namespace ModelFitting {
+
+/*
+namespace _impl {
+
+  template <typename ImageType>
+  void addSmooth(ImageType& image, double pixel_scale, ModelComponent& component) {
+    using Traits = ImageTraits<ImageType>;
+    auto size_x = Traits::width(image);
+    auto size_y = Traits::height(image);
+    for (std::size_t x=0; x<size_x; ++x) {
+      double x_model = x - (size_x-1) / 2.;
+      x_model *= pixel_scale;
+      for (std::size_t y=0; y<size_y; ++y) {
+        double y_model = y - (size_y-1) / 2.;
+        y_model *= pixel_scale;
+        Traits::at(image, x, y) = component.getValue(x_model, y_model) * pixel_scale*pixel_scale;
+      }
+    }
+  }
+
+} // end of namespace _impl
+*/
+
+template<typename ImageType>
+CompactSersicModel<ImageType>::CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
+              BasicParameter& x_scale, BasicParameter& y_scale,
+              BasicParameter& rotation, double width, double height,
+              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
+    : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y),
+      m_x_scale(x_scale.getValue()), m_x_scale_updater(x_scale, m_x_scale),
+      m_y_scale(y_scale.getValue()), m_y_scale_updater(y_scale, m_y_scale),
+      m_rotation(rotation.getValue()), m_rotation_updater(rotation, m_rotation),
+      m_i0(i0.getValue()), m_i0_updater(i0, m_i0),
+      m_k(k.getValue()), m_k_updater(k, m_k),
+      m_n(n.getValue()), m_n_updater(n, m_n)
+{
+  m_transform[0] = std::get<0>(transform);
+  m_transform[1] = std::get<1>(transform);
+  m_transform[2] = std::get<2>(transform);
+  m_transform[3] = std::get<3>(transform);
+}
+
+
+template<typename ImageType>
+ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
+  //std::cout << "]] " << getX() << " " << getY() << "\n";
+  using Traits = ImageTraits<ImageType>;
+  if (size_x % 2 == 0 || size_y % 2 == 0) {
+    throw Elements::Exception() << "Rasterized image dimensions must be odd numbers "
+        << "but got (" << size_x << ',' << size_y << ")";
+  }
+  ImageType image = Traits::factory(size_x, size_y);
+//  double r_max = std::sqrt(size_x * size_x + size_y * size_y) / 2.;
+//  for (auto& component : m_component_list) {
+//    component->updateRasterizationInfo(pixel_scale, r_max);
+//    ImageType comp_image = Traits::factory(size_x, size_y);
+//    _impl::addSmooth(comp_image, pixel_scale, *component);
+//    for (auto im_it = Traits::begin(image), comp_it = Traits::begin(comp_image);
+//        im_it != Traits::end(image); ++im_it, ++comp_it) {
+//      *im_it += *comp_it;
+//    }
+//  }
+  return image;
+}
+
+}
+

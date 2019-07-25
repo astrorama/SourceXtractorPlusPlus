@@ -92,7 +92,7 @@ if (OPENCV_FOUND)
                            LINK_LIBRARIES ModelFitting TYPE Boost ${OpenCV_LIBS})
 endif ()
 
-if (OPENCV_FOUND AND CCFITS_FOUND)
+if (OPENCV_FOUND AND CCFITS_FOUND AND FALSE)
     elements_add_executable(Example1 src/program/Example1.cpp
                             LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
                             INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})

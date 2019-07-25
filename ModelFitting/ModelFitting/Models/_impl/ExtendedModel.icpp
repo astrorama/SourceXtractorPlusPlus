@@ -51,7 +51,7 @@ namespace _impl {
 } // end of namespace _impl
 
 template<typename ImageType>
-ImageType ExtendedModel::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
+ImageType ExtendedModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
   //std::cout << "]] " << getX() << " " << getY() << "\n";
   using Traits = ImageTraits<ImageType>;
   if (size_x % 2 == 0 || size_y % 2 == 0) {
@@ -71,6 +71,29 @@ ImageType ExtendedModel::getRasterizedImage(double pixel_scale, std::size_t size
     }
   }
   return image;
+}
+
+template<typename ImageType>
+ExtendedModel<ImageType>::ExtendedModel(std::vector<std::unique_ptr<ModelComponent> >&& component_list,
+                             BasicParameter& x_scale, BasicParameter& y_scale,
+                             BasicParameter& rotation_angle, double width, double height,
+                             BasicParameter& x, BasicParameter& y)
+        : PositionedModel(x, y), m_width{width}, m_height{height} {
+  for (auto& component : component_list) {
+    auto scaled = make_unique<ScaledModelComponent>(std::move(component), x_scale, y_scale);
+    auto rotated = make_unique<RotatedModelComponent>(std::move(scaled), rotation_angle);
+    m_component_list.emplace_back(std::move(rotated));
+  }
+}
+
+template<typename ImageType>
+double ExtendedModel<ImageType>::getValue(double x, double y) const {
+  x -= getX();
+  y -= getY();
+  return std::accumulate(m_component_list.begin(), m_component_list.end(), 0.,
+                         [x, y](double a, const std::unique_ptr<ModelComponent>& b) {
+                           return a + b->getValue(x, y);
+                         });
 }
   
 } // end of namespace ModelFitting

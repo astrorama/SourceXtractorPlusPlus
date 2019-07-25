@@ -8,12 +8,18 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGMODEL_H_
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGMODEL_H_
 
+#include <vector>
+
 #include "ModelFitting/Models/ConstantModel.h"
 #include "ModelFitting/Models/PointModel.h"
-#include "ModelFitting/Models/TransformedModel.h"
+#include "ModelFitting/Models/ExtendedModel.h"
 
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
+
 
 namespace SExtractor {
 
@@ -27,7 +33,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const = 0;
@@ -48,7 +54,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
@@ -79,7 +85,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
@@ -114,7 +120,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
@@ -151,7 +157,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
@@ -177,7 +183,7 @@ public:
                             const SourceInterface& source,
                             std::vector<ModelFitting::ConstantModel>& constant_models,
                             std::vector<ModelFitting::PointModel>& point_models,
-                            std::vector<ModelFitting::TransformedModel>& extended_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
                             std::tuple<double, double, double, double> jacobian,
                             std::shared_ptr<CoordinateSystem> reference_coordinates,
                             std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;

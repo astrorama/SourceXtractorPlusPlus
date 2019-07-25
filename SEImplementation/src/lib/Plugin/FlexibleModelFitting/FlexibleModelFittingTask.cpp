@@ -180,7 +180,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
-  std::vector<TransformedModel> extended_models;
+  std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
 
   for (auto& source : group) {
     for (auto model : frame->getModels()) {

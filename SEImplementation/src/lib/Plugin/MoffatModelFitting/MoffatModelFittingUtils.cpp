@@ -11,6 +11,8 @@
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
 
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
+
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingUtils.h"
 
@@ -38,7 +40,7 @@ MoffatModelEvaluator::MoffatModelEvaluator(const SourceInterface& source) {
   component_list.clear();
   component_list.emplace_back(std::move(moff));
 
-  m_model = std::make_shared<ExtendedModel>(
+  m_model = std::make_shared<ExtendedModel<ImageInterfaceTypePtr>>(
       std::move(component_list), x_scale, y_scale, moffat_rotation, size, size, x, y);
 }
 

@@ -10,6 +10,9 @@
 
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Image/VectorImage.h"
+
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 namespace SExtractor {
 
@@ -21,7 +24,7 @@ public:
   }
 
 private:
-  std::shared_ptr<ModelFitting::ExtendedModel> m_model;
+  std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>> m_model;
 };
 
 //ModelFitting::ExtendedModel createMoffatModel();
