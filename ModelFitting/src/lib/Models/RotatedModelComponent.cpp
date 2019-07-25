@@ -5,6 +5,7 @@
  */
 
 #include <cmath> // for std::cos, std::sin
+#include <iostream>
 #include "ModelFitting/Models/RotatedModelComponent.h"
 
 namespace ModelFitting {
@@ -48,11 +49,12 @@ void RotatedModelComponent::updateRasterizationInfo(double scale, double r_max) 
 }
 
 auto RotatedModelComponent::getSharpSampling() -> std::vector<ModelSample> {
-  std::vector<ModelSample> result{};
-  for (auto& sample : m_component->getSharpSampling()) {
+  std::vector<ModelSample> result = m_component->getSharpSampling();
+  for (auto& sample : result) {
     double new_x = std::get<0>(sample) * m_cos + std::get<1>(sample) * m_sin;
     double new_y = std::get<1>(sample) * m_cos - std::get<0>(sample) * m_sin;
-    result.emplace_back(new_x, new_y, std::get<2>(sample));
+    std::get<0>(sample) = new_x;
+    std::get<1>(sample) = new_y;
   }
   return result;
 }

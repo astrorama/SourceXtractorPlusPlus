@@ -10,6 +10,48 @@ Aperture = cpp.Aperture
 
 
 def add_aperture_photometry(target, apertures):
+    """
+    Flux measurement from the image above the background inside a circular aperture.
+
+    Parameters
+    ----------
+    target : MeasurementImage object, or leaf MeasurementGroup object with a single image, or a list of either
+        Target images on which to measure the aperture photometry. Leaf MeasurementGroup with a single image
+        are accepted as a convenience.
+
+    apertures : float, or list of float
+        Diameter of the aperture. As different MeasurementImage may not be aligned, nor have equivalent pixel size,
+        the aperture is interpreted as diameter in pixels of a circle on the detection image.
+        A transformation will be applied for each frame, so the covered area is equivalent.
+
+    Returns
+    -------
+    list of Aperture objects
+        An Aperture object is an internal representation of a property on the measurement frame that contains the
+        apertures. To actually get the measurements on the output catalog, you need to add explicitly them to the
+        output.
+
+    See Also
+    --------
+    add_output_column
+
+    Notes
+    -----
+    This property will generate five columns with the prefix specified by `add_output_column`:
+    - ``_flux`` and ``_flux_err``, for the flux and its associated error
+    - ``_mag`` and ``_mag_err``, for the magnitude and its associated error
+    - ``_flags``, to mark, for instance, saturation, boundary conditions, etc.
+
+    For M apertures and N images, the cells on the output column will be an array of MxN fluxes.
+
+    Examples
+    --------
+    >>> measurement_group = MeasurementGroup(load_fits_images(frames, psfs))
+    >>> all_apertures = []
+    >>> for img in measurement_group:
+    >>>     all_apertures.extend(add_aperture_photometry(img, [5, 10, 20]))
+    >>> add_output_column('aperture', all_apertures)
+    """
     if not isinstance(target, list):
         target = [target]
     if not isinstance(apertures, list):

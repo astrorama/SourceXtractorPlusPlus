@@ -108,6 +108,10 @@ public:
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
 
+  const std::vector<std::shared_ptr<FlexibleModelFittingParameter>>& getDependees() const {
+    return m_parameters;
+  }
+
 private:
 
   ValueFunc m_value_calculator;

@@ -10,12 +10,12 @@
 
 namespace SExtractor {
 
-void PsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
+void PsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<PsfPluginConfig>();
   manager.registerConfiguration<MeasurementImageConfig>();
 }
 
-void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
+void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto psf_config = manager.getConfiguration<PsfPluginConfig>();
   auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
@@ -25,11 +25,11 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
 
   assert(psf_paths.size() == ids.size());
 
-  for (unsigned int i=0; i<psf_paths.size(); i++) {
+  for (unsigned int i = 0; i < psf_paths.size(); i++) {
     if (!psf_paths[i].empty()) {
       m_vpsf[ids[i]] = PsfPluginConfig::readPsf(psf_paths[i]);
     }
-    else {
+    else if (default_psf) {
       m_vpsf[ids[i]] = default_psf;
     }
   }
@@ -41,8 +41,13 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   }
 }
 
-std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
+std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId& property_id) const {
   auto instance = property_id.getIndex();
+
+  if (m_vpsf.find(instance) == m_vpsf.end() || !m_vpsf.at(instance)) {
+    throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF";
+  }
+
   try {
     return std::make_shared<PsfTask>(instance, m_vpsf.at(instance));
   } catch (const std::out_of_range&) {

@@ -90,15 +90,23 @@ public:
     return {
       {"CTYPE1", "'RA---TAN'"},
       {"CTYPE2", "'DEC--TAN'"},
-      {"CRVAL1", std::to_string(0.0)},
-      {"CRVAL2", std::to_string(0.0)},
+      {"CUNIT1", "'deg'"},
+      {"CUNIT2", "'deg'"},
+      {"RADSYS", "'ICRS'"},
+      {"WCSAXES", "2"},
+      {"LATPOLE", std::to_string(10.0)},
+      {"LONPOLE", std::to_string(180.0)},
+      {"CDELT1", std::to_string(1.0)},
+      {"CDELT2", std::to_string(1.0)},
+      {"CRVAL1", std::to_string(10.0)},
+      {"CRVAL2", std::to_string(10.0)},
       {"CRPIX1", std::to_string(m_image_width / 2.0 + 1.5 + m_shift_x)},
       {"CRPIX2", std::to_string(m_image_height / 2.0 + 1.5 + m_shift_y)},
 
-      {"CD1_1", std::to_string(0.001 * c * m_scale)},
-      {"CD1_2", std::to_string(0.001 * s * m_scale)},
-      {"CD2_1", std::to_string(0.001 * -s * m_scale)},
-      {"CD2_2", std::to_string(0.001 * c * m_scale)}
+      {"PC1_1", std::to_string(0.001 * c * m_scale)},
+      {"PC1_2", std::to_string(0.001 * s * m_scale)},
+      {"PC2_1", std::to_string(0.001 * -s * m_scale)},
+      {"PC2_2", std::to_string(0.001 * c * m_scale)}
     };
   }
 
@@ -490,7 +498,7 @@ public:
       coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
     }
 
-    auto raster_model_size = model_size / vpsf->getPixelScale() + std::max(vpsf->getWidth(), vpsf->getHeight());
+    auto raster_model_size = model_size / vpsf->getPixelSampling() + std::max(vpsf->getWidth(), vpsf->getHeight());
     if (raster_model_size * raster_model_size > std::numeric_limits<int>::max()) {
       logger.fatal() << "The expected required memory for model rasterization exceeds the maximum size for an integer";
       logger.fatal() << "Please, either reduce the model size, the image size, or increase the PSF pixel scale";
@@ -514,7 +522,7 @@ public:
     auto p = vpsf->getPsf(psf_vals);
     auto psf_sum = std::accumulate(p->getData().begin(), p->getData().end(), 0.);
     p = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(p, 1. / psf_sum));
-    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelScale(), p);
+    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelSampling(), p);
 
     std::vector<TestImageSource> sources;
 

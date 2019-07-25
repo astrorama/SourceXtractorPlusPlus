@@ -8,7 +8,7 @@
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEUtils/CompareImages.h"
+#include "SEUtils/TestUtils.h"
 
 using namespace SExtractor;
 

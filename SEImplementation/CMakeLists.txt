@@ -35,6 +35,10 @@ find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 
+if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
+	message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
+endif ()
+
 #===============================================================================
 # Declare the library dependencies here
 # Example:
@@ -128,6 +132,12 @@ elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotomet
 elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(JacobianGroup_test tests/src/Plugin/Jacobian/JacobianGroupTask_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(JacobianSource_test tests/src/Plugin/Jacobian/JacobianSourceTask_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

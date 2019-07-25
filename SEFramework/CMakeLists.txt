@@ -17,6 +17,7 @@ elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table)
 elements_depends_on_subdirs(SEUtils)
+elements_depends_on_subdirs(ModelFitting)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the

@@ -12,6 +12,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
+#include "ModelFitting/Image/PsfTraits.h"
 #include "ModelFitting/utils.h"
 
 #include "SEFramework/Convolution/Convolution.h"
@@ -54,6 +55,19 @@ public:
 private:
   double m_pixel_scale;
 
+};
+
+} // end of SExtractor
+
+namespace ModelFitting {
+
+/**
+ * Specialization of PsfTraits, as DFTConvolution has the concept of context
+ */
+template<>
+struct PsfTraits<SExtractor::ImagePsf> {
+  using context_t = typename std::unique_ptr<SExtractor::ImagePsf::ConvolutionContext>;
+  static constexpr bool has_context = true;
 };
 
 } // end of ModelFitting

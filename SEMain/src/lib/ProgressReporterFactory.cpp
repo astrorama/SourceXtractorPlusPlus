@@ -42,8 +42,6 @@ std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediato
   auto logger = std::make_shared<ProgressLogger>(m_min_interval);
   mediator->ProgressObservable::addObserver(logger);
   mediator->DoneObservable::addObserver(logger);
-
-  mediator->update();
   return mediator;
 }
 
