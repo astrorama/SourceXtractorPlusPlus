@@ -8,7 +8,12 @@
 
 #include <iostream>
 #include <cmath> // for std::sqrt
+#include <assert.h>
+
 #include "ElementsKernel/Exception.h"
+
+#include "SEUtils/Mat22.h"
+
 #include "ModelFitting/Image/ImageTraits.h"
 
 namespace ModelFitting {
@@ -35,6 +40,9 @@ namespace _impl {
 } // end of namespace _impl
 */
 
+void MultiplyMatrix2x2(double* a, double* b, double* out) {
+}
+
 template<typename ImageType>
 CompactSersicModel<ImageType>::CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
               BasicParameter& x_scale, BasicParameter& y_scale,
@@ -48,32 +56,63 @@ CompactSersicModel<ImageType>::CompactSersicModel(BasicParameter& i0, BasicParam
       m_k(k.getValue()), m_k_updater(k, m_k),
       m_n(n.getValue()), m_n_updater(n, m_n)
 {
-  m_transform[0] = std::get<0>(transform);
-  m_transform[1] = std::get<1>(transform);
-  m_transform[2] = std::get<2>(transform);
-  m_transform[3] = std::get<3>(transform);
+  m_jacobian = Mat22(transform).GetTranspose();
+  m_inv_jacobian = m_jacobian.GetInverse();
 }
 
+
+template<typename ImageType>
+double CompactSersicModel<ImageType>::getValue(double x, double y) const {
+  // FIXME do we even need this?
+  return 0.0;
+}
+
+template<typename ImageType>
+Mat22 CompactSersicModel<ImageType>::getCombinedTransform() const {
+  double s, c;
+  sincos(m_rotation, &s, &c);
+
+  Mat22 rotation(
+      c, s,
+      -s, c);
+
+  Mat22 scale(
+      1. / m_x_scale, 0.0,
+      0.0, 1. / m_y_scale);
+
+  return (scale * rotation) * m_inv_jacobian;
+}
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
   //std::cout << "]] " << getX() << " " << getY() << "\n";
   using Traits = ImageTraits<ImageType>;
+
   if (size_x % 2 == 0 || size_y % 2 == 0) {
     throw Elements::Exception() << "Rasterized image dimensions must be odd numbers "
         << "but got (" << size_x << ',' << size_y << ")";
   }
+
   ImageType image = Traits::factory(size_x, size_y);
-//  double r_max = std::sqrt(size_x * size_x + size_y * size_y) / 2.;
-//  for (auto& component : m_component_list) {
-//    component->updateRasterizationInfo(pixel_scale, r_max);
-//    ImageType comp_image = Traits::factory(size_x, size_y);
-//    _impl::addSmooth(comp_image, pixel_scale, *component);
-//    for (auto im_it = Traits::begin(image), comp_it = Traits::begin(comp_image);
-//        im_it != Traits::end(image); ++im_it, ++comp_it) {
-//      *im_it += *comp_it;
-//    }
-//  }
+
+  auto m = getCombinedTransform();
+  auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
+  //auto area_correction = 1.0;
+
+  for (std::size_t x=0; x<size_x; ++x) {
+    double x_model = x - (size_x-1) / 2.;
+    x_model *= pixel_scale;
+    for (std::size_t y=0; y<size_y; ++y) {
+      double y_model = y - (size_y-1) / 2.;
+      y_model *= pixel_scale;
+
+      auto x2 = x_model * m[0] + y_model * m[1];
+      auto y2 = x_model * m[2] + y_model * m[3];
+      auto r = std::sqrt(x2*x2 + y2*y2);
+      Traits::at(image, x, y) = m_i0 * std::exp(-m_k * std::pow(r, 1. / m_n)) * area_correction;
+    }
+  }
+
   return image;
 }
 

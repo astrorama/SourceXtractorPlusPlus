@@ -119,20 +119,13 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   manager.storeParameter(i0);
   manager.storeParameter(k);
 
-  std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
-
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
-      [](double angle) { return -angle; },
-      *manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
-
-  extended_models.emplace_back(std::make_shared<TransformedModel<ImageInterfaceTypePtr>>(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
+  extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
+      *i0, *k, n, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
+
 }
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
@@ -171,19 +164,11 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   manager.storeParameter(i0);
   manager.storeParameter(k);
 
-  std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
-
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
-      [](double angle) { return -angle; },
-      *manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
-
-  extended_models.emplace_back(std::make_shared<TransformedModel<ImageInterfaceTypePtr>>(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
+  extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
+      *i0, *k, n, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
 }
 
@@ -222,26 +207,6 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
       *manager.getParameter(source, m_effective_radius), *manager.getParameter(source, m_sersic_index));
 
-  /*
-
-  std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, *manager.getParameter(source, m_sersic_index), *k));
-
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
-
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-
-  extended_models.emplace_back(std::make_shared<TransformedModel<ImageInterfaceTypePtr>>(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
-      size, size, *pixel_x, *pixel_y, jacobian));
-
-
-  */
-
   manager.storeParameter(pixel_x);
   manager.storeParameter(pixel_y);
   manager.storeParameter(i0);
@@ -253,7 +218,6 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       *i0, *k, *manager.getParameter(source, m_sersic_index), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
-
 }
 
 void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,
