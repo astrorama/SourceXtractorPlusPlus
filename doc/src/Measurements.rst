@@ -27,6 +27,11 @@ Aperture measurements are largely sub-optimal from the point-of-view of |SNR|_.
 However they are generally tolerant to object shape variations, and offer a good control of measurement biases.
 They can be very sensitive to contamination by the light of neighbors, although this can be mitigated (see ??)
 
+.. _measurement_groups:
+
+Measurement groups
+------------------
+
 .. toctree::
 
   Position
