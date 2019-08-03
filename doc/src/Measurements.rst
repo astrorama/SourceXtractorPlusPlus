@@ -27,10 +27,38 @@ Aperture measurements are largely sub-optimal from the point-of-view of |SNR|_.
 However they are generally tolerant to object shape variations, and offer a good control of measurement biases.
 They can be very sensitive to contamination by the light of neighbors, although this can be mitigated (see ??)
 
-.. _measurement_groups:
+.. _model_measurements:
 
-Measurement groups
-------------------
+Model-fitting measurements are performed on the measurement images.
+They are close to optimum from the point-of-view of |SNR|, but they require accurate PSF models (one per image).
+PSF models can be computed using the |PSFEx|_ package.
+|SExtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
+The main inconvenient of model-fitting is that it is slow.
+
+.. _groups:
+
+Grouping
+--------
+
+There are two types of groups: image groups and measurement groups.
+|SExtractor++| measures the properties of sources from instances spread across multiple exposures.
+Each exposure has its own context defined by a specific combination of filter, instrument, epoch, etc.
+Depending on science goals, one may choose to group images by time of observation (e.g., to build light curves), filter (for regular photometry), ...
+This is the purpose of |SExtractor++|'s grouping mechanisms.
+
+.. _configuration_script:
+
+The measurement configuration script
+------------------------------------
+
+Grouping procedures, as well as measurement settings and catalog outputs must be defined in a configuration script that uses the 'Python language <https://python.org>'_: the measurement configuration script.
+The Python language makes it possible to set up arbitrarily refined rules to control the measurement process.
+
+
+
+Both types of groups must be defined in a common 
+
+.. _measurement_groups:
 
 .. toctree::
 

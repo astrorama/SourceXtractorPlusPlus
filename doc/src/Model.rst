@@ -59,6 +59,11 @@ The vector :math:`\tilde{\boldsymbol{m}}(\boldsymbol{q})` is obtained by convolv
 where :math:`h` is a 2-dimensional interpolant (interpolating function), :math:`\boldsymbol{x}_i` is the coordinate vector of image pixel :math:`i`, :math:`\boldsymbol{x}_j` the coordinate vector of model sample :math:`j`, and :math:`\eta` is the image-to-model sampling step ratio (sampling factor) which is by default defined by the PSF model sampling.
 We adopt a Lánczos-4 function :cite:`duchon1979` as interpolant.
 
+Configuring model-fitting
+-------------------------
+
+The model-fitting process can be precisely defined and tuned in the `measurement configuration Python script <configuration_script>`_.
+
 Model parameters
 ----------------
 
