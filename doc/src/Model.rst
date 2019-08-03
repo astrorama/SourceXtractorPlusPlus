@@ -229,6 +229,8 @@ Parameter dependencies are useful for computing new output columns from fitted p
 
 Parameter dependencies may also be used to apply changes of variables for setting complex priors, as we shall see in the next section.
 
+.. _models_def:
+
 Models
 ------
 
@@ -421,12 +423,4 @@ The library approximates the Jacobian matrix of the model from finite difference
 The fit is done inside a disk which diameter is scaled to include the isophotal footprint of the object, plus the FWHM of the PSF, plus a 20 % margin.
 
 :math:`1\,\sigma` error estimates are provided for most measurement parameters; they are obtained from the full covariance matrix of the fit, which is itself computed by inverting the approximate `Hessian matrix <https://en.wikipedia.org/wiki/Hessian_matrix>`_ of :math:`\lambda(\boldsymbol{q})` at the solution.
-
-.. _models_def:
-
-.. _spread_model_def:
-
-Model-based star-galaxy separation
-----------------------------------
-
 
