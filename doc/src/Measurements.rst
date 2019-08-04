@@ -40,7 +40,7 @@ The main inconvenient of model-fitting is that it is much slower than aperture p
 The measurement configuration script
 ------------------------------------
 
-Measurement settings, as well as `grouping procedures <groups>`_ and catalog outputs must be defined in a configuration script that uses the `Python language <https://python.org>`_: the measurement configuration script.
+Measurement settings, as well as :ref:`grouping procedures <groups>` and catalog outputs must be defined in a configuration script that uses the `Python language <https://python.org>`_: the measurement configuration script.
 Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
 |SExtractor++|'s configuration library classes and functions must be imported at the beginning of the script:
 
@@ -58,20 +58,13 @@ Measurement images
 
 Measurement images are scientific images stored as |FITS|_ files and used only for measurements. 
 Every measurement image can be associated a |PSF| model (|PSFEx|'s :file:`.psf` file), and a weight map.
-The :func:`load_fits_image()` function creates a measurement image from a |FITS| image filename:
-
-<measurement_image> = :param:`load_fits_image (` <image_filename> [ , psf_file = <psf_filename> ] [ , weight_file = <weight_filename> ] :param:`)`
-
-For example:
+The :func:`~config.measurement_images.load_fits_image()` function creates a measurement image from a |FITS| image filename; for example:
 
 .. code-block:: python
 
   mesimage = load_fits_image("image.fits")
 
-The list of currently loaded measurement images can be displayed using the :func:`print_measurement_images()` function:
-
-:param:`print_measurement_images (` [<file_object>] :param:`)`
-
+The list of currently loaded measurement images can be displayed using the :func:`~config.measurement_images.print_measurement_images()` function.
 The following will print the list of measurement images on screen (more precisely, on the `stderr <https://en.wikipedia.org/wiki/Standard_streams#Standard_error_(stderr)>`_ channel):
 
 .. code-block:: python
@@ -79,7 +72,7 @@ The following will print the list of measurement images on screen (more precisel
   print_measurement_images()
 
 In practice, one will generally want to load several images with a single instruction, not one by one.
-However before addressing this point we need to introduce the concept of `grouping <groups>`_.
+However before addressing this point we need to introduce the concept of :ref:`grouping <groups>`.
 
 .. _groups:
 
@@ -99,12 +92,13 @@ Image groups
 ^^^^^^^^^^^^
 
 Image groups offer a convenient way to load many images, and group them according to specific criteria.
-The easiest way to instantiate an image group is through the :func:`load_fits_images()` function:
+The most efficient way to instantiate an image group is through the :func:`~config.measurement_images.load_fits_images()` function:
 
-<image_group> = :param:`load_fits_images (` <list_of_image_filenames> [ , psf_list = <list_of_psf_filenames> ] [ , weight_list = <list_of_weight_filenames> ]  :param:`)`
+.. code-block:: python
 
-All non-empty lists must contain the same number of items.
-In practice, the most convenient way to load large series of images, |PSF| models and weight maps is through filename expansion and sorting, for instance:
+  imagegroup = load_fits_images(["image_01.fits", "image_02.fits"]),
+
+In practice, the easier way to load large series of images, |PSF| models and weight maps is through filename expansion and sorting, for instance:
 
 .. code-block:: python
 
@@ -114,7 +108,8 @@ In practice, the most convenient way to load large series of images, |PSF| model
       weight_list=sorted(glob("image_??.weight.fits"))
   )
 
-It is possible to add images or another group to a pre-existing image group using the :func:`add_images()` method, e.g.:
+All non-empty lists must contain the same number of items.
+It is possible to add images or another group to a pre-existing image group using the :func:`~config.measurement_images.ImageGroup.add_images()` method, e.g.:
 
 .. code-block:: python
 
@@ -138,6 +133,5 @@ Measurement groups
 
   Position
   Photom
-  Model
 
 

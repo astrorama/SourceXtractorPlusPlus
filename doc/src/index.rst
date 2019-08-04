@@ -19,6 +19,8 @@ Contents
    Using
    Processing
    Measurements
+   Model
+   ConfigAPI
    references
 
 Indices and tables
@@ -26,5 +28,4 @@ Indices and tables
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 

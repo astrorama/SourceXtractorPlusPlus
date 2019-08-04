@@ -62,7 +62,7 @@ We adopt a Lánczos-4 function :cite:`duchon1979` as interpolant.
 Configuring model-fitting
 -------------------------
 
-The model-fitting process can be precisely defined and tuned in the `measurement configuration Python script <configuration_script>`_.
+The model-fitting process can be precisely defined and tuned in the :ref:`measurement configuration Python script <configuration_script>`.
 
 Model parameters
 ----------------
@@ -72,11 +72,7 @@ In |SExtractor++|, any of the model parameters :math:`q_j` may be a constant par
 Constant parameters
 ~~~~~~~~~~~~~~~~~~~
 
-In the model fitting configuration, constant parameters are declared using the :param:`ConstantParameter()` construct:
-
-<variable> = :param:`ConstantParameter (` <value> `)`
-
-<value> can be a numerical value, for instance:
+In the model fitting configuration, constant parameters are declared using the :class:`~config.model_fitting.ConstantParameter()` construct:
 
 .. code-block:: python
 
@@ -91,11 +87,7 @@ One can also use a `lambda expression <https://en.wikipedia.org/wiki/Anonymous_f
 Free parameters
 ~~~~~~~~~~~~~~~
 
-Free parameters are adjusted by minimizing :math:`\lambda(\boldsymbol{q})` in :eq:`loss_func`. They are declared using the :param:`FreeParameter()` construct:
-
-<variable> = :param:`FreeParameter (` <initial_value> :param:`,`  <range> :param:`)`
-
-The free parameter initial value follows the same rules as the constant parameter value: it may be defined as a simple number supplied by the user, e.g.:
+Free parameters are adjusted by minimizing :math:`\lambda(\boldsymbol{q})` in :eq:`loss_func`. They are declared using the :class:`~config.model_fitting.FreeParameter()` construct. The free parameter initial value follows the same rules as the constant parameter value: it may be defined as a simple number supplied by the user, e.g.:
 
 .. code-block:: python
 
@@ -123,19 +115,16 @@ The "engine" variable :math:`Q_j` can take any value, and is actually the parame
 Parameter range
 ^^^^^^^^^^^^^^^
 
-The :param:`Range()` construct is used to set :math:`q^\mathsf{(min)}_j`, :math:`q^\mathsf{(max)}_j`, and :math:`f_j()`:
-
-<range> = :param:`Range (` (<q_min> , <q_max>) ,  <range_type> :param:`)`
-
-The first argument is a `tuple <https://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_ of 2 numbers specifying the lower and upper limits of the range.
-The range type defines :math:`f_j()`.
-Currently supported range types are linear (:param:`RangeType.LINEAR`) and exponential (:param:`RangeType.EXPONENTIAL`).
-Linear ranges are appropriate for parameters such as positions or shape indices:
+The :class:`~config.model_fitting.Range()` construct is used to set :math:`q^\mathsf{(min)}_j`, :math:`q^\mathsf{(max)}_j`, and :math:`f_j()`:
 
 .. code-block:: python
 
   range = Range((-1,1), RangeType.LINEAR)
 
+The first argument is a `tuple <https://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_ of 2 numbers specifying the lower and upper limits of the range.
+The range type defines :math:`f_j()`.
+Currently supported range types are linear (:param:`RangeType.LINEAR`) and exponential (:param:`RangeType.EXPONENTIAL`).
+Linear ranges are appropriate for parameters such as positions or shape indices.
 Exponential ranges are better suited to strictly positive parameters with a large dynamic range, such as fluxes and aspect ratios:
 
 .. code-block:: python
@@ -184,7 +173,7 @@ In practice, we find this approach to ease convergence and to be much more relia
 Predefined free parameters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-|SExtractor++| comes with two pre-defined free parameters for easily initializing positions and fluxes:
+|SExtractor++| comes with two pre-defined free parameters for easily initializing positions (:func:`~config.model_fitting.get_pos_parameters()`) and fluxes (:func:`~config.model_fitting.get_flux_parameter()`):
 
 .. code-block:: python
 
@@ -202,17 +191,14 @@ Predefined free parameters
     }
     return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
-Note the use of lambda functions in the first argument to :param:`Range()`.
+Note the use of lambda functions in the first argument to :class:`~config.model_fitting.Range()`.
 
 .. _dependent_def:
 
 Dependent parameters
 ~~~~~~~~~~~~~~~~~~~~
 
-It is often useful to define dependencies between parameters. Dependent parameters are declared using the :param:`DependentParameter()` construct:
-
-<variable> = :param:`DependentParameter (` <function> ` :param:`,` <function_arg1> :param:`,` <function_arg2> :param:`, ... )`
-
+It is often useful to define dependencies between parameters. Dependent parameters are declared using the :class:`~config.model_fitting.DependentParameter()` construct.
 For instance, one may wish to adjust the sizes of two components of a model in parallel:
 
 .. code-block:: python
@@ -235,22 +221,18 @@ Models
 ------
 
 The full models :math:`\boldsymbol{m}(\boldsymbol{q})` are defined as a sum of one or several 2D functions.
-These model components are added using the :func:`add_model()` function:
-
-:param:`add_model  (` <measurement_group> :param:`,`  <model> :param:`(` <parameter_1>  [ :param:`,`  <parameter_2> :param:`, ...` ] :param:`))`
-
-For instance, for adding a point source model component one may insert
+These model components are added using the :func:`~config.model_fitting.add_model()` function. For instance, for adding a point source model component one may insert
 
 .. code-block:: python
 
   add_model(group, PointSourceModel(x, y, flux))
 
-Composite models (e.g., a galaxy bulge plus a disk component) may be generated by inserting multiple :func:`add_model()` with the same `measurement group <measurements_groups>`_.
+Composite models (e.g., a galaxy bulge plus a disk component) may be generated by inserting multiple :func:`add_model()` with the same :ref:`measurement group <measurement_groups>`.
 Model components need not be `coaxial <https://en.wikipedia.org/wiki/Coaxial>`_.
 
 |SExtractor++| currently supports the following models.
 
-  **Constant**
+  **Constant**: :class:`~config.model_fitting.ConstantModel`
 
     This is the simplest model, which applies a constant :param:`offset` to the image:
 
@@ -259,11 +241,7 @@ Model components need not be `coaxial <https://en.wikipedia.org/wiki/Coaxial>`_.
 
       \boldsymbol{m}_{\tt Constant} = m_0
 
-    The construct is
-
-    :param:`ConstantModel  (` <offset> :param:`)`
-
-  **Point source**
+  **Point source**: :class:`~config.model_fitting.PointSourceModel`
 
     The point source model is appropriate for representing unresolved sources such as stars.
     It is a scaled `delta function <https://en.wikipedia.org/wiki/Dirac_delta_function>`_, and as such depends only on a coordinate vector :math:`\boldsymbol{r} =  (x, y)` and a flux :math:`m_0`.
@@ -273,11 +251,7 @@ Model components need not be `coaxial <https://en.wikipedia.org/wiki/Coaxial>`_.
 
       \boldsymbol{m}_{\tt POINTSOURCE}(\boldsymbol{r}) = m_0 \delta(\boldsymbol{r})
 
-    The construct is
-
-    :param:`PointSourceModel  (` <x> :param:`,`  <y> :param:`,` <flux> :param:`)`
-
-  **Sérsic**
+  **Sérsic**: :class:`~config.model_fitting.SersicModel`
 
     The Sérsic model has an elliptical shape with aspect ratio :math:`\rho` and position angle :math:`\theta`, and a `Sérsic profile <https://en.wikipedia.org/wiki/Sersic_profile>`_ :cite:`1968adga_book_S` with effective radius :math:`R_e` and Sérsic index :math:`n`:
 
@@ -299,27 +273,15 @@ Model components need not be `coaxial <https://en.wikipedia.org/wiki/Coaxial>`_.
 
       b(n) = 2\,n - {1\over3} + {4\over 405\,n} + {46\over 25515\,n^2} + {131\over 1148175\,n^3}
 
-
-    The construct is
-
-    :param:`SersicModel  (` <x> :param:`,`  <y> :param:`,` <flux> :param:`,` <r_eff> :param:`,` <aspect_ratio> :param:`,` <position_angle> :param:`,` <sersic_index> :param:`)`
-
-  **Exponential**
+  **Exponential**: :class:`~config.model_fitting.ExponentialModel`
 
     The exponential model is a Sérsic model with fixed :math:`n=1`.
     It is generally appropriate for describing `galaxy disks <https://en.wikipedia.org/wiki/Galactic_disc>`_.
-    The construct is
 
-    :param:`ExponentialModel  (` <x> :param:`,`  <y> :param:`,` <flux> :param:`,` <effective_radius> :param:`,` <aspect_ratio> :param:`,` <position_angle> :param:`)`
-
-  **de Vaucouleurs**
+  **de Vaucouleurs**: :class:`~config.model_fitting.DeVaucouleursModel`
 
     The `de Vaucouleurs <https://en.wikipedia.org/wiki/De_Vaucouleurs%27_law>`_ model is a Sérsic model with fixed :math:`n=4`.
     It can be a good fit to `elliptical galaxies <https://en.wikipedia.org/wiki/Elliptical_galaxy>`_ and `galaxy bulges <https://en.wikipedia.org/wiki/Bulge_(astronomy)>`_.
-    The construct is
-
-    :param:`DeVaucouleursModel (` <x> :param:`,`  <y> :param:`,` <flux> :param:`,` <r_eff> :param:`,` <aspect_ratio> :param:`,` <position_angle> :param:`)`
-
 
 Regularization
 --------------
@@ -330,11 +292,7 @@ For instance, there is a tendency to overestimate the elongation of such galaxie
 The second term in :eq:`loss_func` implements a simple `Tikhonov regularization <https://en.wikipedia.org/wiki/Tikhonov_regularization>`_ scheme to mitigate this issue.
 This penalty term acts as a Gaussian prior on the selected (free or dependent) parameters.
 
-Priors are inserted using the :func:`add_prior()` function:
-
-:param:`add_prior (` <parameter> :param:`,`  <center_value> :param:`,` <standard_deviation> :param:`)`
-
-For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 10% standard deviation:
+Priors are inserted using the :func:`~config.model_fitting.add_prior()` function. For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 10% standard deviation:
 
 .. code-block:: python
 
@@ -347,7 +305,7 @@ Non-Gaussian priors
 
 Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values, but not both).
 In that case a change of variable must be applied.
-This is easily accomplished using a `dependent parameter <_dependent_def>`_.
+This is easily accomplished using a :ref:`dependent parameter <dependent_def>`.
 For example, to penalize `Sérsic index <https://en.wikipedia.org/wiki/Sersic_profile>`_ values :math:`n` above :math:`n_0`, one can apply the change of variable:
 
 .. math::

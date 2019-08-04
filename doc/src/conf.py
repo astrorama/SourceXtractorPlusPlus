@@ -16,9 +16,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../SEImplementation/python/sextractorxx'))
 
 import sphinx_rtd_theme
 
@@ -37,7 +37,11 @@ extensions = [
 #   'sphinx.ext.todo',
     'sphinx.ext.mathjax',
 #    'sphinx.ext.ifconfig',
-#    'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.bibtex',
     'sphinx.ext.githubpages'
 ]
@@ -83,7 +87,7 @@ language = None
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 #
-today = 'Thu Jan 31 2019'
+today = 'Wed July 31 2019'
 #
 # Else, today_fmt is used as the format for a strftime call.
 #
@@ -126,6 +130,13 @@ pygments_style = 'sphinx'
 todo_include_todos = True
 
 numfig = True
+
+# -- Autodoc options ------------------------------------------------------
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+autodoc_mock_imports = ['.measurement_images', '_SExtractorPy']
 
 # -- Options for HTML output ----------------------------------------------
 
