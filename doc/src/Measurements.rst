@@ -96,7 +96,7 @@ The most efficient way to instantiate an image group is through the :func:`~conf
 
 .. code-block:: python
 
-  imagegroup = load_fits_images(["image_01.fits", "image_02.fits"]),
+  imagegroup = load_fits_images(["image_01.fits", "image_02.fits"])
 
 In practice, the easier way to load large series of images, |PSF| models and weight maps is through filename expansion and sorting, for instance:
 
@@ -109,7 +109,7 @@ In practice, the easier way to load large series of images, |PSF| models and wei
   )
 
 All non-empty lists must contain the same number of items.
-It is possible to add images or another group to a pre-existing image group using the :func:`~config.measurement_images.ImageGroup.add_images()` method, e.g.:
+It is possible to add images or another group to a pre-existing image group using the :meth:`~config.measurement_images.ImageGroup.add_images()` method, e.g.:
 
 .. code-block:: python
 
@@ -120,14 +120,57 @@ It is possible to add images or another group to a pre-existing image group usin
   )
   imagegroup.add_images(anotherimage)
 
+Splitting
+^^^^^^^^^
 
+Now, within an image group one may want to create subgroups based on, e.g., band pass filters or epochs. 
+This is easily accomplished using the :meth:`~config.measurement_images.ImageGroup.split()` method. 
+Splitting may be done according to a |FITS| header keyword with the :class:`~config.measurement_images.ByKeyword()` callable.
+For instance, to generate subgroups each with a different filter (assuming all image headers contain the :param:`FILTER` keyword):
 
+.. code-block:: python
 
+  imagegroup.split(ByKeyword('FILTER'))
+
+:class:`~config.measurement_images.ByPattern()` also checks for a |FITS| header keyword, with the difference that a `regular expression <https://en.wikipedia.org/wiki/Regular_expression>`_ provided by the user is applied to the keyword value.
+The first matching group acts as the grouping key, which means that a 'capturing group (within parentheses) <https://www.regular-expressions.info/brackets.html>'_ must be present in the regular expression.
+For instance, the following command groups images by year of observation, ignoring the rest of the date: 
+
+.. _bypattern:
+
+.. code-block:: python
+
+  imagegroup.split(ByPattern('DATE-OBS', "^(\d{4})"))
+
+.. note::
+  Subgroups can themselves be split into subgroups, at any level.
+
+Accessing subgroups
+^^^^^^^^^^^^^^^^^^^
+
+Image subgroups are custom `maps <https://en.wikipedia.org/wiki/Associative_array>`_.
+One can access individual subgroups much like a `Python dictionary <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_.
+In the first :ref:`group splitting example above <bypattern>`, the subgroup of images from year 2007 (if they exists) is simply  :param:`imagegroup['2007']`, and looping through all subgroups is as simple as:
+
+.. code-block:: python
+
+  for year, subgroup in imagegroup:
+    print(int(year), subgroup)
 
 .. _measurement_groups:
 
 Measurement groups
 ^^^^^^^^^^^^^^^^^^
+
+Measurements are applied to measurement groups and subgroups.
+Measurement groups are similar to image groups, although they maintain additional information and their image and subgroup content cannot be updated.
+A measurement group (:class:`~config.measurement_images.MeasurementGroup`) is instanciated from a completed image groups, e.g.,
+
+.. code-block:: python
+
+  mesgroup = MeasurementGroup(imagegroup)
+
+Like image subgroups, measurement subgroups are custom maps and can be managed in a similar way.
 
 .. toctree::
 
