@@ -19,7 +19,7 @@ class RangeType(Enum):
 
 
 class Range(object):
-    """
+    r"""
     Limit, and normalize, the range of values for a model fitting parameter.
 
     Notes
@@ -28,15 +28,18 @@ class Range(object):
         Normalized to engine space using a sigmoid function
 
         .. math::
-        engine = \ln \frac{world - min}{max-world} \\
-        world = min + \frac{max - min}{1 + e^{engine}}
+
+            engine = \ln \frac{world - min}{max-world} \\
+            world = min + \frac{max - min}{1 + e^{engine}}
 
     RangeType.EXPONENTIAL
         Normalized to engine space using an exponential sigmoid function
 
         .. math::
-        engine = \ln \left ( \frac{\ln(world/min)}{\ln(max /world)}) \right ) \\
-        world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }
+
+            engine = \ln \left( \frac{\ln(world/min)}{\ln(max /world)} \right) \\
+            world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }
+
     """
 
     def __init__(self, limits, type):
@@ -834,6 +837,7 @@ def get_sky_coord(x, y):
 def radius_to_wc_angle(x, y, rad):
     """
     Transform a radius in pixels on the detection image to a radius in sky coordinates.
+
     Parameters
     ----------
     x : float
