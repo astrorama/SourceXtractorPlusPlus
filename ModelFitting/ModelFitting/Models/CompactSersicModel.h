@@ -43,6 +43,10 @@ public:
 
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
 
+  double evaluateModel(double x, double y) const;
+  double samplePixel(int x, int y, unsigned int subsampling, double pixel_scale) const;
+  double adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double pixel_scale, double threshold=1.1) const;
+
 protected:
 
 private:
@@ -70,6 +74,9 @@ private:
   // Jacobian transform
   Mat22 m_jacobian;
   Mat22 m_inv_jacobian;
+
+
+  Mat22 m_transform;
 };
 
 }
