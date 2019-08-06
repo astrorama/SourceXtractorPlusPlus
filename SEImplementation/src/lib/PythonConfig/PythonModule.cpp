@@ -11,13 +11,33 @@
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
 #include <SEImplementation/PythonConfig/PythonModule.h>
+#include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 
 namespace bp = boost::python;
 
 namespace SExtractor {
 
 BOOST_PYTHON_MODULE(_SExtractorPy) {
-  
+
+  bp::class_<PyOutputWrapper, boost::noncopyable>("OutputWrapper",
+    "A file-like object used to wrap stdout and stderr", bp::no_init)
+    .def_readonly("closed", &PyOutputWrapper::closed)
+    .def("close", &PyOutputWrapper::close)
+    .def("fileno", &PyOutputWrapper::fileno)
+    .def("flush", &PyOutputWrapper::flush)
+    .def("isatty", &PyOutputWrapper::isatty)
+    .def("readable", &PyOutputWrapper::readable)
+    .def("read", &PyOutputWrapper::read)
+    .def("readline", &PyOutputWrapper::readline)
+    .def("readlines", &PyOutputWrapper::readlines)
+    .def("seek", &PyOutputWrapper::seek)
+    .def("seekable", &PyOutputWrapper::seekable)
+    .def("tell", &PyOutputWrapper::tell)
+    .def("truncate", &PyOutputWrapper::truncate)
+    .def("writable", &PyOutputWrapper::writable)
+    .def("write", &PyOutputWrapper::write)
+    .def("writelines", &PyOutputWrapper::writelines);
+
   bp::class_<ObjectInfo>("ObjectInfo",
     "A source detected by SExtractor after the segmentation and deblending", bp::init<SourceInterface&>())
       .def("get_centroid_x", &ObjectInfo::getCentroidX, "Get the X coordinate of the pixel centroid")
@@ -26,7 +46,7 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
       .def("get_radius", &ObjectInfo::getRadius, "Get the source semi-major axis, in pixels")
       .def("get_angle", &ObjectInfo::getAngle, "Get the source angle, in radians")
       .def("get_aspect_ratio", &ObjectInfo::getAspectRatio, "Get the aspect ratio");
-  
+
   bp::class_<PyMeasurementImage>("MeasurementImage",
     "C++ part of the MeasurementImage", bp::init<std::string, std::string, std::string>())
       .def_readonly("id", &PyMeasurementImage::id)

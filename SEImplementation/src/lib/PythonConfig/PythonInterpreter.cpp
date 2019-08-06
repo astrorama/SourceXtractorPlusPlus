@@ -9,14 +9,14 @@
 #include <Python.h>
 
 #include <SEUtils/Python.h>
-
 #include <SEImplementation/PythonConfig/PythonModule.h>
-
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
 namespace py = boost::python;
 
-static Elements::Logging logger = Elements::Logging::getLogger("PythonInterpreter");
+static Elements::Logging logger = Elements::Logging::getLogger("Python::Interpreter");
+static Elements::Logging stdout_logger = Elements::Logging::getLogger("Python::stdout");
+static Elements::Logging stderr_logger = Elements::Logging::getLogger("Python::stderr");
 
 namespace SExtractor {
 
@@ -25,7 +25,7 @@ PythonInterpreter &PythonInterpreter::getSingleton() {
   return singleton;
 }
 
-PythonInterpreter::PythonInterpreter() {
+PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
   // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
   // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
   // the default one) and restore it after initializing the interpreter
@@ -68,6 +68,13 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
       py_argv_assign(py_argv[i + 1], argv[i].c_str(), wlen);
     }
     PySys_SetArgv(argv.size() + 1, py_argv);
+
+    // Import ourselves so the conversions are registered
+    py::import("_SExtractorPy");
+
+    // Setup stdout and stderr
+    PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());
+    PySys_SetObject("stderr", py::object(boost::ref(m_err_wrapper)).ptr());
 
     // Run the file
     py::object main_module = py::import("__main__");
