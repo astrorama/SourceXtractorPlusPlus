@@ -12,6 +12,7 @@
 #include <SEFramework/CoordinateSystem/CoordinateSystem.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
+#include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 
 namespace SExtractor {
 
@@ -62,7 +63,7 @@ public:
 private:
   
   PythonInterpreter();
-  
+  PyOutputWrapper m_out_wrapper, m_err_wrapper;
 };
 
 } // end of namespace SExtractor
