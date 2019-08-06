@@ -34,7 +34,7 @@ find_package(WCSLIB REQUIRED)
 find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
-find_package(Boost 1.68 REQUIRED)
+find_package(Boost 1.67 REQUIRED)
 
 if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
 	message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
