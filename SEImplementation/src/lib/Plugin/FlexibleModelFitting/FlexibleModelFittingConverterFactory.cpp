@@ -11,6 +11,7 @@
 #include "ModelFitting/utils.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
+#include "SEUtils/Python.h"
 
 namespace SExtractor {
 
@@ -18,6 +19,7 @@ using namespace ModelFitting;
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
+  GILStateEnsure ensure;
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
@@ -26,6 +28,7 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConvert
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
+  GILStateEnsure ensure;
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
@@ -34,6 +37,8 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFac
 
 std::unique_ptr<ModelFitting::CoordinateConverter> FlexibleModelFittingUnboundedConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
+  GILStateEnsure ensure;
+
   double factor = m_normalization_factor(initial_value, source);
   return make_unique<NormalizedConverter>(factor);
 }
