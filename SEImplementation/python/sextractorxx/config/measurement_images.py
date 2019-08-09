@@ -15,6 +15,47 @@ class MeasurementImage(cpp.MeasurementImage):
     """
     A MeasurementImage is the processing unit for SExtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
+
+    Parameters
+    ----------
+    fits_file : str
+        The path to a FITS image. Only primary HDU images are supported.
+    psf_file : str
+        The path to a PSF. It can be either a FITS image, or a PSFEx model.
+    weight_file : str
+        The path to a FITS image with the pixel weights.
+    gain : float
+        Image gain. If None, `gain_keyword` will be used instead.
+    gain_keyword : str
+        Keyword for the header containing the gain.
+    saturation : float
+        Saturation value. If None, `saturation_keyword` will be used instead.
+    saturation_keyword : str
+        Keyword for the header containing the saturation value.
+    flux_scale : float
+        Flux scaling. Each pixel value will be multiplied by this. If None, `flux_scale_keyword` will be used
+        instead.
+    flux_scale_keyword : str
+        Keyword for the header containing the flux scaling.
+    weight_type : str
+        The type of the weight image. It must be one of:
+
+            - background
+                The image itself is used to compute internally a variance map (default)
+            - rms
+                The weight image must contain a weight-map in units of absolute standard deviations
+                (in ADUs per pixel).
+            - variance
+                The weight image must contain a weight-map in units of relative variance.
+            - weight
+                The weight image must contain a weight-map in units of relative weights. The data are converted
+                to variance units.
+    weight_absolute : bool
+        If False, the weight map will be scaled according to an absolute variance map built from the image itself.
+    weight_scaling : float
+        Apply an scaling to the weight map.
+    weight_threshold : float
+        Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
     """
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
@@ -24,42 +65,6 @@ class MeasurementImage(cpp.MeasurementImage):
                  weight_threshold=None):
         """
         Constructor.
-
-        Parameters
-        ----------
-        fits_file : str
-            The path to a FITS image. Only primary HDU images are supported.
-        psf_file : str
-            The path to a PSF. It can be either a FITS image, or a PSFEx model.
-        weight_file : str
-            The path to a FITS image with the pixel weights.
-        gain : float
-            Image gain. If None, `gain_keyword` will be used instead.
-        gain_keyword : str
-            Keyword for the header containing the gain.
-        saturation : float
-            Saturation value. If None, `saturation_keyword` will be used instead.
-        saturation_keyword : str
-            Keyword for the header containing the saturation value.
-        flux_scale : float
-            Flux scaling. Each pixel value will be multiplied by this. If None, `flux_scale_keyword` will be used
-            instead.
-        flux_scale_keyword : str
-            Keyword for the header containing the flux scaling.
-        weight_type : str
-            The type of the weight image. It must be one of:
-             - background: The image itself is used to compute internally a variance map (default)
-             - rms : The weight image must contain a weight-map in units of absolute standard deviations
-                     (in ADUs per pixel).
-             - variance : The weight image must contain a weight-map in units of relative variance.
-             - weight : The weight image must contain a weight-map in units of relative weights. The data are converted
-                        to variance units.
-        weight_absolute : bool
-            If False, the weight map will be scaled according to an absolute variance map built from the image itself.
-        weight_scaling : float
-            Apply an scaling to the weight map.
-        weight_threshold : float
-            Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
         """
         super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
                                                os.path.abspath(psf_file) if psf_file else '',
@@ -415,7 +420,7 @@ def load_fits_images(image_list, psf_list=None, weight_list=None):
     psf_list : list of str
         A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
     weight_list : list of str
-        A list of relative paths to the weight files (optional).  It must match the length of image_list or be None.
+        A list of relative paths to the weight files (optional). It must match the length of image_list or be None.
 
     Returns
     -------
@@ -506,6 +511,11 @@ class ByKeyword(object):
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).
 
+    Parameters
+    ----------
+    key : str
+        FITS header keyword (i.e. FILTER)
+
     See Also
     --------
     ImageGroup.split
@@ -514,11 +524,6 @@ class ByKeyword(object):
     def __init__(self, key):
         """
         Constructor.
-
-        Parameters
-        ----------
-        key : str
-            FITS header keyword (i.e. FILTER)
         """
         self.__key = key
 
@@ -551,6 +556,13 @@ class ByPattern(object):
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
     expression and using the first matching group as key.
 
+    Parameters
+    ----------
+    key : str
+        FITS header keyword
+    pattern : str
+        Regular expression. The first matching group will be used as grouping key.
+
     See Also
     --------
     ImageGroup.split
@@ -558,14 +570,7 @@ class ByPattern(object):
 
     def __init__(self, key, pattern):
         """
-        Constructor
-
-        Parameters
-        ----------
-        key : str
-            FITS header keyword
-        pattern : str
-            Regular expression. The first matching group will be used as grouping key.
+        Constructor.
         """
         self.__key = key
         self.__pattern = pattern
@@ -595,13 +600,15 @@ class MeasurementGroup(object):
     """
     Once an instance of this class is created from an ImageGroup, its configuration is "frozen". i.e.
     no new images can be added, or no new grouping applied.
+
+    Parameters
+    ----------
+    image_group : ImageGroup
     """
 
     def __init__(self, image_group):
         """
-        Parameters
-        ----------
-        image_group : ImageGroup
+        Constructor.
         """
         self.__images = None
         self.__subgroups = None
