@@ -38,7 +38,7 @@ using WriteableInterfaceType = SExtractor::WriteableImage<SExtractor::SeFloat>;
 using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 
 
-static void make_kernel(float pos, float *kernel, interpenum interptype) {
+static inline void make_kernel(float pos, float *kernel, interpenum interptype) {
   const float pi = boost::math::constants::pi<float>();
   const float threshold = 1e-6;
   float  x, val, sinx1,sinx2,sinx3,cosx1;
@@ -146,7 +146,7 @@ static void make_kernel(float pos, float *kernel, interpenum interptype) {
 }
 
 
-static float interpolate_pix(float *pix, float x, float y,
+static inline float interpolate_pix(float *pix, float x, float y,
                              int xsize, int ysize, interpenum interptype) {
 
   static const int interp_kernwidth[5]={1,2,4,6,8};
@@ -304,12 +304,17 @@ struct ImageTraits<ImageInterfaceTypePtr> {
   static void shiftResizeLancszos(const ImageInterfaceTypePtr& source, ImageInterfaceTypePtr& window, double scale_factor, double x_shift, double y_shift) {
     int window_width = width(window);
     int window_height = height(window);
-    for(int x_win=0; x_win < window_width; x_win++) {
-      for(int y_win=0; y_win < window_height; y_win++) {
-        float x = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
-        float y = (y_win + 0.5 - y_shift) / scale_factor + 0.5;
 
-        at(window, x_win, y_win) = interpolate_pix(&source->getData()[0], x, y, source->getWidth(), source->getHeight(), INTERP_LANCZOS4);
+    auto data = &source->getData()[0];
+    auto source_width = source->getWidth();
+    auto source_height = source->getHeight();
+
+    for(int x_win=0; x_win < window_width; x_win++) {
+      float x = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
+      for(int y_win=0; y_win < window_height; y_win++) {
+        float y = (y_win + 0.5 - y_shift) / scale_factor + 0.5;
+        at(window, x_win, y_win) = interpolate_pix(data, x, y, source_width, source_height, INTERP_LANCZOS4);
+        //at(window, x_win, y_win) = interpolate_pix(data, x, y, source_width, source_height, INTERP_BILINEAR);
       }
     }
 

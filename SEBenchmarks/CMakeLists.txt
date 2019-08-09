@@ -51,6 +51,8 @@ elements_add_executable(BenchConvolution src/program/BenchConvolution.cpp
         LINK_LIBRARIES ModelFitting SEFramework ${Boost_LIBRARIES} ${OpenCV_LIBS})
 elements_add_executable(BenchBackgroundConvolution src/program/BenchBackgroundConvolution.cpp
         LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
+elements_add_executable(BenchRendering src/program/BenchRendering.cpp
+        LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
 
 #===============================================================================
 # Declare the Boost tests here

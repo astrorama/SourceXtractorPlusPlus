@@ -111,8 +111,6 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
 
   // FIXME
   const_cast<CompactSersicModel<ImageType>*>(this)->m_transform = getCombinedTransform();
-
-
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
   double previous = 0.;
@@ -133,16 +131,30 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
 //    }
 //  }
 
+//  Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(0, 0, 8, pixel_scale, 1.01)  * area_correction;
+//  //for (int i=0; i<3; i++) {
+//  for (int i=0; i<std::min<int>(size_x/2, size_y/2); i++) {
+//      for (int x=-i; x<=i; x++) {
+//        Traits::at(image, size_x / 2 + x, size_y / 2 - i) = adaptiveSamplePixel(x, -i, 4, pixel_scale, 1.01)  * area_correction;
+//        Traits::at(image, size_x / 2 + x, size_y / 2 + i) = adaptiveSamplePixel(x,  i, 4, pixel_scale, 1.01)  * area_correction;
+//      }
+//      for (int y=-(i-1); y<=(i-1); y++) {
+//        Traits::at(image, size_x / 2 - i, size_y / 2 + y) = adaptiveSamplePixel(-i, y, 4, pixel_scale, 1.01)  * area_correction;
+//        Traits::at(image, size_x / 2 + i, size_y / 2 + y) = adaptiveSamplePixel( i, y, 4, pixel_scale, 1.01)  * area_correction;
+//      }
+//  }
+
   for (std::size_t x=0; x<size_x; ++x) {
     double x_model = x - (size_x-1) / 2.;
     x_model *= pixel_scale;
     for (std::size_t y=0; y<size_y; ++y) {
       double y_model = y - (size_y-1) / 2.;
       y_model *= pixel_scale;
-      Traits::at(image, x, y) = evaluateModel(x_model, y_model) * area_correction;
+      if (Traits::at(image, x, y) == 0.0) {
+        Traits::at(image, x, y) = evaluateModel(x_model, y_model) * area_correction;
+      }
     }
   }
-  Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(0, 0, 8, pixel_scale, 1.01)  * area_correction;
 
   return image;
 }
