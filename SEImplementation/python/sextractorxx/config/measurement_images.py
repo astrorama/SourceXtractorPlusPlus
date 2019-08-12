@@ -626,7 +626,6 @@ class MeasurementGroup(object):
             self.__images = [im for im in image_group]
         else:
             self.__subgroups = [(n, MeasurementGroup(g)) for n,g in image_group]
-        self.__models = []
 
     def __iter__(self):
         """
