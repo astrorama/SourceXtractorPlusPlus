@@ -8,6 +8,12 @@ from astropy.io import fits
 
 import _SExtractorPy as cpp
 
+if sys.version_info.major < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
+
+
 measurement_images = {}
 
 
@@ -337,6 +343,10 @@ class ImageGroup(object):
                 print('{}  {}:'.format(prefix, name), file=file)
                 group.printToScreen(prefix + '    ', show_images, file)
 
+    def __str__(self):
+        string = StringIO()
+        self.printToScreen(show_images=True, file=string)
+        return string.getvalue()
 
 class ImageCacheEntry(object):
     def __init__(self, image, kwargs):
@@ -701,3 +711,8 @@ class MeasurementGroup(object):
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
                 group.printToScreen(prefix + '    ', show_images, file=file)
+
+    def __str__(self):
+        string = StringIO()
+        self.printToScreen(show_images=True, file=string)
+        return string.getvalue()
