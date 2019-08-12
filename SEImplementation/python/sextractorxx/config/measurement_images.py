@@ -319,7 +319,7 @@ class ImageGroup(object):
         except StopIteration:
             raise KeyError('Group {} not found'.format(name))
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -341,11 +341,11 @@ class ImageGroup(object):
             print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file)
+                group.print(prefix + '    ', show_images, file)
 
     def __str__(self):
         string = StringIO()
-        self.printToScreen(show_images=True, file=string)
+        self.print(show_images=True, file=string)
         return string.getvalue()
 
 class ImageCacheEntry(object):
@@ -686,7 +686,7 @@ class MeasurementGroup(object):
         """
         return self.__subgroups is None
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -709,9 +709,9 @@ class MeasurementGroup(object):
                 x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file=file)
+                group.print(prefix + '    ', show_images, file=file)
 
     def __str__(self):
         string = StringIO()
-        self.printToScreen(show_images=True, file=string)
+        self.print(show_images=True, file=string)
         return string.getvalue()
