@@ -344,9 +344,16 @@ class ImageGroup(object):
                 group.print(prefix + '    ', show_images, file)
 
     def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
         string = StringIO()
         self.print(show_images=True, file=string)
         return string.getvalue()
+
 
 class ImageCacheEntry(object):
     def __init__(self, image, kwargs):
@@ -712,6 +719,12 @@ class MeasurementGroup(object):
                 group.print(prefix + '    ', show_images, file=file)
 
     def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
         string = StringIO()
         self.print(show_images=True, file=string)
         return string.getvalue()
