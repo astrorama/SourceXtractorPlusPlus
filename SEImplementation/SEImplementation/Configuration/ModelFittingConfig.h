@@ -20,6 +20,8 @@ class ModelFittingConfig : public Euclid::Configuration::Configuration {
 public:
   
   ModelFittingConfig(long manager_id);
+
+  ~ModelFittingConfig();
   
   void initialize(const UserValues& args) override;
   

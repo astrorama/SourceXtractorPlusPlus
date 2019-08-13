@@ -9,6 +9,7 @@
 
 #include <ElementsKernel/Exception.h>
 #include <ElementsKernel/Logging.h>
+#include <Python.h>
 
 namespace SExtractor {
 /**
@@ -21,6 +22,18 @@ namespace SExtractor {
  *  An Elements exception that contains the error message from the last exception thrown within Python
  */
 Elements::Exception pyToElementsException(Elements::Logging &logger);
+
+/**
+ * RAII wrapper to be used when going back to Python
+ */
+struct GILStateEnsure {
+public:
+  GILStateEnsure();
+  ~GILStateEnsure();
+
+private:
+  PyGILState_STATE m_state;
+};
 
 } // end SExtractor
 

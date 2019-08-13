@@ -37,6 +37,7 @@ namespace SExtractor {
  */
 template <typename R, typename ...T>
 R py_call_wrapper(const py::object& func, T... args) {
+  GILStateEnsure ensure;
   try {
     return py::extract<R>(func(args...));
   }
@@ -83,7 +84,17 @@ ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_
   declareDependency<PythonConfig>();
 }
 
+ModelFittingConfig::~ModelFittingConfig() {
+  GILStateEnsure ensure;
+  m_parameters.clear();
+  m_models.clear();
+  m_frames.clear();
+  m_priors.clear();
+  m_outputs.clear();
+}
+
 void ModelFittingConfig::initialize(const UserValues&) {
+  GILStateEnsure ensure;
   try {
     initializeInner();
   }
@@ -155,6 +166,7 @@ void ModelFittingConfig::initializeInner() {
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
       try {
+        GILStateEnsure ensure;
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }

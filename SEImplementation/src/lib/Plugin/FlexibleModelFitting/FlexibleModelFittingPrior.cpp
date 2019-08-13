@@ -32,8 +32,6 @@ using namespace ModelFitting;
 void FlexibleModelFittingPrior::setupPrior(
     FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
     ResidualEstimator& residual_estimator) const {
-  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
-
   double expected_value = m_expected_value(source);
   double weight = 1. / m_standard_deviation(source);
 
