@@ -3,8 +3,6 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <signal.h>
-#include <utility>
 #include <boost/python.hpp>
 #include <Python.h>
 
@@ -26,18 +24,14 @@ PythonInterpreter &PythonInterpreter::getSingleton() {
 }
 
 PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
-  // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
-  // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
-  // the default one) and restore it after initializing the interpreter
-  struct sigaction sigint_handler;
-  sigaction(SIGINT, nullptr, &sigint_handler);
-
-  Py_Initialize();
-
-  sigaction(SIGINT, &sigint_handler, nullptr);
+  Py_InitializeEx(0);
+  PyEval_InitThreads();
+  PyEval_SaveThread();
 }
 
 void PythonInterpreter::runCode(const std::string &code) {
+  GILStateEnsure ensure;
+
   py::object main_module = py::import("__main__");
   py::object main_namespace = main_module.attr("__dict__");
   try {
@@ -49,6 +43,8 @@ void PythonInterpreter::runCode(const std::string &code) {
 }
 
 void PythonInterpreter::runFile(const std::string &filename, const std::vector<std::string> &argv) {
+  GILStateEnsure ensure;
+
   try {
     // Setup argv
     // Python expects to have the ownership!
@@ -88,6 +84,8 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
 }
 
 std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
+  GILStateEnsure ensure;
+
   try {
     py::object meas_images_module = py::import("sextractorxx.config.measurement_images");
     py::dict images = py::extract<py::dict>(meas_images_module.attr("measurement_images"));
@@ -106,6 +104,8 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
 }
 
 std::map<int, PyAperture> PythonInterpreter::getApertures() {
+  GILStateEnsure ensure;
+
   try {
     py::object apertures_module = py::import("sextractorxx.config.aperture");
     py::dict apertures = py::extract<py::dict>(apertures_module.attr("apertures_for_image"));
@@ -124,6 +124,8 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
 }
 
 std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getModelFittingOutputColumns() {
+  GILStateEnsure ensure;
+
   try {
     py::object output_module = py::import("sextractorxx.config.output");
     py::list output = py::extract<py::list>(output_module.attr("model_fitting_parameter_columns"));
@@ -154,6 +156,8 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
 }
 
 std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColumns() {
+  GILStateEnsure ensure;
+
   try {
     py::object output_module = py::import("sextractorxx.config.output");
     py::list output = py::extract<py::list>(output_module.attr("aperture_columns"));
@@ -184,6 +188,8 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
 namespace {
 
 std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {
+  GILStateEnsure ensure;
+
   try {
     py::object model_fitting_module = py::import(module_name);
     py::dict parameters = py::extract<py::dict>(model_fitting_module.attr(dict_name));
@@ -240,6 +246,7 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
 }
 
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
+  GILStateEnsure ensure;
   try {
     std::map<int, std::vector<int>> result{};
     py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
@@ -261,6 +268,8 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
 }
 
 std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
+  GILStateEnsure ensure;
+
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
   py::list ids = parameters.keys();
@@ -274,6 +283,8 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
 }
 
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
+  GILStateEnsure ensure;
+
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");
   python_function(coordinate_system);
