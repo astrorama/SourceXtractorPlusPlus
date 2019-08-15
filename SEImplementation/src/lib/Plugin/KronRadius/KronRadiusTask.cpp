@@ -11,6 +11,7 @@
 #include "SEFramework/Aperture/EllipticalAperture.h"
 #include "SEFramework/Aperture/NeighbourInfo.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
@@ -31,6 +32,8 @@ namespace {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void KronRadiusTask::computeProperties(SourceInterface& source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   // get the detection frame
   const auto& detection_frame  = source.getProperty<DetectionFrame>().getFrame();
 
