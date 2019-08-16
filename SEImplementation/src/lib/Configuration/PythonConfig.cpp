@@ -40,13 +40,14 @@ void PythonConfig::preInitialize(const UserValues& args) {
 }
 
 void PythonConfig::initialize(const UserValues& args) {
+  auto &singleton = PythonInterpreter::getSingleton();
   auto filename = args.find(PYTHON_CONFIG_FILE)->second.as<std::string>();
   if (!filename.empty()) {
     std::vector<std::string> argv;
     if (args.find(PYTHON_ARGV) != args.end()) {
       argv = args.find(PYTHON_ARGV)->second.as<std::vector<std::string>>();
     }
-    PythonInterpreter::getSingleton().runFile(filename, argv);
+    singleton.runFile(filename, argv);
   }
 }
 
