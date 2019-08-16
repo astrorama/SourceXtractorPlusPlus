@@ -19,7 +19,7 @@ using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 /**
  * Specialization of the ImageTraits for WriteableImage
  * Can be used for WriteableBufferImages, for instance.
- * @warning This specialization is very unefficient, but handy for generating test images
+ * @warning This specialization is very inefficient, but handy for generating test images
  */
 template<>
 struct ImageTraits<WriteableInterfaceTypePtr> {
@@ -193,8 +193,8 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
         }
 
         window->setValue(x_win, y_win,
-                         interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix, INTERP_MAXKERNELWIDTH / 2 + y - iy,
-                                         8, 8, INTERP_LANCZOS4));
+                         SExtractor::interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix, INTERP_MAXKERNELWIDTH / 2 + y - iy,
+                                         8, 8, SExtractor::INTERP_LANCZOS4));
       }
     }
 

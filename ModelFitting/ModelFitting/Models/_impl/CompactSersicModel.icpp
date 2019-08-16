@@ -25,6 +25,7 @@ inline double CompactSersicModel<ImageType>::evaluateModel(double x, double y) c
   auto r = std::sqrt(x2*x2 + y2*y2);
 
   return m_i0 * std::exp(-m_k * std::pow(r, 1. / m_n));
+  //return m_i0 * std::exp(-m_k * r); // TEST
 }
 
 template<typename ImageType>

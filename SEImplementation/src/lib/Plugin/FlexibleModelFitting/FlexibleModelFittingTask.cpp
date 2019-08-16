@@ -247,6 +247,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
       // Setup residuals
       auto data_vs_model =
         createDataVsModelResiduals(image, std::move(frame_model), weight,
+                                   //LogChiSquareComparator(m_modified_chi_squared_scale));
                                    AsinhChiSquareComparator(m_modified_chi_squared_scale));
       res_estimator.registerBlockProvider(std::move(data_vs_model));
     }
@@ -288,7 +289,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   }
 
   // Model fitting
-  LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
+  LevmarEngine engine{m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
