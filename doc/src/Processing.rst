@@ -7,16 +7,23 @@
 Processing
 ==========
 
-The complete analysis of an image is fully automated (:numref:`fig_sexlayout`). Two passes are made through the data.
-During the first pass, a `model of the sky background <background_mode>`_ is built, and several global statistics are computed.
-During the second pass, image pixels are background-subtracted, filtered and segmented on-the-fly.
-Detections are then deblended, pruned (“CLEANed”), and enter the measurement phase.
-Finally, the measured quantities are written to the output catalog, after cross-matching with an optional input list.
+The complete analysis of an image is fully automated (:numref:`fig_flowchart`).
+There are three main steps in the processing: detection, collection and measurement:
 
-.. _fig_sexlayout:
+* During the detection step, image pixels from the detection image are background-subtracted, filtered and segmented on-the-fly.
+  The extracted source candidates are then deblended and pruned (“cleaned”),
 
-.. figure:: figures/sexlayout.*
+* During the collection step, isophotal properties are measured and a source model is fit to the detection image.
+  Overlapping sources are identified and grouped.
+
+* During the measurement step, sources are analysed individually or as part of their group.
+  Measurements are written to the output catalog.
+
+.. _fig_flowchart:
+
+.. figure:: figures/flowchart.*
    :align: center
+   :figwidth: 100%
 
    Layout of the main |SExtractor++| procedures. *Dashed arrows* represent
    optional inputs. 

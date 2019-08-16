@@ -11,7 +11,7 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    Introduction
    License
@@ -19,7 +19,6 @@ Contents
    Using
    Processing
    Measurements
-   Model
    ConfigAPI
    references
 

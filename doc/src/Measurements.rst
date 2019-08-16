@@ -2,15 +2,16 @@
 
 .. include:: global.rst
 
-Measurements
-============
+Measuring
+=========
 
 Once sources have been detected and deblended, they enter the measurement phase.
+
 |SExtractor++| performs three categories of measurements: isophotal, aperture, and model-fitting.
 
 .. _isophotal_measurements:
 
-Isophotal measurements are done *on the detection image* only.
+**Isophotal measurements** are done *on the detection image* only.
 They exclusively take into account object pixels with values exceeding the detection threshold.
 They run quick and are reasonably immune to light contamination by neighbors.
 However as such they generally only provide heavily biased estimates of physical quantities, especially for fluxes.
@@ -20,7 +21,7 @@ They depend only on detection, deblending and background-subtraction settings.
 
 .. _aperture_measurements:
 
-Aperture measurements are done on the measurement images.
+**Aperture measurements** are done on the measurement images.
 They involve pixels within geometric apertures, such as disks and ellipses.
 The size and shape of the apertures may be fixed, or adaptive to every object.
 Aperture measurements are largely sub-optimal from the point-of-view of |SNR|_.
@@ -29,7 +30,7 @@ They can be very sensitive to contamination by the light of neighbors, although 
 
 .. _model_measurements:
 
-Model-fitting measurements are performed on the measurement images.
+**Model-fitting measurements** are performed on the measurement images.
 They are close to optimum from the point-of-view of |SNR|, but they require accurate PSF models (one per image).
 |PSF|_ models can be computed using the |PSFEx|_ package.
 |SExtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
@@ -172,9 +173,14 @@ A measurement group (:class:`~config.measurement_images.MeasurementGroup`) is in
 
 Like image subgroups, measurement subgroups are custom maps and can be managed in a similar way.
 
+Measurements
+------------
+
+
 .. toctree::
+  :maxdepth: 3
 
   Position
   Photom
-
+  Model
 
