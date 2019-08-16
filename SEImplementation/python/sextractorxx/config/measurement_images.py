@@ -336,9 +336,9 @@ class ImageGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
+            print('{}Image sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
                 group.print(prefix + '    ', show_images, file)
@@ -623,7 +623,9 @@ class MeasurementGroup(object):
     image_group : ImageGroup
     """
 
-    def __init__(self, image_group):
+    _all_groups = list()
+
+    def __init__(self, image_group, is_subgroup=False):
         """
         Constructor.
         """
@@ -632,7 +634,9 @@ class MeasurementGroup(object):
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, MeasurementGroup(g)) for n,g in image_group]
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n,g in image_group]
+        if not is_subgroup:
+            MeasurementGroup._all_groups.append(self)
 
     def __iter__(self):
         """
@@ -710,9 +714,9 @@ class MeasurementGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         if self.__subgroups:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(
+            print('{}Measurement sub-groups: {}'.format(prefix, ','.join(
                 x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)

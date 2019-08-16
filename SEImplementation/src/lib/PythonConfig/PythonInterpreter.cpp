@@ -282,6 +282,23 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
   return result;
 }
 
+std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
+  GILStateEnsure ensure;
+
+  try {
+    py::object model_fitting_module = py::import("sextractorxx.config.measurement_images");
+    py::list groups = py::extract<py::list>(model_fitting_module.attr("MeasurementGroup").attr("_all_groups"));
+    std::vector <boost::python::object> result;
+    for (int i = 0; i < py::len(groups); ++i) {
+      result.emplace_back(groups[i]);
+    }
+    return result;
+  }
+  catch (const py::error_already_set &e) {
+    throw pyToElementsException(logger);
+  }
+}
+
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
   GILStateEnsure ensure;
 
