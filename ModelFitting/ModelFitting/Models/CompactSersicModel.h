@@ -21,21 +21,10 @@ template <typename ImageType>
 class CompactSersicModel : public ExtendedModel<ImageType> {
 
 public:
-//  using ExtendedModel<ImageType>::getX();
-//  using ExtendedModel<ImageType>::getY();
-
-
   CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
                 BasicParameter& x_scale, BasicParameter& y_scale,
                 BasicParameter& rotation, double width, double height,
                 BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform);
-
-//  CompactSersicModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
-//                BasicParameter& x_scale, BasicParameter& y_scale,
-//                BasicParameter& rotation_angle, double width, double height,
-//                BasicParameter& x, BasicParameter& y);
-
-  //CompactSersicModel(TransformedModel&&) = default;
 
   virtual ~CompactSersicModel() = default;
 
@@ -44,13 +33,13 @@ public:
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
 
   double evaluateModel(double x, double y) const;
-  double samplePixel(int x, int y, unsigned int subsampling, double pixel_scale) const;
-  double adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double pixel_scale, double threshold=1.1) const;
+  double samplePixel(int x, int y, unsigned int subsampling) const;
+  double adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double threshold=1.1) const;
 
 protected:
 
 private:
-  Mat22 getCombinedTransform() const;
+  Mat22 getCombinedTransform(double pixel_scale) const;
 
   double m_x_scale;
   ReferenceUpdater m_x_scale_updater;

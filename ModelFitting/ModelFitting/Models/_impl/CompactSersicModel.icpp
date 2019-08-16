@@ -28,24 +28,24 @@ inline double CompactSersicModel<ImageType>::evaluateModel(double x, double y) c
 }
 
 template<typename ImageType>
-inline double CompactSersicModel<ImageType>::samplePixel(int x, int y, unsigned int subsampling, double pixel_scale)  const {
+inline double CompactSersicModel<ImageType>::samplePixel(int x, int y, unsigned int subsampling) const {
   double acc = 0.;
   for (std::size_t ix=0; ix<subsampling; ++ix) {
-    double x_model = (x - 0.5 + (ix+1) * 1.0 / (subsampling+1)) * pixel_scale;
+    double x_model = (x - 0.5 + (ix+1) * 1.0 / (subsampling+1));
     for (std::size_t iy=0; iy<subsampling; ++iy) {
-      double y_model = (y - 0.5 + (iy+1) * 1.0 / (subsampling+1)) * pixel_scale;
+      double y_model = (y - 0.5 + (iy+1) * 1.0 / (subsampling+1));
       acc += evaluateModel(x_model, y_model);
     }
   }
 
-  return acc * (pixel_scale*pixel_scale) / (subsampling*subsampling);
+  return acc / (subsampling*subsampling);
 }
 
 template <typename ImageType>
-inline double CompactSersicModel<ImageType>::adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double pixel_scale, double threshold) const {
-  double value = samplePixel(x,y, 1, pixel_scale);
+inline double CompactSersicModel<ImageType>::adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double threshold) const {
+  double value = samplePixel(x,y, 1);
   for (unsigned int i=2; i<=max_subsampling; i+=2) {
-    double newValue = samplePixel(x,y, i, pixel_scale);
+    double newValue = samplePixel(x,y, i);
     auto ratio = newValue / value;
     if (ratio < threshold && ratio > 1.0 / threshold) {
       value = newValue;
@@ -82,7 +82,7 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
 }
 
 template<typename ImageType>
-Mat22 CompactSersicModel<ImageType>::getCombinedTransform() const {
+Mat22 CompactSersicModel<ImageType>::getCombinedTransform(double pixel_scale) const {
   double s, c;
   sincos(m_rotation, &s, &c);
 
@@ -94,7 +94,7 @@ Mat22 CompactSersicModel<ImageType>::getCombinedTransform() const {
       1. / m_x_scale, 0.0,
       0.0, 1. / m_y_scale);
 
-  return (scale * rotation) * m_inv_jacobian;
+  return scale * rotation * m_inv_jacobian * pixel_scale;
 }
 
 template<typename ImageType>
@@ -110,51 +110,20 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
   ImageType image = Traits::factory(size_x, size_y);
 
   // FIXME
-  const_cast<CompactSersicModel<ImageType>*>(this)->m_transform = getCombinedTransform();
+  const_cast<CompactSersicModel<ImageType>*>(this)->m_transform = getCombinedTransform(pixel_scale);
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
-
-  double previous = 0.;
-//  for (std::size_t x=0; x<size_x; ++x) {
-//    double x_model = x - (size_x-1) / 2.;
-//    x_model *= pixel_scale;
-//    for (std::size_t y=0; y<size_y; ++y) {
-//      double y_model = y - (size_y-1) / 2.;
-//      y_model *= pixel_scale;
-//      auto newValue = evaluateModel(x_model, y_model) * area_correction;
-//
-//      if (fabs(newValue -previous) / newValue > 0.1) {
-//        previous = Traits::at(image, x, y) = newValue;
-//        //previous = Traits::at(image, x, y) = adaptiveSamplePixel(x - size_x/2, y - size_y/2, 4, pixel_scale)  * area_correction;
-//      } else {
-//        previous = Traits::at(image, x, y) = newValue;
-//      }
-//    }
-//  }
-
-//  Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(0, 0, 8, pixel_scale, 1.01)  * area_correction;
-//  //for (int i=0; i<3; i++) {
-//  for (int i=0; i<std::min<int>(size_x/2, size_y/2); i++) {
-//      for (int x=-i; x<=i; x++) {
-//        Traits::at(image, size_x / 2 + x, size_y / 2 - i) = adaptiveSamplePixel(x, -i, 4, pixel_scale, 1.01)  * area_correction;
-//        Traits::at(image, size_x / 2 + x, size_y / 2 + i) = adaptiveSamplePixel(x,  i, 4, pixel_scale, 1.01)  * area_correction;
-//      }
-//      for (int y=-(i-1); y<=(i-1); y++) {
-//        Traits::at(image, size_x / 2 - i, size_y / 2 + y) = adaptiveSamplePixel(-i, y, 4, pixel_scale, 1.01)  * area_correction;
-//        Traits::at(image, size_x / 2 + i, size_y / 2 + y) = adaptiveSamplePixel( i, y, 4, pixel_scale, 1.01)  * area_correction;
-//      }
-//  }
 
   for (std::size_t x=0; x<size_x; ++x) {
     double x_model = x - (size_x-1) / 2.;
-    x_model *= pixel_scale;
     for (std::size_t y=0; y<size_y; ++y) {
       double y_model = y - (size_y-1) / 2.;
-      y_model *= pixel_scale;
-      if (Traits::at(image, x, y) == 0.0) {
-        Traits::at(image, x, y) = evaluateModel(x_model, y_model) * area_correction;
-      }
+      //if (Traits::at(image, x, y) == 0.0) {
+      //Traits::at(image, x, y) = samplePixel(x_model, y_model, 2) * area_correction;
+      Traits::at(image, x, y) = evaluateModel(x_model, y_model) * area_correction;
+      //}
     }
   }
+  //Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(0, 0, 8, 1.01)  * area_correction;
 
   return image;
 }
