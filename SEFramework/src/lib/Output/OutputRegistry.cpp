@@ -41,6 +41,9 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
         cell_values.emplace_back(m_name_to_converter_map.at(name).second(source));
       }
     }
+    if (info_list.empty()) {
+      throw Elements::Exception() << "The given configuration would not generate any output";
+    }
     return Row {std::move(cell_values), std::make_shared<ColumnInfo>(move(info_list))};
   };
 }
