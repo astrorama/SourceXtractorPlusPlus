@@ -9,6 +9,7 @@
 #include <chrono>
 #include <atomic>
 #include <ElementsKernel/Logging.h>
+#include <csignal>
 
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
@@ -71,9 +72,11 @@ void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* meas
   }
   catch (const std::exception &e) {
     logger.fatal() << "Worker thread " << id << " got an exception!";
-    logger.fatal() << "Aborting the execution";
     logger.fatal() << e.what();
-    abort();
+    if (!measurement->m_abort_raised.exchange(true)) {
+      logger.fatal() << "Aborting the execution";
+      ::raise(SIGTERM);
+    }
   }
   logger.debug() << "Stopping worker thread " << id;
 }
@@ -85,9 +88,11 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* meas
   }
   catch (const std::exception &e) {
     logger.fatal() << "Output thread got an exception!";
-    logger.fatal() << "Aborting the execution";
     logger.fatal() << e.what();
-    abort();
+    if (!measurement->m_abort_raised.exchange(true)) {
+      logger.fatal() << "Aborting the execution";
+      ::raise(SIGTERM);
+    }
   }
   logger.debug() << "Stopping output thread " << id;
 }
