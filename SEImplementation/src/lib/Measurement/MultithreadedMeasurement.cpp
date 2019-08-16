@@ -70,7 +70,7 @@ void MultithreadedMeasurement::workerThreadStatic(MultithreadedMeasurement* meas
   try {
     measurement->workerThreadLoop();
   }
-  catch (const std::exception &e) {
+  catch (const Elements::Exception &e) {
     logger.fatal() << "Worker thread " << id << " got an exception!";
     logger.fatal() << e.what();
     if (!measurement->m_abort_raised.exchange(true)) {
@@ -86,7 +86,7 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* meas
   try {
     measurement->outputThreadLoop();
   }
-  catch (const std::exception &e) {
+  catch (const Elements::Exception &e) {
     logger.fatal() << "Output thread got an exception!";
     logger.fatal() << e.what();
     if (!measurement->m_abort_raised.exchange(true)) {
