@@ -23,6 +23,7 @@
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 
+#include "ModelFitting/Models/CompactExponentialModel.h"
 #include "ModelFitting/Models/CompactSersicModel.h"
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
@@ -102,7 +103,6 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
       }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
 
 
-  ManualParameter n(1); // Sersic index for exponential
   ManualParameter x_scale(1); // we don't scale the x coordinate
 
   auto i0 = std::make_shared<DependentParameter<BasicParameter, BasicParameter, BasicParameter>>(
@@ -122,8 +122,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
-      *i0, *k, n, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
+  extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
+      *i0, *k, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
 
 }

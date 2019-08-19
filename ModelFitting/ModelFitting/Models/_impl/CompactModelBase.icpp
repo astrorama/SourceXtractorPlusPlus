@@ -1,0 +1,39 @@
+/*
+ * CompactModelBase.icpp
+ *
+ *  Created on: Aug 19, 2019
+ *      Author: mschefer
+ */
+
+namespace ModelFitting {
+
+template<typename ImageType>
+CompactModelBase<ImageType>::CompactModelBase(BasicParameter& x_scale, BasicParameter& y_scale,
+              BasicParameter& rotation, double width, double height,
+              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
+    : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y),
+      m_x_scale(x_scale.getValue()), m_x_scale_updater(x_scale, m_x_scale),
+      m_y_scale(y_scale.getValue()), m_y_scale_updater(y_scale, m_y_scale),
+      m_rotation(rotation.getValue()), m_rotation_updater(rotation, m_rotation)
+{
+  m_jacobian = Mat22(transform).GetTranspose();
+  m_inv_jacobian = m_jacobian.GetInverse();
+}
+
+template<typename ImageType>
+Mat22 CompactModelBase<ImageType>::getCombinedTransform(double pixel_scale) const {
+  double s, c;
+  sincos(m_rotation, &s, &c);
+
+  Mat22 rotation(
+      c, s,
+      -s, c);
+
+  Mat22 scale(
+      1. / m_x_scale, 0.0,
+      0.0, 1. / m_y_scale);
+
+  return scale * rotation * m_inv_jacobian * pixel_scale;
+}
+
+}

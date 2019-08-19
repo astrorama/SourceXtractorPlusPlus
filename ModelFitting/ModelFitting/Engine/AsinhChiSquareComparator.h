@@ -9,6 +9,7 @@
 #define _MODELFITTING_ENGINE_ASINHCHISQUARECOMPARATOR_H_
 
 #include <cstdlib>
+#include <math.h>
 
 namespace ModelFitting {
 
@@ -28,7 +29,7 @@ public:
 
   /// Returns the modified \f$\chi^2\f$ residual
   double operator()(double real, double model, double weight) const {
-    double val =  weight * (real - model) / m_u0;
+    float val =  weight * (real - model) / m_u0;
     return m_u0 * std::asinh(val);
   }
 

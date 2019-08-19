@@ -5,37 +5,49 @@
  *      Author: mschefer
  */
 
-
-#include <iostream>
-#include <cmath> // for std::sqrt
-#include <assert.h>
-
-#include "ElementsKernel/Exception.h"
-
-#include "SEUtils/Mat22.h"
-
-#include "ModelFitting/Image/ImageTraits.h"
+#include <math.h>
 
 namespace ModelFitting {
 
 template<typename ImageType>
-inline double CompactSersicModel<ImageType>::evaluateModel(double x, double y) const {
-  auto x2 = x * m_transform[0] + y * m_transform[1];
-  auto y2 = x * m_transform[2] + y * m_transform[3];
-  auto r = std::sqrt(x2*x2 + y2*y2);
-
-  return m_i0 * std::exp(-m_k * std::pow(r, 1. / m_n));
-  //return m_i0 * std::exp(-m_k * r); // TEST
-}
+CompactSersicModel<ImageType>::CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
+              BasicParameter& x_scale, BasicParameter& y_scale,
+              BasicParameter& rotation, double width, double height,
+              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
+    : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
+      m_i0(i0.getValue()), m_i0_updater(i0, m_i0),
+      m_k(k.getValue()), m_k_updater(k, m_k),
+      m_n(n.getValue()), m_n_updater(n, m_n)
+{}
 
 template<typename ImageType>
-inline double CompactSersicModel<ImageType>::samplePixel(int x, int y, unsigned int subsampling) const {
+inline float CompactSersicModel<ImageType>::evaluateModel(const Mat22& transform, float x, float y) const {
+  float x2 = x * transform[0] + y * transform[1];
+  float y2 = x * transform[2] + y * transform[3];
+  float r = std::sqrt(x2*x2 + y2*y2);
+
+  return m_i0 * std::exp(float(-m_k * powf(r, 1. / m_n)));
+  //return float(m_i0) * std::exp(float(-m_k * r));
+}
+
+//template<typename ImageType>
+//inline float CompactSersicModel<ImageType>::evaluateModel(const Mat22& transform, double x, double y) const {
+//  auto x2 = x * transform[0] + y * transform[1];
+//  auto y2 = x * transform[2] + y * transform[3];
+//  auto r = std::sqrt(x2*x2 + y2*y2);
+//
+//  return m_i0 * std::exp(-m_k * std::pow(r, 1. / m_n));
+//  //return m_i0 * std::exp(-m_k * r); // TEST
+//}
+
+template<typename ImageType>
+inline float CompactSersicModel<ImageType>::samplePixel(const Mat22& transform, int x, int y, unsigned int subsampling) const {
   double acc = 0.;
   for (std::size_t ix=0; ix<subsampling; ++ix) {
-    double x_model = (x - 0.5 + (ix+1) * 1.0 / (subsampling+1));
+    float x_model = (x - 0.5 + (ix+1) * 1.0 / (subsampling+1));
     for (std::size_t iy=0; iy<subsampling; ++iy) {
-      double y_model = (y - 0.5 + (iy+1) * 1.0 / (subsampling+1));
-      acc += evaluateModel(x_model, y_model);
+      float y_model = (y - 0.5 + (iy+1) * 1.0 / (subsampling+1));
+      acc += evaluateModel(transform, x_model, y_model);
     }
   }
 
@@ -43,11 +55,11 @@ inline double CompactSersicModel<ImageType>::samplePixel(int x, int y, unsigned 
 }
 
 template <typename ImageType>
-inline double CompactSersicModel<ImageType>::adaptiveSamplePixel(int x, int y, unsigned int max_subsampling, double threshold) const {
-  double value = samplePixel(x,y, 1);
+inline float CompactSersicModel<ImageType>::adaptiveSamplePixel(const Mat22& transform, int x, int y, unsigned int max_subsampling, float threshold) const {
+  float value = samplePixel(transform, x,y, 1);
   for (unsigned int i=2; i<=max_subsampling; i+=2) {
-    double newValue = samplePixel(x,y, i);
-    auto ratio = newValue / value;
+    float newValue = samplePixel(transform, x,y, i);
+    float ratio = newValue / value;
     if (ratio < threshold && ratio > 1.0 / threshold) {
       value = newValue;
       break;
@@ -58,44 +70,11 @@ inline double CompactSersicModel<ImageType>::adaptiveSamplePixel(int x, int y, u
   return value;
 }
 
-template<typename ImageType>
-CompactSersicModel<ImageType>::CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
-              BasicParameter& x_scale, BasicParameter& y_scale,
-              BasicParameter& rotation, double width, double height,
-              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
-    : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y),
-      m_x_scale(x_scale.getValue()), m_x_scale_updater(x_scale, m_x_scale),
-      m_y_scale(y_scale.getValue()), m_y_scale_updater(y_scale, m_y_scale),
-      m_rotation(rotation.getValue()), m_rotation_updater(rotation, m_rotation),
-      m_i0(i0.getValue()), m_i0_updater(i0, m_i0),
-      m_k(k.getValue()), m_k_updater(k, m_k),
-      m_n(n.getValue()), m_n_updater(n, m_n)
-{
-  m_jacobian = Mat22(transform).GetTranspose();
-  m_inv_jacobian = m_jacobian.GetInverse();
-}
-
 
 template<typename ImageType>
 double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   // FIXME do we even need this?
   return 0.0;
-}
-
-template<typename ImageType>
-Mat22 CompactSersicModel<ImageType>::getCombinedTransform(double pixel_scale) const {
-  double s, c;
-  sincos(m_rotation, &s, &c);
-
-  Mat22 rotation(
-      c, s,
-      -s, c);
-
-  Mat22 scale(
-      1. / m_x_scale, 0.0,
-      0.0, 1. / m_y_scale);
-
-  return scale * rotation * m_inv_jacobian * pixel_scale;
 }
 
 template<typename ImageType>
@@ -111,20 +90,21 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
   ImageType image = Traits::factory(size_x, size_y);
 
   // FIXME
-  const_cast<CompactSersicModel<ImageType>*>(this)->m_transform = getCombinedTransform(pixel_scale);
-  auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
+  auto transform = getCombinedTransform(pixel_scale);
+  float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
   for (std::size_t x=0; x<size_x; ++x) {
-    double x_model = x - (size_x-1) / 2.;
+    float x_model = x - (size_x-1) / 2.;
     for (std::size_t y=0; y<size_y; ++y) {
-      double y_model = y - (size_y-1) / 2.;
+      float y_model = y - (size_y-1) / 2.;
       //if (Traits::at(image, x, y) == 0.0) {
-      //Traits::at(image, x, y) = samplePixel(x_model, y_model, 2) * area_correction;
-      Traits::at(image, x, y) = evaluateModel(x_model, y_model) * area_correction;
+      //Traits::at(image, x, y) = samplePixel(transform, x_model, y_model, 4) * area_correction;
+      //Traits::at(image, x, y) = adaptiveSamplePixel(transform, x_model, y_model, 8, 1.01)  * area_correction;
+      Traits::at(image, x, y) = evaluateModel(transform, x_model, y_model) * area_correction;
       //}
     }
   }
-  //Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(0, 0, 8, 1.01)  * area_correction;
+  Traits::at(image, size_x/2, size_y/2) = adaptiveSamplePixel(transform, 0, 0, 8, 1.01)  * area_correction;
 
   return image;
 }
