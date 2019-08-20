@@ -8,6 +8,12 @@ from astropy.io import fits
 
 import _SExtractorPy as cpp
 
+if sys.version_info.major < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
+
+
 measurement_images = {}
 
 
@@ -313,7 +319,7 @@ class ImageGroup(object):
         except StopIteration:
             raise KeyError('Group {} not found'.format(name))
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -330,12 +336,23 @@ class ImageGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
+            print('{}Image sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file)
+                group.print(prefix + '    ', show_images, file)
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
+        string = StringIO()
+        self.print(show_images=True, file=string)
+        return string.getvalue()
 
 
 class ImageCacheEntry(object):
@@ -606,7 +623,9 @@ class MeasurementGroup(object):
     image_group : ImageGroup
     """
 
-    def __init__(self, image_group):
+    _all_groups = list()
+
+    def __init__(self, image_group, is_subgroup=False):
         """
         Constructor.
         """
@@ -615,8 +634,9 @@ class MeasurementGroup(object):
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, MeasurementGroup(g)) for n,g in image_group]
-        self.__models = []
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n,g in image_group]
+        if not is_subgroup:
+            MeasurementGroup._all_groups.append(self)
 
     def __iter__(self):
         """
@@ -677,7 +697,7 @@ class MeasurementGroup(object):
         """
         return self.__subgroups is None
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -694,10 +714,21 @@ class MeasurementGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         if self.__subgroups:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(
+            print('{}Measurement sub-groups: {}'.format(prefix, ','.join(
                 x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file=file)
+                group.print(prefix + '    ', show_images, file=file)
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
+        string = StringIO()
+        self.print(show_images=True, file=string)
+        return string.getvalue()
