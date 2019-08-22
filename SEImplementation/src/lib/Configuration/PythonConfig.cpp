@@ -19,7 +19,9 @@ const std::string PYTHON_ARGV { "python-arg" };
 
 namespace SExtractor {
 
-PythonConfig::PythonConfig(long manager_id) : Configuration(manager_id) { }
+PythonConfig::PythonConfig(long manager_id) : Configuration(manager_id) {
+  PythonInterpreter::getSingleton();
+}
 
 std::map<std::string, Configuration::OptionDescriptionList> PythonConfig::getProgramOptions() {
   return {{"Measurement config", {
