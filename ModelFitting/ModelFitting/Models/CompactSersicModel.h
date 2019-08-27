@@ -16,7 +16,7 @@ template <typename ImageType>
 class CompactSersicModel : public CompactModelBase<ImageType> {
 
 public:
-  CompactSersicModel(BasicParameter& i0, BasicParameter& k, BasicParameter& n,
+  CompactSersicModel(double sharp_radius, BasicParameter& i0, BasicParameter& k, BasicParameter& n,
                 BasicParameter& x_scale, BasicParameter& y_scale,
                 BasicParameter& rotation, double width, double height,
                 BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform);
@@ -36,6 +36,8 @@ protected:
   using CompactModelBase<ImageType>::m_jacobian;
 
 private:
+  float m_sharp_radius_squared;
+
   // Sersic parameters
   double m_i0;
   ReferenceUpdater m_i0_updater;

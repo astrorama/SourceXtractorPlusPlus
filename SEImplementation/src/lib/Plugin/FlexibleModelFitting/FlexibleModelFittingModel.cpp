@@ -168,7 +168,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
-      *i0, *k, n, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
+      3.0, *i0, *k, n, x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
 }
 
@@ -216,7 +216,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
-      *i0, *k, *manager.getParameter(source, m_sersic_index), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
+      3.0, *i0, *k, *manager.getParameter(source, m_sersic_index), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
       size, size, *pixel_x, *pixel_y, jacobian));
 }
 

@@ -151,7 +151,14 @@ public:
 
     // Multiply the two DFT
     for (int i = 0; i < context->m_total_size; ++i) {
-      context->m_complex_buffer[i] *= context->m_kernel_transform[i];
+      //context->m_complex_buffer[i] *= context->m_kernel_transform[i];
+
+      const auto& a = context->m_complex_buffer[i];
+      const auto& b = context->m_kernel_transform[i];
+      float re = a.real() * b.real() - a.imag() * b.imag();
+      float im = a.real() * b.imag() + a.imag() * b.real();
+
+      context->m_complex_buffer[i] = std::complex<float>(re, im);
     }
 
     // Inverse DFT

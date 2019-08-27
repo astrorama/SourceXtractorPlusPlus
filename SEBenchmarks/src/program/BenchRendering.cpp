@@ -264,7 +264,7 @@ public:
     ManualParameter i0 { 10000 };
 
     extended_models.emplace_back(std::make_shared<ModelFitting::CompactSersicModel<ImageInterfaceTypePtr>>(
-        i0, k, n,
+        3.0, i0, k, n,
         xs, ys, rot, 256, 256, x_param, y_param, std::make_tuple(1, 0, 0, 1)));
 
     double pixel_scale = 1.0f;
