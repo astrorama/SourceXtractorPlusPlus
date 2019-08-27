@@ -61,6 +61,8 @@ Measurement images are scientific images stored as |FITS|_ files and used only f
 Every measurement image can be associated a |PSF| model (|PSFEx|'s :file:`.psf` file), and a weight map.
 The :func:`~config.measurement_images.load_fits_image()` function creates a measurement image from a |FITS| image filename; for example:
 
+.. _chap_load_fits_image:
+
 .. code-block:: python
 
   mesimage = load_fits_image("image.fits")
