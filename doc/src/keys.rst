@@ -4,6 +4,9 @@
 .. |ATLAS| replace:: :program:`ATLAS`
 .. _ATLAS: http://math-atlas.sourceforge.net
 
+.. |CCD| replace:: :abbr:`Charge-Coupled Device`
+.. _CCD: https://en.wikipedia.org/wiki/Charge-coupled_device
+
 .. |DAOPHOT| replace:: :program:`DAOPHOT`
 .. _DAOPHOT: http://ascl.net/phpBB3/viewtopic.php?t=23410
 

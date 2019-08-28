@@ -36,7 +36,7 @@ They are close to optimum from the point-of-view of |SNR|, but they require accu
 |SExtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
 The main inconvenient of model-fitting is that it is much slower than aperture photometry.
 
-.. _configuration_script:
+.. _chap_configuration_script:
 
 The measurement configuration script
 ------------------------------------

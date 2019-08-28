@@ -30,21 +30,33 @@ Detection and measurement images
   Currently there can be only one detection image per run, and sources are detected from a single channel.
 
 - **Measurement images are where the sources are measured**.
-  There can be hundreds or even more of them.
+  There can be hundreds (or even more) of them.
   They need not share the same pixel grid or have the same size as the detection image, which they may only partially overlap.
   However if the pixel grid is different, both detection and measurement image headers must contain valid |WCS|_ information :cite:`2002AA_395_1061G,2002AA_395_1077C`.
   |SExtractor++| uses that information to precisely match celestial positions and areas on all images.
-  A scaling parameter for pixel values can be applied to any measurement image independently, provided either as a ``flux_scale`` optional argument to :func:`~config.measurement_images.load_fits_image()`, or as the value of a |FITS| header keyword (:param:`FLXSCALE` by default).
+  A scaling parameter for pixel values can be applied to any measurement image independently, provided either as a ``flux_scale`` optional argument to :func:`~config.measurement_images.load_fits_image()` in the Python measurement configuration file, or as the value of a |FITS| header keyword (:param:`FLXSCALE` by default).
   Note that sources need not be detectable at all on measurement images for the software to work.
 
 Weight-maps
 ~~~~~~~~~~~
 
-Every detection and measurement image can have its own weight-map.
+Both detection and measurement images can have their own weight-maps.
+Weight-maps are companion images that indicate how "noisy" every science pixel is, in terms of variance.
+The |SExtractor++| ``--weight-image`` command line option and the :func:`~config.measurement_images.load_fits_image()` measurement configuration script command may be used to specify the names of the input detection and measurement weight-maps, respectively.
+See the :ref:`Weighting section <chap_weighting>` for details.
+
+Flag-maps
+~~~~~~~~~
+
+Flag maps are images in integer format having the same size as the detection images.
+Flag map usage is described in the :ref:`flagging section <chap_flagging>`.
+
 
 
 PSF models
 ~~~~~~~~~~
-|PSF|_ model files must be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
 
+PSF models are required by the :ref:`model-fitting module <chap_model>`.
+|PSF|_ model files must be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
+There must be one PSF model per measurement image.
 

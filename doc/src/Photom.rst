@@ -32,5 +32,5 @@ Local background
 ----------------
 
 Almost all |SExtractor++| measurements are done using background-subtracted pixel values.
-In crowded fields, or in images where the background is irregular, the :ref:`background model <background_model>` may be significantly inaccurate, locally creating biases in photometric estimates.
+In crowded fields, or in images where the background is irregular, the :ref:`background model <chap_background>` may be significantly inaccurate, locally creating biases in photometric estimates.
 

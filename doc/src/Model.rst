@@ -2,6 +2,8 @@
 
 .. include:: global.rst
 
+.. _chap_model:
+
 Model fitting
 =============
 
@@ -62,7 +64,7 @@ We adopt a Lánczos-4 function :cite:`duchon1979` as interpolant.
 Configuring model-fitting
 -------------------------
 
-The model-fitting process can be precisely defined and tuned in the :ref:`measurement configuration Python script <configuration_script>`.
+The model-fitting process can be precisely defined and tuned in the :ref:`measurement configuration Python script <chap_configuration_script>`.
 
 Model parameters
 ----------------

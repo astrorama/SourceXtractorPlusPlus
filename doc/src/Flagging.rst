@@ -2,7 +2,7 @@
 
 .. include:: global.rst
 
-.. _flagging:
+.. _chap_flagging:
 
 Flagging
 ========

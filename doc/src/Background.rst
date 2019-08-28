@@ -2,7 +2,7 @@
 
 .. include:: global.rst
 
-.. _background_model:
+.. _chap_background:
 
 Modeling the background
 =======================
@@ -45,6 +45,8 @@ Obviously :eq:`sexbackmode` is not valid for any distribution; |SExtractor++| fa
    The true background lies at 0 ADUs.
    While being a bit noisier, the clipped "mode" gives a more robust estimate than the clipped mean in crowded regions. 
 
+.. _chap_backfilter:
+
 Background map
 --------------
 
@@ -52,14 +54,14 @@ Once the values of all background cells have been estimated, a median box filter
 Median filtering helps reducing possible ringing effects of the bicubic-spline around bright features.
 The final background map is a (natural) bicubic-spline interpolation between grid cells.
 
-In parallel with the making of the background map, an *RMS background map*, that is, a map of the background noise standard deviation is produced.
+In parallel with the making of the background map, a *background noise map*, that is, a map of the background noise standard deviation is produced.
 It is used as an internal weight map when the ``weight-type`` configuration parameter is set to ``weight-type=background``, which is the default.
 
 Configuration and tuning
 ------------------------
 
 .. note::
-  All background configuration parameters also affect background-RMS maps.
+  All background configuration parameters also affect background noise maps.
 
 The choice of the ``background-cell-size`` is very important.
 If it is too small, the background estimation is affected by the presence of
