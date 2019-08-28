@@ -249,7 +249,7 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
     float pos = (buff_x + 0.5 - y_shift) / scale_factor + 0.5;
     int ipos = int(pos) - 4;
 
-    if (ipos < 0|| ipos + 8 >= source_height) {
+    if (ipos < 0 || ipos + 7 >= source_height) {
       continue;
     }
 
@@ -267,7 +267,7 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
   for(int x_win=0; x_win < window_width; x_win++) {
     float pos = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
     int ipos = int(pos) - 4;
-    if (ipos < 0|| ipos + 8 >= source_width) {
+    if (ipos < 0 || ipos + 7 >= source_width) {
       continue;
     }
     make_kernel(pos - int(pos), kernel, INTERP_LANCZOS4);
