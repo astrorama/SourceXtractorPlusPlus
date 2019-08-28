@@ -7,6 +7,8 @@
 
 #include <iostream>
 
+#include <boost/math/tools/numerical_differentiation.hpp>
+
 #include "ModelFitting/utils.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
@@ -27,11 +29,11 @@
 
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
+namespace bmd = boost::math::tools;
+
 namespace SExtractor {
 
 using namespace ModelFitting;
-
-std::recursive_mutex python_callback_mutex {};
 
 FlexibleModelFittingParameter::FlexibleModelFittingParameter(int id) : m_id(id) { }
 
@@ -42,11 +44,17 @@ int FlexibleModelFittingParameter::getId() const {
 FlexibleModelFittingConstantParameter::FlexibleModelFittingConstantParameter(int id, ValueFunc value)
         : FlexibleModelFittingParameter(id), m_value(value) { }
 
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
+                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
+                                                            ModelFitting::EngineParameterManager& /*engine_manager*/,
+                                                            const SourceInterface& source) const {
+  return std::make_shared<ManualParameter>(m_value(source));
+}
+
 std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
   double initial_value = m_initial_value(source);
 
   auto converter = m_converter_factory->getConverter(initial_value, source);
@@ -56,13 +64,12 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
   return parameter;
 }
 
-std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParameter::create(
-                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
-                                                            ModelFitting::EngineParameterManager& /*engine_manager*/,
-                                                            const SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
-  return std::make_shared<ManualParameter>(m_value(source));
+double FlexibleModelFittingFreeParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const {
+  auto modelfitting_parameter = parameter_manager.getParameter(source, shared_from_this());
+  return free_parameter_sigmas[parameter_manager.getParameterIndex(source, shared_from_this())];
 }
+
 
 namespace {
 
@@ -81,7 +88,6 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
-    std::lock_guard<std::recursive_mutex> guard {python_callback_mutex};
     std::vector<double> materialized{params...};
     return value_calculator(coordinate_system, materialized);
   };
@@ -133,6 +139,49 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingDependentParam
         m_parameters[5], m_parameters[6], m_parameters[7], m_parameters[8], m_parameters[9]);
   }
   throw Elements::Exception() << "Dependent parameters can depend on maximum 10 other parameters";
+}
+
+std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivatives(
+    const SourceInterface& source, const std::vector<double>& param_values) const {
+  assert(param_values.size() == m_parameters.size());
+
+  std::vector<double> result(param_values.size());
+  auto cs = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+
+  for (unsigned int i = 0; i < result.size(); i++) {
+
+    auto f = [&](double x) {
+        auto params = param_values;
+        params[i] = x;
+        return m_value_calculator(cs, params);
+    };
+
+    result[i] = bmd::finite_difference_derivative(f, param_values[i]);
+  }
+
+  return result;
+}
+
+double FlexibleModelFittingDependentParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
+      const std::vector<double>& free_parameter_sigmas) const {
+  auto dependees = getDependees();
+  std::vector<double> values;
+
+  for (auto& dependee : dependees) {
+    values.emplace_back(parameter_manager.getParameter(source, dependee)->getValue());
+  }
+
+  double sigma = 0.0;
+  auto partial_derivatives = getPartialDerivatives(source, values);
+
+  assert(dependees.size() == partial_derivatives.size());
+  for (unsigned int i = 0; i < partial_derivatives.size(); i++) {
+    auto dependee_sigma = dependees[i]->getSigma(parameter_manager, source, free_parameter_sigmas);
+    sigma += partial_derivatives[i] * partial_derivatives[i] * dependee_sigma * dependee_sigma;
+  }
+  sigma = sqrt(sigma);
+
+  return sigma;
 }
 
 }

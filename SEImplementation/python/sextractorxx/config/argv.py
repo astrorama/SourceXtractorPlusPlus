@@ -7,40 +7,40 @@ class Arguments(object):
     This helper class automatically parses the arguments received by the Python script via
     sys.argv, using the set of key-value parameters received on its constructor to cast the types
     and define the defaults.
+
+    Parameters
+    ----------
+    kwargs
+        A set of key-values with the defaults, or the types of the expected values. For instance, it is valid to do
+        both:
+
+        key1 = 32.
+        key2 = float
+
+        For the first case - a value -, if no value is passed via sys.argv, this will be the default. Otherwise,
+        its type (float) will be used to cast the received value.
+
+        For the second case - a type -, if no value is passed via sys.argv, the parameter will default to None.
+        Otherwise, the type will be used to cast the received value.
+
+        Callables are also accepted. They should accept to be called with no parameters, returning the default,
+        or with a single string, returning the parsed value.
+
+        Values can be accessed later as attributes:
+
+        instance.key1 and instance.key2
+
+    Raises
+    ------
+    ValueError
+        If the cast of the parameter failed (i.e. an invalid integer or float format)
+    KeyError
+        If additional unknown parameters are received
     """
 
     def __init__(self, **kwargs):
         """
-        Constructor
-
-        Parameters
-        ----------
-        kwargs
-            A set of key-values with the defaults, or the types of the expected values. For instance, it is valid to do
-            both:
-
-            key1 = 32.
-            key2 = float
-
-            For the first case - a value -, if no value is passed via sys.argv, this will be the default. Otherwise,
-            its type (float) will be used to cast the received value.
-
-            For the second case - a type -, if no value is passed via sys.argv, the parameter will default to None.
-            Otherwise, the type will be used to cast the received value.
-
-            Callables are also accepted. They should accept to be called with no parameters, returning the default,
-            or with a single string, returning the parsed value.
-
-            Values can be accessed later as attributes:
-
-            instance.key1 and instance.key2
-
-        Raises
-        ------
-        ValueError
-            If the cast of the parameter failed (i.e. an invalid integer or float format)
-        KeyError
-            If additional unknown parameters are received
+        Constructor.
         """
         argv = dict([arg.split('=', 1) if '=' in arg else (arg, True) for arg in sys.argv[1:]])
 
@@ -112,24 +112,23 @@ class FileList(object):
     """
     Helper class for receiving a globing pattern as a parameter, defining a list of files
     - i.e. measurement images or PSFs.
-
     It is an iterable, and can be passed directly to load_fits_images.
+
+    Parameters
+    ----------
+    value : str
+        A file globing expression. i.e "*.psf", "band_[r|i|g]_*.fits" or similar.
+        The result is always stored and returned in alphabetical order, so the order between two
+        file lists - i.e frame image and PSF - is consistent and a matching can be done easily between them.
+
+    See Also
+    --------
+        glob.glob : Return a list of paths matching a pathname pattern.
     """
 
     def __init__(self, value):
         """
-        Constructor
-
-        Parameters
-        ----------
-        value : str
-            A file globing expression. i.e "*.psf", "band_[r|i|g]_*.fits" or similar.
-            The result is always stored and returned in alphabetical order, so the order between two
-            file lists - i.e frame image and PSF - is consistent and a matching can be done easily between them.
-
-        See Also
-        --------
-        glob.glob : Return a list of paths matching a pathname pattern.
+        Constructor.
         """
         self.__files = sorted(glob(value))
 

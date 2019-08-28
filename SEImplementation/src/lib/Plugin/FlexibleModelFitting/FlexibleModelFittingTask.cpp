@@ -294,7 +294,6 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
 
   // Collect parameters for output
-  int parameter_index = 0;
   for (auto& source : group) {
     std::unordered_map<int, double> parameter_values, parameter_sigmas;
     auto source_flags = Flags::NONE;
@@ -306,11 +305,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
       if (is_dependent_parameter || accesed_by_modelfitting) {
         parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
-        if (!is_dependent_parameter) {
-          parameter_sigmas[parameter->getId()] = solution.parameter_sigmas[parameter_index++];
-        } else {
-          parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-        }
+        parameter_sigmas[parameter->getId()] = parameter->getSigma(parameter_manager, source, solution.parameter_sigmas);
       }
       else {
         // Need to cascade the NaN to any potential dependent parameter
