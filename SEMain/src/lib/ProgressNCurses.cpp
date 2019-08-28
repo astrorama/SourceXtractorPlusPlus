@@ -1,5 +1,5 @@
 #include "SEMain/ProgressNCurses.h"
-#include "ModelFitting/ModelFitting/utils.h"
+#include "ModelFitting/utils.h"
 
 #include <sys/ioctl.h>
 #include <signal.h>
