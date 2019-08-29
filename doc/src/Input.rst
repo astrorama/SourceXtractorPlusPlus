@@ -51,8 +51,6 @@ Flag-maps
 Flag maps are images in integer format having the same size as the detection images.
 Flag map usage is described in the :ref:`flagging section <chap_flagging>`.
 
-
-
 PSF models
 ~~~~~~~~~~
 
