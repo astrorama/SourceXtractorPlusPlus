@@ -3,6 +3,8 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <signal.h>
+#include <utility>
 #include <boost/python.hpp>
 #include <Python.h>
 
@@ -24,9 +26,17 @@ PythonInterpreter &PythonInterpreter::getSingleton() {
 }
 
 PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
-  Py_InitializeEx(0);
+  // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
+  // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
+  // the default one) and restore it after initializing the interpreter
+  struct sigaction sigint_handler;
+  sigaction(SIGINT, nullptr, &sigint_handler);
+
+  Py_Initialize();
   PyEval_InitThreads();
   PyEval_SaveThread();
+
+  sigaction(SIGINT, &sigint_handler, nullptr);
 }
 
 void PythonInterpreter::runCode(const std::string &code) {
@@ -280,6 +290,23 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
     result.emplace(std::make_pair(id, par));
   }
   return result;
+}
+
+std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
+  GILStateEnsure ensure;
+
+  try {
+    py::object model_fitting_module = py::import("sextractorxx.config.measurement_images");
+    py::list groups = py::extract<py::list>(model_fitting_module.attr("MeasurementGroup").attr("_all_groups"));
+    std::vector <boost::python::object> result;
+    for (int i = 0; i < py::len(groups); ++i) {
+      result.emplace_back(groups[i]);
+    }
+    return result;
+  }
+  catch (const py::error_already_set &e) {
+    throw pyToElementsException(logger);
+  }
 }
 
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {

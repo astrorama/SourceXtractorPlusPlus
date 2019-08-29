@@ -8,6 +8,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/python.hpp>
 
 #include <ElementsKernel/Logging.h>
 
@@ -21,11 +22,13 @@
 #include <SEImplementation/Configuration/PythonConfig.h>
 #include <SEImplementation/Configuration/DetectionImageConfig.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
-
 #include <SEImplementation/Configuration/MeasurementImageConfig.h>
+#include <SEUtils/Python.h>
+#include <boost/tokenizer.hpp>
 
 using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
+namespace py = boost::python;
 
 namespace SExtractor {
 
@@ -116,6 +119,18 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
 
 void MeasurementImageConfig::initialize(const UserValues&) {
   auto images = getDependency<PythonConfig>().getInterpreter().getMeasurementImages();
+  auto groups = getDependency<PythonConfig>().getInterpreter().getMeasurementGroups();
+
+  // Delegate into Python to log the measurement configuration
+  boost::char_separator<char> line_sep{"\n"};
+  for (auto &g : groups) {
+    GILStateEnsure ensure;
+    std::string group_str = py::extract<std::string>(g.attr("__str__")());
+    boost::tokenizer<decltype(line_sep)> tok(group_str, line_sep);
+    for (auto &l : tok) {
+      logger.info() << l;
+    }
+  }
 
   if (images.size() > 0) {
     for (auto& p : images) {
@@ -134,12 +149,12 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       m_image_ids.push_back(py_image.id);
       m_paths.push_back(py_image.file);
 
-      logger.info() << "Loaded measurement image: " << py_image.file;
-      logger.info() << "\tWeight: " << py_image.weight_file;
-      logger.info() << "\tPSF: " << py_image.psf_file;
-      logger.info() << "\tGain: " << py_image.gain;
-      logger.info() << "\tSaturation: " << py_image.saturation;
-      logger.info() << "\tFlux scale: " << py_image.flux_scale;
+      logger.debug() << "Loaded measurement image: " << py_image.file;
+      logger.debug() << "\tWeight: " << py_image.weight_file;
+      logger.debug() << "\tPSF: " << py_image.psf_file;
+      logger.debug() << "\tGain: " << py_image.gain;
+      logger.debug() << "\tSaturation: " << py_image.saturation;
+      logger.debug() << "\tFlux scale: " << py_image.flux_scale;
 
       m_absolute_weights.push_back(py_image.weight_absolute);
       m_weight_thresholds.push_back(extractWeightThreshold(py_image));

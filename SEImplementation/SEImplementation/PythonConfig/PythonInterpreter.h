@@ -58,6 +58,8 @@ public:
 
   std::map<std::string, boost::python::object> getModelFittingParams();
 
+  std::vector<boost::python::object> getMeasurementGroups();
+
   void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
 
 private:
