@@ -1,3 +1,4 @@
+astropy
 sphinxcontrib-bibtex
 sphinx_rtd_theme
 

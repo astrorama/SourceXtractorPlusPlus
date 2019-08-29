@@ -45,10 +45,12 @@ Weight-maps are companion images that indicate how "noisy" every science pixel i
 The |SExtractor++| ``--weight-image`` command line option and the :func:`~config.measurement_images.load_fits_image()` measurement configuration script command may be used to specify the names of the input detection and measurement weight-maps, respectively.
 See the :ref:`Weighting section <chap_weighting>` for details.
 
+.. _chap_inputflagmaps:
+
 Flag-maps
 ~~~~~~~~~
 
-Flag maps are images in integer format having the same size as the detection images.
+Flag maps are images in integer format having the same dimensions as the science images, with pixel values that can be used to flag some pixels (for instance, “bad” or noisy pixels).
 Flag map usage is described in the :ref:`flagging section <chap_flagging>`.
 
 PSF models
