@@ -31,6 +31,9 @@ public:
     SeFloat m_gain;
     MeasurementImage::PixelType m_saturation_level;
 
+    bool m_is_background_constant;
+    MeasurementImage::PixelType m_constant_background_value;
+
     int m_id;
   };
 

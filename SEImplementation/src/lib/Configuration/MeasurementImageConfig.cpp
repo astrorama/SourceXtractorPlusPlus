@@ -161,6 +161,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_absolute_weight= py_image.weight_absolute;
       info.m_weight_threshold = extractWeightThreshold(py_image);
 
+      info.m_is_background_constant = py_image.is_background_constant;
+      info.m_constant_background_value = py_image.constant_background_value;
+
       auto weight_map = createWeightMap(py_image);
       if (weight_map != nullptr && flux_scale != 1. && py_image.weight_absolute) {
         info.m_weight_image = MultiplyImage<WeightImage::PixelType>::create(
@@ -191,6 +194,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       weight_image.getWeightThreshold(),
       (SeFloat) detection_image.getGain(),
       (SeFloat) detection_image.getSaturation(),
+
+      false,
+      0.0,
 
       0 // id
     });

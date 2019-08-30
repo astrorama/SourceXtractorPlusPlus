@@ -42,32 +42,36 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
   background_analyzer_factory.configure(manager);
   auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
 
-  for (unsigned int i=0; i<image_infos.size(); i++) {
+  for (auto& image_info : image_infos) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        image_infos[i].m_measurement_image,
-        image_infos[i].m_weight_image,
-        image_infos[i].m_weight_threshold,
-        image_infos[i].m_coordinate_system,
-        image_infos[i].m_gain,
-        image_infos[i].m_saturation_level,
+        image_info.m_measurement_image,
+        image_info.m_weight_image,
+        image_info.m_weight_threshold,
+        image_info.m_coordinate_system,
+        image_info.m_gain,
+        image_info.m_saturation_level,
         false);
 
     auto background_model = background_analyzer->analyzeBackground(
-        image_infos[i].m_measurement_image,
-        image_infos[i].m_weight_image,
-        ConstantImage<unsigned char>::create(image_infos[i].m_measurement_image->getWidth(),
-            image_infos[i].m_measurement_image->getHeight(), false),
+        image_info.m_measurement_image,
+        image_info.m_weight_image,
+        ConstantImage<unsigned char>::create(image_info.m_measurement_image->getWidth(),
+            image_info.m_measurement_image->getHeight(), false),
         measurement_frame->getVarianceThreshold());
 
-    measurement_frame->setBackgroundLevel(background_model.getLevelMap());
-    measurement_frame->setLabel(boost::filesystem::basename(image_infos[i].m_path));
+    if (image_info.m_is_background_constant) {
+      measurement_frame->setBackgroundLevel(image_info.m_constant_background_value);
+    } else {
+      measurement_frame->setBackgroundLevel(background_model.getLevelMap());
+    }
+    measurement_frame->setLabel(boost::filesystem::basename(image_info.m_path));
 
-    if (image_infos[i].m_weight_image != nullptr) {
-      if (image_infos[i].m_absolute_weight) {
-        measurement_frame->setVarianceMap(image_infos[i].m_weight_image);
+    if (image_info.m_weight_image != nullptr) {
+      if (image_info.m_absolute_weight) {
+        measurement_frame->setVarianceMap(image_info.m_weight_image);
       } else {
         auto scaled_image = MultiplyImage<SeFloat>::create(
-            image_infos[i].m_weight_image,
+            image_info.m_weight_image,
             background_model.getScalingFactor());
         measurement_frame->setVarianceMap(scaled_image);
       }
@@ -75,7 +79,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
       measurement_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    m_measurement_frames[image_infos[i].m_id] = measurement_frame;
+    m_measurement_frames[image_info.m_id] = measurement_frame;
   }
 }
 
