@@ -31,11 +31,10 @@ void SourceFlagsTaskFactory::reportConfigDependencies(Euclid::Configuration::Con
 }
 
 void SourceFlagsTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
-  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
-  const auto& ids = measurement_config.getImageIds();
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
 
-  for (unsigned i = 0; i < ids.size(); ++i) {
-    m_instances_per_group["global"].emplace_back(ids[i]);
+  for (unsigned i = 0; i < image_infos.size(); ++i) {
+    m_instances_per_group["global"].emplace_back(image_infos[i].m_id);
   }
 }
 

@@ -36,45 +36,46 @@ void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration
 }
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  const auto& measurement_images = manager.getConfiguration<MeasurementImageConfig>().getMeasurementImages();
-  const auto& coordinate_systems = manager.getConfiguration<MeasurementImageConfig>().getCoordinateSystems();
-  const auto& weight_images = manager.getConfiguration<MeasurementImageConfig>().getWeightImages();
-  const auto& is_weight_absolute = manager.getConfiguration<MeasurementImageConfig>().getAbsoluteWeights();
-
-  const auto& gains = manager.getConfiguration<MeasurementImageConfig>().getGains();
-  const auto& saturation_levels = manager.getConfiguration<MeasurementImageConfig>().getSaturationLevels();
-  const auto& thresholds = manager.getConfiguration<MeasurementImageConfig>().getWeightThresholds();
-
-  const auto& image_paths = manager.getConfiguration<MeasurementImageConfig>().getImagePaths();
-  const auto& ids = manager.getConfiguration<MeasurementImageConfig>().getImageIds();
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
 
   BackgroundAnalyzerFactory background_analyzer_factory;
   background_analyzer_factory.configure(manager);
   auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
 
-  for (unsigned int i=0; i<measurement_images.size(); i++) {
+  for (unsigned int i=0; i<image_infos.size(); i++) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], thresholds[i], coordinate_systems[i], gains[i], saturation_levels[i], false);
+        image_infos[i].m_measurement_image,
+        image_infos[i].m_weight_image,
+        image_infos[i].m_weight_threshold,
+        image_infos[i].m_coordinate_system,
+        image_infos[i].m_gain,
+        image_infos[i].m_saturation_level,
+        false);
 
-    auto background_model = background_analyzer->analyzeBackground(measurement_images[i], weight_images[i],
-        ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
-            measurement_images[i]->getHeight(), false), measurement_frame->getVarianceThreshold());
+    auto background_model = background_analyzer->analyzeBackground(
+        image_infos[i].m_measurement_image,
+        image_infos[i].m_weight_image,
+        ConstantImage<unsigned char>::create(image_infos[i].m_measurement_image->getWidth(),
+            image_infos[i].m_measurement_image->getHeight(), false),
+        measurement_frame->getVarianceThreshold());
 
     measurement_frame->setBackgroundLevel(background_model.getLevelMap());
-    measurement_frame->setLabel(boost::filesystem::basename(image_paths[i]));
+    measurement_frame->setLabel(boost::filesystem::basename(image_infos[i].m_path));
 
-    if (weight_images[i] != nullptr) {
-      if (is_weight_absolute[i]) {
-        measurement_frame->setVarianceMap(weight_images[i]);
+    if (image_infos[i].m_weight_image != nullptr) {
+      if (image_infos[i].m_absolute_weight) {
+        measurement_frame->setVarianceMap(image_infos[i].m_weight_image);
       } else {
-        auto scaled_image = MultiplyImage<SeFloat>::create(weight_images[i], background_model.getScalingFactor());
+        auto scaled_image = MultiplyImage<SeFloat>::create(
+            image_infos[i].m_weight_image,
+            background_model.getScalingFactor());
         measurement_frame->setVarianceMap(scaled_image);
       }
     } else {
       measurement_frame->setVarianceMap(background_model.getVarianceMap());
     }
 
-    m_measurement_frames[ids[i]] = measurement_frame;
+    m_measurement_frames[image_infos[i].m_id] = measurement_frame;
   }
 }
 

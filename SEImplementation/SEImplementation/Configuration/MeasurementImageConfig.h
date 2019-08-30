@@ -18,42 +18,33 @@ class MeasurementImageConfig : public Euclid::Configuration::Configuration {
   
 public:
   
+  struct MeasurementImageInfo {
+    std::string m_path;
+    std::string m_psf_path;
+
+    std::shared_ptr<MeasurementImage> m_measurement_image;
+    std::shared_ptr<CoordinateSystem> m_coordinate_system;
+    std::shared_ptr<WeightImage> m_weight_image;
+
+    bool m_absolute_weight;
+    WeightImage::PixelType m_weight_threshold;
+    SeFloat m_gain;
+    MeasurementImage::PixelType m_saturation_level;
+
+    int m_id;
+  };
+
   MeasurementImageConfig(long manager_id);
   
   void initialize(const UserValues& args) override;
 
-  const std::vector<std::shared_ptr<MeasurementImage>>& getMeasurementImages() const;
+  const std::vector<MeasurementImageInfo>& getImageInfos() const {
+    return m_image_infos;
+  }
 
-  const std::vector<int>& getImageIds() const;
-
-  const std::vector<std::shared_ptr<CoordinateSystem>>& getCoordinateSystems() const;
-
-  const std::vector<std::shared_ptr<WeightImage>>& getWeightImages() const;
-
-  const std::vector<bool>& getAbsoluteWeights() const;
-  
-  const std::vector<WeightImage::PixelType>& getWeightThresholds() const;
-
-  const std::vector<std::string> getImagePaths() const;
-
-  const std::vector<std::string> getPsfsPaths() const;
-
-  const std::vector<SeFloat>& getGains() const;
-
-  const std::vector<MeasurementImage::PixelType>& getSaturationLevels() const;
-  
 private:
-  
-  std::vector<std::shared_ptr<MeasurementImage>> m_measurement_images;
-  std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
-  std::vector<std::shared_ptr<WeightImage>> m_weight_images;
-  std::vector<bool> m_absolute_weights;
-  std::vector<WeightImage::PixelType> m_weight_thresholds;
-  std::vector<std::string> m_paths;
-  std::vector<std::string> m_psfs_paths;
-  std::vector<SeFloat> m_gains;
-  std::vector<MeasurementImage::PixelType> m_saturation_levels;
-  std::vector<int> m_image_ids;
+
+  std::vector<MeasurementImageInfo> m_image_infos;
 };
 
 }
