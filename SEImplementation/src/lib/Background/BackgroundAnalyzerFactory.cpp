@@ -14,11 +14,10 @@
 namespace SExtractor {
 
 std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundAnalyzer() const {
-
   // make a SE2 background if cell size and smoothing box are given
   if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0){
-    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
-    return background_level;
+      auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, m_weight_type);
+      return background_level;
   }
   else {
     // make a simple background
@@ -29,12 +28,15 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
 
 void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<SE2BackgroundConfig>();
+  manager.registerConfiguration<WeightImageConfig>();
 }
 
 void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto se2background_config = manager.getConfiguration<SE2BackgroundConfig>();
+  auto weightimage_config = manager.getConfiguration<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
+  m_weight_type = weightimage_config.getWeightType();
 }
 
 }

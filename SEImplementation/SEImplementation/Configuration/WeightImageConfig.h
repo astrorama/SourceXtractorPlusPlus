@@ -18,6 +18,7 @@ class WeightImageConfig : public Euclid::Configuration::Configuration {
 public:
 
   enum class WeightType {
+    WEIGHT_TYPE_NONE,
     WEIGHT_TYPE_FROM_BACKGROUND,
     WEIGHT_TYPE_RMS,
     WEIGHT_TYPE_VARIANCE,

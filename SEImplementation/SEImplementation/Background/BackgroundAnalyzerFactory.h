@@ -9,6 +9,7 @@
 #define _SEIMPLEMENTATION_BACKGROUND_BACKGROUNDANALYZERFACTORY_H_
 
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
+#include "SEImplementation/Configuration/WeightImageConfig.h"
 
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
@@ -29,6 +30,8 @@ public:
 private:
   std::string m_cell_size;
   std::string m_smoothing_box;
+  WeightImageConfig::WeightType m_weight_type;
+
 
 };
 
