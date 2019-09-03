@@ -37,9 +37,7 @@ void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
           "Flags provided from input images"
   );
 
-  // External flags are always in the output if there is configuration for
-  // producing them
-  plugin_api.getOutputRegistry().enableOutput<ExternalFlag>("ExternalFlags");
+  plugin_api.getOutputRegistry().enableOutput<ExternalFlag>(ExternalFlagTaskFactory::propertyName);
 }
 
 std::string ExternalFlagPlugin::getIdString() const {
@@ -47,7 +45,3 @@ std::string ExternalFlagPlugin::getIdString() const {
 }
 
 }
-
-
-
-
