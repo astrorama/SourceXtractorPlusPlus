@@ -104,10 +104,10 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
 
   // check for the weight type
   if (m_weight_type == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE) {
-    // create a background model using constant images from the median values
-    auto background_level_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), splModelBckPtr->getMedian());
-    auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), splModelVarPtr->getMedian());
-    return BackgroundModel(background_level_map, background_variance_map, 99999);
+    // create a background model using the splines and the variance with a constant image from the median value
+    return BackgroundModel(BufferedImage<SeFloat>::create(splModelBckPtr),
+                           ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), splModelVarPtr->getMedian()),
+                           99999);
   }
   else {
     // return the variable background model
