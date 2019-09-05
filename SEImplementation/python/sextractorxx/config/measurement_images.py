@@ -67,7 +67,7 @@ class MeasurementImage(cpp.MeasurementImage):
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='background', weight_absolute=False, weight_scaling=1.,
+                 weight_type='undef', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None):
         """
         Constructor.

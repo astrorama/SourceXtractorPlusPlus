@@ -43,10 +43,21 @@ namespace {
 Elements::Logging logger = Elements::Logging::getLogger("Config");
 
 std::map<std::string, WeightImageConfig::WeightType> weight_type_map {
-  {"BACKGROUND", WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND},
+  // NOTE: Right now it makes only sense to have the weight-types associated
+  //       to weight images (RMS, VARIANCE, WEIGHT) be defined on the python
+  //       level. weight-types asking for a computation of the weights from
+  //       the data (NONE, BACKGROUND) are *globally* taken from the main
+  //       configuration file. When these are given in python, they will be
+  //       overwritten anyway.
+  //       As a default "UNDEF" is introduced as a weight-type in the python
+  //       files and *formally* paired with NONE, which has not consequences, though.
+  //{"NONE", WeightImageConfig::WeightType::WEIGHT_TYPE_NONE},
+  //{"BACKGROUND", WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND},
+  {"UNDEF", WeightImageConfig::WeightType::WEIGHT_TYPE_NONE},
   {"RMS", WeightImageConfig::WeightType::WEIGHT_TYPE_RMS},
   {"VARIANCE", WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE},
-  {"WEIGHT", WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT}
+  {"WEIGHT", WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT},
+  {"UNDEF", WeightImageConfig::WeightType::WEIGHT_TYPE_NONE}
 };
 
 void validateImagePaths(const PyMeasurementImage& image) {
@@ -71,22 +82,33 @@ std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImag
 }
 
 std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image) {
+  // check for a valid weight type
+  auto weight_type_name = boost::to_upper_copy(py_image.weight_type);
+  if (weight_type_map.find(weight_type_name) == weight_type_map.end()) {
+    throw Elements::Exception() << "Unknown weight map type for measurement weight image " << py_image.weight_file << ": "<< py_image.weight_type;
+  }
+
+  // without an image nothing can be done
   if (py_image.weight_file == "") {
     return nullptr;
   }
+
+  // sanity check to exclude a weight file with type "UNDEF=NONE" (see above)
+  if (py_image.weight_file != "" && weight_type_map[weight_type_name] == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE)
+    throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
+
   std::shared_ptr<WeightImage> weight_map = FitsReader<WeightImage::PixelType>::readFile(py_image.weight_file);
-  auto weight_type_name = boost::to_upper_copy(py_image.weight_type);
-  if (weight_type_map.find(weight_type_name) == weight_type_map.end()) {
-    throw Elements::Exception() << "Unknown weight map type : " << py_image.weight_type;
-  }
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
       << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling;
   weight_map = WeightImageConfig::convertWeightMap(weight_map, weight_type_map[weight_type_name], py_image.weight_scaling);
+
   // Sanity checks
-  if (py_image.weight_file != "" && weight_type_map[weight_type_name] == WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
-    throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
-  if (py_image.weight_absolute && py_image.weight_file == "")
-    throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
+  // NOTE: Right now these cases don't exist, so the lines make no sense.
+  //if (py_image.weight_file != "" && weight_type_map[weight_type_name] == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE)
+  //  throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
+  //if (py_image.weight_absolute && py_image.weight_file == "")
+  //  throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
+
   return weight_map;
 }
 
