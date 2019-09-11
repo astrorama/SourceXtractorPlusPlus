@@ -69,9 +69,6 @@ elements_add_library(SEImplementation
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
             
-elements_add_executable(tt src/program/tt.cpp
-                     LINK_LIBRARIES SEImplementation)
-
 #===============================================================================
 # SEImplementation has a part that needs to be reachable from Python.
 #===============================================================================
