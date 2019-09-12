@@ -14,7 +14,7 @@ Using SExtractor++
   $ sextractor++ --detection image Image [--config-file filename] [--<option> <arg>]
 
 The parts enclosed within brackets are optional.
-Any `--<option> <arg>` statement in the command-line overrides the corresponding definition in the configuration file or any default value (see :ref:`configuration section<config_file>`).
+Any ``--<option> <arg>`` or ``--<option>=<arg>`` statement in the command-line overrides the corresponding definition in the :ref:`configuration file <chap_config_file>` or any default value (see :ref:`configuration section <chap_config>`).
 
 .. toctree::
 

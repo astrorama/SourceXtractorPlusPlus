@@ -2,18 +2,33 @@
 
 .. include:: global.rst
 
-.. _config_file:
+.. _chap_config:
+
+Configuration
+=============
+
+There are two types of configuration settings: those dedicated purely to measurements, and those related to the source extraction process and to global operations of |SExtractor++|.
+Measurement settings can be rather complex and require a :ref:`Python configuration script <chap_configuration_script>` (see the :ref:`Measurement section <chap_measurements>`).
+Global configuration settings may be changed using command-line options (prefixed with a ``--``), however a configuration file is often more convenient for storing settings that do not change from run to run.
+
+.. note::
+
+  Command-line options can be abbreviated, provided that there is no more than one full matching keyword.
+  Example: ``--config-file=foo.conf`` may be abbreviated as ``--conf=foo.conf``.
+
+.. _chap_config_file:
 
 The configuration file
 ----------------------
 
-Each time it is run, |SExtractor++| looks for a configuration file.
-
-Creating a configuration file
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+|SExtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository.
 
 Format of the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration instructions follow the ``<option> = <value>`` format.
+There must be no more than one ``<option> = <value>`` instance per line.
+Comments must be preceded with a ``#``.
 
 .. _param_list:
 

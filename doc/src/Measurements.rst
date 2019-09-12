@@ -2,6 +2,8 @@
 
 .. include:: global.rst
 
+.. _chap_measurements:
+
 Measuring
 =========
 
@@ -42,6 +44,7 @@ The measurement configuration script
 ------------------------------------
 
 Measurement settings, as well as :ref:`grouping procedures <groups>` and catalog outputs must be defined in a configuration script that uses the `Python language <https://python.org>`_: the measurement configuration script.
+The script filename is set with the ``python-config-file`` configuration option. 
 Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
 |SExtractor++|'s configuration library classes and functions must be imported at the beginning of the script:
 
@@ -51,7 +54,7 @@ Thanks to its flexibility, the Python language makes it possible to set up arbit
 
 The same goes for other Python libraries that might be needed for the current configuration, such as `glob <https://docs.python.org/library/glob.html>`_ for filename expansion, `math <https://docs.python.org/library/math.html>`_ or `NumPy <https://numpy.org/>`_ for numerical computations, ...
 
-.. note::
+.. caution::
    The measurement configuration script is excusively meant to be executed by the |SExtractor++| built-in Python interpreter, and cannot be run on its own.
 
 Measurement images
