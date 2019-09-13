@@ -5,8 +5,12 @@
  */
 
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "Configuration/ProgramOptionsHelper.h"
+
 #include "SEFramework/Image/FitsReader.h"
+
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 
 namespace po = boost::program_options;
@@ -34,7 +38,7 @@ auto ExternalFlagConfig::getProgramOptions() -> std::map<std::string, OptionDesc
   return {{"External flag options", {
       {poh::wildcard(FLAG_IMAGE).c_str(), po::value<std::string>(),
           "The FITS file containing the external flag"},
-      {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>(),
+      {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>()->default_value("OR"),
           "The combination type of the external flag (OR, AND, MIN, MAX, MOST)"}
   }}};
 }
@@ -47,8 +51,12 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
     if (args.count(poh::wildcard(FLAG_IMAGE, name)) == 0) {
       throw Elements::Exception() << "Missing option " << poh::wildcard(FLAG_IMAGE, name);
     }
+
+    std::string type;
     if (args.count(poh::wildcard(FLAG_TYPE, name)) == 0) {
-      throw Elements::Exception() << "Missing option " << poh::wildcard(FLAG_TYPE, name);
+      type = "OR";
+    } else {
+      type = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
     }
     
     // Check that the file exists
@@ -58,7 +66,6 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
     }
     
     // Check that the type is a valid option
-    auto& type = args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>();
     if (available_types.count(type) == 0) {
       throw Elements::Exception() << "Invalid option " << poh::wildcard(FLAG_TYPE, name)
               << " : " << type;
@@ -72,7 +79,12 @@ void ExternalFlagConfig::initialize(const UserValues& args) {
     auto& filename = args.at(poh::wildcard(FLAG_IMAGE, name)).as<std::string>();
     auto image = FitsReader<std::int64_t>::readFile(filename);
     
-    auto& type_str = args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>();
+    std::string type_str;
+    if (args.count(poh::wildcard(FLAG_TYPE, name)) == 0) {
+      type_str = "OR";
+    } else {
+      type_str = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
+    }
     Type type = available_types.at(type_str);
     
     m_flag_info_list.emplace_back(name, FlagInfo{std::move(image), type});
