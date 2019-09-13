@@ -8,9 +8,13 @@
 
 #include <vector>
 #include <memory>
+
+#include <Configuration/Configuration.h>
+
 #include <SEFramework/Image/Image.h>
 #include <SEFramework/CoordinateSystem/CoordinateSystem.h>
-#include <Configuration/Configuration.h>
+
+#include <SEImplementation/Configuration/WeightImageConfig.h>
 
 namespace SExtractor {
 
@@ -25,6 +29,8 @@ public:
     std::shared_ptr<MeasurementImage> m_measurement_image;
     std::shared_ptr<CoordinateSystem> m_coordinate_system;
     std::shared_ptr<WeightImage> m_weight_image;
+
+    WeightImageConfig::WeightType m_weight_type;
 
     bool m_absolute_weight;
     WeightImage::PixelType m_weight_threshold;

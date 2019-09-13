@@ -22,6 +22,7 @@ public:
   virtual ~BackgroundAnalyzerFactory() = default;
 
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer() const;
+  std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer(WeightImageConfig::WeightType weight_type) const;
 
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
@@ -31,8 +32,6 @@ private:
   std::string m_cell_size;
   std::string m_smoothing_box;
   WeightImageConfig::WeightType m_weight_type;
-
-
 };
 
 }

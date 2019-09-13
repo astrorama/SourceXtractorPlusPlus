@@ -46,8 +46,10 @@ class MeasurementImage(cpp.MeasurementImage):
     weight_type : str
         The type of the weight image. It must be one of:
 
+            - none
+                The image itself is used to compute internally a constant variance (default)
             - background
-                The image itself is used to compute internally a variance map (default)
+                The image itself is used to compute internally a variance map
             - rms
                 The weight image must contain a weight-map in units of absolute standard deviations
                 (in ADUs per pixel).

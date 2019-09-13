@@ -48,7 +48,7 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
           "Path to a fits format image to be used as weight image."},
       {WEIGHT_ABSOLUTE.c_str(), po::value<bool>()->default_value(false),
           "Is the weight map provided as absolute values or relative to background."},
-      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("background"),
+      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("none"),
           "Weight image type [none|background|rms|variance|weight]."},
       {WEIGHT_SCALING.c_str(), po::value<double>()->default_value(1.0),
           "Weight map scaling factor."},
