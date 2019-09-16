@@ -29,7 +29,7 @@ static const std::string WEIGHT_TYPE {"weight-type" };
 static const std::string WEIGHT_ABSOLUTE {"weight-absolute" };
 static const std::string WEIGHT_SCALING {"weight-scaling" };
 static const std::string WEIGHT_THRESHOLD {"weight-threshold" };
-static const std::string WEIGHT_SYMMETRYUSAGE {"weight-usesymmetry" };
+static const std::string WEIGHT_SYMMETRYUSAGE {"weight-use-symmetry" };
 
 WeightImageConfig::WeightImageConfig(long manager_id) :
     Configuration(manager_id),

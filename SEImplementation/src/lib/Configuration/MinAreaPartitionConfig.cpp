@@ -13,7 +13,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string DETECT_MINAREA {"detect-minarea"};
+static const std::string DETECT_MINAREA {"detection-minimum-area"};
 
 MinAreaPartitionConfig::MinAreaPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();
