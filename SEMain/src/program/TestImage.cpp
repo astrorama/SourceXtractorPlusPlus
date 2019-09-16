@@ -155,6 +155,7 @@ public:
         ("output", po::value<string>()->required(), "filename to save the created test image")
         ("output-weight", po::value<string>()->default_value(""), "filename to save the created weight map image")
         ("size", po::value<double>()->default_value(512.0), "image size")
+        ("bg-level", po::value<double>()->default_value(0.0), "background level")
         ("bg-sigma", po::value<double>()->default_value(20.0), "standard deviation of background gaussian noise")
         ("gain", po::value<double>()->default_value(0.0), "gain in e-/adu, 0 for infinite gain")
         ("saturation", po::value<double>()->default_value(0.0), "image saturation level, 0 for no saturation")
@@ -592,7 +593,7 @@ public:
     logger.info("Adding noise...");
 
     addPoissonNoise(target_image, args["gain"].as<double>());
-    addBackgroundNoise(target_image, 0, args["bg-sigma"].as<double>());
+    addBackgroundNoise(target_image, args["bg-level"].as<double>(), args["bg-sigma"].as<double>());
 
     logger.info("Adding saturation...");
 

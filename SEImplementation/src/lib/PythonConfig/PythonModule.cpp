@@ -60,7 +60,9 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
       .def_readwrite("weight_absolute", &PyMeasurementImage::weight_absolute)
       .def_readwrite("weight_scaling", &PyMeasurementImage::weight_scaling)
       .def_readwrite("has_weight_threshold", &PyMeasurementImage::has_weight_threshold)
-      .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold);
+      .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold)
+      .def_readwrite("is_background_constant", &PyMeasurementImage::is_background_constant)
+      .def_readwrite("constant_background_value", &PyMeasurementImage::constant_background_value);
 
   bp::class_<PyId>("Id", bp::init<>())
     .def_readonly("id", &PyId::id);

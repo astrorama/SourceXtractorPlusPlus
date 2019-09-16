@@ -137,35 +137,42 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       PyMeasurementImage& py_image = p.second;
       validateImagePaths(py_image);
 
-      logger.debug() << "Initializing MeasurementImageConfig";
-
-      auto flux_scale = py_image.flux_scale;
-
-      m_measurement_images.push_back(createMeasurementImage(py_image));
-      m_coordinate_systems.push_back(std::make_shared<WCS>(py_image.file));
-      m_psfs_paths.push_back(py_image.psf_file);
-      m_gains.push_back(py_image.gain / flux_scale);
-      m_saturation_levels.push_back(py_image.saturation * flux_scale);
-      m_image_ids.push_back(py_image.id);
-      m_paths.push_back(py_image.file);
-
-      logger.debug() << "Loaded measurement image: " << py_image.file;
+      logger.debug() << "Loading measurement image: " << py_image.file;
       logger.debug() << "\tWeight: " << py_image.weight_file;
       logger.debug() << "\tPSF: " << py_image.psf_file;
       logger.debug() << "\tGain: " << py_image.gain;
       logger.debug() << "\tSaturation: " << py_image.saturation;
       logger.debug() << "\tFlux scale: " << py_image.flux_scale;
 
-      m_absolute_weights.push_back(py_image.weight_absolute);
-      m_weight_thresholds.push_back(extractWeightThreshold(py_image));
+      auto flux_scale = py_image.flux_scale;
+
+      MeasurementImageInfo info;
+
+      info.m_path = py_image.file;
+      info.m_psf_path = py_image.psf_file;
+
+      info.m_measurement_image = createMeasurementImage(py_image);
+      info.m_coordinate_system = std::make_shared<WCS>(py_image.file);
+
+      info.m_gain = py_image.gain / flux_scale;
+      info.m_saturation_level = py_image.saturation * flux_scale;
+      info.m_id = py_image.id;
+
+      info.m_absolute_weight= py_image.weight_absolute;
+      info.m_weight_threshold = extractWeightThreshold(py_image);
+
+      info.m_is_background_constant = py_image.is_background_constant;
+      info.m_constant_background_value = py_image.constant_background_value;
 
       auto weight_map = createWeightMap(py_image);
       if (weight_map != nullptr && flux_scale != 1. && py_image.weight_absolute) {
-        m_weight_images.push_back(MultiplyImage<WeightImage::PixelType>::create(
-            weight_map, py_image.flux_scale * py_image.flux_scale));
+        info.m_weight_image = MultiplyImage<WeightImage::PixelType>::create(
+            weight_map, py_image.flux_scale * py_image.flux_scale);
       } else {
-        m_weight_images.push_back(weight_map);
+        info.m_weight_image = weight_map;
       }
+
+      m_image_infos.emplace_back(std::move(info));
     }
   } else {
     logger.debug() << "No measurement image provided, using the detection image for measurements";
@@ -175,57 +182,27 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
     // note: flux scale was already applied
 
-    m_measurement_images.push_back(detection_image.getDetectionImage());
-    m_coordinate_systems.push_back(detection_image.getCoordinateSystem());
-    m_psfs_paths.push_back("");
-    m_weight_images.push_back(weight_image.getWeightImage());
-    m_absolute_weights.push_back(weight_image.isWeightAbsolute());
-    m_weight_thresholds.push_back(weight_image.getWeightThreshold());
-    m_gains.push_back(detection_image.getGain());
-    m_saturation_levels.push_back(detection_image.getSaturation());
-    m_image_ids.push_back(0);
-    m_paths.push_back(detection_image.getDetectionImagePath());
+    m_image_infos.emplace_back(MeasurementImageInfo {
+      detection_image.getDetectionImagePath(),
+      "", // psf path
+
+      detection_image.getDetectionImage(),
+      detection_image.getCoordinateSystem(),
+      weight_image.getWeightImage(),
+
+      weight_image.isWeightAbsolute(),
+      weight_image.getWeightThreshold(),
+      (SeFloat) detection_image.getGain(),
+      (SeFloat) detection_image.getSaturation(),
+
+      false,
+      0.0,
+
+      0 // id
+    });
+
+
   }
-}
-
-const std::vector<std::shared_ptr<MeasurementImage>>& MeasurementImageConfig::getMeasurementImages() const {
-  return m_measurement_images;
-}
-
-const std::vector<int>& MeasurementImageConfig::getImageIds() const {
-  return m_image_ids;
-}
-
-const std::vector<std::shared_ptr<CoordinateSystem>>& MeasurementImageConfig::getCoordinateSystems() const {
-  return m_coordinate_systems;
-}
-
-const std::vector<std::shared_ptr<WeightImage>>& MeasurementImageConfig::getWeightImages() const {
-  return m_weight_images;
-}
-
-const std::vector<bool>& MeasurementImageConfig::getAbsoluteWeights() const {
-  return m_absolute_weights;
-}
-
-const std::vector<WeightImage::PixelType>& MeasurementImageConfig::getWeightThresholds() const {
-  return m_weight_thresholds;
-}
-
-const std::vector<std::string> MeasurementImageConfig::getPsfsPaths() const {
-  return m_psfs_paths;
-}
-
-const std::vector<std::string> MeasurementImageConfig::getImagePaths() const {
-  return m_paths;
-}
-
-const std::vector<SeFloat>& MeasurementImageConfig::getGains() const {
-  return m_gains;
-}
-
-const std::vector<MeasurementImage::PixelType>& MeasurementImageConfig::getSaturationLevels() const {
-  return m_saturation_levels;
 }
 
 } // end of namespace SExtractor
