@@ -5,10 +5,5 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
 find_package(ElementsProject)
 #---------------------------------------------------------------
 
-set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -O3 -march=native -ffast-math"
-    CACHE STRING "Flags used by the compiler during all build types."
-    FORCE)
-
 # Declare project name and version
 elements_project(SExtractorxx 0.1 USE Alexandria 2.10 Elements 5.8)
