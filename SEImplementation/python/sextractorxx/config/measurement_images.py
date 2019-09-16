@@ -46,8 +46,10 @@ class MeasurementImage(cpp.MeasurementImage):
     weight_type : str
         The type of the weight image. It must be one of:
 
+            - none
+                The image itself is used to compute internally a constant variance (default)
             - background
-                The image itself is used to compute internally a variance map (default)
+                The image itself is used to compute internally a variance map
             - rms
                 The weight image must contain a weight-map in units of absolute standard deviations
                 (in ADUs per pixel).
@@ -69,7 +71,7 @@ class MeasurementImage(cpp.MeasurementImage):
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='background', weight_absolute=False, weight_scaling=1.,
+                 weight_type='none', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None, constant_background=None):
         """
         Constructor.

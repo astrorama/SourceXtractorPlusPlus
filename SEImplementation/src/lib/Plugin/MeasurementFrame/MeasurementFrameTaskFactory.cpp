@@ -40,8 +40,6 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
 
   BackgroundAnalyzerFactory background_analyzer_factory;
   background_analyzer_factory.configure(manager);
-  auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer();
-
   for (auto& image_info : image_infos) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
         image_info.m_measurement_image,
@@ -52,6 +50,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
         image_info.m_saturation_level,
         false);
 
+    auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer(image_info.m_weight_type);
     auto background_model = background_analyzer->analyzeBackground(
         image_info.m_measurement_image,
         image_info.m_weight_image,
