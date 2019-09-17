@@ -7,6 +7,18 @@
 
 #include <iostream>
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 106600
+
+#if BOOST_VERSION >= 107000
+#include <boost/math/differentiation/finite_difference.hpp>
+#else
+#include <boost/math/tools/numerical_differentiation.hpp>
+#endif
+
+namespace bmd = boost::math::tools;
+#endif
+
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
@@ -14,6 +26,7 @@
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
 #include "SEUtils/Python.h"
+#include "SEUtils/NumericalDerivative.h"
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SourceInterface.h"
@@ -23,11 +36,6 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
-#include <boost/version.hpp>
-#if BOOST_VERSION >= 106700
-#include <boost/math/tools/numerical_differentiation.hpp>
-namespace bmd = boost::math::tools;
-#endif
 
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
@@ -151,16 +159,17 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
 
   for (unsigned int i = 0; i < result.size(); i++) {
 
-#if BOOST_VERSION >= 106700
     auto f = [&](double x) {
         auto params = param_values;
         params[i] = x;
         return m_value_calculator(cs, params);
     };
 
+#if BOOST_VERSION >= 106600
     result[i] = bmd::finite_difference_derivative(f, param_values[i]);
 #else
-    result[i] = std::numeric_limits<double>::quiet_NaN();
+    // if boost's function is unavailable use our own function
+    result[i] = NumericalDerivative::centralDifference(f, param_values[i]);
 #endif
   }
 
