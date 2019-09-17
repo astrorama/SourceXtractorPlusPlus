@@ -84,7 +84,7 @@ elements_add_unit_test(TransformModelComponent_test
 
 
 find_package(CCfits)
-find_package(OpenCV)
+find_package(OpenCV QUIET)
 
 if (OPENCV_FOUND)
     elements_add_unit_test(OpenCvMatImageTraits_test
