@@ -1,10 +1,10 @@
 #include "SEMain/ProgressNCurses.h"
 #include "ModelFitting/utils.h"
 
-#include <sys/ioctl.h>
-#include <signal.h>
+#include <poll.h>
+#include <semaphore.h>
 #include <ncurses.h>
-#include <term.h>
+#include <csignal>
 #include <chrono>
 #include <iostream>
 #include <mutex>
@@ -18,6 +18,17 @@ namespace SExtractor {
 static struct sigaction sigterm_action, sigstop_action, sigcont_action;
 static std::map<int, struct sigaction> prev_signal;
 
+// Used for sending signals to the UI thread
+static int signal_fds[2];
+
+// Used by the UI thread to notify that is is done
+static struct ncurses_done {
+  sem_t m_semaphore;
+  ncurses_done() {
+    sem_init(&m_semaphore, 0, 1);
+  }
+} ncurses_done;
+
 // Forward declaration of signal handlers
 static void handleTerminatingSignal(int s);
 static void handleStopSignal(int s);
@@ -25,29 +36,54 @@ static void handleContinuationSignal(int s);
 
 
 /**
+ * Intercepts writes to a file descriptor old_fd into a pipe, and returns the reading end
+ * @param old_fd
+ *    File descriptor to intercept
+ * @param backup_fd
+ *    Duplicate the file descriptor and put it here, so we can restore later
+ * @return
+ *    A new file descriptor, corresponding now to the read end of the intercepting pipe
+ */
+static int interceptFileDescriptor(int old_fd, int *backup_fd) {
+  int pipe_fds[2];
+
+  *backup_fd = dup(old_fd);
+  if (*backup_fd < 0) {
+    throw std::system_error(errno, std::generic_category());
+  }
+
+  if (pipe(pipe_fds) < 0) {
+    throw std::system_error(errno, std::generic_category());
+  }
+
+  int flags = fcntl(pipe_fds[0], F_GETFL, 0);
+  fcntl(pipe_fds[0], F_SETFL, flags | O_NONBLOCK);
+
+  if (dup2(pipe_fds[1], old_fd) < 0) {
+    throw std::system_error(errno, std::generic_category());
+  }
+  close(pipe_fds[1]);
+
+  return pipe_fds[0];
+}
+
+/**
  * @brief Wrap the terminal into a singleton
  */
 class Screen : public boost::noncopyable {
 public:
-  // Any function that access the screen should hold this mutex
-  std::recursive_mutex m_mutex;
-
-  virtual ~Screen() {
-    terminate();
-    if (m_signal_monitor && m_signal_monitor->joinable())
-      m_signal_monitor->join();
-  }
 
   /**
-   * Initialize the screen
+   * Initialize the ncurses screen
    * @param outfd
    *    File descriptor to use for output
    * @param infd
    *    File descriptor to use for input
    */
-  void initialize(FILE *outfd, FILE *infd) {
-    // Start monitor
-    m_signal_monitor = make_unique<boost::thread>(std::bind(&Screen::signalMonitor, this));
+  Screen(FILE *outfd, FILE *infd) {
+    if (pipe(signal_fds) < 0) {
+      throw std::system_error(errno, std::generic_category());
+    }
 
     // Setup signal handlers
     ::memset(&sigterm_action, 0, sizeof(sigterm_action));
@@ -88,15 +124,11 @@ public:
   }
 
   /**
-   * Exit ncurses
+   * Exit the ncurses mode
    */
-  void terminate() {
+  virtual ~Screen() {
     // Exit ncurses
     endwin();
-    // Kill monitor
-    if (m_signal_monitor)
-      m_signal_monitor->interrupt();
-    m_signal_cv.notify_all();
     // Restore signal handlers
     ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
     ::sigaction(SIGTERM, &prev_signal[SIGTERM], nullptr);
@@ -104,8 +136,8 @@ public:
     ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
     ::sigaction(SIGCONT, &prev_signal[SIGCONT], nullptr);
-    // Clean up callbacks
-    m_signal_callbacks.clear();
+    close(signal_fds[0]);
+    close(signal_fds[1]);
   }
 
   /**
@@ -116,73 +148,43 @@ public:
     return m_color_idx++;
   }
 
-  typedef std::function<void(int)> SignalCallback;
-
-  /**
-   * Add a termination callback
-   */
-  void addSignalCallback(SignalCallback f) {
-    std::lock_guard<std::recursive_mutex> s_lock(m_mutex);
-    m_signal_callbacks.emplace_back(f);
-  }
-
-  /**
-   * Call the registered callbacks
-   * @param s
-   *    The signal that triggered the termination
-   * @note
-   *    A signal handler can not do much, as only reentrant functions may be called safely.
-   *    So we use a monitor thread that will call the callbacks from outside the handler.
-   */
-  void callbacks(int s) {
-    m_signal = s;
-    m_signal_cv.notify_all();
-    std::unique_lock<std::mutex> resent_lock(m_resent_mutex);
-    // Do not wait too much, as a signal could have been triggered while the screen mutex was hold.
-    // Just give it a chance, and then continue with the default handler
-    m_resent_cv.wait_for(resent_lock, std::chrono::seconds(1));
-  }
-
 private:
   short m_color_idx = 1;
-  std::vector<SignalCallback> m_signal_callbacks;
-  std::unique_ptr<boost::thread> m_signal_monitor;
-  std::mutex m_signal_mutex, m_resent_mutex;
-  std::condition_variable m_signal_cv, m_resent_cv;
-  std::atomic_int m_signal;
-
-  void signalMonitor(void) {
-    // SIGTERM and SIGINT should not be handled by this thread!
-    sigset_t set;
-    sigaddset(&set, SIGTERM);
-    sigaddset(&set, SIGINT);
-    pthread_sigmask(SIG_BLOCK, &set, nullptr);
-
-    std::unique_lock<std::mutex> signal_lock(m_signal_mutex);
-    m_signal_cv.wait(signal_lock, [this](){return m_signal || boost::this_thread::interruption_requested();});
-    if (m_signal) {
-      for (auto &c : m_signal_callbacks) {
-        c(m_signal);
-      }
-      m_resent_cv.notify_all();
-    }
-  }
 };
-
-/** Screen singleton */
-static Screen s_screen;
 
 /**
  * Intercept several terminating signals so the terminal style can be restored
+ *
+ * We can only call signal safe functions here: see `man 7 signal-safety`.
+ * We use a pipe to communicate the signals, as write is safe.
+ * It would be nice to use C++ types for the thread synchronization, but they may not be signal
+ * safe. From C++14:
+ *      The common subset of the C and C++ languages consists of all declarations, definitions, and expressions
+ *      that may appear in a well formed C++ program and also in a conforming C program.
+ *      A POF (“plain old function”) is a function that uses only features from this common subset, and that
+ *      does not directly or indirectly use any function that is not a POF.
+ *      [...]
+ *      The behavior of any function other than a POF used as a signal handler in a C++ program is
+ *      implementation-defined.
+ * Therefore we resort to semaphores (sem_*), which are signal safe
  */
 static void handleTerminatingSignal(int s) {
   // Restore handler (so if we get stuck somewhere, and second
   // signal occurs, like a SIGTERM, the process is killed for good)
-  ::sigaction(s, &prev_signal[s], nullptr);
-  // Callbacks
-  s_screen.callbacks(s);
+  sigaction(s, &prev_signal[s], nullptr);
+
+  // Notify
+  if (write(signal_fds[1], &s, sizeof(s)) == sizeof(s)) {
+    close(signal_fds[1]);
+    // Wait for UI thread to be done
+    timespec timeout;
+    clock_gettime(CLOCK_REALTIME, &timeout);
+    timeout.tv_sec += 5;
+    sem_timedwait(&ncurses_done.m_semaphore, &timeout);
+  }
+
   // Call the previous handler
-  ::raise(s);
+  raise(s);
 }
 
 /**
@@ -190,16 +192,13 @@ static void handleTerminatingSignal(int s) {
  */
 static void handleStopSignal(int s) {
   // Restore handler
-  ::sigaction(s, &prev_signal[s], nullptr);
+  sigaction(s, &prev_signal[s], nullptr);
 
   // Exit ncurses
-  {
-    std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
-    endwin();
-  }
+  endwin();
 
   // Trigger the previous handler
-  ::raise(s);
+  raise(s);
 }
 
 /**
@@ -207,19 +206,14 @@ static void handleStopSignal(int s) {
  */
 static void handleContinuationSignal(int) {
   // Restore handlers
-  ::sigaction(SIGCONT, &sigcont_action, nullptr);
-  ::sigaction(SIGTSTP, &sigstop_action, nullptr);
-
-  // Re-enter ncurses
-  std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
-  doupdate();
+  sigaction(SIGCONT, &sigcont_action, nullptr);
+  sigaction(SIGTSTP, &sigstop_action, nullptr);
 }
 
 /**
- * Custom implementation of a stream buffer, so std::cerr can be transparently redirected into
- * the ncurses pad
+ * Widget into which the logging is redirected
  */
-class LogWidget : public std::streambuf {
+class LogWidget {
 private:
   WINDOW *m_pad, *m_scroll;
   // Screen coordinates!
@@ -232,7 +226,7 @@ private:
   // Colors
   int m_scroll_bar_color, m_scroll_ind_color;
 
-  static const int BUFFER_INCREASE_STEP_SIZE = 10, BUFFER_MAX_SIZE=16384;
+  static const int BUFFER_INCREASE_STEP_SIZE = 10, BUFFER_MAX_SIZE = 16384;
 
 public:
 
@@ -246,15 +240,17 @@ public:
    *    Y position on the screen.
    * @param display_x
    *    X position on the screen.
+   * @param bar_color
+   *    Color for the progress bar
+   * @param ind_color
+   *    Color for the bar indicator
    */
-  LogWidget(int display_height, int display_width, int display_y, int display_x)
-    : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width - 1)),
+  LogWidget(int display_height, int display_width, int display_y, int display_x, short bar_color, short ind_color)
+    : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width)),
       m_scroll(newpad(display_height, 1)),
       m_display_height(display_height), m_display_width(display_width), m_display_y(display_y), m_display_x(display_x),
-      m_written_lines(0), m_active_line(0) {
+      m_written_lines(0), m_active_line(0), m_scroll_bar_color(bar_color), m_scroll_ind_color(ind_color) {
     scrollok(m_pad, TRUE);
-    m_scroll_bar_color = s_screen.initColor(COLOR_WHITE, COLOR_BLACK);
-    m_scroll_ind_color = s_screen.initColor(COLOR_WHITE, COLOR_WHITE);
   }
 
   /**
@@ -266,39 +262,26 @@ public:
   }
 
   /**
-   * Called when the buffer is overflowed, so the character c is written to the destination
-   * @note This is called by the stream, so we need to lock the screen
+   * Write into the widget
    */
-  std::streambuf::int_type overflow(std::streambuf::int_type c) override {
-    std::lock_guard<std::recursive_mutex> lock(s_screen.m_mutex);
-
-    if (c != traits_type::eof()) {
-      if (c == '\n') {
+  void write(const char *data, ssize_t nchars) {
+    while (nchars > 0) {
+      if (*data == '\n') {
         // If the current line is the last one, follow the log
         if (m_active_line == m_written_lines) {
           ++m_active_line;
         }
-        m_written_lines = std::min({m_written_lines+1, BUFFER_MAX_SIZE});
+        m_written_lines = std::min({m_written_lines + 1, BUFFER_MAX_SIZE});
         // Increase buffer if we ran out of lines on the pad
         if (getmaxy(m_pad) <= m_written_lines) {
           wresize(m_pad, m_written_lines + BUFFER_INCREASE_STEP_SIZE, m_display_width);
         }
       }
-      waddch(m_pad, c);
+      waddch(m_pad, *data);
+      ++data, --nchars;
     }
-    return c;
-  }
-
-  /**
-   * Called so synchronize the buffer. This implementation will refresh the display.
-   * @note This is called by the stream, so we need to lock the screen
-   */
-  int sync() override {
-    std::lock_guard<std::recursive_mutex> lock(s_screen.m_mutex);
     drawLog();
     drawScroll();
-    doupdate();
-    return 0;
   }
 
   /**
@@ -310,10 +293,9 @@ public:
 
     // Resize to make place for the new width only if it is bigger.
     // Note that the pad height depends on the number of written lines, not displayed size!
-    if (display_width - 1 > getmaxx(m_pad)) {
-      wresize(m_pad, getmaxy(m_pad), display_width - 1);
+    if (display_width > getmaxx(m_pad)) {
+      wresize(m_pad, getmaxy(m_pad), display_width);
     }
-    sync();
   }
 
   /**
@@ -324,12 +306,35 @@ public:
     m_active_line += d;
     if (m_active_line > getcury(m_pad) + 1) {
       m_active_line = getcury(m_pad) + 1;
-    } else if (m_written_lines > m_display_height && m_active_line < m_display_height) {
+    }
+    else if (m_written_lines > m_display_height && m_active_line < m_display_height) {
       m_active_line = m_display_height;
-    } else if (m_written_lines < m_display_height && m_active_line < m_written_lines) {
+    }
+    else if (m_written_lines < m_display_height && m_active_line < m_written_lines) {
       m_active_line = m_written_lines;
     }
-    sync();
+    drawLog();
+    drawScroll();
+  }
+
+  /**
+   * Handle key presses (scrolling)
+   */
+  void handleKeyPress(int key) {
+    switch (key) {
+      case KEY_DOWN:
+        scrollText(1);
+        break;
+      case KEY_UP:
+        scrollText(-1);
+        break;
+      case KEY_NPAGE:
+        scrollText(LINES);
+        break;
+      case KEY_PPAGE:
+        scrollText(-LINES);
+        break;
+    }
   }
 
   /**
@@ -342,7 +347,7 @@ public:
       // Note: We do not want the '\0' to be part of the final string, so we use the string constructor to prune those
       std::vector<char> buffer(m_display_width + 1, '\0');
       mvwinnstr(m_pad, i, 0, buffer.data(), m_display_width - 2);
-      term_lines.push_back(buffer.data());
+      term_lines.emplace_back(buffer.data());
       boost::algorithm::trim(term_lines.back());
     }
     // Prune trailing empty lines
@@ -373,8 +378,8 @@ private:
     }
     pnoutrefresh(m_scroll,
                  0, 0,
-                 m_display_y, m_display_x + m_display_width - 2,
-                 m_display_y + m_display_height - 1, m_display_x + m_display_width - 2
+                 m_display_y, m_display_x + m_display_width - 1,
+                 m_display_y + m_display_height - 1, m_display_x + m_display_width - 1
     );
   }
 
@@ -386,7 +391,7 @@ private:
     pnoutrefresh(m_pad,
                  pad_y, 0, // Pad coordinates
                  m_display_y, m_display_x, // Start screen coordinates
-                 m_display_y + m_display_height - 1, m_display_x + m_display_width - 3 // End screen coordinates
+                 m_display_y + m_display_height - 1, m_display_x + m_display_width - 2 // End screen coordinates
     );
   }
 };
@@ -406,11 +411,14 @@ public:
    *    Start line
    * @param x
    *    Start column
+   * @param done_color
+   *    Color for the done part
+   * @param progress_color
+   *    Color for the progress bar
    */
-  ProgressWidget(int height, int width, int y, int x)
-    : m_window(newwin(height, width, y, x)), m_started(std::chrono::steady_clock::now()) {
-    m_color_done = s_screen.initColor(COLOR_WHITE, COLOR_GREEN);
-    m_color_progress = s_screen.initColor(COLOR_WHITE, COLOR_BLACK);
+  ProgressWidget(int height, int width, int y, int x, short done_color, short progress_color)
+    : m_window(newwin(height, width, y, x)), m_started(std::chrono::steady_clock::now()),
+      m_done_color(done_color), m_progress_color(progress_color) {
   }
 
   /**
@@ -429,6 +437,7 @@ public:
    */
   void move(int y, int x) {
     mvwin(m_window, y, x);
+    wnoutrefresh(m_window);
   }
 
   /**
@@ -440,12 +449,13 @@ public:
    */
   void resize(int height, int width) {
     wresize(m_window, height, width);
+    wnoutrefresh(m_window);
   }
 
   /**
    * @return The height of the progress widget
    */
-  int getHeight() const {
+  unsigned getHeight() const {
     return getmaxy(m_window);
   }
 
@@ -464,9 +474,7 @@ public:
     value_position++; // Plus space
 
     // Width of the bar is the with of the windows - a space - two brackets []
-    size_t bar_width = getmaxx(m_window) - 3 - value_position;
-
-    std::lock_guard<std::recursive_mutex> lock(s_screen.m_mutex);
+    size_t bar_width = getmaxx(m_window) - 2 - value_position;
 
     // Elapsed
     auto now = std::chrono::steady_clock::now();
@@ -486,7 +494,7 @@ public:
     drawElapsed(value_position, elapsed, line);
 
     // Flush
-    wrefresh(m_window);
+    wnoutrefresh(m_window);
   }
 
 private:
@@ -514,7 +522,7 @@ private:
   /**
    * Draw the set of progress bar/report on the bottom of the screen
    */
-  void drawProgressLine(size_t value_position, size_t bar_width, int line, const std::string& label,
+  void drawProgressLine(int value_position, int bar_width, int line, const std::string& label,
                         int total, int done) const {
     // Label
     wattron(m_window, A_BOLD);
@@ -550,12 +558,12 @@ private:
     auto bar_content = bar.str();
     int completed = bar_content.size() * ratio;
 
-    wattron(m_window, COLOR_PAIR(m_color_done));
+    wattron(m_window, COLOR_PAIR(m_done_color));
     waddstr(m_window, bar_content.substr(0, completed).c_str());
-    wattroff(m_window, COLOR_PAIR(m_color_done));
+    wattroff(m_window, COLOR_PAIR(m_done_color));
 
     // Rest
-    wattron(m_window, COLOR_PAIR(m_color_progress));
+    wattron(m_window, COLOR_PAIR(m_progress_color));
     waddstr(m_window, bar_content.substr(completed).c_str());
     wattroff(m_window, COLOR_PAIR(2));
 
@@ -565,59 +573,177 @@ private:
 
   WINDOW *m_window;
   std::chrono::steady_clock::time_point m_started;
-  short m_color_done, m_color_progress;
+  short m_done_color, m_progress_color;
 };
 
 /**
- * @brief Dashboard for reporting SExtractor progress
+ * The Dashboard wraps the UI screen, which runs on an independent thread to avoid race conditions.
+ *
+ * ncurses calls are not thread safe, so it is better to contain them within a single thread.
+ * Normally, ncurses does a proper setup of signal handling (i.e. SIGINT), so the terminal is returned
+ * into its proper state. However, we want to re-print the output after exiting the curses mode, so we need
+ * to handle the signals ourselves: catch, exit ncurses, dump log, and delegate to the previously installed handler.
+ *
+ * @see handleTerminatingSignal
  */
-class ProgressNCurses::Dashboard : public boost::noncopyable {
+class ProgressNCurses::Dashboard {
+private:
+  std::unique_ptr<boost::thread> m_ui_thread;
+  std::list<ProgressInfo> m_progress_info;
+  std::mutex m_progress_info_mutex;
+
+  // stderr intercept
+  int m_stderr_original, m_stderr_pipe;
+  FILE *m_stderr;
+  // stdout intercept
+  int m_stdout_original, m_stdout_pipe;
+
+  // Used to recover log into the standard output
+  std::vector<std::string> m_log_text;
+
+  /**
+   * Main UI thread. All (almost) ncurses handling should be done here, as it is not thread safe
+   */
+  void uiThread() {
+    sem_wait(&ncurses_done.m_semaphore);
+    // SIGTERM, SIGINT and SIGHUP should not be handled by this thread, or we will not be able to properly
+    // exit ncurses.
+    // Hopefully there should be no SIGABRT or SIGSEGV here. If there were, we will exit but we will not be able
+    // to restore the terminal state. Having an abort or a segmentation fault is a bug anyway.
+    sigset_t set;
+    sigaddset(&set, SIGTERM);
+    sigaddset(&set, SIGINT);
+    sigaddset(&set, SIGHUP);
+    pthread_sigmask(SIG_BLOCK, &set, nullptr);
+    // Enter ncurses
+    ncursesMode();
+    // Recover file descriptors
+    dup2(m_stderr_original, STDERR_FILENO);
+    dup2(m_stdout_original, STDOUT_FILENO);
+    // Dump recovered text
+    for (const auto& line : m_log_text) {
+      std::cerr << line << std::endl;
+    }
+    sem_post(&ncurses_done.m_semaphore);
+  }
+
+  /**
+   * When we enter we are in ncurses, when we exit we are not (yay RAII)
+   */
+  void ncursesMode() {
+    Screen screen(m_stderr, stdin);
+
+    // Log area
+    LogWidget logWidget(
+      LINES - 1, COLS, 0, 0,
+      screen.initColor(COLOR_WHITE, COLOR_BLACK), screen.initColor(COLOR_WHITE, COLOR_WHITE)
+    );
+
+    // Progress widget
+    ProgressWidget progressWidget(
+      1, COLS, LINES - 1, 0,
+      screen.initColor(COLOR_WHITE, COLOR_GREEN), screen.initColor(COLOR_WHITE, COLOR_BLACK)
+    );
+
+    // File descriptors to watch for
+    struct pollfd poll_fds[] = {
+      {m_stderr_pipe, POLLIN, 0},
+      {m_stdout_pipe, POLLIN, 0},
+      {STDIN_FILENO,  POLLIN, 0},
+      {signal_fds[0], POLLIN, 0}
+    };
+
+    // Event loop
+    char buf[64];
+    ssize_t nbytes;
+
+    int cols = COLS, rows = LINES;
+    bool exit_loop = false;
+
+    do {
+      // Resize if needed the widgets
+      bool need_resize = m_progress_info.size() + 1 != progressWidget.getHeight();
+      need_resize |= (cols != COLS || rows != LINES);
+
+      if (need_resize) {
+        progressWidget.move(LINES - m_progress_info.size() - 1, 0);
+        progressWidget.resize(m_progress_info.size() + 1, COLS);
+        logWidget.resize(LINES - progressWidget.getHeight(), COLS);
+        cols = COLS;
+        rows = LINES;
+      }
+
+      // There is output/error to redirect
+      if (poll_fds[0].revents & POLLIN) {
+        while ((nbytes = read(m_stderr_pipe, &buf, sizeof(buf))) > 0) {
+          logWidget.write(buf, nbytes);
+        }
+      }
+      if (poll_fds[1].revents & POLLIN) {
+        while ((nbytes = read(m_stdout_pipe, &buf, sizeof(buf))) > 0) {
+          logWidget.write(buf, nbytes);
+        }
+      }
+      // There is a key to read
+      if (poll_fds[2].revents & POLLIN) {
+        int key = wgetch(stdscr);
+        if (key != KEY_RESIZE) {
+          logWidget.handleKeyPress(key);
+        }
+      }
+      // There has been a signal
+      if (poll_fds[3].revents & POLLIN) {
+        int signalNo;
+        if (read(signal_fds[0], &signalNo, sizeof(signalNo)) > 0) {
+          logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %d", signalNo));
+        }
+        exit_loop = true;
+      }
+
+      progressWidget.update(m_progress_info);
+
+      // Update screen
+      doupdate();
+
+      // Wait for events
+      if (poll(poll_fds, 4, 1000) < 0) {
+        // poll may return with EINTR if a signal happened halfway
+        exit_loop = (errno != EINTR);
+      }
+    } while (!exit_loop && !boost::this_thread::interruption_requested());
+    m_log_text = logWidget.getText();
+  }
+
 public:
   /**
    * Constructor
+   * @note
+   *    Intercepts stdout and stderr and starts up the UI thread
    */
-  Dashboard() : m_done(false) {
-    std::lock_guard<std::recursive_mutex> lock(s_screen.m_mutex);
-
-    s_screen.initialize(stderr, stdin);
-    m_log_widget = make_unique<LogWidget>(LINES - 1, COLS, 0, 0);
-    m_cerr_original_rdbuf = std::cerr.rdbuf();
-    std::cerr.rdbuf(m_log_widget.get());
-
-    m_progress_widget = make_unique<ProgressWidget>(1, COLS, LINES - 1, 0);
-
-    s_screen.addSignalCallback(std::bind(&Dashboard::signalCallback, this, std::placeholders::_1));
-
+  Dashboard() {
+    m_stderr_pipe = interceptFileDescriptor(STDERR_FILENO, &m_stderr_original);
+    m_stdout_pipe = interceptFileDescriptor(STDOUT_FILENO, &m_stdout_original);
+    m_stderr = fdopen(dup(m_stderr_original), "w");
     m_ui_thread = make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
   }
 
   /**
    * Destructor
+   * Notifies the UI thread to finish and clean up, and recover stdout and stderr
    */
-  virtual ~Dashboard() {
-    terminate();
-  }
-
-  /**
-   * Shutdown the UI
-   */
-  void terminate() {
-    // Terminate UI thread
-    m_done = true;
-    m_ui_thread->interrupt();
-    m_ui_thread->join();
-
-    std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
-    auto log_lines = m_log_widget->getText();
-
-    // Terminate ncurses
-    s_screen.terminate();
-
-    // Dump log to the restored stderr
-    std::cerr.rdbuf(m_cerr_original_rdbuf);
-    for (auto& l : log_lines) {
-      std::cerr << l << std::endl;
+  ~Dashboard() {
+    if (m_ui_thread) {
+      m_ui_thread->interrupt();
+      if (m_ui_thread->joinable()) {
+        m_ui_thread->join();
+      }
     }
+    fclose(m_stderr);
+    // Unneeded duplicates now
+    close(m_stderr_original);
+    close(m_stdout_original);
+    close(m_stderr_pipe);
+    close(m_stdout_pipe);
   }
 
   /**
@@ -625,98 +751,9 @@ public:
    */
   void update(const std::list<ProgressInfo>& info) {
     std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
-
-    // Resize if needed the widgets
-    if (info.size() != m_progress_info.size()) {
-      std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
-      m_progress_widget->move(LINES - info.size() - 1, 0);
-      m_progress_widget->resize(info.size() + 1, COLS);
-      m_log_widget->resize(LINES - m_progress_widget->getHeight(), COLS);
-    }
-
     m_progress_info = info;
   }
-
-private:
-  std::streambuf *m_cerr_original_rdbuf;
-  std::unique_ptr<LogWidget> m_log_widget;
-  std::unique_ptr<ProgressWidget> m_progress_widget;
-  std::unique_ptr<boost::thread> m_ui_thread;
-  std::list<ProgressInfo> m_progress_info;
-  std::atomic_bool m_done;
-  std::mutex m_progress_info_mutex;
-
-  /**
-   * Called when the screen has been resized
-   */
-  void notifyResize() {
-    werase(stdscr);
-    wrefresh(stdscr);
-    m_progress_widget->move(LINES - m_progress_info.size() - 1, 0);
-    m_progress_widget->update(m_progress_info);
-    m_log_widget->resize(LINES - m_progress_widget->getHeight(), COLS);
-    m_log_widget->sync();
-  }
-
-  /**
-   * UI loop
-   */
-  void uiThread() {
-    // SIGTERM and SIGINT should not be handled by this thread!
-    sigset_t set;
-    sigaddset(&set, SIGTERM);
-    sigaddset(&set, SIGINT);
-    pthread_sigmask(SIG_BLOCK, &set, nullptr);
-
-    while (!m_done && !boost::this_thread::interruption_requested()) {
-      timeout(1000);
-      int key = wgetch(stdscr);
-      {
-        std::lock_guard<std::recursive_mutex> s_lock(s_screen.m_mutex);
-        switch (key) {
-          case KEY_DOWN:
-            m_log_widget->scrollText(1);
-            break;
-          case KEY_UP:
-            m_log_widget->scrollText(-1);
-            break;
-          case KEY_NPAGE:
-            m_log_widget->scrollText(LINES);
-            break;
-          case KEY_PPAGE:
-            m_log_widget->scrollText(-LINES);
-            break;
-          case KEY_RESIZE:
-            notifyResize();
-            break;
-        }
-      }
-      std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
-      m_progress_widget->update(m_progress_info);
-      doupdate();
-    }
-  }
-
-  /**
-   * Callback for termination signals. It is basically like terminate, but
-   * without waiting for the uiThread, as the signal may have been triggered there
-   */
-  void signalCallback(int) {
-    // Holding the mutex here is risky, as the signal may have been triggered while some other
-    // thread has it
-    auto log_lines = m_log_widget->getText();
-
-    // Terminate ncurses
-    s_screen.terminate();
-
-    // Dump log to the restored stderr
-    std::cerr.rdbuf(m_cerr_original_rdbuf);
-    for (auto& l : log_lines) {
-      std::cerr << l << std::endl;
-    }
-  }
 };
-
 
 ProgressNCurses::ProgressNCurses() {
   m_dashboard = make_unique<Dashboard>();
@@ -726,7 +763,7 @@ ProgressNCurses::~ProgressNCurses() {
 }
 
 bool ProgressNCurses::isTerminalCapable() {
-  return isatty(fileno(stderr));
+  return isatty(STDERR_FILENO);
 }
 
 void ProgressNCurses::handleMessage(const std::list<ProgressInfo>& info) {
@@ -738,6 +775,5 @@ void ProgressNCurses::handleMessage(const bool& done) {
   if (done && m_dashboard)
     m_dashboard.reset(nullptr);
 }
-
 
 } // end SExtractor
