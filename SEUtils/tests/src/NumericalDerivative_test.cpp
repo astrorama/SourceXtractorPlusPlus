@@ -4,7 +4,6 @@
  *  Created on: Sep 17, 2019
  *      Author: mschefer
  */
-
 #include <boost/test/unit_test.hpp>
 
 #include <boost/version.hpp>
@@ -12,11 +11,12 @@
 
 #if BOOST_VERSION >= 107000
 #include <boost/math/differentiation/finite_difference.hpp>
+namespace bmd = boost::math::differentiation;
 #else
 #include <boost/math/tools/numerical_differentiation.hpp>
+namespace bmd = boost::math::tools;
 #endif
 
-namespace bmd = boost::math::tools;
 #endif
 
 #include "SEUtils/NumericalDerivative.h"

@@ -12,11 +12,12 @@
 
 #if BOOST_VERSION >= 107000
 #include <boost/math/differentiation/finite_difference.hpp>
+namespace bmd = boost::math::differentiation;
 #else
 #include <boost/math/tools/numerical_differentiation.hpp>
+namespace bmd = boost::math::tools;
 #endif
 
-namespace bmd = boost::math::tools;
 #endif
 
 #include "ModelFitting/utils.h"
