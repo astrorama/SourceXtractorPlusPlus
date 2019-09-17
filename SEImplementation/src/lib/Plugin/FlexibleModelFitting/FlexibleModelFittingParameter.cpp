@@ -7,10 +7,7 @@
 
 #include <iostream>
 
-#include <boost/math/tools/numerical_differentiation.hpp>
-
 #include "ModelFitting/utils.h"
-
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
@@ -22,14 +19,18 @@
 #include "SEFramework/Source/SourceInterface.h"
 
 #include "SEImplementation/PythonConfig/PythonInterpreter.h"
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 106700
+#include <boost/math/tools/numerical_differentiation.hpp>
+namespace bmd = boost::math::tools;
+#endif
+
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
-namespace bmd = boost::math::tools;
 
 namespace SExtractor {
 
@@ -150,6 +151,7 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
 
   for (unsigned int i = 0; i < result.size(); i++) {
 
+#if BOOST_VERSION >= 106700
     auto f = [&](double x) {
         auto params = param_values;
         params[i] = x;
@@ -157,6 +159,9 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
     };
 
     result[i] = bmd::finite_difference_derivative(f, param_values[i]);
+#else
+    result[i] = std::numeric_limits<double>::quiet_NaN();
+#endif
   }
 
   return result;
