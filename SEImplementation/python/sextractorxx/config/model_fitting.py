@@ -19,8 +19,14 @@ class RangeType(Enum):
 
 
 class Range(object):
-    """
+    r"""
     Limit, and normalize, the range of values for a model fitting parameter.
+
+
+    Parameters
+    ----------
+    limits : a tuple (min, max), or a callable that receives a source, and returns a tuple (min, max)
+    type : RangeType
 
     Notes
     -----
@@ -28,25 +34,23 @@ class Range(object):
         Normalized to engine space using a sigmoid function
 
         .. math::
-        engine = \ln \frac{world - min}{max-world} \\
-        world = min + \frac{max - min}{1 + e^{engine}}
+
+            engine = \ln \frac{world - min}{max-world} \\
+            world = min + \frac{max - min}{1 + e^{engine}}
 
     RangeType.EXPONENTIAL
         Normalized to engine space using an exponential sigmoid function
 
         .. math::
-        engine = \ln \left ( \frac{\ln(world/min)}{\ln(max /world)}) \right ) \\
-        world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }
+
+            engine = \ln \left( \frac{\ln(world/min)}{\ln(max /world)} \right) \\
+            world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }
+
     """
 
     def __init__(self, limits, type):
         """
         Constructor.
-
-        Parameters
-        ----------
-        limits : a tuple (min, max), or a callable that receives a source, and returns a tuple (min, max)
-        type : RangeType
         """
         self.__limits = limits
         self.__type = type
@@ -91,17 +95,17 @@ class Range(object):
 class Unbounded(object):
     """
     Unbounded, but normalize, value of a model fitting parameter
+
+    Parameters
+    ----------
+    normalization_factor: float, or a callable that receives the initial value parameter value and a source,
+        and returns a float
+        The world value which will be normalized to 1 in engine coordinates
     """
     
     def __init__(self, normalization_factor=1):
         """
         Constructor.
-
-        Parameters
-        ----------
-        normalization_factor: float, or a callable that receives the initial value parameter value and a source,
-            and returns a float
-            The world value which will be normalized to 1 in engine coordinates
         """
         self.__normalization_factor = normalization_factor
     
@@ -178,16 +182,16 @@ class ParameterBase(cpp.Id):
 class ConstantParameter(ParameterBase):
     """
     A parameter with a single value that remains constant. It will not be fitted.
+
+    Parameters
+    ----------
+    value : float, or callable that receives a source and returns a float
+        Value for this parameter
     """
 
     def __init__(self, value):
         """
         Constructor.
-
-        Parameters
-        ----------
-        value : float, or callable that receives a source and returns a float
-            Value for this parameter
         """
         ParameterBase.__init__(self)
         self.__value = value
@@ -220,27 +224,27 @@ class ConstantParameter(ParameterBase):
 class FreeParameter(ParameterBase):
     """
     A parameter that will be fitted by the model fitting engine.
+
+    Parameters
+    ----------
+    init_value : float or callable that receives a source, and returns a float
+        Initial value for the parameter.
+    range : instance of Range or Unbounded
+        Defines if this parameter is unbounded or bounded, and how.
+
+    See Also
+    --------
+    Unbounded
+    Range
+
+    Examples
+    --------
+    >>> sersic = FreeParameter(2.0, Range((1.0, 7.0), RangeType.LINEAR))
     """
 
     def __init__(self, init_value, range=Unbounded()):
         """
-        Constructor
-
-        Parameters
-        ----------
-        init_value : float or callable that receives a source, and returns a float
-            Initial value for the parameter.
-        range : instance of Range or Unbounded
-            Defines if this parameter is unbounded or bounded, and how.
-
-        See Also
-        --------
-        Unbounded
-        Range
-
-        Examples
-        --------
-        >>> sersic = FreeParameter(2.0, Range((1.0, 7.0), RangeType.LINEAR))
+        Constructor.
         """
         ParameterBase.__init__(self)
         self.__init_value = init_value
@@ -285,25 +289,25 @@ class DependentParameter(ParameterBase):
     """
     A DependentParameter is not fitted by itself, but its value is derived from another Parameters, whatever their type:
     FreeParameter, ConstantParameter, or other DependentParameter
+
+    Parameters
+    ----------
+    func : callable
+        A callable that will be called with all the parameters specified in this constructor each time a new
+        evaluation is needed.
+    params : list of ParameterBase
+        List of parameters on which this DependentParameter depends.
+
+    Examples
+    --------
+    >>> flux = get_flux_parameter()
+    >>> mag = DependentParameter(lambda f: -2.5 * np.log10(f) + args.mag_zeropoint, flux)
+    >>> add_output_column('mf_mag_' + band, mag)
     """
 
     def __init__(self, func, *params):
         """
-        Constructor
-
-        Parameters
-        ----------
-        func : callable
-            A callable that will be called with all the parameters specified in this constructor each time a new
-            evaluation is needed.
-        params : list of ParameterBase
-            List of parameters on which this DependentParameter depends.
-
-        Examples
-        --------
-        >>> flux = get_flux_parameter()
-        >>> mag = DependentParameter(lambda f: -2.5 * np.log10(f) + args.mag_zeropoint, flux)
-        >>> add_output_column('mf_mag_' + band, mag)
+        Constructor.
         """
         ParameterBase.__init__(self)
         self.func = func
@@ -368,20 +372,20 @@ prior_dict = {}
 class Prior(cpp.Id):
     """
     Model a Gaussian prior on a given parameter.
+
+    Parameters
+    ----------
+    param : ParameterBase
+        Model fitting parameter
+    value : float or callable that receives a source and returns a float
+        Mean of the Gaussian
+    sigma : float or callable that receives a source and returns a float
+        Standard deviation of the Gaussian
     """
 
     def __init__(self, param, value, sigma):
         """
         Constructor.
-
-        Parameters
-        ----------
-        param : ParameterBase
-            Model fitting parameter
-        value : float or callable that receives a source and returns a float
-            Mean of the Gaussian
-        sigma : float or callable that receives a source and returns a float
-            Standard deviation of the Gaussian
         """
         cpp.Id.__init__(self)
         self.param = param.id
@@ -501,20 +505,20 @@ class ModelBase(cpp.Id):
 class CoordinateModelBase(ModelBase):
     """
     Base class for positioned models with a flux. It can not be used directly.
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
     """
 
     def __init__(self, x_coord, y_coord, flux):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
+        Constructor.
         """
         ModelBase.__init__(self)
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
@@ -525,20 +529,20 @@ class CoordinateModelBase(ModelBase):
 class PointSourceModel(CoordinateModelBase):
     """
     Models a source as a point, spread by the PSF.
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
     """
 
     def __init__(self, x_coord, y_coord, flux):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
+        Constructor.
         """
         CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
         global point_source_model_dict
@@ -568,16 +572,16 @@ class PointSourceModel(CoordinateModelBase):
 class ConstantModel(ModelBase):
     """
     A model that is constant through all the image.
+
+    Parameters
+    ----------
+    value: ParameterBase or float
+        Value to add to the value of all pixels from the model.
     """
 
     def __init__(self, value):
         """
-        Constructor
-
-        Parameters
-        ----------
-        value: ParameterBase or float
-            Value to add to the value of all pixels from the model.
+        Constructor.
         """
         ModelBase.__init__(self)
         self.value = value if isinstance(value, ParameterBase) else ConstantParameter(value)
@@ -606,26 +610,26 @@ class ConstantModel(ModelBase):
 class SersicModelBase(CoordinateModelBase):
     """
     Base class for the Sersic, Exponential and de Vaucouleurs models. It can not be used directly.
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
+    effective_radius : ParameterBase or float
+        Ellipse semi-major axis, in pixels on the detection image.
+    aspect_ratio : ParameterBase or float
+        Ellipse ratio.
+    angle : ParameterBase or float
+        Ellipse rotation, in radians
     """
 
     def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
-        effective_radius : ParameterBase or float
-            Ellipse semi-major axis, in pixels on the detection image.
-        aspect_ratio : ParameterBase or float
-            Ellipse ratio.
-        angle : ParameterBase or float
-            Ellipse rotation, in radians
+        Constructor.
         """
         CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
         self.effective_radius = effective_radius if isinstance(effective_radius, ParameterBase) else ConstantParameter(effective_radius)
@@ -636,28 +640,28 @@ class SersicModelBase(CoordinateModelBase):
 class SersicModel(SersicModelBase):
     """
     Model a source with a Sersic profile.
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
+    effective_radius : ParameterBase or float
+        Ellipse semi-major axis, in pixels on the detection image.
+    aspect_ratio : ParameterBase or float
+        Ellipse ratio.
+    angle : ParameterBase or float
+        Ellipse rotation, in radians
+    n : ParameterBase or float
+        Sersic index
     """
 
     def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle, n):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
-        effective_radius : ParameterBase or float
-            Ellipse semi-major axis, in pixels on the detection image.
-        aspect_ratio : ParameterBase or float
-            Ellipse ratio.
-        angle : ParameterBase or float
-            Ellipse rotation, in radians
-        n : ParameterBase or float
-            Sersic index
+        Constructor.
         """
         SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         self.n = n if isinstance(n, ParameterBase) else ConstantParameter(n)
@@ -688,26 +692,26 @@ class SersicModel(SersicModelBase):
 class ExponentialModel(SersicModelBase):
     """
     Model a source with an exponential profile (Sersic model with an index of 1)
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
+    effective_radius : ParameterBase or float
+        Ellipse semi-major axis, in pixels on the detection image.
+    aspect_ratio : ParameterBase or float
+        Ellipse ratio.
+    angle : ParameterBase or float
+        Ellipse rotation, in radians
     """
 
     def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
-        effective_radius : ParameterBase or float
-            Ellipse semi-major axis, in pixels on the detection image.
-        aspect_ratio : ParameterBase or float
-            Ellipse ratio.
-        angle : ParameterBase or float
-            Ellipse rotation, in radians
+        Constructor.
         """
         SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         global exponential_model_dict
@@ -737,26 +741,26 @@ class ExponentialModel(SersicModelBase):
 class DeVaucouleursModel(SersicModelBase):
     """
     Model a source with a De Vaucouleurs profile (Sersic model with an index of 4)
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
+    effective_radius : ParameterBase or float
+        Ellipse semi-major axis, in pixels on the detection image.
+    aspect_ratio : ParameterBase or float
+        Ellipse ratio.
+    angle : ParameterBase or float
+        Ellipse rotation, in radians
     """
 
     def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
         """
-        Constructor
-
-        Parameters
-        ----------
-        x_coord : ParameterBase or float
-            X coordinate (in the detection image)
-        y_coord : ParameterBase or float
-            Y coordinate (in the detection image)
-        flux : ParameterBase or float
-            Total flux
-        effective_radius : ParameterBase or float
-            Ellipse semi-major axis, in pixels on the detection image.
-        aspect_ratio : ParameterBase or float
-            Ellipse ratio.
-        angle : ParameterBase or float
-            Ellipse rotation, in radians
+        Constructor.
         """
         SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         global de_vaucouleurs_model_dict
@@ -786,11 +790,18 @@ class DeVaucouleursModel(SersicModelBase):
 class WorldCoordinate:
     """
     Coordinates in right ascension and declination
+
+    Parameters
+    ----------
+    ra : float
+        Right ascension
+    dec : float
+        Declination
     """
 
     def __init__(self, ra, dec):
         """
-        Constructor
+        Constructor.
         """
         self.ra = ra
         self.dec = dec
@@ -834,6 +845,7 @@ def get_sky_coord(x, y):
 def radius_to_wc_angle(x, y, rad):
     """
     Transform a radius in pixels on the detection image to a radius in sky coordinates.
+
     Parameters
     ----------
     x : float

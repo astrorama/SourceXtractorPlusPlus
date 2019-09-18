@@ -44,4 +44,12 @@ Elements::Exception pyToElementsException(Elements::Logging &logger) {
   return Elements::Exception(err_msg);
 }
 
+GILStateEnsure::GILStateEnsure() {
+  m_state = PyGILState_Ensure();
+}
+
+GILStateEnsure::~GILStateEnsure() {
+  PyGILState_Release(m_state);
+}
+
 } // end SExtractor

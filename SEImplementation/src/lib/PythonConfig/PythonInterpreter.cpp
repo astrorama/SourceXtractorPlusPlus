@@ -9,14 +9,14 @@
 #include <Python.h>
 
 #include <SEUtils/Python.h>
-
 #include <SEImplementation/PythonConfig/PythonModule.h>
-
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
 namespace py = boost::python;
 
-static Elements::Logging logger = Elements::Logging::getLogger("PythonInterpreter");
+static Elements::Logging logger = Elements::Logging::getLogger("Python::Interpreter");
+static Elements::Logging stdout_logger = Elements::Logging::getLogger("Python::stdout");
+static Elements::Logging stderr_logger = Elements::Logging::getLogger("Python::stderr");
 
 namespace SExtractor {
 
@@ -25,7 +25,7 @@ PythonInterpreter &PythonInterpreter::getSingleton() {
   return singleton;
 }
 
-PythonInterpreter::PythonInterpreter() {
+PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
   // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
   // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
   // the default one) and restore it after initializing the interpreter
@@ -33,11 +33,15 @@ PythonInterpreter::PythonInterpreter() {
   sigaction(SIGINT, nullptr, &sigint_handler);
 
   Py_Initialize();
+  PyEval_InitThreads();
+  PyEval_SaveThread();
 
   sigaction(SIGINT, &sigint_handler, nullptr);
 }
 
 void PythonInterpreter::runCode(const std::string &code) {
+  GILStateEnsure ensure;
+
   py::object main_module = py::import("__main__");
   py::object main_namespace = main_module.attr("__dict__");
   try {
@@ -49,6 +53,8 @@ void PythonInterpreter::runCode(const std::string &code) {
 }
 
 void PythonInterpreter::runFile(const std::string &filename, const std::vector<std::string> &argv) {
+  GILStateEnsure ensure;
+
   try {
     // Setup argv
     // Python expects to have the ownership!
@@ -69,6 +75,13 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
     }
     PySys_SetArgv(argv.size() + 1, py_argv);
 
+    // Import ourselves so the conversions are registered
+    py::import("_SExtractorPy");
+
+    // Setup stdout and stderr
+    PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());
+    PySys_SetObject("stderr", py::object(boost::ref(m_err_wrapper)).ptr());
+
     // Run the file
     py::object main_module = py::import("__main__");
     py::setattr(main_module, "__file__", py::object(filename));
@@ -81,6 +94,8 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
 }
 
 std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
+  GILStateEnsure ensure;
+
   try {
     py::object meas_images_module = py::import("sextractorxx.config.measurement_images");
     py::dict images = py::extract<py::dict>(meas_images_module.attr("measurement_images"));
@@ -99,6 +114,8 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
 }
 
 std::map<int, PyAperture> PythonInterpreter::getApertures() {
+  GILStateEnsure ensure;
+
   try {
     py::object apertures_module = py::import("sextractorxx.config.aperture");
     py::dict apertures = py::extract<py::dict>(apertures_module.attr("apertures_for_image"));
@@ -117,6 +134,8 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
 }
 
 std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getModelFittingOutputColumns() {
+  GILStateEnsure ensure;
+
   try {
     py::object output_module = py::import("sextractorxx.config.output");
     py::list output = py::extract<py::list>(output_module.attr("model_fitting_parameter_columns"));
@@ -147,6 +166,8 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
 }
 
 std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColumns() {
+  GILStateEnsure ensure;
+
   try {
     py::object output_module = py::import("sextractorxx.config.output");
     py::list output = py::extract<py::list>(output_module.attr("aperture_columns"));
@@ -177,6 +198,8 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
 namespace {
 
 std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {
+  GILStateEnsure ensure;
+
   try {
     py::object model_fitting_module = py::import(module_name);
     py::dict parameters = py::extract<py::dict>(model_fitting_module.attr(dict_name));
@@ -233,6 +256,7 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
 }
 
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
+  GILStateEnsure ensure;
   try {
     std::map<int, std::vector<int>> result{};
     py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
@@ -254,6 +278,8 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
 }
 
 std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
+  GILStateEnsure ensure;
+
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
   py::list ids = parameters.keys();
@@ -266,7 +292,26 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
   return result;
 }
 
+std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
+  GILStateEnsure ensure;
+
+  try {
+    py::object model_fitting_module = py::import("sextractorxx.config.measurement_images");
+    py::list groups = py::extract<py::list>(model_fitting_module.attr("MeasurementGroup").attr("_all_groups"));
+    std::vector <boost::python::object> result;
+    for (int i = 0; i < py::len(groups); ++i) {
+      result.emplace_back(groups[i]);
+    }
+    return result;
+  }
+  catch (const py::error_already_set &e) {
+    throw pyToElementsException(logger);
+  }
+}
+
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
+  GILStateEnsure ensure;
+
   py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");
   python_function(coordinate_system);

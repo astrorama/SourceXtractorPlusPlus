@@ -26,7 +26,9 @@
 
 namespace SExtractor {
 
-SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box)
+SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size,
+                                                       const std::string &smoothing_box,
+                                                       const WeightImageConfig::WeightType weight_type): m_weight_type(weight_type)
 {
   // initialize the parameters
   m_cell_size = stringToIntVec(cell_size, std::string(","));
@@ -78,12 +80,6 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
   // create the background model
   auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold);
 
-
-  // FIXME temporary RMS using SimplebackgroundAnalyzer
-  //auto subtracted_image = SubtractImage<SeFloat>::create(image, bck_image);
-  //auto background_rms = SimpleBackgroundAnalyzer::getRMSLevel(subtracted_image);
-  //auto background_rms_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_rms);
-
   // return model
   return bck_model;
 }
@@ -106,16 +102,23 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   bck_model_logger.debug() << "\tMedian variance value: "<< splModelVarPtr->getMedian();
   bck_model_logger.debug() << "\tScaling value: "<< sigFac;
 
-  // possibly write out the rms image (for testing and so on)
-  //std::string bbb("rms.fits");
-  //FitsWriter::writeFile(*splModelSigPtr, bbb);
-
-  // return the background model
-  return BackgroundModel(
-    BufferedImage<SeFloat>::create(splModelBckPtr),
-    BufferedImage<SeFloat>::create(splModelVarPtr),
-    sigFac
-  );
+  // check for the weight type
+  if (m_weight_type == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE) {
+    bck_model_logger.debug() << "\tConstant variance image at value: "<< splModelVarPtr->getMedian();
+    // create a background model using the splines and the variance with a constant image from the median value
+    return BackgroundModel(BufferedImage<SeFloat>::create(splModelBckPtr),
+                           ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), splModelVarPtr->getMedian()),
+                           99999);
+  }
+  else {
+    bck_model_logger.debug() << "\tVariable background and variance.";
+    // return the variable background model
+    return BackgroundModel(
+        BufferedImage<SeFloat>::create(splModelBckPtr),
+        BufferedImage<SeFloat>::create(splModelVarPtr),
+        sigFac
+    );
+  }
 }
 
 std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)

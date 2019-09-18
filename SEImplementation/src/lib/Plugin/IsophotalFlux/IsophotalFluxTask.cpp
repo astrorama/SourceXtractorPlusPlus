@@ -37,7 +37,7 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
 
   auto flux_error = sqrt(total_variance);
 
-  auto mag = total_flux > 0.0 ? -2.5*log10(total_flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag = total_flux > 0.0 ? -2.5*log10(total_flux) + m_magnitude_zero_point : std::numeric_limits<SeFloat>::quiet_NaN();
   auto mag_error = 1.0857 * flux_error / total_flux;
 
   source.setProperty<IsophotalFlux>(total_flux, flux_error, mag, mag_error);

@@ -59,7 +59,11 @@ elements_add_library(SEUtils src/lib/*.cpp
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
+
 elements_add_unit_test(PixelCoordinate_test tests/src/PixelCoordinate_test.cpp 
+                     LINK_LIBRARIES SEUtils
+                     TYPE Boost)
+elements_add_unit_test(NumericalDerivative_test tests/src/NumericalDerivative_test.cpp 
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
 

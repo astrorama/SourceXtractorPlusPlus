@@ -20,17 +20,14 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
   const auto& default_psf = psf_config.getPsf();
-  const auto& psf_paths = measurement_config.getPsfsPaths();
-  const auto& ids = manager.getConfiguration<MeasurementImageConfig>().getImageIds();
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
 
-  assert(psf_paths.size() == ids.size());
-
-  for (unsigned int i = 0; i < psf_paths.size(); i++) {
-    if (!psf_paths[i].empty()) {
-      m_vpsf[ids[i]] = PsfPluginConfig::readPsf(psf_paths[i]);
+  for (unsigned int i = 0; i < image_infos.size(); i++) {
+    if (!image_infos[i].m_psf_path.empty()) {
+      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path);
     }
     else if (default_psf) {
-      m_vpsf[ids[i]] = default_psf;
+      m_vpsf[image_infos[i].m_id] = default_psf;
     }
   }
 

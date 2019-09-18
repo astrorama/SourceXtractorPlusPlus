@@ -12,12 +12,14 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
 
+#include "SEImplementation/Configuration/WeightImageConfig.h"
+
 namespace SExtractor {
 
 class SE2BackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
 
-  SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box);
+  SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box, const WeightImageConfig::WeightType weight_type);
 
   virtual ~SE2BackgroundLevelAnalyzer() = default;
 
@@ -33,6 +35,8 @@ private:
 
   std::vector<int> m_cell_size;
   std::vector<int> m_smoothing_box;
+
+  WeightImageConfig::WeightType m_weight_type;
 };
 
 }

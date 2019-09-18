@@ -4,8 +4,13 @@
  * @author nikoapos
  */
 
+#include <mutex>
+
 #include "SEFramework/Property/DetectionFrame.h"
+
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
 namespace SExtractor {
@@ -18,6 +23,8 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 template<typename Combine>
 void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   const auto& detection_frame = source.getProperty<DetectionFrame>();
   const auto& detection_image = detection_frame.getFrame()->getOriginalImage();
 

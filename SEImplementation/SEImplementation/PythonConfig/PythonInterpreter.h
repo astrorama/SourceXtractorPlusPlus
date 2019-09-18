@@ -12,6 +12,7 @@
 #include <SEFramework/CoordinateSystem/CoordinateSystem.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
+#include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 
 namespace SExtractor {
 
@@ -57,12 +58,14 @@ public:
 
   std::map<std::string, boost::python::object> getModelFittingParams();
 
+  std::vector<boost::python::object> getMeasurementGroups();
+
   void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
 
 private:
   
   PythonInterpreter();
-  
+  PyOutputWrapper m_out_wrapper, m_err_wrapper;
 };
 
 } // end of namespace SExtractor

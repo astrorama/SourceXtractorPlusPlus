@@ -73,7 +73,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
 
   // compute the derived quantities
   auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
-  auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : SeFloat(99.0);
+  auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : std::numeric_limits<SeFloat>::quiet_NaN();
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
   // Add the flags from the detection image and from the saturated and blended plugins

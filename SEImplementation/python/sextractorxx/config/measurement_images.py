@@ -8,6 +8,12 @@ from astropy.io import fits
 
 import _SExtractorPy as cpp
 
+if sys.version_info.major < 3:
+    from StringIO import StringIO
+else:
+    from io import StringIO
+
+
 measurement_images = {}
 
 
@@ -15,51 +21,60 @@ class MeasurementImage(cpp.MeasurementImage):
     """
     A MeasurementImage is the processing unit for SExtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
+
+    Parameters
+    ----------
+    fits_file : str
+        The path to a FITS image. Only primary HDU images are supported.
+    psf_file : str
+        The path to a PSF. It can be either a FITS image, or a PSFEx model.
+    weight_file : str
+        The path to a FITS image with the pixel weights.
+    gain : float
+        Image gain. If None, `gain_keyword` will be used instead.
+    gain_keyword : str
+        Keyword for the header containing the gain.
+    saturation : float
+        Saturation value. If None, `saturation_keyword` will be used instead.
+    saturation_keyword : str
+        Keyword for the header containing the saturation value.
+    flux_scale : float
+        Flux scaling. Each pixel value will be multiplied by this. If None, `flux_scale_keyword` will be used
+        instead.
+    flux_scale_keyword : str
+        Keyword for the header containing the flux scaling.
+    weight_type : str
+        The type of the weight image. It must be one of:
+
+            - none
+                The image itself is used to compute internally a constant variance (default)
+            - background
+                The image itself is used to compute internally a variance map
+            - rms
+                The weight image must contain a weight-map in units of absolute standard deviations
+                (in ADUs per pixel).
+            - variance
+                The weight image must contain a weight-map in units of relative variance.
+            - weight
+                The weight image must contain a weight-map in units of relative weights. The data are converted
+                to variance units.
+    weight_absolute : bool
+        If False, the weight map will be scaled according to an absolute variance map built from the image itself.
+    weight_scaling : float
+        Apply an scaling to the weight map.
+    weight_threshold : float
+        Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
+    constant_background : float
+        If set a constant background of that value is assumed for the image instead of using automatic detection 
     """
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='background', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None):
+                 weight_type='none', weight_absolute=False, weight_scaling=1.,
+                 weight_threshold=None, constant_background=None):
         """
         Constructor.
-
-        Parameters
-        ----------
-        fits_file : str
-            The path to a FITS image. Only primary HDU images are supported.
-        psf_file : str
-            The path to a PSF. It can be either a FITS image, or a PSFEx model.
-        weight_file : str
-            The path to a FITS image with the pixel weights.
-        gain : float
-            Image gain. If None, `gain_keyword` will be used instead.
-        gain_keyword : str
-            Keyword for the header containing the gain.
-        saturation : float
-            Saturation value. If None, `saturation_keyword` will be used instead.
-        saturation_keyword : str
-            Keyword for the header containing the saturation value.
-        flux_scale : float
-            Flux scaling. Each pixel value will be multiplied by this. If None, `flux_scale_keyword` will be used
-            instead.
-        flux_scale_keyword : str
-            Keyword for the header containing the flux scaling.
-        weight_type : str
-            The type of the weight image. It must be one of:
-             - background: The image itself is used to compute internally a variance map (default)
-             - rms : The weight image must contain a weight-map in units of absolute standard deviations
-                     (in ADUs per pixel).
-             - variance : The weight image must contain a weight-map in units of relative variance.
-             - weight : The weight image must contain a weight-map in units of relative weights. The data are converted
-                        to variance units.
-        weight_absolute : bool
-            If False, the weight map will be scaled according to an absolute variance map built from the image itself.
-        weight_scaling : float
-            Apply an scaling to the weight map.
-        weight_threshold : float
-            Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
         """
         super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
                                                os.path.abspath(psf_file) if psf_file else '',
@@ -104,6 +119,13 @@ class MeasurementImage(cpp.MeasurementImage):
         else:
             self.has_weight_threshold = True
             self.weight_threshold = weight_threshold
+            
+        if constant_background is not None:
+            self.is_background_constant = True
+            self.constant_background_value = constant_background
+        else:
+            self.is_background_constant = False
+            self.constant_background_value = -1
 
         global measurement_images
         measurement_images[self.id] = self
@@ -308,7 +330,7 @@ class ImageGroup(object):
         except StopIteration:
             raise KeyError('Group {} not found'.format(name))
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -325,12 +347,23 @@ class ImageGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         else:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
+            print('{}Image sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file)
+                group.print(prefix + '    ', show_images, file)
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
+        string = StringIO()
+        self.print(show_images=True, file=string)
+        return string.getvalue()
 
 
 class ImageCacheEntry(object):
@@ -415,7 +448,7 @@ def load_fits_images(image_list, psf_list=None, weight_list=None):
     psf_list : list of str
         A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
     weight_list : list of str
-        A list of relative paths to the weight files (optional).  It must match the length of image_list or be None.
+        A list of relative paths to the weight files (optional). It must match the length of image_list or be None.
 
     Returns
     -------
@@ -506,6 +539,11 @@ class ByKeyword(object):
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).
 
+    Parameters
+    ----------
+    key : str
+        FITS header keyword (i.e. FILTER)
+
     See Also
     --------
     ImageGroup.split
@@ -514,11 +552,6 @@ class ByKeyword(object):
     def __init__(self, key):
         """
         Constructor.
-
-        Parameters
-        ----------
-        key : str
-            FITS header keyword (i.e. FILTER)
         """
         self.__key = key
 
@@ -551,6 +584,13 @@ class ByPattern(object):
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
     expression and using the first matching group as key.
 
+    Parameters
+    ----------
+    key : str
+        FITS header keyword
+    pattern : str
+        Regular expression. The first matching group will be used as grouping key.
+
     See Also
     --------
     ImageGroup.split
@@ -558,14 +598,7 @@ class ByPattern(object):
 
     def __init__(self, key, pattern):
         """
-        Constructor
-
-        Parameters
-        ----------
-        key : str
-            FITS header keyword
-        pattern : str
-            Regular expression. The first matching group will be used as grouping key.
+        Constructor.
         """
         self.__key = key
         self.__pattern = pattern
@@ -595,21 +628,26 @@ class MeasurementGroup(object):
     """
     Once an instance of this class is created from an ImageGroup, its configuration is "frozen". i.e.
     no new images can be added, or no new grouping applied.
+
+    Parameters
+    ----------
+    image_group : ImageGroup
     """
 
-    def __init__(self, image_group):
+    _all_groups = list()
+
+    def __init__(self, image_group, is_subgroup=False):
         """
-        Parameters
-        ----------
-        image_group : ImageGroup
+        Constructor.
         """
         self.__images = None
         self.__subgroups = None
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, MeasurementGroup(g)) for n,g in image_group]
-        self.__models = []
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n,g in image_group]
+        if not is_subgroup:
+            MeasurementGroup._all_groups.append(self)
 
     def __iter__(self):
         """
@@ -670,7 +708,7 @@ class MeasurementGroup(object):
         """
         return self.__subgroups is None
 
-    def printToScreen(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=sys.stderr):
         """
         Print a human-readable representation of the group.
 
@@ -687,10 +725,21 @@ class MeasurementGroup(object):
             print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}{}'.format(prefix, im), file=file)
+                    print('{}  {}'.format(prefix, im), file=file)
         if self.__subgroups:
-            print('{}Sub-groups: {}'.format(prefix, ','.join(
+            print('{}Measurement sub-groups: {}'.format(prefix, ','.join(
                 x for x, _ in self.__subgroups)), file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
-                group.printToScreen(prefix + '    ', show_images, file=file)
+                group.print(prefix + '    ', show_images, file=file)
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            A human-readable representation of the group
+        """
+        string = StringIO()
+        self.print(show_images=True, file=string)
+        return string.getvalue()
