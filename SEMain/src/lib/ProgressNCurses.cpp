@@ -700,7 +700,10 @@ private:
         exit_loop = true;
       }
 
-      progressWidget.update(m_progress_info);
+      {
+        std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
+        progressWidget.update(m_progress_info);
+      }
 
       // Update screen
       doupdate();
