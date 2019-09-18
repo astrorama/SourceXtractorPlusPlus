@@ -15,7 +15,7 @@
 namespace SExtractor {
 
 // Signal handlers
-static struct sigaction sigterm_action, sigstop_action, sigcont_action;
+static struct sigaction sigterm_action, sigstop_action, sigcont_action, sigwich_action;
 static std::map<int, struct sigaction> prev_signal;
 
 // Used for sending signals to the UI thread
@@ -33,6 +33,7 @@ static struct ncurses_done {
 static void handleTerminatingSignal(int s);
 static void handleStopSignal(int s);
 static void handleContinuationSignal(int s);
+static void handleResizeSignal(int);
 
 
 /**
@@ -89,7 +90,9 @@ public:
     ::memset(&sigterm_action, 0, sizeof(sigterm_action));
     ::memset(&sigstop_action, 0, sizeof(sigstop_action));
     ::memset(&sigcont_action, 0, sizeof(sigcont_action));
+    ::memset(&sigwich_action, 0, sizeof(sigwich_action));
 
+    // Termination
     sigterm_action.sa_handler = &handleTerminatingSignal;
     ::sigaction(SIGINT, &sigterm_action, &prev_signal[SIGINT]);
     ::sigaction(SIGTERM, &sigterm_action, &prev_signal[SIGTERM]);
@@ -97,11 +100,19 @@ public:
     ::sigaction(SIGSEGV, &sigterm_action, &prev_signal[SIGSEGV]);
     ::sigaction(SIGHUP, &sigterm_action, &prev_signal[SIGHUP]);
 
+    // bg
     sigstop_action.sa_handler = &handleStopSignal;
     ::sigaction(SIGTSTP, &sigstop_action, &prev_signal[SIGTSTP]);
 
+    // fg
     sigcont_action.sa_handler = &handleContinuationSignal;
     ::sigaction(SIGCONT, &sigcont_action, &prev_signal[SIGCONT]);
+
+    // Resizing
+    // Some versions of ncurses handle this by themselves, some other do not, so
+    // we do it ourselves in anycase
+    sigwich_action.sa_handler = &handleResizeSignal;
+    ::sigaction(SIGWINCH, &sigwich_action, &prev_signal[SIGWINCH]);
 
     // Enter ncurses
     SCREEN *term = newterm(nullptr, outfd, infd);
@@ -136,6 +147,7 @@ public:
     ::sigaction(SIGSEGV, &prev_signal[SIGSEGV], nullptr);
     ::sigaction(SIGHUP, &prev_signal[SIGHUP], nullptr);
     ::sigaction(SIGCONT, &prev_signal[SIGCONT], nullptr);
+    ::sigaction(SIGWINCH, &prev_signal[SIGWINCH], nullptr);
     close(signal_fds[0]);
     close(signal_fds[1]);
   }
@@ -208,6 +220,14 @@ static void handleContinuationSignal(int) {
   // Restore handlers
   sigaction(SIGCONT, &sigcont_action, nullptr);
   sigaction(SIGTSTP, &sigstop_action, nullptr);
+}
+
+/**
+ * Intercept SIGWICH (resize)
+ */
+static void handleResizeSignal(int) {
+  endwin();
+  refresh();
 }
 
 /**
