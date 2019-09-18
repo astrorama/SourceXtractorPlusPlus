@@ -115,8 +115,9 @@ public:
     ::sigaction(SIGWINCH, &sigwich_action, &prev_signal[SIGWINCH]);
 
     // Enter ncurses
-    SCREEN *term = newterm(nullptr, outfd, infd);
-    set_term(term);
+    initscr();
+    m_screen = newterm(nullptr, outfd, infd);
+    set_term(m_screen);
 
     // Hide cursor
     curs_set(0);
@@ -129,9 +130,6 @@ public:
     // Setup colors
     use_default_colors();
     start_color();
-
-    // Refresh screen
-    wrefresh(stdscr);
   }
 
   /**
@@ -140,6 +138,7 @@ public:
   virtual ~Screen() {
     // Exit ncurses
     endwin();
+    delscreen(m_screen);
     // Restore signal handlers
     ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
     ::sigaction(SIGTERM, &prev_signal[SIGTERM], nullptr);
@@ -162,6 +161,7 @@ public:
 
 private:
   short m_color_idx = 1;
+  SCREEN *m_screen;
 };
 
 /**
