@@ -4,6 +4,7 @@
 #include <poll.h>
 #include <semaphore.h>
 #include <ncurses.h>
+#include <readline/readline.h>
 #include <csignal>
 #include <chrono>
 #include <iostream>
@@ -69,6 +70,17 @@ static int interceptFileDescriptor(int old_fd, int *backup_fd) {
 }
 
 /**
+ * But why? You may ask. Because it looks like before Python 3.7, when loading the
+ * sextractor++ Python configuration, something would trigger the loading of readline, which in turns
+ * tries to get the terminal size, overwriting LINES and COLS and leaving them with the default 80x24
+ * (Maybe because we intercept stderr/stdout?)
+ * This leaves our ncurses UI in a bad shape, not being able to properly go back to the former state at exiting.
+ * Looking at the readline code, it appears like we can avoid a call into tgetent if we override rl_redisplay_function
+ */
+static void override_rl_display(void) {
+}
+
+/**
  * @brief Wrap the terminal into a singleton
  */
 class Screen : public boost::noncopyable {
@@ -85,6 +97,9 @@ public:
     if (pipe(signal_fds) < 0) {
       throw std::system_error(errno, std::generic_category());
     }
+
+    m_old_redisplay = rl_redisplay_function;
+    rl_redisplay_function = override_rl_display;
 
     // Setup signal handlers
     ::memset(&sigterm_action, 0, sizeof(sigterm_action));
@@ -139,6 +154,7 @@ public:
     // Exit ncurses
     endwin();
     delscreen(m_screen);
+    rl_redisplay_function = m_old_redisplay;
     // Restore signal handlers
     ::sigaction(SIGINT, &prev_signal[SIGINT], nullptr);
     ::sigaction(SIGTERM, &prev_signal[SIGTERM], nullptr);
@@ -162,6 +178,7 @@ public:
 private:
   short m_color_idx = 1;
   SCREEN *m_screen;
+  rl_voidfunc_t* m_old_redisplay;
 };
 
 /**

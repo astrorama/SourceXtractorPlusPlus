@@ -42,7 +42,7 @@ if (NOT NCURSES_FOUND)
     list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
     add_definitions("-DWITHOUT_NCURSES")
 else ()
-    set (NCURSES Ncurses)
+    set (NCURSES Ncurses readline)
 endif ()
 
 elements_add_library(SEMain ${LIB_SRC}
