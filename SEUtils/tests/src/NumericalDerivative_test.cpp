@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE( central_difference_test ) {
   }
 }
 
-#if BOOST_VERSION >= 106700
+#if BOOST_VERSION >= 106600
   BOOST_AUTO_TEST_CASE( boost_finite_difference_test ) {
     for (auto& function : functions) {
       for (double x = function.m_min; x <= function.m_max; x+=function.m_step) {
