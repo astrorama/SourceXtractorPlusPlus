@@ -10,6 +10,8 @@ namespace py = boost::python;
 namespace SExtractor {
 
 Elements::Exception pyToElementsException(Elements::Logging &logger) {
+  GILStateEnsure ensure;
+
   PyObject *ptype, *pvalue, *ptraceback;
   PyErr_Fetch(&ptype, &pvalue, &ptraceback);
   PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
