@@ -333,6 +333,8 @@ public:
     if (display_width > getmaxx(m_pad)) {
       wresize(m_pad, getmaxy(m_pad), display_width);
     }
+    drawLog();
+    drawScroll();
   }
 
   /**
