@@ -15,8 +15,9 @@ find_package(Levmar)
 #    src/lib/*.cpp are the source files
 if (NOT LEVMAR_FOUND)
     add_definitions(-DWITHOUT_LEVMAR)
-    message("Levmar library not found, compiling without Levmar support!")
-    message("This will generate a version of sextractor++ without model fitting")
+    message(WARNING "
+Levmar library not found, compiling without Levmar support!
+This will generate a version of sextractor++ without model fitting")
 else ()
     set (LEVMAR Levmar)
 endif ()
@@ -84,7 +85,7 @@ elements_add_unit_test(TransformModelComponent_test
 
 
 find_package(CCfits)
-find_package(OpenCV)
+find_package(OpenCV QUIET)
 
 if (OPENCV_FOUND)
     elements_add_unit_test(OpenCvMatImageTraits_test

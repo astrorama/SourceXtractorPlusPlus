@@ -24,7 +24,7 @@ elements_depends_on_subdirs(SEImplementation)
 #          find_package(CppUnit)
 #===============================================================================
 find_package(Boost REQUIRED timer)
-find_package(OpenCV)
+find_package(OpenCV QUIET)
 
 if (OPENCV_FOUND)
     add_definitions(-DWITH_OPENCV)
