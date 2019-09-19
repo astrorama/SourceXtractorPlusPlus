@@ -28,6 +28,7 @@ elements_depends_on_subdirs(SEImplementation)
 #          find_package(CppUnit)
 #===============================================================================
 find_package(Ncurses)
+find_package(Readline)
 
 #===============================================================================
 # Declare the library dependencies here
@@ -44,7 +45,7 @@ if (NOT NCURSES_FOUND)
     list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
     add_definitions("-DWITHOUT_NCURSES")
 else ()
-    set (NCURSES Ncurses)
+    set (NCURSES Ncurses Readline)
 endif ()
 
 elements_add_library(SEMain ${LIB_SRC}
