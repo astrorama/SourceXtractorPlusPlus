@@ -354,6 +354,7 @@ public:
     if (display_width > getmaxx(m_pad)) {
       wresize(m_pad, getmaxy(m_pad), display_width);
     }
+    wresize(m_scroll, display_height, 1);
     drawLog();
     drawScroll();
   }
@@ -427,7 +428,7 @@ private:
     int max_selectable_line = m_written_lines;
     int min_selectable_line = std::min(m_written_lines, m_display_height);
     int displayed_line_offset = m_active_line - min_selectable_line;
-    float p = displayed_line_offset / float(max_selectable_line - min_selectable_line);
+    float p = std::max(0.f, std::min(1.f, displayed_line_offset / float(max_selectable_line - min_selectable_line)));
 
     int scroll_marker_pos = p * (m_display_height - 1);
     for (int i = 0; i < m_display_height; ++i) {
