@@ -9,8 +9,8 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/FitsImageSource.h"
 #include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SExtractor {
 

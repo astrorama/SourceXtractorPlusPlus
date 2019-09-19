@@ -11,9 +11,9 @@
 #include "ElementsKernel/Logging.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/FitsImageSource.h"
-#include "SEFramework/Image/TemporaryFitsImageSource.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
+#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/FITS/TemporaryFitsImageSource.h"
 
 namespace SExtractor {
 

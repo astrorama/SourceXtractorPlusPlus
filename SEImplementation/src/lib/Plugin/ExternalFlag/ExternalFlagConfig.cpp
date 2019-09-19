@@ -9,7 +9,7 @@
 
 #include "Configuration/ProgramOptionsHelper.h"
 
-#include "SEFramework/Image/FitsReader.h"
+#include "SEFramework/FITS/FitsReader.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 

@@ -9,7 +9,6 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/FitsWriter.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"

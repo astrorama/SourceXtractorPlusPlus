@@ -4,14 +4,15 @@
  * @author mschefer
  */
 
+#include <fstream>
 #include <iostream>
 //#include <regex>
+
 #include <boost/regex.hpp>
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 
-#include <fstream>
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
@@ -20,8 +21,9 @@ using boost::smatch;
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
-#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/FITS/FitsReader.h"
+
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
 #include "SEImplementation/Configuration/SegmentationConfig.h"

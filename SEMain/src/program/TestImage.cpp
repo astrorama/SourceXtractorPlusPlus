@@ -26,7 +26,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
-#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"

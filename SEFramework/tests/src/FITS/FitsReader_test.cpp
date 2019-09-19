@@ -7,7 +7,7 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 
-#include "SEFramework/Image/FitsReader.h"
+#include "SEFramework/FITS/FitsReader.h"
 #include "SEFramework/Filesystem/TemporaryFile.h"
 
 #include "1px.fits.h"

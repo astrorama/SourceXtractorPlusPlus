@@ -5,8 +5,8 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Image/FitsWriter.h"
 #include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 

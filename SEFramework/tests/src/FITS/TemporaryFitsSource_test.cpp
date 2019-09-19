@@ -6,7 +6,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SEFramework/Image/TemporaryFitsImageSource.h"
+#include "SEFramework/FITS/TemporaryFitsImageSource.h"
 
 #include <boost/filesystem.hpp>
 

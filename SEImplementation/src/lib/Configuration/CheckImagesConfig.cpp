@@ -9,7 +9,6 @@
 #include <boost/program_options.hpp>
 
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
-#include "SEFramework/Image/FitsReader.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;

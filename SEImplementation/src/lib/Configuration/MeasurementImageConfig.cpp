@@ -9,22 +9,24 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/python.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <ElementsKernel/Logging.h>
 
-#include <SEFramework/Image/FitsImageSource.h>
+#include <SEUtils/Python.h>
+
 #include <SEFramework/Image/BufferedImage.h>
-#include <SEFramework/Image/FitsReader.h>
 #include <SEFramework/Image/MultiplyImage.h>
+#include <SEFramework/FITS/FitsReader.h>
+#include <SEFramework/FITS/FitsImageSource.h>
 
 #include <SEImplementation/CoordinateSystem/WCS.h>
 #include <SEImplementation/Configuration/WeightImageConfig.h>
 #include <SEImplementation/Configuration/PythonConfig.h>
 #include <SEImplementation/Configuration/DetectionImageConfig.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
+
 #include <SEImplementation/Configuration/MeasurementImageConfig.h>
-#include <SEUtils/Python.h>
-#include <boost/tokenizer.hpp>
 
 using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
