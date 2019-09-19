@@ -19,25 +19,24 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSource.h"
 
+#include "SEFramework/FITS/FitsFileManager.h"
+
+
 namespace SExtractor {
 
 template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
 
-  FitsImageSource(const std::string &filename)
-    : m_filename(filename), m_fptr(nullptr) {
+  FitsImageSource(const std::string &filename, std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
+    : m_filename(filename), m_manager(manager) {
+
+    auto fptr = m_manager->getFitsFile(filename);
+
     int status = 0;
-
-    fits_open_file(&m_fptr, filename.c_str(), READONLY, &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Can't open FITS file: " << filename;
-    }
-    assert(m_fptr != nullptr);
-
     int bitpix, naxis;
     long naxes[2] = {1,1};
-    fits_get_img_param(m_fptr, 2, &bitpix, &naxis, naxes, &status);
+    fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
     if (status != 0 || naxis != 2) {
       throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename;
     }
@@ -47,63 +46,59 @@ public:
   }
 
   FitsImageSource(const std::string &filename, int width, int height,
-                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr)
-    : m_filename(filename), m_fptr(nullptr) {
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
+                  std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
+    : m_filename(filename), m_manager(manager) {
     m_width = width;
     m_height = height;
 
-    int status = 0;
-    fits_create_file(&m_fptr, ("!"+filename).c_str(), &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
-    }
-    assert(m_fptr != nullptr);
+    {
+      // CREATE NEW FITS FILE
+      int status = 0;
+      fitsfile* fptr = nullptr;
+      fits_create_file(&fptr, ("!"+filename).c_str(), &status);
+      if (status != 0) {
+        throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
+      }
+      assert(m_fptr != nullptr);
 
-    long naxes[2] = {width, height};
-    fits_create_img(m_fptr, getImageType(), 2, naxes, &status);
+      long naxes[2] = {width, height};
+      fits_create_img(fptr, getImageType(), 2, naxes, &status);
 
-    if (coord_system) {
-      auto headers = coord_system->getFitsHeaders();
-      for (auto& h : headers) {
-        std::ostringstream padded_key, serializer;
-        padded_key << std::setw(8) << std::left << h.first;
+      if (coord_system) {
+        auto headers = coord_system->getFitsHeaders();
+        for (auto& h : headers) {
+          std::ostringstream padded_key, serializer;
+          padded_key << std::setw(8) << std::left << h.first;
 
-        serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
-        auto str = serializer.str();
+          serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
+          auto str = serializer.str();
 
-        fits_update_card(m_fptr, padded_key.str().c_str(), str.c_str(), &status);
-        if (status != 0) {
-          char err_txt[31];
-          fits_get_errstatus(status, err_txt);
-          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+          fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
+          if (status != 0) {
+            char err_txt[31];
+            fits_get_errstatus(status, err_txt);
+            throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+          }
         }
+      }
+
+      std::vector<T> buffer(width);
+      for (int i = 0; i<height; i++) {
+        long first_pixel[2] = {1, i+1};
+        fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
+      }
+      fits_close_file(fptr, &status);
+
+      if (status != 0) {
+        throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename;
       }
     }
 
-    std::vector<T> buffer(width);
-    for (int i = 0; i<height; i++) {
-      long first_pixel[2] = {1, i+1};
-      fits_write_pix(m_fptr, getDataType(), first_pixel, width, &buffer[0], &status);
-    }
-    fits_close_file(m_fptr, &status);
-
-    if (status != 0) {
-      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename;
-    }
-
-    m_fptr = nullptr;
-    fits_open_file(&m_fptr, filename.c_str(), READWRITE, &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Can't open FITS file for read/write: " << filename;
-    }
-    assert(m_fptr != nullptr);
+    auto fptr = m_manager->getFitsFile(filename, true);
   }
 
   virtual ~FitsImageSource() {
-    int status = 0;
-    if (m_fptr != nullptr) {
-      fits_close_file(m_fptr, &status);
-    }
   }
 
   virtual std::string getRepr() const override {
@@ -111,6 +106,7 @@ public:
   }
 
   virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
+    auto fptr = m_manager->getFitsFile(m_filename);
     auto tile = std::make_shared<ImageTile<T>>((const_cast<FitsImageSource*>(this))->shared_from_this(), x, y, width, height);
 
     long first_pixel[2] = {x+1, y+1};
@@ -119,7 +115,7 @@ public:
     int status = 0;
 
     auto image = tile->getImage();
-    fits_read_subset(m_fptr, getDataType(), first_pixel, last_pixel, increment,
+    fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
                  nullptr, &image->getData()[0], nullptr, &status);
     if (status != 0) {
       throw Elements::Exception() << "Error reading image tile from FITS file.";
@@ -139,6 +135,8 @@ public:
   }
 
   virtual void saveTile(ImageTile<T>& tile) override {
+    auto fptr = m_manager->getFitsFile(m_filename, true);
+
     auto image = tile.getImage();
 
     int x = tile.getPosX();
@@ -150,7 +148,7 @@ public:
     long last_pixel[2] = {x+width, y+height};
     int status = 0;
 
-    fits_write_subset(m_fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
+    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
     if (status != 0) {
       throw Elements::Exception() << "Error saving image tile to FITS file.";
     }
@@ -158,9 +156,11 @@ public:
 
   template <typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
+    auto fptr = m_manager->getFitsFile(m_filename);
+
     double keyword_value;
     int status = 0;
-    fits_read_key(m_fptr, TDOUBLE, header_keyword.c_str(), &keyword_value, nullptr, &status);
+    fits_read_key(fptr, TDOUBLE, header_keyword.c_str(), &keyword_value, nullptr, &status);
     if (status == 0) {
       out_value = keyword_value;
       return true;
@@ -176,10 +176,10 @@ private:
   int getImageType() const;
 
   std::string m_filename;
+  std::shared_ptr<FitsFileManager> m_manager;
+
   int m_width;
   int m_height;
-
-  fitsfile* m_fptr;
 };
 
 }
