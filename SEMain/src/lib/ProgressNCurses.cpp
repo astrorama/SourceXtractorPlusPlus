@@ -708,6 +708,7 @@ private:
           m_trigger_resize = true;
           endwin();
           refresh();
+          clear();
         }
         else {
           logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %s\n", strsignal(signal_no)));
