@@ -242,9 +242,10 @@ static void handleContinuationSignal(int) {
 /**
  * Intercept SIGWICH (resize)
  */
-static void handleResizeSignal(int) {
-  endwin();
-  refresh();
+static void handleResizeSignal(int s) {
+  if (write(signal_fds[1], &s, sizeof(s)) < 0) {
+    // Just ignore
+  }
 }
 
 /**
@@ -640,6 +641,8 @@ private:
   // Used to recover log into the standard output
   std::vector<std::string> m_log_text;
 
+  std::atomic_bool m_trigger_resize;
+
   /**
    * Main UI thread. All (almost) ncurses handling should be done here, as it is not thread safe
    */
@@ -695,21 +698,30 @@ private:
     // Event loop
     char buf[64];
     ssize_t nbytes;
-
-    int cols = COLS, rows = LINES;
     bool exit_loop = false;
 
     do {
-      // Resize if needed the widgets
-      bool need_resize = m_progress_info.size() + 1 != progressWidget.getHeight();
-      need_resize |= (cols != COLS || rows != LINES);
+      // There has been a signal
+      if (poll_fds[3].revents & POLLIN) {
+        int signal_no;
+        if (read(signal_fds[0], &signal_no, sizeof(signal_no)) > 0 && signal_no == SIGWINCH) {
+          m_trigger_resize = true;
+          endwin();
+          refresh();
+        }
+        else {
+          logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %s\n", strsignal(signal_no)));
+          exit_loop = true;
+        }
+      }
 
-      if (need_resize) {
+      // Resize widgets if needed
+      if (m_trigger_resize) {
+        std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
         progressWidget.move(LINES - m_progress_info.size() - 1, 0);
         progressWidget.resize(m_progress_info.size() + 1, COLS);
         logWidget.resize(LINES - progressWidget.getHeight(), COLS);
-        cols = COLS;
-        rows = LINES;
+        m_trigger_resize = false;
       }
 
       // There is output/error to redirect
@@ -723,20 +735,13 @@ private:
           logWidget.write(buf, nbytes);
         }
       }
+
       // There is a key to read
       if (poll_fds[2].revents & POLLIN) {
         int key = wgetch(stdscr);
         if (key != KEY_RESIZE) {
           logWidget.handleKeyPress(key);
         }
-      }
-      // There has been a signal
-      if (poll_fds[3].revents & POLLIN) {
-        int signalNo;
-        if (read(signal_fds[0], &signalNo, sizeof(signalNo)) > 0) {
-          logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %d", signalNo));
-        }
-        exit_loop = true;
       }
 
       {
@@ -793,6 +798,7 @@ public:
    */
   void update(const std::list<ProgressInfo>& info) {
     std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
+    m_trigger_resize = (m_progress_info.size() != info.size()) | m_trigger_resize;
     m_progress_info = info;
   }
 };
