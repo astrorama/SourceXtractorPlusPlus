@@ -101,6 +101,13 @@ public:
     m_old_redisplay = rl_redisplay_function;
     rl_redisplay_function = override_rl_display;
 
+    // Tell readline to leave the terminal be
+    rl_catch_signals = 0;
+    rl_catch_sigwinch = 0;
+    rl_deprep_term_function = NULL;
+    rl_prep_term_function = NULL;
+    rl_change_environment = 0;
+
     // Setup signal handlers
     ::memset(&sigterm_action, 0, sizeof(sigterm_action));
     ::memset(&sigstop_action, 0, sizeof(sigstop_action));
