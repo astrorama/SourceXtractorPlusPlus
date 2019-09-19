@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <list>
 #include <unordered_map>
 
 #include <fitsio.h>
@@ -20,6 +21,7 @@ namespace SExtractor {
 class FitsFileManager {
 public:
 
+  FitsFileManager();
   virtual ~FitsFileManager();
 
   fitsfile* getFitsFile(const std::string& filename, bool writeable = false);
@@ -36,6 +38,7 @@ public:
 private:
   fitsfile* openFitsFile(const std::string& filename, bool writeable) const;
   void closeFitsFile(fitsfile* fptr) const;
+  void closeExtraFiles();
 
   struct FitsInfo {
     fitsfile* m_file_pointer;
@@ -44,6 +47,9 @@ private:
   };
 
   std::unordered_map<std::string, FitsInfo> m_fits_files;
+
+  unsigned int m_max_open_files;
+  std::list<std::string> m_open_files;
 
   static std::shared_ptr<FitsFileManager> s_instance;
 };

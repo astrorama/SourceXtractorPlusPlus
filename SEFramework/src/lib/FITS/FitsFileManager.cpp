@@ -5,6 +5,7 @@
  *      Author: mschefer
  */
 
+#include <iostream>
 #include <assert.h>
 
 #include "ElementsKernel/Exception.h"
@@ -15,6 +16,9 @@ namespace SExtractor {
 
 std::shared_ptr<FitsFileManager> FitsFileManager::s_instance;
 
+FitsFileManager::FitsFileManager() : m_max_open_files(500) {
+}
+
 FitsFileManager::~FitsFileManager() {
   closeAllFiles();
 }
@@ -24,6 +28,7 @@ void FitsFileManager::closeAllFiles() {
     if (file.second.m_is_file_opened) {
       closeFitsFile(file.second.m_file_pointer);
       file.second.m_is_file_opened = false;
+      file.second.m_file_pointer = nullptr;
     }
   }
 }
@@ -32,8 +37,8 @@ void FitsFileManager::closeAllFiles() {
 fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
   if (m_fits_files.find(filename) == m_fits_files.end()) {
     FitsInfo info;
-    info.m_file_pointer = openFitsFile(filename, writeable);
-    info.m_is_file_opened = true;
+    info.m_is_file_opened = false;
+    info.m_file_pointer = nullptr;
     info.m_is_writeable = writeable;
     m_fits_files[filename] = info;
   }
@@ -43,6 +48,9 @@ fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeab
     info.m_is_writeable = info.m_is_writeable || writeable;
     info.m_file_pointer = openFitsFile(filename, info.m_is_writeable);
     info.m_is_file_opened = true;
+    m_open_files.push_front(filename);
+
+    closeExtraFiles();
   }
 
   if (writeable && !info.m_is_writeable) {
@@ -51,9 +59,19 @@ fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeab
     info.m_is_writeable = true;
   }
 
-
   return info.m_file_pointer;
 }
+
+void FitsFileManager::closeExtraFiles() {
+  while (m_open_files.size() > m_max_open_files) {
+    auto& file_to_close = m_fits_files[m_open_files.back()];
+    closeFitsFile(file_to_close.m_file_pointer);
+    file_to_close.m_is_file_opened = false;
+    file_to_close.m_file_pointer = nullptr;
+    m_open_files.pop_back();
+  }
+}
+
 
 fitsfile* FitsFileManager::openFitsFile(const std::string& filename, bool writeable) const {
   int status = 0;
