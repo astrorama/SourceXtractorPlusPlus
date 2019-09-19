@@ -12,7 +12,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string MAG_ZEROPOINT {"magnitude-zeropoint"};
+static const std::string MAG_ZEROPOINT {"magnitude-zero-point"};
 
 MagnitudeConfig::MagnitudeConfig(long manager_id) :
     Configuration(manager_id),

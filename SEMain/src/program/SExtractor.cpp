@@ -6,22 +6,18 @@
 
 #include <map>
 #include <string>
+#include <iomanip>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <iomanip>
-
 #include "ElementsKernel/Main.h"
-
-#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
-#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
-#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
-#include "SEImplementation/CheckImages/MoffatCheckImage.h"
-
-#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
-#include "ElementsKernel/ProgramHeaders.h"
 #include "ElementsKernel/System.h"
+#include "ElementsKernel/Temporary.h"
+#include "ElementsKernel/ProgramHeaders.h"
+
+#include "Configuration/ConfigManager.h"
+#include "Configuration/Utils.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
 
@@ -37,6 +33,12 @@
 
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
+
+#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
+#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
+#include "SEImplementation/CheckImages/MoffatCheckImage.h"
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -59,11 +61,9 @@
 #include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEMain/SExtractorConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
-
-#include "Configuration/ConfigManager.h"
-#include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
 #include "SEMain/Sorter.h"
 
@@ -406,6 +406,14 @@ private:
 ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
+
+  // This adds the current directory as a valid location for the default "sextractor++.conf" configuration
+  Elements::TempEnv local_env;
+  if (local_env["ELEMENTS_CONF_PATH"].empty()) {
+    local_env["ELEMENTS_CONF_PATH"] = ".";
+  } else {
+    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"];
+  }
 
   setupEnvironment();
 

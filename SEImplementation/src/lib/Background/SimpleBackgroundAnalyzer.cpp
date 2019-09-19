@@ -38,7 +38,7 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
   auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_variance);
   bck_model_logger.debug() << "bg: " << background_level << " var: " << background_variance;
 
-  return BackgroundModel(background_level_map, background_variance_map, 99999); // FIXME
+  return BackgroundModel(background_level_map, background_variance_map, 1.0);
 }
 
 

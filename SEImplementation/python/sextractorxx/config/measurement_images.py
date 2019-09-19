@@ -46,8 +46,10 @@ class MeasurementImage(cpp.MeasurementImage):
     weight_type : str
         The type of the weight image. It must be one of:
 
+            - none
+                The image itself is used to compute internally a constant variance (default)
             - background
-                The image itself is used to compute internally a variance map (default)
+                The image itself is used to compute internally a variance map
             - rms
                 The weight image must contain a weight-map in units of absolute standard deviations
                 (in ADUs per pixel).
@@ -62,13 +64,15 @@ class MeasurementImage(cpp.MeasurementImage):
         Apply an scaling to the weight map.
     weight_threshold : float
         Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
+    constant_background : float
+        If set a constant background of that value is assumed for the image instead of using automatic detection 
     """
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='background', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None):
+                 weight_type='none', weight_absolute=False, weight_scaling=1.,
+                 weight_threshold=None, constant_background=None):
         """
         Constructor.
         """
@@ -115,6 +119,13 @@ class MeasurementImage(cpp.MeasurementImage):
         else:
             self.has_weight_threshold = True
             self.weight_threshold = weight_threshold
+            
+        if constant_background is not None:
+            self.is_background_constant = True
+            self.constant_background_value = constant_background
+        else:
+            self.is_background_constant = False
+            self.constant_background_value = -1
 
         global measurement_images
         measurement_images[self.id] = self

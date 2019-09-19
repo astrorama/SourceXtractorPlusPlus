@@ -18,8 +18,8 @@ namespace SExtractor {
 
 static const std::string MTHRESH_USE {"partition-multithreshold"};
 static const std::string MTHRESH_THRESHOLDS_NB {"partition-threshold-count"};
-static const std::string MTHRESH_MIN_AREA {"partition-min-area"};
-static const std::string MTHRESH_MIN_CONTRAST {"partition-min-contrast"};
+static const std::string MTHRESH_MIN_AREA {"partition-minimum-area"};
+static const std::string MTHRESH_MIN_CONTRAST {"partition-minimum-contrast"};
 
 MultiThresholdPartitionConfig::MultiThresholdPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();

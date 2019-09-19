@@ -205,6 +205,10 @@ public:
     m_detection_threshold = detection_threshold;
   }
 
+  void setBackgroundLevel(T background_level) {
+    setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level));
+  }
+
   void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {
     m_background_level_map = background_level_map;
     m_filtered_image = nullptr;

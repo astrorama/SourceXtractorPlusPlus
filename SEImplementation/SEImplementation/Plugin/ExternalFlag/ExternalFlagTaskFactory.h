@@ -23,7 +23,8 @@ namespace SExtractor {
 class ExternalFlagTaskFactory : public TaskFactory {
   
 public:
-  
+  static const char propertyName[];
+
   virtual ~ExternalFlagTaskFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
@@ -40,6 +41,8 @@ private:
   std::map<PropertyId, ExternalFlagConfig::FlagInfo> m_flag_info_map;
   std::vector<std::pair<std::string, unsigned int>> m_instance_names;
   
+  bool m_is_output_requested = false;
+
 }; /* End of ExternalFlagTaskFactory class */
 
 } /* namespace SExtractor */

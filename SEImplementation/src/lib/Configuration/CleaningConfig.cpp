@@ -18,7 +18,7 @@ namespace po = boost::program_options;
 namespace SExtractor {
 
 static const std::string USE_CLEANING {"use-cleaning"};
-static const std::string CLEANING_MINAREA {"cleaning-minarea"};
+static const std::string CLEANING_MINAREA {"cleaning-minimum-area"};
 
 CleaningConfig::CleaningConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<DeblendStepConfig>();

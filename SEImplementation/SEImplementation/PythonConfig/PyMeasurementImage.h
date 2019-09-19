@@ -27,7 +27,9 @@ public:
   double weight_scaling;
   bool has_weight_threshold;
   double weight_threshold;
-  
+
+  bool is_background_constant;
+  double constant_background_value;
 };
 
 }

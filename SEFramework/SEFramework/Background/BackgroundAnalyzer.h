@@ -50,6 +50,7 @@ public:
       std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map,
       std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const = 0;
 };
+
 }
 
 
