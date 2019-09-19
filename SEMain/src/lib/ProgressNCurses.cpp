@@ -103,10 +103,14 @@ public:
 
     // Tell readline to leave the terminal be
     rl_catch_signals = 0;
-    rl_catch_sigwinch = 0;
     rl_deprep_term_function = NULL;
     rl_prep_term_function = NULL;
-    rl_change_environment = 0;
+
+    // It seems like the readline in MacOSX is not the "real" readline, but a compatibility
+    // layer which misses some things, like the following:
+#ifndef __APPLE__
+    rl_catch_sigwinch = 0;
+#endif
 
     // Setup signal handlers
     ::memset(&sigterm_action, 0, sizeof(sigterm_action));
@@ -213,10 +217,19 @@ static void handleTerminatingSignal(int s) {
   if (write(signal_fds[1], &s, sizeof(s)) == sizeof(s)) {
     close(signal_fds[1]);
     // Wait for UI thread to be done
+#if _POSIX_C_SOURCE >= 200112L
     timespec timeout;
     clock_gettime(CLOCK_REALTIME, &timeout);
     timeout.tv_sec += 5;
     sem_timedwait(&ncurses_done.m_semaphore, &timeout);
+#else
+    // MacOSX does not have timedwait
+    int timeout = 5;
+    while(timeout > 0 && sem_trywait(&ncurses_done.m_semaphore) < 0) {
+        sleep(1);
+        --timeout;
+    }
+#endif
   }
 
   // Call the previous handler
