@@ -41,6 +41,10 @@ public:
     MeasurementImage::PixelType m_constant_background_value;
 
     int m_id;
+
+    int m_image_hdu;
+    int m_psf_hdu;
+    int m_weight_hdu;
   };
 
   MeasurementImageConfig(long manager_id);

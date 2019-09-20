@@ -28,10 +28,12 @@ template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
 
-  FitsImageSource(const std::string &filename, std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
-    : m_filename(filename), m_manager(manager) {
+  FitsImageSource(const std::string &filename, int hdu_number = 1,
+      std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
+    : m_filename(filename), m_manager(manager), m_hdu_number(hdu_number) {
 
     auto fptr = m_manager->getFitsFile(filename);
+    switchHdu(fptr, m_hdu_number);
 
     int status = 0;
     int bitpix, naxis;
@@ -48,7 +50,7 @@ public:
   FitsImageSource(const std::string &filename, int width, int height,
                   const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
                   std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
-    : m_filename(filename), m_manager(manager) {
+    : m_filename(filename), m_manager(manager), m_hdu_number(1) {
     m_width = width;
     m_height = height;
 
@@ -96,6 +98,7 @@ public:
     }
 
     auto fptr = m_manager->getFitsFile(filename, true);
+    switchHdu(fptr, m_hdu_number);
   }
 
   virtual ~FitsImageSource() {
@@ -107,6 +110,8 @@ public:
 
   virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
     auto fptr = m_manager->getFitsFile(m_filename);
+    switchHdu(fptr, m_hdu_number);
+
     auto tile = std::make_shared<ImageTile<T>>((const_cast<FitsImageSource*>(this))->shared_from_this(), x, y, width, height);
 
     long first_pixel[2] = {x+1, y+1};
@@ -136,6 +141,7 @@ public:
 
   virtual void saveTile(ImageTile<T>& tile) override {
     auto fptr = m_manager->getFitsFile(m_filename, true);
+    switchHdu(fptr, m_hdu_number);
 
     auto image = tile.getImage();
 
@@ -157,6 +163,7 @@ public:
   template <typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
     auto fptr = m_manager->getFitsFile(m_filename);
+    switchHdu(fptr, m_hdu_number);
 
     double keyword_value;
     int status = 0;
@@ -172,6 +179,20 @@ public:
 
 private:
 
+  void switchHdu(fitsfile* fptr, int hdu_number) const {
+    int status = 0;
+    int hdu_type = 0;
+
+    fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
+
+    if (status != 0) {
+      throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file " << m_filename;
+    }
+    if (hdu_type != IMAGE_HDU) {
+      throw Elements::Exception() << "Trying to access non-image HDU in file " << m_filename;
+    }
+  }
+
   int getDataType() const;
   int getImageType() const;
 
@@ -180,6 +201,8 @@ private:
 
   int m_width;
   int m_height;
+
+  int m_hdu_number;
 };
 
 }

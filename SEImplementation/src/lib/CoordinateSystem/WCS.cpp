@@ -25,19 +25,23 @@ namespace SExtractor {
 
 using namespace wcslib;
 
-WCS::WCS(const std::string& fits_file_path): m_wcs(nullptr, nullptr) {
+WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nullptr) {
   fitsfile *fptr = NULL;
   int status = 0;
   fits_open_file(&fptr, fits_file_path.c_str(), READONLY, &status);
 
-  int hdutype;
-  fits_get_hdu_type(fptr, &hdutype, &status);
+  int hdu_type;
+  fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
+
+  if (status != 0 || hdu_type != IMAGE_HDU) {
+    throw Elements::Exception() << "Can't read WCS information from " << fits_file_path << " HDU " << hdu_number;
+  }
 
   int nkeyrec;
   char* header;
   fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status);
 
-  if (hdutype == IMAGE_HDU) {
+  if (hdu_type == IMAGE_HDU) {
     int nreject = 0, nwcs = 0;
     wcsprm* wcs;
     wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
