@@ -82,14 +82,22 @@ class MeasurementImage(cpp.MeasurementImage):
     weight_threshold : float
         Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
     constant_background : float
-        If set a constant background of that value is assumed for the image instead of using automatic detection 
+        If set a constant background of that value is assumed for the image instead of using automatic detection
+    image_hdu : int
+        For multi-extension FITS file specifies the HDU number for the image. Default 1 (primary HDU)
+    psf_hdu : int
+        For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu
+    weight_hdu : int
+        For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
     """
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='none', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None, constant_background=None):
+                 weight_threshold=None, constant_background=None,
+                 image_hdu=1, psf_hdu=None, weight_hdu=None 
+                 ):
         """
         Constructor.
         """
@@ -143,6 +151,19 @@ class MeasurementImage(cpp.MeasurementImage):
         else:
             self.is_background_constant = False
             self.constant_background_value = -1
+            
+            
+        self.image_hdu = image_hdu
+
+        if psf_hdu is None:
+            self.psf_hdu = image_hdu
+        else:
+            self.psf_hdu = psf_hdu
+            
+        if weight_hdu is None:
+            self.weight_hdu = image_hdu
+        else:
+            self.weight_hdu = weight_hdu
 
         global measurement_images
         measurement_images[self.id] = self

@@ -40,9 +40,12 @@ static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
 
 
-static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
+static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits, int hdu_number = 1) {
   try {
-    CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
+    CCfits::ExtHDU &psf_data = pFits->extension(hdu_number);
+    if (psf_data.name() != "PSF_DATA") {
+      throw Elements::Exception() << "No PSFEX data in file " << pFits->name() << " HDU " << hdu_number;
+    }
 
     int n_components;
     psf_data.readKey("POLNAXIS", n_components);
@@ -81,7 +84,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     psf_data.readKey("PSFAXIS3", n_coeffs);
 
     if (width != height) {
-      throw Elements::Exception() << "Non square PSF (" << width << 'X' << height << ')';
+      throw Elements::Exception() << "Non square PSFEX format PSF (" << width << 'X' << height << ')';
     }
     if (width % 2 == 0) {
       throw Elements::Exception() << "PSF kernel must have odd size";
@@ -118,7 +121,9 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
   }
 }
 
-static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
+// templated to work around CCfits limitation that primary and extension HDUs are different classes
+template<typename T>
+static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
   double pixel_sampling;
   try {
     image_hdu.readKey("SAMPLING", pixel_sampling);
@@ -128,7 +133,7 @@ static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
   }
 
   if (image_hdu.axis(0) != image_hdu.axis(1)) {
-    throw Elements::Exception() << "Non square PSF (" << image_hdu.axis(0) << 'X'
+    throw Elements::Exception() << "Non square image PSF (" << image_hdu.axis(0) << 'X'
                                 << image_hdu.axis(1) << ')';
   }
 
@@ -146,20 +151,25 @@ static std::shared_ptr<VariablePsf> readImage(CCfits::PHDU &image_hdu) {
 
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels.
-std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filename) {
+std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filename, int hdu_number) {
   try {
     // Read the HDU from the file
-    std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename)};
+    std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
     auto& image_hdu = pFits->pHDU();
 
     auto axes = image_hdu.axes();
     // PSF as image
     if (axes == 2) {
-      return readImage(image_hdu);
+      if (hdu_number == 1) {
+        return readImage(image_hdu);
+      } else {
+        auto& extension = pFits->extension(hdu_number - 1);
+        return readImage(extension);
+      }
     }
     // PSFEx format
     else {
-      return readPsfEx(pFits);
+      return readPsfEx(pFits, hdu_number);
     }
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSF file: " << e.message();

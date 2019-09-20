@@ -46,6 +46,10 @@ public:
 
   bool is_background_constant;
   double constant_background_value;
+
+  int image_hdu;
+  int psf_hdu;
+  int weight_hdu;
 };
 
 }

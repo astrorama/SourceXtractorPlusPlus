@@ -82,7 +82,7 @@ void validateImagePaths(const PyMeasurementImage& image) {
 }
 
 std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImage& py_image) {
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file);
+  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file, py_image.image_hdu);
   std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
   if (py_image.flux_scale != 1.) {
     image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
@@ -118,7 +118,10 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
   }
 
-  std::shared_ptr<WeightImage> weight_map = FitsReader<WeightImage::PixelType>::readFile(py_image.weight_file);
+  auto weight_image_source =
+      std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.weight_file, py_image.weight_hdu);
+  std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
+
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
       << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling;
   weight_map = WeightImageConfig::convertWeightMap(weight_map, weight_type, py_image.weight_scaling);
@@ -173,9 +176,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       PyMeasurementImage& py_image = p.second;
       validateImagePaths(py_image);
 
-      logger.debug() << "Loading measurement image: " << py_image.file;
-      logger.debug() << "\tWeight: " << py_image.weight_file;
-      logger.debug() << "\tPSF: " << py_image.psf_file;
+      logger.debug() << "Loading measurement image: " << py_image.file << " HDU: " << py_image.image_hdu;
+      logger.debug() << "\tWeight: " << py_image.weight_file << " HDU: " << py_image.weight_hdu;
+      logger.debug() << "\tPSF: " << py_image.psf_file << " HDU: " << py_image.psf_hdu;
       logger.debug() << "\tGain: " << py_image.gain;
       logger.debug() << "\tSaturation: " << py_image.saturation;
       logger.debug() << "\tFlux scale: " << py_image.flux_scale;
@@ -188,7 +191,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_psf_path = py_image.psf_file;
 
       info.m_measurement_image = createMeasurementImage(py_image);
-      info.m_coordinate_system = std::make_shared<WCS>(py_image.file);
+      info.m_coordinate_system = std::make_shared<WCS>(py_image.file, py_image.image_hdu);
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;
@@ -210,6 +213,10 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       }
 
       info.m_weight_type = getWeightType(py_image.weight_type, py_image.weight_file);
+
+      info.m_image_hdu = py_image.image_hdu;
+      info.m_psf_hdu = py_image.psf_hdu;
+      info.m_weight_hdu = py_image.weight_hdu;
 
       m_image_infos.emplace_back(std::move(info));
     }
@@ -238,7 +245,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       false,
       0.0,
 
-      0 // id
+      0, // id
+
+      1,1,1 // HDUs
     });
 
 
