@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * MeasurementFrameTaskFactory.cpp
  *
@@ -6,6 +22,8 @@
  */
 
 #include <iostream>
+#include <sstream>
+
 #include <SEImplementation/Background/BackgroundAnalyzerFactory.h>
 #include <boost/filesystem.hpp>
 
@@ -63,7 +81,10 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
     } else {
       measurement_frame->setBackgroundLevel(background_model.getLevelMap());
     }
-    measurement_frame->setLabel(boost::filesystem::basename(image_info.m_path));
+
+    std::stringstream label;
+    label << boost::filesystem::basename(image_info.m_path) << "_" << image_info.m_image_hdu;
+    measurement_frame->setLabel(label.str());
 
     if (image_info.m_weight_image != nullptr) {
       if (image_info.m_absolute_weight) {
