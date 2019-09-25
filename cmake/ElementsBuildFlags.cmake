@@ -362,10 +362,10 @@ if(NOT ELEMENTS_FLAGS_SET)
 
 
   # Build type compilation flags (if different from default or unknown to CMake)
-  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -ffast-math"
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -ffast-math"
       CACHE STRING "Flags used by the compiler during release builds."
       FORCE)
-  set(CMAKE_C_FLAGS_RELEASE "-O3 -march=native -ffast-math"
+  set(CMAKE_C_FLAGS_RELEASE "-O3 -ffast-math"
       CACHE STRING "Flags used by the compiler during release builds."
       FORCE)
 
@@ -405,10 +405,10 @@ if(NOT ELEMENTS_FLAGS_SET)
   endif()
 
 
-  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -march=native -ffast-math -g"
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -ffast-math -g"
       CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
       FORCE)
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 -march=native -ffast-math -g"
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O3 -ffast-math -g"
       CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
       FORCE)
   if (ELEMENTS_LINKOPT AND SGS_COMPVERS VERSION_GREATER "47")
