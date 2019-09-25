@@ -40,7 +40,7 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
 
   for (unsigned int i = 0; i < image_infos.size(); i++) {
     if (!image_infos[i].m_psf_path.empty()) {
-      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path);
+      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu);
     }
     else if (default_psf) {
       m_vpsf[image_infos[i].m_id] = default_psf;

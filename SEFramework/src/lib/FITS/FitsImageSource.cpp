@@ -21,7 +21,7 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SExtractor {
 

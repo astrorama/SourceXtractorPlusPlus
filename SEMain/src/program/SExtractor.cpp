@@ -50,6 +50,8 @@
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
+#include "SEFramework/FITS/FitsFileManager.h"
+
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
@@ -366,6 +368,8 @@ public:
     CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    FitsFileManager::getInstance()->closeAllFiles();
+
     size_t n_writen_rows = output->flush();
 
     progress_mediator->done();
