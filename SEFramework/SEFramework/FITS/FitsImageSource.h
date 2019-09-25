@@ -78,7 +78,7 @@ public:
       if (status != 0) {
         throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
       }
-      assert(m_fptr != nullptr);
+      assert(fptr != nullptr);
 
       long naxes[2] = {width, height};
       fits_create_img(fptr, getImageType(), 2, naxes, &status);
