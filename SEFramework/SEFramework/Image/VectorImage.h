@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file SEFramework/Image/VectorImage.h
  * @date 06/14/16
@@ -53,8 +69,18 @@ protected:
     assert(width > 0 && height > 0);
     assert(m_data.size() == std::size_t(width * height));
   }
+
+  template <typename Iter>
+  VectorImage(int width, int height, Iter data_begin, Iter data_end,
+        typename std::enable_if<
+            std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value
+            and std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value
+        >::type* =0) :
+      m_width(width), m_height(height), m_data(data_begin, data_end) {
+    assert(m_data.size() == std::size_t(width * height));
+  }
   
-  explicit VectorImage(const Image<T>& other_image) :
+  VectorImage(const Image<T>& other_image) :
     m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height), m_offset(0,0) {
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
@@ -63,10 +89,16 @@ protected:
     }
   }
 
+  VectorImage(const std::shared_ptr<const Image<T>>& other_image): VectorImage(static_cast<const Image<T>&>(*other_image)) {}
+
 public:
   template<typename... Args>
   static std::shared_ptr<VectorImage<T>> create(Args&&... args) {
     return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
+  }
+
+  std::string getRepr() const override {
+    return "VectorImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
   }
 
   int getHeight() const override {

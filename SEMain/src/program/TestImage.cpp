@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * TestImage.cpp
  *
@@ -13,6 +29,7 @@
 #include <tuple>
 #include <vector>
 #include <valarray>
+#include <numeric>
 
 #include <cstdlib>
 #include <ctime>
@@ -21,11 +38,16 @@
 #include <boost/random.hpp>
 
 #include <CCfits/CCfits>
-
 #include "SEFramework/Image/SubtractImage.h"
 
+#include "SEFramework/Image/VectorImage.h"
+#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/Image/WriteableBufferedImage.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEImplementation/Image/ImageInterfaceTraits.h"
+#include "SEImplementation/CoordinateSystem/WCS.h"
 
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
@@ -38,13 +60,8 @@
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
+#include "ModelFitting/Image/NullPsf.h"
 
-#include "ModelFitting/Image/OpenCvMatImageTraits.h"
-#include "ModelFitting/Image/OpenCvPsf.h"
-#include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
-
-#include "SEImplementation/Configuration/PsfConfig.h"
-#include "SEImplementation/Image/ImagePsf.h"
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -54,11 +71,6 @@ using namespace ModelFitting;
 
 const double pixel_scale = 1.0;
 
-const int point_sources_nb = 5;
-const double point_min_i0 = 100000;
-const double point_max_i0 = 300000;
-
-const int gal_sources_nb = 5;
 const double gal_exp_min_i0 = 100000;
 const double gal_exp_max_i0 = 100001;
 const double gal_dev_min_i0 = 100000;
@@ -69,6 +81,82 @@ struct TestImageSource {
   double exp_flux, exp_rad, exp_aspect, exp_rot;
   double dev_flux, dev_rad, dev_aspect, dev_rot;
   double point_flux;
+};
+
+//
+class DummyWCS : public CoordinateSystem {
+public:
+  DummyWCS(int image_width, int image_height, double rotation, double scale, double shift_x, double shift_y)
+      : m_image_width(image_width), m_image_height(image_height),
+        m_rotation(rotation), m_scale(1.0/scale), m_shift_x(shift_x), m_shift_y(shift_y) {}
+  virtual ~DummyWCS() {}
+
+  virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const {
+    return WorldCoordinate(image_coordinate.m_x, image_coordinate.m_y);
+  }
+
+  virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const {
+    return ImageCoordinate(world_coordinate.m_alpha, world_coordinate.m_delta);
+  }
+
+  virtual std::map<std::string, std::string> getFitsHeaders() const override {
+    auto c = cos(m_rotation);
+    auto s = sin(m_rotation);
+
+    return {
+      {"CTYPE1", "'RA---TAN'"},
+      {"CTYPE2", "'DEC--TAN'"},
+      {"CUNIT1", "'deg'"},
+      {"CUNIT2", "'deg'"},
+      {"RADSYS", "'ICRS'"},
+      {"WCSAXES", "2"},
+      {"LATPOLE", std::to_string(10.0)},
+      {"LONPOLE", std::to_string(180.0)},
+      {"CDELT1", std::to_string(1.0)},
+      {"CDELT2", std::to_string(1.0)},
+      {"CRVAL1", std::to_string(10.0)},
+      {"CRVAL2", std::to_string(10.0)},
+      {"CRPIX1", std::to_string(m_image_width / 2.0 + 1.5 + m_shift_x)},
+      {"CRPIX2", std::to_string(m_image_height / 2.0 + 1.5 + m_shift_y)},
+
+      {"PC1_1", std::to_string(0.001 * c * m_scale)},
+      {"PC1_2", std::to_string(0.001 * s * m_scale)},
+      {"PC2_1", std::to_string(0.001 * -s * m_scale)},
+      {"PC2_2", std::to_string(0.001 * c * m_scale)}
+    };
+  }
+
+private:
+  int m_image_width, m_image_height;
+  double m_rotation = 0.0;
+  double m_scale = 1.0;
+  double m_shift_x = 0.0;
+  double m_shift_y = 0.0;
+};
+
+template <typename ImageType>
+class DummyPsf {
+public:
+  DummyPsf() : m_kernel(VectorImage<SeFloat>::create(1, 1)) {}
+
+  double getPixelScale() const {
+    return 1.0;
+  }
+
+  std::size_t getSize() const {
+    return 1;
+  }
+
+  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
+    return m_kernel;
+  }
+
+  void convolve(ImageType& /*image*/) const {
+  }
+
+private:
+  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  m_kernel;
+
 };
 
 class TestImage : public Elements::Program {
@@ -83,6 +171,7 @@ public:
         ("output", po::value<string>()->required(), "filename to save the created test image")
         ("output-weight", po::value<string>()->default_value(""), "filename to save the created weight map image")
         ("size", po::value<double>()->default_value(512.0), "image size")
+        ("bg-level", po::value<double>()->default_value(0.0), "background level")
         ("bg-sigma", po::value<double>()->default_value(20.0), "standard deviation of background gaussian noise")
         ("gain", po::value<double>()->default_value(0.0), "gain in e-/adu, 0 for infinite gain")
         ("saturation", po::value<double>()->default_value(0.0), "image saturation level, 0 for no saturation")
@@ -90,31 +179,29 @@ public:
         ("psf-fwhm", po::value<double>()->default_value(5.0),
             "Full width half maximum for generated gaussian psf (used when no psf file is provided)")
         ("psf-scale", po::value<double>()->default_value(0.2), "Pixel scale for generated gaussian psf")
+        ("disable-psf", po::bool_switch(), "Disable psf convolution")
         ("random-sources", po::value<int>()->default_value(0), "Nb of random sources to add")
         ("source-list", po::value<string>()->default_value(""), "Use sources from file")
         ("source-catalog", po::value<string>()->default_value(""), "Use sources from file (skymaker format)")
-        ("zero-point", po::value<double>()->default_value(0.0), "zero point for magnitudes in catalog")
+        ("zero-point", po::value<double>()->default_value(0.0), "Zero point for magnitudes in catalog")
+        ("exposure-time", po::value<double>()->default_value(300.), "Exposure time for objects in catalog")
         ("save-sources", po::value<string>()->default_value(""), "Filename to save final list of sources")
         ("bad-pixels", po::value<double>()->default_value(0.0), "Probability for a pixel to be a bad pixel")
         ("bad-columns", po::value<double>()->default_value(0.0), "Probability for a column of pixels to be bad")
+        ("rotation", po::value<double>()->default_value(0.0), "Rotate sources around middle point")
+        ("scale", po::value<double>()->default_value(1.0), "Scale factor")
+        ("shift-x", po::value<double>()->default_value(0.0), "Shift X")
+        ("shift-y", po::value<double>()->default_value(0.0), "Shift Y")
+        ("model-size", po::value<double>()->default_value(0.0), "Model size for the rasterization of sources, defaults to size")
+        ("max-tile-memory", po::value<int>()->default_value(512), "Maximum memory used for image tiles cache in megabytes")
+        ("tile-size", po::value<int>()->default_value(256), "Image tiles size in pixels")
+        ("copy-coordinate-system", po::value<string>()->default_value(""), "Copy the coordinate system from another FITS file")
         ;
 
     return config_options;
   }
 
-
-  /// Writes a VectorImage to an image FITS file (prepend the filename with '!' to
-  /// override existing files)
-  void writeToFits(std::shared_ptr<VectorImage<SeFloat>> image, const std::string& filename) {
-    std::valarray<double> data (image->getWidth() * image->getHeight());
-    std::copy(image->getData().begin(), image->getData().end(), begin(data));
-    long naxis = 2;
-    long naxes[2] = {image->getWidth(), image->getHeight()};
-    std::unique_ptr<CCfits::FITS> pFits {new CCfits::FITS("!"+filename, DOUBLE_IMG, naxis, naxes)};
-    pFits->pHDU().write(1, data.size(), data);
-  }
-
-  void addSource(std::vector<PointModel>& point_models, std::vector<ExtendedModel>& extended_models, double size, const TestImageSource& source) {
+  void addSource(std::vector<PointModel>& point_models, std::vector<TransformedModel>& extended_models, double size, const TestImageSource& source, std::tuple<double, double, double, double> jacobian) {
 
     ManualParameter x_param {source.x};
     ManualParameter y_param {source.y};
@@ -136,7 +223,7 @@ public:
       auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param);
+      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
     }
 
     if (source.dev_flux > 0.0) {
@@ -153,7 +240,7 @@ public:
       auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param);
+      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
     }
     if (source.point_flux > 0.0) {
       ManualParameter flux_param (source.point_flux);
@@ -169,58 +256,59 @@ public:
     point_models.emplace_back(x_param, y_param, flux_param);
   }
 
-  void addBackgroundNoise(std::shared_ptr<VectorImage<SeFloat>> image, double background_level, double background_sigma) {
+  void addBackgroundNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double background_level, double background_sigma) {
     // Add noise
     boost::random::normal_distribution<> bg_noise_dist(background_level, background_sigma);
     for (int y=0; y < image->getHeight(); y++) {
       for (int x=0; x < image->getWidth(); x++) {
         // background (gaussian) noise
-        image->at(x, y) += bg_noise_dist(m_rng);
+        image->setValue(x, y, image->getValue(x, y) + bg_noise_dist(m_rng));
       }
     }
   }
 
-  void addPoissonNoise(std::shared_ptr<VectorImage<SeFloat>> image, double gain) {
+  void addPoissonNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double gain) {
     // Add noise
     if (gain > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          if (image->at(x, y) > 0.) {
-            image->at(x, y) = boost::random::poisson_distribution<>(image->at(x, y) * gain)(m_rng) / gain;
+          auto pixel_value = image->getValue(x, y);
+          if (pixel_value > 0.) {
+            image->setValue(x, y, boost::random::poisson_distribution<>(pixel_value * gain)(m_rng) / gain);
           }
         }
       }
     }
   }
 
-  void saturate(std::shared_ptr<VectorImage<SeFloat>> image, double saturation_level) {
+  void saturate(std::shared_ptr<WriteableImage<SeFloat>> image, double saturation_level) {
     if (saturation_level > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          image->at(x, y) = std::min(image->at(x, y), (float) saturation_level);
+          image->setValue(x, y, std::min(image->getValue(x, y), (float) saturation_level));
         }
       }
     }
   }
 
-  void addBadPixels(std::shared_ptr<VectorImage<SeFloat>> weight_map, double probability) {
+  void addBadPixels(std::shared_ptr<WriteableImage<SeFloat>> weight_map, double probability) {
     if (probability>0) {
       for (int y=0; y < weight_map->getHeight(); y++) {
         for (int x=0; x < weight_map->getWidth(); x++) {
           if (boost::random::uniform_01<double>()(m_rng) < probability) {
-            weight_map->at(x, y) = 0;
+            weight_map->setValue(x, y, 0);
           }
         }
       }
     }
   }
 
-  void addBadColumns(std::shared_ptr<VectorImage<SeFloat>> weight_map, double probability) {
+  void addBadColumns(std::shared_ptr<WriteableImage<SeFloat>> weight_map, double probability) {
     if (probability>0) {
       for (int x=0; x < weight_map->getWidth(); x++) {
         if (boost::random::uniform_01<double>()(m_rng) < probability) {
           for (int y=0; y < weight_map->getHeight(); y++) {
-            weight_map->at(x, y) = 0;
+            weight_map->setValue(x, y, 0);
           }
         }
       }
@@ -245,13 +333,14 @@ public:
 
           gal_exp_random_i0(m_rng),
           boost::random::uniform_real_distribution<>(.5, 6)(m_rng),
-          boost::random::uniform_real_distribution<>(.8, 1)(m_rng),
+          boost::random::uniform_real_distribution<>(.2, .8)(m_rng),
           boost::random::uniform_real_distribution<>(-M_PI/2, M_PI/2)(m_rng),
 
-          gal_dev_random_i0(m_rng),
-          boost::random::uniform_real_distribution<>(.1, .5)(m_rng),
-          boost::random::uniform_real_distribution<>(.8, 1)(m_rng),
-          boost::random::uniform_real_distribution<>(-M_PI/2, M_PI/2)(m_rng),
+          0,0,1,0,
+//          gal_dev_random_i0(m_rng),
+//          boost::random::uniform_real_distribution<>(.1, .5)(m_rng),
+//          boost::random::uniform_real_distribution<>(.8, 1)(m_rng),
+//          boost::random::uniform_real_distribution<>(-M_PI/2, M_PI/2)(m_rng),
 
           0
       });
@@ -283,21 +372,41 @@ public:
           >> source.dev_flux >> source.dev_rad >> source.dev_aspect >> source.dev_rot
           >> source.point_flux;
 
+      source.exp_rot *= -M_PI / 180.0;
+      source.dev_rot *= -M_PI / 180.0;
+
       sources.emplace_back(std::move(source));
     }
 
     return sources;
   }
 
-  void saveSources(const std::vector<TestImageSource>&sources, const std::string& filename) {
+  void saveSources(const std::vector<TestImageSource>& sources, const std::string& filename) {
     std::ofstream file;
     file.open(filename);
 
     for (const auto& source : sources) {
       file << source.x << " " << source.y << " "
-          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << source.exp_rot << " "
-          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << source.dev_rot << " "
+          << source.exp_flux << " " << source.exp_rad << " " << source.exp_aspect << " " << (source.exp_rot * -180.0 / M_PI) << " "
+          << source.dev_flux << " " << source.dev_rad << " " << source.dev_aspect << " " << (source.dev_rot * -180.0 / M_PI) << " "
           << source.point_flux << "\n";
+    }
+  }
+
+  void transformSources(std::vector<TestImageSource>& sources, int image_size, double rot_angle, double scale, double shift_x, double shift_y) {
+    auto center = image_size / 2.0;
+    auto c = cos(rot_angle);
+    auto s = sin(rot_angle);
+    for (auto& source : sources) {
+      source.x -= center;
+      source.y -= center;
+      double x = (source.x * c - source.y * s) * scale + shift_x;
+      double y = (source.x * s + source.y * c) * scale + shift_y;
+      source.x = x + center;
+      source.y = y + center;
+
+      source.exp_rot -= rot_angle;
+      source.dev_rot -= rot_angle;
     }
   }
 
@@ -333,6 +442,7 @@ public:
             >> source.dev_rad >> source.dev_aspect >> dev_angle_degree
             >> source.exp_rad >> source.exp_aspect >> exp_angle_degree;
 
+        // FIXME should change sign?
         source.dev_rot = dev_angle_degree * M_PI / 180.0;
         source.exp_rot = exp_angle_degree * M_PI / 180.0;
 
@@ -347,7 +457,7 @@ public:
       } else if (source_type == 100) {
         double magnitude;
         linestream >> source.x >> source.y >> magnitude;
-        source.point_flux = pow(10, (magnitude - m_zero_point) / -2.5);
+        source.point_flux = pow(10, (magnitude - m_zero_point) / -2.5) * m_exp_time;
 
         source.exp_flux = source.exp_rot = source.dev_flux = source.dev_rot = 0;
         source.exp_aspect = source.exp_rad = source.dev_aspect = source.dev_rad = 1;
@@ -360,38 +470,76 @@ public:
     }
 
     return sources;
-
   }
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
     Elements::Logging logger = Elements::Logging::getLogger("TestImage");
 
+    auto max_tile_memory = args["max-tile-memory"].as<int>();
+    auto tile_size = args["tile-size"].as<int>();
+    TileManager::getInstance()->setOptions(tile_size, tile_size, max_tile_memory);
+
     auto image_size = args["size"].as<double>();
+    auto rot_angle = args["rotation"].as<double>() / 180.0 * M_PI;
+    auto scale = args["scale"].as<double>();
+    auto shift_x = args["shift-x"].as<double>();
+    auto shift_y = args["shift-y"].as<double>();
+    auto model_size = args["model-size"].as<double>();
+    if (model_size <= 0.) {
+      model_size = image_size;
+    }
 
     m_zero_point = args["zero-point"].as<double>();
+    m_exp_time = args["exposure-time"].as<double>();
 
     std::vector<ConstantModel> constant_models;
-    std::vector<ExtendedModel> extended_models;
+    std::vector<TransformedModel> extended_models;
     std::vector<PointModel> point_models;
 
-    std::shared_ptr<ImagePsf> psf;
+    std::shared_ptr<VariablePsf> vpsf;
+
     auto psf_filename = args["psf-file"].as<std::string>();
     if (psf_filename != "") {
       logger.info() << "Loading psf file: " << psf_filename;
-      psf = PsfConfig::readPsf(psf_filename);
+      vpsf = PsfPluginConfig::readPsf(psf_filename);
     } else {
-      psf = PsfConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
+      vpsf = PsfPluginConfig::generateGaussianPsf(args["psf-fwhm"].as<double>(), args["psf-scale"].as<double>());
     }
 
-    //addExtendedSource(extended_models, image_size / 2.0, image_size / 2.0, 150000, 2.0, 1, 0,  100000, .1);
-//    boost::random::uniform_real_distribution<> random_i0(point_min_i0, point_max_i0);
-//    for (int i = 0; i<point_sources_nb; i++) {
-//      ManualParameter x (random_x(rng));
-//      ManualParameter y (random_y(rng));
-//      ManualParameter i0 (random_i0(rng));
-//      point_models.emplace_back(x,y,i0);
-//    }
+    std::shared_ptr<CoordinateSystem> coordinate_system;
+    auto copy_coordinate_system = args["copy-coordinate-system"].as<std::string>();
+    if (copy_coordinate_system != "") {
+      coordinate_system = std::make_shared<WCS>(copy_coordinate_system);
+    } else {
+      coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
+    }
+
+    auto raster_model_size = model_size / vpsf->getPixelSampling() + std::max(vpsf->getWidth(), vpsf->getHeight());
+    if (raster_model_size * raster_model_size > std::numeric_limits<int>::max()) {
+      logger.fatal() << "The expected required memory for model rasterization exceeds the maximum size for an integer";
+      logger.fatal() << "Please, either reduce the model size, the image size, or increase the PSF pixel scale";
+      logger.fatal() << raster_model_size * raster_model_size << " > " << std::numeric_limits<int>::max();
+      return Elements::ExitCode::NOT_OK;
+    }
+
+    // Generate a single PSF for the image
+    const auto& vpsf_components = vpsf->getComponents();
+    std::vector<double> psf_vals(vpsf_components.size());
+    for (auto i = 0u; i < psf_vals.size(); ++i) {
+      if (vpsf_components[i].name == "X_IMAGE" || vpsf_components[i].name == "Y_IMAGE") {
+        psf_vals[i] = image_size / 2 - 1;
+      }
+      else {
+        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i].name;
+      }
+    }
+
+    // Generate and normalize the PSF
+    auto p = vpsf->getPsf(psf_vals);
+    auto psf_sum = std::accumulate(p->getData().begin(), p->getData().end(), 0.);
+    p = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(p, 1. / psf_sum));
+    auto psf = std::make_shared<ImagePsf>(vpsf->getPixelSampling(), p);
 
     std::vector<TestImageSource> sources;
 
@@ -422,118 +570,85 @@ public:
       saveSources(sources, sources_save_filename);
     }
 
+    logger.info("Transforming sources...");
+    transformSources(sources, image_size, rot_angle, scale, shift_x, shift_y);
+
     logger.info("Creating source models...");
     for (const auto& source : sources) {
-      addSource(point_models, extended_models, image_size, source);
+      addSource(point_models, extended_models, model_size, source, std::make_tuple(scale, 0, 0, scale));
     }
 
     logger.info("Rendering...");
 
-    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
-      pixel_scale,
-      (std::size_t) image_size, (std::size_t) image_size,
-      std::move(constant_models),
-      std::move(point_models),
-      std::move(extended_models),
-      *psf
-    };
+    auto filename = args["output"].as<std::string>();
+    auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size, coordinate_system);
+    std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
-    auto image = frame_model.getImage();
+    if (args["disable-psf"].as<bool>()) {
+      FrameModel<DummyPsf<std::shared_ptr<WriteableImage<SeFloat>>>, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+        pixel_scale,
+        (std::size_t) image_size, (std::size_t) image_size,
+        std::move(constant_models),
+        std::move(point_models),
+        std::move(extended_models),
+      };
+      frame_model.rasterToImage(target_image);
+    } else {
+      FrameModel<ImagePsf, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+        pixel_scale,
+        (std::size_t) image_size, (std::size_t) image_size,
+        std::move(constant_models),
+        std::move(point_models),
+        std::move(extended_models),
+        *psf
+      };
+      frame_model.rasterToImage(target_image);
+    }
+
 
     logger.info("Adding noise...");
 
-    addPoissonNoise(image, args["gain"].as<double>());
-    addBackgroundNoise(image, 0, args["bg-sigma"].as<double>());
+    addPoissonNoise(target_image, args["gain"].as<double>());
+    addBackgroundNoise(target_image, args["bg-level"].as<double>(), args["bg-sigma"].as<double>());
 
     logger.info("Adding saturation...");
 
     auto saturation_level = args["saturation"].as<double>();
-    saturate(image, saturation_level);
+    saturate(target_image, saturation_level);
 
     logger.info("Creating weight map...");
 
-    auto weight_map = VectorImage<SeFloat>::create(image_size, image_size);
-    weight_map->fillValue(1);
+    auto weight_filename = args["output-weight"].as<std::string>();
+    if (weight_filename != "") {
+      auto weight_map_source = std::make_shared<FitsImageSource<SeFloat>>(weight_filename, image_size, image_size);
+      auto weight_map = WriteableBufferedImage<SeFloat>::create(weight_map_source);
+      for (int y = 0; y < image_size; ++y) {
+        for (int x = 0; x < image_size; ++x) {
+          weight_map->setValue(x, y, 1);
+        }
+      }
 
+      logger.info("Adding bad pixels...");
 
-    logger.info("Adding bad pixels...");
+      addBadPixels(weight_map, args["bad-pixels"].as<double>());
+      addBadColumns(weight_map, args["bad-columns"].as<double>());
 
-    addBadPixels(weight_map, args["bad-pixels"].as<double>());
-    addBadColumns(weight_map, args["bad-columns"].as<double>());
-
-    for (int y=0; y < image->getHeight(); y++) {
-      for (int x=0; x < image->getWidth(); x++) {
-        if (weight_map->at(x, y) == 0) {
-          image->at(x, y) = saturation_level;
+      for (int y = 0; y < target_image->getHeight(); y++) {
+        for (int x = 0; x < target_image->getWidth(); x++) {
+          if (weight_map->getValue(x, y) == 0) {
+            target_image->setValue(x, y, saturation_level);
+          }
         }
       }
     }
-
-    auto filename = args["output"].as<std::string>();
-    logger.info() << "Saving file: " << filename;
-    writeToFits(image, filename);
-
-    auto weight_filename = args["output-weight"].as<std::string>();
-    if (weight_filename != "") {
-      logger.info() << "Saving weight map file: " << weight_filename;
-      writeToFits(weight_map, weight_filename);
-    }
-
-    //Test(image_size, psf, args["output"].as<std::string>());
 
     logger.info("All done ^__^");
     return Elements::ExitCode::OK;
   }
 
-  void Test(double image_size, std::shared_ptr<ImagePsf> psf, std::string filename) {
-    Elements::Logging logger = Elements::Logging::getLogger("Test!!!");
-
-    std::vector<ConstantModel> constant_models;
-    std::vector<ExtendedModel> extended_models;
-    std::vector<PointModel> point_models;
-
-    std::vector<TestImageSource> sources;
-
-    sources.push_back({
-       image_size / 2.0, image_size / 2.0, //double x, y;
-       10000, .25, 1, 0, //double exp_flux, exp_rad, exp_aspect, exp_rot;
-       0, 1, 1, 0, //double dev_flux, dev_rad, dev_aspect, dev_rot
-       0 // point_flux
-    });
-
-
-    logger.info("Creating source models...");
-    for (const auto& source : sources) {
-      addSource(point_models, extended_models, image_size, source);
-    }
-
-    //addPointSource(point_models, image_size / 2.0 + 100, image_size / 2.0, 10000);
-
-
-    logger.info("Rendering...");
-
-    FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model {
-      pixel_scale,
-      (std::size_t) image_size, (std::size_t) image_size,
-      std::move(constant_models),
-      std::move(point_models),
-      std::move(extended_models),
-      *psf
-    };
-
-    auto image = frame_model.getImage();
-
-    //addPoissonNoise(image, 1);
-    addBackgroundNoise(image, 0, 1);
-
-    logger.info() << "Saving file: " << filename;
-    writeToFits(image, filename);
-    //writeToFits(VectorImage<SeFloat>::create(*SubtractImage<SeFloat>::create(image_1, image_2)), filename);
-  }
-
 private:
   boost::random::mt19937 m_rng { (unsigned int) time(NULL) } ;
-  double m_zero_point;
+  double m_zero_point, m_exp_time;
 
 };
 

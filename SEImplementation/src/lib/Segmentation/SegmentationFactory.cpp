@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/SegmentationFactory.cpp
  * @date 06/08/16
@@ -41,6 +57,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
   auto segmentation = std::make_shared<Segmentation>(m_filter);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
+      //FIXME Use a factory from parameter
       segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:

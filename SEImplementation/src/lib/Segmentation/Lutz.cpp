@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Lutz.cpp
  *
@@ -9,7 +25,6 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/FitsWriter.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -52,7 +67,8 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
 
   //std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
 
-  for (int y=0; y<image.getHeight(); y++) {
+  int lines = image.getHeight();
+  for (int y = 0; y < lines; y++) {
     LutzStatus ps = LutzStatus::COMPLETE;
     LutzStatus cs = LutzStatus::NONOBJECT;
 
@@ -194,6 +210,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
         }
       }
     }
+    listener.notifyProgress(y + 1, lines);
   }
 
   //FitsWriter::writeFile<unsigned int>(*check_image, "segCheck.fits");

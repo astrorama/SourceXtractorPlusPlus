@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Created on Jan 05, 2015
  * @author: mkuemmel@usm.lmu.de
@@ -98,7 +114,7 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
 
   int hilowIndex, hihighIndex;
   //int hcutIndex, lcutIndex;
-  int hilowVal, hihighVal;
+  //int hilowVal, hihighVal;
   unsigned long mySum;
   double myMea, mySig, myDpix;
   //int    myI, myN, myLcut,myHcut, myNlevelsm1, myPix;
@@ -137,8 +153,8 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
     hilowIndex=lcut;
     hihighIndex=hcut;
     //histotVal = histo[histotIndex];
-    hilowVal  = histo[hilowIndex];
-    hihighVal = histo[hihighIndex];
+    //hilowVal  = histo[hilowIndex];
+    //hihighVal = histo[hihighIndex];
 
     for (i=lcut; i<=hcut; i++)
     {
@@ -146,13 +162,13 @@ void BackgroundHistogram::getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
       {
         lowsum   += *(hilow++);
         hilowIndex++;
-        hilowVal = histo[hilowIndex];
+        //hilowVal = histo[hilowIndex];
       }
       else
       {
         highsum +=  *(hihigh--);
         hihighIndex--;
-        hihighVal = histo[hihighIndex];
+        //hihighVal = histo[hihighIndex];
       }
 
       sum += (pix = *(histot++));

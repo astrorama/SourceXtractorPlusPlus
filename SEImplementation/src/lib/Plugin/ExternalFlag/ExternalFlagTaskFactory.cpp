@@ -1,8 +1,26 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/Task/ExternalFlagTaskFactory.cpp
  * @date 06/17/16
  * @author nikoapos
  */
+
+#include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
@@ -11,8 +29,11 @@
 
 namespace SExtractor {
 
+const char ExternalFlagTaskFactory::propertyName[] = "ExternalFlags";
+
 void ExternalFlagTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<ExternalFlagConfig>();
+  manager.registerConfiguration<OutputConfig>();
 }
 
 
@@ -50,10 +71,18 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
     
     m_flag_info_map[property_id] = pair.second;
   }
+
+  auto& output_config = manager.getConfiguration<OutputConfig>();
+  auto& output_properties = output_config.getOutputProperties();
+  m_is_output_requested = std::find(output_properties.begin(), output_properties.end(), propertyName)
+      != output_properties.end();
 }
 
 void ExternalFlagTaskFactory::registerPropertyInstances(OutputRegistry& output_registry) {
   output_registry.registerPropertyInstances<ExternalFlag>(m_instance_names);
+  if (m_is_output_requested && m_instance_names.size() <= 0) {
+    throw Elements::Exception() << "Requested property ExternalFlag is not configured to produce any output";
+  }
 }
 
 } // SExtractor namespace

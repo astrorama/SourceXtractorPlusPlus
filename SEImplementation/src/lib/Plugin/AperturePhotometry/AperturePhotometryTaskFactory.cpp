@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * AperturePhotometryTaskFactory.cpp
  *
@@ -5,81 +21,101 @@
  *      Author: mschefer
  */
 
-#include <iostream>
 #include <sstream>
 
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Task/Task.h"
 
 #include "SEImplementation/Configuration/MagnitudeConfig.h"
-#include "SEImplementation/Configuration/MeasurementConfig.h"
-
+#include "SEImplementation/Configuration/WeightImageConfig.h"
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArray.h"
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArrayTask.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTaskFactory.h"
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 
 namespace SExtractor {
 
-std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId& property_id) const {
+std::shared_ptr<Task> AperturePhotometryTaskFactory::createTask(const PropertyId &property_id) const {
   auto instance = property_id.getIndex();
-  if (property_id.getTypeId() == typeid(AperturePhotometry) && instance < m_apertures.size()) {
+
+  if (property_id.getTypeId() == typeid(AperturePhotometry)) {
     return std::make_shared<AperturePhotometryTask>(
-        std::make_shared<CircularAperture>(m_apertures[instance]),
-        instance,
-        m_image_instances[instance],
-        m_magnitude_zero_point,
-        true
-        );
-  } else {
-    return nullptr;
+      m_aperture_config.at(instance),
+      instance,
+      m_magnitude_zero_point,
+      m_symmetry_usage
+    );
+  } else if (property_id.getTypeId() == typeid(AperturePhotometryArray)) {
+    return std::make_shared<AperturePhotometryArrayTask>(
+      m_apertures_per_output.at(instance),
+      instance
+    );
+  } else if (property_id == PropertyId::create<ApertureFlag>()) {
+    return std::make_shared<ApertureFlagTask>(m_all_apertures);
   }
+  return nullptr;
 }
 
-void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry& output_registry) {
-  output_registry.registerPropertyInstances<AperturePhotometry>(m_instance_names);
+void AperturePhotometryTaskFactory::registerPropertyInstances(OutputRegistry &registry) {
+  std::vector<std::pair<std::string, unsigned int>> flux_instances, flux_err_instances;
+  std::vector<std::pair<std::string, unsigned int>> mag_instances, mag_err_instances;
+  std::vector<std::pair<std::string, unsigned int>> flags_instances;
+
+  for (auto& aggregated_ap : m_apertures_per_output) {
+    auto& array_id = aggregated_ap.first;
+
+    std::string name = m_col_prefix.at(array_id);
+
+    flux_instances.emplace_back(std::make_pair(name + "_flux", array_id));
+    flux_err_instances.emplace_back(std::make_pair(name + "_flux_err", array_id));
+    mag_instances.emplace_back(std::make_pair(name + "_mag", array_id));
+    mag_err_instances.emplace_back(std::make_pair(name + "_mag_err", array_id));
+    flags_instances.emplace_back(std::make_pair(name + "_flags", array_id));
+  }
+
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux", flux_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flux_err", flux_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag", mag_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_mag_err", mag_err_instances);
+  registry.registerPropertyInstances<AperturePhotometryArray>("aperture_flags", flags_instances);
 }
 
-void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<MagnitudeConfig>();
+  manager.registerConfiguration<WeightImageConfig>();
   manager.registerConfiguration<AperturePhotometryConfig>();
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
-void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto& measurement_config = manager.getConfiguration<MeasurementConfig>();
+void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  auto& aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
+
+  const auto& image_infos = measurement_config.getImageInfos();
+
+  m_aperture_config = aperture_config.getApertures();
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
-  auto apertures = manager.getConfiguration<AperturePhotometryConfig>().getApertures();
+  m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  auto measurement_images_nb = std::max<unsigned int>(1, measurement_config.getMeasurementImages().size());
-  std::cout << "measurement_images_nb: " << measurement_images_nb << std::endl;
-
-  // determine which apertures are needed for each image
-  std::vector<std::set<SeFloat>> aperture_sizes(measurement_images_nb);
-  for (auto& group : measurement_config.getImageGroups()) {
-    auto apertures = group->getAperturePhotometryOptions().getApertureSizes();
-
-    for (auto image_nb : group->getMeasurementImageIndices()) {
-      std::copy(apertures.begin(), apertures.end(), std::inserter(aperture_sizes[image_nb], aperture_sizes[image_nb].end()));
+  for (unsigned int i = 0; i < image_infos.size(); ++i) {
+    for (auto a : aperture_config.getAperturesForImage(image_infos[i].m_id)) {
+      if (std::find(m_all_apertures.begin(), m_all_apertures.end(), a) == m_all_apertures.end()) {
+        m_all_apertures.emplace_back(a);
+      }
     }
   }
 
-  unsigned int aperture_instance_nb = 0;
-  for (unsigned int image_nb = 0; image_nb < measurement_images_nb; image_nb++) {
-    for (auto aperture_size : aperture_sizes[image_nb]) {
-      m_aperture_instances[std::make_pair(image_nb, aperture_size)] = aperture_instance_nb;
-      m_image_instances.emplace_back(image_nb);
-      m_apertures.emplace_back(aperture_size);
-
-      // This will need to be replaced by vector output
-      std::stringstream instance_name;
-      instance_name << image_nb << "_" << aperture_size;
-      m_instance_names.emplace_back(std::make_pair(instance_name.str(), aperture_instance_nb));
-
-      aperture_instance_nb++;
-    }
+  auto outputs = aperture_config.getImagesToOutput();
+  unsigned i = 0;
+  for (auto j = outputs.begin(); j != outputs.end(); ++i, ++j) {
+    m_col_prefix[i] = j->first;
+    m_apertures_per_output[i] = j->second;
   }
-
 }
 
 }

@@ -25,6 +25,8 @@ elements_depends_on_subdirs(SEImplementation)
 # Examples:
 #          find_package(CppUnit)
 #===============================================================================
+find_package(Ncurses)
+find_package(Readline)
 
 #===============================================================================
 # Declare the library dependencies here
@@ -34,8 +36,18 @@ elements_depends_on_subdirs(SEImplementation)
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEMain src/lib/*.cpp
-                     LINK_LIBRARIES ElementsKernel Configuration SEImplementation
+file(GLOB LIB_SRC src/lib/*.cpp)
+
+if (NOT NCURSES_FOUND)
+    file(GLOB PROGRESSBAR_SRC src/lib/ProgressNCurses.cpp)
+    list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
+    add_definitions("-DWITHOUT_NCURSES")
+else ()
+    set (NCURSES Ncurses Readline)
+endif ()
+
+elements_add_library(SEMain ${LIB_SRC}
+                     LINK_LIBRARIES ElementsKernel Configuration SEImplementation ${NCURSES}
                      PUBLIC_HEADERS SEMain)
 
 #===============================================================================
@@ -45,7 +57,7 @@ elements_add_library(SEMain src/lib/*.cpp
 #                        LINK_LIBRARIES Boost ElementsExamples
 #                        INCLUDE_DIRS Boost ElementsExamples)
 #===============================================================================
-elements_add_executable(SExtractor src/program/SExtractor.cpp
+elements_add_executable(sextractor++ src/program/SExtractor.cpp
                      LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation)
 
 elements_add_executable(TestImage src/program/TestImage.cpp

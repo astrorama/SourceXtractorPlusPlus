@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * ImageChunk.h
  *
@@ -31,6 +47,10 @@ public:
   }
 
   virtual ~ImageChunk() {
+  }
+
+  std::string getRepr() const override {
+    return "ImageChunk<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" + m_image->getRepr() + ")";
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
@@ -86,10 +106,17 @@ protected:
     }
   }
 
+  UniversalImageChunk(std::vector<T> &&data, int width, int height):
+    ImageChunk<T>(nullptr, width, height, width), m_chunk_vector(std::move(data))
+  {
+    assert(static_cast<int>(m_chunk_vector.size()) == width * height);
+    this->setDataPtr(&m_chunk_vector[0]);
+  }
+
 public:
-  static std::shared_ptr<UniversalImageChunk<T>> create(
-      std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) {
-    return std::shared_ptr<UniversalImageChunk<T>>(new UniversalImageChunk<T>(image, x, y, width, height));
+  template <typename... Args>
+  static std::shared_ptr<UniversalImageChunk<T>> create(Args&&... args) {
+    return std::shared_ptr<UniversalImageChunk<T>>(new UniversalImageChunk<T>(std::forward<Args>(args)...));
   }
 
   virtual ~UniversalImageChunk() {

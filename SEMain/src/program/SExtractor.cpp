@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/program/SExtractor.cpp
  * @date 05/31/16
@@ -6,17 +22,18 @@
 
 #include <map>
 #include <string>
+#include <iomanip>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <iomanip>
-
-#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
-#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
-
-#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
+#include "ElementsKernel/Main.h"
+#include "ElementsKernel/System.h"
+#include "ElementsKernel/Temporary.h"
 #include "ElementsKernel/ProgramHeaders.h"
+
+#include "Configuration/ConfigManager.h"
+#include "Configuration/Utils.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
 
@@ -33,8 +50,17 @@
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
+#include "SEFramework/FITS/FitsFileManager.h"
+
+#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
+#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
+#include "SEImplementation/CheckImages/MoffatCheckImage.h"
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
+
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
+#include "SEImplementation/Grouping/GroupingFactory.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
@@ -42,6 +68,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
+#include "SEImplementation/Measurement/MeasurementFactory.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
@@ -49,23 +76,26 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
+#include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEMain/SExtractorConfig.h"
-
-#include "Configuration/ConfigManager.h"
-#include "Configuration/Utils.h"
+#include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"
-
+#include "SEMain/Sorter.h"
 
 
 namespace po = boost::program_options;
+namespace fs = boost::filesystem;
 using namespace SExtractor;
 using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
 
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
+static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
+static const std::string PROPERTY_COLUMN_MAPPING {"property-column-mapping"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -100,6 +130,7 @@ static void setupEnvironment(void) {
   }
 }
 
+
 class SEMain : public Elements::Program {
   
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry = std::make_shared<TaskFactoryRegistry>();
@@ -113,8 +144,11 @@ class SEMain : public Elements::Program {
   std::shared_ptr<SourceGroupFactory> group_factory =
           std::make_shared<SourceGroupWithOnDemandPropertiesFactory>(task_provider);
   PartitionFactory partition_factory {source_factory};
+  GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
+  MeasurementFactory measurement_factory { output_registry };
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
+  ProgressReporterFactory progress_printer_factory {};
 
 public:
   
@@ -122,7 +156,7 @@ public:
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
 
-  po::options_description defineSpecificProgramOptions() override {
+  std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.registerConfiguration<SExtractorConfig>();
     config_manager.registerConfiguration<BackgroundConfig>();
@@ -136,29 +170,60 @@ public:
     task_factory_registry->reportConfigDependencies(config_manager);
     segmentation_factory.reportConfigDependencies(config_manager);
     partition_factory.reportConfigDependencies(config_manager);
+    grouping_factory.reportConfigDependencies(config_manager);
     deblending_factory.reportConfigDependencies(config_manager);
+    measurement_factory.reportConfigDependencies(config_manager);
     output_factory.reportConfigDependencies(config_manager);
     background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
     auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
           "List the possible output properties for the given input parameters and exit");
-    return options;
+    options.add_options() (PROPERTY_COLUMN_MAPPING_ALL.c_str(), po::bool_switch(),
+          "Show the columns created for each property");
+    options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
+          "Show the columns created for each property, for the given configuration");
+    progress_printer_factory.addOptions(options);
+
+    // Allow to pass Python options as positional following --
+    po::positional_options_description p;
+    p.add("python-arg", -1);
+
+    return {options, p};
   }
 
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
-    
+
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
     
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
-      for (auto& name : output_registry->getOptionalOutputNames()) {
-        std::cout << name << '\n';
+      for (auto& name : output_registry->getOutputPropertyNames()) {
+        std::cout << name << std::endl;
       }
       return Elements::ExitCode::OK;
     }
+    
+    if (args.at(PROPERTY_COLUMN_MAPPING_ALL).as<bool>()) {
+      output_registry->printPropertyColumnMap();
+      return Elements::ExitCode::OK;
+    }
 
+    // Elements does not verify that the config-file exists. It will just not read it.
+    // We verify that it does exist here.
+    if (args.find("config-file") != args.end()) {
+      auto cfg_file = args.at("config-file").as<fs::path>();
+      if (cfg_file != "" && !fs::exists(cfg_file)) {
+        throw Elements::Exception() << "The configuration file '" << cfg_file << "' does not exist";
+      }
+    }
+
+    // Create the progress listener and printer ASAP
+    progress_printer_factory.configure(args);
+    auto progress_mediator = progress_printer_factory.createProgressMediator();
+
+    // Initialize the rest of the components
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
 
@@ -174,11 +239,19 @@ public:
     
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
+    grouping_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
+    measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
     background_level_analyzer_factory.configure(config_manager);
+    
+    if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
+      output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
+      return Elements::ExitCode::OK;
+    }
 
     auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto detection_image_path = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImagePath();
     auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
     bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
@@ -189,31 +262,50 @@ public:
 
     auto segmentation = segmentation_factory.createSegmentation();
     auto partition = partition_factory.getPartition();
-    auto source_grouping = std::make_shared<SourceGrouping>(
-        std::unique_ptr<SplitSourcesCriteria>(new SplitSourcesCriteria), group_factory);
+    auto source_grouping = grouping_factory.createGrouping();
+
     std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
+    std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
+    auto sorter = std::make_shared<Sorter>();
+
     // Link together the pipeline's steps
-    segmentation->addObserver(partition);
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
-    deblending->addObserver(output);
+    deblending->addObserver(measurement);
+    measurement->addObserver(sorter);
+    sorter->addObserver(output);
+
+    segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
+    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
+    deblending->addObserver(progress_mediator->getDeblendingObserver());
+    measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
-      segmentation->addObserver(
+      segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
-      deblending->addObserver(
+      measurement->addObserver(
           std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+    }
+    if (CheckImages::getInstance().getGroupImage() != nullptr) {
+      measurement->addObserver(
+          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+    }
+    if (CheckImages::getInstance().getMoffatImage() != nullptr) {
+      measurement->addObserver(
+          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
         detection_image_saturation, interpolation_gap);
+    detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
     auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
@@ -238,17 +330,6 @@ public:
     // re-set the variance check image to what's in the detection_frame()
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    //<<<<<<< HEAD
-    //std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevel()
-    //    << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0)) << std::endl;
-    ////<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //=======
-    // FIXME we should use average or median rather than value at coordinate 0,0
-    std::cout << "Detected background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-        //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
-    //>>>>>>> refs/heads/for_merging
-
     const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
 
     // Override background level and threshold if requested by the user
@@ -263,22 +344,41 @@ public:
     if (background_config.isDetectionThresholdAbsolute()) {
       detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
     }
+    CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    std::cout << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-            << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))  << '\n';
-          //<< " threshold: "  << detection_frame->getDetectionThreshold() << '\n';
+    logger.info() << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
+        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
+        << " threshold: "  << detection_frame->getDetectionThreshold();
 
-    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+
+    // Perform measurements (multi-threaded part)
+    measurement->startThreads();
 
     // Process the image
     segmentation->processFrame(detection_frame);
 
+    // Flush source grouping buffer
     SelectAllCriteria select_all_criteria;
     source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
 
+    measurement->waitForThreads();
+
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    FitsFileManager::getInstance()->closeAllFiles();
+
+    size_t n_writen_rows = output->flush();
+
+    progress_mediator->done();
+
+    if (n_writen_rows > 0) {
+      logger.info() << n_writen_rows << " sources detected";
+    } else {
+      logger.info() << "NO SOURCES DETECTED";
+    }
 
     return Elements::ExitCode::OK;
   }
@@ -326,59 +426,76 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
 
+  // This adds the current directory as a valid location for the default "sextractor++.conf" configuration
+  Elements::TempEnv local_env;
+  if (local_env["ELEMENTS_CONF_PATH"].empty()) {
+    local_env["ELEMENTS_CONF_PATH"] = ".";
+  } else {
+    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"];
+  }
+
   setupEnvironment();
 
-  // First we create a program which has a sole purpose to get the options for
-  // the plugin paths. Note that we do not want to have this helper program
-  // to handle any other options except of the plugin-directory and plugin, so
-  // we create a subset of the given options with only the necessary ones. We
-  // also turn off the the logging.
-  std::vector<int> masked_indices {};
-  std::vector<std::string> plugin_options_input {};
-  plugin_options_input.emplace_back("DummyProgram");
-  plugin_options_input.emplace_back("--log-level");
-  plugin_options_input.emplace_back("FATAL");
-  for (int i = 0; i < argc; ++i) {
-    std::string option {argv[i]};
-    if (option == "--config-file") {
-      plugin_options_input.emplace_back("--config-file");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--config-file=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin-directory") {
-      plugin_options_input.emplace_back("--plugin-directory");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin-directory=")) {
-      plugin_options_input.emplace_back(option);
-    }
-    if (option == "--plugin") {
-      plugin_options_input.emplace_back("--plugin");
-      plugin_options_input.emplace_back(std::string{argv[i+1]});
-    }
-    if (boost::starts_with(option, "--plugin=")) {
-      plugin_options_input.emplace_back(option);
-    }
-  }
-  
-  int argc_tmp = plugin_options_input.size();
-  std::vector<const char*> argv_tmp (argc_tmp);
-  for (unsigned int i=0; i<plugin_options_input.size(); ++i){
-    auto& option_str = plugin_options_input[i];
-    argv_tmp[i] = option_str.data();
-  }
+  // Try to be reasonably graceful with unhandled exceptions
+  std::set_terminate(&Elements::ProgramManager::onTerminate);
 
-  std::unique_ptr<Elements::Program> plugin_options_main {new PluginOptionsMain{plugin_path, plugin_list}};
-  Elements::ProgramManager plugin_options_program {std::move(plugin_options_main),
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  plugin_options_program.run(argc_tmp, const_cast<char**>(argv_tmp.data()));
-  
-  Elements::ProgramManager man {std::unique_ptr<Elements::Program>{new SEMain{plugin_path, plugin_list}},
-          THIS_PROJECT_VERSION_STRING, THIS_PROJECT_NAME_STRING, THIS_MODULE_VERSION_STRING,
-          THIS_MODULE_NAME_STRING, THIS_PROJECT_SEARCH_DIRS};
-  Elements::ExitCode exit_code = man.run(argc, argv);
-  return static_cast<Elements::ExitCodeType>(exit_code);
+  try {
+    // First we create a program which has a sole purpose to get the options for
+    // the plugin paths. Note that we do not want to have this helper program
+    // to handle any other options except of the plugin-directory and plugin, so
+    // we create a subset of the given options with only the necessary ones. We
+    // also turn off the the logging.
+    std::vector<int> masked_indices{};
+    std::vector<std::string> plugin_options_input{};
+    plugin_options_input.emplace_back("DummyProgram");
+    plugin_options_input.emplace_back("--log-level");
+    plugin_options_input.emplace_back("ERROR");
+    for (int i = 0; i < argc; ++i) {
+      std::string option{argv[i]};
+      if (option == "--config-file") {
+        plugin_options_input.emplace_back("--config-file");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--config-file=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin-directory") {
+        plugin_options_input.emplace_back("--plugin-directory");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin-directory=")) {
+        plugin_options_input.emplace_back(option);
+      }
+      if (option == "--plugin") {
+        plugin_options_input.emplace_back("--plugin");
+        plugin_options_input.emplace_back(std::string{argv[i + 1]});
+      }
+      if (boost::starts_with(option, "--plugin=")) {
+        plugin_options_input.emplace_back(option);
+      }
+    }
+
+    int argc_tmp = plugin_options_input.size();
+    std::vector<const char *> argv_tmp(argc_tmp);
+    for (unsigned int i = 0; i < plugin_options_input.size(); ++i) {
+      auto& option_str = plugin_options_input[i];
+      argv_tmp[i] = option_str.data();
+    }
+
+    CREATE_MANAGER_WITH_ARGS(plugin_options_program, PluginOptionsMain, plugin_path, plugin_list);
+    plugin_options_program.run(argc_tmp, const_cast<char **>(argv_tmp.data()));
+
+    CREATE_MANAGER_WITH_ARGS(main, SEMain, plugin_path, plugin_list);
+    Elements::ExitCode exit_code = main.run(argc, argv);
+    return static_cast<Elements::ExitCodeType>(exit_code);
+  }
+  catch (const std::exception &e) {
+    logger.fatal() << e.what();
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::NOT_OK);
+  }
+  catch (...) {
+    logger.fatal() << "Unknown exception type!";
+    logger.fatal() << "Please, report this as a bug";
+    return static_cast<Elements::ExitCodeType>(Elements::ExitCode::SOFTWARE);
+  }
 }

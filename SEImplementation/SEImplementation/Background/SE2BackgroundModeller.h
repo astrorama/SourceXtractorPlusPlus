@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Created on Jan 05, 2015
  * @author: mkuemmel@usm.lmu.de
@@ -23,10 +39,8 @@ class SE2BackgroundModeller {
 
 public:
   SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map=nullptr, std::shared_ptr<Image<unsigned char>> mask=nullptr, const unsigned char mask_type_flag=0x0001);
-  SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename,const boost::filesystem::path& mask_filename,  const int mask_type, const int weight_type_flag=0x0001);
   virtual ~SE2BackgroundModeller();
 
-  void createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0);
   void createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize,  const WeightImage::PixelType varianceThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0);
 
   //
@@ -35,8 +49,6 @@ public:
   ///
 private:
   void getMinIncr(size_t &nElements, long *incr, size_t *subImgNaxes);
-  bool checkCompatibility(const boost::filesystem::path itsInputWeightName, fitsfile* itsInputWeight, const size_t* itsNaxes);
-  bool checkCompatibility(fitsfile* itsInputWeight, const size_t* itsNaxes);
 
   void filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals, const size_t* gridSize, const size_t* filterSize, const float &filterThreshold=0.0);
   void replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize);
@@ -55,9 +67,6 @@ private:
   std::shared_ptr< WeightImage> itsVariance=nullptr;
   std::shared_ptr< Image<unsigned char>> itsMask=nullptr;
 
-  fitsfile* itsInputMask=NULL;
-  fitsfile* itsInputFits=NULL;
-  fitsfile* itsInputWeight=NULL;
   bool itsHasVariance=false;
   bool itsHasMask=false;
   //

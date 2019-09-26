@@ -14,14 +14,14 @@ The configuration file uses the YAML format (http://www.yaml.org/spec/1.2/spec.h
 
 \section overview Overview
 
-Measurement configuration is done by using a measurement-group to specify image files and measurements. 
+Measurement configuration is done by using a measurements-group to specify image files and measurements. 
 A hierarchy of subgroups can be used to group together some image files and override measurement options.
 
 \subsection config_overview Configuration section overview
 
 Actual yaml keywords are in \b bold.
 
-- \b measurement-group (contains a description of the image files and configuration of the related measurement)
+- \b measurements-group (contains a description of the image files and configuration of the related measurement)
   - \b image-files (loads one or more image files)
     + \b path - Path to the image file. May contain wildcards or be repeated to add more files.
     + \b keyword (keyword to be defined for those images)
@@ -46,14 +46,14 @@ Actual yaml keywords are in \b bold.
 
 \subsection input_options Input
 
-A measurement-group contains a list of images that will be used for measurements. Files can have some meta-data attached to them in the form of keyword values. Those keyword values can be specified in the configuration file, come directly from a FITS file headers or be extracted from part of the file name.
+A measurements-group contains a list of images that will be used for measurements. Files can have some meta-data attached to them in the form of keyword values. Those keyword values can be specified in the configuration file, come directly from a FITS file headers or be extracted from part of the file name.
 
 \subsection grouping Grouping
 
 \image html grouping.png
 \image latex grouping.png width=10cm
 
-Subgroups can be used to group together some of the images in a measurement-group, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
+Subgroups can be used to group together some of the images in a measurements-group, either to apply specific measurements to them or to combine the results in various ways. Subgroups can be nested to create complex hierarchies.
 
 A subgroup creates a subset of the images at the level above it by applying a filter to them. All subgroups at the same level have access to the same images at the parent level (previously defined subgroups don't prevent the next ones from using the same images). Subgroups within a subgroup only have access to the images filtered by their parent.
 
@@ -64,7 +64,7 @@ Subgroups can be created using selection condition (for example "keyword == valu
 \subsection example_1 Example 1
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: path/to/file.fits
@@ -76,7 +76,7 @@ measurement-group:
 
 We want to do circular aperture photometry on a single image, using 3 different diameters.
 
-First we define a "measurement-group" to contain our measurement. Inside it we use "image-files" to specify
+First we define a "measurements-group" to contain our measurement. Inside it we use "image-files" to specify
 a single image.
 
 Finally, we request "aperture-photometry", specifying an array of diameters.
@@ -90,7 +90,7 @@ One aperture_photometry column containing a vector of 3 values, one for each ape
 \subsection example_2 Example 2
 
 \code{.yaml}
-measurement-group:
+measurements-group:
   
   image-files:
     path: path/to/first_file.fits
@@ -120,7 +120,7 @@ A variation on the previous example. This time we specify two fits files by repe
 \subsection example_3 Example 3
 
 \code{.yaml}
-measurement-group:
+measurements-group:
   name: "g"
   
   image-files:
@@ -130,7 +130,7 @@ measurement-group:
     multi-aperture-photometry:
       size: 5
 
-measurement-group:
+measurements-group:
   name: "r"
   
   image-files:
@@ -140,7 +140,7 @@ measurement-group:
     multi-aperture-photometry:
       size: 5
 
-measurement-group:
+measurements-group:
   name: "i"
   
   image-files:
@@ -153,7 +153,7 @@ measurement-group:
 
 Here we have multiple exposures for 3 different bands. Note that we want a different aperture diameter for the "i" band.
 
-We define 3 completely independent "measurement-group" keys. Each contains its own image-files entry loading different files. The parameters
+We define 3 completely independent "measurements-group" keys. Each contains its own image-files entry loading different files. The parameters
 for the aperture photometry are also repeated.
 
 This is a simple way to do this configuration, but it relies on repeating some of the configuration and we're going to see a more elegant way
@@ -172,7 +172,7 @@ aperture_photometry_i = band i aperture photometry values
 \subsection example_4 Example 4
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
@@ -202,7 +202,7 @@ measurement-group:
 
 This reworked version of the previous example, adds the use of a wildcard keyword and subgroups.
 
-We have a single measurement-group this time. For the files specification, we use a double wild card. The first one is in between 
+We have a single measurements-group this time. For the files specification, we use a double wild card. The first one is in between 
 parentheses to indicate that it will be used for a keyword. The keyword definition itself ("BAND") is next line.
 
 The keyword BAND is defined as the part of the file after the first underscore and until the next one. We then then define subgroups by filtering using this keyword.
@@ -216,7 +216,7 @@ same as previous example
 
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
@@ -249,7 +249,7 @@ same as previous example
 \subsection example_6 Example 6
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/img_(*)_(*)_*.fits

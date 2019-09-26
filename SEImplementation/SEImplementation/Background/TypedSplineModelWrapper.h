@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Created on Jan 05, 2015
  * @author: mkuemmel@usm.lmu.de
@@ -10,15 +26,14 @@
 #define	TYPEDSPLINEMODELWRAPPER_H
 
 #include <boost/filesystem.hpp>
-//#include "SEFramework/Image/Image.h"
-//#include "SEFramework/Image/ImageChunk.h"
 #include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEImplementation/Background/SplineModel.h"
 
 namespace SExtractor {
 
 template <typename T>
-class TypedSplineModelWrapper final : public ImageBase<T> {
+class TypedSplineModelWrapper final : public ImageSource<T> {
 
 public:
 
@@ -36,8 +51,13 @@ public:
     return std::shared_ptr<TypedSplineModelWrapper<T>>(new TypedSplineModelWrapper<T>(naxes, gridCellSize, nGrid, gridData));
   }
 
+  /// Human readable representation
+  std::string getRepr() const override {
+    return "TypedSplineModel";
+  }
+
   /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const {
     return (T)m_spline_model->getValue((size_t)x, (size_t)y);
   };
 
@@ -56,6 +76,23 @@ public:
     return (T)m_spline_model->getMedian();
   };
 
+  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
+    auto tile = std::make_shared<ImageTile<T>>(x, y, width, height);
+    // Splines are calculated and cached per row. We fill
+    // the tile with the Y axis on the outer loop, so we can
+    // benefit from that caching
+    // @see SplineModel::getValue
+    for (auto j = y; j < y + height; ++j) {
+      for (auto i = x; i < x + width; ++i) {
+        tile->setValue(i, j, getValue(i, j));
+      }
+    }
+    return tile;
+  }
+
+  void saveTile(ImageTile<T>& /*tile*/) override {
+    assert(false);
+  }
 
 private:
   TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){

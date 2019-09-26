@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file DependentParameter.h
  * @date August 11, 2015
@@ -46,6 +62,7 @@ public:
   m_calculator {new ValueCalculator{std::move(calculator)}},
   m_param_values {new std::array<double, PARAM_NO>{parameters.getValue()...}} {
     inputParameterLoop(parameters...);
+    m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
 
   virtual ~DependentParameter() = default;
@@ -53,6 +70,13 @@ public:
 protected:
 
   void setValue(const double new_value) = delete;
+  void getValueHook(void) {
+    if (!this->isObserved()) {
+      this->update((*m_param_values)[0]);
+    }
+  }
+
+  using BasicParameter::m_get_value_hook;
 
 private:
 
@@ -108,7 +132,12 @@ private:
     m_updaters->emplace_back(new ReferenceUpdater{
           param, (*m_param_values)[i],
           ReferenceUpdater::PreAction{},
-          [this](double){this->update((*m_param_values)[0]);}
+          [this](double){
+            // Do not bother updating live if there are no observers
+            if (this->isObserved()) {
+              this->update((*m_param_values)[0]);
+            }
+          }
     });
   }
 
@@ -119,6 +148,13 @@ DependentParameter<Parameters...> createDependentParameter(
     typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
     Parameters &... parameters) {
   return DependentParameter<Parameters...> { value_calculator, parameters... };
+}
+
+template<typename ... Parameters>
+std::shared_ptr<DependentParameter<Parameters...>> createDependentParameterPtr(
+    typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
+    Parameters &... parameters) {
+  return std::make_shared<DependentParameter<Parameters...>>(value_calculator, parameters...);
 }
 
 }

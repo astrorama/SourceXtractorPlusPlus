@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * MeasurementFrameTaskFactory.cpp
  *
@@ -6,14 +22,17 @@
  */
 
 #include <iostream>
+#include <sstream>
 
-#include "SEImplementation/Configuration/MeasurementConfig.h"
+#include <SEImplementation/Background/BackgroundAnalyzerFactory.h>
+#include <boost/filesystem.hpp>
+
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 #include "SEFramework/Image/ConstantImage.h"
-#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-
+#include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 
 namespace SExtractor {
@@ -22,43 +41,65 @@ std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& 
   if (property_id.getTypeId() == PropertyId::create<MeasurementFrame>().getTypeId()) {
     auto instance = property_id.getIndex();
 
-    if (instance < m_measurement_frames.size()) {
-      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_frames[instance]);
-    } else if (instance == 0) {
-      // By default if no measurement image is provided we use the detection image as the first measurement image
-      return std::make_shared<DefaultMeasurementFrameTask>(instance);
-    } else {
-      return nullptr;
-    }
-  } else {
-    return nullptr;
+    try {
+      return std::make_shared<MeasurementFrameTask>(instance, m_measurement_frames.at(instance));
+    } catch (const std::out_of_range&) {}
   }
+  return nullptr;
 }
 
 void MeasurementFrameTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<MeasurementConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
+  manager.registerConfiguration<BackgroundConfig>();
 }
 
 void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  const auto& measurement_images = manager.getConfiguration<MeasurementConfig>().getMeasurementImages();
-  const auto& coordinate_systems = manager.getConfiguration<MeasurementConfig>().getCoordinateSystems();
-  const auto& weight_images = manager.getConfiguration<MeasurementConfig>().getWeightImages();
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
 
-  const auto& gains = manager.getConfiguration<MeasurementConfig>().getGains();
-  const auto& saturation_levels = manager.getConfiguration<MeasurementConfig>().getSaturationLevels();
-
-  SimpleBackgroundAnalyzer analyzer;
-
-  for (unsigned int i=0; i<measurement_images.size(); i++) {
+  BackgroundAnalyzerFactory background_analyzer_factory;
+  background_analyzer_factory.configure(manager);
+  for (auto& image_info : image_infos) {
     auto measurement_frame = std::make_shared<MeasurementImageFrame>(
-        measurement_images[i], weight_images[i], 9999999, coordinate_systems[i], gains[i], saturation_levels[i], false); // FIXME !!! we need weight threshold
+        image_info.m_measurement_image,
+        image_info.m_weight_image,
+        image_info.m_weight_threshold,
+        image_info.m_coordinate_system,
+        image_info.m_gain,
+        image_info.m_saturation_level,
+        false);
 
-    auto background_model = analyzer.analyzeBackground(measurement_images[i], weight_images[i],
-        ConstantImage<unsigned char>::create(measurement_images[i]->getWidth(),
-            measurement_images[i]->getHeight(), true), 1.5);
-    measurement_frame->setVarianceMap(background_model.getVarianceMap());
+    auto background_analyzer = background_analyzer_factory.createBackgroundAnalyzer(image_info.m_weight_type);
+    auto background_model = background_analyzer->analyzeBackground(
+        image_info.m_measurement_image,
+        image_info.m_weight_image,
+        ConstantImage<unsigned char>::create(image_info.m_measurement_image->getWidth(),
+            image_info.m_measurement_image->getHeight(), false),
+        measurement_frame->getVarianceThreshold());
 
-    m_measurement_frames.emplace_back(measurement_frame);
+    if (image_info.m_is_background_constant) {
+      measurement_frame->setBackgroundLevel(image_info.m_constant_background_value);
+    } else {
+      measurement_frame->setBackgroundLevel(background_model.getLevelMap());
+    }
+
+    std::stringstream label;
+    label << boost::filesystem::basename(image_info.m_path) << "_" << image_info.m_image_hdu;
+    measurement_frame->setLabel(label.str());
+
+    if (image_info.m_weight_image != nullptr) {
+      if (image_info.m_absolute_weight) {
+        measurement_frame->setVarianceMap(image_info.m_weight_image);
+      } else {
+        auto scaled_image = MultiplyImage<SeFloat>::create(
+            image_info.m_weight_image,
+            background_model.getScalingFactor());
+        measurement_frame->setVarianceMap(scaled_image);
+      }
+    } else {
+      measurement_frame->setVarianceMap(background_model.getVarianceMap());
+    }
+
+    m_measurement_frames[image_info.m_id] = measurement_frame;
   }
 }
 

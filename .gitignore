@@ -1,3 +1,10 @@
-/build*
+*.AppImage
+*.pyc
 /InstallArea
+/build.*
 /tests
+__pycache__
+/.cproject
+/.project
+/.settings/
+.pydevproject

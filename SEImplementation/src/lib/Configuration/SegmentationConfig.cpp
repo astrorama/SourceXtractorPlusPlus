@@ -1,17 +1,34 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/SegmentationConfig.cpp
  * @date 06/08/16
  * @author mschefer
  */
 
+#include <fstream>
 #include <iostream>
 //#include <regex>
+
 #include <boost/regex.hpp>
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 
-#include <fstream>
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
@@ -20,8 +37,9 @@ using boost::smatch;
 #include "Configuration/ConfigManager.h"
 #include "Configuration/CatalogConfig.h"
 
-#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/FITS/FitsReader.h"
+
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 
 #include "SEImplementation/Configuration/SegmentationConfig.h"
@@ -31,7 +49,7 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static Elements::Logging segConfigLogger = Elements::Logging::getLogger("SegmentationConfig");
+static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };

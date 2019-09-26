@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/Pipeline/SourceGrouping.cpp
  * @date 05/24/16
@@ -9,9 +25,9 @@
 
 namespace SExtractor {
 
-SourceGrouping::SourceGrouping(std::unique_ptr<GroupingCriteria> grouping_criteria,
+SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
                                std::shared_ptr<SourceGroupFactory> group_factory)
-        : m_grouping_criteria(std::move(grouping_criteria)), m_group_factory(group_factory) {
+        : m_grouping_criteria(grouping_criteria), m_group_factory(group_factory) {
 }
 
 void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
@@ -51,7 +67,6 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
   for (auto& group_it : groups_to_remove) {
     m_source_groups.erase(group_it);
   }
-  
 }
 
 void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {

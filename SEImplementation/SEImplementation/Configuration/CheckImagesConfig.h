@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * CheckImagesConfig.h
  *
@@ -49,8 +65,32 @@ public:
     return m_partition_filename;
   }
 
+  const std::string& getGroupFilename() const {
+    return m_group_filename;
+  }
+
   const std::string& getFilteredFilename() const {
     return m_filtered_filename;
+  }
+
+  const std::string& getThresholdedFilename() const {
+    return m_thresholded_filename;
+  }
+
+  const std::string& getAutoApertureFilename() const {
+    return m_auto_aperture_filename;
+  }
+
+  const std::string& getApertureFilename() const {
+    return m_aperture_filename;
+  }
+
+  const std::string& getMoffatFilename() const {
+    return m_moffat_filename;
+  }
+
+  const std::string& getPsfFilename() const {
+    return m_psf_filename;
   }
 
 private:
@@ -61,8 +101,13 @@ private:
   std::string m_model_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
+  std::string m_group_filename;
   std::string m_filtered_filename;
-
+  std::string m_thresholded_filename;
+  std::string m_auto_aperture_filename;
+  std::string m_aperture_filename;
+  std::string m_moffat_filename;
+  std::string m_psf_filename;
 };
 
 }

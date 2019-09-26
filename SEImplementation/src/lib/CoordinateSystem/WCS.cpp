@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * WCS.cpp
  *
@@ -17,30 +33,40 @@ namespace wcslib {
 
 }
 
+#include "ElementsKernel/Exception.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
+#include <boost/algorithm/string/trim.hpp>
 
 namespace SExtractor {
 
 using namespace wcslib;
 
-WCS::WCS(const std::string& fits_file_path) {
+WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nullptr) {
   fitsfile *fptr = NULL;
   int status = 0;
   fits_open_file(&fptr, fits_file_path.c_str(), READONLY, &status);
 
-  int hdutype;
-  fits_get_hdu_type(fptr, &hdutype, &status);
+  int hdu_type;
+  fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
+
+  if (status != 0 || hdu_type != IMAGE_HDU) {
+    throw Elements::Exception() << "Can't read WCS information from " << fits_file_path << " HDU " << hdu_number;
+  }
 
   int nkeyrec;
   char* header;
   fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status);
 
-  if (hdutype == IMAGE_HDU) {
+  if (hdu_type == IMAGE_HDU) {
     int nreject = 0, nwcs = 0;
     wcsprm* wcs;
     wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+    wcsset(wcs);
 
-    m_wcs.reset(wcs);
+    m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
+      int nwcs_copy = nwcs;
+      wcsvfree(&nwcs_copy, &wcs);
+    });
   }
 
   free(header);
@@ -75,6 +101,30 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   wcss2p(m_wcs.get(), 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
+}
+
+std::map<std::string, std::string> WCS::getFitsHeaders() const {
+  int nkeyrec;
+  char *raw_header;
+
+  if (wcshdo(WCSHDO_none, m_wcs.get(), &nkeyrec, &raw_header) != 0) {
+    throw Elements::Exception() << "Failed to get the FITS headers for the WCS coordinate system";
+  }
+
+  std::map<std::string, std::string> headers;
+  for (int i = 0; i < nkeyrec; ++i) {
+    char *hptr = &raw_header[80 * i];
+    std::string key(hptr, hptr + 8);
+    boost::trim(key);
+    std::string value(hptr + 9, hptr + 72);
+    boost::trim(value);
+    if (!key.empty()) {
+      headers.emplace(std::make_pair(key, value));
+    }
+  }
+
+  free(raw_header);
+  return headers;
 }
 
 }

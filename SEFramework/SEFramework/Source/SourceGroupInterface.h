@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /* 
  * @file SourceGroupInterface.h
  * @author nikoapos
@@ -35,7 +51,7 @@ public:
   class GroupIterator;
   using iterator = GroupIterator<SourceInterface>;
   using const_iterator = GroupIterator<const SourceInterface>;
-  
+
   virtual iterator begin() = 0;
   virtual iterator end() = 0;
   virtual const_iterator cbegin() = 0;
@@ -46,6 +62,7 @@ public:
   virtual void addSource(std::shared_ptr<SourceInterface> source) = 0;
   virtual iterator removeSource(iterator pos) = 0;
   virtual void merge(const SourceGroupInterface& other) = 0;
+  virtual unsigned int size() const = 0;
   
   /// Convenient method to add all the sources of a collection
   template <typename SourceCollection>

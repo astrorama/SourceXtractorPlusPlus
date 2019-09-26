@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /* 
  * @file TableOutput.h
  * @author nikoapos
@@ -20,14 +36,12 @@ public:
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
   
-  virtual ~TableOutput() {
+  size_t flush() override {
     if (!m_rows.empty()) {
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);
-      std::cout << m_rows.size() << " sources detected\n";
-    } else {
-      std::cout << "NO SOURCES DETECTED\n";
     }
+    return m_rows.size();
   }
   
   TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler) 

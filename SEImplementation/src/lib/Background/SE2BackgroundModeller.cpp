@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Created on Jan 05, 2015
  * @author: mkuemmel@usm.lmu.de
@@ -46,119 +62,9 @@ SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<DetectionImage> ima
   itsNaxes[1] = (size_t)image->getHeight();
 }
 
-SE2BackgroundModeller::SE2BackgroundModeller(const boost::filesystem::path& fits_filename, const boost::filesystem::path& weight_filename, const boost::filesystem::path& mask_filename, const int mask_type, const int weight_type_flag)
-{
-  int status=0;
-  long naxes[2];
-
-  // copy all input
-  itsInputFileName   = fits_filename;
-  itsInputWeightName = weight_filename;
-  itsInputMaskName = mask_filename;
-  itsWeightTypeFlag  = weight_type_flag;
-  itsMaskType  = mask_type;
-
-  // open the FITS file and store the pointer; give some logger info
-  fits_open_image(&itsInputFits, itsInputFileName.generic_string().c_str(), READONLY, &status);
-  if (status){
-    throw Elements::Exception() << "Problem opening the image: " << itsInputFileName << "!";
-  }
-
-  // open the mask file and store the pointer; give some logger info
-  if (itsInputMaskName.generic_string().size()>0){
-    fits_open_image(&itsInputMask, itsInputMaskName.generic_string().c_str(), READONLY, &status);
-    if (status){
-      throw Elements::Exception() << "Problem opening the mask image: " << itsInputMaskName << "!";
-    }
-    itsHasMask=true;
-  }
-  // open the weight file and store the pointer; give some logger info
-  if (itsInputWeightName.generic_string().size()>0){
-    // determine the appropriate mode
-    //int fitsReadMode=READONLY;
-   // if (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD)){
-    //  fitsReadMode=READWRITE;
-    //}
-
-    // open the FITS file and store the pointer; give some logger info
-    //fits_open_image(&itsInputWeight, itsInputWeightName.generic_string().c_str(), fitsReadMode, &status);
-    fits_open_image(&itsInputWeight, itsInputWeightName.generic_string().c_str(), READONLY, &status);
-    if (status){
-      //char aString[81];
-      //FILE *wFile;
-     // wFile = fopen(itsInputWeightName.generic_string().c_str(), "r");
-     // if (wFile==NULL)
-     //   Utils::throwElementsException(std::string("Problem opening the weight image!!!"));
-      //fgets(aString, 80, wFile);
-      //Utils::generalLogger(std::string(aString));
-     // fclose(wFile);
- 
-      //char error[80];
-      //fits_get_errstatus(status, error);
-      throw Elements::Exception() << "Problem opening the weight image: " << itsInputWeightName << "!";
-    }
-    itsHasVariance=true;
-  }
-
-  // get the basic image information;
-  // make sure the image has two dimensions
-  fits_get_img_param(itsInputFits, 2,  &itsBitpix, &itsNaxis, naxes, &status);
-  if (status){
-    throw Elements::Exception() << "Problem reading parameters from image: " << itsInputFileName << "!";
-  }
-  if (itsNaxis!=2){
-    throw Elements::Exception() << "The image: " << itsInputFileName << " has " << itsNaxis <<"!=2 dimensions!";
-  }
-  itsNaxes[0] = (size_t)naxes[0];
-  itsNaxes[1] = (size_t)naxes[1];
-
-  // make sure the dimensions of the
-  // weight file agree with the data image
-  if (itsInputWeight){
-    checkCompatibility(itsInputWeight, itsNaxes);
-  }
-  if (itsInputMask){
-    checkCompatibility(itsInputMaskName, itsInputMask, itsNaxes);
-  }
-}
-
-SE2BackgroundModeller::~SE2BackgroundModeller(){
-  int status=0;
-
-  // close the FITS file
-  if (itsInputFits){
-    fits_close_file(itsInputFits, &status);
-    if (status){
-      throw Elements::Exception() << "Problem closing the image: " << itsInputFileName << "!";
-    }
-  }
-  itsInputFits=NULL;
-
-  // close the weight file
-  if (itsInputWeight){
-    fits_close_file(itsInputWeight, &status);
-    if (status){
-      char fitsErrorChar[1028];
-      fits_get_errstatus(status, fitsErrorChar);
-      throw Elements::Exception() << "Problem closing the image: " << itsInputWeightName << "!";
-    }
-  }
-  itsInputWeight=NULL;
-
-  //close the mask file
-  if (itsInputMask){
-    fits_close_file(itsInputMask, &status);
-    if (status){
-      char fitsErrorChar[1028];
-      fits_get_errstatus(status, fitsErrorChar);
-      throw Elements::Exception() << "Problem closing the image: " << itsInputMaskName << "!";
-    }
-  }
-  itsInputMask=NULL;
-  //
+SE2BackgroundModeller::~SE2BackgroundModeller() {
   if (itsWhtMeanVals)
-    delete [] itsWhtMeanVals;
-  //
+    delete[] itsWhtMeanVals;
 }
 
 void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const WeightImage::PixelType varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
@@ -176,9 +82,8 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
 
   PIXTYPE* gridData=NULL;
   PIXTYPE* weightData=NULL;
-  int* maskData=NULL;
 
-  PIXTYPE  undefNumber=-BIG;
+  //PIXTYPE  undefNumber=-BIG;
 
   BackgroundCell* oneCell=NULL;
 
@@ -222,9 +127,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   }
 
   // give some feedback on the parameters
-  bck_model_logger.info() << "Background cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")!";
-  bck_model_logger.info() << "Filter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")!";
-  bck_model_logger.info() << "The variance threshold is: "<< weightVarThreshold << "!";
+  bck_model_logger.debug() << "\tBackground cell size=("<<bckCellSize[0]<<"," << bckCellSize[1]<< ")";
+  bck_model_logger.debug() << "\tFilter box size=("<<filterBoxSize[0]<<"," << filterBoxSize[1]<< ")";
+  bck_model_logger.debug() << "\tThe bad pixel threshold is: "<< weightVarThreshold;
 
   // iterate over cells in y
   gridIndex=0;
@@ -259,10 +164,6 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
           delete [] weightData;
           weightData = new PIXTYPE[nElements];
         }
-        if (itsInputMask){
-          delete [] maskData;
-          maskData = new int[nElements];
-        }
         nData=nElements;
       }
 
@@ -272,30 +173,11 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
         for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
           gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
 
-      // read in the data, complain if there are problems
-      /*fits_read_subset(itsInputFits, TFLOAT, fpixel, lpixel, increment, &undefNumber, gridData, &anynul, &status);
-      std::cout << "status: " << status  << std::endl;
-      if (status){
-        throw Elements::Exception() << "Problems reading background cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputFileName << "!";
-        //Utils::throwElementsException(std::string("Problems reading background cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputFileName.generic_string());
-      }
-      */
-      //throw Elements::Exception() << "Stop right now!";
       if (itsHasVariance){
-        //throw Elements::Exception() << " Weights not yet implemented!";
         long pixIndex=0;
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
             weightData[pixIndex++] = (PIXTYPE)itsVariance->getValue(int(xIndex), int(yIndex));
-        /*
-        fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
-        if (status){
-          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
-        }
-        // convert the weight to variance
-        ///Utils::weightToVar(weightData, nElements, itsWeightTypeFlag);
-        throw Elements::Exception() << "It should not come to here!!!! Utils::weightToVar(weightData, nElements, itsWeightTypeFlag)";
-        */
       }
       if (itsHasMask){
         // load in the image data
@@ -303,25 +185,10 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0], pixIndex++)
             //if (!itsMask->getValue(int(xIndex), int(yIndex)))
-              if (itsMask->getValue(int(xIndex), int(yIndex) & itsMaskType)){
+              if (itsMask->getValue(int(xIndex), int(yIndex)) & itsMaskType){
                 gridData[pixIndex] = -BIG;
-                //std::cout << "Replacing data value ";
-                bck_model_logger.info() << "Replacing data value";
+                bck_model_logger.debug() << "\tReplacing data value";
               }
-
-        //throw Elements::Exception() << "Not yet implemented!";
-        /*
-        fits_read_subset(itsInputMask, TINT, fpixel, lpixel, increment, &undefNumber, maskData, &anynul, &status);
-        if (status){
-          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
-          //Utils::throwElementsException(std::string("Problems reading background mask cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputMaskName.generic_string());
-        }
-        else
-          // if the pixel belongs to the mask, set it equal to -BIG
-          for (size_t idx=0;idx<nElements;idx++)
-            if (maskData[idx] & itsMaskType)
-              gridData[idx] = -BIG;
-              */
       }
 
       // create a background cell compute and store the values
@@ -354,7 +221,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   }
 
   // convert the grid of rms values to variance
-  for (auto index=0; index<nGridPoints; index++)
+  for (size_t index=0; index<nGridPoints; index++)
     bckSigVals[index] *= bckSigVals[index];
 
   // create the splined interpolation images for background and variance
@@ -364,196 +231,6 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
    // release memory
   if (whtSigVals)
     delete [] whtSigVals;
-  // release memory
-  if (gridData)
-    delete [] gridData;
-  if (weightData)
-    delete [] weightData;
-}
-
-void SE2BackgroundModeller::createModels(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const PIXTYPE varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
-  {
-  int status=0;
-  int anynul=0;
-
-  size_t gridSize[2] = {0,0};
-  size_t nGridPoints=0;
-
-  long increment[2]={1,1};
-  long fpixel[2];
-  long lpixel[2];
-
-  size_t nElements=0;
-  size_t nData=0;
-  size_t subImgNaxes[2] = {0,0};
-
-  PIXTYPE* gridData=NULL;
-  PIXTYPE* weightData=NULL;
-  int* maskData=NULL;
-
-  PIXTYPE  undefNumber=-BIG;
-
-  BackgroundCell* oneCell=NULL;
-
-  PIXTYPE* bckMeanVals=NULL;
-  PIXTYPE* bckSigVals=NULL;
-  //PIXTYPE* whtMeanVals=NULL;
-  PIXTYPE* whtSigVals=NULL;
-
-  size_t gridIndex=0;
-
-  ldiv_t divResult;
-
-  PIXTYPE weightVarThreshold=0.0;
-
-  // re-scale the weight threshold
-  if (itsHasVariance){
-    rescaleThreshold(weightVarThreshold, varianceThreshold);
-  }
-
-  // get the number of grid cells in x
-  divResult = std::div(long(itsNaxes[0]), long(bckCellSize[0]));
-  gridSize[0] = size_t(divResult.quot);
-  if (divResult.rem)
-    gridSize[0] += 1;
-
-  // get the number of grid cells in y
-  divResult = std::div(long(itsNaxes[1]), long(bckCellSize[1]));
-  gridSize[1] = size_t(divResult.quot);
-  if (divResult.rem)
-    gridSize[1] += 1;
-
-  // compute the number of grid points
-  nGridPoints = gridSize[0]*gridSize[1];
-
-  // create the arrays
-  bckMeanVals = new PIXTYPE[nGridPoints];
-  bckSigVals  = new PIXTYPE[nGridPoints];
-  if (itsHasVariance){
-    itsWhtMeanVals = new PIXTYPE[nGridPoints];
-    whtSigVals  = new PIXTYPE[nGridPoints];
-  }
-
-  // iterate over cells in y
-  gridIndex=0;
-  for (size_t yIndex=0; yIndex<gridSize[1]; yIndex++){
-
-    // set the boundaries in y
-    fpixel[1] = (long)yIndex*bckCellSize[1]+1;
-    lpixel[1] = yIndex < gridSize[1]-1 ? (long)(yIndex+1)*bckCellSize[1] : (long)itsNaxes[1];
-
-    // iterate over cells in x
-    for (size_t xIndex=0; xIndex<gridSize[0]; xIndex++){
-
-      // set the boundaries in y
-      fpixel[0] = (long)xIndex*bckCellSize[0]+1;
-      lpixel[0] = xIndex < gridSize[0]-1 ? (long)(xIndex+1)*bckCellSize[0] : (long)itsNaxes[0];
-
-      // compute the length of the cell sub-image
-      subImgNaxes[0] =(size_t)(lpixel[0]-fpixel[0]+1);
-      subImgNaxes[1] =(size_t)(lpixel[1]-fpixel[1]+1);
-
-      // compute the increments to limit the number
-      // of pixels read in, the total number of elements
-      // and the numbers read in x and y
-      getMinIncr(nElements, increment, subImgNaxes);
-
-      // define or re-define the buffers
-      if (nElements!=nData) {
-        delete [] gridData;
-        gridData = new PIXTYPE[nElements];
-        if (itsInputWeight){
-          delete [] weightData;
-          weightData = new PIXTYPE[nElements];
-        }
-        if (itsInputMask){
-          delete [] maskData;
-          maskData = new int[nElements];
-        }
-        nData=nElements;
-      }
-
-      // read in the data, complain if there are problems
-      fits_read_subset(itsInputFits, TFLOAT, fpixel, lpixel, increment, &undefNumber, gridData, &anynul, &status);
-      if (status){
-        throw Elements::Exception() << "Problems reading background cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputFileName << "!";
-        //Utils::throwElementsException(std::string("Problems reading background cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputFileName.generic_string());
-      }
-      if (itsHasVariance){
-        fits_read_subset(itsInputWeight, TFLOAT, fpixel, lpixel, increment, &undefNumber, weightData, &anynul, &status);
-        if (status){
-          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
-          //Utils::throwElementsException(std::string("Problems reading background weight cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputWeightName.generic_string());
-        }
-        // convert the weight to variance
-        ///Utils::weightToVar(weightData, nElements, itsWeightTypeFlag);
-        throw Elements::Exception() << "It should not come to here!!!! Utils::weightToVar(weightData, nElements, itsWeightTypeFlag)";
-      }
-      if (itsHasMask){
-        fits_read_subset(itsInputMask, TINT, fpixel, lpixel, increment, &undefNumber, maskData, &anynul, &status);
-        if (status){
-          throw Elements::Exception() << "Problems reading background weight cell:" << gridSize[0] << "," << gridSize[1] << " from image: " << itsInputWeightName << "!";
-          //Utils::throwElementsException(std::string("Problems reading background mask cell:")+tostr(gridSize[0])+std::string(",")+tostr(gridSize[1])+std::string(" from image: ")+itsInputMaskName.generic_string());
-        }
-        else
-          // if the pixel belongs to the mask, set it equal to -BIG
-          for (size_t idx=0;idx<nElements;idx++)
-            if (maskData[idx] & itsMaskType)
-              gridData[idx] = -BIG;
-      }
-
-      // create a background cell compute and store the values
-      // and then delete the cell again
-      oneCell = new BackgroundCell(gridData, nElements, weightData, weightVarThreshold);
-      if (itsHasVariance)
-        oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex], itsWhtMeanVals[gridIndex], whtSigVals[gridIndex]);
-      else
-        oneCell->getBackgroundValues(bckMeanVals[gridIndex], bckSigVals[gridIndex]);
-      delete oneCell;
-
-      // enhance the grid index
-      gridIndex++;
-    }
-  }
-
-
-  if (itsHasVariance && (itsWeightTypeFlag & (VAR_FIELD|WEIGHT_FIELD))){
-
-    // compute the scaling factor
-    computeScalingFactor(itsWhtMeanVals, bckSigVals, sigFac, nGridPoints);
-
- }
-  else{
-    sigFac=0.0;
-  }
-
-
-  /*
-  // delete the previous spline object
-  if (*bckSpline)
-    delete *bckSpline;
-
-  // delete the previous spline object
-  if (*sigmaSpline)
-    delete *sigmaSpline;
-  // create the spline objects for sigma and background
-  *bckSpline   = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  *sigmaSpline = new TypedSplineModelWrapper<SeFloat>(itsNaxes, bckCellSize, gridSize, bckSigVals);
-  */
-
-  bckPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckMeanVals);
-  varPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
-
-  // make a log message
-  //std::string logMessage = std::string("Median value of sigma spline==")+tostr((*sigmaSpline)->getMedian());
-  //Utils::generalLogger(logMessage);
-
-  // release memory
-  //if (itsWhtMeanVals)
-  //delete [] whtMeanVals;
-  if (whtSigVals)
-    delete [] whtSigVals;
-
   // release memory
   if (gridData)
     delete [] gridData;
@@ -663,73 +340,8 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
   */
 }
 
-bool SE2BackgroundModeller::checkCompatibility(const boost::filesystem::path inputName, fitsfile* inputImg, const size_t* imgNaxes){
-  int status=0;
-  int naxis=0;
-  int bitpix=0;
-  long naxes[2] = {0,0};
-
-  // get the parameters from the weight image;
-  // check for the image dimension
-  fits_get_img_param(inputImg, 2,  &bitpix, &naxis, naxes, &status);
-  if (status){
-    throw Elements::Exception() << "Problem reading parameters from image: " << inputName << "!";
-    //Utils::throwElementsException(std::string("Problem reading parameters from image: ")+inputName.generic_string()+std::string("!"));
-  }
-  if (naxis!=2){
-    throw Elements::Exception() << "The image: " << inputName << " has " << naxis << "!=2 dimensions!";
-    //Utils::throwElementsException(std::string("The image: ")+inputName.generic_string()+std::string(" has ")+tostr(naxis)+std::string("!=2 dimensions!"));
-  }
-
-  // compare the dimension of the weight image
-  // with the data image;
-  // throw an error if they do not match
-  if (imgNaxes[0] != (size_t)naxes[0]){
-    throw Elements::Exception() << "The weight image: " << itsInputWeightName << " has incompatible size in x!";
-    //Utils::throwElementsException(std::string("The image: ")+inputName.generic_string()+std::string(" has incompatible size in x!"));
-  }
-  if (imgNaxes[1] != (size_t)naxes[1]){
-    throw Elements::Exception() << "The weight image: " << itsInputWeightName << " has incompatible size in y!";
-    //Utils::throwElementsException(std::string("The image: ")+inputName.generic_string()+std::string(" has incompatible size in y!"));
-  }
-  return true;
-}
-
-bool SE2BackgroundModeller::checkCompatibility(fitsfile* inputWeight, const size_t* imgNaxes){
-  int status=0;
-  int naxis=0;
-  int bitpix=0;
-  long naxes[2] = {0,0};
-
-  // get the parameters from the weight image;
-  // check for the image dimension
-  fits_get_img_param(inputWeight, 2,  &bitpix, &naxis, naxes, &status);
-  if (status){
-    throw Elements::Exception() << "Problem reading parameters from weight: " << itsInputWeightName << "!";
-    //Utils::throwElementsException(std::string("Problem reading parameters from image: ")+itsInputWeightName.generic_string()+std::string("!"));
-  }
-  if (naxis!=2){
-    throw Elements::Exception() << "The image: " << itsInputWeightName << " has " << naxis << "!=2 dimensions!";
-    //Utils::throwElementsException(std::string("The image: ")+itsInputWeightName.generic_string()+std::string(" has ")+tostr(naxis)+std::string("!=2 dimensions!"));
-  }
-
-  // compare the dimension of the weight image
-  // with the data image;
-  // throw an error if they do not match
-  if (imgNaxes[0] != (size_t)naxes[0]){
-    throw Elements::Exception() << "The weight image: " << itsInputWeightName << " has incompatible size in x!";
-    //Utils::throwElementsException(std::string("The image: ")+itsInputWeightName.generic_string()+std::string(" has incompatible size in x!"));
-  }
-  if (imgNaxes[1] != (size_t)naxes[1]){
-    throw Elements::Exception() << "The weight image: " << itsInputWeightName << " has incompatible size in y!";
-    //Utils::throwElementsException(std::string("The image: ")+itsInputWeightName.generic_string()+std::string(" has incompatible size in y!"));
-  }
-  return true;
-}
-
 void SE2BackgroundModeller::filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize, const size_t* filterSize, const float &filterThreshold)
 {
-  //logger.info() << "<<FILTERING>>";
   // replace undefined values
   replaceUNDEF(bckVals,  sigmaVals, gridSize);
 
@@ -773,9 +385,7 @@ void SE2BackgroundModeller::replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,co
     return;
 
   // give some feedback that undefined data is replaced
-  //Utils::generalLogger("Replacing undefined data!");
-  //std::cout << "Replacing undefined data!" << std::endl;
-  bck_model_logger.info() << "Replacing undefined data!";
+  bck_model_logger.debug() << "\tReplacing undefined data";
 
   // vector for the final
   // background values
@@ -866,7 +476,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   PIXTYPE* sigmaFilt=NULL;
   PIXTYPE* bmask=NULL;
   PIXTYPE* smask=NULL;
-  PIXTYPE allBckMed, allSigmaMed, median;
+  PIXTYPE allSigmaMed, median; //allBckMed
   int    i,nx,ny,npx,npx2,npy,npy2,x,y;
   int np;
 
@@ -875,11 +485,6 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   if (filterSize[0]<2 && filterSize[1]<2)
     return;
 
-  // give some feedback
-  //std::cout << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!" << std::endl;
-  //bck_model_logger.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
-  // this does *not* work:
-  //SExtractor::se2BckLog.info() << "Filtering with box size=("<<filterSize[0]<<"," << filterSize[1]<< ")!";
   // Note: I am converting the "size_t" to int's since
   //       there are computations done down.
 
@@ -967,7 +572,7 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
 
   // compute the median values for the background
   // and the sigma
-  allBckMed   = SE2BackgroundUtils::fqMedian(backFilt, np);
+  //allBckMed   = SE2BackgroundUtils::fqMedian(backFilt, np);
   allSigmaMed = SE2BackgroundUtils::fqMedian(sigmaFilt, np);
 
   // NOTE: I don't understand what that does.
@@ -1041,14 +646,12 @@ void SE2BackgroundModeller::computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* 
   if (lowIndex>0){
     if (lowIndex<nr){
       // make a log message
-      //std::cout << "Re-calculating the scaling due to leading zeros!" << std::endl;
-      bck_model_logger.info() << "Re-calculating the scaling due to leading zeros!";
+      bck_model_logger.debug() << "\tRe-calculating the scaling due to leading zeros";
       sigFac = SE2BackgroundUtils::fqMedian(ratio+lowIndex, nr-lowIndex);
     }
     else {
       //warning("Null or negative global weighting factor:","defaulted to 1");
-      //std::cout << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
-      bck_model_logger.info() << "Null or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
+      bck_model_logger.debug() << "\tNull or negative global weighting factor: " << " | " << lowIndex << "defaulted to 1 " << nr;
       sigFac = 1.0;
     }
   }
@@ -1061,8 +664,7 @@ void SE2BackgroundModeller::rescaleThreshold(PIXTYPE &weightVarThreshold, const 
 {
   // the threshold needs to be larger than zero
   if (weightThreshold<0.0){
-    throw Elements::Exception() << "The weight threshold is: " << weightThreshold << " but can not be smaller than 0.0!";
-    //Utils::throwElementsException(std::string("The weight threshold is: ")+tostr(weightThreshold)+std::string(" but can not be smaller than 0.0!"));
+    throw Elements::Exception() << "The weight threshold is: " << weightThreshold << " but can not be smaller than 0.0";
   }
 
   // check the type flag

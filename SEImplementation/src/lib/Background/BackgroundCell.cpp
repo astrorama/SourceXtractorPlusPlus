@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Created on Jan 05, 2015
  * @author: mkuemmel@usm.lmu.de
@@ -29,14 +45,12 @@ BackgroundCell::BackgroundCell(const PIXTYPE* cellData, const size_t ndata, cons
     itsHasWeight=true;
     itsHisto       = new BackgroundHistogram(itsMean, itsSigma, itsStatNData);
     itsWeightHisto = new BackgroundHistogram(itsWeightMean, itsWeightSigma, itsStatNWeight);
-    //logger.info() << itsMean << " | "<< itsSigma << " | "<< itsStatNData << " | "<< itsWeightMean << " | "<< itsWeightSigma << " | "<< itsStatNWeight;
   }
   else{
     getStats(itsCellData, itsNdata, itsMean, itsSigma, itsStatNData);
     itsHasWeight=false;
     itsHisto = new BackgroundHistogram(itsMean, itsSigma, itsStatNData);
   }
-  //logger.info() << "Data: "<< itsMean << " Sigma: " << itsSigma ;
 }
 
 BackgroundCell::~BackgroundCell()
@@ -101,12 +115,10 @@ void BackgroundCell::getBackgroundValues(PIXTYPE& meanVal, PIXTYPE& sigmaVal, PI
       // take the current values
       pixVal = itsCellData[index];
       whtVal = itsCellWeight[index];
-      //logger.info() << whtVal << " wval <> itsWeightThresh: " << itsWeightThresh;
       if (whtVal<itsWeightThresh){
         // add to the histograms
         itsHisto->addDatum(pixVal);
         itsWeightHisto->addDatum(whtVal);
-       // logger.info() << whtVal << " wval <> added " << itsWeightThresh;
      }
     }
   }
@@ -124,11 +136,9 @@ void BackgroundCell::getBackgroundValues(PIXTYPE& meanVal, PIXTYPE& sigmaVal, PI
 
   // determine the mean value and sigma
   itsHisto->getBackGuess(meanVal, sigmaVal);
-  //logger.info() << meanVal << " bckvals " << sigmaVal;
 
   if (itsHasWeight){
     itsWeightHisto->getBackGuess(whtMeanVal, whtSigmaVal);
-    //logger.info() << whtMeanVal << " whtvals " << whtSigmaVal;
   }
 
   return;
@@ -316,21 +326,16 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute mean and sigma of the data
   // within the cuts
   if (statNData<=0){
-    //Utils::throwElementsException(std::string("Can not compute meaningful stats with statNData=")+tostr(statNData)+std::string("!"));
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
+    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData;
  }
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
   sigma = sigma>0.0 ? sqrt(sigma):0.0;
 
-  //logger.info() << weightMean << " weightMean <> weightSigma: " << weightSigma << " statNWeight" << statNWeight;
-
   // compute the mean and sigma of the weights
   // within the cuts
   if (statNWeight<=0){
-    //Utils::throwElementsException(std::string("Can not compute meaningful stats with statNData=")+tostr(statNWeight)+std::string("!"));
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNWeight << "!";
-    //<< kernel.cols;
+    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNWeight;
   }
   weightMean /= (double)statNWeight;
   weightSigma = weightSigma/statNWeight - weightMean*weightMean;

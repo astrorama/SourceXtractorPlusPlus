@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /** 
  * @file FrameModel.icpp
  * @date September 1, 2015
@@ -6,17 +22,43 @@
 
 namespace ModelFitting {
 
+template <typename PsfType>
+FrameModelPsfContainer<PsfType>::FrameModelPsfContainer(size_t): PsfType() {}
+
+template <typename PsfType>
+FrameModelPsfContainer<PsfType>::FrameModelPsfContainer(PsfType psf, size_t): PsfType(std::move(psf)) {}
+
+template <typename PsfType>
+FrameModelPsfContextContainer<PsfType>::FrameModelPsfContextContainer(size_t n_extended_models)
+  : PsfType(), m_psf_contexts(n_extended_models) {}
+
+template <typename PsfType>
+FrameModelPsfContextContainer<PsfType>::FrameModelPsfContextContainer(PsfType psf, size_t n_extended_models)
+: PsfType(std::move(psf)), m_psf_contexts(n_extended_models) {}
+
 template <typename PsfType, typename ImageType>
 FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width, std::size_t height,
                                            std::vector<ConstantModel> constant_model_list,
                                            std::vector<PointModel> point_model_list,
-                                           std::vector<ExtendedModel> extended_model_list,
+                                           std::vector<TransformedModel> extended_model_list,
                                            PsfType psf)
         : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
           m_constant_model_list{std::move(constant_model_list)},
           m_point_model_list{std::move(point_model_list)},
           m_extended_model_list{std::move(extended_model_list)},
-          m_psf{std::move(psf)} {
+          m_psf{std::move(psf), m_extended_model_list.size()} {
+}
+
+template <typename PsfType, typename ImageType>
+FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width, std::size_t height,
+                                           std::vector<ConstantModel> constant_model_list,
+                                           std::vector<PointModel> point_model_list,
+                                           std::vector<TransformedModel> extended_model_list)
+        : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
+          m_constant_model_list{std::move(constant_model_list)},
+          m_point_model_list{std::move(point_model_list)},
+          m_extended_model_list{std::move(extended_model_list)},
+          m_psf{m_extended_model_list.size()} {
 }
 
 template <typename PsfType, typename ImageType>
@@ -46,11 +88,12 @@ void addPointModels(ImageType& image, const std::vector<PointModel>& model_list,
 }
   
 template <typename ImageType, typename PsfType>
-void addExtendedModels(ImageType& image, const std::vector<ExtendedModel>& model_list,
-                       const PsfType& psf, double pixel_scale) {
+void addExtendedModels(ImageType& image, const std::vector<TransformedModel>& model_list,
+                       PsfType& psf, double pixel_scale) {
   using Traits = ImageTraits<ImageType>;
   auto scale_factor = psf.getPixelScale() / pixel_scale;
-  for (auto& model : model_list) {
+  for (size_t i = 0; i < model_list.size(); ++i) {
+    auto& model = model_list[i];
     std::size_t width = std::ceil(model.getWidth() / psf.getPixelScale() + psf.getSize());
     if (width%2 == 0) {
       ++width;
@@ -60,7 +103,7 @@ void addExtendedModels(ImageType& image, const std::vector<ExtendedModel>& model
       ++height;
     }
     auto extended_image = model.getRasterizedImage<ImageType>(psf.getPixelScale(), width, height);
-    psf.convolve(extended_image);
+    psf.convolve(i, extended_image);
     Traits::addImageToImage(image, extended_image, scale_factor, model.getX(), model.getY());
   }
 }
@@ -71,15 +114,20 @@ template <typename PsfType, typename ImageType>
 void FrameModel<PsfType, ImageType>::recomputeImage() {
   using Traits = ImageTraits<ImageType>;
   m_model_image.reset(new ImageType(Traits::factory(m_width, m_height)));
-  _impl::addConstantModels(*m_model_image, m_constant_model_list);
-  _impl::addPointModels(*m_model_image, m_point_model_list, m_psf, m_pixel_scale);
-  _impl::addExtendedModels(*m_model_image, m_extended_model_list, m_psf, m_pixel_scale);
+  rasterToImage(*m_model_image);
 }
 
 template <typename PsfType, typename ImageType>
 const ImageType& FrameModel<PsfType, ImageType>::getImage() {
   recomputeImage();
   return *m_model_image;
+}
+
+template <typename PsfType, typename ImageType>
+void FrameModel<PsfType, ImageType>::rasterToImage(ImageType &model_image) {
+  _impl::addConstantModels(model_image, m_constant_model_list);
+  _impl::addPointModels(model_image, m_point_model_list, m_psf, m_pixel_scale);
+  _impl::addExtendedModels(model_image, m_extended_model_list, m_psf, m_pixel_scale);
 }
 
 template <typename PsfType, typename ImageType>

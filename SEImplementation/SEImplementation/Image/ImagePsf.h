@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * ImagePsf.h
  *
@@ -12,18 +28,22 @@
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/MultiplyImage.h"
+#include "ModelFitting/Image/PsfTraits.h"
+#include "ModelFitting/utils.h"
 
-#include <opencv2/opencv.hpp>
+#include "SEFramework/Convolution/Convolution.h"
 
 
 namespace SExtractor {
 
-class ImagePsf {
+class ImagePsf: public DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> {
+private:
+  typedef DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> base_t;
 
 public:
 
-  ImagePsf(double pixel_scale, std::shared_ptr<const VectorImage<SExtractor::SeFloat>> image)
-          : m_pixel_scale{pixel_scale}, m_image{image} {
+  ImagePsf(double pixel_scale, std::shared_ptr<const VectorImage<SeFloat>> image)
+          : base_t{image}, m_pixel_scale{pixel_scale} {
     if (image->getWidth() != image->getHeight()) {
       throw Elements::Exception() << "PSF kernel must be square but was "
                                   << image->getWidth() << " x " << image->getHeight();
@@ -41,42 +61,32 @@ public:
   }
 
   std::size_t getSize() const {
-    return m_image->getWidth();
-  }
-
-  std::shared_ptr<const Image<SExtractor::SeFloat>> getKernel() const {
-    return m_image;
+    return getWidth();
   }
 
   std::shared_ptr<VectorImage<SExtractor::SeFloat>> getScaledKernel(SeFloat scale) const {
-    return VectorImage<SeFloat>::create(*MultiplyImage<SExtractor::SeFloat>::create(m_image, scale));
-  }
-
-  void convolve(std::shared_ptr<VectorImage<SExtractor::SeFloat>>& image) const {
-
-    // FIXME don't use opencv
-
-    auto size = m_image->getWidth();
-    cv::Mat kernel (size, size, CV_32F);
-    std::copy(m_image->getData().begin(), m_image->getData().end(), kernel.begin<float>());
-
-    cv::Mat image_cv (image->getHeight(), image->getWidth(), CV_32F);
-    std::copy(image->getData().begin(), image->getData().end(), image_cv.begin<float>());
-
-    cv::filter2D(image_cv, image_cv, -1, kernel);
-
-    std::copy(image_cv.begin<float>(), image_cv.end<float>(), image->getData().begin());
+    return VectorImage<SeFloat>::create(*MultiplyImage<SExtractor::SeFloat>::create(getKernel(), scale));
   }
 
 private:
-
   double m_pixel_scale;
-  std::shared_ptr<const VectorImage<SExtractor::SeFloat>> m_image;
 
 };
 
-} // end of ModelFitting
+} // end of SExtractor
 
+namespace ModelFitting {
+
+/**
+ * Specialization of PsfTraits, as DFTConvolution has the concept of context
+ */
+template<>
+struct PsfTraits<SExtractor::ImagePsf> {
+  using context_t = typename std::unique_ptr<SExtractor::ImagePsf::ConvolutionContext>;
+  static constexpr bool has_context = true;
+};
+
+} // end of ModelFitting
 
 
 #endif /* _SEIMPLEMENTATION_IMAGE_IMAGEPSF_H_ */

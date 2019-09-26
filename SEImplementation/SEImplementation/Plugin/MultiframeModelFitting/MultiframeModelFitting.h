@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * MultiframeModelFitting.h
  *
@@ -25,7 +41,7 @@ public:
       SeFloat wc_alpha, SeFloat wc_delta,
       SeFloat exp_radius, SeFloat dev_radius,
       std::vector<double> fluxes, std::vector<double> exp_fluxes, std::vector<double> dev_fluxes,
-      unsigned int iterations, SeFloat chi_squared) :
+      unsigned int iterations, SeFloat chi_squared, unsigned int nframes) :
     m_x(x),
     m_y(y),
     m_wc_alpha(wc_alpha),
@@ -35,7 +51,7 @@ public:
     m_fluxes(fluxes),
     m_exp_fluxes(exp_fluxes),
     m_dev_fluxes(dev_fluxes),
-    m_iterations(iterations),
+    m_iterations(iterations), m_frame_count(nframes),
     m_chi_squared(chi_squared) {}
 
   SeFloat getX() const {
@@ -82,6 +98,10 @@ public:
     return m_iterations;
   }
 
+  unsigned int getFrameCount() const {
+    return m_frame_count;
+  }
+
   SeFloat getReducedChiSquared() const {
     return m_chi_squared;
   }
@@ -92,7 +112,7 @@ private:
   SeFloat m_exp_radius, m_dev_radius;
 
   std::vector<double> m_fluxes, m_exp_fluxes, m_dev_fluxes;
-  unsigned int m_iterations;
+  unsigned int m_iterations, m_frame_count;
   SeFloat m_chi_squared;
 };
 

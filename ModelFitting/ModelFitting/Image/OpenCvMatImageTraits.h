@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /** 
  * @file OpenCvMatImageTraits.h
  * @date August 27, 2015
@@ -106,8 +122,8 @@ struct ImageTraits<cv::Mat> {
     int window_height = height(window);
     for(int x_win=0; x_win < window_width; x_win++) {
       for(int y_win=0; y_win < window_height; y_win++) {
-        double x = (x_win - 0.5 - x_shift) / scale_factor;
-        double y = (y_win - 0.5 - y_shift) / scale_factor;
+        double x = (x_win - 0.5 - x_shift) / scale_factor + 0.5;
+        double y = (y_win - 0.5 - y_shift) / scale_factor + 0.5;
 
         int xi = std::floor(x);
         int yi = std::floor(y);

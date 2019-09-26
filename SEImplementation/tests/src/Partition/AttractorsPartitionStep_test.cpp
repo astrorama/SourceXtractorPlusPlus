@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file tests/src/AttractorsPartitionStep_test.cpp
  * @date 06/03/16
@@ -72,12 +88,12 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
   source_observer->m_list.clear();
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources, nullptr, PixelCoordinate(0,0), nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 2);
   source_observer->m_list.clear();

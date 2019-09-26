@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file tests/src/Lutz_test.cpp
  * @date 05/31/16
@@ -134,15 +150,12 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   Segmentation segmentation(nullptr);
   segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>());
 
-  segmentation.addObserver(source_observer);
+  segmentation.Observable<std::shared_ptr<SourceInterface>>::addObserver(source_observer);
 
   auto detection_frame = std::make_shared<DetectionImageFrame>(image);
 
-  // FIXME wrong!!!! this is now interpreted as a nullptr, should be a constant image
-  detection_frame->setBackgroundLevel(0);
-
+  detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0));
   detection_frame->setVarianceMap(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0.25));
-  //detection_frame->setDetectionThreshold(0.5);
   segmentation.processFrame(detection_frame);
 
   // Check that we have the right number of sources

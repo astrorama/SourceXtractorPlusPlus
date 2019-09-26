@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * BackgroundConvolution.h
  *
@@ -8,73 +24,28 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_BACKGROUNDCONVOLUTION_H_
 #define _SEIMPLEMENTATION_SEGMENTATION_BACKGROUNDCONVOLUTION_H_
 
-#include "SEFramework/Frame/Frame.h"
-
+#include "SEUtils/Types.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/ImageProcessing.h"
-#include "SEFramework/Image/BufferedImage.h"
-#include "SEFramework/Image/ImageSource.h"
-#include "SEFramework/Image/ProcessingImageSource.h"
+#include "SEFramework/Frame/Frame.h"
 
 namespace SExtractor {
 
+/**
+ * BackgroundConvolution filter
+ */
 class BackgroundConvolution : public DetectionImageFrame::ImageFilter {
-private:
-  class BgConvolutionImageSource : public ProcessingImageSource<DetectionImage::PixelType> {
-  public:
-    BgConvolutionImageSource(std::shared_ptr<Image<DetectionImage::PixelType>> image,
-        std::shared_ptr<DetectionImage> variance, SeFloat threshold,
-        std::shared_ptr<VectorImage<SeFloat>> kernel)
-      : ProcessingImageSource<DetectionImage::PixelType>(image),
-        m_variance(variance), m_threshold(threshold), m_kernel(kernel) {}
-
-  protected:
-    virtual void generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
-      int hx = m_kernel->getWidth() / 2;
-      int hy = m_kernel->getHeight() / 2;
-
-      for (int iy = y; iy < y+height; iy++) {
-        for (int ix = x; ix < x+width; ix++) {
-
-          DetectionImage::PixelType total = 0;
-          DetectionImage::PixelType conv_weight = 0;
-
-          for (int cy = 0; cy < m_kernel->getHeight(); cy++) {
-            for (int cx = 0; cx < m_kernel->getWidth(); cx++) {
-
-              auto x2 = ix + cx - hx;
-              auto y2 = iy + cy - hy;
-
-              if (x2 >= 0 && x2 < image->getWidth() && y2 >= 0 && y2 < image->getHeight() && m_variance->getValue(x2, y2) < m_threshold) {
-                total += image->getValue(x2, y2) * m_kernel->getValue(cx, cy);
-                conv_weight += m_kernel->getValue(cx, cy);
-              }
-
-            }
-          }
-          tile.getImage()->setValue(ix - x, iy - y, total/conv_weight);
-        }
-      }
-
-    }
-
-  private:
-    std::shared_ptr<DetectionImage> m_variance;
-    SeFloat m_threshold;
-    std::shared_ptr<VectorImage<SeFloat>> m_kernel;
-  };
-
 
 public:
   BackgroundConvolution(std::shared_ptr<Image<SeFloat>> convolution_filter, bool must_normalize)
-    : m_convolution_filter(VectorImage<SeFloat>::create(*convolution_filter))
-  {
+    : m_convolution_filter(VectorImage<SeFloat>::create(*convolution_filter)) {
     if (must_normalize) {
       normalize();
     }
   }
 
-  std::shared_ptr<DetectionImage> processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance, SeFloat threshold) const;
+  std::shared_ptr<DetectionImage>
+  processImage(std::shared_ptr<DetectionImage> image, std::shared_ptr<DetectionImage> variance,
+               SeFloat threshold) const;
 
 private:
   void normalize();

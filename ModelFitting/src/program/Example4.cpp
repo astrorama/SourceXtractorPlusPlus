@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /** 
  * @file Examole4.cpp
  * @date September 3, 2015
@@ -73,7 +89,7 @@ int main() {
   double height = 10;
   
   // We create the extended model list with a single model
-  vector<ExtendedModel> extended_models {};
+  vector<TransformedModel> extended_models {};
   extended_models.emplace_back(std::move(component_list), x_scale, y_scale,
                                rot_angle, width, height, x, y);
   

@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/Configuration/OutputConfig.cpp
  * @date 06/23/16
@@ -18,8 +34,8 @@ namespace po = boost::program_options;
 
 namespace SExtractor {
 
-static const std::string OUTPUT_FILE {"output-file"};
-static const std::string OUTPUT_FILE_FORMAT {"output-file-format"};
+static const std::string OUTPUT_FILE {"output-catalog-filename"};
+static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 
 static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
@@ -54,7 +70,7 @@ void OutputConfig::initialize(const UserValues& args) {
   std::stringstream properties_str {args.at(OUTPUT_PROPERTIES).as<std::string>()};
   std::string name;
   while (std::getline(properties_str, name, ',')) {
-    m_optional_properties.emplace_back(name);
+    m_output_properties.emplace_back(name);
   }
   
   auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
@@ -69,8 +85,8 @@ OutputConfig::OutputFileFormat OutputConfig::getOutputFileFormat() {
   return m_format;
 }
 
-const std::vector<std::string> OutputConfig::getOptionalProperties() {
-  return m_optional_properties;
+const std::vector<std::string> OutputConfig::getOutputProperties() {
+  return m_output_properties;
 }
 
 } // SEImplementation namespace

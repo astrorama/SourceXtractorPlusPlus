@@ -11,7 +11,7 @@ Free parameters are specified by the user and can be used as parameters for the 
 Model components are used with some of the images (as specified by the apply-to keyword). Model components that apply to the same images are added together to form the whole model.
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
@@ -56,7 +56,7 @@ If we use "modeling" in the multigroup, a different modeling operation will be t
 The "apply-to" keyword is used specify groups relatively to where the current modeling is happening in the hierarchy.
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/img_(*)_(*)_*.fits
@@ -98,7 +98,7 @@ An alternative syntax is to keep the modeling at the top level but use the "targ
 specify a path to the where the modeling should be applied.
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
  image-files:
     path: foo/bar/img_(*)_(*)_*.fits
@@ -144,7 +144,7 @@ This is more compact in cases where the groups are not needed for anything else.
 
 
 \code{.yaml}
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/sim01/sim01_(*)_*.fits
@@ -176,7 +176,7 @@ In this example we get the time when an image was taken from the FITS headers.
 
 \code{.yaml}
 
-measurement-group:
+measurements-group:
 
   image-files:
     path: foo/bar/sim01/sim01_*.fits
