@@ -24,7 +24,7 @@
 #include <iostream>
 
 #include <boost/version.hpp>
-#if BOOST_VERSION >= 106600
+#if BOOST_VERSION >= 106700
 
 #if BOOST_VERSION >= 107000
 #include <boost/math/differentiation/finite_difference.hpp>
@@ -182,7 +182,7 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
         return m_value_calculator(cs, params);
     };
 
-#if BOOST_VERSION >= 106600
+#if BOOST_VERSION >= 106700
     result[i] = bmd::finite_difference_derivative(f, param_values[i]);
 #else
     // if boost's function is unavailable use our own function
