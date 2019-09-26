@@ -262,7 +262,8 @@ class ImageGroup(object):
 
     def split(self, grouping_method):
         """
-        Splits the group in various subgroups, applying a filter on the contained images.
+        Splits the group in various subgroups, applying a filter on the contained images. If the group has
+        already been split, applies the split to each subgroup.
 
         Parameters
         ----------
@@ -278,20 +279,23 @@ class ImageGroup(object):
         Raises
         -------
         ValueError
-            If the group has been already split, or if some images have not been grouped by the callable.
+            If some images have not been grouped by the callable.
         """
         if self.__subgroups:
-            raise ValueError('ImageGroup is already subgrouped')
-        subgrouped_images = grouping_method(self.__images)
-        if sum(len(p[1]) for p in subgrouped_images) != len(self.__images):
-            self.__subgroups = None
-            raise ValueError('Some images were not grouped')
-        self.__subgroups = []
-        for k, im_list in subgrouped_images:
-            assert k not in self.__subgroup_names
-            self.__subgroup_names.add(k)
-            self.__subgroups.append((k, ImageGroup(images=im_list)))
-        self.__images = []
+            #if we are already subgrouped, apply the split to the subgroups
+            for _, sub_group in self.__subgroups:
+                sub_group.split(grouping_method)
+        else:
+            subgrouped_images = grouping_method(self.__images)
+            if sum(len(p[1]) for p in subgrouped_images) != len(self.__images):
+                self.__subgroups = None
+                raise ValueError('Some images were not grouped')
+            self.__subgroups = []
+            for k, im_list in subgrouped_images:
+                assert k not in self.__subgroup_names
+                self.__subgroup_names.add(k)
+                self.__subgroups.append((k, ImageGroup(images=im_list)))
+            self.__images = []
 
     def add_images(self, images):
         """
@@ -715,32 +719,35 @@ class MeasurementGroup(object):
         else:
             return self.__images.__iter__()
 
-    def __getitem__(self, name):
+    def __getitem__(self, index):
         """
-        The subgroup with the given name.
+        The subgroup with the given name or image with the given index depending on whether this is a leaf group.
 
         Parameters
         ----------
-        name : str
-            Subgroup name
+        index : str or int
+            Subgroup name or image index
 
         Returns
         -------
-        MeasurementGroup
+        MeasurementGroup or MeasurementImage
 
         Raises
         ------
-        ValueError
-            If the group does not have subgroups.
         KeyError
-            If the group has not been found.
+            If we can't find what we want
         """
-        if self.__subgroups is None:
-            raise ValueError('Does not contain subgroups')
-        try:
-            return next(x for x in self.__subgroups if x[0] == name)[1]
-        except StopIteration:
-            raise KeyError('Group {} not found'.format(name))
+        
+        if self.__subgroups:
+            try:
+                return next(x for x in self.__subgroups if x[0] == index)[1]
+            except StopIteration:
+                raise KeyError('Group {} not found'.format(index))
+        else:
+            try:
+                return self.__images[index]
+            except:
+                raise KeyError('Image #{} not found'.format(index))
 
     def __len__(self):
         """
