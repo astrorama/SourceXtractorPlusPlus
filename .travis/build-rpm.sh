@@ -2,7 +2,7 @@
 set -ex
 
 # Environment
-export VERBOSE=1
+export VERBOSE=0
 export CTEST_OUTPUT_ON_FAILURE=1
 
 # Platform-specific configuration
@@ -41,11 +41,11 @@ rpm_doc_deps=$(echo ${cmake_deps} | awk '{for(i=1;i<NF;i+=2){print $i "-doc-" $(
 yum install -y ${rpm_dev_deps} ${rpm_doc_deps}
 
 # Dependencies
-yum install -y @development-tools cmake gcc-c++ rpm-build
-yum install -y boost-devel $PYTHON-pytest log4cpp-devel doxygen CCfits-devel
-yum install -y graphviz $PYTHON-sphinx $PYTHON-sphinxcontrib-apidoc
-yum install -y gmock-devel gtest-devel
-yum install -y ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel
+yum install -y -q @development-tools cmake gcc-c++ rpm-build
+yum install -y -q boost-devel $PYTHON-pytest log4cpp-devel doxygen CCfits-devel
+yum install -y -q graphviz $PYTHON-sphinx $PYTHON-sphinxcontrib-apidoc
+yum install -y -q gmock-devel gtest-devel
+yum install -y -q ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel
 
 # Build
 mkdir -p /build
