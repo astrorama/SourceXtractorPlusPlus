@@ -1,0 +1,37 @@
+language: minimal
+
+branches:
+  only:
+  - master
+  - develop
+
+env:
+  global:
+    - OS_ARCH=x86_64
+  matrix:
+    - OS_TYPE=fedora OS_VERSION=29
+    - OS_TYPE=fedora OS_VERSION=30
+    - OS_TYPE=fedora OS_VERSION=31
+    - OS_TYPE=fedora OS_VERSION=32
+
+services:
+  - docker
+
+install: true
+
+script:
+  - docker run --name builder --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
+  - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"
+
+after_success: |
+  version=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
+  cd packages
+  if [ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ] && [ ! -z "${BINTRAY_REPO}" ]; then
+    case "${TRAVIS_BRANCH}" in
+      develop|master)
+        for p in *.rpm; do
+          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${TRAVIS_BRANCH}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=SExtractorxx;bt_version=${version}?override=1&publish=1"
+        done;;
+    esac
+  fi
+
