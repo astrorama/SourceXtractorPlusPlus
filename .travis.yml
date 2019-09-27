@@ -4,7 +4,6 @@ branches:
   only:
   - master
   - develop
-  - feature/rpm2bintray
 
 env:
   global:
