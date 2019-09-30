@@ -31,7 +31,7 @@ namespace SourceXtractor {
 static const std::string MAX_TILE_MEMORY {"tile-memory-limit"};
 static const std::string TILE_SIZE {"tile-size"};
 
-MemoryConfig::MemoryConfig(long manager_id) : Configuration(manager_id) {
+MemoryConfig::MemoryConfig(long manager_id) : Configuration(manager_id), m_max_memory(512), m_tile_size(256) {
 }
 
 auto MemoryConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
@@ -39,8 +39,6 @@ auto MemoryConfig::getProgramOptions() -> std::map<std::string, OptionDescriptio
       {MAX_TILE_MEMORY.c_str(), po::value<int>()->default_value(512), "Maximum memory used for image tiles cache in megabytes"},
       {TILE_SIZE.c_str(), po::value<int>()->default_value(256), "Image tiles size in pixels"},
   }}};
-
-  return {};
 }
 
 void MemoryConfig::initialize(const UserValues& args) {

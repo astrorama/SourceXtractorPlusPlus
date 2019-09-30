@@ -32,7 +32,7 @@ namespace SourceXtractor {
 
 class AutoPhotometryTaskFactory : public TaskFactory {
 public:
-  AutoPhotometryTaskFactory() : m_magnitude_zero_point(0) {}
+  AutoPhotometryTaskFactory();
 
   /// Destructor
   virtual ~AutoPhotometryTaskFactory() = default;
