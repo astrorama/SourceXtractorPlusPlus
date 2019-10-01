@@ -8,7 +8,7 @@ export CTEST_OUTPUT_ON_FAILURE=1
 # Platform-specific configuration
 source /etc/os-release
 
-CMAKEFLAGS="-DINSTALL_DOC=ON"
+CMAKEFLAGS="-DINSTALL_DOC=ON -DRPM_NO_CHECK=OFF"
 
 if [ $NAME == 'Fedora' ] && [ $VERSION_ID -ge 30 ]; then
   PYTHON="python3"
