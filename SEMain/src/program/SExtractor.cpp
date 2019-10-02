@@ -355,12 +355,19 @@ public:
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
 
-    // Process the image
-    segmentation->processFrame(detection_frame);
+    try {
+      // Process the image
+      segmentation->processFrame(detection_frame);
 
-    // Flush source grouping buffer
-    SelectAllCriteria select_all_criteria;
-    source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+      // Flush source grouping buffer
+      SelectAllCriteria select_all_criteria;
+      source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+    }
+    catch (const std::exception &e) {
+      logger.error() << "Failed to process the frame! " << e.what();
+      measurement->waitForThreads();
+      return Elements::ExitCode::NOT_OK;
+    }
 
     measurement->waitForThreads();
 
