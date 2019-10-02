@@ -65,11 +65,10 @@ private:
   void updateCheckImages(SourceGroupInterface& group,
       double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
 
-  SeFloat computeReducedChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
-      std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights,
-      int nb_of_free_params) const;
-  SeFloat computeReducedChiSquared(SourceGroupInterface& group,
-      double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
+  SeFloat computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+      std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
+  SeFloat computeChiSquared(SourceGroupInterface& group,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const;
 
   // Task configuration
   unsigned int m_max_iterations;
