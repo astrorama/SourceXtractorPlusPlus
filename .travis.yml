@@ -57,6 +57,9 @@ jobs:
       - docker cp "appbuilder:/sextractor++-x86_64.AppImage" "."
     deploy:
       provider: releases
+      on:
+        tags: true
       api_key: $GITHUB_OAUTH_TOKEN
+      file: sextractor++-x86_64.AppImage
       skip_cleanup: true
 
