@@ -15,11 +15,11 @@ if [ "$ID" == "fedora" ]; then
     PYTHON="python3"
     CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
   else
-    PYTHON="python"
+    PYTHON="python2"
   fi
 elif [ "$ID" == "centos" ]; then
   yum install -y -q epel-release
-  PYTHON="python"
+  PYTHON="python2"
 fi
 
 # Astrorama repository
