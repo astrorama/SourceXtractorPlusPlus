@@ -36,9 +36,9 @@ find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
 
-if (${Boost_VERSION} LESS "106600")
+if (${Boost_VERSION} LESS "106700")
     message(WARNING "
-Numerical differentiation is available starting from Boost 106600 (${Boost_VERSION} found instead).
+Numerical differentiation is available starting from Boost 106700 (${Boost_VERSION} found instead).
 The model fitting plugin will use a potentially less robust fallback method for computing error margins!")
 endif ()
 
