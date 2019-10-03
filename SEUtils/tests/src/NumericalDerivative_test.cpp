@@ -20,10 +20,11 @@
  *  Created on: Sep 17, 2019
  *      Author: mschefer
  */
+#include <cmath>
 #include <boost/test/unit_test.hpp>
 
 #include <boost/version.hpp>
-#if BOOST_VERSION >= 106600
+#if BOOST_VERSION >= 106700
 
 #if BOOST_VERSION >= 107000
 #include <boost/math/differentiation/finite_difference.hpp>
@@ -86,7 +87,7 @@ BOOST_AUTO_TEST_CASE( central_difference_test ) {
   }
 }
 
-#if BOOST_VERSION >= 106600
+#if BOOST_VERSION >= 106700
   BOOST_AUTO_TEST_CASE( boost_finite_difference_test ) {
     for (auto& function : functions) {
       for (double x = function.m_min; x <= function.m_max; x+=function.m_step) {
