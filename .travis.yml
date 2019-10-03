@@ -48,6 +48,8 @@ jobs:
     env: OS_TYPE=fedora OS_VERSION=31
   - <<: *build
     env: OS_TYPE=fedora OS_VERSION=32
+  - <<: *build
+    env: OS_TYPE=centos OS_VERSION=7
   - stage: buildapp
     if: tag IS present
     env: OS_TYPE=fedora OS_VERSION=29
