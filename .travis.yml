@@ -4,6 +4,8 @@ os: linux
 branches:
   only:
   - develop
+  - master
+  - feature/appimage
 
 env:
   global:
@@ -20,6 +22,7 @@ jobs:
   include:
   - &build
     stage: build
+    if: (branch = master AND tag IS present) OR (NOT branch = master)
     env: OS_TYPE=fedora OS_VERSION=29
     script:
       - docker run --name builder --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
