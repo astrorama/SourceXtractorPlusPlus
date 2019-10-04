@@ -52,7 +52,7 @@ jobs:
     env: OS_TYPE=centos OS_VERSION=7
   - stage: buildapp
     if: tag IS present
-    env: OS_TYPE=fedora OS_VERSION=29
+    env: OS_TYPE=centos OS_VERSION=7
     script:
       - docker run --name appbuilder --device /dev/fuse --privileged --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-appimage.sh"
       - docker cp "appbuilder:/sextractor++-x86_64.AppImage" "."
