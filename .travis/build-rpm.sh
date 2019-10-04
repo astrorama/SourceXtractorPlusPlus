@@ -51,6 +51,7 @@ yum install -y -q boost-devel $PYTHON-pytest log4cpp-devel doxygen CCfits-devel
 yum install -y -q graphviz $PYTHON-sphinx $PYTHON-sphinxcontrib-apidoc
 yum install -y -q gmock-devel gtest-devel
 yum install -y -q ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel
+yum install -y -q ncurses-devel readline-devel
 
 # Build
 mkdir -p /build
