@@ -1,4 +1,5 @@
 # SExtractor++ 
+[![Build Status](https://travis-ci.org/astrorama/sextractorxx.svg?branch=develop)](https://travis-ci.org/astrorama/sextractorxx)
 
 The next generation SExtractor.
 
