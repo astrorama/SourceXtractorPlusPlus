@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 2);
 }
@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }

@@ -25,7 +25,7 @@
 #include <numeric>
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 

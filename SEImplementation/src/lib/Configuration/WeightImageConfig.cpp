@@ -28,7 +28,7 @@
 
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ProcessingImageSource.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsReader.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"

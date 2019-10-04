@@ -30,8 +30,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
 #include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
@@ -174,6 +173,16 @@ public:
   T getDetectionThreshold() const {
     // FIXME using the 0,0 pixel makes no sense
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
+  }
+
+  struct ThresholdOperation {
+    static T process(const T& a, const T& b) { return sqrt(a) * b; }
+  };
+
+  using ThresholdImage = ProcessedImage<T, ThresholdOperation> ;
+
+  std::shared_ptr<Image<T>> getDetectionThresholdMap() const {
+    return ThresholdImage::create(m_variance_map, m_detection_threshold);
   }
 
   std::string getLabel() const {

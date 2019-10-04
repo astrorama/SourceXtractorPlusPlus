@@ -19,7 +19,7 @@
  * @author nikoapos
  */
 
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 
 using namespace Euclid::Configuration;
