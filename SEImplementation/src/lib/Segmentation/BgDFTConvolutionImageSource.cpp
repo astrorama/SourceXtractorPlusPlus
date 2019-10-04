@@ -23,7 +23,7 @@
  */
 
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/FunctionalImage.h"
 
 namespace SExtractor {

@@ -27,7 +27,7 @@
 #include "ElementsKernel/Exception.h"
 
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "ModelFitting/Image/PsfTraits.h"
 #include "ModelFitting/utils.h"
 
