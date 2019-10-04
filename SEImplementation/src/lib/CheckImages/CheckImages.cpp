@@ -21,7 +21,7 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"

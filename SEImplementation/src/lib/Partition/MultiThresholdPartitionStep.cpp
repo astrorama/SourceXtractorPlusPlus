@@ -24,7 +24,7 @@
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"

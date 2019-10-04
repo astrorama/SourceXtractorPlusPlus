@@ -1,37 +1,66 @@
 language: minimal
+os: linux
 
 branches:
   only:
-  - master
   - develop
+  - /^\d+.\d+(.\d+)?(-\S*)?$/
 
 env:
   global:
     - OS_ARCH=x86_64
-  matrix:
-    - OS_TYPE=fedora OS_VERSION=29
-    - OS_TYPE=fedora OS_VERSION=30
-    - OS_TYPE=fedora OS_VERSION=31
-    - OS_TYPE=fedora OS_VERSION=32
 
 services:
   - docker
 
-install: true
+stages:
+  - build
+  - buildapp
 
-script:
-  - docker run --name builder --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
-  - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"
-
-after_success: |
-  version=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
-  cd packages
-  if [ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ] && [ ! -z "${BINTRAY_REPO}" ]; then
-    case "${TRAVIS_BRANCH}" in
-      develop|master)
+jobs:
+  include:
+  - &build
+    stage: build
+    env: OS_TYPE=fedora OS_VERSION=29
+    script:
+      - docker run --name builder --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
+      - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"   
+    after_success: |
+      if [ ! -z "${BINTRAY_REPO}" ] && [ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]; then
+        package=$(grep elements_project CMakeLists.txt | sed 's/.*(//'| cut -d' ' -f1)
+        
+        if [ ! -z "${TRAVIS_TAG}" ]; then
+            target_repo="master"
+            version="${TRAVIS_TAG}"
+        else
+            target_repo="${TRAVIS_BRANCH}"
+            version=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
+        fi
+        
+        cd packages
         for p in *.rpm; do
-          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${TRAVIS_BRANCH}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=SExtractorxx;bt_version=${version}?override=1&publish=1"
-        done;;
-    esac
-  fi
+          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${target_repo}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${package};bt_version=${version}?override=1&publish=1"
+        done;
+      fi
+  - <<: *build
+    env: OS_TYPE=fedora OS_VERSION=30
+  - <<: *build
+    env: OS_TYPE=fedora OS_VERSION=31
+  - <<: *build
+    env: OS_TYPE=fedora OS_VERSION=32
+  - <<: *build
+    env: OS_TYPE=centos OS_VERSION=7
+  - stage: buildapp
+    if: tag IS present
+    env: OS_TYPE=centos OS_VERSION=7
+    script:
+      - docker run --name appbuilder --device /dev/fuse --privileged --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-appimage.sh"
+      - docker cp "appbuilder:/sextractor++-x86_64.AppImage" "."
+    deploy:
+      provider: releases
+      on:
+        tags: true
+      api_key: $GITHUB_OAUTH_TOKEN
+      file: sextractor++-x86_64.AppImage
+      skip_cleanup: true
 

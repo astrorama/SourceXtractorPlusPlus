@@ -38,7 +38,7 @@
 #include "SEFramework/Plugin/PluginManager.h"
 
 #include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"

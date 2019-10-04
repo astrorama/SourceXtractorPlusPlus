@@ -21,7 +21,7 @@
  */
 #include "Configuration/ConfigManager.h"
 
-#include <SEFramework/Image/MultiplyImage.h>
+#include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/Image/BufferedImage.h>
 #include "SEFramework/FITS/FitsImageSource.h"
 

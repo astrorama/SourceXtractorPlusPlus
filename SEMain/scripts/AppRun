@@ -25,15 +25,22 @@
 # We need to properly set up the PYTHONPATH so the sextractor++ modules can be found
 # within the image
 
-export APPIMAGE_MOUNT="$(cd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null 2>&1 && pwd)"
+export PATH="${APPDIR}/usr/bin:${PATH}"
 
-PYTHONDIRNAME="$(ls -1 ${APPIMAGE_MOUNT}/usr/lib64/ | grep '^python')"
+if [ -f "${APPDIR}/usr/bin/python3" ]; then
+    PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
+else
+    PYTHON_VERSION=$(python -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
+fi
 
-LIB="${APPIMAGE_MOUNT}/usr/lib"
-LIB64="${APPIMAGE_MOUNT}/usr/lib64"
-LIBPYTHON="${APPIMAGE_MOUNT}/usr/lib64/${PYTHONDIRNAME}/site-packages"
+LIB="${APPDIR}/usr/lib"
+LIB64="${APPDIR}/usr/lib64"
 
-export PYTHONPATH="${LIB}:${LIB64}:${LIBPYTHON}"
-source "${APPIMAGE_MOUNT}/bin/activate"
+PYTHON_LIB="${LIB}/python${PYTHON_VERSION}"
+PYTHON64_LIB="${LIB64}/python${PYTHON_VERSION}"
 
-exec -a "${APPIMAGE_MOUNT}/sextractor++" "${APPIMAGE_MOUNT}/usr/bin/sextractor++" $@
+export PYTHONPATH="${PYTHON_LIB}:${PYTHON_LIB}/site-packages:${PYTHON64_LIB}:${PYTHON64_LIB}/site-packages"
+export LD_LIBRARY_PATH="${LIB64}:${LIB}:${LIB64}/atlas:${LD_LIBRARY_PATH}"
+
+exec -a "${ARGV0}" "${APPDIR}/usr/bin/sextractor++" $@
+

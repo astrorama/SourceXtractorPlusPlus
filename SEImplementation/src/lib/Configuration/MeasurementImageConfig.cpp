@@ -32,7 +32,7 @@
 #include <SEUtils/Python.h>
 
 #include <SEFramework/Image/BufferedImage.h>
-#include <SEFramework/Image/MultiplyImage.h>
+#include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/FITS/FitsReader.h>
 #include <SEFramework/FITS/FitsImageSource.h>
 

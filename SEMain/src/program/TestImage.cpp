@@ -38,7 +38,7 @@
 #include <boost/random.hpp>
 
 #include <CCfits/CCfits>
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"

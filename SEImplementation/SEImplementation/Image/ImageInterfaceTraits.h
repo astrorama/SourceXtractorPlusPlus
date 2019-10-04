@@ -36,7 +36,6 @@
 #include "ModelFitting/Image/ImageTraits.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/MultiplyImage.h"
 
 #ifdef __APPLE__
 #define sincosf __sincosf

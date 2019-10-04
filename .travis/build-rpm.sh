@@ -10,10 +10,15 @@ source /etc/os-release
 
 CMAKEFLAGS="-DINSTALL_DOC=ON -DRPM_NO_CHECK=OFF"
 
-if [ $NAME == 'Fedora' ] && [ $VERSION_ID -ge 30 ]; then
-  PYTHON="python3"
-  CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
-else
+if [ "$ID" == "fedora" ]; then
+  if [ "$VERSION_ID" -ge 30 ]; then
+    PYTHON="python3"
+    CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
+  else
+    PYTHON="python2"
+  fi
+elif [ "$ID" == "centos" ]; then
+  yum install -y -q epel-release
   PYTHON="python2"
 fi
 
@@ -21,14 +26,14 @@ fi
 cat > /etc/yum.repos.d/astrorama.repo << EOF
 [bintray--astrorama-fedora]
 name=bintray--astrorama-fedora
-baseurl=https://dl.bintray.com/astrorama/travis/master/fedora/\$releasever/\$basearch
+baseurl=https://dl.bintray.com/astrorama/travis/master/${ID}/\$releasever/\$basearch
 gpgcheck=0
 repo_gpgcheck=0
 enabled=1
 
 [bintray--astrorama-fedora-develop]
 name=bintray--astrorama-fedora-develop
-baseurl=https://dl.bintray.com/astrorama/travis/develop/fedora/\$releasever/\$basearch
+baseurl=https://dl.bintray.com/astrorama/travis/develop/${ID}/\$releasever/\$basearch
 gpgcheck=0
 repo_gpgcheck=0
 enabled=1
@@ -41,11 +46,12 @@ rpm_doc_deps=$(echo ${cmake_deps} | awk '{for(i=1;i<NF;i+=2){print $i "-doc-" $(
 yum install -y -q ${rpm_dev_deps} ${rpm_doc_deps}
 
 # Dependencies
-yum install -y -q @development-tools cmake gcc-c++ rpm-build
+yum install -y -q cmake make gcc-c++ rpm-build
 yum install -y -q boost-devel $PYTHON-pytest log4cpp-devel doxygen CCfits-devel
 yum install -y -q graphviz $PYTHON-sphinx $PYTHON-sphinxcontrib-apidoc
 yum install -y -q gmock-devel gtest-devel
 yum install -y -q ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel
+yum install -y -q ncurses-devel readline-devel
 
 # Build
 mkdir -p /build
