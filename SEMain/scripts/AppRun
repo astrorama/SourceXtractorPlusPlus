@@ -33,8 +33,14 @@ else
     PYTHON_VERSION=$(python -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
 fi
 
-PYTHON_LIBS="${APPDIR}/usr/lib64/python${PYTHON_VERSION}/"
+LIB="${APPDIR}/usr/lib"
+LIB64="${APPDIR}/usr/lib64"
 
-export PYTHONPATH="${PYTHON_LIBS}:${PYTHON_LIBS}/site-packages"
+PYTHON_LIB="${LIB}/python${PYTHON_VERSION}"
+PYTHON64_LIB="${LIB64}/python${PYTHON_VERSION}"
+
+export PYTHONPATH="${PYTHON_LIB}:${PYTHON_LIB}/site-packages:${PYTHON64_LIB}:${PYTHON64_LIB}/site-packages"
+export LD_LIBRARY_PATH="${LIB64}:${LIB}:${LIB64}/atlas:${LD_LIBRARY_PATH}"
+
 exec -a "${ARGV0}" "${APPDIR}/usr/bin/sextractor++" $@
 
