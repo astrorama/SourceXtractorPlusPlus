@@ -43,7 +43,10 @@ if (NOT NCURSES_FOUND OR NOT READLINE_FOUND)
     list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
     add_definitions("-DWITHOUT_NCURSES")
 else ()
-    set (NCURSES Ncurses Readline rt)
+    set (NCURSES Ncurses Readline)
+    if (CMAKE_SYSTEM_NAME MATCHES Linux)
+        list(APPEND NCURSES rt)
+    endif ()
 endif ()
 
 elements_add_library(SEMain ${LIB_SRC}
