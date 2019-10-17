@@ -25,10 +25,16 @@
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
 #include <iostream>
+#include <iomanip>
 #include <type_traits>
 
+#include <boost/lexical_cast.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/regex.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include <fitsio.h>
-#include <iomanip>
 
 #include "ElementsKernel/Exception.h"
 
@@ -61,6 +67,8 @@ public:
 
     m_width = naxes[0];
     m_height = naxes[1];
+
+    loadHeadFile();
   }
 
   FitsImageSource(const std::string &filename, int width, int height,
@@ -178,17 +186,22 @@ public:
 
   template <typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
-    auto fptr = m_manager->getFitsFile(m_filename);
-    switchHdu(fptr, m_hdu_number);
-
-    double keyword_value;
-    int status = 0;
-    fits_read_key(fptr, TDOUBLE, header_keyword.c_str(), &keyword_value, nullptr, &status);
-    if (status == 0) {
-      out_value = keyword_value;
+    if (m_header_overwrite.find(header_keyword) != m_header_overwrite.end()) {
+      out_value = boost::lexical_cast<TT>(m_header_overwrite.at(header_keyword));
       return true;
     } else {
-      return false;
+      auto fptr = m_manager->getFitsFile(m_filename);
+      switchHdu(fptr, m_hdu_number);
+
+      double keyword_value;
+      int status = 0;
+      fits_read_key(fptr, TDOUBLE, header_keyword.c_str(), &keyword_value, nullptr, &status);
+      if (status == 0) {
+        out_value = keyword_value;
+        return true;
+      } else {
+        return false;
+      }
     }
   }
 
@@ -209,6 +222,47 @@ private:
     }
   }
 
+  void loadHeadFile() {
+    auto filename =  boost::filesystem::path(m_filename);
+    auto base_name = filename.stem();
+    base_name.replace_extension(".head");
+    auto head_filename = filename.parent_path() / base_name;
+
+    int current_hdu = 1;
+
+    if (boost::filesystem::exists(head_filename)) {
+      std::ifstream file;
+
+      // open the file and check
+      file.open(head_filename.native());
+      if (!file.good() || !file.is_open()){
+        throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
+      }
+
+      while (file.good()) {
+        std::string line;
+        std::getline(file, line);
+
+        line = boost::regex_replace(line, boost::regex("\\s*#.*"), std::string(""));
+        line = boost::regex_replace(line, boost::regex("\\s*$"), std::string(""));
+
+        if (line.size() == 0) {
+          continue;
+        }
+
+        if (boost::to_upper_copy(line) == "END") {
+          current_hdu++;
+        } else if (current_hdu == m_hdu_number){
+          boost::smatch sub_matches;
+          if (boost::regex_match(line, sub_matches, boost::regex("(.+)=(.+)")) && sub_matches.size()==3) {
+            auto keyword = boost::to_upper_copy(sub_matches[1].str());
+            m_header_overwrite[keyword] = sub_matches[2];
+          }
+        }
+      }
+    }
+  }
+
   int getDataType() const;
   int getImageType() const;
 
@@ -219,6 +273,9 @@ private:
   int m_height;
 
   int m_hdu_number;
+
+
+  std::map<std::string, std::string> m_header_overwrite;
 };
 
 }
