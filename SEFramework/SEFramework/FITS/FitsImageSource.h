@@ -25,6 +25,7 @@
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <type_traits>
 
