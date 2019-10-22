@@ -34,7 +34,7 @@ namespace SExtractor {
 
 class WCS : public CoordinateSystem {
 public:
-  WCS(const std::string& fits_file_path);
+  WCS(const std::string& fits_file_path, int hdu_number = 1);
   virtual ~WCS();
 
   virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const;

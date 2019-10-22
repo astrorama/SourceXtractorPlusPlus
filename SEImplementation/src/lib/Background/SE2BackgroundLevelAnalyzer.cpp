@@ -32,7 +32,6 @@
 #include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/FitsWriter.h"
 #include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"

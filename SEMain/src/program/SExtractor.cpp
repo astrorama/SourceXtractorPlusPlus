@@ -38,7 +38,7 @@
 #include "SEFramework/Plugin/PluginManager.h"
 
 #include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
@@ -49,6 +49,8 @@
 
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
+
+#include "SEFramework/FITS/FitsFileManager.h"
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
@@ -353,12 +355,19 @@ public:
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
 
-    // Process the image
-    segmentation->processFrame(detection_frame);
+    try {
+      // Process the image
+      segmentation->processFrame(detection_frame);
 
-    // Flush source grouping buffer
-    SelectAllCriteria select_all_criteria;
-    source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+      // Flush source grouping buffer
+      SelectAllCriteria select_all_criteria;
+      source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+    }
+    catch (const std::exception &e) {
+      logger.error() << "Failed to process the frame! " << e.what();
+      measurement->waitForThreads();
+      return Elements::ExitCode::NOT_OK;
+    }
 
     measurement->waitForThreads();
 
@@ -367,6 +376,8 @@ public:
     CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    FitsFileManager::getInstance()->closeAllFiles();
+
     size_t n_writen_rows = output->flush();
 
     progress_mediator->done();

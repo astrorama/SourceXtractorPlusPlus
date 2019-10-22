@@ -22,6 +22,8 @@
  */
 
 #include <iostream>
+#include <sstream>
+
 #include <SEImplementation/Background/BackgroundAnalyzerFactory.h>
 #include <boost/filesystem.hpp>
 
@@ -79,7 +81,10 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
     } else {
       measurement_frame->setBackgroundLevel(background_model.getLevelMap());
     }
-    measurement_frame->setLabel(boost::filesystem::basename(image_info.m_path));
+
+    std::stringstream label;
+    label << boost::filesystem::basename(image_info.m_path) << "_" << image_info.m_image_hdu;
+    measurement_frame->setLabel(label.str());
 
     if (image_info.m_weight_image != nullptr) {
       if (image_info.m_absolute_weight) {

@@ -23,7 +23,7 @@
 #include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 

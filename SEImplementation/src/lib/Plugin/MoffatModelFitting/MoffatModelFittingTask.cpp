@@ -152,7 +152,18 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
   auto& variance_stamp = source.getProperty<DetectionFrameSourceStamp>().getVarianceStamp();
   auto& thresholded_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdedStamp();
+  auto& threshold_map_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdMapStamp();
   PixelCoordinate stamp_top_left = source.getProperty<DetectionFrameSourceStamp>().getTopLeft();
+
+  // Computes the minimum flux that a detection should have (min. detection threshold for every pixel)
+  // This will be used instead of lower or negative fluxes that can happen for various reasons
+  double min_flux = 0.;
+  auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  for (auto pixel : pixel_coordinates) {
+    pixel -= stamp_top_left;
+
+    min_flux += threshold_map_stamp.getValue(pixel);
+  }
 
   double pixel_scale = 1;
 
@@ -171,7 +182,9 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   double guess_x = pixel_centroid.getCentroidX() - stamp_top_left.m_x;
   double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
-  double exp_flux_guess = iso_flux / 2.0;
+
+  double exp_flux_guess = std::max<double>(iso_flux, min_flux);
+
   double exp_reff_guess = radius_guess;
   double exp_aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
   double exp_rot_guess = shape_parameters.getEllipseTheta();
@@ -201,7 +214,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
     }
   }
 
-  auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
   for (auto pixel : pixel_coordinates) {
     pixel -= stamp_top_left;
     weight->at(pixel.m_x, pixel.m_y) = 1;

@@ -34,7 +34,7 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Frame/Frame.h"
 

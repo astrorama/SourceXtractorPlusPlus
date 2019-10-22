@@ -21,8 +21,8 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Image/FitsWriter.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 
@@ -264,7 +264,7 @@ void CheckImages::saveImages() {
       filename += "_" + ci.first->getLabel();
       filename.replace_extension(m_residual_filename.extension());
       auto frame_filename = m_residual_filename.parent_path() / filename;
-      FitsWriter::writeFile(*residual_image, filename.native(), ci.first->getCoordinateSystem());
+      FitsWriter::writeFile(*residual_image, frame_filename.native(), ci.first->getCoordinateSystem());
     }
   }
 

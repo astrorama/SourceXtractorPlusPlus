@@ -19,10 +19,11 @@
  * @date 06/06/16
  * @author mschefer
  */
-#include <SEFramework/Image/MultiplyImage.h>
 #include "Configuration/ConfigManager.h"
 
-#include "SEFramework/Image/FitsReader.h"
+#include <SEFramework/Image/ProcessedImage.h>
+#include <SEFramework/Image/BufferedImage.h>
+#include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/CoordinateSystem/WCS.h"
 

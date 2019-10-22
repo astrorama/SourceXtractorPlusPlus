@@ -51,6 +51,7 @@ elements_add_library(SEFramework
                      src/lib/Filesystem/*.cpp
                      src/lib/Psf/*.cpp
                      src/lib/FFT/*.cpp
+                     src/lib/FITS/*.cpp
                      LINK_LIBRARIES ElementsKernel SEUtils Table Configuration ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
                      INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
@@ -104,9 +105,6 @@ elements_add_unit_test(SourceGrouping_test tests/src/Pipeline/SourceGrouping_tes
 elements_add_unit_test(Deblending_test tests/src/Pipeline/Deblending_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(ImageFitsReader_test tests/src/Image/FitsReader_test.cpp 
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
@@ -117,9 +115,6 @@ elements_add_unit_test(SimpleSource_test tests/src/Source/SimpleSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(TemporaryFile_test tests/src/Filesystem/TemporaryFile_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
-elements_add_unit_test(TemporaryFitsSource_test tests/src/Image/TemporaryFitsSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(VariablePsf_test tests/src/Psf/VariablePsf_test.cpp
@@ -159,6 +154,12 @@ elements_add_unit_test(TransformedAperture_test tests/src/Aperture/TransformedAp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(NeighbourInfo_test tests/src/Aperture/NeighbourInfo_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(ImageFitsReader_test tests/src/FITS/FitsReader_test.cpp 
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 
