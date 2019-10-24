@@ -14,28 +14,15 @@
  */    
 
 /**
- * @file SnrLevel.h
+ * @file CoreThresholdPartitionPlugin.cpp
  *
  * @date May 27, 2019
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SNRLEVEL_H_
-#define _SEIMPLEMENTATION_PLUGIN_SNRLEVEL_H_
-
-#include "SEFramework/Property/Property.h"
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionPlugin.h"
 
 namespace SExtractor {
-class SnrLevel : public Property {
-public:
-  virtual ~SnrLevel() = default;
-  SnrLevel(unsigned long n_snr_level) : m_n_snr_level(n_snr_level) {}
-  long int getSnrLevel () const {
-    return m_n_snr_level;
-  }
-private:
-  long int m_n_snr_level;
-}; // end of SnrLevel class
-} // namespace SExtractor
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_SNRLEVEL_H_*/
+  static StaticPlugin<CoreThresholdPartitionPlugin> n_core_pixels;
+}

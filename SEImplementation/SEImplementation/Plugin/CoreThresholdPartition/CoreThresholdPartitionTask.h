@@ -20,26 +20,26 @@
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SNRLEVELSOURCETASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_SNRLEVELSOURCETASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDTASK_H_
 
+#include "NCorePixel.h"
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEFramework/Task/SourceTask.h"
-#include "SEImplementation/Plugin/SnrLevel/SnrLevel.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 namespace SExtractor {
 
-class SnrLevelSourceTask : public SourceTask {
+class CoreThresholdPartitionTask : public SourceTask {
 
 public:
-  SnrLevelSourceTask(double snr_level): m_snr_level(snr_level) {};
+  CoreThresholdPartitionTask(double snr_level): m_snr_level(snr_level) {};
 
-  virtual ~SnrLevelSourceTask() = default;
+  virtual ~CoreThresholdPartitionTask() = default;
 
   virtual void computeProperties(SourceInterface& source) const {
     std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -47,7 +47,6 @@ public:
     long int n_snr_level=0;
 
     // get the detection frame and the SNR image
-    //const auto& detection_frame  = source.getProperty<DetectionFrame>().getFrame();
     const auto& snr_image    = source.getProperty<DetectionFrame>().getFrame()->getSnrImage();
 
     // go over all pixels
@@ -57,13 +56,13 @@ public:
 	n_snr_level += 1;
 
     // set the property
-    source.setProperty<SnrLevel>(n_snr_level);
+    source.setProperty<NCorePixel>(n_snr_level);
 };
 
 private:
   double m_snr_level;
 
-}; // End of SnrLevelSourceTask class
+}; // End of CoreThresholdTask class
 } // namespace SExtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SNRLEVELSOURCETASK_H_ */

@@ -20,33 +20,33 @@
  * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_SNRLEVELPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_SNRLEVELPLUGIN_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDPLUGIN_H_
 
+#include "CoreThresholdPartitionTaskFactory.h"
+#include "NCorePixel.h"
 #include "SEFramework/Plugin/Plugin.h"
-#include "SEImplementation/Plugin/SnrLevel/SnrLevelTaskFactory.h"
-#include "SnrLevel.h"
 
 namespace SExtractor {
-class SnrLevelPlugin : public Plugin {
+class CoreThresholdPartitionPlugin : public Plugin {
 public:
-  virtual ~SnrLevelPlugin() = default;
+  virtual ~CoreThresholdPartitionPlugin() = default;
   virtual void registerPlugin(PluginAPI& plugin_api) {
-    plugin_api.getTaskFactoryRegistry().registerTaskFactory<SnrLevelTaskFactory, SnrLevel>();
-    plugin_api.getOutputRegistry().registerColumnConverter<SnrLevel, int64_t>(
-            "n_snr_level",
-            [](const SnrLevel& prop){
-              return prop.getSnrLevel();
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<CoreThresholdPartitionTaskFactory, NCorePixel>();
+    plugin_api.getOutputRegistry().registerColumnConverter<NCorePixel, int64_t>(
+            "n_core_pixel",
+            [](const NCorePixel& prop){
+              return prop.getNCorePixel();
             },
             "[]",
-            "Number of pixels above a certain SNR-level"
+            "Number of core pixels used for partitioning"
     );
-    plugin_api.getOutputRegistry().enableOutput<SnrLevel>("SnrLevel");
+    plugin_api.getOutputRegistry().enableOutput<NCorePixel>("NCorePixel");
   }
   virtual std::string getIdString() const {
-    return "n_snr_level";
+    return "n_core_pixel";
   }
 private:
-}; // end of SnrLevelPlugin class
+}; // end of CoreThresholdPartitionPlugin class
 }  // namespace SExtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SNRLEVELPLUGIN_H_ */

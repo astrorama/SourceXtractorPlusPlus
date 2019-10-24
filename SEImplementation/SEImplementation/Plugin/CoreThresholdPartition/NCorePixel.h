@@ -14,15 +14,28 @@
  */    
 
 /**
- * @file SnrLevelPlugin.cpp
+ * @file SnrLevel.h
  *
  * @date May 27, 2019
  * @author mkuemmel@usm.lmu.de
  */
 
-#include "SEFramework/Plugin/StaticPlugin.h"
-#include "SEImplementation/Plugin/SnrLevel/SnrLevelPlugin.h"
+#ifndef _SEIMPLEMENTATION_PLUGIN_NCOREPIXEL_H_
+#define _SEIMPLEMENTATION_PLUGIN_NCOREPIXEL_H_
+
+#include "SEFramework/Property/Property.h"
 
 namespace SExtractor {
-  static StaticPlugin<SnrLevelPlugin> n_snr_level;
-}
+class NCorePixel : public Property {
+public:
+  virtual ~NCorePixel() = default;
+  NCorePixel(unsigned long n_core_pixel) : m_n_core_pixel(n_core_pixel) {}
+  long int getNCorePixel () const {
+    return m_n_core_pixel;
+  }
+private:
+  long int m_n_core_pixel;
+}; // end of NCorePixel class
+} // namespace SExtractor
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_NCOREPIXEL_H_*/

@@ -1,0 +1,68 @@
+/*
+ * SnrLevelConfig.cpp
+ *
+ *  Created on: May 28, 2019
+ *      Author: mkuemmel@usm.lmu.de
+ */
+
+#include <Configuration/ProgramOptionsHelper.h>
+
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionConfig.h"
+
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionStep.h"
+#include "SEImplementation/Configuration/PartitionStepConfig.h"
+#include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
+
+
+namespace po = boost::program_options;
+using namespace Euclid::Configuration;
+
+namespace SExtractor {
+
+static const std::string CORE_THRESHOLD   {"core-threshold-value" };
+static const std::string CORE_MINAREA     {"core-minimum-area" };
+static const std::string CORE_THRESH_USE {"partition-corethreshold" };
+
+CoreThresholdPartitionConfig::CoreThresholdPartitionConfig(long manager_id): Configuration(manager_id) {
+  declareDependency<PartitionStepConfig>();
+
+  ConfigManager::getInstance(manager_id).registerDependency<CoreThresholdPartitionConfig, MultiThresholdPartitionConfig>();
+}
+
+std::map<std::string, Configuration::OptionDescriptionList> CoreThresholdPartitionConfig::getProgramOptions() {
+  return {{"Core threshold partitioning", {
+      {CORE_THRESHOLD.c_str(), po::value<double>()->default_value(0.0), "The core threshold level"},
+      {CORE_MINAREA.c_str(), po::value<int>()->default_value(0), "The minimum pixel area for partitioning"},
+      {CORE_THRESH_USE.c_str(), po::bool_switch(), "Activate core threshold partitioning"}
+  }}};
+}
+
+void CoreThresholdPartitionConfig::initialize(const UserValues &args) {
+  m_core_threshold = args.find(CORE_THRESHOLD)->second.as<double>();
+  m_core_minarea   = args.find(CORE_MINAREA)->second.as<int>();
+
+  if (m_core_threshold < 0) {
+    throw Elements::Exception() << "Invalid " << CORE_THRESHOLD << " value: " << m_core_threshold;
+  }
+  if (m_core_minarea <= 0) {
+    throw Elements::Exception() << "Invalid " << CORE_MINAREA << " value: " << m_core_minarea;
+  }
+
+  if (m_core_minarea > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()){
+
+    double core_threshold = m_core_threshold;
+    int core_minarea      = m_core_minarea;
+    getDependency<PartitionStepConfig>().addPartitionStepCreator([core_threshold, core_minarea](std::shared_ptr<SourceFactory>)
+        { return std::make_shared<CoreThresholdPartitionStep>(core_threshold, core_minarea); } );
+  }
+}
+
+const double& CoreThresholdPartitionConfig::getCoreThreshold() const {
+  return m_core_threshold;
+}
+
+const int& CoreThresholdPartitionConfig::getCoreMinArea() const {
+  return m_core_minarea;
+}
+
+} // end SExtractor
