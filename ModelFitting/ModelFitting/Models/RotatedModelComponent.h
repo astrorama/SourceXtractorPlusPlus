@@ -48,7 +48,7 @@ public:
    *    Rotation is done anti-clockwise!
    */
   RotatedModelComponent(std::unique_ptr<ModelComponent> component,
-                        BasicParameter& rotation_angle);
+      std::shared_ptr<BasicParameter> rotation_angle);
 
   RotatedModelComponent(RotatedModelComponent&& other);
             
@@ -65,10 +65,11 @@ public:
 private:
   
   std::unique_ptr<ModelComponent> m_component;
-  double m_rotation_angle;
+  std::shared_ptr<BasicParameter> m_rotation_angle;
+
+  //FIXME!!!!!!!!!!!!!! auto update those
   double m_cos;
   double m_sin;
-  ReferenceUpdater m_rotation_angle_updater;
   
 }; // end of class RotatedModelComponent
 

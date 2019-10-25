@@ -36,9 +36,9 @@ BOOST_AUTO_TEST_SUITE (SersicProfile_test)
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE (SersicProfile_test) {
-  ManualParameter exp_i0 {12.};
-  ManualParameter exp_n {1.};
-  ManualParameter exp_k {1.};
+  auto exp_i0 = std::make_shared<ManualParameter>(12.);
+  auto exp_n = std::make_shared<ManualParameter>(1.);
+  auto exp_k = std::make_shared<ManualParameter>(1.);
   SersicProfile profile(exp_i0, exp_n, exp_k);
   BOOST_CHECK(isClose(profile(10.), 0.0005447991571498182));
 }
@@ -46,12 +46,12 @@ BOOST_AUTO_TEST_CASE (SersicProfile_test) {
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE (SersicProfile_update_test) {
-  ManualParameter exp_i0 {12.};
-  ManualParameter exp_n {1.};
-  ManualParameter exp_k {1.};
+  auto exp_i0 = std::make_shared<ManualParameter>(12.);
+  auto exp_n = std::make_shared<ManualParameter>(1.);
+  auto exp_k = std::make_shared<ManualParameter>(1.);
   SersicProfile profile(exp_i0, exp_n, exp_k);
 
-  exp_i0.setValue(60);
+  exp_i0->setValue(60);
 
   BOOST_CHECK(isClose(profile(10.), 0.002723995785749091));
 }

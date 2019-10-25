@@ -86,7 +86,7 @@ public:
    * @param parameter
    *    The EngineParameter to register to the manager
    */
-  void registerParameter(EngineParameter parameter);
+  void registerParameter(std::shared_ptr<EngineParameter> parameter);
   
   /// Returns the number of parameters managed by the manager
   std::size_t numberOfParameters();
@@ -137,7 +137,7 @@ public:
 
 private:
   
-  std::vector<EngineParameter> m_parameters {};
+  std::vector<std::shared_ptr<EngineParameter>> m_parameters {};
   
 }; // end of class EngineParameterManager
 

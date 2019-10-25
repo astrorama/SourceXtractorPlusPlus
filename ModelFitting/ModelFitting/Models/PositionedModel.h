@@ -32,7 +32,7 @@ class PositionedModel {
   
 public:
   
-  PositionedModel(BasicParameter& x, BasicParameter& y);
+  PositionedModel(std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y);
           
   PositionedModel(PositionedModel&& other);
 
@@ -43,12 +43,9 @@ public:
   double getY() const;
   
 private:
-  
-  double m_x;
-  double m_y;
-  ReferenceUpdater m_x_updater;
-  ReferenceUpdater m_y_updater;
-  
+  std::shared_ptr<BasicParameter> m_x;
+  std::shared_ptr<BasicParameter> m_y;
+
 }; // end of class ConstantModel
 
 } // end of namespace ModelFitting

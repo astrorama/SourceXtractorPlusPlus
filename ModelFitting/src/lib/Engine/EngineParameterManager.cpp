@@ -26,7 +26,7 @@ namespace ModelFitting {
 
 EngineParameterManager::~EngineParameterManager() = default;
 
-void EngineParameterManager::registerParameter(EngineParameter parameter) {
+void EngineParameterManager::registerParameter(std::shared_ptr<EngineParameter> parameter) {
   m_parameters.emplace_back(std::move(parameter));
 }
 
@@ -42,7 +42,7 @@ std::vector<double> EngineParameterManager::convertCovarianceMatrixToWorldSpace(
   for (int j=0; j*j < covariance_matrix.size(); j++) {
     for (int i=0; i*i < covariance_matrix.size(); i++) {
       converted_matrix.push_back(*iter *
-          m_parameters[i].getEngineToWorldDerivative() * m_parameters[j].getEngineToWorldDerivative());
+          m_parameters[i]->getEngineToWorldDerivative() * m_parameters[j]->getEngineToWorldDerivative());
 
       iter++;
     }

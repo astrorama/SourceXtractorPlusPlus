@@ -41,7 +41,8 @@ BOOST_AUTO_TEST_SUITE (ScaledModelComponent_test)
 BOOST_AUTO_TEST_CASE (ScaledModelComponent_noop_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter scale_x{1.}, scale_y{1.};
+  auto scale_x = std::make_shared<ManualParameter>(1);
+  auto scale_y = std::make_shared<ManualParameter>(1);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
   auto target = raster(scaled_model_component, 5);
 
@@ -61,7 +62,8 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_noop_test) {
 BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter scale_x{2.}, scale_y{2.};
+  auto scale_x = std::make_shared<ManualParameter>(2.);
+  auto scale_y = std::make_shared<ManualParameter>(2.);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
 
   auto target = raster(scaled_model_component, 5);
@@ -84,7 +86,8 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_test) {
 BOOST_AUTO_TEST_CASE (ScaledModelComponent_thrice_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter scale_x{3.}, scale_y{3.};
+  auto scale_x = std::make_shared<ManualParameter>(3.);
+  auto scale_y = std::make_shared<ManualParameter>(3.);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
 
   auto target = raster(scaled_model_component, 5);
@@ -108,7 +111,8 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_x_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(2., 1., LinearModelComponent::Decay::BOTH);
   auto reference = raster(*linear_model_component, 5);
 
-  ManualParameter scale_x{2.}, scale_y{1.};
+  auto scale_x = std::make_shared<ManualParameter>(2.);
+  auto scale_y = std::make_shared<ManualParameter>(1.);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
 
   auto target = raster(scaled_model_component, 7);
@@ -147,7 +151,8 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_2_test) {
 
   BOOST_CHECK(compareCollections(reference_expected, reference, 1e-8, 1e-2));
 
-  ManualParameter scale_x{2.}, scale_y{2.};
+  auto scale_x = std::make_shared<ManualParameter>(2.);
+  auto scale_y = std::make_shared<ManualParameter>(2.);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
   scaled_model_component.updateRasterizationInfo(1., 10.);
 
@@ -180,7 +185,8 @@ BOOST_AUTO_TEST_CASE (ScaledModelComponent_twice_sharp_test) {
 
   BOOST_CHECK(compareCollections(reference_expected, reference, 1e-8, 1e-2));
 
-  ManualParameter scale_x{2.}, scale_y{2.};
+  auto scale_x = std::make_shared<ManualParameter>(2.);
+  auto scale_y = std::make_shared<ManualParameter>(2.);
   ScaledModelComponent scaled_model_component(std::move(linear_model_component), scale_x, scale_y);
   scaled_model_component.updateRasterizationInfo(1., 10.);
 

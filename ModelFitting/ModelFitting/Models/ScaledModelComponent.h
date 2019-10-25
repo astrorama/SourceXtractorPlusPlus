@@ -53,7 +53,7 @@ public:
    *    Scale for the Y axis
    */
   ScaledModelComponent(std::unique_ptr<ModelComponent> component,
-                       BasicParameter& x_scale, BasicParameter& y_scale);
+                       std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale);
 
   ScaledModelComponent(ScaledModelComponent&& other);
             
@@ -70,11 +70,9 @@ public:
 private:
   
   std::unique_ptr<ModelComponent> m_component;
-  double m_x_scale;
-  double m_y_scale;
-  ReferenceUpdater m_x_scale_updater;
-  ReferenceUpdater m_y_scale_updater;
-  
+
+  std::shared_ptr<BasicParameter> m_x_scale;
+  std::shared_ptr<BasicParameter> m_y_scale;
 }; // end of class ScaledModelComponent
 
 } // end of namespace ModelFitting

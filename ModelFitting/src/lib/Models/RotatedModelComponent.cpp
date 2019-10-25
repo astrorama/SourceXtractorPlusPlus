@@ -27,29 +27,17 @@
 namespace ModelFitting {
 
 RotatedModelComponent::RotatedModelComponent(std::unique_ptr<ModelComponent> component,
-                                             BasicParameter& rotation_angle)
+      std::shared_ptr<BasicParameter> rotation_angle)
         : m_component {std::move(component)},
-          m_rotation_angle{rotation_angle.getValue()},
-          m_cos{std::cos(m_rotation_angle)},
-          m_sin{std::sin(m_rotation_angle)},
-          m_rotation_angle_updater{rotation_angle, m_rotation_angle,
-                                   ReferenceUpdater::PreAction{},
-                                   [this](double) {
-                                     m_cos = std::cos(m_rotation_angle);
-                                     m_sin = std::sin(m_rotation_angle);
-                                   }} {
+          m_rotation_angle{rotation_angle},
+          m_cos{std::cos(m_rotation_angle->getValue())},
+          m_sin{std::sin(m_rotation_angle->getValue())} {
 }
 
 RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
         : m_component {std::move(other.m_component)},
           m_rotation_angle{other.m_rotation_angle},
-          m_cos{other.m_cos}, m_sin{other.m_sin},
-          m_rotation_angle_updater{other.m_rotation_angle_updater.getParameter(),
-                                   m_rotation_angle, ReferenceUpdater::PreAction{},
-                                   [this](double) {
-                                     m_cos = std::cos(m_rotation_angle);
-                                     m_sin = std::sin(m_rotation_angle);
-                                   }} {
+          m_cos{other.m_cos}, m_sin{other.m_sin} {
 }
 
 RotatedModelComponent::~RotatedModelComponent() = default;
