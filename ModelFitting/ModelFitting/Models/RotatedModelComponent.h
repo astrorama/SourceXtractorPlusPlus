@@ -25,7 +25,6 @@
 
 #include <memory> // for std::unique_ptr
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 #include "ModelFitting/Models/ModelComponent.h"
 
 namespace ModelFitting {
@@ -67,10 +66,10 @@ private:
   std::unique_ptr<ModelComponent> m_component;
   std::shared_ptr<BasicParameter> m_rotation_angle;
 
-  //FIXME!!!!!!!!!!!!!! auto update those
   double m_cos;
   double m_sin;
-  
+  std::size_t m_observer_id;
+
 }; // end of class RotatedModelComponent
 
 } // end of namespace ModelFitting

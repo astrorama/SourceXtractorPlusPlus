@@ -24,7 +24,6 @@
 #define	MODELFITTING_POSITIONEDMODEL_H
 
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 

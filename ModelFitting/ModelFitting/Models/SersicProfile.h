@@ -24,7 +24,6 @@
 #define	MODELFITTING_SERSICPROFILEPROJECTION_H
 
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 

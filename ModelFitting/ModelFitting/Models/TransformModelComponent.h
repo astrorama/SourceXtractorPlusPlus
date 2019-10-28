@@ -26,7 +26,6 @@
 
 #include <memory> // for std::unique_ptr
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 #include "ModelFitting/Models/ModelComponent.h"
 
 namespace ModelFitting {

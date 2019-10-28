@@ -32,6 +32,10 @@ RotatedModelComponent::RotatedModelComponent(std::unique_ptr<ModelComponent> com
           m_rotation_angle{rotation_angle},
           m_cos{std::cos(m_rotation_angle->getValue())},
           m_sin{std::sin(m_rotation_angle->getValue())} {
+  m_observer_id = rotation_angle->addObserver([this](double v){
+    m_cos = std::cos(v);
+    m_sin = std::sin(v);
+  });
 }
 
 RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
@@ -40,7 +44,9 @@ RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
           m_cos{other.m_cos}, m_sin{other.m_sin} {
 }
 
-RotatedModelComponent::~RotatedModelComponent() = default;
+RotatedModelComponent::~RotatedModelComponent() {
+  m_rotation_angle->removeObserver(m_observer_id);
+}
 
 double RotatedModelComponent::getValue(double x, double y) {
   double new_x = x * m_cos - y * m_sin;

@@ -57,9 +57,9 @@ elements_add_unit_test(EngineParameter_test
                        tests/src/Parameters/EngineParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )   
                        
-#elements_add_unit_test(DependentParameter_test              
-#                       tests/src/Parameters/DependentParameter_test.cpp
-#                       LINK_LIBRARIES ModelFitting TYPE Boost )
+elements_add_unit_test(DependentParameter_test              
+                       tests/src/Parameters/DependentParameter_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
 
 elements_add_unit_test(SersicProfile_test
                        tests/src/Models/SersicProfile_test.cpp
