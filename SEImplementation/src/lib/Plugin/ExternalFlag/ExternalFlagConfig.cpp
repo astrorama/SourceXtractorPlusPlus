@@ -54,7 +54,7 @@ auto ExternalFlagConfig::getProgramOptions() -> std::map<std::string, OptionDesc
   return {{"External flag options", {
       {poh::wildcard(FLAG_IMAGE).c_str(), po::value<std::string>(),
           "The FITS file containing the external flag"},
-      {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>()->default_value("OR"),
+      {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>(),
           "The combination type of the external flag (OR, AND, MIN, MAX, MOST)"}
   }}};
 }
