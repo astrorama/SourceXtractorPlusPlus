@@ -23,7 +23,7 @@ import sys
 
 from astropy.io import fits
 
-import _SExtractorPy as cpp
+import _SourceXtractorPy as cpp
 
 if sys.version_info.major < 3:
     from StringIO import StringIO
@@ -36,7 +36,7 @@ measurement_images = {}
 
 class MeasurementImage(cpp.MeasurementImage):
     """
-    A MeasurementImage is the processing unit for SExtractor++. Measurements and model fitting can be done
+    A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
 
     Parameters

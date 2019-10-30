@@ -87,7 +87,7 @@ static int interceptFileDescriptor(int old_fd, int *backup_fd) {
 
 /**
  * But why? You may ask. Because it looks like before Python 3.7, when loading the
- * sextractor++ Python configuration, something would trigger the loading of readline, which in turns
+ * SourceXtractor++ Python configuration, something would trigger the loading of readline, which in turns
  * tries to get the terminal size, overwriting LINES and COLS and leaving them with the default 80x24
  * (Maybe because we intercept stderr/stdout?)
  * This leaves our ncurses UI in a bad shape, not being able to properly go back to the former state at exiting.

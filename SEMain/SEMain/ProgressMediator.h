@@ -44,7 +44,7 @@ typedef Observable<bool> DoneObservable;
 
 /**
  * @class ProgressMediator
- * This class provides concrete observers for different steps of SExtractor,
+ * This class provides concrete observers for different steps of SourceXtractor,
  * so it can keep count of the progress.
  * It will wrap up this information and pass it along to an agnostic ProgressReporter.
  */

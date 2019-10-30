@@ -60,6 +60,6 @@ private:
   cv::Mat m_kernel;// (size, size, CV_32F);
 };
 
-} // end of Sextractor
+} // end of SourceXtractor
 
 #endif // _SEFRAMEWORK_CONVOLUTION_OPENCVCONVOLUTION_H

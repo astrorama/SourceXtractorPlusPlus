@@ -180,7 +180,7 @@ CheckImages::getModelFittingImage(std::shared_ptr<const SourceXtractor::Measurem
 
     if (m_model_fitting_image_filename.empty()) {
       writeable_image = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
-        "sextractor_check_model_%%%%%%.fits",
+        "sourcextractor_check_model_%%%%%%.fits",
         frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight()
       );
     } else {

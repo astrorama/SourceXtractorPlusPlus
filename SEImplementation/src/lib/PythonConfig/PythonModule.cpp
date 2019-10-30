@@ -33,7 +33,7 @@ namespace bp = boost::python;
 
 namespace SourceXtractor {
 
-BOOST_PYTHON_MODULE(_SExtractorPy) {
+BOOST_PYTHON_MODULE(_SourceXtractorPy) {
 
   bp::class_<PyOutputWrapper, boost::noncopyable>("OutputWrapper",
     "A file-like object used to wrap stdout and stderr", bp::no_init)
@@ -55,7 +55,7 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def("writelines", &PyOutputWrapper::writelines);
 
   bp::class_<ObjectInfo>("ObjectInfo",
-    "A source detected by SExtractor after the segmentation and deblending", bp::init<SourceInterface&>())
+    "A source detected by SourceXtractor++ after the segmentation and deblending", bp::init<SourceInterface&>())
       .def("get_centroid_x", &ObjectInfo::getCentroidX, "Get the X coordinate of the pixel centroid")
       .def("get_centroid_y", &ObjectInfo::getCentroidY, "Get the Y coordinate of the pixel centroid")
       .def("get_iso_flux", &ObjectInfo::getIsoFlux, "Get the isophotal flux")

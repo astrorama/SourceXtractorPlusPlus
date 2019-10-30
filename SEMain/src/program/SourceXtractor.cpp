@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file src/program/SExtractor.cpp
+ * @file src/program/SourceXtractor.cpp
  * @date 05/31/16
  * @author mschefer
  */
@@ -27,6 +27,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <SEMain/SourceXtractorConfig.h>
 
 #include "ElementsKernel/Main.h"
 #include "ElementsKernel/System.h"
@@ -81,7 +82,6 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
-#include "SEMain/SExtractorConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"
 #include "SEMain/Sorter.h"
@@ -117,7 +117,7 @@ public:
   std::list<std::shared_ptr<SourceWithOnDemandProperties>> m_list;
 };
 
-static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
+static Elements::Logging logger = Elements::Logging::getLogger("SourceXtractor");
 
 static void setupEnvironment(void) {
   // Some parts of boost (including boost::filesystem) can throw an exception when the
@@ -167,7 +167,7 @@ public:
   po::options_description getConfigParameters() {
     if (!config_initialized) {
       auto& config_manager = ConfigManager::getInstance(config_manager_id);
-      config_manager.registerConfiguration<SExtractorConfig>();
+      config_manager.registerConfiguration<SourceXtractorConfig>();
       config_manager.registerConfiguration<BackgroundConfig>();
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
@@ -512,7 +512,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
 
-  // This adds the current directory as a valid location for the default "sextractor++.conf" configuration
+  // This adds the current directory as a valid location for the default "sourcextractor++.conf" configuration
   Elements::TempEnv local_env;
   if (local_env["ELEMENTS_CONF_PATH"].empty()) {
     local_env["ELEMENTS_CONF_PATH"] = ".";
