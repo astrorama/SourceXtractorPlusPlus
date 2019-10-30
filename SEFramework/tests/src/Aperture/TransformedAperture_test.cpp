@@ -22,7 +22,7 @@
 #include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 
 BOOST_AUTO_TEST_SUITE (Aperture_test)

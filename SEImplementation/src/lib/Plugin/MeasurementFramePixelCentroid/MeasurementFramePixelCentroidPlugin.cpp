@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroidPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<MeasurementFramePixelCentroidPlugin> measurement_frame_pixel_centroid_plugin;
 

@@ -24,7 +24,7 @@
 
 #include "SEUtils/PixelCoordinate.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

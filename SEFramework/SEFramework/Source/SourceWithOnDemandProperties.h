@@ -28,7 +28,7 @@
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TaskProvider;
 
@@ -77,6 +77,6 @@ private:
   PropertyHolder m_property_holder;
 }; /* End of Source class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif

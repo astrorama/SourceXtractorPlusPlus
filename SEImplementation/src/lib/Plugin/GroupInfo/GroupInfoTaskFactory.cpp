@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoTask.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void GroupInfoTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
 }

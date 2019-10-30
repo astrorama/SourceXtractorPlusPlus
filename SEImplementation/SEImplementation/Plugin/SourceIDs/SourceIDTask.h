@@ -28,7 +28,7 @@
 #include "SEImplementation/Property/SourceId.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceIDTask : public SourceTask {
 
@@ -50,6 +50,6 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDTASK_H_ */

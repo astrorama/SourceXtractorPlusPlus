@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Image/ImagePsf.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFittingTask : public SourceTask {
 

@@ -30,7 +30,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEFramework/Source/SimpleSourceFactory.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:

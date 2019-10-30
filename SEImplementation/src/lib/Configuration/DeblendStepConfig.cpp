@@ -21,7 +21,7 @@
 
 #include <SEImplementation/Configuration/DeblendStepConfig.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 DeblendStepConfig::DeblendStepConfig(long manager_id) : Configuration(manager_id) {
 }
@@ -44,4 +44,4 @@ std::vector<std::shared_ptr<DeblendStep>> DeblendStepConfig::getSteps(std::share
   return result;
 }
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */

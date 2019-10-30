@@ -32,7 +32,7 @@
 
 #include "SEFramework/Pipeline/Measurement.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultithreadedMeasurement : public Measurement {
 public:

@@ -25,7 +25,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SE2BackgroundConfig : public Euclid::Configuration::Configuration {
   
@@ -53,7 +53,7 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_SE2BACKGROUNDCONFIG_H */
 

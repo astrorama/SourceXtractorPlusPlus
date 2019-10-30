@@ -89,7 +89,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-using namespace SExtractor;
+using namespace SourceXtractor;
 using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();

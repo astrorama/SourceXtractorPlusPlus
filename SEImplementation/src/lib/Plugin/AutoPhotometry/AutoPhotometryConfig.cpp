@@ -29,7 +29,7 @@
 namespace po = boost::program_options;
 using poh = Euclid::Configuration::ProgramOptionsHelper;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
 const std::string AUTO_KRON_FACTOR {"auto-kron-factor"};
@@ -55,4 +55,4 @@ SeFloat AutoPhotometryConfig::getAutoKronMinrad() const {
   return m_kron_minrad;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

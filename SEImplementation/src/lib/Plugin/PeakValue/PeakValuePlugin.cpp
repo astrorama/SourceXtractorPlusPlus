@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/PeakValue/PeakValuePlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<PeakValuePlugin> peak_value_plugin;
 

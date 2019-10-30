@@ -26,7 +26,7 @@
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PartitionStep
@@ -74,7 +74,7 @@ private:
 
 }; /* End of Partition class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

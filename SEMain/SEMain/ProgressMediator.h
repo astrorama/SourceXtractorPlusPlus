@@ -30,7 +30,7 @@
 #include <atomic>
 #include <mutex>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 struct ProgressInfo {
   std::string m_label;
@@ -109,6 +109,6 @@ private:
   class GroupCounter;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_PROGRESSLISTENER_H

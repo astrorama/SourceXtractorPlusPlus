@@ -30,7 +30,7 @@
 #include "SEFramework/Image/ImageSource.h"
 #include "SEImplementation/Background/SplineModel.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class TypedSplineModelWrapper final : public ImageSource<T> {
@@ -101,7 +101,7 @@ private:
   SplineModel* m_spline_model=nullptr;
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif	// TYPEDSPLINEMODELWRAPPER_H
 

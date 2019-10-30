@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Elements::Logging model_fitting_logger = Elements::Logging::getLogger("ModelFitting");
 

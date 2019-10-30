@@ -31,7 +31,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Source/SourceFlags.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 extern Elements::Logging model_fitting_logger;
 

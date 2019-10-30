@@ -24,7 +24,7 @@
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void TaskFactoryRegistry::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   // Reports the config dependencies for every TaskFactory that was registered

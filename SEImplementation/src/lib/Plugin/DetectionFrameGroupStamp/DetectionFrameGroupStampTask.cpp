@@ -34,7 +34,7 @@
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group) const {
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);

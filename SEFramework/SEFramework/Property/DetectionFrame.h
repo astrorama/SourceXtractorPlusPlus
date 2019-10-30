@@ -30,7 +30,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DetectionFrame : public Property {
 public:

@@ -41,7 +41,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlagSourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SaturateFlagTaskFactory : public TaskFactory {
 public:
@@ -59,5 +59,5 @@ public:
   }
 }; // end of SourceFlagsTaskFactory class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SATURATEFLAGTASKFACTORY_H_ */

@@ -27,7 +27,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AutoPhotometryTask : public SourceTask {
 public:

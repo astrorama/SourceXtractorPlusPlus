@@ -27,7 +27,7 @@
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void SourceIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   if (m_check_image) {

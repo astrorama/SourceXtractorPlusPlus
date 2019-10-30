@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<IsophotalFluxPlugin> isophotal_flux_plugin;
 

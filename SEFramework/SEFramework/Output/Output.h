@@ -28,7 +28,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Output :
     public Observer<std::shared_ptr<SourceInterface>>,

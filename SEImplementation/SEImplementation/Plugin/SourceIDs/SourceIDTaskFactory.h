@@ -28,7 +28,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceIDTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceIDTaskFactory : public TaskFactory {
 public:

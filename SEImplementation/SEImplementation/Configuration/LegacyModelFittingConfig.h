@@ -26,7 +26,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class LegacyModelFittingConfig : public Euclid::Configuration::Configuration {
 
@@ -49,7 +49,7 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

@@ -31,7 +31,7 @@
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class TaskFactory
@@ -61,7 +61,7 @@ private:
 
 }; /* End of TaskFactory class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

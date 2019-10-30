@@ -33,7 +33,7 @@
 
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<DetectionImageConfig>();
@@ -49,7 +49,7 @@ SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) 
   declareDependency<PluginConfig>();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

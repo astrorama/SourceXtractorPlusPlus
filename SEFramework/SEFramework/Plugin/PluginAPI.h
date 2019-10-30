@@ -28,7 +28,7 @@
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PluginAPI

@@ -24,7 +24,7 @@
 #ifndef _SEUTILS_TYPES_H_
 #define _SEUTILS_TYPES_H_
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using SeFloat32 = float;
 using SeFloat64 = double;

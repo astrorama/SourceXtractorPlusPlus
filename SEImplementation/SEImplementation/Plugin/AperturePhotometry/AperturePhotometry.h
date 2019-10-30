@@ -29,7 +29,7 @@
 #include "SEFramework/Source/SourceFlags.h"
 #include <vector>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class AperturePhotometry
@@ -76,6 +76,6 @@ private:
   std::vector<Flags> m_flag;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRY_H_ */

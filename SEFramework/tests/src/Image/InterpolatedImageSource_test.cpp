@@ -27,7 +27,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct InterpolatedImageSourceFixture {
   std::shared_ptr<VectorImage<SeFloat>> m_image;

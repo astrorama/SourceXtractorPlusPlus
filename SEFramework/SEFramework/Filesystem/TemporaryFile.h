@@ -26,7 +26,7 @@
 
 #include <string>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TemporaryFile {
 public:

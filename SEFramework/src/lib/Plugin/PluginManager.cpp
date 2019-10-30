@@ -38,7 +38,7 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::vector<std::unique_ptr<Plugin>> PluginManager::s_static_plugins;
 

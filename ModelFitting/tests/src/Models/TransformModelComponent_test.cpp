@@ -31,7 +31,7 @@
 #include "TestHelper.h"
 
 using namespace ModelFitting;
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

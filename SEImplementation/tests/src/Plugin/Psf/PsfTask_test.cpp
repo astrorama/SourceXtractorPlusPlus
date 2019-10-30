@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 void checkEqual(const std::shared_ptr<const Image<SeFloat>> &a, const  std::shared_ptr<const Image<SeFloat>> &b) {
   BOOST_REQUIRE_EQUAL(a->getWidth(), b->getWidth());

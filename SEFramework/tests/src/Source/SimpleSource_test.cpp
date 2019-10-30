@@ -26,7 +26,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Source/SimpleSource.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Example Property containing an int
 class SimpleIntProperty : public Property {

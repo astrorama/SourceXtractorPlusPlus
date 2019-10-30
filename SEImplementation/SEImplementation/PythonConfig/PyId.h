@@ -25,7 +25,7 @@
 #include <atomic>
 #include <map>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PyId {
 public:

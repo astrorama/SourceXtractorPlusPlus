@@ -34,7 +34,7 @@
 #include "SEFramework/Convolution/Convolution.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ImagePsf: public DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> {
 private:
@@ -64,8 +64,8 @@ public:
     return getWidth();
   }
 
-  std::shared_ptr<VectorImage<SExtractor::SeFloat>> getScaledKernel(SeFloat scale) const {
-    return VectorImage<SeFloat>::create(*MultiplyImage<SExtractor::SeFloat>::create(getKernel(), scale));
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> getScaledKernel(SeFloat scale) const {
+    return VectorImage<SeFloat>::create(*MultiplyImage<SourceXtractor::SeFloat>::create(getKernel(), scale));
   }
 
 private:
@@ -73,7 +73,7 @@ private:
 
 };
 
-} // end of SExtractor
+} // end of SourceXtractor
 
 namespace ModelFitting {
 
@@ -81,8 +81,8 @@ namespace ModelFitting {
  * Specialization of PsfTraits, as DFTConvolution has the concept of context
  */
 template<>
-struct PsfTraits<SExtractor::ImagePsf> {
-  using context_t = typename std::unique_ptr<SExtractor::ImagePsf::ConvolutionContext>;
+struct PsfTraits<SourceXtractor::ImagePsf> {
+  using context_t = typename std::unique_ptr<SourceXtractor::ImagePsf::ConvolutionContext>;
   static constexpr bool has_context = true;
 };
 

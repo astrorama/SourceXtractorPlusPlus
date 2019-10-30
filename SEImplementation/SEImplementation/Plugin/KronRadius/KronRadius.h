@@ -27,7 +27,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class KronRadius
@@ -57,6 +57,6 @@ private:
   long int m_flag;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_KRONRADIUS_KRONRADIUS_H_ */

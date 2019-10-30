@@ -38,7 +38,7 @@
 #include "SEFramework/Aperture/CircularAperture.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
 const SeFloat CROWD_THRESHOLD_APER = 0.1;

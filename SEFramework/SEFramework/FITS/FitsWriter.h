@@ -31,7 +31,7 @@
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/FITS/TemporaryFitsImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static Elements::Logging fitsWriterLogger = Elements::Logging::getLogger("FitsWriter");
 
@@ -81,7 +81,7 @@ public:
 
 }; /* End of FitsReader class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

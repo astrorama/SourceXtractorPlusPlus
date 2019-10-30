@@ -25,10 +25,10 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryArrayTask.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
-void AutoPhotometryArrayTask::computeProperties(SExtractor::SourceInterface &source) const {
+void AutoPhotometryArrayTask::computeProperties(SourceXtractor::SourceInterface &source) const {
   std::vector<AutoPhotometry> measurements;
   for (auto img : m_images) {
     measurements.emplace_back(source.getProperty<AutoPhotometry>(img));
@@ -37,4 +37,4 @@ void AutoPhotometryArrayTask::computeProperties(SExtractor::SourceInterface &sou
 }
 
 
-} // end SExtractor
+} // end SourceXtractor

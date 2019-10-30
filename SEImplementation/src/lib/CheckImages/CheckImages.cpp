@@ -28,7 +28,7 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::unique_ptr<CheckImages> CheckImages::m_instance;
 
@@ -167,7 +167,7 @@ CheckImages::getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame
 }
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
+CheckImages::getModelFittingImage(std::shared_ptr<const SourceXtractor::MeasurementImageFrame> frame) {
   if (m_model_fitting_image_filename.empty() && m_residual_filename.empty()) {
     return nullptr;
   }
@@ -201,7 +201,7 @@ CheckImages::getModelFittingImage(std::shared_ptr<const SExtractor::MeasurementI
 }
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-CheckImages::getPsfImage(std::shared_ptr<const SExtractor::MeasurementImageFrame> frame) {
+CheckImages::getPsfImage(std::shared_ptr<const SourceXtractor::MeasurementImageFrame> frame) {
   if (m_psf_filename.empty()) {
     return nullptr;
   }

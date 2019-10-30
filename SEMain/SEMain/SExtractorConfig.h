@@ -25,7 +25,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SExtractorConfig
@@ -45,7 +45,7 @@ public:
 
 }; /* End of SExtractorConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

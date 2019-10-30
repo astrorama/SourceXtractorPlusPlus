@@ -32,7 +32,7 @@
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Property/PropertyHolder.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceGroupWithOnDemandProperties
@@ -169,6 +169,6 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif

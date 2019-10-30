@@ -34,7 +34,7 @@ static Elements::Logging logger = Elements::Logging::getLogger("Python::Interpre
 static Elements::Logging stdout_logger = Elements::Logging::getLogger("Python::stdout");
 static Elements::Logging stderr_logger = Elements::Logging::getLogger("Python::stderr");
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 PythonInterpreter &PythonInterpreter::getSingleton() {
   static PythonInterpreter singleton{};

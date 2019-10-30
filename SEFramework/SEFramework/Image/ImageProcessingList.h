@@ -29,7 +29,7 @@
 
 #include "SEFramework/Image/ImageProcessing.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template<typename T>
 class ImageProcessingList : public ImageProcessing<T> {

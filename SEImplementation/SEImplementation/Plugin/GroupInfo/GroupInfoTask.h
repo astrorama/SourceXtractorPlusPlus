@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class GroupInfoTask
@@ -50,7 +50,7 @@ private:
 }; /* End of GroupInfoTask class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

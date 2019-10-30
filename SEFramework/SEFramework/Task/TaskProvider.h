@@ -32,7 +32,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class TaskProvider
@@ -65,7 +65,7 @@ private:
 }; /* End of TaskProvider class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

@@ -30,7 +30,7 @@
 #include "SEFramework/Pipeline/Partition.h"
 #include "SEFramework/Source/SourceFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PartitionStepConfig : public Euclid::Configuration::Configuration {
   
@@ -52,7 +52,7 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PARTITIONSTEPCONFIG_H */
 

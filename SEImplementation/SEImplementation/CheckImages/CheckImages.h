@@ -39,7 +39,7 @@
 #include "SEFramework/Frame/Frame.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class CheckImages : public Configurable {
 

@@ -26,7 +26,7 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 class NoGroupingCriteria : public GroupingCriteria {
@@ -37,7 +37,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

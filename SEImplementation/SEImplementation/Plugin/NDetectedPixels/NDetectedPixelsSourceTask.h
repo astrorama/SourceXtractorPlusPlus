@@ -43,7 +43,7 @@
 #include "SEImplementation/Plugin/NDetectedPixels/NDetectedPixels.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class NDetectedPixelsSourceTask : public SourceTask {
 public:
   virtual ~NDetectedPixelsSourceTask() = default;
@@ -54,7 +54,7 @@ public:
 };
 private:
 }; // End of NDetectedPixelsSourceTask class
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_NDETECTEDPIXELSSOURCETASK_H_ */
 

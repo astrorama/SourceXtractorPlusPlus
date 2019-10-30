@@ -33,7 +33,7 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 using poh = Euclid::Configuration::ProgramOptionsHelper;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
   
@@ -111,7 +111,7 @@ auto ExternalFlagConfig::getFlagInfoList() const -> const std::vector<std::pair<
   return m_flag_info_list;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

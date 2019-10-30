@@ -25,7 +25,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string BACKGROUND_VALUE {"background-value" };
 static const std::string THRESHOLD_VALUE {"detection-threshold" };
@@ -58,4 +58,4 @@ void BackgroundConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

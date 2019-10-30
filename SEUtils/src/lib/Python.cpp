@@ -23,7 +23,7 @@
 
 namespace py = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Elements::Exception pyToElementsException(Elements::Logging &logger) {
   GILStateEnsure ensure;
@@ -70,4 +70,4 @@ GILStateEnsure::~GILStateEnsure() {
   PyGILState_Release(m_state);
 }
 
-} // end SExtractor
+} // end SourceXtractor

@@ -22,7 +22,7 @@
 #include <ElementsKernel/Real.h>
 #include "SEFramework/Convolution/DirectConvolution.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct DirectConvolution_Fixture {
   DirectConvolution<SeFloat, PaddedImage<SeFloat>> direct;

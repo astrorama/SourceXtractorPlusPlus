@@ -27,7 +27,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class WeightImageConfig : public Euclid::Configuration::Configuration {
 

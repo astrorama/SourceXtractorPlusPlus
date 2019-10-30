@@ -22,7 +22,7 @@
 
 #include "SEFramework/Pipeline/Segmentation.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Segmentation::Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing)
     : m_filter_image_processing(image_processing) {

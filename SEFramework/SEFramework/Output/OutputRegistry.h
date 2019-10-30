@@ -31,7 +31,7 @@
 #include "Table/Row.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class OutputRegistry {
   
@@ -175,7 +175,7 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_OUTPUTREGISTRY_H */
 

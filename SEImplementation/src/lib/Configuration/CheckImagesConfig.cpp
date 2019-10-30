@@ -29,7 +29,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string CHECK_MODEL_FITTING { "check-image-model-fitting" };
 static const std::string CHECK_RESIDUAL { "check-image-residual" };
@@ -95,6 +95,6 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_psf_filename = args.find(CHECK_PSF)->second.as<std::string>();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 

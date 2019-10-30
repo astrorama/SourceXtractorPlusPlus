@@ -31,7 +31,7 @@
 
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();

@@ -27,7 +27,7 @@
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void PixelCentroidTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();

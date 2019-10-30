@@ -25,7 +25,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BackgroundConfig : public Euclid::Configuration::Configuration {
   
@@ -63,7 +63,7 @@ private:
   SeFloat m_detection_threshold;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_BACKGROUNDCONFIG_H */
 

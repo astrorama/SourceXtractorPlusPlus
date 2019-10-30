@@ -27,7 +27,7 @@
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelEvaluator {
 public:

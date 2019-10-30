@@ -25,7 +25,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include "SEFramework/FFT/FFT.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 boost::mutex fftw_global_plan_mutex {};
 
@@ -146,4 +146,4 @@ int fftRoundDimension(int size) {
   return (size / 512 + (size % 512 != 0)) * 512;
 }
 
-} // end SExtractor
+} // end SourceXtractor

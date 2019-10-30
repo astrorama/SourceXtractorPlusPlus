@@ -28,7 +28,7 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class GroupIdCheckImage : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -43,7 +43,7 @@ private:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_CHECKIMAGES_GROUPIDCHECKIMAGE_H_ */

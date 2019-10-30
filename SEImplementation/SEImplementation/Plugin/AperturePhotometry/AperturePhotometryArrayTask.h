@@ -27,7 +27,7 @@
 #include "SEFramework/Aperture/Aperture.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AperturePhotometryArrayTask : public SourceTask {
 public:
@@ -44,6 +44,6 @@ private:
   unsigned m_instance;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYARRAYTASK_H_

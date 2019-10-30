@@ -30,7 +30,7 @@
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Configuration/MultiThreadingConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::unique_ptr<Measurement> MeasurementFactory::getMeasurement() const {
   if (m_threads_nb > 0) {

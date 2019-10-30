@@ -31,7 +31,7 @@
 
 namespace bp = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 BOOST_PYTHON_MODULE(_SExtractorPy) {
 
@@ -126,4 +126,4 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def(bp::vector_indexing_suite<std::vector<float> >());
 }
 
-} // namespace SExtractor
+} // namespace SourceXtractor

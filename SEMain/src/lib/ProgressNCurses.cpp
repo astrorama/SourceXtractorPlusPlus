@@ -29,7 +29,7 @@
 #include <boost/lexical_cast.hpp>
 #include <condition_variable>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // Signal handlers
 static struct sigaction sigterm_action, sigstop_action, sigcont_action, sigwich_action;
@@ -862,4 +862,4 @@ void ProgressNCurses::handleMessage(const bool& done) {
     m_dashboard.reset(nullptr);
 }
 
-} // end SExtractor
+} // end SourceXtractor
