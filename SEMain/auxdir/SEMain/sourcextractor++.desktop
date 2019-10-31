@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=sextractor++
+Name=SourceXtractor++
 Type=Application
 Terminal=true
 NoDisplay=true
-Exec=sextractor++
-Icon=sextractor++
+Exec=sourcextractor++
+Icon=sourcextractor++
 Categories=Education;
