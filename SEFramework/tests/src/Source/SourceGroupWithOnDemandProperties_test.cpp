@@ -34,7 +34,7 @@ using namespace testing;
 
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Mock for the TaskProvider so that we can check interactions with it
 class MockTaskProvider : public TaskProvider {

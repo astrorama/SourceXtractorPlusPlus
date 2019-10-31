@@ -26,7 +26,7 @@
 
 #include "Aperture.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class EllipticalAperture : public Aperture {
 public:
@@ -49,6 +49,6 @@ private:
   SeFloat m_rad_max;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_ELLIPTICALAPERTURE_H

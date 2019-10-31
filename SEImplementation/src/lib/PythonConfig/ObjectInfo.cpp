@@ -24,7 +24,7 @@
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 ObjectInfo::ObjectInfo(const SourceInterface& source) : m_source(source) { }
 

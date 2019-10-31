@@ -27,7 +27,7 @@
 #include "Configuration/Configuration.h"
 #include "SEUtils/Types.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MagnitudeConfig : public Euclid::Configuration::Configuration {
 
@@ -50,6 +50,6 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_CONFIGURATION_MAGNITUDECONFIG_H_ */

@@ -27,7 +27,7 @@
 #include "SEFramework/Aperture/Aperture.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ApertureFlagTask : public SourceTask {
 public:

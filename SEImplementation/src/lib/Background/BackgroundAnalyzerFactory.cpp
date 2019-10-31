@@ -27,7 +27,7 @@
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundAnalyzer() const {
   return createBackgroundAnalyzer(m_weight_type);

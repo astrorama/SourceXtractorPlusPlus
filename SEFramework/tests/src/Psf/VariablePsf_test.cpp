@@ -24,7 +24,7 @@
 #include <ElementsKernel/Exception.h>
 #include "SEFramework/Psf/VariablePsf.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 void checkEqual(const std::shared_ptr<VectorImage<SeFloat>> &a, const  std::shared_ptr<VectorImage<SeFloat>> &b) {
   BOOST_REQUIRE_EQUAL(a->getWidth(), b->getWidth());

@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskFactory.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> MeasurementFrameRectangleTaskFactory::createTask(const PropertyId& property_id) const {
   auto instance = property_id.getIndex();

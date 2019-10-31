@@ -28,7 +28,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Frame/Frame.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * BackgroundConvolution filter

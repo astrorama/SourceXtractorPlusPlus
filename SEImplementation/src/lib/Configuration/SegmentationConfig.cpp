@@ -47,7 +47,7 @@ using boost::smatch;
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config");
 
@@ -216,4 +216,4 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

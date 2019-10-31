@@ -36,7 +36,7 @@
 
 #include "SEImplementation/Segmentation/Lutz.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiThresholdNode : public std::enable_shared_from_this<MultiThresholdNode> {
 public:

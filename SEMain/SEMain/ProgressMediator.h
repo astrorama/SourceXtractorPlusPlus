@@ -30,7 +30,7 @@
 #include <atomic>
 #include <mutex>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 struct ProgressInfo {
   std::string m_label;
@@ -44,7 +44,7 @@ typedef Observable<bool> DoneObservable;
 
 /**
  * @class ProgressMediator
- * This class provides concrete observers for different steps of SExtractor,
+ * This class provides concrete observers for different steps of SourceXtractor,
  * so it can keep count of the progress.
  * It will wrap up this information and pass it along to an agnostic ProgressReporter.
  */
@@ -109,6 +109,6 @@ private:
   class GroupCounter;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_PROGRESSLISTENER_H

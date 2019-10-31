@@ -26,14 +26,14 @@
 #include "DirectConvolution.h"
 #include "DFT.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * For convenience, default convolution strategy.
  */
 typedef DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> DefaultConvolutionStrategy;
 
-} // end SExtractor
+} // end SourceXtractor
 
 
 #endif // _SEFRAMEWORK_CONVOLUTION_CONVOLUTION_H

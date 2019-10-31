@@ -28,7 +28,7 @@
 #include "SEFramework/Pipeline/Measurement.h"
 #include "SEFramework/Configuration/Configurable.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class MeasurementFactory

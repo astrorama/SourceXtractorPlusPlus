@@ -27,7 +27,7 @@
 #include <vector>
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AutoPhotometryConfig : public Euclid::Configuration::Configuration {
 
@@ -50,7 +50,7 @@ private:
   SeFloat m_kron_minrad;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYCONFIG_H_ */

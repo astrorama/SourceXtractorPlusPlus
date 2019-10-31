@@ -40,7 +40,7 @@
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
   std::vector<Flags> source_flags;
@@ -61,4 +61,4 @@ void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
   source.setProperty<SourceFlags>(source_flags);
 }
 
-} // end SExtractor
+} // end SourceXtractor

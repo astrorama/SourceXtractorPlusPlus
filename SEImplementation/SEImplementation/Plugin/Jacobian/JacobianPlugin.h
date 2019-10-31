@@ -27,7 +27,7 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class JacobianPlugin: public Plugin {
 public:
@@ -37,6 +37,6 @@ public:
   void registerPlugin(PluginAPI& plugin_api) override;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_JACOBIAN_JACOBIANPLUGIN_H_

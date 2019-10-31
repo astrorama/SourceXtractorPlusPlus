@@ -32,7 +32,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string DETECTION_IMAGE_GAIN { "detection-image-gain" };
@@ -129,7 +129,7 @@ std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() co
   return m_coordinate_system;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

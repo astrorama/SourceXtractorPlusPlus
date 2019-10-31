@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PeakValueTask : public SourceTask {
 
@@ -56,7 +56,7 @@ private:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_PEAKVALUE_PEAKVALUETASK_H_ */

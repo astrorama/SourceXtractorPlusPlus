@@ -34,7 +34,7 @@
 //////////
 //#define	QMALLOC(ptr, typ, nel) ptr = (typ *)malloc((size_t)(nel)*sizeof(typ))
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace std;
 
@@ -635,4 +635,4 @@ PIXTYPE SplineModel::computeMedian (PIXTYPE* itsGridData, const size_t nGridPoin
   return median;
 }
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

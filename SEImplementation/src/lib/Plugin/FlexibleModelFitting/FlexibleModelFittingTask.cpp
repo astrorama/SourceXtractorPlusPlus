@@ -60,7 +60,7 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 
@@ -172,7 +172,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   return weight;
 }
 
-FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> FlexibleModelFittingTask::createFrameModel(
+FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> FlexibleModelFittingTask::createFrameModel(
   SourceGroupInterface& group,
   double pixel_scale, FlexibleModelFittingParameterManager& manager,
   std::shared_ptr<FlexibleModelFittingFrame> frame) const {
@@ -206,7 +206,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
   }
 
   // Full frame model with all sources
-  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
     std::move(constant_models), std::move(point_models), std::move(extended_models), group_psf);
 

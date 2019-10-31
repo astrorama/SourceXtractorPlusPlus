@@ -33,7 +33,7 @@ using Euclid::Configuration::Configuration;
 
 static auto logger = Elements::Logging::getLogger("PsfPlugin");
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
@@ -296,4 +296,4 @@ const std::shared_ptr<VariablePsf>& PsfPluginConfig::getPsf() const {
   return m_vpsf;
 }
 
-} // end SExtractor
+} // end SourceXtractor

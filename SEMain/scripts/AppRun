@@ -22,7 +22,7 @@
 #
 
 # Entry point for the AppImage
-# We need to properly set up the PYTHONPATH so the sextractor++ modules can be found
+# We need to properly set up the PYTHONPATH so the SourceXtractor++ modules can be found
 # within the image
 
 export PATH="${APPDIR}/usr/bin:${PATH}"
@@ -43,5 +43,5 @@ export PYTHONHOME="${PYTHON64_LIB}"
 export PYTHONPATH="${PYTHON_LIB}:${PYTHON_LIB}/site-packages:${PYTHON64_LIB}:${PYTHON64_LIB}/site-packages:${PYTHON64_LIB}/lib-dynload/"
 export LD_LIBRARY_PATH="${LIB64}:${LIB}:${LIB64}/atlas:${LD_LIBRARY_PATH}"
 
-exec -a "${ARGV0}" "${APPDIR}/usr/bin/sextractor++" $@
+exec -a "${ARGV0}" "${APPDIR}/usr/bin/sourcextractor++" $@
 

@@ -25,7 +25,7 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ProcessedImage
@@ -115,7 +115,7 @@ struct MultiplyOperation
 template<typename T>
 using MultiplyImage = ProcessedImage<T, MultiplyOperation<T>> ;
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

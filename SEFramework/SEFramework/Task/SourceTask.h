@@ -26,7 +26,7 @@
 #include "SEFramework/Task/Task.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceTask
@@ -49,7 +49,7 @@ private:
 
 }; /* End of SourceTask class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

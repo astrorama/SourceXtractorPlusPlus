@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Property/PropertyHolder.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SimpleSourceGroup
@@ -123,7 +123,7 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_SIMPLESOURCEGROUP_H */
 

@@ -38,7 +38,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string WEIGHT_IMAGE {"weight-image" };
 static const std::string WEIGHT_TYPE {"weight-type" };

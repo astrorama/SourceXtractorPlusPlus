@@ -23,11 +23,11 @@
 
 #include "SEFramework/Aperture/NeighbourInfo.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordinate &max_pixel,
-                             const std::vector<SExtractor::PixelCoordinate> &pixel_list,
-                             const std::shared_ptr<SExtractor::Image<SExtractor::SeFloat>> &threshold_image)
+                             const std::vector<SourceXtractor::PixelCoordinate> &pixel_list,
+                             const std::shared_ptr<SourceXtractor::Image<SourceXtractor::SeFloat>> &threshold_image)
   : m_offset{min_pixel} {
   auto width = max_pixel.m_x - min_pixel.m_x + 1;
   auto height = max_pixel.m_y - min_pixel.m_y + 1;
@@ -73,4 +73,4 @@ bool NeighbourInfo::isNeighbourObjectPixel(int x, int y) const {
   return m_neighbour_image->getValue(act_x, act_y);
 }
 
-} // end SExtractor
+} // end SourceXtractor

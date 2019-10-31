@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectanglePlugin.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<MeasurementFrameRectanglePlugin> measurement_frame_rectangle_plugin;
 

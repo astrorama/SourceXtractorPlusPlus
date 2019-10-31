@@ -41,7 +41,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/NDetectedPixels/NDetectedPixelsSourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class NDetectedPixelsTaskFactory : public TaskFactory {
 public:
   NDetectedPixelsTaskFactory() {}
@@ -56,5 +56,5 @@ public:
     }
   }
 }; // end of NDetectedPixelsTaskFactory class
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_NDETECTEDPIXELSTASKFACTORY_H_ */

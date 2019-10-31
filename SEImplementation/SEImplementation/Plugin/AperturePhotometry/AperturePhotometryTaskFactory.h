@@ -27,7 +27,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEUtils/Types.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * The configuration of this plugin can be kind of convoluted, so some clarifications may be needed:

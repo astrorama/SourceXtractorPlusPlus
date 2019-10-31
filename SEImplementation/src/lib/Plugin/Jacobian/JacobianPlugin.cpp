@@ -26,7 +26,7 @@
 #include "SEImplementation/Plugin/Jacobian/JacobianTaskFactory.h"
 #include "SEImplementation/Plugin/Jacobian/JacobianPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<JacobianPlugin> jacobian_plugin;
 
@@ -38,4 +38,4 @@ void JacobianPlugin::registerPlugin(PluginAPI &plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<JacobianTaskFactory, JacobianSource, JacobianGroup>();
 }
 
-} // end SExtractor
+} // end SourceXtractor

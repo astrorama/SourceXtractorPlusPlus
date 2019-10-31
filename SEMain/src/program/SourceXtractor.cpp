@@ -15,17 +15,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file src/program/SExtractor.cpp
+ * @file src/program/SourceXtractor.cpp
  * @date 05/31/16
  * @author mschefer
  */
 
+#include <typeinfo>
 #include <map>
 #include <string>
 #include <iomanip>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <SEMain/SourceXtractorConfig.h>
 
 #include "ElementsKernel/Main.h"
 #include "ElementsKernel/System.h"
@@ -80,7 +82,6 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
-#include "SEMain/SExtractorConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"
 #include "SEMain/Sorter.h"
@@ -88,7 +89,7 @@
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-using namespace SExtractor;
+using namespace SourceXtractor;
 using namespace Euclid::Configuration;
 
 static long config_manager_id = getUniqueManagerId();
@@ -96,6 +97,7 @@ static long config_manager_id = getUniqueManagerId();
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
 static const std::string PROPERTY_COLUMN_MAPPING {"property-column-mapping"};
+static const std::string DUMP_CONFIG {"dump-default-config"};
 
 class GroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
@@ -115,7 +117,7 @@ public:
   std::list<std::shared_ptr<SourceWithOnDemandProperties>> m_list;
 };
 
-static Elements::Logging logger = Elements::Logging::getLogger("SExtractor");
+static Elements::Logging logger = Elements::Logging::getLogger("SourceXtractor");
 
 static void setupEnvironment(void) {
   // Some parts of boost (including boost::filesystem) can throw an exception when the
@@ -150,39 +152,57 @@ class SEMain : public Elements::Program {
   BackgroundAnalyzerFactory background_level_analyzer_factory {};
   ProgressReporterFactory progress_printer_factory {};
 
+  bool config_initialized = false;
+  po::options_description config_parameters;
+
 public:
   
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
 
+  /// Return the options that the underyling configuration register accepts
+  /// This is now separated from defineProgramArguments so printDefaults can access these settings,
+  /// while ignoring flags that are only used for printing help information (i.e the property list)
+  po::options_description getConfigParameters() {
+    if (!config_initialized) {
+      auto& config_manager = ConfigManager::getInstance(config_manager_id);
+      config_manager.registerConfiguration<SourceXtractorConfig>();
+      config_manager.registerConfiguration<BackgroundConfig>();
+      config_manager.registerConfiguration<SE2BackgroundConfig>();
+      config_manager.registerConfiguration<MemoryConfig>();
+
+      CheckImages::getInstance().reportConfigDependencies(config_manager);
+
+      //plugins need to be registered before reportConfigDependencies()
+      plugin_manager.loadPlugins();
+      task_factory_registry->reportConfigDependencies(config_manager);
+      segmentation_factory.reportConfigDependencies(config_manager);
+      partition_factory.reportConfigDependencies(config_manager);
+      grouping_factory.reportConfigDependencies(config_manager);
+      deblending_factory.reportConfigDependencies(config_manager);
+      measurement_factory.reportConfigDependencies(config_manager);
+      output_factory.reportConfigDependencies(config_manager);
+      background_level_analyzer_factory.reportConfigDependencies(config_manager);
+
+      config_parameters.add(config_manager.closeRegistration());
+      config_initialized = true;
+    }
+    return config_parameters;
+  }
+
+  /// Return the arguments that the program accepts
   std::pair<po::options_description, po::positional_options_description> defineProgramArguments() override {
-    auto& config_manager = ConfigManager::getInstance(config_manager_id);
-    config_manager.registerConfiguration<SExtractorConfig>();
-    config_manager.registerConfiguration<BackgroundConfig>();
-    config_manager.registerConfiguration<SE2BackgroundConfig>();
-    config_manager.registerConfiguration<MemoryConfig>();
+    auto options = getConfigParameters();
 
-    CheckImages::getInstance().reportConfigDependencies(config_manager);
-
-    //plugins need to be registered before reportConfigDependencies()
-    plugin_manager.loadPlugins();
-    task_factory_registry->reportConfigDependencies(config_manager);
-    segmentation_factory.reportConfigDependencies(config_manager);
-    partition_factory.reportConfigDependencies(config_manager);
-    grouping_factory.reportConfigDependencies(config_manager);
-    deblending_factory.reportConfigDependencies(config_manager);
-    measurement_factory.reportConfigDependencies(config_manager);
-    output_factory.reportConfigDependencies(config_manager);
-    background_level_analyzer_factory.reportConfigDependencies(config_manager);
-
-    auto options = config_manager.closeRegistration();
     options.add_options() (LIST_OUTPUT_PROPERTIES.c_str(), po::bool_switch(),
           "List the possible output properties for the given input parameters and exit");
     options.add_options() (PROPERTY_COLUMN_MAPPING_ALL.c_str(), po::bool_switch(),
           "Show the columns created for each property");
     options.add_options() (PROPERTY_COLUMN_MAPPING.c_str(), po::bool_switch(),
           "Show the columns created for each property, for the given configuration");
+    options.add_options() (DUMP_CONFIG.c_str(), po::bool_switch(),
+                           "Dump parameters with default values into a configuration file");
     progress_printer_factory.addOptions(options);
 
     // Allow to pass Python options as positional following --
@@ -192,6 +212,60 @@ public:
     return {options, p};
   }
 
+  /// Print a simple option
+  template <typename T>
+  static void writeDefault(std::ostream& out, const po::option_description& opt, const boost::any& default_value) {
+    out << opt.long_name() << '=' << boost::any_cast<T>(default_value) << std::endl;
+  }
+
+  /// Print a multiple-value option
+  template <typename T>
+  static void writeDefaultMultiple(std::ostream& out, const po::option_description& opt, const boost::any& default_value) {
+    auto values = boost::any_cast<std::vector<T>>(default_value);
+    if (values.empty()) {
+      out << opt.long_name() << '=' << std::endl;
+    }
+    else {
+      for (const auto& v : values)
+        out << opt.long_name() << '=' << v << std::endl;
+    }
+  }
+
+  /// Print a configuration file populated with defaults
+  void printDefaults() {
+    typedef std::function<void(std::ostream&, const po::option_description&, const boost::any&)> PrinterFunction;
+    static std::map<std::type_index, PrinterFunction> printers{
+      {typeid(bool), &writeDefault<bool>},
+      {typeid(int), &writeDefault<int>},
+      {typeid(double), &writeDefault<double>},
+      {typeid(std::string), &writeDefault<std::string>},
+      {typeid(std::vector<std::string>), &writeDefaultMultiple<std::string>}
+    };
+    decltype(printers)::const_iterator printer;
+
+    auto config_parameters = getConfigParameters();
+    for (const auto& p : config_parameters.options()) {
+      boost::any default_value;
+
+      std::cout << "# " << p->description() << std::endl;
+      if (!p->semantic()->apply_default(default_value)) {
+        std::cout << '#' << p->long_name() << "=" << std::endl;
+      }
+      else if ((printer = printers.find(default_value.type())) == printers.end()) {
+        std::cout << '#' << p->long_name() << "=<Unknown type " << default_value.type().name() << '>' << std::endl;
+      }
+      else {
+        printer->second(std::cout, *p, default_value);
+      }
+      std::cout << std::endl;
+    }
+
+    // We need to print the log options manually, as that is set up by Elements
+    std::cout << "# Log level: FATAL, ERROR, WARN, INFO, DEBUG" << std::endl;
+    std::cout << "log-level=INFO" << std::endl;
+    std::cout << "# Log file" << std::endl;
+    std::cout << "#log-file" << std::endl;
+  }
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
 
@@ -207,6 +281,11 @@ public:
     
     if (args.at(PROPERTY_COLUMN_MAPPING_ALL).as<bool>()) {
       output_registry->printPropertyColumnMap();
+      return Elements::ExitCode::OK;
+    }
+
+    if (args.at(DUMP_CONFIG).as<bool>()) {
+      printDefaults();
       return Elements::ExitCode::OK;
     }
 
@@ -373,7 +452,6 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
-    CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     FitsFileManager::getInstance()->closeAllFiles();
@@ -434,7 +512,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
 
-  // This adds the current directory as a valid location for the default "sextractor++.conf" configuration
+  // This adds the current directory as a valid location for the default "sourcextractor++.conf" configuration
   Elements::TempEnv local_env;
   if (local_env["ELEMENTS_CONF_PATH"].empty()) {
     local_env["ELEMENTS_CONF_PATH"] = ".";

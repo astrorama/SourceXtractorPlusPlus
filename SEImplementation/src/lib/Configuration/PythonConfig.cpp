@@ -33,7 +33,7 @@ const std::string PYTHON_ARGV { "python-arg" };
 
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 PythonConfig::PythonConfig(long manager_id) : Configuration(manager_id) {
   PythonInterpreter::getSingleton();
@@ -73,4 +73,4 @@ PythonInterpreter& PythonConfig::getInterpreter() const {
   return PythonInterpreter::getSingleton();
 }
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

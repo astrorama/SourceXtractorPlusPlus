@@ -27,7 +27,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ExternalFlagConfig
@@ -66,7 +66,7 @@ private:
 
 }; /* End of ExternalFlagConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

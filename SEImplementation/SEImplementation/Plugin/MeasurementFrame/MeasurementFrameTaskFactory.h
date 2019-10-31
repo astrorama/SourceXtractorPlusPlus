@@ -28,7 +28,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameTaskFactory : public TaskFactory {
 public:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# SExtractor++ documentation build configuration file, created by
+# SourceXtractor++ documentation build configuration file, created by
 # sphinx-quickstart on Thu Jan 31 13:34:56 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -59,10 +59,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SExtractor++'
-filename = 'sextractor'
+project = u'SourceXtractor++'
+filename = 'sourcextractor'
 copyright = u'2019, GenevaU/LMU/CNRS/SorbonneU'
-author = u'SExtractor++ team'
+author = u'SourceXtractor++ team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -146,7 +146,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = u'SExtractor++ v1.0.0'
+# html_title = u'SourceXtractor++ v1.0.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #

@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceWithOnDemandPropertiesFactory

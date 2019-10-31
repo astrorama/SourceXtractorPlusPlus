@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTask.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> ShapeParametersTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<ShapeParameters>()) {

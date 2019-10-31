@@ -15,12 +15,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file src/lib/SExtractorConfig.cpp
+ * @file src/lib/SourceXtractorConfig.cpp
  * @date 07/20/16
  * @author nikoapos
  */
 
-#include "SEMain/SExtractorConfig.h"
+#include <SEMain/SourceXtractorConfig.h>
 #include "SEMain/PluginConfig.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
@@ -33,9 +33,9 @@
 
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) {
+SourceXtractorConfig::SourceXtractorConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<DetectionImageConfig>();
   declareDependency<WeightImageConfig>();
 
@@ -49,7 +49,7 @@ SExtractorConfig::SExtractorConfig(long manager_id) : Configuration(manager_id) 
   declareDependency<PluginConfig>();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

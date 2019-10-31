@@ -30,7 +30,7 @@
 #include "SEImplementation/Plugin/PeakValue/PeakValueTask.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PeakValueTaskFactory : public TaskFactory {
 public:
@@ -50,7 +50,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_PEAKVALUE_PEAKVALUETASKFACTORY_H_ */

@@ -24,7 +24,7 @@
 
 #include <Configuration/Configuration.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AperturePhotometryConfig: public Euclid::Configuration::Configuration {
 public:

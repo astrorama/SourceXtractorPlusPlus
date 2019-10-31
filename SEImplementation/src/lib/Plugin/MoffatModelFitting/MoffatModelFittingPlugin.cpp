@@ -27,7 +27,7 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<MoffatModelFittingPlugin> simple_modelfitting_plugin;
 

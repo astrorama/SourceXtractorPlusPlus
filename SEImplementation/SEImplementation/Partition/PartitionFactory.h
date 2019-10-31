@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PartitionFactory : public Configurable {
   
@@ -58,7 +58,7 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PARTITIONFACTORY_H */
 

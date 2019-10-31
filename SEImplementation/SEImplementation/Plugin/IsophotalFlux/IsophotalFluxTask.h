@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class IsophotalFluxTask
@@ -53,7 +53,7 @@ private:
 }; /* End of IsophotalFluxTask class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

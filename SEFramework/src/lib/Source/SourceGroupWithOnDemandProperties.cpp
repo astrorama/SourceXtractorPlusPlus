@@ -23,7 +23,7 @@
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SourceGroupWithOnDemandProperties::SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider)
         : m_task_provider(task_provider) {
@@ -108,7 +108,7 @@ unsigned int SourceGroupWithOnDemandProperties::size() const {
   return m_sources.size();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

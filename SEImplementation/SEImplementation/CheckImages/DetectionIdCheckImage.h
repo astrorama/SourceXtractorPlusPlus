@@ -28,7 +28,7 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DetectionIdCheckImage : public Observer<std::shared_ptr<SourceInterface>> {
 public:

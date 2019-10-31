@@ -41,7 +41,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BoundaryFlag : public Property {
 public:
@@ -57,6 +57,6 @@ private:
   bool m_boundary_flag;
 }; // end of BoundaryFlag class
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAG_H_*/

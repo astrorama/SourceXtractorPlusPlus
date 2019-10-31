@@ -26,7 +26,7 @@
 
 #include <SEFramework/CoordinateSystem/CoordinateSystem.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 }
 

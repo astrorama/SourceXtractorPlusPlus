@@ -28,7 +28,7 @@
 
 static const std::string temp_pattern("TemporaryFitsSource_test_%%%%");
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 BOOST_AUTO_TEST_SUITE (TemporaryFitsSource_test)
 
