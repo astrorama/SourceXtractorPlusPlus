@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_PROPERTY_PROPERTY_H
 #define _SEFRAMEWORK_PROPERTY_PROPERTY_H
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class Property
@@ -35,6 +35,6 @@ public:
   virtual ~Property() = default;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif

@@ -31,7 +31,7 @@
 #include <memory>
 #include <utility>
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Example Property containing an int
 class SimpleIntProperty : public Property {

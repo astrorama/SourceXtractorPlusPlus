@@ -31,7 +31,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Example property containing a string
 class SimpleStringProperty : public Property {

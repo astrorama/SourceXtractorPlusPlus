@@ -19,7 +19,7 @@
 #include "SEMain/ProgressLogger.h"
 #include "SEMain/ProgressNCurses.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace po = boost::program_options;
 
@@ -61,4 +61,4 @@ std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediato
   return mediator;
 }
 
-} // end SExtractor
+} // end SourceXtractor

@@ -27,7 +27,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageTile.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ImageSourceBase {
 public:

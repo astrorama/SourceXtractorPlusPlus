@@ -30,7 +30,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessingImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 /**
  * Implement an image source using direct convolution of the filter over the image.
  * This approach is normally faster for big kernels
@@ -60,6 +60,6 @@ private:
   ConvolutionType m_convolution;
 };
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 
 #endif // _SEIMPLEMENTATION_SEGMENTATION_BGDFTCONVOLUTIONIMAGESOURCE_H_

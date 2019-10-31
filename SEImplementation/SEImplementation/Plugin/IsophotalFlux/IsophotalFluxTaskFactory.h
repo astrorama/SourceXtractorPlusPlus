@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class IsophotalFluxTaskFactory
@@ -49,7 +49,7 @@ private:
   SeFloat m_magnitude_zero_point;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

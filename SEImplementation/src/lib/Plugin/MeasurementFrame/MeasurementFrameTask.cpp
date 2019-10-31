@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void MeasurementFrameTask::computeProperties(SourceInterface& source) const {
   source.setIndexedProperty<MeasurementFrame>(m_instance, m_measurement_frame);

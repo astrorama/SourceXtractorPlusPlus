@@ -27,7 +27,7 @@
 #include <vector>
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometry.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class AutoPhotometry
@@ -80,6 +80,6 @@ private:
   std::vector<Flags> m_flags;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYARRAY_H_

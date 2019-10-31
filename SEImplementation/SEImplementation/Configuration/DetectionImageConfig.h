@@ -27,7 +27,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionImageConfig
@@ -75,7 +75,7 @@ private:
 
 }; /* End of DetectionImageConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

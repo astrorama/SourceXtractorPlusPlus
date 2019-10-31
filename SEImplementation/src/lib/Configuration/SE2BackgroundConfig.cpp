@@ -25,7 +25,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string CELLSIZE_VALUE {"background-cell-size" };
 static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-size" };
@@ -54,4 +54,4 @@ void SE2BackgroundConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

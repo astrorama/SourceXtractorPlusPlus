@@ -35,7 +35,7 @@
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrameTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> MeasurementFrameTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == PropertyId::create<MeasurementFrame>().getTypeId()) {

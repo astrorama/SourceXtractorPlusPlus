@@ -27,7 +27,7 @@
 
 #include "SEFramework/Output/Output.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TableOutput : public Output {
   
@@ -59,7 +59,7 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_TABLEOUTPUT_H */
 

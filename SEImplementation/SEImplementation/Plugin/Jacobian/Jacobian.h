@@ -28,7 +28,7 @@
 #include <tuple>
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Jacobian {
 public:
@@ -57,6 +57,6 @@ class JacobianGroup: public Property, public Jacobian {
   using Jacobian::Jacobian;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_JACOBIAN_JACOBIAN_H_

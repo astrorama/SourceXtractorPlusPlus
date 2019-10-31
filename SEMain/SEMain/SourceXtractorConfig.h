@@ -15,37 +15,37 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file SEMain/SExtractorConfig.h
+ * @file SEMain/SourceXtractorConfig.h
  * @date 07/20/16
  * @author nikoapos
  */
 
-#ifndef _SEMAIN_SEXTRACTORCONFIG_H
-#define _SEMAIN_SEXTRACTORCONFIG_H
+#ifndef _SEMAIN_SOURCEXTRACTORCONFIG_H
+#define _SEMAIN_SOURCEXTRACTORCONFIG_H
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
- * @class SExtractorConfig
+ * @class SourceXtractorConfig
  * @brief
  *
  */
-class SExtractorConfig : public Euclid::Configuration::Configuration {
+class SourceXtractorConfig : public Euclid::Configuration::Configuration {
 
 public:
 
   /**
    * @brief Destructor
    */
-  virtual ~SExtractorConfig() = default;
+  virtual ~SourceXtractorConfig() = default;
 
-  SExtractorConfig(long manager_id);
+  SourceXtractorConfig(long manager_id);
 
-}; /* End of SExtractorConfig class */
+}; /* End of SourceXtractorConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

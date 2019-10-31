@@ -31,7 +31,7 @@
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> KronRadiusTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<KronRadius>()) {

@@ -36,7 +36,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ExternalFlag
@@ -70,7 +70,7 @@ private:
 }; /* End of ExternalFlag class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

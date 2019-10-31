@@ -35,7 +35,7 @@
 #include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template<typename T>
 class Frame {

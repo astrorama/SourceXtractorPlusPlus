@@ -36,7 +36,7 @@
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
   // the typical radius for determining the Kron-radius

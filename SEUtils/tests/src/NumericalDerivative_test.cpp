@@ -38,7 +38,7 @@ namespace bmd = boost::math::tools;
 
 #include "SEUtils/NumericalDerivative.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

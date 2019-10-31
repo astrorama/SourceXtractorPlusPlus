@@ -29,7 +29,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiframeModelFitting : public Property {
 public:

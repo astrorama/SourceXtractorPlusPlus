@@ -35,7 +35,7 @@
 
 using namespace Euclid::Configuration;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_provider)
     : m_algorithm(SegmentationConfig::Algorithm::UNKNOWN),

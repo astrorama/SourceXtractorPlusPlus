@@ -29,7 +29,7 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Image/ImageChunk.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class ImageBase : public virtual Image<T>, public std::enable_shared_from_this<ImageBase<T>> {

@@ -32,7 +32,7 @@ namespace ModelFitting {
   class ResidualEstimator;
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingPrior {
 public:

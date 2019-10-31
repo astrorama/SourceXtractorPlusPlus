@@ -30,7 +30,7 @@
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Multithreading");
 

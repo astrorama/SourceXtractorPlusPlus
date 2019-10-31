@@ -27,7 +27,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class CheckImagesConfig : public Euclid::Configuration::Configuration {
 

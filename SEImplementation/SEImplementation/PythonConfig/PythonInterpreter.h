@@ -30,7 +30,7 @@
 #include <SEImplementation/PythonConfig/PyAperture.h>
 #include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PythonInterpreter {
   
@@ -84,7 +84,7 @@ private:
   PyOutputWrapper m_out_wrapper, m_err_wrapper;
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PYTHONINTERPRETER_H
 

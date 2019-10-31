@@ -25,7 +25,7 @@
 #include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SimpleSourceGroupFactory

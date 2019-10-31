@@ -30,7 +30,7 @@ namespace wcslib {
 struct wcsprm;
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class WCS : public CoordinateSystem {
 public:

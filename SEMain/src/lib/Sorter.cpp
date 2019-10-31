@@ -18,7 +18,7 @@
 #include <algorithm>
 #include "SEMain/Sorter.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static unsigned int extractSourceId(const SourceInterface &i) {
   return i.getProperty<SourceID>().getId();
@@ -44,4 +44,4 @@ void Sorter::handleMessage(const std::shared_ptr<SourceGroupInterface> &message)
 }
 
 
-} // end SExtractor
+} // end SourceXtractor

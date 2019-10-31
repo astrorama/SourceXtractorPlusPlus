@@ -22,7 +22,7 @@
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group)
         : m_source(source), m_group(group) {
@@ -84,4 +84,4 @@ bool SourceGroupWithOnDemandProperties::EntangledSource::operator<(const Entangl
   return this->m_source < other.m_source;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

@@ -35,7 +35,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class DummyCoordinateSystem : public CoordinateSystem {
 public:
@@ -65,7 +65,7 @@ public:
   std::list<std::shared_ptr<SourceInterface>> m_list;
 };
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

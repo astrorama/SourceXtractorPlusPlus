@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStampPlugin.h"
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<DetectionFrameGroupStampPlugin> detection_frame_group_stamp_plugin;
 

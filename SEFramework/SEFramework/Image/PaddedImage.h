@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 inline int ReplicateCoordinates(int N, int v) {
   if (v < 0) return 0;
@@ -160,6 +160,6 @@ private:
   T m_default;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_IMAGE_PADDEDIMAGE_H

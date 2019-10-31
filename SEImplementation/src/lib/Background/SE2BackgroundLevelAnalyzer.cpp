@@ -39,7 +39,7 @@
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size,
                                                        const std::string &smoothing_box,

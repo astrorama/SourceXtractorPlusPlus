@@ -31,7 +31,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string GROUPING_ALGORITHM {"grouping-algorithm" };
 static const std::string GROUPING_MOFFAT_THRESHOLD {"grouping-moffat-threshold" };
@@ -74,7 +74,7 @@ void GroupingConfig::initialize(const UserValues& args) {
 
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

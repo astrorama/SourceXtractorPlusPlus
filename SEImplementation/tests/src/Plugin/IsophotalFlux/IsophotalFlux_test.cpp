@@ -32,7 +32,7 @@
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct IsophotalFluxFixture {
   SimpleSource source;

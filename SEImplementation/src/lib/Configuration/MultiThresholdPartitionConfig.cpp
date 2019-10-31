@@ -30,7 +30,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string MTHRESH_USE {"partition-multithreshold"};
 static const std::string MTHRESH_THRESHOLDS_NB {"partition-threshold-count"};
@@ -75,4 +75,4 @@ void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

@@ -28,7 +28,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SimpleBackgroundAnalyzer : public BackgroundAnalyzer {
 public:

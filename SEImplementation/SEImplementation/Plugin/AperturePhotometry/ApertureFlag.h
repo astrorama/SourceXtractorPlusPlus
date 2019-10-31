@@ -29,7 +29,7 @@
 #include "SEFramework/Source/SourceFlags.h"
 #include <map>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ApertureFlag
@@ -50,6 +50,6 @@ private:
   std::map<float, Flags> m_flags;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREFLAG_H_ */

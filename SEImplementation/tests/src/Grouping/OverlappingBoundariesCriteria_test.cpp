@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct OverlappingBoundariesCriteriaFixture {
   SimpleSource source_a, source_b, source_c;

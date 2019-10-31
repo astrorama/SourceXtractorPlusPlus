@@ -29,7 +29,7 @@
 #include "SEFramework/Source/SourceFlags.h"
 #include <vector>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AutoPhotometryFlag: public Property {
 public:
@@ -45,6 +45,6 @@ private:
   Flags m_flags;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYFLAG_H_ */

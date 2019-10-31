@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class MirrorImage
@@ -65,6 +65,6 @@ private:
   std::shared_ptr<const Image<T>> m_img;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_IMAGE_MIRRORIMAGE_H

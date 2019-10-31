@@ -26,7 +26,7 @@
 
 #include <memory>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceInterface;
 

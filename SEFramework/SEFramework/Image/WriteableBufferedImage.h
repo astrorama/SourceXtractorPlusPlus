@@ -27,7 +27,7 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Image/BufferedImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class WriteableBufferedImage : public BufferedImage<T>, public WriteableImage<T> {

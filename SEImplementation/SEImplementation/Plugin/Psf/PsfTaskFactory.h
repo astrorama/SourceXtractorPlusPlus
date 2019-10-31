@@ -30,7 +30,7 @@
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 #include "PsfPluginConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PsfTaskFactory: public TaskFactory {
 public:
@@ -46,6 +46,6 @@ private:
   std::map<int, std::shared_ptr<VariablePsf>> m_vpsf;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_

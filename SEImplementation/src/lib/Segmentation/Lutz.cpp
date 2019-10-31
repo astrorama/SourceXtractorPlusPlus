@@ -31,7 +31,7 @@
 
 #include "SEImplementation/Segmentation/Lutz.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // class Lutz
 //

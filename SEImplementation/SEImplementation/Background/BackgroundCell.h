@@ -27,7 +27,7 @@
 
 #include "SEImplementation/Background/BackgroundHistogram.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BackgroundCell {
 
@@ -65,6 +65,6 @@ private:
   size_t itsStatNData=0;
   size_t itsStatNWeight=0;
 };
-} // end of the namespace SExtractor
+} // end of the namespace SourceXtractor
 #endif	/* BACKGROUNDCELL_H */
 

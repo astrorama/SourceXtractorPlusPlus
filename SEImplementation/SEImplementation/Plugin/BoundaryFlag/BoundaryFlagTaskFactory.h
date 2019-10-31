@@ -41,7 +41,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagSourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BoundaryFlagTaskFactory : public TaskFactory {
 public:
@@ -59,5 +59,5 @@ public:
   }
 }; // end of BoundaryFlagTaskFactory class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGTASKFACTORY_H_ */

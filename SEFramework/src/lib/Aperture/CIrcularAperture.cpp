@@ -23,7 +23,7 @@
 
 #include "SEFramework/Aperture/CircularAperture.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // enhancing from 5 to 10 smoothens the photometry
 const int SUPERSAMPLE_NB = 10;
@@ -71,4 +71,4 @@ PixelCoordinate CircularAperture::getMaxPixel(SeFloat centroid_x, SeFloat centro
   return PixelCoordinate(centroid_x + m_radius + 1, centroid_y + m_radius + 1);
 }
 
-} // end SExtractor
+} // end SourceXtractor

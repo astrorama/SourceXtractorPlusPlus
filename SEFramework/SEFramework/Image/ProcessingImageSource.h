@@ -27,7 +27,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class ProcessingImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {

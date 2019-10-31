@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
   const auto& detection_frame = source.getProperty<DetectionFrame>();

@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class RecenterImage
@@ -67,6 +67,6 @@ private:
   PixelCoordinate m_center;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_IMAGE_WARPIMAGE_H

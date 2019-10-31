@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DetectionFrameSourceStampTask;
 
@@ -46,7 +46,7 @@ public:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

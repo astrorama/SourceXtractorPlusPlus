@@ -26,7 +26,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class OutputConfig
@@ -67,7 +67,7 @@ private:
 
 }; /* End of OutputConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

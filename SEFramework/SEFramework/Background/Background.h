@@ -26,7 +26,7 @@
 
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Background {
 public:

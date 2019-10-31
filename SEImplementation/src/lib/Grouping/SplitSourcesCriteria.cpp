@@ -24,7 +24,7 @@
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Property/SourceId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 bool SplitSourcesCriteria::shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
   auto first_id = first.getProperty<SourceId>().getDetectionId();
@@ -33,5 +33,5 @@ bool SplitSourcesCriteria::shouldGroup(const SourceInterface& first, const Sourc
   return first_id == second_id;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 

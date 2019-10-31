@@ -26,7 +26,7 @@
 
 #include "Aperture.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class CircularAperture : public Aperture {
 public:
@@ -46,6 +46,6 @@ private:
   SeFloat m_radius;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_CIRCULARAPERTURE_H

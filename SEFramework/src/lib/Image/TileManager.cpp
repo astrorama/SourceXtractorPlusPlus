@@ -23,7 +23,7 @@
 
 #include "SEFramework/Image/TileManager.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<TileManager> TileManager::s_instance;
 

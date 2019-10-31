@@ -32,7 +32,7 @@
 #include "SEFramework/Image/VectorImage.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,

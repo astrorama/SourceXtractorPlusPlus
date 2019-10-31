@@ -29,7 +29,7 @@
 #include "SEUtils/Observable.h"
 #include "SEMain/ProgressMediator.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 typedef Observer<std::list<ProgressInfo>> ProgressObserver;
 typedef Observer<bool> DoneObserver;
@@ -62,6 +62,6 @@ public:
   using DoneObserver::handleMessage;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_PROGRESSPRINTER_H

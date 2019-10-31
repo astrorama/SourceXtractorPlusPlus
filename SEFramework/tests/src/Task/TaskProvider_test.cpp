@@ -30,7 +30,7 @@
 #include "SEFramework/Property/Property.h"
 
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class ExampleProperty : public Property {
 };

@@ -41,7 +41,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class NDetectedPixels : public Property {
 public:
   virtual ~NDetectedPixels() = default;
@@ -52,6 +52,6 @@ public:
 private:
   long int m_n_detected_pixels;
 }; // end of NDetectedPixels class
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_NDETECTEDPIXELS_H_*/

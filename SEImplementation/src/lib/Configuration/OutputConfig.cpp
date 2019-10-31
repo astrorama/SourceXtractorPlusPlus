@@ -32,7 +32,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string OUTPUT_FILE {"output-catalog-filename"};
 static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};

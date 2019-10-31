@@ -27,7 +27,7 @@
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void IsophotalFluxTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<MagnitudeConfig>();
