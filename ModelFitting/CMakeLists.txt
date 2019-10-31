@@ -98,23 +98,23 @@ if (OPENCV_FOUND AND CCFITS_FOUND)
                             LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
                             INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 
-#    elements_add_executable(Example2 src/program/Example2.cpp
-#                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
-#                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+    elements_add_executable(Example2 src/program/Example2.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
+                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 
-#    elements_add_executable(Example3 src/program/Example3.cpp
-#                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
-#                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+    elements_add_executable(Example3 src/program/Example3.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
+                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 
-#    elements_add_executable(Example4 src/program/Example4.cpp
-#                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
-#                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+    elements_add_executable(Example4 src/program/Example4.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
+                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 
-#    elements_add_executable(Example_gal src/program/Example_gal.cpp
-#                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
-#                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+    elements_add_executable(Example_gal src/program/Example_gal.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
+                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 
-#    elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
-#                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
-#                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+    elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
+                            INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
 endif ()
