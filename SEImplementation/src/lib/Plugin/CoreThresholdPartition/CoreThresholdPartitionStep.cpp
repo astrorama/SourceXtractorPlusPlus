@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file CoreSNRPartitionStep.cpp
+ * @file CoreThresholdPartitionStep.cpp
  * @date 10/23/19
  * @author mkuemmel
  */
@@ -25,7 +25,7 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 CoreThresholdPartitionStep::CoreThresholdPartitionStep(double snr_level, unsigned int min_pixel_count) :
     m_snr_level(snr_level), m_min_pixel_count(min_pixel_count) {

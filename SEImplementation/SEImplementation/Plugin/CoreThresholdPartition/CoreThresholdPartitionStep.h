@@ -1,4 +1,4 @@
-/** Copyright �� 2019 Universit�� de Gen��ve, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Universit��
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file SEImplementation/Partition/MinAreaPartitionStep.h
- * @date 05/30/16
- * @author mschefer
+ * @file CoreThresholdPartitionPlugin.h
+ * @date 24.Oct.19
+ * @author mkuemmel
  */
 
 #ifndef _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDPARTITIONSTEP_H
@@ -25,7 +25,7 @@
 
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class CoreThresholdPartitionStep
