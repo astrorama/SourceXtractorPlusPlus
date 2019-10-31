@@ -26,7 +26,7 @@
 #include "SEFramework/Psf/VariablePsf.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 VariablePsf::VariablePsf(double pixel_sampling, const std::vector<Component> &components,
             const std::vector<int> &group_degrees,
@@ -182,4 +182,4 @@ void VariablePsf::calculateExponents() {
   }
 }
 
-} // end SExtractor
+} // end SourceXtractor

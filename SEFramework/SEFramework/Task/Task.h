@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_TASK_TASK_H
 #define _SEFRAMEWORK_TASK_TASK_H
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class Task
@@ -46,7 +46,7 @@ private:
 
 }; /* End of Task class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

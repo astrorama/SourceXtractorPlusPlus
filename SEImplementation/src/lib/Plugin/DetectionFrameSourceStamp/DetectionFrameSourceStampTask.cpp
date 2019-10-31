@@ -32,7 +32,7 @@
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) const {
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);

@@ -29,7 +29,7 @@
 #include "SEImplementation/Property/SourceId.h"
 #include "BlendedFlag.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BlendedFlagTask : public SourceTask {
 public:
@@ -41,6 +41,6 @@ public:
   };
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_BLENDEDFLAGTASK_H_

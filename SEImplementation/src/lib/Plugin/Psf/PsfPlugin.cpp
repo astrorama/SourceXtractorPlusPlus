@@ -24,9 +24,9 @@
 #include <SEFramework/Plugin/StaticPlugin.h>
 #include "SEImplementation/Plugin/Psf/PsfPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-void PsfPlugin::registerPlugin(SExtractor::PluginAPI &plugin_api) {
+void PsfPlugin::registerPlugin(SourceXtractor::PluginAPI &plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<PsfTaskFactory, PsfProperty>();
 }
 

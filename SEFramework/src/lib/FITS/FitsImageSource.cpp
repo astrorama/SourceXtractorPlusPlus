@@ -23,7 +23,7 @@
 
 #include "SEFramework/FITS/FitsImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <>
 int FitsImageSource<double>::getDataType() const { return TDOUBLE; }

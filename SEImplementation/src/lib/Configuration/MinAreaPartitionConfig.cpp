@@ -27,7 +27,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string DETECT_MINAREA {"detection-minimum-area"};
 
@@ -52,4 +52,4 @@ void MinAreaPartitionConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

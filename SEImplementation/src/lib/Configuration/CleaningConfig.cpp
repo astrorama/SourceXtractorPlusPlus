@@ -31,7 +31,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string USE_CLEANING {"use-cleaning"};
 static const std::string CLEANING_MINAREA {"cleaning-minimum-area"};
@@ -62,7 +62,7 @@ void CleaningConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

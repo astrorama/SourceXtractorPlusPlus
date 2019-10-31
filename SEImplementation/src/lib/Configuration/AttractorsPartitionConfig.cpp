@@ -28,7 +28,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string USE_ATTRACTORS_PARTITION {"use-attractors-partition"};
 
@@ -55,4 +55,4 @@ void AttractorsPartitionConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

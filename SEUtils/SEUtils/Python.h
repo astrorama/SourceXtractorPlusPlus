@@ -27,7 +27,7 @@
 #include <ElementsKernel/Logging.h>
 #include <Python.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 /**
  * Dumps into ERR the traceback and returns an Elements exception to be re-thrown
  * @param logger
@@ -51,6 +51,6 @@ private:
   PyGILState_STATE m_state;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEUTILS_PYTHON_H

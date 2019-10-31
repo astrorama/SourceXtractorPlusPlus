@@ -30,7 +30,7 @@
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Source/SourceFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DeblendStepConfig : public Euclid::Configuration::Configuration {
   
@@ -52,7 +52,7 @@ private:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_DEBLENDSTEPCONFG_H */
 

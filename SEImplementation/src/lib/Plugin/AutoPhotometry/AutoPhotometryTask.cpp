@@ -40,7 +40,7 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTask.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
 const SeFloat CROWD_THRESHOLD_AUTO = 0.1;

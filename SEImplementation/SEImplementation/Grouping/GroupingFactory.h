@@ -36,7 +36,7 @@
 
 #include "SEImplementation/Configuration/GroupingConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class GroupingFactory : public Configurable {
 
@@ -81,7 +81,7 @@ private:
   std::shared_ptr<SourceGroupFactory> m_source_group_factory;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

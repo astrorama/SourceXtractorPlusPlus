@@ -17,7 +17,7 @@
 #include "SEImplementation/PythonConfig/PyAperture.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace bp = boost::python;
 
@@ -40,4 +40,4 @@ std::string PyAperture::toString() const {
   return str.str();
 }
 
-} // end SExtractor
+} // end SourceXtractor

@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<PixelBoundariesPlugin> pixel_boundaries_plugin;
 

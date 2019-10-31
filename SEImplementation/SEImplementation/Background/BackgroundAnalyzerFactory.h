@@ -30,7 +30,7 @@
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BackgroundAnalyzerFactory  : public Configurable {
 public:

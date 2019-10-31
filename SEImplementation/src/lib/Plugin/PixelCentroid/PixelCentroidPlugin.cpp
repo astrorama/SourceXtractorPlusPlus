@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<PixelCentroidPlugin> pixel_centroid_plugin;
 

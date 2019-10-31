@@ -28,7 +28,7 @@
 #include "PsfTaskFactory.h"
 #include "PsfProperty.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PsfPlugin: public Plugin {
 public:
@@ -39,6 +39,6 @@ public:
   virtual std::string getIdString() const override;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFPLUGIN_H_

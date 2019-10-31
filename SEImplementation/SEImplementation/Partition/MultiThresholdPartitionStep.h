@@ -34,7 +34,7 @@
 #include "SEFramework/Source/SourceFactory.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiThresholdNode;
 

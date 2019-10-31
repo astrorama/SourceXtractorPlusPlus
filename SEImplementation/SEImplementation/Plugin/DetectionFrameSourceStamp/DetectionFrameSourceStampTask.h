@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFrameSourceStampTask

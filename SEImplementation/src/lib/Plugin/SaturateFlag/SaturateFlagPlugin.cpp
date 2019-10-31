@@ -39,6 +39,6 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlagPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
   static StaticPlugin<SaturateFlagPlugin> saturate_flag;
 }

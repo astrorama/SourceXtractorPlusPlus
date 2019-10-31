@@ -26,7 +26,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceId : public Property {
 

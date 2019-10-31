@@ -27,7 +27,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingTaskFactory : public TaskFactory {
 public:

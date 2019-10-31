@@ -38,7 +38,7 @@
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Plugin/PluginAPI.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Plugin;
 

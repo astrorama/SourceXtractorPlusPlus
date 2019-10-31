@@ -27,7 +27,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template<typename T> class ImageSource;
 

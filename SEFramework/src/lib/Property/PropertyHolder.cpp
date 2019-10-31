@@ -24,7 +24,7 @@
 
 #include "SEFramework/Property/PropertyNotFoundException.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 const Property& PropertyHolder::getProperty(const PropertyId& property_id) const {
   auto iter = m_properties.find(property_id);

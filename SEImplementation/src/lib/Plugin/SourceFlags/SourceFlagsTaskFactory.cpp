@@ -40,7 +40,7 @@
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsTaskFactory.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void SourceFlagsTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<MeasurementImageConfig>();
@@ -62,4 +62,4 @@ std::shared_ptr<Task> SourceFlagsTaskFactory::createTask(const PropertyId &prope
   }
 }
 
-} // end SExtractor
+} // end SourceXtractor

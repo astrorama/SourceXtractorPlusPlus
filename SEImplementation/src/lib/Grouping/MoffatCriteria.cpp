@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 
@@ -55,6 +55,6 @@ bool MoffatCriteria::shouldGroup(const SourceInterface& first, const SourceInter
   return doesImpact(first, second) || doesImpact(second, first);
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 

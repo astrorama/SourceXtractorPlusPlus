@@ -30,7 +30,7 @@
 #include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ThresholdedImage
@@ -83,6 +83,6 @@ private:
 
 }; /* End of ThresholdedImage class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_IMAGE_THRESHOLDEDIMAGE_H_ */

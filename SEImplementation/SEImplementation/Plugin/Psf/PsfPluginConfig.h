@@ -29,7 +29,7 @@
 #include <SEFramework/Psf/VariablePsfStack.h>
 #include "SEImplementation/Image/ImagePsf.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PsfPluginConfig: public Euclid::Configuration::Configuration {
 public:
@@ -51,6 +51,6 @@ private:
   std::shared_ptr<VariablePsf> m_vpsf;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFCONFIG_H_

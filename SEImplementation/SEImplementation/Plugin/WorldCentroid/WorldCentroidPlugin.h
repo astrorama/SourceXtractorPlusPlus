@@ -26,7 +26,7 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class WorldCentroidPlugin : public Plugin {
 

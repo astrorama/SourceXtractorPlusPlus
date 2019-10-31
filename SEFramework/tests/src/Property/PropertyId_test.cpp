@@ -25,7 +25,7 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Property/Property.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Example property derived from PropertyImplementation
 class ExamplePropertyA : public Property {

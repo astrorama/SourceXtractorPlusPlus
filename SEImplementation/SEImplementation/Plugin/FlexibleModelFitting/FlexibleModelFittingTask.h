@@ -35,7 +35,7 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingTask : public GroupTask {
 
@@ -56,7 +56,7 @@ private:
   std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceGroupInterface& group, int frame_index) const;
   std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceGroupInterface& group, int frame_index) const;
 
-  ModelFitting::FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> createFrameModel(
+  ModelFitting::FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
       SourceGroupInterface& group,
       double pixel_scale, FlexibleModelFittingParameterManager& manager, std::shared_ptr<FlexibleModelFittingFrame> frame) const;
 

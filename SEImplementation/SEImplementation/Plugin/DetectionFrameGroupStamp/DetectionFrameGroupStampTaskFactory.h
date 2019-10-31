@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DetectionFrameGroupStampTask;
 
@@ -48,7 +48,7 @@ public:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

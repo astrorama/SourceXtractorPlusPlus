@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<GroupInfoPlugin> group_info_plugin;
 

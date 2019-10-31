@@ -34,7 +34,7 @@ namespace py = boost::python;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * Wrap py::extract *and* the call so Python errors can be properly translated and logged

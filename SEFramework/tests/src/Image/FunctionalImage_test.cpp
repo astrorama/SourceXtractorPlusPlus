@@ -26,7 +26,7 @@
 
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 BOOST_AUTO_TEST_SUITE (FunctionalImage_test)
 

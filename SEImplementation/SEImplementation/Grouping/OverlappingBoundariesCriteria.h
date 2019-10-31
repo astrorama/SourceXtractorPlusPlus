@@ -25,7 +25,7 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class OverlappingBoundariesCriteria
@@ -39,7 +39,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

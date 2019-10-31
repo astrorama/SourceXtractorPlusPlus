@@ -36,7 +36,7 @@ namespace ModelFitting {
   class EngineParameterManager;
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceInterface;
 class FlexibleModelFittingParameterManager;

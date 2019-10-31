@@ -28,7 +28,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFramePixelValues
@@ -70,7 +70,7 @@ private:
 
 }; /* End of DetectionFramePixelValues class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

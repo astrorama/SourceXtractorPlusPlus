@@ -27,7 +27,7 @@
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T = SeFloat, class TPadding = PaddedImage<T, Reflect101Coordinates>>
 class DirectConvolution {
@@ -78,6 +78,6 @@ private:
   std::shared_ptr<const Image<T>> m_kernel;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_CONVOLUTION_DIRECTCONVOLUTION_H

@@ -31,7 +31,7 @@
 
 using namespace Euclid::Table;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& enabled_properties) -> SourceToRowConverter {
   std::vector<std::type_index> out_prop_list {};

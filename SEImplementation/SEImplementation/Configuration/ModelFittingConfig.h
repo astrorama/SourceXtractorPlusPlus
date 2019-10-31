@@ -29,7 +29,7 @@
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h>
 #include <Configuration/Configuration.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ModelFittingConfig : public Euclid::Configuration::Configuration {
   

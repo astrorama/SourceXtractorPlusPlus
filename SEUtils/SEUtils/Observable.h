@@ -26,7 +26,7 @@
 #include <memory>
 #include <list>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class Observer
@@ -79,7 +79,7 @@ private:
 
 }; /* End of Observable class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

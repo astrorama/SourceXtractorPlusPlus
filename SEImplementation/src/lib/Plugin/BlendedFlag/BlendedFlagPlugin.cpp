@@ -24,8 +24,8 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/BlendedFlag/BlendedFlagPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<BlendedFlagPlugin> blended_plugin;
 
-} // end SExtractor
+} // end SourceXtractor

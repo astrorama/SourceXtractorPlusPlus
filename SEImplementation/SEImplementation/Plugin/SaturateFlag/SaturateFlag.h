@@ -41,7 +41,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SaturateFlag : public Property {
 public:
@@ -57,6 +57,6 @@ private:
   bool m_saturate_flag;
 }; // end of SaturateFlag class
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SATURATEFLAG_H_*/

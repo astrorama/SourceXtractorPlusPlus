@@ -47,7 +47,7 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SaturateFlagSourceTask : public SourceTask {
 public:
@@ -89,7 +89,7 @@ private:
 
 }; // End of SaturateFlagSourceTask class
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_ */
 

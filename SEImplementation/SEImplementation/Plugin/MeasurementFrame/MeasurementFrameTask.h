@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameTask : public SourceTask {
 public:

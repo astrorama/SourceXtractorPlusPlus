@@ -25,7 +25,7 @@
 #include <string>
 #include <SEImplementation/PythonConfig/PyId.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PyMeasurementImage : public PyId {
   

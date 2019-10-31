@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<ExternalFlagPlugin> pixel_boundaries_plugin;
 

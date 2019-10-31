@@ -36,7 +36,7 @@
 #include "SEFramework/Frame/Frame.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @struct SegmentationProgress
@@ -66,7 +66,7 @@ public:
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {
     static_assert(std::is_base_of<Labelling, LabellingType>::value,
-        "LabellingType must inherit from SExtractor::Segmentation::Labelling");
+        "LabellingType must inherit from SourceXtractor::Segmentation::Labelling");
     static_assert(std::is_constructible<LabellingType, Args...>::value,
         "LabellingType must be constructible from args");
 
@@ -115,6 +115,6 @@ public:
   virtual void labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) = 0;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif

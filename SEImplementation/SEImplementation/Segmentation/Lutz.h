@@ -32,7 +32,7 @@
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Lutz {
 public:

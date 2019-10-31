@@ -30,7 +30,7 @@
 
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SE2BackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:

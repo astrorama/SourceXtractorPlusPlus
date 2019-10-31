@@ -27,7 +27,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "BlendedFlagTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BlendedFlagPlugin : public Plugin {
 public:
@@ -42,6 +42,6 @@ public:
   }
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_BLENDEDFLAGPLUGIN_H_

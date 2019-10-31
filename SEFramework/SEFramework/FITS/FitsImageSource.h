@@ -45,7 +45,7 @@
 #include "SEFramework/FITS/FitsFileManager.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
