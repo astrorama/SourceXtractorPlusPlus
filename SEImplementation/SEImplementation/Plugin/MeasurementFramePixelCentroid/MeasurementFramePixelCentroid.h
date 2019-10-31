@@ -26,7 +26,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFramePixelCentroid : public Property {
 public:
@@ -53,7 +53,7 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

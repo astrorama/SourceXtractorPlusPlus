@@ -27,7 +27,7 @@
 #include <chrono>
 #include "SEMain/ProgressMediator.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ProgressReporterFactory

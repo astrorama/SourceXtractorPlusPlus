@@ -26,7 +26,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string MAG_ZEROPOINT {"magnitude-zero-point"};
 

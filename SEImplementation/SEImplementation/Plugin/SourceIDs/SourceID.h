@@ -28,7 +28,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceID : public Property {
 public:
@@ -51,7 +51,7 @@ private:
   unsigned int m_detection_id;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

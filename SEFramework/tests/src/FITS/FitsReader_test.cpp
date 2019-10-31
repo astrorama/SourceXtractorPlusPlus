@@ -28,7 +28,7 @@
 
 #include "1px.fits.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct FitsReaderFixture {
   TemporaryFile m_tmp_fits;

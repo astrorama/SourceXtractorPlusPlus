@@ -27,7 +27,7 @@
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/BackgroundHistogram.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 BackgroundHistogram::BackgroundHistogram(const double& mean, const double& sigma, const size_t& ndata)
 {
@@ -326,5 +326,5 @@ void BackgroundHistogram::getBackGuess(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
 
   return;
 }
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 

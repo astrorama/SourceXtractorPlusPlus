@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template<typename Combine>
 ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance)
@@ -153,7 +153,7 @@ template class ExternalFlagTask<ExternalFlagCombineTypes::Min>;
 template class ExternalFlagTask<ExternalFlagCombineTypes::Max>;
 template class ExternalFlagTask<ExternalFlagCombineTypes::Most>;
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

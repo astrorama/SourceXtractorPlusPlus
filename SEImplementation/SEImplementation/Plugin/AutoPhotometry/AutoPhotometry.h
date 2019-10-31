@@ -28,7 +28,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Source/SourceFlags.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class AutoPhotometry
@@ -73,6 +73,6 @@ private:
   Flags m_flags;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRY_H_ */

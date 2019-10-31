@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<ShapeParametersPlugin> shape_parameters_plugin;
 

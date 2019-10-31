@@ -30,7 +30,7 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct PixelCentroidFixture {
   SimpleSource source;

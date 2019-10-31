@@ -27,7 +27,7 @@
 #include "SEImplementation/Plugin/KronRadius/KronRadiusTaskFactory.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadiusPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<KronRadiusPlugin> kron_radius_plugin;
 

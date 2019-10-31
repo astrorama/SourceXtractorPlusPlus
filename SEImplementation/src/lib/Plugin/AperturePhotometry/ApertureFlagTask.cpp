@@ -37,7 +37,7 @@
 #include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
 const SeFloat CROWD_THRESHOLD_APER = 0.1;

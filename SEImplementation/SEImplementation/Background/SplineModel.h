@@ -28,7 +28,7 @@
 #include <boost/filesystem.hpp>
 #include "SEImplementation/Background/BackgroundDefine.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SplineModel {
 
@@ -70,7 +70,7 @@ private:
   PIXTYPE itsMedianValue=0.0;
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif	// SPLINEMODEL_H
 

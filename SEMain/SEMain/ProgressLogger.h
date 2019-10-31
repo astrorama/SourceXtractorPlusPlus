@@ -28,7 +28,7 @@
 #include <ElementsKernel/Logging.h>
 #include <chrono>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ProgressLogger
@@ -60,6 +60,6 @@ protected:
   void print();
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_PROGRESSLOGGER_H

@@ -28,7 +28,7 @@
 #include <map>
 #include <string>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 struct WorldCoordinate {
   double m_alpha, m_delta;

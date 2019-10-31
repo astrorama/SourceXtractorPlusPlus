@@ -29,7 +29,7 @@ using namespace testing;
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Property/Property.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 
 // Example Property containing an int

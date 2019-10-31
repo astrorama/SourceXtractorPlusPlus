@@ -26,7 +26,7 @@
 #include "ElementsKernel/Exception.h"
 #include "SEFramework/Property/PropertyId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PropertyNotFoundException
@@ -39,7 +39,7 @@ public:
       std::string("Property ") + property_id.getString() + " not found!") {}
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

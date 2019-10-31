@@ -41,7 +41,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsSourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceFlagsTaskFactory : public TaskFactory {
 public:
@@ -58,5 +58,5 @@ private:
   std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 }; // end of SourceFlagsTaskFactory class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSTASKFACTORY_H_ */

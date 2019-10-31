@@ -16,7 +16,7 @@
 #include <fitsio.h>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FitsFileManager {
 public:

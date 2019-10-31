@@ -26,7 +26,7 @@
 
 #include "SEUtils/IsClose.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T, typename U>
 boost::test_tools::predicate_result compareImages(
@@ -87,6 +87,6 @@ boost::test_tools::predicate_result checkIsClose(double ref, const double val, d
   return res;
 }
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _COMPAREIMAGES_H

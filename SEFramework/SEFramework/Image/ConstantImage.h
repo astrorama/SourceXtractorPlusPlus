@@ -27,7 +27,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class ConstantImage : public ImageBase<T> {

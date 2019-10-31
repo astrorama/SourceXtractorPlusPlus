@@ -26,7 +26,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class IsophotalFlux
@@ -68,7 +68,7 @@ private:
 
 }; /* End of IsophotalFlux class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

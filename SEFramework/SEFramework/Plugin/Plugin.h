@@ -26,7 +26,7 @@
 
 #include <SEFramework/Plugin/PluginAPI.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class Plugin
@@ -43,6 +43,6 @@ public:
   virtual void registerPlugin(PluginAPI& plugin_api) = 0;
 };
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEFRAMEWORK_PLUGIN_PLUGIN_H_ */

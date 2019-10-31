@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ShapeParametersTaskFactory : public TaskFactory {
 public:
@@ -40,7 +40,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

@@ -23,7 +23,7 @@
 #include "SEFramework/Convolution/DFT.h"
 #include "SEUtils/IsClose.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct DFT_Fixture {
   DFTConvolution<float, PaddedImage<float>> dft;

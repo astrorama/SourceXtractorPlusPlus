@@ -30,7 +30,7 @@
 
 #include "SEImplementation/Plugin/WorldCentroid/WorldCentroidTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void WorldCentroidTask::computeProperties(SourceInterface& source) const {
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();

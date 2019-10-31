@@ -26,7 +26,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PluginConfig :  public Euclid::Configuration::Configuration {
 public:

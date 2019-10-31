@@ -27,7 +27,7 @@
 #include "SEFramework/Configuration/Configurable.h"
 #include "TableOutput.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class OutputFactory
@@ -59,7 +59,7 @@ private:
 
 }; /* End of OutputFactory class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

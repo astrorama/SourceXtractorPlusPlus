@@ -25,7 +25,7 @@
 #ifndef BACKGROUNDDEFINE_H
 #define	BACKGROUNDDEFINE_H
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 typedef float PIXTYPE;
 
@@ -62,6 +62,6 @@ typedef float PIXTYPE;
 #define PI      3.1415926535898 // just for sure, maybe it is in C++??
 #endif
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif	/* BACKGROUNDDEFINE_H */

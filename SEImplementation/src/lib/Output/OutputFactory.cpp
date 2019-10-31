@@ -36,7 +36,7 @@
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
   auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
@@ -90,5 +90,5 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 

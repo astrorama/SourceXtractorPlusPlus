@@ -24,7 +24,7 @@
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include <algorithm>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 TransformedAperture::TransformedAperture(std::shared_ptr<Aperture> decorated,
                                          const std::tuple<double, double, double, double> &jacobian)
@@ -100,4 +100,4 @@ SeFloat TransformedAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y
   return m_decorated->getRadiusSquared(0, 0, new_diff_x, new_diff_y);
 }
 
-} // end SExtractor
+} // end SourceXtractor

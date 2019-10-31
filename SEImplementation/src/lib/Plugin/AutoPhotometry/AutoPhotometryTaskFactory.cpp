@@ -42,7 +42,7 @@
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void AutoPhotometryTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<MagnitudeConfig>();
@@ -69,7 +69,7 @@ void AutoPhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &
   }
 }
 
-void AutoPhotometryTaskFactory::registerPropertyInstances(SExtractor::OutputRegistry &output_registry) {
+void AutoPhotometryTaskFactory::registerPropertyInstances(SourceXtractor::OutputRegistry &output_registry) {
   output_registry.registerPropertyInstances<AutoPhotometry>(m_auto_names);
 }
 

@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> MoffatModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<MoffatModelFitting>()) {

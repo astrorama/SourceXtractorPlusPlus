@@ -37,7 +37,7 @@ namespace wcslib {
 #include "SEImplementation/CoordinateSystem/WCS.h"
 #include <boost/algorithm/string/trim.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace wcslib;
 

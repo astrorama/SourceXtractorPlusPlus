@@ -42,7 +42,7 @@
 #include "SEImplementation/Property/SourceId.h"
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class SourceIDsPlugin : public Plugin {
 public:
 
@@ -79,5 +79,5 @@ public:
   }
 private:
 };
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 #endif /* __SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDSPLUGIN_H_ */

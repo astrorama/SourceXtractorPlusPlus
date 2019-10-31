@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

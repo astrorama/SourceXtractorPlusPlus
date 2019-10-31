@@ -26,7 +26,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string MAX_TILE_MEMORY {"tile-memory-limit"};
 static const std::string TILE_SIZE {"tile-size"};
@@ -54,7 +54,7 @@ void MemoryConfig::initialize(const UserValues& args) {
   }
 }
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

@@ -27,7 +27,7 @@
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 using namespace ModelFitting;
 
 //-----------------------------------------------------------------------------

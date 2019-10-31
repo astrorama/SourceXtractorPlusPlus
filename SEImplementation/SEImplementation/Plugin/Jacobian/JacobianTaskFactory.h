@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class JacobianTaskFactory: public TaskFactory {
 public:
@@ -36,6 +36,6 @@ public:
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_JACOBIAN_JACOBIANTASKFACTORY_H_

@@ -32,7 +32,7 @@
 
 #include <SEImplementation/Configuration/WeightImageConfig.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementImageConfig : public Euclid::Configuration::Configuration {
   

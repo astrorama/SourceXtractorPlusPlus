@@ -26,7 +26,7 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Aperture/NeighbourInfo.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 
 struct NeighbourInfo_Fixture {

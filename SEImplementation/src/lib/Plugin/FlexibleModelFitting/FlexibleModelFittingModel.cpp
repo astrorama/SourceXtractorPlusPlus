@@ -45,7 +45,7 @@
 
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 

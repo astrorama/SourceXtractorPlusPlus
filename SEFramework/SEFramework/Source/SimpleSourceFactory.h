@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SimpleSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SimpleSourceFactory

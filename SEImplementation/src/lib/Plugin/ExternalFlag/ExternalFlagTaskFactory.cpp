@@ -27,7 +27,7 @@
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 const char ExternalFlagTaskFactory::propertyName[] = "ExternalFlags";
 
@@ -85,7 +85,7 @@ void ExternalFlagTaskFactory::registerPropertyInstances(OutputRegistry& output_r
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

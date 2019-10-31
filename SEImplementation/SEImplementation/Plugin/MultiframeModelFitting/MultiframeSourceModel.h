@@ -34,7 +34,7 @@
 #include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiframeSourceModel {
 

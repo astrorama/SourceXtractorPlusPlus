@@ -26,7 +26,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string PLUGIN_DIRECTORY { "plugin-directory" };
 static const std::string PLUGIN { "plugin" };

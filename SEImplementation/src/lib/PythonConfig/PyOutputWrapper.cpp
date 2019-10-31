@@ -22,7 +22,7 @@
 #include <boost/python.hpp>
 #include "SEImplementation/PythonConfig/PyOutputWrapper.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace bp = boost::python;
 
@@ -112,5 +112,5 @@ void PyOutputWrapper::writelines(const boost::python::list& lines) {
   }
 }
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 

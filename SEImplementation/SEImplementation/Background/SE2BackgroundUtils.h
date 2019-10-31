@@ -28,7 +28,7 @@
 #include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEImplementation/Background/BackgroundDefine.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static Elements::Logging bck_model_logger = Elements::Logging::getLogger("BackgroundModel");
 
@@ -61,6 +61,6 @@ class SE2BackgroundUtils {
 //   os<<t;
 //   return os.str();
 //}
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 #endif	// SE2BACKGROUNDUTILS_H
 

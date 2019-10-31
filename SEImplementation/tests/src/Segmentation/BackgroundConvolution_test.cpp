@@ -22,7 +22,7 @@
 
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 BOOST_AUTO_TEST_SUITE (BackgroundConvolution_test)
 

@@ -28,7 +28,7 @@
 
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class ImageChunk : public Image<T>, public std::enable_shared_from_this<ImageChunk<T>> {

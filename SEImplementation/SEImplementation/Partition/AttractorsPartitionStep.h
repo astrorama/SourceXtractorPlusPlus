@@ -32,7 +32,7 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class AttractorsPartitionStep
@@ -66,7 +66,7 @@ private:
 
 }; /* End of AttractorsPartitionStep class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

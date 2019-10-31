@@ -27,7 +27,7 @@
 #include <memory>
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class GroupingConfig
@@ -68,6 +68,6 @@ private:
 
 }; /* End of GroupingConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_CONFIGURATION_GROUPINGCONFIG_H_ */

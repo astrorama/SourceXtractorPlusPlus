@@ -27,7 +27,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class AutoPhotometryFlagTask: public SourceTask {
 public:
@@ -44,6 +44,6 @@ private:
   SeFloat m_kron_minrad;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYFLAGTASK_H_

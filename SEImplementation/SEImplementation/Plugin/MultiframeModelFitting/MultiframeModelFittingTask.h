@@ -27,7 +27,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiframeModelFittingTask : public GroupTask {
 

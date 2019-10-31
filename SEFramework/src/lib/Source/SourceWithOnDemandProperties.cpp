@@ -26,7 +26,7 @@
 
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SourceWithOnDemandProperties::SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider) :
             m_task_provider(task_provider) {

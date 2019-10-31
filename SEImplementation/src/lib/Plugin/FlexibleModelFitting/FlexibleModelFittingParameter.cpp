@@ -57,7 +57,7 @@ namespace bmd = boost::math::tools;
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 

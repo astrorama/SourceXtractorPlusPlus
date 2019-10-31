@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<DetectionFrameSourceStampPlugin> detection_frame_source_stamp_plugin;
 

@@ -45,7 +45,7 @@
 
 #include <vector>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceFlagsPlugin : public Plugin {
 public:
@@ -71,5 +71,5 @@ public:
 private:
 }; // end of SourceFlagsPlugin class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSPLUGIN_H_ */

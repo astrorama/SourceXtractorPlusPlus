@@ -27,7 +27,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFitting : public Property {
 public:
