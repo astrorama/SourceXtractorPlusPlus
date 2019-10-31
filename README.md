@@ -1,5 +1,5 @@
 # SourceXtractor++ 
-[![Build Status](https://travis-ci.org/astrorama/sextractorxx.svg?branch=develop)](https://travis-ci.org/astrorama/sextractorxx)
+[![Build Status](https://travis-ci.org/astrorama/SourceXtractorPlusPlus.svg?branch=develop)](https://travis-ci.org/astrorama/SourceXtractorPlusPlus)
 
 The next generation SExtractor.
 
