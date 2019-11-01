@@ -92,8 +92,6 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
   point_models.emplace_back(pixel_x, pixel_y, manager.getParameter(source, m_flux));
 }
 
@@ -129,11 +127,6 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
       [](double eff_radius) { return 1.678 / eff_radius; },
       manager.getParameter(source, m_effective_radius));
 
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
-
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0, n, k));
 
@@ -143,7 +136,6 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   auto minus_angle = createDependentParameter(
       [](double angle) { return -angle; },
       manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
 
   extended_models.emplace_back(
       std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio), minus_angle,
@@ -182,11 +174,6 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
       [](double eff_radius) { return 7.669 / pow(eff_radius, .25); },
       manager.getParameter(source, m_effective_radius));
 
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
-
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0, n, k));
 
@@ -196,7 +183,6 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   auto minus_angle = createDependentParameter(
       [](double angle) { return -angle; },
       manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
 
   extended_models.emplace_back(
       std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio), minus_angle,
@@ -243,11 +229,6 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
   sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0,
       manager.getParameter(source, m_sersic_index), k));
-
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
 
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
