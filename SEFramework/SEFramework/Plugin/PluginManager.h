@@ -90,14 +90,22 @@ public:
 private:
   std::string m_plugin_path;
   std::vector<std::string> m_plugin_list;
-#if USE_BOOST_DLL
-  std::vector<boost::dll::shared_library> m_loaded_plugins;
-#endif
-  
+
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
   std::shared_ptr<OutputRegistry> m_output_registry;
   long m_config_manager_id;
 
+#if USE_BOOST_DLL
+  /// @details
+  /// Unfortunately, plugins can register themselves in multiple places:
+  /// OutputRegistry, TaskRegistry, ConfigurationManager...
+  /// For the former two we could somehow handle the lifetime better, but the later
+  /// comes for Alexandria, and does not allow to unregister, nor override the registration methods.
+  /// We need to make sure the external plugins survive all those classes, or on destruction
+  /// the process will segfault when trying to call the virtual destructor that is on an unloaded
+  /// library.
+  static std::vector<boost::dll::shared_library> s_loaded_plugins;
+#endif
   static std::vector<std::unique_ptr<Plugin>> s_static_plugins;
 };
 
