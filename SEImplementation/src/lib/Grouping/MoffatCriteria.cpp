@@ -23,7 +23,7 @@
 
 #include "SEImplementation/Grouping/MoffatCriteria.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
-#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingUtils.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
@@ -33,15 +33,13 @@ namespace SourceXtractor {
 using namespace ModelFitting;
 
 bool MoffatCriteria::doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const {
-  auto& model = impactor.getProperty<MoffatModelFitting>();
-  if (model.getIterations() == 0) {
+  auto& extended_model = impactor.getProperty<MoffatModelEvaluator>();
+  if (extended_model.getIterations() == 0) {
     return false;
   }
 
   auto& centroid = impactee.getProperty<PixelCentroid>();
   auto max_value = impactee.getProperty<PeakValue>().getMaxValue();
-
-  MoffatModelEvaluator extended_model(impactor);
 
   double model_value = extended_model.getValue(centroid.getCentroidX(), centroid.getCentroidY());
 
