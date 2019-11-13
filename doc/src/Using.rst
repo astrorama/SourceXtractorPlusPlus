@@ -5,7 +5,7 @@
 .. _using-sextractor:
 
 Using SourceXtractor++
-==================
+======================
 
 |SourceXtractor++| is run from the shell with the following syntax:
 

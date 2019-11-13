@@ -136,7 +136,7 @@ numfig = True
 # unit titles (such as .. function::).
 add_module_names = False
 
-autodoc_mock_imports = ['.measurement_images', '_SExtractorPy']
+autodoc_mock_imports = ['.measurement_images', '_SourceXtractorPy']
 
 # -- Options for HTML output ----------------------------------------------
 

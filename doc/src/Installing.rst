@@ -29,7 +29,7 @@ CPUs
 
 
 Obtaining |SourceXtractor++|
-------------------------
+----------------------------
 
 Software requirements
 ---------------------
@@ -48,7 +48,7 @@ A new directory called :file:`sextractorxx-<version>` should now appear at the c
 
 --------------
 Installing the SourceXtractor++ source package on Ubuntu 19.04
-----------------------------------------------------------
+--------------------------------------------------------------
 
 The follwing ios a protokol for the installation of the entire SourceXtractor++ on a Ubuntu-19.04 system which was freshly installed as a virtual machine.
 
