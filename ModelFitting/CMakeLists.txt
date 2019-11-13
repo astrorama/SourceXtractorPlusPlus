@@ -14,6 +14,7 @@ find_package(Levmar)
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
 if (NOT LEVMAR_FOUND)
+    set(WITHOUT_LEVMAR ON PARENT_SCOPE)
     add_definitions(-DWITHOUT_LEVMAR)
     message(WARNING "
 Levmar library not found, compiling without Levmar support!
