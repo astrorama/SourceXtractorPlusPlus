@@ -562,33 +562,50 @@ def load_multi_hdu_fits(image_file, psf=None, weight=None, **kwargs):
         single HDU FITS files, one for each weight map
     :return: A ImageGroup representing the images
     """
-    hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
     
-    # handles the PSFs
-    if isinstance(psf, list):
-        assert(len(psf) == len(hdu_list))
-        psf_list = psf
-        psf_hdu_list = [0] * len(psf_list)
-    else:
-        psf_list = [psf] * len(hdu_list)
-        psf_hdu_list = hdu_list
+    if isinstance(image_file, list):
+        assert(isinstance(psf, list) and len(psf) == len(image_file))
+        assert(isinstance(weight, list) and len(weight) == len(image_file))
         
-    # handles the weight maps
-    if isinstance(weight, list):
-        assert(len(weight) == len(hdu_list))
-        weight_list = weight
-        weight_hdu_list = [0] * len(weight_list)
+        groups = []
+        for f, p, w in zip(image_file, psf, weight):
+            groups.append(load_multi_hdu_fits(f, p, w, **kwargs))
+            
+        print(groups)
+            
+        image_list = []
+        for g in groups:
+            image_list += g
+            
+        return ImageGroup(images=image_list)
     else:
-        weight_list = [weight] * len(hdu_list)
-        weight_hdu_list = hdu_list
-
-    image_list = []
-    for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
-            hdu_list, psf_list, psf_hdu_list, weight_list, weight_hdu_list):
-        image_list.append(MeasurementImage(image_file, psf_file, weight_file,
-                                           image_hdu=hdu+1, psf_hdu=psf_hdu+1, weight_hdu=weight_hdu+1, **kwargs))
-
-    return ImageGroup(images=image_list)
+        hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+        
+        # handles the PSFs
+        if isinstance(psf, list):
+            assert(len(psf) == len(hdu_list))
+            psf_list = psf
+            psf_hdu_list = [0] * len(psf_list)
+        else:
+            psf_list = [psf] * len(hdu_list)
+            psf_hdu_list = range(len(hdu_list))
+            
+        # handles the weight maps
+        if isinstance(weight, list):
+            assert(len(weight) == len(hdu_list))
+            weight_list = weight
+            weight_hdu_list = [0] * len(weight_list)
+        else:
+            weight_hdu_list = [i for i, hdu in enumerate(fits.open(weight)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+            weight_list = [weight] * len(hdu_list)
+    
+        image_list = []
+        for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
+                hdu_list, psf_list, psf_hdu_list, weight_list, weight_hdu_list):
+            image_list.append(MeasurementImage(image_file, psf_file, weight_file,
+                                               image_hdu=hdu+1, psf_hdu=psf_hdu+1, weight_hdu=weight_hdu+1, **kwargs))
+    
+        return ImageGroup(images=image_list)
 
 
 # def load_fits_cube(image_file, psf, hdu=0):
