@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# SExtractor++ documentation build configuration file, created by
+# SourceXtractor++ documentation build configuration file, created by
 # sphinx-quickstart on Thu Jan 31 13:34:56 2019.
 #
 # This file is execfile()d with the current directory set to its
@@ -18,7 +18,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../../SEImplementation/python/sextractorxx'))
+sys.path.insert(0, os.path.abspath('../../SEImplementation/python/sourcextractor'))
 
 import sphinx_rtd_theme
 
