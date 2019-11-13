@@ -25,7 +25,7 @@ There are three main steps in the processing: detection, collection and measurem
    :align: center
    :figwidth: 100%
 
-   Layout of the main |SExtractor++| procedures. *Dashed arrows* represent
+   Layout of the main |SourceXtractor++| procedures. *Dashed arrows* represent
    optional inputs. 
 
 The following sections describe each of these operations in more detail.

@@ -9,7 +9,7 @@ Flagging
 
 Flags are binary attributes of the detected sources.
 They are set to indicate, e.g., that a source is saturated or that it has been deblended.
-Flags are grouped in columns in the |SExtractor++| output catalog.
+Flags are grouped in columns in the |SourceXtractor++| output catalog.
 Each column element is an integer, comprising several flag bits as a sum of powers of 2.
 Many properties produce flag columns:
 AperturePhotometry (:param:`aperture_flags`), AutoPhotometry (:param:`auto_flags`), FlexibleModelFitting (:param:`fmf_flags`), ...

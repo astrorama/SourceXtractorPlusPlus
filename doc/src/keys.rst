@@ -70,8 +70,8 @@
 .. |SExtractor| replace:: :program:`SExtractor`
 .. _SExtractor: http://astromatic.net/software/sextractor
 
-.. |SExtractor++| replace:: :program:`SExtractor++`
-.. _SExtractor++: http://github.com/ebertin/sextractorxx
+.. |SourceXtractor++| replace:: :program:`SourceXtractor++`
+.. _SourceXtractor++: http://github.com/ebertin/sextractorxx
 
 .. |SkyMaker| replace:: :program:`SkyMaker`
 .. _SkyMaker: http://astromatic.net/software/skymaker

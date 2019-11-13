@@ -4,10 +4,10 @@
 
 .. _using-sextractor:
 
-Using SExtractor++
+Using SourceXtractor++
 ==================
 
-|SExtractor++| is run from the shell with the following syntax:
+|SourceXtractor++| is run from the shell with the following syntax:
 
 .. code-block:: console
 

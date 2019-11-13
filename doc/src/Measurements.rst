@@ -9,7 +9,7 @@ Measuring
 
 Once sources have been detected and deblended, they enter the measurement phase.
 
-|SExtractor++| performs three categories of measurements: isophotal, aperture, and model-fitting.
+|SourceXtractor++| performs three categories of measurements: isophotal, aperture, and model-fitting.
 
 .. _isophotal_measurements:
 
@@ -35,7 +35,7 @@ They can be very sensitive to contamination by the light of neighbors, although 
 **Model-fitting measurements** are performed on the measurement images.
 They are close to optimum from the point-of-view of |SNR|, but they require accurate PSF models (one per image).
 |PSF|_ models can be computed using the |PSFEx|_ package.
-|SExtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
+|SourceXtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
 The main inconvenient of model-fitting is that it is much slower than aperture photometry.
 
 .. _chap_configuration_script:
@@ -46,7 +46,7 @@ The measurement configuration script
 Measurement settings, as well as :ref:`grouping procedures <groups>` and catalog outputs must be defined in a configuration script that uses the `Python language <https://python.org>`_: the measurement configuration script.
 The script filename is set with the ``python-config-file`` configuration option. 
 Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
-|SExtractor++|'s configuration library classes and functions must be imported at the beginning of the script:
+|SourceXtractor++|'s configuration library classes and functions must be imported at the beginning of the script:
 
 .. code-block:: python
 
@@ -55,7 +55,7 @@ Thanks to its flexibility, the Python language makes it possible to set up arbit
 The same goes for other Python libraries that might be needed for the current configuration, such as `glob <https://docs.python.org/library/glob.html>`_ for filename expansion, `math <https://docs.python.org/library/math.html>`_ or `NumPy <https://numpy.org/>`_ for numerical computations, ...
 
 .. caution::
-   The measurement configuration script is excusively meant to be executed by the |SExtractor++| built-in Python interpreter, and cannot be run on its own.
+   The measurement configuration script is excusively meant to be executed by the |SourceXtractor++| built-in Python interpreter, and cannot be run on its own.
 
 Measurement images
 ~~~~~~~~~~~~~~~~~~
@@ -85,10 +85,10 @@ However before addressing this point we need to introduce the concept of :ref:`g
 Grouping and splitting
 ~~~~~~~~~~~~~~~~~~~~~~
 
-|SExtractor++| measures the properties of sources from instances spread across multiple exposures.
+|SourceXtractor++| measures the properties of sources from instances spread across multiple exposures.
 Each exposure has its own context defined by a specific combination of filter, instrument, epoch, etc.
 Depending on science goals, one may choose to group images by time of observation (e.g., to build light curves), filter (for regular photometry), ...
-This is the purpose of |SExtractor++|'s grouping (and splitting) mechanisms.
+This is the purpose of |SourceXtractor++|'s grouping (and splitting) mechanisms.
 
 There are two types of groups: image groups and measurement groups.
 

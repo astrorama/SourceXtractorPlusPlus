@@ -7,7 +7,7 @@
 Configuration
 =============
 
-There are two types of configuration settings: those dedicated purely to measurements, and those related to the source extraction process and to global operations of |SExtractor++|.
+There are two types of configuration settings: those dedicated purely to measurements, and those related to the source extraction process and to global operations of |SourceXtractor++|.
 Measurement settings can be rather complex and require a :ref:`Python configuration script <chap_configuration_script>` (see the :ref:`Measurement section <chap_measurements>`).
 Global configuration settings may be changed using command-line options (prefixed with a ``--``), however a configuration file is often more convenient for storing settings that do not change from run to run.
 
@@ -21,7 +21,7 @@ Global configuration settings may be changed using command-line options (prefixe
 The configuration file
 ----------------------
 
-|SExtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository.
+|SourceXtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository.
 
 Format of the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -35,7 +35,7 @@ Comments must be preceded with a ``#``.
 Configuration parameter list
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here is a complete list of all the configuration parameters known to |SExtractor++|.
+Here is a complete list of all the configuration parameters known to |SourceXtractor++|.
 Please refer to the next sections for a detailed description of their meaning.
 
 

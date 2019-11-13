@@ -10,10 +10,10 @@ Weighting
 The noise level in astronomical images is often fairly constant, that is, constant values for the gain, the background noise and the detection thresholds can be used over the whole frame.
 Unfortunately in some cases, like strongly vignetted or composited images, this approximation is no longer good enough.
 This leads to detecting clusters of detected noise peaks in the noisiest parts of the image, or missing obvious objects in the most sensitive ones.
-|SExtractor++| is able to handle images with variable noise.
+|SourceXtractor++| is able to handle images with variable noise.
 It does it through *weight maps*, which are frames having the same size as the images where objects are detected or measured, and which describe the noise intensity at each pixel.
 These maps are internally stored in units of *absolute variance* (in :math:`ADU^2`).
-We employ the generic term *weight map* because these maps can also be interpreted as quality index maps: infinite variance (:math:`\ge 10^{30}` by definition in |SExtractor++|) means that the related pixel in the science frame is totally unreliable and should be ignored.
+We employ the generic term *weight map* because these maps can also be interpreted as quality index maps: infinite variance (:math:`\ge 10^{30}` by definition in |SourceXtractor++|) means that the related pixel in the science frame is totally unreliable and should be ignored.
 
 The variance format was adopted as it linearizes most of the operations done over weight maps (see below).
 However noise covariances between pixels are ignored.
@@ -21,7 +21,7 @@ However noise covariances between pixels are ignored.
 Effect of weighting
 -------------------
 
-Weight-maps modify the working of |SExtractor++| in the several ways:
+Weight-maps modify the working of |SourceXtractor++| in the several ways:
 
 - The detection threshold :math:`t` above the local sky background in the detection image is adjusted for each pixel :math:`i` with variance :math:`\sigma^2_i`: :math:`t_i=`\ ``detection-threshold``\ :math:`\times\sqrt{\sigma^2_i}`, where ``detection-threshold`` is expressed in units of standard deviations of the background noise.
   Pixels having a variance *above* the threshold set with the ``--weight-threshold`` command line option are never detected.
@@ -61,7 +61,7 @@ Weight-map formats
 Detection weight-map
 ~~~~~~~~~~~~~~~~~~~~
 
-|SExtractor++| reads and converts to its internal variance format several types of weight-maps.
+|SourceXtractor++| reads and converts to its internal variance format several types of weight-maps.
 The detection weight-map can either be read from a FITS file specified by the ``--weight-image`` command line option, or computed internally.
 The type of detection weight-map must be selected using the ``--weight-type`` command-line option.
 Valid ``weight_type`` values are:
