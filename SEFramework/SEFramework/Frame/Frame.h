@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * Frame.h
  *
@@ -14,8 +30,7 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/SubtractImage.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
 #include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
@@ -160,6 +175,16 @@ public:
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
   }
 
+  struct ThresholdOperation {
+    static T process(const T& a, const T& b) { return sqrt(a) * b; }
+  };
+
+  using ThresholdImage = ProcessedImage<T, ThresholdOperation> ;
+
+  std::shared_ptr<Image<T>> getDetectionThresholdMap() const {
+    return ThresholdImage::create(m_variance_map, m_detection_threshold);
+  }
+
   std::string getLabel() const {
     return m_label;
   }
@@ -197,6 +222,10 @@ public:
 
   void setDetectionThreshold(T detection_threshold) {
     m_detection_threshold = detection_threshold;
+  }
+
+  void setBackgroundLevel(T background_level) {
+    setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level));
   }
 
   void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {

@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * TestImage.cpp
  *
@@ -22,11 +38,11 @@
 #include <boost/random.hpp>
 
 #include <CCfits/CCfits>
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
-#include "SEFramework/Image/FitsImageSource.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
@@ -155,6 +171,7 @@ public:
         ("output", po::value<string>()->required(), "filename to save the created test image")
         ("output-weight", po::value<string>()->default_value(""), "filename to save the created weight map image")
         ("size", po::value<double>()->default_value(512.0), "image size")
+        ("bg-level", po::value<double>()->default_value(0.0), "background level")
         ("bg-sigma", po::value<double>()->default_value(20.0), "standard deviation of background gaussian noise")
         ("gain", po::value<double>()->default_value(0.0), "gain in e-/adu, 0 for infinite gain")
         ("saturation", po::value<double>()->default_value(0.0), "image saturation level, 0 for no saturation")
@@ -592,7 +609,7 @@ public:
     logger.info("Adding noise...");
 
     addPoissonNoise(target_image, args["gain"].as<double>());
-    addBackgroundNoise(target_image, 0, args["bg-sigma"].as<double>());
+    addBackgroundNoise(target_image, args["bg-level"].as<double>(), args["bg-sigma"].as<double>());
 
     logger.info("Adding saturation...");
 

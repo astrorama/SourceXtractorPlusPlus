@@ -1,11 +1,32 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/lib/Task/ExternalFlagTask.cpp
  * @date 06/17/16
  * @author nikoapos
  */
 
+#include <mutex>
+
 #include "SEFramework/Property/DetectionFrame.h"
+
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
 namespace SExtractor {
@@ -18,6 +39,8 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 template<typename Combine>
 void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
   const auto& detection_frame = source.getProperty<DetectionFrame>();
   const auto& detection_image = detection_frame.getFrame()->getOriginalImage();
 

@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * FlexibleModelFittingTask.cpp
  *
@@ -291,7 +307,21 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
   auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
-  SeFloat avg_reduced_chi_squared = computeReducedChiSquared(group, pixel_scale, parameter_manager);
+
+  int total_data_points = 0;
+  SeFloat avg_reduced_chi_squared = computeChiSquared(group, pixel_scale, parameter_manager, total_data_points);
+
+  int nb_of_free_parameters = 0;
+  for (auto& source : group) {
+    for (auto parameter : m_parameters) {
+      bool is_free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter).get();
+      bool accessed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
+      if (is_free_parameter && accessed_by_modelfitting) {
+        nb_of_free_parameters++;
+      }
+    }
+  }
+  avg_reduced_chi_squared /= (total_data_points - nb_of_free_parameters);
 
   // Collect parameters for output
   for (auto& source : group) {
@@ -300,10 +330,10 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
     for (auto parameter : m_parameters) {
       bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
-      bool accesed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
+      bool accessed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
       auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
 
-      if (is_dependent_parameter || accesed_by_modelfitting) {
+      if (is_dependent_parameter || accessed_by_modelfitting) {
         parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
         parameter_sigmas[parameter->getId()] = parameter->getSigma(parameter_manager, source, solution.parameter_sigmas);
       }
@@ -318,6 +348,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
         source_flags |= Flags::PARTIAL_FIT;
       }
     }
+
     source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
                                              parameter_sigmas);
   }
@@ -358,11 +389,10 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
   }
 }
 
-SeFloat FlexibleModelFittingTask::computeReducedChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
-    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights,
-    int nb_of_free_params) const {
+SeFloat FlexibleModelFittingTask::computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const {
   double reduced_chi_squared = 0.0;
-  int data_points = 0;
+  data_points = 0;
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
       double tmp = image->getValue(x, y) - model->getValue(x, y);
@@ -372,13 +402,14 @@ SeFloat FlexibleModelFittingTask::computeReducedChiSquaredForFrame(std::shared_p
       }
     }
   }
-  return reduced_chi_squared / (data_points - nb_of_free_params);
+  return reduced_chi_squared;
 }
 
-SeFloat FlexibleModelFittingTask::computeReducedChiSquared(SourceGroupInterface& group,
-    double pixel_scale, FlexibleModelFittingParameterManager& manager) const {
+SeFloat FlexibleModelFittingTask::computeChiSquared(SourceGroupInterface& group,
+    double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const {
 
-  SeFloat avg_reduced_chi_squared = 0;
+  SeFloat total_chi_squared = 0;
+  total_data_points = 0;
   int valid_frames = 0;
   for (auto frame : m_frames) {
     int frame_index = frame->getFrameNb();
@@ -392,13 +423,16 @@ SeFloat FlexibleModelFittingTask::computeReducedChiSquared(SourceGroupInterface&
       auto image = createImageCopy(group, frame_index);
       auto weight = createWeightImage(group, frame_index);
 
-      SeFloat reduced_chi_squared = computeReducedChiSquaredForFrame(
-          image, final_stamp, weight, manager.getParameterNb());
-      avg_reduced_chi_squared += reduced_chi_squared;
+      int data_points = 0;
+      SeFloat chi_squared = computeChiSquaredForFrame(
+          image, final_stamp, weight, data_points);
+
+      total_data_points += data_points;
+      total_chi_squared += chi_squared;
     }
   }
 
-  return avg_reduced_chi_squared / valid_frames;
+  return total_chi_squared;
 }
 
 FlexibleModelFittingTask::~FlexibleModelFittingTask() {

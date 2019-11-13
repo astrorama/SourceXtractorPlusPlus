@@ -5,4 +5,4 @@ Terminal=true
 NoDisplay=true
 Exec=sextractor++
 Icon=sextractor++
-
+Categories=Education;

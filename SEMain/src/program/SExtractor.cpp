@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file src/program/SExtractor.cpp
  * @date 05/31/16
@@ -6,27 +22,23 @@
 
 #include <map>
 #include <string>
+#include <iomanip>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <iomanip>
-
 #include "ElementsKernel/Main.h"
-
-#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
-#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
-#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
-#include "SEImplementation/CheckImages/MoffatCheckImage.h"
-
-#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
-#include "ElementsKernel/ProgramHeaders.h"
 #include "ElementsKernel/System.h"
+#include "ElementsKernel/Temporary.h"
+#include "ElementsKernel/ProgramHeaders.h"
+
+#include "Configuration/ConfigManager.h"
+#include "Configuration/Utils.h"
 
 #include "SEFramework/Plugin/PluginManager.h"
 
 #include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Image/SubtractImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
@@ -37,6 +49,14 @@
 
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
+
+#include "SEFramework/FITS/FitsFileManager.h"
+
+#include "SEImplementation/CheckImages/SourceIdCheckImage.h"
+#include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
+#include "SEImplementation/CheckImages/GroupIdCheckImage.h"
+#include "SEImplementation/CheckImages/MoffatCheckImage.h"
+#include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -59,11 +79,9 @@
 #include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEMain/SExtractorConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
-
-#include "Configuration/ConfigManager.h"
-#include "Configuration/Utils.h"
 #include "SEMain/PluginConfig.h"
 #include "SEMain/Sorter.h"
 
@@ -337,12 +355,19 @@ public:
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
 
-    // Process the image
-    segmentation->processFrame(detection_frame);
+    try {
+      // Process the image
+      segmentation->processFrame(detection_frame);
 
-    // Flush source grouping buffer
-    SelectAllCriteria select_all_criteria;
-    source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+      // Flush source grouping buffer
+      SelectAllCriteria select_all_criteria;
+      source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
+    }
+    catch (const std::exception &e) {
+      logger.error() << "Failed to process the frame! " << e.what();
+      measurement->waitForThreads();
+      return Elements::ExitCode::NOT_OK;
+    }
 
     measurement->waitForThreads();
 
@@ -350,6 +375,8 @@ public:
     CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
+    FitsFileManager::getInstance()->closeAllFiles();
+
     size_t n_writen_rows = output->flush();
 
     progress_mediator->done();
@@ -405,6 +432,14 @@ private:
 ELEMENTS_API int main(int argc, char* argv[]) {
   std::string plugin_path {};
   std::vector<std::string> plugin_list {};
+
+  // This adds the current directory as a valid location for the default "sextractor++.conf" configuration
+  Elements::TempEnv local_env;
+  if (local_env["ELEMENTS_CONF_PATH"].empty()) {
+    local_env["ELEMENTS_CONF_PATH"] = ".";
+  } else {
+    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"];
+  }
 
   setupEnvironment();
 

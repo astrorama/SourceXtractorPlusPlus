@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * FlexibleModelFittingParameter.cpp
  *
@@ -7,29 +23,39 @@
 
 #include <iostream>
 
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 106700
+
+#if BOOST_VERSION >= 107000
+#include <boost/math/differentiation/finite_difference.hpp>
+namespace bmd = boost::math::differentiation;
+#else
 #include <boost/math/tools/numerical_differentiation.hpp>
+namespace bmd = boost::math::tools;
+#endif
+
+#endif
 
 #include "ModelFitting/utils.h"
-
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
 #include "SEUtils/Python.h"
+#include "SEUtils/NumericalDerivative.h"
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SourceInterface.h"
 
 #include "SEImplementation/PythonConfig/PythonInterpreter.h"
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 
+
 static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
 
-namespace bmd = boost::math::tools;
 
 namespace SExtractor {
 
@@ -156,7 +182,12 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
         return m_value_calculator(cs, params);
     };
 
+#if BOOST_VERSION >= 106700
     result[i] = bmd::finite_difference_derivative(f, param_values[i]);
+#else
+    // if boost's function is unavailable use our own function
+    result[i] = NumericalDerivative::centralDifference(f, param_values[i]);
+#endif
   }
 
   return result;

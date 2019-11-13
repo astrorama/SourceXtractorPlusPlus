@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * WeightImageConfig.cpp
  *
@@ -10,10 +26,10 @@
 
 #include "Configuration/ConfigManager.h"
 
-#include "SEFramework/Image/FitsReader.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ProcessingImageSource.h"
-#include <SEFramework/Image/MultiplyImage.h>
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/FITS/FitsReader.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -29,7 +45,7 @@ static const std::string WEIGHT_TYPE {"weight-type" };
 static const std::string WEIGHT_ABSOLUTE {"weight-absolute" };
 static const std::string WEIGHT_SCALING {"weight-scaling" };
 static const std::string WEIGHT_THRESHOLD {"weight-threshold" };
-static const std::string WEIGHT_SYMMETRYUSAGE {"weight-usesymmetry" };
+static const std::string WEIGHT_SYMMETRYUSAGE {"weight-use-symmetry" };
 
 WeightImageConfig::WeightImageConfig(long manager_id) :
     Configuration(manager_id),
@@ -48,8 +64,8 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
           "Path to a fits format image to be used as weight image."},
       {WEIGHT_ABSOLUTE.c_str(), po::value<bool>()->default_value(false),
           "Is the weight map provided as absolute values or relative to background."},
-      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("background"),
-          "Weight image type [background|rms|variance|weight]."},
+      {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("none"),
+          "Weight image type [none|background|rms|variance|weight]."},
       {WEIGHT_SCALING.c_str(), po::value<double>()->default_value(1.0),
           "Weight map scaling factor."},
       {WEIGHT_THRESHOLD.c_str(), po::value<double>(),
@@ -68,7 +84,9 @@ void WeightImageConfig::initialize(const UserValues& args) {
   }
 
   auto weight_type_name = boost::to_upper_copy(args.at(WEIGHT_TYPE).as<std::string>());
-  if (weight_type_name == "BACKGROUND") {
+  if (weight_type_name == "NONE") {
+    m_weight_type = WeightType::WEIGHT_TYPE_NONE;
+  } else if (weight_type_name == "BACKGROUND") {
     m_weight_type = WeightType::WEIGHT_TYPE_FROM_BACKGROUND;
   } else if (weight_type_name == "RMS") {
     m_weight_type = WeightType::WEIGHT_TYPE_RMS;
@@ -115,6 +133,8 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
   // some safeguards that the user provides reasonable input and gets defined results
   if (weight_image_filename != "" && m_weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND)
+    throw Elements::Exception() << "Please give an appropriate weight type for image: " << weight_image_filename;
+  if (weight_image_filename != "" && m_weight_type == WeightType::WEIGHT_TYPE_NONE)
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << weight_image_filename;
   if (m_absolute_weight && weight_image_filename == "")
     throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
@@ -178,6 +198,8 @@ private:
 std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
 
   if (weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND) {
+    return nullptr;
+  } else if (weight_type == WeightType::WEIGHT_TYPE_NONE) {
     return nullptr;
   } else {
     auto result_image = BufferedImage<WeightImage::PixelType>::create(std::make_shared<WeightMapImageSource>(weight_image, weight_type, scaling));

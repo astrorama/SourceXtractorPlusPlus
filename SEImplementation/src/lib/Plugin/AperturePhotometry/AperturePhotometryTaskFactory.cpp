@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * AperturePhotometryTaskFactory.cpp
  *
@@ -79,14 +95,15 @@ void AperturePhotometryTaskFactory::reportConfigDependencies(Euclid::Configurati
 void AperturePhotometryTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
   auto& aperture_config = manager.getConfiguration<AperturePhotometryConfig>();
-  const auto& ids = measurement_config.getImageIds();
+
+  const auto& image_infos = measurement_config.getImageInfos();
 
   m_aperture_config = aperture_config.getApertures();
   m_magnitude_zero_point = manager.getConfiguration<MagnitudeConfig>().getMagnitudeZeroPoint();
   m_symmetry_usage = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
 
-  for (unsigned int i = 0; i < ids.size(); ++i) {
-    for (auto a : aperture_config.getAperturesForImage(ids[i])) {
+  for (unsigned int i = 0; i < image_infos.size(); ++i) {
+    for (auto a : aperture_config.getAperturesForImage(image_infos[i].m_id)) {
       if (std::find(m_all_apertures.begin(), m_all_apertures.end(), a) == m_all_apertures.end()) {
         m_all_apertures.emplace_back(a);
       }

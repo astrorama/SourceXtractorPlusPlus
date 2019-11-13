@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /* 
  * @file PythonModule.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
@@ -60,7 +76,12 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
       .def_readwrite("weight_absolute", &PyMeasurementImage::weight_absolute)
       .def_readwrite("weight_scaling", &PyMeasurementImage::weight_scaling)
       .def_readwrite("has_weight_threshold", &PyMeasurementImage::has_weight_threshold)
-      .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold);
+      .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold)
+      .def_readwrite("is_background_constant", &PyMeasurementImage::is_background_constant)
+      .def_readwrite("constant_background_value", &PyMeasurementImage::constant_background_value)
+      .def_readwrite("image_hdu", &PyMeasurementImage::image_hdu)
+      .def_readwrite("psf_hdu", &PyMeasurementImage::psf_hdu)
+      .def_readwrite("weight_hdu", &PyMeasurementImage::weight_hdu);
 
   bp::class_<PyId>("Id", bp::init<>())
     .def_readonly("id", &PyId::id);

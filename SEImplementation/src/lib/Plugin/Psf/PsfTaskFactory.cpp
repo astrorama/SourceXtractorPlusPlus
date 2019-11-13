@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * PsfTaskFactory.h
  *
@@ -20,17 +36,14 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
   const auto& default_psf = psf_config.getPsf();
-  const auto& psf_paths = measurement_config.getPsfsPaths();
-  const auto& ids = manager.getConfiguration<MeasurementImageConfig>().getImageIds();
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
 
-  assert(psf_paths.size() == ids.size());
-
-  for (unsigned int i = 0; i < psf_paths.size(); i++) {
-    if (!psf_paths[i].empty()) {
-      m_vpsf[ids[i]] = PsfPluginConfig::readPsf(psf_paths[i]);
+  for (unsigned int i = 0; i < image_infos.size(); i++) {
+    if (!image_infos[i].m_psf_path.empty()) {
+      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu);
     }
     else if (default_psf) {
-      m_vpsf[ids[i]] = default_psf;
+      m_vpsf[image_infos[i].m_id] = default_psf;
     }
   }
 

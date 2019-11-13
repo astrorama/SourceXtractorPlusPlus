@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * WCS.cpp
  *
@@ -25,19 +41,23 @@ namespace SExtractor {
 
 using namespace wcslib;
 
-WCS::WCS(const std::string& fits_file_path): m_wcs(nullptr, nullptr) {
+WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nullptr) {
   fitsfile *fptr = NULL;
   int status = 0;
   fits_open_file(&fptr, fits_file_path.c_str(), READONLY, &status);
 
-  int hdutype;
-  fits_get_hdu_type(fptr, &hdutype, &status);
+  int hdu_type;
+  fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
+
+  if (status != 0 || hdu_type != IMAGE_HDU) {
+    throw Elements::Exception() << "Can't read WCS information from " << fits_file_path << " HDU " << hdu_number;
+  }
 
   int nkeyrec;
   char* header;
   fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status);
 
-  if (hdutype == IMAGE_HDU) {
+  if (hdu_type == IMAGE_HDU) {
     int nreject = 0, nwcs = 0;
     wcsprm* wcs;
     wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);

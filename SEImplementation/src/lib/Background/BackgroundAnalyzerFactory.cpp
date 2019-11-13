@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * BackgroundAnalyzerFactory.cpp
  *
@@ -14,13 +30,16 @@
 namespace SExtractor {
 
 std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundAnalyzer() const {
+  return createBackgroundAnalyzer(m_weight_type);
+}
 
+std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundAnalyzer(
+    WeightImageConfig::WeightType weight_type) const {
   // make a SE2 background if cell size and smoothing box are given
-  if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0){
-    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box);
+  if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0) {
+    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
     return background_level;
-  }
-  else {
+  } else {
     // make a simple background
     auto background_level =  std::make_shared<SimpleBackgroundAnalyzer>();
     return background_level;
@@ -29,12 +48,15 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
 
 void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<SE2BackgroundConfig>();
+  manager.registerConfiguration<WeightImageConfig>();
 }
 
 void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto se2background_config = manager.getConfiguration<SE2BackgroundConfig>();
+  auto weight_image_config = manager.getConfiguration<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
+  m_weight_type = weight_image_config.getWeightType();
 }
 
 }
