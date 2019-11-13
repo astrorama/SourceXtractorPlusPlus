@@ -26,7 +26,7 @@
 
 #include "Aperture.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TransformedAperture: public Aperture {
 public:
@@ -47,6 +47,6 @@ private:
   std::array<double, 4> m_transform, m_inv_transform;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_TRANSFORMEDAPERTURE_H

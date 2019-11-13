@@ -32,7 +32,7 @@
 
 #include "SEImplementation/CheckImages/MoffatCheckImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 

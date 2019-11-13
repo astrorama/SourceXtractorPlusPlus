@@ -49,7 +49,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
 #include "SEImplementation/Property/SourceId.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class DummyCoordinateSystem : public CoordinateSystem {
 public:
@@ -89,7 +89,7 @@ public:
   std::list<std::shared_ptr<SourceInterface>> m_list;
 };
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

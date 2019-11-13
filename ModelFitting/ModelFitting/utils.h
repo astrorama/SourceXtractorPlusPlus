@@ -20,8 +20,8 @@
  * @author Nikolaos Apostolakos
  */
 
-#ifndef SEXTRACTOR_UTILS_H
-#define	SEXTRACTOR_UTILS_H
+#ifndef MODELFITTING_UTILS_H
+#define	MODELFITTING_UTILS_H
 
 #include <memory>
 #include <utility>
@@ -33,5 +33,5 @@ std::unique_ptr<T> make_unique(Args&&... args) {
   return std::unique_ptr<T>{new T(std::forward<Args>(args)...)};
 }
 
-#endif	/* SEXTRACTOR_UTILS_H */
+#endif	/* MODELFITTING_UTILS_H */
 

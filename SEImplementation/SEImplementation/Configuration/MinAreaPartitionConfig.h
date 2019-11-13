@@ -24,7 +24,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MinAreaPartitionConfig : public Euclid::Configuration::Configuration {
   
@@ -40,7 +40,7 @@ public:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_MINAREAPARTITIONCONFIG_H */
 

@@ -26,7 +26,7 @@
 #include <ElementsKernel/Logging.h>
 #include <boost/python.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * File-like object used to redirect stdout and stderr from Python into
@@ -64,6 +64,6 @@ private:
   std::ostringstream m_buffer;
 };
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PYOUTPUTWRAPPER_H

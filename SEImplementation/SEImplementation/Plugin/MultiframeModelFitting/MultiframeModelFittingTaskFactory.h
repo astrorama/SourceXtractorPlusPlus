@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiframeModelFittingTaskFactory : public TaskFactory {
 public:

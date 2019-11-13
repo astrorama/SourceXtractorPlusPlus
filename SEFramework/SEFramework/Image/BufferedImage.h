@@ -33,7 +33,7 @@
 
 #include <boost/thread/tss.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  *

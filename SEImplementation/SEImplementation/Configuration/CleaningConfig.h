@@ -27,7 +27,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class CleaningConfig : public Euclid::Configuration::Configuration {
 
@@ -43,7 +43,7 @@ public:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

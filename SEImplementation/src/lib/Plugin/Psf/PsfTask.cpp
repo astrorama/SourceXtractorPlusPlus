@@ -30,16 +30,16 @@
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 std::map<std::string, ValueGetter> component_value_getters {
-    {"X_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
+    {"X_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
       double top_x = measurement_frame_group.getTopLeft().m_x;
       return top_x + measurement_frame_group.getWidth() / 2.;
     }},
-    {"Y_IMAGE", [](SExtractor::SourceGroupInterface &group, unsigned instance){
+    {"Y_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
       auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
       double top_y = measurement_frame_group.getTopLeft().m_y;
       return top_y + measurement_frame_group.getHeight() / 2.;
@@ -50,7 +50,7 @@ PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
     : m_instance(instance), m_vpsf(vpsf) {
 }
 
-void PsfTask::computeProperties(SExtractor::SourceGroupInterface &group) const {
+void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) const {
   std::vector<double> component_values;
 
   for (auto c : m_vpsf->getComponents()) {

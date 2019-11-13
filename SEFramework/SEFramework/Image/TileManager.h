@@ -36,7 +36,7 @@
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/ImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 struct TileKey {
@@ -64,9 +64,9 @@ inline std::ostream& operator << (std::ostream &out, const TileKey &tk) {
 namespace std {
 
 template <>
-struct hash<SExtractor::TileKey>
+struct hash<SourceXtractor::TileKey>
 {
-  std::size_t operator()(const SExtractor::TileKey& key) const {
+  std::size_t operator()(const SourceXtractor::TileKey& key) const {
     std::size_t hash = 0;
     boost::hash_combine(hash, key.m_source);
     boost::hash_combine(hash, key.m_tile_x);
@@ -77,7 +77,7 @@ struct hash<SExtractor::TileKey>
 
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TileManager {
 public:

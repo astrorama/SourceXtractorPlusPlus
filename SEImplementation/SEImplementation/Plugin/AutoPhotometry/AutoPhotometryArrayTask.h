@@ -27,7 +27,7 @@
 #include "SEUtils/Types.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * Merge all the AutoPhotometry measurements into a single vector so it can
@@ -46,6 +46,6 @@ private:
   std::vector<unsigned> m_images;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_AUTOPHOTOMETRY_AUTOPHOTOMETRYARRAYTASK_H_

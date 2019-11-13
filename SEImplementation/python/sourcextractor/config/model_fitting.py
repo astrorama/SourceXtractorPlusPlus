@@ -20,7 +20,7 @@ from __future__ import division, print_function
 import sys
 from enum import Enum
 
-import _SExtractorPy as cpp
+import _SourceXtractorPy as cpp
 from .measurement_images import MeasurementGroup
 
 from astropy import units as u
@@ -506,7 +506,7 @@ def set_modified_chi_squared_scale(scale):
     scale : float
         Sets u0, as used by the modified chi squared residual comparator, a function that reduces the effect of large
         deviations.
-        Refer to the SExtractor++ documentation for a better explanation of how residuals are computed and how
+        Refer to the SourceXtractor++ documentation for a better explanation of how residuals are computed and how
         this value affects the model fitting.
     """
     params_dict["modified_chi_squared_scale"] = scale
@@ -921,7 +921,7 @@ def get_position_angle(x1, y1, x2, y2):
 
 def set_coordinate_system(cs):
     """
-    Set the global coordinate system. This function is used internally by SExtractor++.
+    Set the global coordinate system. This function is used internally by SourceXtractor++.
     """
     global coordinate_system
     coordinate_system = cs

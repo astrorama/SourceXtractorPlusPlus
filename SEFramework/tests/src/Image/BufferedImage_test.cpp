@@ -25,7 +25,7 @@
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 
 template<typename T>

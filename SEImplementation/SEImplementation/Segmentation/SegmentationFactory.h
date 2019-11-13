@@ -29,7 +29,7 @@
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Pipeline/Segmentation.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SegmentationFactory
@@ -60,7 +60,7 @@ private:
 
 }; /* End of SegmentationFactory class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

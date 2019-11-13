@@ -26,7 +26,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFrameSourceStamp
@@ -82,7 +82,7 @@ private:
 }; /* End of DetectionFrameSourceStamp class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

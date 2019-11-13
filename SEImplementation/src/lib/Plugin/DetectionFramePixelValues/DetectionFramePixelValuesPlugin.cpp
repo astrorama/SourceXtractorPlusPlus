@@ -28,7 +28,7 @@
 
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<DetectionFramePixelValuesPlugin> detection_frame_pixel_values_plugin;
 

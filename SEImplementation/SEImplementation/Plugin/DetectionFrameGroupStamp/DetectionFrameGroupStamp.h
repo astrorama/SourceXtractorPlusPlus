@@ -28,7 +28,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DetectionFrameGroupStamp : public Property {
 
@@ -68,7 +68,7 @@ private:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

@@ -23,7 +23,7 @@ import sys
 
 from astropy.io import fits
 
-import _SExtractorPy as cpp
+import _SourceXtractorPy as cpp
 
 if sys.version_info.major < 3:
     from StringIO import StringIO
@@ -36,7 +36,7 @@ measurement_images = {}
 
 class MeasurementImage(cpp.MeasurementImage):
     """
-    A MeasurementImage is the processing unit for SExtractor++. Measurements and model fitting can be done
+    A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
 
     Parameters
@@ -114,6 +114,8 @@ class MeasurementImage(cpp.MeasurementImage):
         hdu_meta = hdu_list[image_hdu-1].header
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
+            
+        self._load_header_file(fits_file, image_hdu)
 
         if gain is not None:
             self.gain = gain
@@ -167,6 +169,30 @@ class MeasurementImage(cpp.MeasurementImage):
 
         global measurement_images
         measurement_images[self.id] = self
+        
+    # overrides the FITS headers using an ascii .head file if it can be found
+    def _load_header_file(self, filename, hdu):
+        pre, ext = os.path.splitext(filename)
+        header_file = pre + ".head"
+        current_hdu = 1
+        
+        if os.path.exists(header_file):
+            print("processing ascii header file: " + header_file)
+            
+            with open(header_file) as f:
+                for line in f:
+                    line = re.sub("\\s*#.*", "", line)
+                    line = re.sub("\\s*$", "", line)
+                    
+                    if line == "":
+                        continue
+                    
+                    if line.upper() == "END":
+                        current_hdu += 1
+                    elif current_hdu == hdu:
+                        m = re.match("(.+)=(.+)", line)
+                        if m:
+                            self.meta[m.group(1)] = m.group(2)
 
     def __str__(self):
         """

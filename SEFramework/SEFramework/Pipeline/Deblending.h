@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DeblendStep
@@ -68,7 +68,7 @@ private:
   std::vector<std::shared_ptr<DeblendStep>> m_deblend_steps;
 }; /* End of Deblending class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

@@ -31,7 +31,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingParameterManager;
 

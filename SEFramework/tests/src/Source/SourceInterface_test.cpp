@@ -33,7 +33,7 @@ using ::testing::ReturnRef;
 #include "SEFramework/Property/Property.h"
 
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 // Example Property containing an int
 class ExampleProperty : public Property {

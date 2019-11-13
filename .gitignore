@@ -8,3 +8,4 @@ __pycache__
 /.project
 /.settings/
 .pydevproject
+/packages

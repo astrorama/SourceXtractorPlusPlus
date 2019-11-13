@@ -21,7 +21,7 @@
 
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 PartitionStepConfig::PartitionStepConfig(long manager_id) : Configuration(manager_id) {
 }
@@ -44,4 +44,4 @@ std::vector<std::shared_ptr<PartitionStep>> PartitionStepConfig::getSteps(std::s
   return result;
 }
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */

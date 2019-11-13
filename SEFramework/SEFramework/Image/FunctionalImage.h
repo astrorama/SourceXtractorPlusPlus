@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template<typename T>
 class FunctionalImage : public ImageBase<T> {
@@ -66,6 +66,6 @@ private:
   FunctorType m_functor;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_IMAGE_FUNCTIONALIMAGE_H

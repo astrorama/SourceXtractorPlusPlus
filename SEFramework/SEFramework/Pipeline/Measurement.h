@@ -29,7 +29,7 @@
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Measurement :
     public Observer<std::shared_ptr<SourceGroupInterface>>,

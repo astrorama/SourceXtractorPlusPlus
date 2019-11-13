@@ -22,7 +22,7 @@
 #
 
 # Entry point for the AppImage
-# We need to properly set up the PYTHONPATH so the sextractor++ modules can be found
+# We need to properly set up the PYTHONPATH so the SourceXtractor++ modules can be found
 # within the image
 
 export PATH="${APPDIR}/usr/bin:${PATH}"
@@ -30,7 +30,7 @@ export PATH="${APPDIR}/usr/bin:${PATH}"
 if [ -f "${APPDIR}/usr/bin/python3" ]; then
     PYTHON_VERSION=$(python3 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
 else
-    PYTHON_VERSION=$(python -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
+    PYTHON_VERSION=$(python2 -c "import sys; print('{}.{}'.format(sys.version_info.major, sys.version_info.minor))")
 fi
 
 LIB="${APPDIR}/usr/lib"
@@ -39,8 +39,9 @@ LIB64="${APPDIR}/usr/lib64"
 PYTHON_LIB="${LIB}/python${PYTHON_VERSION}"
 PYTHON64_LIB="${LIB64}/python${PYTHON_VERSION}"
 
-export PYTHONPATH="${PYTHON_LIB}:${PYTHON_LIB}/site-packages:${PYTHON64_LIB}:${PYTHON64_LIB}/site-packages"
+export PYTHONHOME="${PYTHON64_LIB}"
+export PYTHONPATH="${PYTHON_LIB}:${PYTHON_LIB}/site-packages:${PYTHON64_LIB}:${PYTHON64_LIB}/site-packages:${PYTHON64_LIB}/lib-dynload/"
 export LD_LIBRARY_PATH="${LIB64}:${LIB}:${LIB64}/atlas:${LD_LIBRARY_PATH}"
 
-exec -a "${ARGV0}" "${APPDIR}/usr/bin/sextractor++" $@
+exec -a "${ARGV0}" "${APPDIR}/usr/bin/sourcextractor++" $@
 

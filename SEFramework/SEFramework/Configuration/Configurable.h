@@ -25,7 +25,7 @@
 
 #include "Configuration/ConfigManager.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @brief Interface of objects which can be configured
@@ -63,7 +63,7 @@ public:
   
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_CONFIGURATION_CONFIGURABLE_H */
 

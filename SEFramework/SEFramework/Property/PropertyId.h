@@ -29,7 +29,7 @@
 
 #include <boost/functional/hash.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PropertyId
@@ -84,7 +84,7 @@ private:
   unsigned int m_index;
 
 
-  friend struct std::hash<SExtractor::PropertyId>;
+  friend struct std::hash<SourceXtractor::PropertyId>;
 };
 
 }
@@ -94,9 +94,9 @@ namespace std {
 // defines a hash for PropertyId, this is to be able to use PropertyId as a key in a std::unordered_map
 
 template <>
-struct hash<SExtractor::PropertyId>
+struct hash<SourceXtractor::PropertyId>
 {
-  std::size_t operator()(const SExtractor::PropertyId& id) const {
+  std::size_t operator()(const SourceXtractor::PropertyId& id) const {
     std::size_t hash = 0;
     boost::hash_combine(hash, id.m_type_id);
     boost::hash_combine(hash, id.m_index);

@@ -26,7 +26,7 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFitting;
 
@@ -50,6 +50,6 @@ private:
   double m_threshold;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_GROUPING_MOFFATCRITERIA_H_ */

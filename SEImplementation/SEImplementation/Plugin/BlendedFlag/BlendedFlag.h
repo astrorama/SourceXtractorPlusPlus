@@ -26,7 +26,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BlendedFlag : public Property {
 public:
@@ -42,6 +42,6 @@ private:
   bool m_blended_flag;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_BLENDEDFLAG_H_

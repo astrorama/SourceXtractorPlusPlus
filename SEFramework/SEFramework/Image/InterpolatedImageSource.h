@@ -26,7 +26,7 @@
 
 #include "SEFramework/Image/ProcessingImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * Interpolates an image using a variance map: substitute "bad" pixels with the nearest "good" one
@@ -99,6 +99,6 @@ private:
   }
 };
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 
 #endif

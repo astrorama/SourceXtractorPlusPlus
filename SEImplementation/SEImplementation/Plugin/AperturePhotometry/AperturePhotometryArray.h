@@ -31,7 +31,7 @@
 #include <cassert>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class AperturePhotometryArray
@@ -99,6 +99,6 @@ private:
   std::unique_ptr<NdArray<int64_t>> m_flags;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRY_H_ */

@@ -22,7 +22,7 @@
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryConfig.h"
 #include "SEImplementation/Configuration/PythonConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 AperturePhotometryConfig::AperturePhotometryConfig(long manager_id): Configuration(manager_id) {
   declareDependency<PythonConfig>();
@@ -68,4 +68,4 @@ const std::map<unsigned, std::vector<float>>& AperturePhotometryConfig::getApert
   return m_apertures;
 }
 
-} // end SExtractor
+} // end SourceXtractor

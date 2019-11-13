@@ -25,7 +25,7 @@
 #include <Configuration/Configuration.h>
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PythonConfig : public Euclid::Configuration::Configuration {
   

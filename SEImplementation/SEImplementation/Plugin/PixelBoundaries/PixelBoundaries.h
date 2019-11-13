@@ -27,7 +27,7 @@
 
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PixelBoundaries
@@ -83,7 +83,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

@@ -24,7 +24,7 @@
 #include <mutex>
 #include "SEFramework/Task/TaskProvider.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace {
   std::mutex task_provider_mutex;

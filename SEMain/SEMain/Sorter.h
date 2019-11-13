@@ -27,7 +27,7 @@
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Sorter: public Observer<std::shared_ptr<SourceGroupInterface>>,
               public Observable<std::shared_ptr<SourceGroupInterface>> {
@@ -43,6 +43,6 @@ private:
   int m_output_next;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_SORTER_H_

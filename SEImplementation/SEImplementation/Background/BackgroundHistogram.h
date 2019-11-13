@@ -27,7 +27,7 @@
 
 #include <cstddef>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BackgroundHistogram {
 
@@ -55,7 +55,7 @@ private:
   size_t itsNLevels=0;
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 
 #endif	/* BACKGROUNDHISTOGRAM_H */

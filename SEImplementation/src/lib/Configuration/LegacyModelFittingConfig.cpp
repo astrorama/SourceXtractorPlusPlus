@@ -26,7 +26,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string MFIT_MAX_ITERATIONS {"model-fitting-iterations"};
 
@@ -48,6 +48,6 @@ void LegacyModelFittingConfig::initialize(const UserValues& args) {
   }
 }
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 

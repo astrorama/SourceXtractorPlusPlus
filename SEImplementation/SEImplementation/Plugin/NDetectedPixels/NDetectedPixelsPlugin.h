@@ -43,7 +43,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/NDetectedPixels/NDetectedPixelsTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class NDetectedPixelsPlugin : public Plugin {
 public:
   virtual ~NDetectedPixelsPlugin() = default;
@@ -65,5 +65,5 @@ public:
   }
 private:
 }; // end of NDetectedPixelsPlugin class
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_NDETECTEDPIXELS_H_ */

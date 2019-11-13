@@ -48,7 +48,7 @@ using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
 namespace py = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 MeasurementImageConfig::MeasurementImageConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
@@ -254,4 +254,4 @@ void MeasurementImageConfig::initialize(const UserValues&) {
   }
 }
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

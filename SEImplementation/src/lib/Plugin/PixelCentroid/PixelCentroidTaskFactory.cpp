@@ -24,7 +24,7 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTask.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> PixelCentroidTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelCentroid>()) {

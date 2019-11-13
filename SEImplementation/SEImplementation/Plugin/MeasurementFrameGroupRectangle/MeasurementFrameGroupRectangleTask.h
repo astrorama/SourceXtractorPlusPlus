@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameGroupRectangleTask : public GroupTask {
 public:
@@ -42,7 +42,7 @@ private:
   unsigned m_instance;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 
 #endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLETASK_H_

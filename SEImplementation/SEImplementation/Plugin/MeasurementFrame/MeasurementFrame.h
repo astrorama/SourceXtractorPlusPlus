@@ -31,7 +31,7 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrame : public Property {
 public:

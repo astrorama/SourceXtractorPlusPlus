@@ -27,7 +27,7 @@ using namespace testing;
 
 #include "SEUtils/Observable.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class TestMessageA {
 

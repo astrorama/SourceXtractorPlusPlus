@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class WorldCentroidTaskFactory : public TaskFactory {
 public:

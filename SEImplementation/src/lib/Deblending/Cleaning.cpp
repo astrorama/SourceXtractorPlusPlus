@@ -36,7 +36,7 @@
 
 #include "SEImplementation/Deblending/Cleaning.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 inline bool operator<(SourceGroupInterface::iterator a, SourceGroupInterface::iterator b) {
   return &(*a) < &(*b);

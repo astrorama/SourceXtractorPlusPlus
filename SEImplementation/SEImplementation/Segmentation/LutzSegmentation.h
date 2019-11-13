@@ -29,7 +29,7 @@
 #include "SEFramework/Pipeline/Segmentation.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 /**
@@ -58,7 +58,7 @@ private:
 
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

@@ -26,7 +26,7 @@
 #include <boost/python.hpp>
 #include "SEImplementation/PythonConfig/PyId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 class PyAperture : public PyId {

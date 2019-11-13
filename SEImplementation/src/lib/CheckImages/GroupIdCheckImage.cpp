@@ -29,7 +29,7 @@
 
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void GroupIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   if (m_check_image) {

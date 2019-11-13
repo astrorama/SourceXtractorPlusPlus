@@ -30,7 +30,7 @@
 #include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) const {
   auto frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();

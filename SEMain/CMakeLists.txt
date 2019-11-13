@@ -38,12 +38,15 @@ find_package(Readline)
 #===============================================================================
 file(GLOB LIB_SRC src/lib/*.cpp)
 
-if (NOT NCURSES_FOUND)
+if (NOT NCURSES_FOUND OR NOT READLINE_FOUND)
     file(GLOB PROGRESSBAR_SRC src/lib/ProgressNCurses.cpp)
     list(REMOVE_ITEM LIB_SRC ${PROGRESSBAR_SRC})
     add_definitions("-DWITHOUT_NCURSES")
 else ()
     set (NCURSES Ncurses Readline)
+    if (CMAKE_SYSTEM_NAME MATCHES Linux)
+        list(APPEND NCURSES rt)
+    endif ()
 endif ()
 
 elements_add_library(SEMain ${LIB_SRC}
@@ -57,7 +60,7 @@ elements_add_library(SEMain ${LIB_SRC}
 #                        LINK_LIBRARIES Boost ElementsExamples
 #                        INCLUDE_DIRS Boost ElementsExamples)
 #===============================================================================
-elements_add_executable(sextractor++ src/program/SExtractor.cpp
+elements_add_executable(sourcextractor++ src/program/SourceXtractor.cpp
                      LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation)
 
 elements_add_executable(TestImage src/program/TestImage.cpp

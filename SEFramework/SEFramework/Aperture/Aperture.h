@@ -27,7 +27,7 @@
 #include "SEUtils/PixelCoordinate.h"
 #include "SEUtils/Types.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class Aperture {
 public:
@@ -42,6 +42,6 @@ public:
   virtual SeFloat getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const = 0;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_APERTURE_H

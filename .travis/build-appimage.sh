@@ -41,29 +41,35 @@ chmod a+x 'linuxdeploy-x86_64.AppImage'
 # Create a virtualenv with the dependencies are self-contained
 APPDIR=`mktemp -d`
 
-# Install sextractorxx, and dependencies, there
-yum install --installroot "$APPDIR" --releasever "$VERSION_ID" -y SExtractorxx ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
+# Install sourcextractor++, and dependencies, there
+yum install -y SourceXtractorPlusPlus ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
 
-# Get rid of some files to reduce the footprint
-for d in "sbin" "var" "etc" "usr/share" "usr/sbin" "usr/local"; do
-    rm -rvf "${APPDIR}/$d"
-done
+# Copy Python into the AppImage, and some of its dependencies
+mkdir -p "${APPDIR}/usr/lib64"
+mkdir -p "${APPDIR}/usr/lib"
+cp -vr /usr/lib64/python* "${APPDIR}/usr/lib64"
+cp -vr /usr/lib/python* "${APPDIR}/usr/lib"
+
+./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -e "$(which ${PYTHON})"
+ls /usr/lib64/atlas/* | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
+ls /usr/lib64/liberfa.so.1 | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
+ls /usr/lib64/python2.7/lib-dynload/*.so | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
 
 # Bundle
 SRCDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../"
 RSCDIR="${SRCDIR}/SEMain/auxdir/SEMain"
 SCRIPTDIR="${SRCDIR}/SEMain/scripts/"
 
-LD_LIBRARY_PATH="${APPDIR}/usr/lib64" ./linuxdeploy-x86_64.AppImage \
+./linuxdeploy-x86_64.AppImage \
     --appdir "${APPDIR}" \
-    -d "${RSCDIR}/sextractor++.desktop" -i "${RSCDIR}/sextractor++.png" \
+    -d "${RSCDIR}/sourcextractor++.desktop" -i "${RSCDIR}/sourcextractor++.png" \
     --custom-apprun="${SCRIPTDIR}/AppRun" \
-    -e "${APPDIR}/usr/bin/sextractor++" \
+    -e "/usr/bin/sourcextractor++" \
     -o appimage
 
 # Try it
 unset PYTHONPATH
-./sextractor++-x86_64.AppImage --version
+./SourceXtractor++-x86_64.AppImage --version
 if [[ $? != 0 ]]; then
     echo "Failed to build the AppImage!"
     exit 1

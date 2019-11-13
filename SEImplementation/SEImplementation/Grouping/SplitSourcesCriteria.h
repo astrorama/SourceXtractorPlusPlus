@@ -26,7 +26,7 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SplitSourcesCriteria
@@ -40,6 +40,6 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_GROUPING_SPLITSOURCESCRITERIA_H_ */

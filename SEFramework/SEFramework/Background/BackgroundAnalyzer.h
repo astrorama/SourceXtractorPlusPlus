@@ -26,7 +26,7 @@
 
 #include "SEFramework/Frame/Frame.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 class BackgroundModel {

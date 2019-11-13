@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/WorldCentroid/WorldCentroidPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<WorldCentroidPlugin> pixel_centroid_plugin;
 

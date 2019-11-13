@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/Jacobian/JacobianTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
   auto frame = group.begin()->getProperty<MeasurementFrame>(m_instance).getFrame();
@@ -71,4 +71,4 @@ void JacobianSourceTask::computeProperties(SourceInterface &source) const {
                                             frame_dy.m_x - frame_origin.m_x, frame_dy.m_y - frame_origin.m_y);
 }
 
-} // end SExtractor
+} // end SourceXtractor

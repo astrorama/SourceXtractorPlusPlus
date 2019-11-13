@@ -1,0 +1,3 @@
+.git*		export-ignore
+.travis*	export-ignore
+Makefile	export-ignore
