@@ -280,7 +280,12 @@ PIXTYPE  SplineModel::getValue(size_t x, size_t y){
     itsBackLineY=y;
   }
   rValue = itsBackLine[x];
-  return rValue;
+  //return rValue;
+  //if ((double)rValue < 0.0)
+  //  return -rValue;
+  //else
+  //  return rValue;
+  return rValue < 0.0 ? -1.0*rValue : rValue;
 }
 
 void SplineModel::splineLine (PIXTYPE *line, const size_t y, const size_t xStart, const size_t width) {

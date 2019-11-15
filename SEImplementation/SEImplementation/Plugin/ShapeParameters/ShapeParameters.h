@@ -37,26 +37,53 @@ public:
 
   virtual ~ShapeParameters() = default;
 
+  /**
+   * Semi-major axis
+   */
   SeFloat getEllipseA() const {
     return m_a;
   }
 
+  /**
+   * Semi-minor axis
+   */
   SeFloat getEllipseB() const {
     return m_b;
   }
 
+  /**
+   * Angle in degrees
+   */
   SeFloat getEllipseTheta() const {
     return m_theta;
   }
 
+  /**
+   * \f[
+   *    \frac{\cos^2 {\tt THETA}}{{\tt A}^2} + \frac{\sin^2 {\tt THETA}}{{\tt B}^2} =
+   *    \frac{\overline{y^2}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
+   * \f]
+   */
   SeFloat getEllipseCxx() const {
     return m_cxx;
   }
 
+  /**
+   * \f[
+   *     \frac{\sin^2 {\tt THETA}}{{\tt A}^2} + \frac{\cos^2 {\tt THETA}}{{\tt B}^2} =
+   *     \frac{\overline{x^2}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
+   * \f]
+   */
   SeFloat getEllipseCyy() const {
     return m_cyy;
   }
 
+  /**
+   * \f[
+   *     2 \,\cos {\tt THETA}\,\sin {\tt THETA} \left( \frac{1}{{\tt A}^2} - \frac{1}{{\tt B}^2}\right) =
+   *     -2\,\frac{\overline{xy}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
+   * \f]
+   */
   SeFloat getEllipseCxy() const {
     return m_cxy;
   }
