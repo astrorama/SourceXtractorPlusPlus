@@ -280,6 +280,7 @@ PIXTYPE  SplineModel::getValue(size_t x, size_t y){
     itsBackLineY=y;
   }
   rValue = itsBackLine[x];
+  // TODO: solve this!
   //return rValue;
   //if ((double)rValue < 0.0)
   //  return -rValue;
