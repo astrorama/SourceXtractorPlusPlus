@@ -66,12 +66,7 @@ public:
 
   using Image<T>::getValue;
   T getValue(int x, int y) const override {
-    T return_value=m_image->getValue(x, y) - sqrt(m_variance_map->getValue(x, y)) * m_threshold_multiplier;
-    // TODO: fix this!
-    //return m_image->getValue(x, y) - sqrt(m_variance_map->getValue(x, y)) * m_threshold_multiplier;
-    if (!std::isfinite(return_value))
-      std::cout << " img: " << m_image->getValue(x, y) << " var: " << m_variance_map->getValue(x, y);
-    return return_value;
+    return m_image->getValue(x, y) - sqrt(m_variance_map->getValue(x, y)) * m_threshold_multiplier;
   }
 
   int getWidth() const override {

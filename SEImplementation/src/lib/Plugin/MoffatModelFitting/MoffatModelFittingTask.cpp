@@ -184,9 +184,6 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   double guess_y = pixel_centroid.getCentroidY() - stamp_top_left.m_y;
 
   double exp_flux_guess = std::max<double>(iso_flux, min_flux);
-  // TODO: solve this!
-  //if (exp_flux_guess == 0.0)
-    std::cout << "iso_flux: " << iso_flux << " min_flux: " << min_flux << " exp_flux_guess: " << exp_flux_guess << std::endl;
 
   double exp_reff_guess = radius_guess;
   double exp_aspect_guess = std::max<double>(shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
