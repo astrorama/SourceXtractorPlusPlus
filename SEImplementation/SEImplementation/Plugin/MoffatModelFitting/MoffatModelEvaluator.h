@@ -21,27 +21,33 @@
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_
-#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATOR_H_
+#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATOR_H_
 
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 
 namespace SourceXtractor {
 
-class MoffatModelEvaluator {
+class MoffatModelEvaluator: public Property {
 public:
-  MoffatModelEvaluator(const SourceInterface& source);
+  MoffatModelEvaluator(const MoffatModelFitting& model);
   double getValue(double x, double y) const {
     return m_model->getValue(x, y);
   }
 
+  unsigned getIterations() const {
+    return m_iterations;
+  }
+
 private:
   std::shared_ptr<ModelFitting::ExtendedModel> m_model;
+  unsigned m_iterations;
 };
 
 //ModelFitting::ExtendedModel createMoffatModel();
 
 }
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATOR_H_ */
