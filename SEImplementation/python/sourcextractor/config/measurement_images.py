@@ -523,6 +523,9 @@ def load_fits_images(images, psfs=None, weights=None, **kwargs):
     """
 
     if isinstance(images, list):
+        if len(images) == 0:
+            raise ValueError("An empty list passed to load_fits_images")
+
         psfs = psfs or [None] * len(images)
         weights = weights or [None] * len(images)
 
