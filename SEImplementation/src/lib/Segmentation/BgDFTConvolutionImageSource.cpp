@@ -94,7 +94,7 @@ void BgDFTConvolutionImageSource::generateTile(std::shared_ptr<Image<DetectionIm
   int off_y = start_y - clip_y;
   for (int y = 0; y < height; ++y) {
     for (int x = 0; x < width; ++x) {
-      if (mask->getValue(x + off_x, y + off_y) && conv_masked->getValue(x + off_x, y + off_y) > 0.) {
+      if (mask->getValue(x + off_x, y + off_y)) {
         tile.setValue(
           x + start_x, y + start_y,
           conv_masked->getValue(x + off_x, y + off_y) / conv_mask->getValue(x + off_x, y + off_y)
