@@ -18,31 +18,37 @@ stages:
   - build
   - buildapp
 
+before_script: |
+  PACKAGE=$(grep elements_project CMakeLists.txt | sed 's/.*(//'| cut -d' ' -f1)
+  if [ ! -z "${TRAVIS_TAG}" ]; then
+    TARGET_REPO="master"
+    VERSION="${TRAVIS_TAG}"
+  else
+    TARGET_REPO="${TRAVIS_BRANCH}"
+    VERSION=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
+  fi
+  export PACKAGE VERSION TARGET_REPO
+
 jobs:
   include:
   - &build
     stage: build
     env: OS_TYPE=fedora OS_VERSION=29
     script:
-      - docker run --name builder --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
+      - docker run --name builder -v "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
       - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"   
     after_success: |
       if [ ! -z "${BINTRAY_REPO}" ] && [ -z "${TRAVIS_PULL_REQUEST_BRANCH}" ]; then
-        package=$(grep elements_project CMakeLists.txt | sed 's/.*(//'| cut -d' ' -f1)
-        
-        if [ ! -z "${TRAVIS_TAG}" ]; then
-            target_repo="master"
-            version="${TRAVIS_TAG}"
-        else
-            target_repo="${TRAVIS_BRANCH}"
-            version=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
-        fi
-        
         cd packages
         for p in *.rpm; do
-          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${target_repo}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${package};bt_version=${version}?override=1&publish=1"
+          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${target_repo}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${PACKAGE};bt_version=${VERSION}?override=1&publish=1"
         done;
       fi
+  - &test
+    stage: test
+    env: OS_TYPE=fedora OS_VERSION=30
+    script:
+      - docker run --rm --name tester -v "$(pwd):/src" -v "$(pwd)/tests:/tests" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/run-litmus.sh" $PACKAGE $VERSION
   - <<: *build
     env: OS_TYPE=fedora OS_VERSION=30
   - <<: *build
@@ -51,11 +57,17 @@ jobs:
     env: OS_TYPE=fedora OS_VERSION=32
   - <<: *build
     env: OS_TYPE=centos OS_VERSION=7
+# Note that there are no tests for CentOS7 or Fedora 29
+# We do not have full support (model fitting) on CentOS7, nor Python3 support on Fedora 29
+  - <<: *test
+    env: OS_TYPE=fedora OS_VERSION=31
+  - <<: *test
+    env: OS_TYPE=fedora OS_VERSION=32
   - stage: buildapp
     if: tag IS present
     env: OS_TYPE=centos OS_VERSION=7
     script:
-      - docker run --name appbuilder --device /dev/fuse --privileged --volume "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-appimage.sh"
+      - docker run --name appbuilder --device /dev/fuse --privileged -v "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-appimage.sh"
       - docker cp "appbuilder:/sourcextractor++-x86_64.AppImage" "."
     deploy:
       provider: releases
