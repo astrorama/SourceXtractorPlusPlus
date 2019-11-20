@@ -39,6 +39,14 @@ bool MoffatCriteria::doesImpact(const SourceInterface& impactor, const SourceInt
   }
 
   auto& centroid = impactee.getProperty<PixelCentroid>();
+  auto& other_centroid = impactor.getProperty<PixelCentroid>();
+
+  auto dx = centroid.getCentroidX() - other_centroid.getCentroidX();
+  auto dy = centroid.getCentroidY() - other_centroid.getCentroidY();
+  if (dx*dx + dy*dy > m_max_distance * m_max_distance ) {
+    return false;
+  }
+
   auto max_value = impactee.getProperty<PeakValue>().getMaxValue();
 
   double model_value = extended_model.getValue(centroid.getCentroidX(), centroid.getCentroidY());
