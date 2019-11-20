@@ -48,7 +48,7 @@ yum install -y "$1-$2"
 
 # Checkout the tests
 if ! [ -d /tmp/sourcextractor-litmus ]; then
-  git clone --depth=1 https://github.com/astrorama/SourceXtractor-litmus.git /tmp/sourcextractor-litmus
+  git clone --depth=1 https://gitlab.astro.unige.ch/astrorama/sourcextractor-litmus.git /tmp/sourcextractor-litmus
 fi
 cd /tmp/sourcextractor-litmus
 git lfs pull
