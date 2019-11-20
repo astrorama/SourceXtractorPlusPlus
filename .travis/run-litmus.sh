@@ -9,12 +9,9 @@ fi
 # Platform-specific configuration
 source /etc/os-release
 
-CMAKEFLAGS="-DINSTALL_DOC=ON -DRPM_NO_CHECK=OFF"
-
 if [ "$ID" == "fedora" ]; then
   if [ "$VERSION_ID" -ge 30 ]; then
     PYTHON="python3"
-    CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
   else
     PYTHON="python2"
   fi
