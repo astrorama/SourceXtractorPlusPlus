@@ -4,6 +4,7 @@ os: linux
 branches:
   only:
   - develop
+  - /travis\/*/
   - /^\d+.\d+(.\d+)?(-\S*)?$/
 
 env:
