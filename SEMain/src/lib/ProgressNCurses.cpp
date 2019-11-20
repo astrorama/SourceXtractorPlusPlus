@@ -75,7 +75,9 @@ static int interceptFileDescriptor(int old_fd, int *backup_fd) {
   }
 
   int flags = fcntl(pipe_fds[0], F_GETFL, 0);
-  fcntl(pipe_fds[0], F_SETFL, flags | O_NONBLOCK);
+  if (fcntl(pipe_fds[0], F_SETFL, flags | O_NONBLOCK) < 0) {
+    throw std::system_error(errno, std::generic_category());
+  }
 
   if (dup2(pipe_fds[1], old_fd) < 0) {
     throw std::system_error(errno, std::generic_category());
@@ -805,10 +807,14 @@ public:
    * @note
    *    Intercepts stdout and stderr and starts up the UI thread
    */
-  Dashboard() {
+  Dashboard(): m_trigger_resize(false) {
     m_stderr_pipe = interceptFileDescriptor(STDERR_FILENO, &m_stderr_original);
     m_stdout_pipe = interceptFileDescriptor(STDOUT_FILENO, &m_stdout_original);
-    m_stderr = fdopen(dup(m_stderr_original), "w");
+    int new_stderr_fd = dup(m_stderr_original);
+    if (new_stderr_fd < 0) {
+      throw std::system_error(errno, std::generic_category());
+    }
+    m_stderr = fdopen(new_stderr_fd, "w");
     m_ui_thread = make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
   }
 
@@ -818,9 +824,14 @@ public:
    */
   ~Dashboard() {
     if (m_ui_thread) {
-      m_ui_thread->interrupt();
-      if (m_ui_thread->joinable()) {
-        m_ui_thread->join();
+      try {
+        m_ui_thread->interrupt();
+        if (m_ui_thread->joinable()) {
+          m_ui_thread->join();
+        }
+      }
+      catch (...) {
+        // Ignore
       }
     }
     fclose(m_stderr);

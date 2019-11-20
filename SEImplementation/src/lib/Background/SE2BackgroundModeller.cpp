@@ -594,14 +594,10 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   }
 
   // release memory
-  if (sigmaFilt)
-    delete [] sigmaFilt;
-  if (backFilt)
-    delete [] backFilt;
-  if (bmask)
-    delete [] bmask;
-  if (smask)
-    delete [] smask;
+  delete [] sigmaFilt;
+  delete [] backFilt;
+  delete [] bmask;
+  delete [] smask;
 
   return;
 }

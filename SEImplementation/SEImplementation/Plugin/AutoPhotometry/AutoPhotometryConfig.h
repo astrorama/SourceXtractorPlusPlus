@@ -46,8 +46,8 @@ public:
   SeFloat getAutoKronMinrad() const;
 
 private:
-  SeFloat m_kron_factor;
-  SeFloat m_kron_minrad;
+  SeFloat m_kron_factor = 2.5;
+  SeFloat m_kron_minrad = 3.5;
 };
 
 } /* namespace SourceXtractor */
