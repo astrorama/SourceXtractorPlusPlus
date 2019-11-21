@@ -32,6 +32,8 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/SourceId.h"
 
+#include "SEImplementation/Grouping/LineSelectionCriteria.h"
+
 namespace SourceXtractor {
 
 class LutzLabellingListener : public Lutz::LutzListener {
@@ -51,6 +53,10 @@ public:
 
   void notifyProgress(int line, int total) override {
     m_listener.notifyProgress(line, total);
+
+    if (line > 100) {
+      m_listener.requestProcessing(ProcessSourcesEvent(LineSelectionCriteria(line-100)));
+    }
   }
 
 private:
