@@ -88,7 +88,7 @@ public:
   }
 
 private:
-  std::string m_plugin_path;
+  boost::filesystem::path m_plugin_path;
   std::vector<std::string> m_plugin_list;
 
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
