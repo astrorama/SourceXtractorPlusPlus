@@ -30,6 +30,7 @@
 #if USE_BOOST_DLL
 #include <boost/dll/shared_library.hpp>
 #endif
+#include <boost/filesystem/path.hpp>
 
 #include <memory>
 #include <vector>
