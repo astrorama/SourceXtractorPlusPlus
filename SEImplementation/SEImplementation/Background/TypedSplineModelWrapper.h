@@ -58,9 +58,7 @@ public:
 
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const {
-    T return_value = (T)m_spline_model->getValue((size_t)x, (size_t)y);
-    return return_value < 0.0 ? -1.0*return_value : return_value;
-    //return (T)m_spline_model->getValue((size_t)x, (size_t)y);
+    return (T)m_spline_model->getValue((size_t)x, (size_t)y);
   };
 
   /// Returns the width of the image in pixels

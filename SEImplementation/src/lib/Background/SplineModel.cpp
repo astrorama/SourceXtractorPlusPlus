@@ -301,7 +301,7 @@ void SplineModel::splineLine (PIXTYPE *line, const size_t y, const size_t xStart
       yl = 0;
       dy -= 1.0;
     } else if (yl >= nby - 1) {
-      yl = nby < 2 ? 0 : nby - 2;
+      yl = nby - 2;
       dy += 1.0;
     }
 
