@@ -40,7 +40,12 @@ public:
     m_background_variance = FunctionalImage<SeFloat>::create(
         background_variance->getWidth(), background_variance->getHeight(),
         [background_variance](int x, int y) -> SeFloat {
-      return background_variance->getValue(x,y) < 0.0 ? -1.0*background_variance->getValue(x,y) : background_variance->getValue(x,y);;
+      // just set everything below zero to 0.0
+      //return background_variance->getValue(x,y) < 0.0 ? 0.0 : background_variance->getValue(x,y);
+      // the long version for "fabs()"
+      //return background_variance->getValue(x,y) < 0.0 ? -1.0*background_variance->getValue(x,y) : background_variance->getValue(x,y);
+      // the short version for "fabs()"
+      return fabs(background_variance->getValue(x,y));
     }
     );
   }
