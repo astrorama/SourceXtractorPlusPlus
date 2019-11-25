@@ -39,7 +39,7 @@ class MoffatModelFitting;
 class MoffatCriteria : public GroupingCriteria {
 public:
 
-  MoffatCriteria(double threshold) : m_threshold(threshold) {}
+  MoffatCriteria(double threshold, double max_distance) : m_threshold(threshold), m_max_distance(max_distance) {}
   virtual ~MoffatCriteria() {}
 
   virtual bool shouldGroup(const SourceInterface&, const SourceInterface&) const override;
@@ -48,6 +48,7 @@ private:
   bool doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const;
 
   double m_threshold;
+  double m_max_distance;
 };
 
 } /* namespace SourceXtractor */
