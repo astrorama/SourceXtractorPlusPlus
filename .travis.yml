@@ -29,7 +29,7 @@ before_script: |
   elif [ ! -z "${TRAVIS_PULL_REQUEST}" ]; then
     TARGET_REPO="pull${TRAVIS_PULL_REQUEST}"
   else
-    TARGET_REPO="${TRAVIS_BRANCH}"
+    TARGET_REPO="${TRAVIS_BRANCH//\//-}"
   fi
   export PACKAGE VERSION TARGET_REPO
 
