@@ -27,7 +27,7 @@ before_script: |
     TARGET_REPO="master"
     VERSION="${TRAVIS_TAG}"
   elif [ ! -z "${TRAVIS_PULL_REQUEST}" ]; then
-    TARGET_REPO="pull${TRAVIS_PULL_REQUEST}"
+    TARGET_REPO="${PACKAGE}-pull${TRAVIS_PULL_REQUEST}"
   else
     TARGET_REPO="${TRAVIS_BRANCH//\//-}"
   fi
