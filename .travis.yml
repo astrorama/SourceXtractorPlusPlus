@@ -16,6 +16,7 @@ services:
 
 stages:
   - build
+  - test
   - buildapp
   - clean
 
