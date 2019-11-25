@@ -85,6 +85,6 @@ jobs:
 
 # Clean up rpms unless they are from master or develop
   - stage: clean
-    if: branch = develop OR tag IS NOT present
+    if: NOT (branch = develop OR tag IS present)
     script: |
       .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm "${BINTRAY_REPO}/${TARGET_REPO}"
