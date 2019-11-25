@@ -9,6 +9,7 @@ fi
 TARGET_PACKAGE=$1
 TARGET_VERSION=$2
 TARGET_REPO=$3
+TARGET_BRANCH=$4 # Optional
 
 # Platform-specific configuration
 source /etc/os-release
@@ -77,6 +78,10 @@ if ! [ -d /tmp/sourcextractor-litmus ]; then
   git clone --depth=1 https://gitlab.astro.unige.ch/astrorama/sourcextractor-litmus.git /tmp/sourcextractor-litmus
 fi
 cd /tmp/sourcextractor-litmus
+if [ -n "${TARGET_BRANCH}" ]; then
+  echo "Trying to use a branch for the tests that matches the target branch"
+  git checkout "${TARGET_BRANCH}" || true
+fi
 git lfs pull
 
 # Patch config file
