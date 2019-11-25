@@ -23,10 +23,10 @@ stages:
 before_script: |
   PACKAGE=$(grep elements_project CMakeLists.txt | sed 's/.*(//'| cut -d' ' -f1)
   VERSION=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
-  if [ ! -z "${TRAVIS_TAG}" ]; then
+  if [ -n "${TRAVIS_TAG}" ]; then
     TARGET_REPO="master"
     VERSION="${TRAVIS_TAG}"
-  elif [ ! -z "${TRAVIS_PULL_REQUEST}" ]; then
+  elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
     TARGET_REPO="${PACKAGE}-pull${TRAVIS_PULL_REQUEST}"
   else
     TARGET_REPO="${TRAVIS_BRANCH//\//-}"
