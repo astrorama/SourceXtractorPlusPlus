@@ -45,7 +45,7 @@ jobs:
       if [ ! -z "${BINTRAY_REPO}" ]; then
         cd packages
         for p in *.rpm; do
-          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${target_repo}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${PACKAGE};bt_version=${VERSION}?override=1&publish=1"
+          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "${BINTRAY_REPO}/${TARGET_REPO}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${PACKAGE};bt_version=${VERSION}?override=1&publish=1"
         done;
       fi
 
@@ -87,4 +87,4 @@ jobs:
   - stage: clean
     if: branch = develop OR tag IS NOT present
     script: |
-      .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm "${BINTRAY_REPO}/${target_repo}"
+      .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm "${BINTRAY_REPO}/${TARGET_REPO}"
