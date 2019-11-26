@@ -80,7 +80,7 @@ fi
 cd /tmp/sourcextractor-litmus
 if [ -n "${TARGET_BRANCH}" ]; then
   echo "Trying to use a branch for the tests that matches the target branch"
-  git checkout "${TARGET_BRANCH}" || true
+  (git fetch origin "${TARGET_BRANCH}:${TARGET_BRANCH}" && git checkout "${TARGET_BRANCH}") || true
 fi
 git lfs pull
 
