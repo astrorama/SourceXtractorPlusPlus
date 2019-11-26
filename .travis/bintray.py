@@ -8,6 +8,8 @@ from html.parser import HTMLParser
 import requests
 from requests.auth import HTTPBasicAuth
 
+logger = logging.getLogger('bintray')
+
 
 class Bintray(object):
     """
@@ -15,6 +17,7 @@ class Bintray(object):
     """
     CONTENT_URL = "https://api.bintray.com/content/"
     LIST_URL = "https://dl.bintray.com/"
+    PROTECT = ['master', 'develop']
 
     def __init__(self, user, token):
         self.__user = user
@@ -87,6 +90,16 @@ def listdir(bintray, args):
 
 
 def rm(bintray, args):
+    path_components = os.path.split(args.path)
+    protected = [p for p in path_components if p in bintray.PROTECT]
+    if len(protected):
+        if not args.force:
+            raise ValueError('Trying to remove protected files! Aborting')
+        else:
+            answer = input('You are trying to remove protected files. Do you really want to do that? (yes or no)')
+            if answer.lower() != 'yes':
+                raise ValueError('Trying to remove protected files! Aborting')
+
     if args.recursive:
         entries = bintray.recursive(args.path)
     else:
@@ -117,9 +130,13 @@ if __name__ == '__main__':
 
     rm_subparser = subparsers.add_parser('rm', description='Remove')
     rm_subparser.add_argument('-r', '--recursive', action='store_true', help='Recursive')
+    rm_subparser.add_argument('-f', '--force', action='store_true', help='Remove protected files')
     rm_subparser.add_argument('path')
     rm_subparser.set_defaults(method=rm)
 
     args = parser.parse_args()
     bintray = Bintray(args.user, args.token)
-    args.method(bintray, args)
+    try:
+        args.method(bintray, args)
+    except Exception as e:
+        logger.error(str(e))
