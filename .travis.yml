@@ -89,6 +89,7 @@ jobs:
 # Clean up rpms unless they are from master or develop
   - stage: clean
     if: NOT (branch = develop OR tag IS present)
+    language: python
     install:
       - pip3 install requests
     script:
