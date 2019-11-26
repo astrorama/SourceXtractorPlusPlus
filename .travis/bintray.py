@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # Helper tool for dealing with Bintray API
 import logging
-from argparse import ArgumentParser
 import os
+import sys
+from argparse import ArgumentParser
 from html.parser import HTMLParser
 
 import requests
@@ -112,11 +113,14 @@ def rm(bintray, args):
 
 if __name__ == '__main__':
     try:
-        import coloredlogs
+        import coloredlogsx
 
         coloredlogs.install(logging.DEBUG)
     except ImportError:
-        pass
+        handler = logging.StreamHandler(sys.stderr)
+        handler.setLevel(logging.DEBUG)
+        logging.getLogger().addHandler(handler)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     parser = ArgumentParser()
     parser.add_argument('-u', '--user', type=str, default=os.getenv('BINTRAY_USER'), help='Bintray user')

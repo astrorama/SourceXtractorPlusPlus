@@ -93,4 +93,4 @@ jobs:
     install:
       - pip3 install requests
     script:
-      - python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm "${BINTRAY_REPO}/${TARGET_REPO}"
+      - python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}"
