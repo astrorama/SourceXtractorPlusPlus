@@ -26,12 +26,15 @@ before_script: |
   if [ -n "${TRAVIS_TAG}" ]; then
     TARGET_REPO="master"
     VERSION="${TRAVIS_TAG}"
+    TESTS_BRANCH="master"
   elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
     TARGET_REPO="${PACKAGE}-pull${TRAVIS_PULL_REQUEST}"
+    TESTS_BRANCH="${TRAVIS_PULL_REQUEST_BRANCH}"
   else
     TARGET_REPO="${TRAVIS_BRANCH//\//-}"
+    TESTS_BRANCH="${TRAVIS_BRANCH}"
   fi
-  export PACKAGE VERSION TARGET_REPO
+  export PACKAGE VERSION TARGET_REPO TESTS_BRANCH
 
 jobs:
   include:
@@ -53,7 +56,7 @@ jobs:
     stage: test
     env: OS_TYPE=fedora OS_VERSION=30
     script: |
-      docker run --rm --name tester -v "$(pwd):/src" -v "$(pwd)/tests:/tests" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/run-litmus.sh" "${PACKAGE}" "${VERSION}" "${TARGET_REPO}" "${TRAVIS_BRANCH}"
+      docker run --rm --name tester -v "$(pwd):/src" -v "$(pwd)/tests:/tests" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/run-litmus.sh" "${PACKAGE}" "${VERSION}" "${TARGET_REPO}" "${TESTS_BRANCH}"
 
   - <<: *build
     env: OS_TYPE=fedora OS_VERSION=30
