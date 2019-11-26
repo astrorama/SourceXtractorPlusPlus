@@ -75,7 +75,7 @@ yum install -y "${TARGET_PACKAGE}-${TARGET_VERSION}"
 
 # Checkout the tests
 if ! [ -d /tmp/sourcextractor-litmus ]; then
-  git clone --depth=1 https://gitlab.astro.unige.ch/astrorama/sourcextractor-litmus.git /tmp/sourcextractor-litmus
+  git clone --depth=1 https://github.com/astrorama/SourceXtractor-litmus.git /tmp/sourcextractor-litmus
 fi
 cd /tmp/sourcextractor-litmus
 if [ -n "${TARGET_BRANCH}" ]; then
