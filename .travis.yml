@@ -92,5 +92,7 @@ jobs:
     language: python
     install:
       - pip3 install requests
-    script:
-      - python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}"
+    script: |
+      python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}" --pattern ".+\.rpm"
+      sleep 10
+      python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}"

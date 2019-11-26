@@ -2,6 +2,7 @@
 # Helper tool for dealing with Bintray API
 import logging
 import os
+import re
 import sys
 from argparse import ArgumentParser
 from html.parser import HTMLParser
@@ -105,15 +106,19 @@ def rm(bintray, args):
         entries = bintray.recursive(args.path)
     else:
         entries = bintray.listdir(args.path)
+
+    regex = re.compile(args.pattern) if args.pattern else None
+
     for e in entries:
         if e[-1] != '/':
-            bintray.rm(e)
-            print(e)
+            if not regex or regex.match(e):
+                bintray.rm(e)
+                print(e)
 
 
 if __name__ == '__main__':
     try:
-        import coloredlogsx
+        import coloredlogs
 
         coloredlogs.install(logging.DEBUG)
     except ImportError:
@@ -135,6 +140,7 @@ if __name__ == '__main__':
     rm_subparser = subparsers.add_parser('rm', description='Remove')
     rm_subparser.add_argument('-r', '--recursive', action='store_true', help='Recursive')
     rm_subparser.add_argument('-f', '--force', action='store_true', help='Remove protected files')
+    rm_subparser.add_argument('--pattern', type=str, help='Restrict erasing to files matching a regex')
     rm_subparser.add_argument('path')
     rm_subparser.set_defaults(method=rm)
 
