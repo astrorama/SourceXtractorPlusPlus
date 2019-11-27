@@ -15,42 +15,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /*
- * MoffatCritteria.h
+ * MoffatModelFittingUtils.h
  *
- *  Created on: 2019 M01 25
+ *  Created on: 2019 M02 20
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_GROUPING_MOFFATCRITERIA_H_
-#define _SEIMPLEMENTATION_GROUPING_MOFFATCRITERIA_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATORTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATORTASK_H_
 
-#include "SEFramework/Pipeline/SourceGrouping.h"
+#include "ModelFitting/Models/ExtendedModel.h"
+#include "SEFramework/Source/SourceInterface.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 
 namespace SourceXtractor {
 
-class MoffatModelFitting;
-
-/**
- * @class MoffatCriteria
- * @brief Groups sources if their Moffat profile overlap
- *
- */
-
-class MoffatCriteria : public GroupingCriteria {
+class MoffatModelEvaluatorTask: public SourceTask {
 public:
 
-  MoffatCriteria(double threshold, double max_distance) : m_threshold(threshold), m_max_distance(max_distance) {}
-  virtual ~MoffatCriteria() {}
-
-  virtual bool shouldGroup(const SourceInterface&, const SourceInterface&) const override;
+  void computeProperties(SourceInterface& source) const override {
+    source.setProperty<MoffatModelEvaluator>(source.getProperty<MoffatModelFitting>());
+  }
 
 private:
-  bool doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const;
-
-  double m_threshold;
-  double m_max_distance;
 };
 
-} /* namespace SourceXtractor */
+}
 
-#endif /* _SEIMPLEMENTATION_GROUPING_MOFFATCRITERIA_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELEVALUATORTASK_H_ */

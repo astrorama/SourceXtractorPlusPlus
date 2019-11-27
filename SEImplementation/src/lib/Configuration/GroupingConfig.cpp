@@ -35,6 +35,7 @@ namespace SourceXtractor {
 
 static const std::string GROUPING_ALGORITHM {"grouping-algorithm" };
 static const std::string GROUPING_MOFFAT_THRESHOLD {"grouping-moffat-threshold" };
+static const std::string GROUPING_MOFFAT_MAX_DISTANCE {"grouping-moffat-max-distance" };
 
 static const std::string GROUPING_ALGORITHM_NONE {"NONE" };
 static const std::string GROUPING_ALGORITHM_OVERLAP {"OVERLAP" };
@@ -42,7 +43,7 @@ static const std::string GROUPING_ALGORITHM_SPLIT {"SPLIT" };
 static const std::string GROUPING_ALGORITHM_MOFFAT {"MOFFAT" };
 
 GroupingConfig::GroupingConfig(long manager_id)
-    : Configuration(manager_id), m_selected_algorithm(Algorithm::SPLIT_SOURCES), m_moffat_threshold(0.02) {
+    : Configuration(manager_id), m_selected_algorithm(Algorithm::SPLIT_SOURCES), m_moffat_threshold(0.02), m_moffat_max_distance(300) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getProgramOptions() {
@@ -51,6 +52,8 @@ std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getP
           "Grouping algorithm to be used [none|overlap|split|moffat]."},
       {GROUPING_MOFFAT_THRESHOLD.c_str(), po::value<double>()->default_value(0.02),
           "Threshold used for Moffat grouping."},
+      {GROUPING_MOFFAT_MAX_DISTANCE.c_str(), po::value<double>()->default_value(300),
+          "Maximum distance (in pixels) to be considered for grouping"},
   }}};
 }
 
@@ -71,7 +74,9 @@ void GroupingConfig::initialize(const UserValues& args) {
   if (args.find(GROUPING_MOFFAT_THRESHOLD) != args.end()) {
     m_moffat_threshold = args.find(GROUPING_MOFFAT_THRESHOLD)->second.as<double>();
   }
-
+  if (args.find(GROUPING_MOFFAT_MAX_DISTANCE) != args.end()) {
+    m_moffat_max_distance = args.find(GROUPING_MOFFAT_MAX_DISTANCE)->second.as<double>();
+  }
 }
 
 } // SourceXtractor namespace

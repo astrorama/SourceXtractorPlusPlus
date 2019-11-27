@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingPlugin.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTaskFactory.h"
@@ -33,6 +34,7 @@ static StaticPlugin<MoffatModelFittingPlugin> simple_modelfitting_plugin;
 
 void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<MoffatModelFittingTaskFactory, MoffatModelFitting>();
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<MoffatModelFittingTaskFactory, MoffatModelEvaluator>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<MoffatModelFitting, double>(
           "smf_x",
