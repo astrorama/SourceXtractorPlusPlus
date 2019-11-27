@@ -21,20 +21,35 @@ stages:
   - clean
 
 before_script: |
+  # Regular package and version
   PACKAGE=$(grep elements_project CMakeLists.txt | sed 's/.*(//'| cut -d' ' -f1)
   VERSION=$(grep elements_project CMakeLists.txt | sed 's/.*(//' | sed 's/[^ ]* //' | sed 's/ .*//')
+  # For pull requests and branches other than develop and master, override the version used in bintray
+  # with a decorated one
+  BINTRAY_VERSION="${VERSION}"
+
   if [ -n "${TRAVIS_TAG}" ]; then
     TARGET_REPO="master"
     VERSION="${TRAVIS_TAG}"
+    BINTRAY_VERSION="${TRAVIS_TAG}"
     TESTS_BRANCH="master"
   elif [ -n "${TRAVIS_PULL_REQUEST}" ] && [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then
     TARGET_REPO="${PACKAGE}-pull${TRAVIS_PULL_REQUEST}"
     TESTS_BRANCH="${TRAVIS_PULL_REQUEST_BRANCH}"
+    BINTRAY_VERSION="${VERSION}-pull${TRAVIS_PULL_REQUEST}"
   else
     TARGET_REPO="${TRAVIS_BRANCH//\//-}"
     TESTS_BRANCH="${TRAVIS_BRANCH}"
+    if [[ ! "${TRAVIS_BRANCH}" =~ ^(master|develop)$ ]]; then
+      BINTRAY_VERSION="${VERSION}-${TRAVIS_BRANCH}"
+    fi
   fi
-  export PACKAGE VERSION TARGET_REPO TESTS_BRANCH
+  export PACKAGE VERSION BINTRAY_VERSION TARGET_REPO TESTS_BRANCH
+
+install: |
+  curl "https://api.bintray.com/content/jfrog/jfrog-cli-go/$latest/jfrog-cli-linux-386/jfrog?bt_package=jfrog-cli-linux-386" -o jfrog
+  chmod a+x jfrog
+  ./jfrog bt config --user "${BINTRAY_USER}" --key "${BINTRAY_TOKEN}" --licenses LGPL3
 
 jobs:
   include:
@@ -46,10 +61,7 @@ jobs:
       - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"   
     after_success: |
       if [ ! -z "${BINTRAY_REPO}" ]; then
-        cd packages
-        for p in *.rpm; do
-          curl -T "${p}" "-u${BINTRAY_USER}:${BINTRAY_TOKEN}" "https://api.bintray.com/content/${BINTRAY_REPO}/${TARGET_REPO}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/${p};bt_package=${PACKAGE};bt_version=${VERSION}?override=1&publish=1"
-        done;
+        ./jfrog bt u --publish --override "packages/*.rpm" "${BINTRAY_REPO}/${PACKAGE}/${BINTRAY_VERSION}" "/${TARGET_REPO}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/"
       fi
 
   - &test
@@ -93,6 +105,7 @@ jobs:
     install:
       - pip3 install requests
     script: |
-      python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}" --pattern ".+\.rpm"
-      sleep 10
+      ./jfrog bt version-delete --quiet "${BINTRAY_REPO}/${PACKAGE}/${BINTRAY_VERSION}"
+      # Remove left-over repodata
+      sleep 5
       python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}"
