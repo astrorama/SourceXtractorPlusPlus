@@ -41,7 +41,7 @@ before_script: |
     TARGET_REPO="${TRAVIS_BRANCH//\//-}"
     TESTS_BRANCH="${TRAVIS_BRANCH}"
     if [[ ! "${TRAVIS_BRANCH}" =~ ^(master|develop)$ ]]; then
-      BINTRAY_VERSION="${VERSION}-${TRAVIS_BRANCH}"
+      BINTRAY_VERSION="${VERSION}-${TARGET_REPO}"
     fi
   fi
   export PACKAGE VERSION BINTRAY_VERSION TARGET_REPO TESTS_BRANCH
