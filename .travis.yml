@@ -47,7 +47,7 @@ before_script: |
   export PACKAGE VERSION BINTRAY_VERSION TARGET_REPO TESTS_BRANCH
 
 install: |
-  curl "https://api.bintray.com/content/jfrog/jfrog-cli-go/$latest/jfrog-cli-linux-386/jfrog?bt_package=jfrog-cli-linux-386" -o jfrog
+  curl "https://api.bintray.com/content/jfrog/jfrog-cli-go/\$latest/jfrog-cli-linux-386/jfrog?bt_package=jfrog-cli-linux-386" -o jfrog
   chmod a+x jfrog
   ./jfrog bt config --user "${BINTRAY_USER}" --key "${BINTRAY_TOKEN}" --licenses LGPL3
 
