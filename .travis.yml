@@ -55,7 +55,7 @@ jobs:
   include:
   - &build
     stage: build
-    env: OS_TYPE=fedora OS_VERSION=29
+    env: OS_TYPE=fedora OS_VERSION=30
     script:
       - docker run --name builder -v "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
       - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"   
@@ -70,8 +70,6 @@ jobs:
     script: |
       docker run --rm --name tester -v "$(pwd):/src" -v "$(pwd)/tests:/tests" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/run-litmus.sh" "${PACKAGE}" "${VERSION}" "${TARGET_REPO}" "${TESTS_BRANCH}"
 
-  - <<: *build
-    env: OS_TYPE=fedora OS_VERSION=30
   - <<: *build
     env: OS_TYPE=fedora OS_VERSION=31
   - <<: *build
