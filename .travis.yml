@@ -100,10 +100,14 @@ jobs:
   - stage: clean
     if: type = pull_request OR NOT (branch = develop OR tag IS present)
     language: python
-    install:
-      - pip3 install requests
+    install: |
+      pip3 install requests
+      curl -L "https://api.bintray.com/content/jfrog/jfrog-cli-go/\$latest/jfrog-cli-linux-386/jfrog?bt_package=jfrog-cli-linux-386" -o jfrog
+      chmod a+x jfrog
+      ./jfrog bt config --user "${BINTRAY_USER}" --key "${BINTRAY_TOKEN}" --licenses LGPL3
     script: |
       ./jfrog bt version-delete --quiet "${BINTRAY_REPO}/${PACKAGE}/${BINTRAY_VERSION}"
       # Remove left-over repodata
       sleep 5
       python3 .travis/bintray.py -u "${BINTRAY_USER}" -t "${BINTRAY_TOKEN}" rm -r "${BINTRAY_REPO}/${TARGET_REPO}"
+
