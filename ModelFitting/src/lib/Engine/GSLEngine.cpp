@@ -85,16 +85,6 @@ public:
   }
 };
 
-static void gsl_callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w) {
-  gsl_vector *f = gsl_multifit_nlinear_residual(w);
-  gsl_vector *x = gsl_multifit_nlinear_position(w);
-  double sum = 0;
-  for (size_t i = 0; i < f->size; ++i) {
-    double y = gsl_vector_get(f, i);
-    sum += y * y;
-  }
-  std::cout << iter << '\t' << sum << std::endl;
-}
 
 LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager& parameter_manager,
                                            ModelFitting::ResidualEstimator& residual_estimator) {
