@@ -486,7 +486,7 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = { "max_iterations" : 100, "modified_chi_squared_scale" : 10 }
+params_dict = { "max_iterations" : 100, "modified_chi_squared_scale" : 10, "engine" : "levmar" }
 
 
 def set_max_iterations(iterations):
