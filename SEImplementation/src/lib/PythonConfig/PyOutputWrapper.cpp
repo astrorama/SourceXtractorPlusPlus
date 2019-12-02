@@ -129,8 +129,7 @@ int PyOutputWrapper::write(const bp::object& obj) {
 
 void PyOutputWrapper::writelines(const bp::list& lines) {
   for (int i = 0; i < bp::len(lines); ++i) {
-    bp::str line = bp::extract<bp::str>(lines[i]);
-    m_logger.info() << line;
+    write(lines[i]);
   }
 }
 
