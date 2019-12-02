@@ -24,7 +24,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTask.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> PixelBoundariesTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<PixelBoundaries>()) {

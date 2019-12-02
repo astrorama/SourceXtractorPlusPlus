@@ -34,7 +34,7 @@
 //  class ExtendedModel;
 //}
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFitting;
 

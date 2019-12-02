@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroidTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void MeasurementFramePixelCentroidTask::computeProperties(SourceInterface& source) const {
   auto detection_coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();

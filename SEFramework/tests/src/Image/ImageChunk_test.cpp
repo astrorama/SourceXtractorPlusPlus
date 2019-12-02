@@ -26,7 +26,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ImageChunk.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

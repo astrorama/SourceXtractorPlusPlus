@@ -26,7 +26,7 @@
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include <ElementsKernel/Logging.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Elements::Logging logger = Elements::Logging::getLogger("Segmentation");
 

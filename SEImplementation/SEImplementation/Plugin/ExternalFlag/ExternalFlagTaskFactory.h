@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ExternalFlagTaskFactory
@@ -61,7 +61,7 @@ private:
 
 }; /* End of ExternalFlagTaskFactory class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

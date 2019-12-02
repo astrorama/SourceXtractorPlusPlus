@@ -26,7 +26,7 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PixelBoundariesTask
@@ -71,7 +71,7 @@ private:
 
 }; /* End of PixelBoundariesTaskHalfMaximum class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

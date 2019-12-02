@@ -44,7 +44,7 @@
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 class SourceFlagsSourceTask : public SourceTask {
 public:
   SourceFlagsSourceTask(const std::map<std::string, std::vector<unsigned int>> &instances_per_group)
@@ -58,7 +58,7 @@ private:
   std::map<std::string, std::vector<unsigned int>> m_instances_per_group;
 
 }; // End of SourceFlagsSourceTask class
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGSOURCETASK_H_ */
 

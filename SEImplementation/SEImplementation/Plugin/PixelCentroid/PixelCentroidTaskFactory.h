@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PixelCentroidTaskFactory
@@ -44,7 +44,7 @@ public:
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

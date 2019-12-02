@@ -24,7 +24,7 @@
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Plugin/Psf/PsfTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void PsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<PsfPluginConfig>();
@@ -54,7 +54,7 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   }
 }
 
-std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId& property_id) const {
+std::shared_ptr<Task> PsfTaskFactory::createTask(const SourceXtractor::PropertyId& property_id) const {
   auto instance = property_id.getIndex();
 
   if (m_vpsf.find(instance) == m_vpsf.end() || !m_vpsf.at(instance)) {
@@ -68,4 +68,4 @@ std::shared_ptr<Task> PsfTaskFactory::createTask(const SExtractor::PropertyId& p
   }
 }
 
-} // end SExtractor
+} // end SourceXtractor

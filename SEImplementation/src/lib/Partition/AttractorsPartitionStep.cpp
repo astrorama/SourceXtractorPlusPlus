@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
   auto& stamp = source->getProperty<DetectionFrameSourceStamp>().getStamp();

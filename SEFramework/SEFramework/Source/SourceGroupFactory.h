@@ -25,7 +25,7 @@
 #include <memory>
 #include "SEFramework/Source/SourceGroupInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceGroupFactory

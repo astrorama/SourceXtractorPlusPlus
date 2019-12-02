@@ -62,7 +62,7 @@ elements_add_library(SEMain ${LIB_SRC}
 #                        LINK_LIBRARIES Boost ElementsExamples
 #                        INCLUDE_DIRS Boost ElementsExamples)
 #===============================================================================
-elements_add_executable(sextractor++ src/program/SExtractor.cpp
+elements_add_executable(sourcextractor++ src/program/SourceXtractor.cpp
                      LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation)
 
 elements_add_executable(TestImage src/program/TestImage.cpp

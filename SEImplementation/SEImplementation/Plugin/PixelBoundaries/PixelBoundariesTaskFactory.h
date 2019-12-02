@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PixelBoundariesTaskFactory
@@ -47,7 +47,7 @@ public:
 }; /* End of PixelBoundariesTaskFactory class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

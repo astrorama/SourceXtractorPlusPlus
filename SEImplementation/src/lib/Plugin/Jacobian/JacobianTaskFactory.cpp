@@ -25,9 +25,9 @@
 #include "SEImplementation/Plugin/Jacobian/JacobianTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-std::shared_ptr<Task> JacobianTaskFactory::createTask(const SExtractor::PropertyId &property_id) const {
+std::shared_ptr<Task> JacobianTaskFactory::createTask(const SourceXtractor::PropertyId &property_id) const {
   if (property_id.getTypeId() == typeid(JacobianGroup)) {
     return std::make_shared<JacobianGroupTask>(property_id.getIndex());
   }
@@ -37,4 +37,4 @@ std::shared_ptr<Task> JacobianTaskFactory::createTask(const SExtractor::Property
   return nullptr;
 }
 
-} // end SExtractor
+} // end SourceXtractor

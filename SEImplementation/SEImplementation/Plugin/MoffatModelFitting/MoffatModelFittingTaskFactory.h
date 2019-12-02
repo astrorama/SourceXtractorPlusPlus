@@ -29,7 +29,7 @@
 #include "SEFramework/Task/TaskFactory.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFittingTaskFactory : public TaskFactory {
 public:

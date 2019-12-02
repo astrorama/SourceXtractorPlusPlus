@@ -35,7 +35,7 @@
 #define SIZETSUB(X, Y)  ((X) > (Y) ? (X-Y) : (Y-X))
 using namespace std;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SE2BackgroundModeller::SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, const unsigned char mask_type_flag)
 {
@@ -594,14 +594,10 @@ void SE2BackgroundModeller::filterMedian(PIXTYPE* bckVals, PIXTYPE* sigmaVals, c
   }
 
   // release memory
-  if (sigmaFilt)
-    delete [] sigmaFilt;
-  if (backFilt)
-    delete [] backFilt;
-  if (bmask)
-    delete [] bmask;
-  if (smask)
-    delete [] smask;
+  delete [] sigmaFilt;
+  delete [] backFilt;
+  delete [] bmask;
+  delete [] smask;
 
   return;
 }
@@ -702,4 +698,4 @@ PIXTYPE *SE2BackgroundModeller::getWhtMeanVals()
 {
   return itsWhtMeanVals;
 }
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

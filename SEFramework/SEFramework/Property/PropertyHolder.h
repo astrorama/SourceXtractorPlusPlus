@@ -29,7 +29,7 @@
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 /**
@@ -73,7 +73,7 @@ private:
 
 }; /* End of ObjectWithProperties class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

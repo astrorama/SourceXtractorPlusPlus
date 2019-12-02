@@ -24,7 +24,7 @@
 
 #include "SEFramework/Source/SourceInterface.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceGroupInterface
@@ -118,7 +118,7 @@ private:
   std::shared_ptr<IteratorImpl> m_it;
 }; // end of SourceGroupInterface::GroupIterator
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_SOURCEGROUPINTERFACE_H */
 

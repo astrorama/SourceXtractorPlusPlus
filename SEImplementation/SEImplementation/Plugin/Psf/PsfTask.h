@@ -27,9 +27,9 @@
 #include "SEFramework/Task/GroupTask.h"
 #include "SEFramework/Psf/VariablePsf.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-typedef std::function<double(SExtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
+typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
 extern std::map<std::string, ValueGetter> component_value_getters;
 
 class PsfTask: public GroupTask {
@@ -45,6 +45,6 @@ private:
   std::shared_ptr<VariablePsf> m_vpsf;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_

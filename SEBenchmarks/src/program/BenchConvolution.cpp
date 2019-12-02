@@ -63,7 +63,7 @@ using boost::core::demangle;
 
 namespace po = boost::program_options;
 namespace timer = boost::timer;
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 static Elements::Logging logger = Elements::Logging::getLogger("BenchConvolution");
 

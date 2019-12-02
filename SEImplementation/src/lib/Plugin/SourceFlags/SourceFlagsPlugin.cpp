@@ -39,6 +39,6 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/SourceFlags/SourceFlagsPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
   static StaticPlugin<SourceFlagsPlugin> source_flags;
 }

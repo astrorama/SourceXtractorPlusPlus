@@ -21,7 +21,7 @@
 
 #include "SEFramework/Source/SimpleSourceGroup.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SimpleSourceGroup::iterator SimpleSourceGroup::begin() {
   return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
@@ -74,4 +74,4 @@ unsigned int SimpleSourceGroup::size() const {
   return m_sources.size();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

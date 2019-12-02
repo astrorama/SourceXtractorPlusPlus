@@ -23,7 +23,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
                                std::shared_ptr<SourceGroupFactory> group_factory)

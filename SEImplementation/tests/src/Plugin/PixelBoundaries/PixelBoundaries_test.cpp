@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct PixelBoundariesFixture {
   SimpleSource source;

@@ -26,7 +26,7 @@
 
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct PaddedImage_Fixture {
   std::shared_ptr<VectorImage<SeFloat>> img;

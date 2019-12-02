@@ -38,13 +38,15 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::vector<std::unique_ptr<Plugin>> PluginManager::s_static_plugins;
 
 static Elements::Logging logger = Elements::Logging::getLogger("PluginManager");
 
 #if USE_BOOST_DLL
+std::vector<boost::dll::shared_library> PluginManager::s_loaded_plugins;
+
 static std::vector<boost::filesystem::path> getPluginPaths(
                 const std::string& plugin_path_str,
                 const std::vector<std::string>& plugin_list) {
@@ -95,8 +97,7 @@ void PluginManager::loadPlugins() {
 
     plugin->registerPlugin(*this);
 
-    // keep the library loaded while PluginManager still exists
-    m_loaded_plugins.push_back(lib);
+    s_loaded_plugins.push_back(lib);
   }
 #endif
 }

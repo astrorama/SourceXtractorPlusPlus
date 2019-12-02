@@ -67,7 +67,7 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 using namespace ModelFitting;
 
 const double pixel_scale = 1.0;
@@ -148,7 +148,7 @@ public:
     return 1;
   }
 
-  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
     return m_kernel;
   }
 
@@ -156,7 +156,7 @@ public:
   }
 
 private:
-  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  m_kernel;
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>  m_kernel;
 
 };
 
@@ -651,7 +651,7 @@ public:
 
 private:
   boost::random::mt19937 m_rng { (unsigned int) time(NULL) } ;
-  double m_zero_point, m_exp_time;
+  double m_zero_point = 0.0, m_exp_time = 300.;
 
 };
 

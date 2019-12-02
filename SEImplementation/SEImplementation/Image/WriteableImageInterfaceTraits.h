@@ -28,7 +28,7 @@
 
 namespace ModelFitting {
 
-using WriteableInterfaceType = SExtractor::WriteableImage<SExtractor::SeFloat>;
+using WriteableInterfaceType = SourceXtractor::WriteableImage<SourceXtractor::SeFloat>;
 using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 
 
@@ -119,7 +119,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
   using iterator = WriteableIterator;
 
   static WriteableInterfaceTypePtr factory(std::size_t width, std::size_t height) {
-    return SExtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
+    return SourceXtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
   }
 
   static std::size_t width(const WriteableInterfaceTypePtr &image) {
@@ -209,8 +209,8 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
         }
 
         window->setValue(x_win, y_win,
-                         SExtractor::interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix, INTERP_MAXKERNELWIDTH / 2 + y - iy,
-                                         8, 8, SExtractor::INTERP_LANCZOS4));
+                         SourceXtractor::interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix, INTERP_MAXKERNELWIDTH / 2 + y - iy,
+                                         8, 8, SourceXtractor::INTERP_LANCZOS4));
       }
     }
 

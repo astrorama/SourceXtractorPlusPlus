@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameRectangleTask : public SourceTask {
 public:
@@ -42,7 +42,7 @@ private:
   unsigned m_instance;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 
 #endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASK_H_

@@ -41,8 +41,8 @@ chmod a+x 'linuxdeploy-x86_64.AppImage'
 # Create a virtualenv with the dependencies are self-contained
 APPDIR=`mktemp -d`
 
-# Install sextractorxx, and dependencies, there
-yum install -y SExtractorxx ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
+# Install sourcextractor++, and dependencies, there
+yum install -y SourceXtractorPlusPlus ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
 
 # Copy Python into the AppImage, and some of its dependencies
 mkdir -p "${APPDIR}/usr/lib64"
@@ -62,14 +62,14 @@ SCRIPTDIR="${SRCDIR}/SEMain/scripts/"
 
 ./linuxdeploy-x86_64.AppImage \
     --appdir "${APPDIR}" \
-    -d "${RSCDIR}/sextractor++.desktop" -i "${RSCDIR}/sextractor++.png" \
+    -d "${RSCDIR}/sourcextractor++.desktop" -i "${RSCDIR}/sourcextractor++.png" \
     --custom-apprun="${SCRIPTDIR}/AppRun" \
-    -e "/usr/bin/sextractor++" \
+    -e "/usr/bin/sourcextractor++" \
     -o appimage
 
 # Try it
 unset PYTHONPATH
-./sextractor++-x86_64.AppImage --version
+./SourceXtractor++-x86_64.AppImage --version
 if [[ $? != 0 ]]; then
     echo "Failed to build the AppImage!"
     exit 1

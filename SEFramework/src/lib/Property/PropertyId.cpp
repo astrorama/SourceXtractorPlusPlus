@@ -23,7 +23,7 @@
 
 #include "SEFramework/Property/PropertyId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 }

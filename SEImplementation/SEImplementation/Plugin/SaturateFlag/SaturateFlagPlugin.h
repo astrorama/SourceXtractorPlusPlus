@@ -43,7 +43,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlagTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SaturateFlagPlugin : public Plugin {
 public:
@@ -60,5 +60,5 @@ public:
 private:
 }; // end of SaturateFlagPlugin class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_SATURATEFLAGPLUGIN_H_ */

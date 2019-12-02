@@ -29,7 +29,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct MinAreaPartitionFixture {
   const static int min_pixels = 3;

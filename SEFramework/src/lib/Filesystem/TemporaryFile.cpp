@@ -24,7 +24,7 @@
 #include "SEFramework/Filesystem/TemporaryFile.h"
 #include <boost/filesystem.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static std::string generateTemporaryPath(const std::string& dir, const std::string& pattern) {
   boost::filesystem::path tmp_path;

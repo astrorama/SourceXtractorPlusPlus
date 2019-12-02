@@ -26,7 +26,7 @@
 #include <SEUtils/Types.h>
 #include <SEFramework/Source/SourceInterface.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ObjectInfo {
   
@@ -54,7 +54,7 @@ private:
   
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif // _SEIMPLEMENTATION_OBJECTINFO_H
 

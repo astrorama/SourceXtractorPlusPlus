@@ -41,7 +41,7 @@
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 

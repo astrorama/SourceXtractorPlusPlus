@@ -29,7 +29,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SegmentationConfig
@@ -80,7 +80,7 @@ private:
 
 }; /* End of SegmentationConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

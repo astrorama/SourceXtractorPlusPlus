@@ -25,7 +25,7 @@
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/Property.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PixelCoordinateList : public Property {
   
@@ -47,7 +47,7 @@ private:
   
 }; /* End of PixelCoordinateList class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PIXELCOORDINATELIST_H */
 

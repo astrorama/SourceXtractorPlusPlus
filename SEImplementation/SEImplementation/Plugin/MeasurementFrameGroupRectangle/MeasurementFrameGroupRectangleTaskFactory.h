@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameGroupRectangleTaskFactory : public TaskFactory {
 
@@ -39,7 +39,7 @@ public:
 
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 
 #endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLETASKFACTORY_H_

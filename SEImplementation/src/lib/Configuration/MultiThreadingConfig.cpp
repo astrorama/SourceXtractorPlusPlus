@@ -28,11 +28,11 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string THREADS_NB {"thread-count"};
 
-MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id) {
+MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id), m_threads_nb(-1) {
 }
 
 auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
@@ -50,5 +50,5 @@ void MultiThreadingConfig::initialize(const UserValues& args) {
     }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 

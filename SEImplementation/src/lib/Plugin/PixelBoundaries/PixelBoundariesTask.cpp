@@ -28,7 +28,7 @@
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundariesTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void PixelBoundariesTask::computeProperties(SourceInterface& source) const {
   int min_x = INT_MAX;

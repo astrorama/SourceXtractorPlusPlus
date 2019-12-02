@@ -26,7 +26,7 @@
 
 #include "SEFramework/Image/ImageBase.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class InterpolatedImage : public ImageBase<T> {

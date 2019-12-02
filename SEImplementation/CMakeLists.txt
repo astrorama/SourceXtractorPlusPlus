@@ -79,7 +79,7 @@ elements_add_library(SEImplementation
 #===============================================================================
 # SEImplementation has a part that needs to be reachable from Python.
 #===============================================================================
-elements_add_python_module(SExtractorPy
+elements_add_python_module(SourceXtractorPy
 		src/lib/PythonConfig/PythonModule.cpp
 		LINK_LIBRARIES SEImplementation
 		INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
@@ -143,9 +143,11 @@ elements_add_unit_test(JacobianGroup_test tests/src/Plugin/Jacobian/JacobianGrou
 elements_add_unit_test(JacobianSource_test tests/src/Plugin/Jacobian/JacobianSourceTask_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
-elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp 
+if (NOT WITHOUT_LEVMAR)
+elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+endif()
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

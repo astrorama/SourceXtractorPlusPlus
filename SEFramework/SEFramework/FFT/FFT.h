@@ -31,7 +31,7 @@
 
 #include <boost/thread/shared_mutex.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * FFTW3 requires a global mutex when creating a plan. Plan executions
@@ -265,6 +265,6 @@ struct FFT {
  */
 int fftRoundDimension(int size);
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_FFT_FFT_H

@@ -29,7 +29,7 @@
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class KronRadiusTask : public SourceTask {
 public:

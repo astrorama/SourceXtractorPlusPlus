@@ -25,7 +25,7 @@
 #include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SourceGroupWithOnDemandPropertiesFactory

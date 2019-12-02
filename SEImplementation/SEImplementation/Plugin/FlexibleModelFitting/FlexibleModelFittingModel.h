@@ -36,8 +36,7 @@
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
-
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingParameterManager;
 

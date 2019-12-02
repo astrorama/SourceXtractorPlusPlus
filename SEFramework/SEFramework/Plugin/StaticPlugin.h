@@ -27,7 +27,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEFramework/Plugin/PluginManager.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class StaticPlugin
@@ -38,7 +38,7 @@ template<typename PluginType>
 class StaticPlugin {
 public:
   StaticPlugin() {
-    static_assert(std::is_base_of<Plugin, PluginType>::value, "PluginType must inherit from SExtractor::Plugin");
+    static_assert(std::is_base_of<Plugin, PluginType>::value, "PluginType must inherit from SourceXtractor::Plugin");
     PluginManager::registerStaticPlugin<PluginType>();
   }
 };

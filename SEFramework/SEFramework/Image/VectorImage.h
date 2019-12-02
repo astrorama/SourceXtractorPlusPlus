@@ -35,7 +35,7 @@
 
 // FIXME get rid of offset, it was a bad idea
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class VectorImage
@@ -165,7 +165,7 @@ private:
 
 }; /* End of VectorImage class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

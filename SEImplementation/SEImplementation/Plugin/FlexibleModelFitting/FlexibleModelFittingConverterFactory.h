@@ -31,7 +31,7 @@ namespace ModelFitting {
   class CoordinateConverter;
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceInterface;
 

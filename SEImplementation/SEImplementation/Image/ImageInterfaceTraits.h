@@ -43,9 +43,13 @@
 
 namespace ModelFitting {
 
-using ImageInterfaceType = SExtractor::VectorImage<SExtractor::SeFloat>;
+// Interpolation types
+typedef enum  {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
+    INTERP_LANCZOS3, INTERP_LANCZOS4}       interpenum;
+
+using ImageInterfaceType = SourceXtractor::VectorImage<SourceXtractor::SeFloat>;
 using ImageInterfaceTypePtr = std::shared_ptr<ImageInterfaceType>;
-using WriteableInterfaceType = SExtractor::WriteableImage<SExtractor::SeFloat>;
+using WriteableInterfaceType = SourceXtractor::WriteableImage<SourceXtractor::SeFloat>;
 using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 
 template <>
@@ -54,7 +58,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
   using iterator = std::vector<ImageInterfaceType::PixelType>::iterator;
 
   static ImageInterfaceTypePtr factory(std::size_t width, std::size_t height) {
-    return SExtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
+    return SourceXtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
   }
 
   static std::size_t width(const ImageInterfaceTypePtr& image) {
@@ -87,7 +91,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
 
 } // end of namespace ModelFitting
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // Make those types available to the SExtractor namespace for convenience
 using ModelFitting::ImageInterfaceType;

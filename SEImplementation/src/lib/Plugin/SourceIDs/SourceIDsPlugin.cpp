@@ -42,6 +42,6 @@
 
 #include "SEFramework/Plugin/StaticPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
   static StaticPlugin<SourceIDsPlugin> source_IDs_plugin;
 }

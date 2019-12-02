@@ -29,7 +29,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEUtils/PixelCoordinate.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class NeighbourInfo {
 public:
@@ -47,6 +47,6 @@ private:
   PixelCoordinate m_offset;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_NEIGHBOURINFO_H

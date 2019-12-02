@@ -36,7 +36,7 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 using namespace ModelFitting;
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 template <typename ImageType>
 class DummyPsf {
@@ -51,7 +51,7 @@ public:
     return 1;
   }
 
-  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>  getScaledKernel(double /*scale*/) const {
     return m_kernel;
   }
 
@@ -59,7 +59,7 @@ public:
   }
 
 private:
-  std::shared_ptr<VectorImage<SExtractor::SeFloat>>  m_kernel;
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>  m_kernel;
 
 };
 

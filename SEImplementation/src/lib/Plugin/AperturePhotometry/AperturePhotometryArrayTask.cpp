@@ -25,9 +25,9 @@
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryArrayTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-void AperturePhotometryArrayTask::computeProperties(SExtractor::SourceInterface &source) const {
+void AperturePhotometryArrayTask::computeProperties(SourceXtractor::SourceInterface &source) const {
   std::vector<AperturePhotometry> measurements;
   for (auto i : m_aperture_instances) {
     measurements.emplace_back(source.getProperty<AperturePhotometry>(i));
@@ -35,4 +35,4 @@ void AperturePhotometryArrayTask::computeProperties(SExtractor::SourceInterface 
   source.setIndexedProperty<AperturePhotometryArray>(m_instance, measurements);
 }
 
-} // end SExtractor
+} // end SourceXtractor

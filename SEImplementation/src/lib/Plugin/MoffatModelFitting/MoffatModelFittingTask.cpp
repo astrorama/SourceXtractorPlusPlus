@@ -80,7 +80,7 @@
 #include "ModelFitting/Image/NullPsf.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 
@@ -197,7 +197,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   source_model->registerParameters(manager);
 
   // Full frame model with all sources
-  typedef std::shared_ptr<VectorImage<SExtractor::SeFloat>> VectorImageType;
+  typedef std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> VectorImageType;
   FrameModel<NullPsf<VectorImageType>, VectorImageType> frame_model {
     pixel_scale,
     (size_t) source_stamp.getWidth(), (size_t) source_stamp.getHeight(),

@@ -23,12 +23,12 @@
 #ifndef SEUTILS_ISCLOSE_H
 #define SEUTILS_ISCLOSE_H
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 bool isClose(double a, double b, double atol = 1e-8, double rtol = 1e-5) {
   return std::abs(a - b) <= (atol + rtol * std::abs(b));
 }
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // SEUTILS_ISCLOSE_H

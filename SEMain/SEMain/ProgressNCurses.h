@@ -29,7 +29,7 @@
 #include <boost/thread.hpp>
 #include <vector>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class ProgressNCurses
@@ -67,6 +67,6 @@ protected:
   std::unique_ptr<Dashboard> m_dashboard;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEMAIN_PROGRESSBAR_H

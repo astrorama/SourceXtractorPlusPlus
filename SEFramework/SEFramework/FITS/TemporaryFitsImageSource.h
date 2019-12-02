@@ -27,7 +27,7 @@
 #include "FitsImageSource.h"
 #include "SEFramework/Filesystem/TemporaryFile.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @brief FitsTemporaryImageSource wraps FitsImageSource, generating the filename and acquiring its ownership

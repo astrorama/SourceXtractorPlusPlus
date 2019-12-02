@@ -32,7 +32,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/SourceId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class LutzLabellingListener : public Lutz::LutzListener {
 public:

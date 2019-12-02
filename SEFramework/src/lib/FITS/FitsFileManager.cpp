@@ -12,7 +12,7 @@
 
 #include "SEFramework/FITS/FitsFileManager.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<FitsFileManager> FitsFileManager::s_instance;
 

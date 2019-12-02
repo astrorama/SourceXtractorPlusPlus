@@ -27,7 +27,7 @@
 #include <SEFramework/Property/Property.h>
 #include <SEFramework/Image/VectorImage.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class PsfProperty : public Property {
 public:
@@ -51,6 +51,6 @@ private:
   std::shared_ptr<VectorImage<SeFloat>> m_psf;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSF_H_

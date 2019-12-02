@@ -34,7 +34,7 @@
 //////////
 //#define	QMALLOC(ptr, typ, nel) ptr = (typ *)malloc((size_t)(nel)*sizeof(typ))
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace std;
 
@@ -301,7 +301,7 @@ void SplineModel::splineLine (PIXTYPE *line, const size_t y, const size_t xStart
       yl = 0;
       dy -= 1.0;
     } else if (yl >= nby - 1) {
-      yl = nby < 2 ? 0 : nby - 2;
+      yl = nby - 2;
       dy += 1.0;
     }
 
@@ -635,4 +635,4 @@ PIXTYPE SplineModel::computeMedian (PIXTYPE* itsGridData, const size_t nGridPoin
   return median;
 }
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

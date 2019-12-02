@@ -42,7 +42,7 @@
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct AperturePhotometryFixture {
   SimpleSource source;

@@ -27,7 +27,7 @@
 #include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void GroupInfoTask::computeProperties(SourceGroupInterface& group) const {
   static unsigned int group_id  = 1;

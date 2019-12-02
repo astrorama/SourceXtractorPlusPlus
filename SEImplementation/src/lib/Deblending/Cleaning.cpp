@@ -30,13 +30,13 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
-#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingUtils.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
 #include "SEImplementation/Deblending/Cleaning.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 inline bool operator<(SourceGroupInterface::iterator a, SourceGroupInterface::iterator b) {
   return &(*a) < &(*b);
@@ -97,7 +97,7 @@ bool Cleaning::shouldClean(SourceInterface& source, SourceGroupInterface& group)
       continue;
     }
 
-    MoffatModelEvaluator model(*it);
+    auto &model = it->getProperty<MoffatModelEvaluator>();
     int i = 0;
     for (auto pixel : pixel_list) {
       auto pixel_value = model.getValue(pixel.m_x, pixel.m_y);
@@ -126,7 +126,7 @@ SourceGroupInterface::iterator Cleaning::findMostInfluentialSource(
 
   // iterate through all other sources in the group
   for (size_t i = 0; i < candidates.size(); i++) {
-    MoffatModelEvaluator model(*candidates[i]);
+    auto &model = candidates[i]->getProperty<MoffatModelEvaluator>();
     for (auto pixel : pixel_list) {
       auto pixel_value = model.getValue(pixel.m_x, pixel.m_y);
       total_influence_of_sources[i] += pixel_value;

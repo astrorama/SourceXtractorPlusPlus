@@ -43,7 +43,7 @@
 #include "SEFramework/Source/SourceFlags.h"
 #include <vector>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceFlags : public Property {
 public:
@@ -59,6 +59,6 @@ private:
   std::vector<Flags> m_source_flags;
 }; // end of SourceFlags class
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_SOURCEFLAGS_H_*/

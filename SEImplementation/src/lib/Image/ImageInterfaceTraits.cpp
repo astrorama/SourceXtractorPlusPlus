@@ -9,7 +9,7 @@
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using Traits = ModelFitting::ImageTraits<ImageInterfaceTypePtr>;
 

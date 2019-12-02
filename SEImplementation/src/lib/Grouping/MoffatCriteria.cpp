@@ -23,25 +23,31 @@
 
 #include "SEImplementation/Grouping/MoffatCriteria.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
-#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingUtils.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 
 bool MoffatCriteria::doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const {
-  auto& model = impactor.getProperty<MoffatModelFitting>();
-  if (model.getIterations() == 0) {
+  auto& extended_model = impactor.getProperty<MoffatModelEvaluator>();
+  if (extended_model.getIterations() == 0) {
     return false;
   }
 
   auto& centroid = impactee.getProperty<PixelCentroid>();
-  auto max_value = impactee.getProperty<PeakValue>().getMaxValue();
+  auto& other_centroid = impactor.getProperty<PixelCentroid>();
 
-  MoffatModelEvaluator extended_model(impactor);
+  auto dx = centroid.getCentroidX() - other_centroid.getCentroidX();
+  auto dy = centroid.getCentroidY() - other_centroid.getCentroidY();
+  if (dx*dx + dy*dy > m_max_distance * m_max_distance ) {
+    return false;
+  }
+
+  auto max_value = impactee.getProperty<PeakValue>().getMaxValue();
 
   double model_value = extended_model.getValue(centroid.getCentroidX(), centroid.getCentroidY());
 
@@ -55,6 +61,6 @@ bool MoffatCriteria::shouldGroup(const SourceInterface& first, const SourceInter
   return doesImpact(first, second) || doesImpact(second, first);
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 

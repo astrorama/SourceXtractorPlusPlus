@@ -44,7 +44,7 @@
 
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class DummyCoordinateSystem : public CoordinateSystem {
 public:

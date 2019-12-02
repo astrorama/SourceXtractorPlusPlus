@@ -31,7 +31,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // Needed to store the source in a reference_wrapper
 inline bool operator<(std::reference_wrapper<const SourceInterface> a, std::reference_wrapper<const SourceInterface> b) {
