@@ -51,19 +51,54 @@ template <typename T>
 class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
 
-  FitsImageSource(const std::string &filename, int hdu_number = 1,
+  /**
+   * Constructor
+   * @param filename
+   *    Path to the FITS file
+   * @param hdu_number
+   *    HDU number. If <= 0, the constructor will use the first HDU containing an image
+   * @param manager
+   */
+  FitsImageSource(const std::string &filename, int hdu_number = 0,
       std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance())
     : m_filename(filename), m_manager(manager), m_hdu_number(hdu_number) {
-
-    auto fptr = m_manager->getFitsFile(filename);
-    switchHdu(fptr, m_hdu_number);
-
     int status = 0;
     int bitpix, naxis;
     long naxes[2] = {1,1};
+
+    auto fptr = m_manager->getFitsFile(filename);
+
+    if (m_hdu_number <= 0) {
+      int hdunum, hdutype;
+      fits_get_num_hdus(fptr, &hdunum, &status);
+      if (status != 0) {
+        throw Elements::Exception() << "Can't get the number of HDUs in the FITS file: " << filename;
+      }
+
+      m_hdu_number = 0;
+      do {
+        ++m_hdu_number;
+        switchHdu(fptr, m_hdu_number);
+        fits_get_hdu_type(fptr, &hdutype, &status);
+        if (status == 0 && hdutype == IMAGE_HDU) {
+          fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
+        }
+        if (status != 0) {
+          throw Elements::Exception() << "Can't get the type of the HDU " << m_hdu_number << " in the FITS file: "
+                                      << filename;
+        }
+      } while (m_hdu_number <=hdunum && !(hdutype == IMAGE_HDU && naxis == 2));
+      if (hdutype != IMAGE_HDU) {
+        throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename;
+      }
+    }
+    else {
+      switchHdu(fptr, m_hdu_number);
+    }
+
     fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
     if (status != 0 || naxis != 2) {
-      throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename;
+      throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename << "[" << m_hdu_number << "]";
     }
 
     m_width = naxes[0];
@@ -206,6 +241,9 @@ public:
     }
   }
 
+  int getHDU() const {
+    return m_hdu_number;
+  }
 
 private:
 
