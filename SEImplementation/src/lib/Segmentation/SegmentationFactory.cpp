@@ -50,6 +50,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   auto segmentation_config = manager.getConfiguration<SegmentationConfig>();
   m_algorithm = segmentation_config.getAlgorithmOption();
   m_filter = segmentation_config.getFilter();
+  m_lutz_window_size = segmentation_config.getLutzWindowSize();
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
@@ -58,7 +59,8 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
       //FIXME Use a factory from parameter
-      segmentation->setLabelling<LutzSegmentation>(std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+      segmentation->setLabelling<LutzSegmentation>(
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_lutz_window_size);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
