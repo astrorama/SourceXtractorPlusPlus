@@ -19,13 +19,14 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include <codecvt>
+#include <boost/locale/encoding_utf.hpp>
 #include <boost/python.hpp>
 #include "SEImplementation/PythonConfig/PyOutputWrapper.h"
 
 namespace SourceXtractor {
 
 namespace bp = boost::python;
+using boost::locale::conv::utf_to_utf;
 
 PyOutputWrapper::PyOutputWrapper(Elements::Logging& logger) : closed(false), m_logger(logger) {}
 
@@ -104,8 +105,7 @@ int PyOutputWrapper::write(const bp::object& obj) {
   }
   else if (unicode_extractor.check()) {
     std::wstring unicode = unicode_extractor;
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> cv;
-    str = cv.to_bytes(unicode);
+    str = utf_to_utf<char>(unicode.c_str(), unicode.c_str() + unicode.size());
   }
   else {
     std::string obj_type_name = bp::extract<std::string>(obj.attr("__class__").attr("__name__"));
