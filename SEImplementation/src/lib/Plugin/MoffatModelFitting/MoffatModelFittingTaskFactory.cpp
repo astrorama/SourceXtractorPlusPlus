@@ -23,9 +23,11 @@
 
 #include <iostream>
 
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTaskFactory.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluatorTask.h"
 #include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 
 namespace SourceXtractor {
@@ -33,6 +35,8 @@ namespace SourceXtractor {
 std::shared_ptr<Task> MoffatModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<MoffatModelFitting>()) {
     return std::make_shared<MoffatModelFittingTask>(m_max_iterations);
+  } else if (property_id == PropertyId::create<MoffatModelEvaluator>()) {
+    return std::make_shared<MoffatModelEvaluatorTask>();
   } else {
     return nullptr;
   }

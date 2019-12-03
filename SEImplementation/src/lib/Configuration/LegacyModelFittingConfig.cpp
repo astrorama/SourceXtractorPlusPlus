@@ -30,15 +30,13 @@ namespace SourceXtractor {
 
 static const std::string MFIT_MAX_ITERATIONS {"model-fitting-iterations"};
 
-LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configuration(manager_id) {
+LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configuration(manager_id), m_max_iterations(1000) {
 }
 
 auto LegacyModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Model Fitting", {
       {MFIT_MAX_ITERATIONS.c_str(), po::value<int>()->default_value(1000), "Maximum number of iterations allowed for model fitting"},
   }}};
-
-  return {};
 }
 
 void LegacyModelFittingConfig::initialize(const UserValues& args) {

@@ -28,14 +28,14 @@
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
 
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
-#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingUtils.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 
 namespace SourceXtractor {
 
 using namespace ModelFitting;
 
-MoffatModelEvaluator::MoffatModelEvaluator(const SourceInterface& source) {
-  auto& model = source.getProperty<MoffatModelFitting>();
+MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
+  m_iterations = model.getIterations();
 
   auto x = std::make_shared<ManualParameter>(model.getX());
   auto y = std::make_shared<ManualParameter>(model.getY());

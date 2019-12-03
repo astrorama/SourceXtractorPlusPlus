@@ -62,9 +62,14 @@ public:
     return m_moffat_threshold;
   }
 
+  double getMoffatMaxDistance() const {
+    return m_moffat_max_distance;
+  }
+
 private:
   Algorithm m_selected_algorithm;
   double m_moffat_threshold;
+  double m_moffat_max_distance;
 
 }; /* End of GroupingConfig class */
 

@@ -45,32 +45,7 @@ std::vector<std::unique_ptr<Plugin>> PluginManager::s_static_plugins;
 static Elements::Logging logger = Elements::Logging::getLogger("PluginManager");
 
 #if USE_BOOST_DLL
-static std::vector<boost::filesystem::path> getPluginPaths(
-                const std::string& plugin_path_str,
-                const std::vector<std::string>& plugin_list) {
-  std::vector<boost::filesystem::path> plugin_paths;
-
-  if (plugin_path_str != "") {
-    boost::filesystem::path plugin_path(plugin_path_str);
-    if (boost::filesystem::is_directory(plugin_path)) {
-      for (auto& plugin_name : plugin_list) {
-        auto full_path = plugin_path / boost::filesystem::path(plugin_name);
-        full_path += boost::dll::shared_library::suffix();
-
-        if (boost::filesystem::exists(full_path)) {
-          logger.info() << "Loading plugin from file: " << full_path;
-          plugin_paths.emplace_back(full_path);
-        } else {
-          logger.warn() << "Failed to load plugins from " << full_path << " - file not found";
-        }
-      }
-    } else {
-      logger.warn() << "The " << plugin_path << " is not a directory. No plugins will be loaded";
-    }
-  }
-
-  return plugin_paths;
-}
+std::vector<boost::dll::shared_library> PluginManager::s_loaded_plugins;
 #endif
 
 void PluginManager::loadPlugins() {
@@ -80,24 +55,35 @@ void PluginManager::loadPlugins() {
   }
 
 #if USE_BOOST_DLL
+  typedef std::shared_ptr<Plugin> (pluginapi_create_t)();
+
   // load dynamic plugins
-  auto plugin_paths = getPluginPaths(m_plugin_path, m_plugin_list);
-  for (auto& plugin_path : plugin_paths) {
-    typedef std::shared_ptr<Plugin> (pluginapi_create_t)();
-    std::function<pluginapi_create_t> creator;
+  auto load_mode = boost::dll::load_mode::append_decorations | boost::dll::load_mode::search_system_folders;
+  for (auto& plugin_name : m_plugin_list) {
+    boost::dll::shared_library lib;
 
-    boost::dll::shared_library lib(plugin_path);
-    creator = lib.get_alias<pluginapi_create_t>("create_plugin");
+    // Try on the explicit path first
+    if (!m_plugin_path.empty()) {
+      auto full_path = m_plugin_path / plugin_name;
+      try {
+        lib.load(full_path, load_mode);
+      } catch (const boost::system::system_error&) {
+        // ignore
+      }
+    }
+    // Try on the system path. This time, propagate the failure
+    if (!lib.is_loaded()) {
+      lib.load(plugin_name, load_mode);
+    }
 
+    auto creator = lib.get_alias<pluginapi_create_t>("create_plugin");
     auto plugin = creator();
     auto id_string = plugin->getIdString();
     logger.info() << "Registering plugin " << id_string;
-
     plugin->registerPlugin(*this);
-
-    // keep the library loaded while PluginManager still exists
-    m_loaded_plugins.push_back(lib);
+    s_loaded_plugins.push_back(lib);
   }
+
 #endif
 }
 

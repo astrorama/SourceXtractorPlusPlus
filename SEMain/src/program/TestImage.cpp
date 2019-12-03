@@ -650,7 +650,7 @@ public:
 
 private:
   boost::random::mt19937 m_rng { (unsigned int) time(NULL) } ;
-  double m_zero_point, m_exp_time;
+  double m_zero_point = 0.0, m_exp_time = 300.;
 
 };
 

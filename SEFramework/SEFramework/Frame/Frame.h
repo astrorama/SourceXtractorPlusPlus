@@ -33,6 +33,7 @@
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
 #include "SEFramework/Image/InterpolatedImageSource.h"
+#include "SEFramework/Image/FunctionalImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
@@ -248,7 +249,14 @@ private:
   void applyFilter() {
     if (m_filter != nullptr) {
       m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(), getVarianceThreshold());
-      m_filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(), getVarianceThreshold());
+      auto filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(), getVarianceThreshold());
+      m_filtered_variance_map = FunctionalImage<T>::create(
+        m_filtered_image->getWidth(), m_filtered_image->getHeight(),
+        [filtered_variance_map](int x, int y) -> T {
+          return std::max(filtered_variance_map->getValue(x, y), 0.f);
+        }
+      );
+
     } else {
       m_filtered_image = getSubtractedImage();
       m_filtered_variance_map = getUnfilteredVarianceMap();
