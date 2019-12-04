@@ -23,6 +23,8 @@ static LeastSquareEngineManager::StaticEngine levmar_engine{"gsl", createLevmarE
 
 GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol, double delta):
   m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol}, m_delta{delta} {
+  // Prevent an abort() call from GSL, we handle the return code ourselves
+  gsl_set_error_handler_off();
 }
 
 // Provide an iterator for gsl_vector
