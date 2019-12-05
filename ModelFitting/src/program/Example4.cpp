@@ -40,15 +40,19 @@
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
 using namespace std;
 using namespace ModelFitting;
 
-int main() {
-  
+int main(int argc, char **argv) {
+  std::string engine_impl("levmar");
+  if (argc > 1) {
+    engine_impl = argv[1];
+  }
+
   auto frames_path = Elements::pathSearchInEnvVariable("multiframe.fits", "ELEMENTS_AUX_PATH");
   auto frames = readFrames(frames_path[0].string());
   
@@ -66,7 +70,7 @@ int main() {
   //                         for a specific world value
   // - SigmoidConverter : Converts the parameter using the sigmoid function
   // - ExpSigmoidConverter : Converts the parameter using the exponential sigmoid function
-  auto i0 = std::make_shared<EngineParameter>(1., make_unique<ExpSigmoidConverter>(1, 100));
+  auto i0 = std::make_shared<EngineParameter>(12., make_unique<ExpSigmoidConverter>(1, 100));
   auto n = std::make_shared<ManualParameter>(1.);
   auto k = std::make_shared<ManualParameter>(1.);
   
@@ -78,8 +82,8 @@ int main() {
   
   // We create the extended model. All of its parameters will be optimized by
   // the minimization engine.
-  auto x = std::make_shared<EngineParameter>(10, make_unique<NormalizedConverter>(150.));
-  auto y = std::make_shared<EngineParameter>(20, make_unique<NormalizedConverter>(150.));
+  auto x = std::make_shared<EngineParameter>(10, make_unique<NormalizedConverter>(30.));
+  auto y = std::make_shared<EngineParameter>(20, make_unique<NormalizedConverter>(30.));
   auto x_scale = std::make_shared<EngineParameter>(.5, make_unique<SigmoidConverter>(0, 1));
   auto y_scale = std::make_shared<EngineParameter>(.5, make_unique<SigmoidConverter>(0, 1));
   auto rot_angle = std::make_shared<EngineParameter>(2., make_unique<SigmoidConverter>(0, 2*M_PI));
@@ -136,10 +140,15 @@ int main() {
   manager.registerParameter(y_scale);
   manager.registerParameter(rot_angle);
   
-  // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {};
+  // Finally we create a least square engine and we solve the problem
+  std::cout << "Registered engines: " << std::endl;
+  for (auto &e : LeastSquareEngineManager::getImplementations()) {
+    std::cout << '\t' << e << std::endl;
+  }
+  std::cout << "Using engine " << engine_impl << std::endl;
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
   
   // We print the results

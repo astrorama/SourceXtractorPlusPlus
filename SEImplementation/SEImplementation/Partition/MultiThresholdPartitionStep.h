@@ -60,7 +60,8 @@ private:
       const std::vector<std::shared_ptr<SourceInterface>>& sources,
       const std::vector<PixelCoordinate>& pixel_coords,
       std::shared_ptr<VectorImage<DetectionImage::PixelType>> image,
-      const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes
+      const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes,
+      const PixelCoordinate& offset
       ) const;
 
   std::shared_ptr<SourceFactory> m_source_factory;

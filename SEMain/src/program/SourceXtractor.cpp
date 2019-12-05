@@ -351,6 +351,7 @@ public:
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
+    segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
@@ -437,10 +438,6 @@ public:
     try {
       // Process the image
       segmentation->processFrame(detection_frame);
-
-      // Flush source grouping buffer
-      SelectAllCriteria select_all_criteria;
-      source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
     }
     catch (const std::exception &e) {
       logger.error() << "Failed to process the frame! " << e.what();
