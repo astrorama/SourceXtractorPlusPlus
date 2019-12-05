@@ -67,16 +67,12 @@ public:
 
   virtual ~DependentParameter() = default;
 
-protected:
-
-//  void setValue(const double new_value) = delete;
-//  void getValueHook(void) {
-//    if (!this->isObserved()) {
-//      this->update((*m_param_values)[0]);
-//    }
-//  }
-//
-//  using BasicParameter::m_get_value_hook;
+  double getValue() const override {
+    if (!this->isObserved()) {
+      const_cast<DependentParameter*>(this)->update((*m_params)[0]->getValue());
+    }
+    return m_value;
+  }
 
 private:
 
@@ -102,12 +98,12 @@ private:
     addParameterObserver(PARAM_NO - 1, last);
   }
 
-//  /* The two update methods below are called by the observer function
-//   * passed to the param.addObserver() method. They are used to transform
-//   * the array of input parameter values to a series of doubles
-//   * (val1, val2, ...) which is require to call the setValue (of the
-//   * BasicParameter class)
-//   */
+  /* The two update methods below are called by the observer function
+   * passed to the param.addObserver() method. They are used to transform
+   * the array of input parameter values to a series of doubles
+   * (val1, val2, ...) which is require to call the setValue (of the
+   * BasicParameter class)
+   */
   template <typename... ParamValues>
   void update(ParamValues... values) {
     update(values..., (*m_params)[sizeof...(values)]->getValue());
@@ -122,34 +118,14 @@ private:
 
   template<typename Param>
   void addParameterObserver(int i, Param& param) {
-
     param->addObserver([this](double v){
-//      // Do not bother updating live if there are no observers
-      //if (this->isObserved()) {
+      // Do not bother updating live if there are no observers
+      if (this->isObserved()) {
           this->update((*m_params)[0]->getValue());
-      //}
+      }
     });
-
-//    m_updaters->emplace_back(new ReferenceUpdater{
-//          param, (*m_param_values)[i],
-//          ReferenceUpdater::PreAction{},
-//          [this](double){
-//            // Do not bother updating live if there are no observers
-//            if (this->isObserved()) {
-//              this->update((*m_param_values)[0]);
-//            }
-//          }
-//    });
   }
-
 };
-
-//template<typename ... Parameters>
-//DependentParameter<Parameters...> createDependentParameter(
-//    typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
-//    Parameters &... parameters) {
-//  return DependentParameter<Parameters...> { value_calculator, parameters... };
-//}
 
 template<typename ... Parameters>
 std::shared_ptr<DependentParameter<Parameters...>> createDependentParameter(

@@ -90,8 +90,10 @@ protected:
    */
   virtual void setValue(const double new_value);
 
-private:
+protected:
   double m_value;
+
+private:
   std::map<std::size_t, ParameterObserver> m_observer_map;
   std::size_t m_last_obs_id = 0;
 };
