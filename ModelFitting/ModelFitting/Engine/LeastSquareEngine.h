@@ -67,7 +67,6 @@ public:
   /// estimator.
   virtual LeastSquareSummary solveProblem(EngineParameterManager& parameter_manager,
                                           ResidualEstimator& residual_estimator) = 0;
-  
 };
 
 } // end of namespace ModelFitting

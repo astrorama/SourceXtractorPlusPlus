@@ -42,14 +42,18 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/WorldValueResidual.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
 using namespace std;
 using namespace ModelFitting;
 
-int main() {
+int main(int argc, char **argv) {
+  std::string engine_impl("levmar");
+  if (argc > 1) {
+    engine_impl = argv[1];
+  }
   
   // We read the image from the aux dir. Note that we will use a cv:Mat type,
   // so the ModelFitting/Image/OpenCvMatImageTraits.h must be included.
@@ -168,9 +172,9 @@ int main() {
   cout << "Background = " << back.getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {};
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
   
   // We print the results

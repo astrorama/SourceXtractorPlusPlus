@@ -29,14 +29,20 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string MFIT_MAX_ITERATIONS {"model-fitting-iterations"};
+static const std::string MFIT_ENGINE {"model-fitting-engine"};
 
 LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configuration(manager_id), m_max_iterations(1000) {
 }
 
 auto LegacyModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
-  return { {"Model Fitting", {
-      {MFIT_MAX_ITERATIONS.c_str(), po::value<int>()->default_value(1000), "Maximum number of iterations allowed for model fitting"},
-  }}};
+  return {{"Model Fitting",
+      {
+        {MFIT_MAX_ITERATIONS.c_str(), po::value<int>()->default_value(1000),
+         "Maximum number of iterations allowed for model fitting"},
+        {MFIT_ENGINE.c_str(), po::value<std::string>()->default_value("levmar"),
+         "Least squares engine"}
+      }
+  }};
 }
 
 void LegacyModelFittingConfig::initialize(const UserValues& args) {
@@ -44,6 +50,7 @@ void LegacyModelFittingConfig::initialize(const UserValues& args) {
   if (m_max_iterations <= 0) {
     throw Elements::Exception() << "Invalid " << MFIT_MAX_ITERATIONS << " value: " << m_max_iterations;
   }
+  m_least_squares_engine = args.at(MFIT_ENGINE).as<std::string>();
 }
 
 } /* namespace SourceXtractor */

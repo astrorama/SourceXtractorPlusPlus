@@ -44,7 +44,12 @@ public:
     return m_max_iterations;
   }
 
+  std::string getLeastSquaresEngine() const {
+    return m_least_squares_engine;
+  }
+
 private:
+  std::string m_least_squares_engine;
   int m_max_iterations;
 
 };
