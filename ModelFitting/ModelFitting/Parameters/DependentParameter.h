@@ -60,7 +60,7 @@ public:
   DependentParameter(ValueCalculator calculator, Parameters... parameters)
   : BasicParameter {calculator(parameters->getValue()...)},
   m_calculator {new ValueCalculator{std::move(calculator)}},
-  m_params {new std::array<std::shared_ptr<BasicParameter>, PARAM_NO>{parameters...}} {
+  m_params {new std::array<std::shared_ptr<BasicParameter>, PARAM_NO>{{parameters...}}} {
     inputParameterLoop(parameters...);
     //m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
