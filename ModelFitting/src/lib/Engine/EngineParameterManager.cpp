@@ -39,8 +39,8 @@ std::vector<double> EngineParameterManager::convertCovarianceMatrixToWorldSpace(
   converted_matrix.reserve(covariance_matrix.size());
 
   auto iter = covariance_matrix.begin();
-  for (int j=0; j*j < covariance_matrix.size(); j++) {
-    for (int i=0; i*i < covariance_matrix.size(); i++) {
+  for (size_t j=0; j*j < covariance_matrix.size(); j++) {
+    for (size_t i=0; i*i < covariance_matrix.size(); i++) {
       converted_matrix.push_back(*iter *
           m_parameters[i].getEngineToWorldDerivative() * m_parameters[j].getEngineToWorldDerivative());
 

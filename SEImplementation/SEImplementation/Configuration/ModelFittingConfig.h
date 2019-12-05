@@ -49,11 +49,16 @@ public:
   const std::map<int, std::shared_ptr<FlexibleModelFittingPrior>>& getPriors() const;
   
   const std::vector<std::pair<std::string, std::vector<int>>>& getOutputs() const;
-  
+
+  std::string getLeastSquaresEngine() const {
+    return m_least_squares_engine;
+  }
+
   unsigned int getMaxIterations() const { return m_max_iterations; }
   double getModifiedChiSquaredScale() const { return m_modified_chi_squared_scale; }
 
 private:
+  std::string m_least_squares_engine;
   unsigned int m_max_iterations {0};
   double m_modified_chi_squared_scale {10.};
   

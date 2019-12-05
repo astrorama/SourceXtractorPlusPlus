@@ -54,6 +54,7 @@ static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config"
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
+static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
     m_selected_algorithm(Algorithm::UNKNOWN), m_filtering_enabled(true) {
@@ -67,6 +68,8 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
           "Disables filtering"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
           "Loads a filter"},
+      {SEGMENTATION_LUTZ_WINDOW_SIZE.c_str(), po::value<int>()->default_value(0),
+          "Lutz sliding window size (0=disable)"},
   }}};
 }
 
@@ -88,6 +91,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     }
 
   }
+
+  m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
 }
 
 void SegmentationConfig::initialize(const UserValues&) {

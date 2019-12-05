@@ -14,38 +14,25 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
+
 /*
- * MoffatModelFittingTask.h
+ * LineSelectionCriteria.cpp
  *
- *  Created on: May 2, 2017
+ *  Created on: Nov 21, 2019
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASK_H_
 
-#include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
-#include "SEImplementation/Image/ImagePsf.h"
+#include "SEImplementation/Grouping/LineSelectionCriteria.h"
 
 namespace SourceXtractor {
 
-class MoffatModelFittingTask : public SourceTask {
-
-public:
-  MoffatModelFittingTask(const std::string& least_squares_engine, unsigned int max_iterations)
-    : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations) {}
-
-  virtual ~MoffatModelFittingTask() = default;
-
-  virtual void computeProperties(SourceInterface& source) const override;
-
-private:
-
-  std::string m_least_squares_engine;
-  unsigned int m_max_iterations;
-};
-
+bool LineSelectionCriteria::mustBeProcessed(const SourceInterface& source) const {
+  auto& centroid = source.getProperty<PixelCentroid>();
+  return centroid.getCentroidY() < m_line_number;
 }
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASK_H_ */
+} // SourceXtractor namespace

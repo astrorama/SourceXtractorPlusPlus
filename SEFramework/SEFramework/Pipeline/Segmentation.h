@@ -35,6 +35,9 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Frame/Frame.h"
 
+#include "SEFramework/Pipeline/SourceGrouping.h"
+
+
 
 namespace SourceXtractor {
 
@@ -52,7 +55,8 @@ struct SegmentationProgress {
  * results in a notification of the Segmentation's Observers.
  *
  */
-class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress> {
+class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress>,
+    public Observable<ProcessSourcesEvent> {
 
 public:
   class LabellingListener;
@@ -100,6 +104,10 @@ public:
 
   void notifyProgress(int position, int total) {
     m_segmentation.Observable<SegmentationProgress>::notifyObservers(SegmentationProgress{position, total});
+  }
+
+  void requestProcessing(const ProcessSourcesEvent& event) {
+    m_segmentation.Observable<ProcessSourcesEvent>::notifyObservers(event);
   }
 
 private:

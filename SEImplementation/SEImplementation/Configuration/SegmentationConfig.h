@@ -60,6 +60,10 @@ public:
     return m_selected_algorithm;
   }
 
+  int getLutzWindowSize() const {
+    return m_lutz_window_size;
+  }
+
   bool isFilteringEnabled() const {
     return m_filter != nullptr;
   }
@@ -78,6 +82,7 @@ private:
   bool m_filtering_enabled;
   std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
+  int m_lutz_window_size;
 }; /* End of SegmentationConfig class */
 
 } /* namespace SourceXtractor */

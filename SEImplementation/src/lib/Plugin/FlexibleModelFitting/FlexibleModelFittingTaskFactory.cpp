@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
@@ -30,9 +31,12 @@
 
 namespace SourceXtractor {
 
+static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
+
 std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
-    return std::make_shared<FlexibleModelFittingTask>(m_max_iterations, m_modified_chi_squared_scale, m_parameters, m_frames, m_priors);
+    return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
+                                                      m_modified_chi_squared_scale, m_parameters, m_frames, m_priors);
   } else {
     return nullptr;
   }
@@ -55,8 +59,12 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
     m_priors.push_back(p.second);
   }
 
+  m_least_squares_engine = model_fitting_config.getLeastSquaresEngine();
   m_max_iterations = model_fitting_config.getMaxIterations();
   m_modified_chi_squared_scale = model_fitting_config.getModifiedChiSquaredScale();
+
+  logger.info() << "Using engine " << m_least_squares_engine << " with "
+                << m_max_iterations << " maximum number of iterations";
 
   m_outputs = model_fitting_config.getOutputs();
 }

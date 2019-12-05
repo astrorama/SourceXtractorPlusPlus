@@ -56,7 +56,7 @@ public:
 
   // These do something!
   bool writable() const;
-  int write(const std::string&);
+  int write(const boost::python::object&);
   void writelines(const boost::python::list&);
 
 private:

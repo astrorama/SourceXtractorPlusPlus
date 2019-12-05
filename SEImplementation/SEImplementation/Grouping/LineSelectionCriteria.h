@@ -14,42 +14,34 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 /*
- * MoffatModelFittingTaskFactory.h
+ * LineSelectionCriteria.h
  *
- *  Created on: May 2, 2017
+ *  Created on: Nov 20, 2019
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASKFACTORY_H_
+#ifndef _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_
+#define _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_
 
-
-#include "MoffatModelFittingTask.h"
-#include "SEFramework/Task/TaskFactory.h"
-
+#include "SEFramework/Pipeline/SourceGrouping.h"
 
 namespace SourceXtractor {
 
-class MoffatModelFittingTaskFactory : public TaskFactory {
+class LineSelectionCriteria : public SelectionCriteria {
 public:
-  MoffatModelFittingTaskFactory() {}
 
-  /// Destructor
-  virtual ~MoffatModelFittingTaskFactory() = default;
+  LineSelectionCriteria(int line_number) : m_line_number(line_number) {
+  }
 
-  // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const;
-
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  virtual bool mustBeProcessed(const SourceInterface& ) const override;
 
 private:
-  std::string m_least_squares_engine{"levmar"};
-  unsigned int m_max_iterations {0};
+  int m_line_number;
 };
 
 }
 
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASKFACTORY_H_ */
+#endif /* _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_ */

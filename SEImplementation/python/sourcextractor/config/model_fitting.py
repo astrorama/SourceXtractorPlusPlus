@@ -486,7 +486,7 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = { "max_iterations" : 100, "modified_chi_squared_scale" : 10 }
+params_dict = { "max_iterations" : 100, "modified_chi_squared_scale" : 10, "engine" : "levmar" }
 
 
 def set_max_iterations(iterations):
@@ -510,6 +510,16 @@ def set_modified_chi_squared_scale(scale):
         this value affects the model fitting.
     """
     params_dict["modified_chi_squared_scale"] = scale
+
+
+def set_engine(engine):
+    """
+    Parameters
+    ----------
+    engine : str
+        Minimization engine for the model fitting : levmar or gsl
+    """
+    params_dict["engine"] = engine
 
 
 class ModelBase(cpp.Id):
