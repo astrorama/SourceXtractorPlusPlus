@@ -44,6 +44,7 @@ public:
   void registerPropertyInstances(OutputRegistry&) override;
 
 private:
+  std::string m_least_squares_engine;
   unsigned int m_max_iterations {0};
   double m_modified_chi_squared_scale {10};
 

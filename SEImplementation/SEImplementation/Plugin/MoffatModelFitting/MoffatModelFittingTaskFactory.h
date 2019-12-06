@@ -45,6 +45,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
+  std::string m_least_squares_engine{"levmar"};
   unsigned int m_max_iterations {0};
 };
 

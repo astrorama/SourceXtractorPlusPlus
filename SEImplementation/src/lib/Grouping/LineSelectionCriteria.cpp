@@ -14,30 +14,25 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/** 
- * @file SersicProfile.cpp
- * @date September 1, 2015
- * @author Nikolaos Apostolakos
+
+
+/*
+ * LineSelectionCriteria.cpp
+ *
+ *  Created on: Nov 21, 2019
+ *      Author: mschefer
  */
 
-#include <cmath>
-#include <memory>
-#include "ModelFitting/Models/SersicProfile.h"
 
-namespace ModelFitting {
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
-SersicProfile::SersicProfile(std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> n, std::shared_ptr<BasicParameter> k)
-        : m_i0 {i0}, m_n{n}, m_k{k} {
+#include "SEImplementation/Grouping/LineSelectionCriteria.h"
+
+namespace SourceXtractor {
+
+bool LineSelectionCriteria::mustBeProcessed(const SourceInterface& source) const {
+  auto& centroid = source.getProperty<PixelCentroid>();
+  return centroid.getCentroidY() < m_line_number;
 }
 
-SersicProfile::SersicProfile(const SersicProfile& other)
-        : m_i0 {other.m_i0}, m_n{other.m_n}, m_k{other.m_k} {
-}
-
-SersicProfile::~SersicProfile() = default;
-
-double SersicProfile::operator()(double r) const {
-  return m_i0->getValue() * std::exp(-m_k->getValue() * std::pow(r, 1. / m_n->getValue()));
-}
-
-} // end of namespace ModelFitting
+} // SourceXtractor namespace

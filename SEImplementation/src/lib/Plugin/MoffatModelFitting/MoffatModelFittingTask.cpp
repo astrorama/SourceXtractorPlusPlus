@@ -55,7 +55,7 @@
 #include "ModelFitting/utils.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 #include "ModelFitting/Engine/AsinhChiSquareComparator.h"
 
@@ -88,34 +88,34 @@ namespace {
 
 struct SourceModel {
   double m_size;
-  EngineParameter dx, dy;
-  DependentParameter<EngineParameter> x, y;
+  std::shared_ptr<EngineParameter> dx, dy;
+  std::shared_ptr<DependentParameter<std::shared_ptr<EngineParameter>>> x, y;
 
   double exp_i0_guess;
-  EngineParameter moffat_i0, moffat_index, minkowski_exponent, flat_top_offset;
-  EngineParameter moffat_x_scale, moffat_y_scale, moffat_rotation;
+  std::shared_ptr<EngineParameter> moffat_i0, moffat_index, minkowski_exponent, flat_top_offset;
+  std::shared_ptr<EngineParameter> moffat_x_scale, moffat_y_scale, moffat_rotation;
 
   SourceModel(double size, double x_guess, double y_guess, double pos_range,
       double exp_flux_guess, double exp_radius_guess, double exp_aspect_guess, double exp_rot_guess) :
 
     m_size(size),
-    dx(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
-    dy(0, make_unique<SigmoidConverter>(-pos_range, pos_range)),
+    dx(std::make_shared<EngineParameter>(0, make_unique<SigmoidConverter>(-pos_range, pos_range))),
+    dy(std::make_shared<EngineParameter>(0, make_unique<SigmoidConverter>(-pos_range, pos_range))),
 
-    x([x_guess](double dx) { return dx + x_guess + 0.5; }, dx),
-    y([y_guess](double dy) { return dy + y_guess + 0.5; }, dy),
+    x(createDependentParameter([x_guess](double dx) { return dx + x_guess + 0.5; }, dx)),
+    y(createDependentParameter([y_guess](double dy) { return dy + y_guess + 0.5; }, dy)),
 
     // FIXME
     exp_i0_guess(exp_flux_guess / (M_PI * 2.0 * 0.346 * exp_radius_guess * exp_radius_guess * exp_aspect_guess)),
-    moffat_i0(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 1000)),
+    moffat_i0(std::make_shared<EngineParameter>(exp_i0_guess, make_unique<ExpSigmoidConverter>(exp_i0_guess * .00001, exp_i0_guess * 1000))),
 
-    moffat_index(1, make_unique<ExpSigmoidConverter>(0.5, 8)),
-    minkowski_exponent(2, make_unique<ExpSigmoidConverter>(0.5, 10)),
-    flat_top_offset(1, make_unique<ExpSigmoidConverter>(0.000001, 10)),
+    moffat_index(std::make_shared<EngineParameter>(1, make_unique<ExpSigmoidConverter>(0.5, 8))),
+    minkowski_exponent(std::make_shared<EngineParameter>(2, make_unique<ExpSigmoidConverter>(0.5, 10))),
+    flat_top_offset(std::make_shared<EngineParameter>(1, make_unique<ExpSigmoidConverter>(0.000001, 10))),
 
-    moffat_x_scale(1, make_unique<ExpSigmoidConverter>(0.0001, 100.0)),
-    moffat_y_scale(1, make_unique<ExpSigmoidConverter>(0.0001, 100.0)),
-    moffat_rotation(-exp_rot_guess, make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI))
+    moffat_x_scale(std::make_shared<EngineParameter>(1, make_unique<ExpSigmoidConverter>(0.0001, 100.0))),
+    moffat_y_scale(std::make_shared<EngineParameter>(1, make_unique<ExpSigmoidConverter>(0.0001, 100.0))),
+    moffat_rotation(std::make_shared<EngineParameter>(-exp_rot_guess, make_unique<SigmoidConverter>(-2*M_PI, 2*M_PI)))
   {
   }
 
@@ -248,8 +248,8 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   res_estimator.registerBlockProvider(move(data_vs_model));
 
   // Perform the minimization
-  LevmarEngine engine {m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
+  auto solution = engine->solveProblem(manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
 
   auto final_stamp = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
@@ -282,20 +282,20 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
 
-  SeFloat x = stamp_top_left.m_x + source_model->x.getValue() - 0.5f;
-  SeFloat y = stamp_top_left.m_y + source_model->y.getValue() - 0.5f;
+  SeFloat x = stamp_top_left.m_x + source_model->x->getValue() - 0.5f;
+  SeFloat y = stamp_top_left.m_y + source_model->y->getValue() - 0.5f;
 
   source.setProperty<MoffatModelFitting>(
       x, y,
 
-      source_model->moffat_i0.getValue(),
-      source_model->moffat_index.getValue(),
-      source_model->minkowski_exponent.getValue(),
-      source_model->flat_top_offset.getValue(),
+      source_model->moffat_i0->getValue(),
+      source_model->moffat_index->getValue(),
+      source_model->minkowski_exponent->getValue(),
+      source_model->flat_top_offset->getValue(),
       source_model->m_size,
-      source_model->moffat_x_scale.getValue(),
-      source_model->moffat_y_scale.getValue(),
-      source_model->moffat_rotation.getValue(),
+      source_model->moffat_x_scale->getValue(),
+      source_model->moffat_y_scale->getValue(),
+      source_model->moffat_rotation->getValue(),
 
       iterations
   );

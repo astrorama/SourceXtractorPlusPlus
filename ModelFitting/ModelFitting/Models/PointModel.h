@@ -33,7 +33,7 @@ class PointModel : public PositionedModel, public ConstantModel {
   
 public:
   
-  PointModel(BasicParameter& x, BasicParameter& y, BasicParameter& value);
+  PointModel( std::shared_ptr<BasicParameter> x,  std::shared_ptr<BasicParameter> y,  std::shared_ptr<BasicParameter> value);
   
   PointModel(PointModel&& other); 
   

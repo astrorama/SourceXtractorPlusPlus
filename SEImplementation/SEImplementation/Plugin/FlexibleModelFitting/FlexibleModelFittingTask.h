@@ -40,7 +40,8 @@ namespace SourceXtractor {
 class FlexibleModelFittingTask : public GroupTask {
 
 public:
-  FlexibleModelFittingTask(unsigned int max_iterations, double modified_chi_squared_scale,
+  FlexibleModelFittingTask(const std::string &least_squares_engine,
+      unsigned int max_iterations, double modified_chi_squared_scale,
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
       std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
       std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors);
@@ -71,6 +72,7 @@ private:
       double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const;
 
   // Task configuration
+  std::string m_least_squares_engine;
   unsigned int m_max_iterations;
   double m_modified_chi_squared_scale;
 

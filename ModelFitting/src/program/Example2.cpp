@@ -68,16 +68,16 @@ int main() {
   
   // We will use a single constant model, which simulates the background. The
   // constant model gets a single parameter, its value.
-  ManualParameter back_value {1E-6};
+  auto back_value = std::make_shared<ManualParameter>(1E-6);
   constant_models.emplace_back(back_value);
   
   // We add a random number of random point sources
   for (auto point_no=rand_int(); point_no>0; --point_no) {
     // The point sources get three parameters, its position on the frame (in
     // pixels) and its value
-    ManualParameter x {rand_double() * width};
-    ManualParameter y {rand_double() * height};
-    ManualParameter value {rand_double() * 5.};
+    auto x = std::make_shared<ManualParameter>(rand_double() * width);
+    auto y = std::make_shared<ManualParameter>(rand_double() * height);
+    auto value = std::make_shared<ManualParameter>(rand_double() * 5.);
     point_models.emplace_back(x, y, value);
   }
   
@@ -87,28 +87,28 @@ int main() {
     // - Its model components
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
     // - Its scale factors
-    ManualParameter x_scale {(rand_double() * .4) + .1};
-    ManualParameter y_scale {(rand_double() * .4) + .1};
+    auto x_scale = std::make_shared<ManualParameter>((rand_double() * .4) + .1);
+    auto y_scale = std::make_shared<ManualParameter>((rand_double() * .4) + .1);
     // - Its rotation angle
-    ManualParameter rot_angle {rand_double() * M_PI};
+    auto rot_angle = std::make_shared<ManualParameter>(rand_double() * M_PI);
     // - Its position on the frame
-    ManualParameter x {rand_double() * width};
-    ManualParameter y {rand_double() * height};
+    auto x = std::make_shared<ManualParameter>(rand_double() * width);
+    auto y = std::make_shared<ManualParameter>(rand_double() * height);
     // - Its size in arcsec (??? from detection step ???)
-    double width = 15. * std::max(x_scale.getValue(), y_scale.getValue());
-    double height = 15. * std::max(x_scale.getValue(), y_scale.getValue());
+    double width = 15. * std::max(x_scale->getValue(), y_scale->getValue());
+    double height = 15. * std::max(x_scale->getValue(), y_scale->getValue());
     
     // We add two model components, an exponential:
-    ManualParameter exp_i0 {rand_double() * 1E2 + .1};
-    ManualParameter exp_n {1.};
-    ManualParameter exp_k {1.};
+    auto exp_i0 = std::make_shared<ManualParameter>(rand_double() * 1E2 + .1);
+    auto exp_n = std::make_shared<ManualParameter>(1.);
+    auto exp_k = std::make_shared<ManualParameter>(1.);
     auto exp_reg_man = make_unique<OnlySmooth>();
     auto exp = make_unique<SersicModelComponent>(move(exp_reg_man), exp_i0, exp_n, exp_k);
     component_list.emplace_back(move(exp));
-    // and a De Vacouleurs
-    ManualParameter dev_i0 {rand_double() * 5E3 + 1.};
-    ManualParameter dev_n {4.};
-    ManualParameter dev_k {7.66924944};
+    // and a De Vaucouleurs
+    auto dev_i0 = std::make_shared<ManualParameter>(rand_double() * 5E3 + 1.);
+    auto dev_n = std::make_shared<ManualParameter>(4.);
+    auto dev_k = std::make_shared<ManualParameter>(7.66924944);
     auto dev_reg_man = make_unique<AutoSharp>();
     auto dev = make_unique<SersicModelComponent>(move(dev_reg_man), dev_i0, dev_n, dev_k);
     

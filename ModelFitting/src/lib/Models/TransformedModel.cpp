@@ -29,9 +29,10 @@
 namespace ModelFitting {
 
 TransformedModel::TransformedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
-              BasicParameter& x_scale, BasicParameter& y_scale,
-              BasicParameter& rotation_angle, double width, double height,
-              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
+    std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+    std::shared_ptr<BasicParameter> rotation_angle, double width, double height,
+    std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::tuple<double, double, double, double> transform)
       : ExtendedModel(std::move(component_list), x_scale, y_scale, rotation_angle, width, height, x, y)
 {
   for (unsigned int i=0; i<m_component_list.size(); i++) {
@@ -40,9 +41,9 @@ TransformedModel::TransformedModel(std::vector<std::unique_ptr<ModelComponent>>&
 }
 
 TransformedModel::TransformedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
-              BasicParameter& x_scale, BasicParameter& y_scale,
-              BasicParameter& rotation_angle, double width, double height,
-              BasicParameter& x, BasicParameter& y)
+    std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+    std::shared_ptr<BasicParameter> rotation_angle, double width, double height,
+    std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
       : ExtendedModel(std::move(component_list), x_scale, y_scale, rotation_angle, width, height, x, y)
 {
   auto transform = std::make_tuple(1, 0, 0, 1);

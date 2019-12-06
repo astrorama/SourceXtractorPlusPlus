@@ -14,30 +14,34 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/** 
- * @file SersicProfile.cpp
- * @date September 1, 2015
- * @author Nikolaos Apostolakos
+
+/*
+ * LineSelectionCriteria.h
+ *
+ *  Created on: Nov 20, 2019
+ *      Author: mschefer
  */
 
-#include <cmath>
-#include <memory>
-#include "ModelFitting/Models/SersicProfile.h"
+#ifndef _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_
+#define _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_
 
-namespace ModelFitting {
+#include "SEFramework/Pipeline/SourceGrouping.h"
 
-SersicProfile::SersicProfile(std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> n, std::shared_ptr<BasicParameter> k)
-        : m_i0 {i0}, m_n{n}, m_k{k} {
+namespace SourceXtractor {
+
+class LineSelectionCriteria : public SelectionCriteria {
+public:
+
+  LineSelectionCriteria(int line_number) : m_line_number(line_number) {
+  }
+
+  virtual bool mustBeProcessed(const SourceInterface& ) const override;
+
+private:
+  int m_line_number;
+};
+
 }
 
-SersicProfile::SersicProfile(const SersicProfile& other)
-        : m_i0 {other.m_i0}, m_n{other.m_n}, m_k{other.m_k} {
-}
 
-SersicProfile::~SersicProfile() = default;
-
-double SersicProfile::operator()(double r) const {
-  return m_i0->getValue() * std::exp(-m_k->getValue() * std::pow(r, 1. / m_n->getValue()));
-}
-
-} // end of namespace ModelFitting
+#endif /* _SEIMPLEMENTATION_GROUPING_LINESELECTIONCRITERIA_H_ */
