@@ -24,7 +24,6 @@
 #define	MODELFITTING_CONSTANTMODEL_H
 
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 
@@ -32,7 +31,7 @@ class ConstantModel {
   
 public:
   
-  ConstantModel(BasicParameter& value);
+  ConstantModel( std::shared_ptr<BasicParameter> value);
           
   ConstantModel(ConstantModel&& other);
 
@@ -41,10 +40,8 @@ public:
   double getValue() const;
   
 private:
-  
-  double m_value;
-  ReferenceUpdater m_value_updater;
-  
+  std::shared_ptr<BasicParameter> m_value;
+
 }; // end of class ConstantModel
 
 } // end of namespace ModelFitting

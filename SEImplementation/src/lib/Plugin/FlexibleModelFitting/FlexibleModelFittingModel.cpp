@@ -79,20 +79,21 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
                                          std::shared_ptr<CoordinateSystem> reference_coordinates,
                                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const  {
 
-  auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+  //auto pixel_x = std::make_shared<DependentParameter<std::shared_ptr<BasicParameter>, std::shared_ptr<BasicParameter>>>(
+
+  auto pixel_x = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
-  auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  point_models.emplace_back(*pixel_x, *pixel_y, *manager.getParameter(source, m_flux));
+  point_models.emplace_back(pixel_x, pixel_y, manager.getParameter(source, m_flux));
 }
-
 
 void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
@@ -103,47 +104,42 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
-  auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+  auto pixel_x = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
-  auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
+  auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
+  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
-  ManualParameter n(1); // Sersic index for exponential
-  ManualParameter x_scale(1); // we don't scale the x coordinate
-
-  auto i0 = std::make_shared<DependentParameter<BasicParameter, BasicParameter, BasicParameter>>(
+  auto i0 = createDependentParameter(
      [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.35513 * radius * radius * aspect); },
-     *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
-     *manager.getParameter(source, m_aspect_ratio));
+     manager.getParameter(source, m_flux), manager.getParameter(source, m_effective_radius),
+     manager.getParameter(source, m_aspect_ratio));
 
-  auto k = std::make_shared<DependentParameter<BasicParameter>>(
+  auto k = createDependentParameter(
       [](double eff_radius) { return 1.678 / eff_radius; },
-      *manager.getParameter(source, m_effective_radius));
-
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
+      manager.getParameter(source, m_effective_radius));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
+  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0, n, k));
 
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
+  auto minus_angle = createDependentParameter(
       [](double angle) { return -angle; },
-      *manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
+      manager.getParameter(source, m_angle));
 
   extended_models.emplace_back(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
-      size, size, *pixel_x, *pixel_y, jacobian);
+      std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio), minus_angle,
+      size, size, pixel_x, pixel_y, jacobian);
 }
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
@@ -155,47 +151,42 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
-  auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+  auto pixel_x = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
-  auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
+  auto n = std::make_shared<ManualParameter>(4); // Sersic index for Devaucouleurs
+  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
-  ManualParameter n(4); // Sersic index for Devaucouleurs
-  ManualParameter x_scale(1); // we don't scale the x coordinate
-
-  auto i0 = std::make_shared<DependentParameter<BasicParameter, BasicParameter, BasicParameter>>(
+  auto i0 = createDependentParameter(
      [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.001684925 * radius * radius * aspect); },
-     *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
-     *manager.getParameter(source, m_aspect_ratio));
+     manager.getParameter(source, m_flux), manager.getParameter(source, m_effective_radius),
+     manager.getParameter(source, m_aspect_ratio));
 
-  auto k = std::make_shared<DependentParameter<BasicParameter>>(
+  auto k = createDependentParameter(
       [](double eff_radius) { return 7.669 / pow(eff_radius, .25); },
-      *manager.getParameter(source, m_effective_radius));
-
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
+      manager.getParameter(source, m_effective_radius));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, n, *k));
+  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0, n, k));
 
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  auto minus_angle = std::make_shared<DependentParameter<BasicParameter>>(
+  auto minus_angle = createDependentParameter(
       [](double angle) { return -angle; },
-      *manager.getParameter(source, m_angle));
-  manager.storeParameter(minus_angle);
+      manager.getParameter(source, m_angle));
 
   extended_models.emplace_back(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *minus_angle,
-      size, size, *pixel_x, *pixel_y, jacobian);
+      std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio), minus_angle,
+      size, size, pixel_x, pixel_y, jacobian);
 }
 
 static double computeBn(double n) {
@@ -213,40 +204,38 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
 
-  auto pixel_x = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+  auto pixel_x = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
-  auto pixel_y = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
-      }, *manager.getParameter(source, m_x), *manager.getParameter(source, m_y));
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  ManualParameter x_scale(1); // we don't scale the x coordinate
+  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
-  auto i0 = std::make_shared<DependentParameter<BasicParameter, BasicParameter, BasicParameter, BasicParameter>>(
+  auto i0 = createDependentParameter(
       [](double flux, double radius, double aspect, double n) { return flux / (2 * M_PI * pow(computeBn(n), -2*n) * n * std::tgamma(2*n) * radius * radius *  aspect); },
-     *manager.getParameter(source, m_flux), *manager.getParameter(source, m_effective_radius),
-     *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_sersic_index));
+     manager.getParameter(source, m_flux), manager.getParameter(source, m_effective_radius),
+     manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_sersic_index));
 
-  auto k = std::make_shared<DependentParameter<BasicParameter, BasicParameter>>(
+  auto k = createDependentParameter(
       [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
-      *manager.getParameter(source, m_effective_radius), *manager.getParameter(source, m_sersic_index));
+      manager.getParameter(source, m_effective_radius), manager.getParameter(source, m_sersic_index));
 
   std::vector<std::unique_ptr<ModelComponent>> sersic_component;
-  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), *i0, *manager.getParameter(source, m_sersic_index), *k));
-
-  manager.storeParameter(pixel_x);
-  manager.storeParameter(pixel_y);
-  manager.storeParameter(i0);
-  manager.storeParameter(k);
+  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0,
+      manager.getParameter(source, m_sersic_index), k));
 
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
   extended_models.emplace_back(
-      std::move(sersic_component), x_scale, *manager.getParameter(source, m_aspect_ratio), *manager.getParameter(source, m_angle),
-      size, size, *pixel_x, *pixel_y, jacobian);
+      std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio),
+      manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, jacobian);
 }
 
 void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,
@@ -257,9 +246,8 @@ void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParamet
                           std::tuple<double, double, double, double> /* jacobian */,
                           std::shared_ptr<CoordinateSystem> /* reference_coordinates */,
                           std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
-  constant_models.emplace_back(*manager.getParameter(source, m_value));
+  constant_models.emplace_back(manager.getParameter(source, m_value));
 }
-
 
 }
 

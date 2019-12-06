@@ -24,7 +24,7 @@
 
 namespace ModelFitting {
 
-PointModel::PointModel(BasicParameter& x, BasicParameter& y, BasicParameter& value)
+PointModel::PointModel( std::shared_ptr<BasicParameter> x,  std::shared_ptr<BasicParameter> y,  std::shared_ptr<BasicParameter> value)
         : PositionedModel(x, y), ConstantModel(value) { }
 
 PointModel::PointModel(PointModel&& other)

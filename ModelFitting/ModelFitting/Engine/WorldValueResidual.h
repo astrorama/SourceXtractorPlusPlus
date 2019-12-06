@@ -63,7 +63,7 @@ public:
    * @param weight
    *    The weight or the residual
    */
-  WorldValueResidual(BasicParameter& parameter, double expected_value, double weight=1.);
+  WorldValueResidual(std::shared_ptr<BasicParameter> parameter, double expected_value, double weight=1.);
   
   /// Destructor
   virtual ~WorldValueResidual();
@@ -77,8 +77,11 @@ public:
   
 private:
   
+  std::shared_ptr<BasicParameter> m_parameter;
+  std::size_t m_observer_id;
+
   double m_residual;
-  
+
 }; // end of class WorldValueResidual
 
 } // end of namespace ModelFitting

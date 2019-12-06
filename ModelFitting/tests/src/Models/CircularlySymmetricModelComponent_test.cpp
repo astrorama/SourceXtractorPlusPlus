@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_SUITE (CircularlySymmetricModelComponent_test)
  * Render a Sersic model, using only smooth, with the peak falling nicely into the center pixel.
  */
 BOOST_AUTO_TEST_CASE (Sersic_smooth_test) {
-  ManualParameter exp_i0{12.};
-  ManualParameter exp_n{1.};
-  ManualParameter exp_k{1.};
+  auto exp_i0 = std::make_shared<ManualParameter>(12.);
+  auto exp_n = std::make_shared<ManualParameter>(1.);
+  auto exp_k = std::make_shared<ManualParameter>(1.);
   SersicModelComponent sersic_model_component(make_unique<OnlySmooth>(), exp_i0, exp_n, exp_k);
 
   BOOST_CHECK(!sersic_model_component.insideSharpRegion(0, 0));
@@ -80,9 +80,9 @@ BOOST_AUTO_TEST_CASE (Sersic_smooth_test) {
  * The central area is oversampled, so the "missing flux" is spread across the central pixels
  */
 BOOST_AUTO_TEST_CASE (Sersic_old_sharp_2_test) {
-  ManualParameter exp_i0{12.};
-  ManualParameter exp_n{1.};
-  ManualParameter exp_k{1.};
+  auto exp_i0 = std::make_shared<ManualParameter>(12.);
+  auto exp_n = std::make_shared<ManualParameter>(1.);
+  auto exp_k = std::make_shared<ManualParameter>(1.);
 
   SersicModelComponent sersic_model_component(make_unique<OldSharp>(2.13), exp_i0, exp_n, exp_k);
   sersic_model_component.updateRasterizationInfo(1., 1.);

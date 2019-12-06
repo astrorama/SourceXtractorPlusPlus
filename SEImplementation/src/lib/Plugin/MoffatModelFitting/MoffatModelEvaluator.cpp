@@ -37,16 +37,16 @@ using namespace ModelFitting;
 MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   m_iterations = model.getIterations();
 
-  ManualParameter x(model.getX());
-  ManualParameter y(model.getY());
-  ManualParameter moffat_i0(model.getMoffatI0());
-  ManualParameter moffat_index(model.getMoffatIndex());
-  ManualParameter minkowski_exponent(model.getMinkowksiExponent());
-  ManualParameter flat_top_offset(model.getTopOffset());
+  auto x = std::make_shared<ManualParameter>(model.getX());
+  auto y = std::make_shared<ManualParameter>(model.getY());
+  auto moffat_i0 = std::make_shared<ManualParameter>(model.getMoffatI0());
+  auto moffat_index = std::make_shared<ManualParameter>(model.getMoffatIndex());
+  auto minkowski_exponent = std::make_shared<ManualParameter>(model.getMinkowksiExponent());
+  auto flat_top_offset = std::make_shared<ManualParameter>(model.getTopOffset());
   double size = model.getSize();
-  ManualParameter x_scale(model.getXScale());
-  ManualParameter y_scale(model.getYScale());
-  ManualParameter moffat_rotation(model.getMoffatRotation());
+  auto x_scale = std::make_shared<ManualParameter>(model.getXScale());
+  auto y_scale= std::make_shared<ManualParameter>(model.getYScale());
+  auto moffat_rotation= std::make_shared<ManualParameter>(model.getMoffatRotation());
 
   // Moffat model
   std::vector<std::unique_ptr<ModelComponent>> component_list {};

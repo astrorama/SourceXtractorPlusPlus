@@ -25,14 +25,14 @@ namespace ModelFitting {
 template <typename DoubleIter>
 void EngineParameterManager::getEngineValues(DoubleIter output_iter) const {
   for (auto& parameter : m_parameters) {
-    *(output_iter++) = parameter.getEngineValue();
+    *(output_iter++) = parameter->getEngineValue();
   }
 }
 
 template <typename DoubleIter>
 void EngineParameterManager::updateEngineValues(DoubleIter new_values_iter) {
   for (auto& parameter : m_parameters) {
-    parameter.setEngineValue(*(new_values_iter++));
+    parameter->setEngineValue(*(new_values_iter++));
   }
 }
 

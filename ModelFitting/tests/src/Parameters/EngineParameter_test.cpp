@@ -49,9 +49,9 @@ struct EngineParameterFixture {
 
   std::unique_ptr<CoordinateConverter> converter_ptr {new ExpSigmoidConverter{world_min_value, world_max_value} };
 
-  EngineParameter engine_parameter = EngineParameter{initial_parameter_value, move(converter_ptr) };
+  EngineParameter engine_parameter;
 
-  EngineParameterFixture() {
+  EngineParameterFixture() : engine_parameter(initial_parameter_value, move(converter_ptr)) {
     //call constructor if needed
   }
 
