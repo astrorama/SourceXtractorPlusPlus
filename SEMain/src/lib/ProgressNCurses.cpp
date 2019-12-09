@@ -25,9 +25,11 @@
 #include <csignal>
 #include <chrono>
 #include <iostream>
+#include <iomanip>
 #include <mutex>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/lexical_cast.hpp>
+#include <boost/thread.hpp>
+
 
 namespace SourceXtractor {
 

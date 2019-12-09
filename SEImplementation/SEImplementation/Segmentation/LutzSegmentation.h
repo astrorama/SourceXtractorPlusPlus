@@ -23,11 +23,11 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 
+#include <cassert>
+#include <memory>
+#include "SEFramework/Frame/Frame.h"
 #include "SEFramework/Source/SourceFactory.h"
-#include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Segmentation.h"
-#include "SEFramework/Image/Image.h"
 
 namespace SourceXtractor {
 

@@ -24,7 +24,7 @@
 
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/python.hpp>
+#include <boost/python/extract.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <ElementsKernel/Logging.h>
@@ -33,7 +33,6 @@
 
 #include <SEFramework/Image/BufferedImage.h>
 #include <SEFramework/Image/ProcessedImage.h>
-#include <SEFramework/FITS/FitsReader.h>
 #include <SEFramework/FITS/FitsImageSource.h>
 
 #include <SEImplementation/CoordinateSystem/WCS.h>
