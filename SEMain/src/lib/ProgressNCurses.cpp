@@ -20,6 +20,7 @@
 #include <poll.h>
 #include <semaphore.h>
 #include <ncurses.h>
+#include <fcntl.h>
 #include <readline/readline.h>
 #include <csignal>
 #include <chrono>
@@ -27,7 +28,6 @@
 #include <mutex>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/lexical_cast.hpp>
-#include <condition_variable>
 
 namespace SourceXtractor {
 
