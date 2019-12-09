@@ -19,19 +19,23 @@ CompactExponentialModel<ImageType>::CompactExponentialModel(
 {}
 
 template<typename ImageType>
-inline float CompactExponentialModel<ImageType>::evaluateModel(const Mat22& transform, float x, float y) const {
-  float x2 = x * transform[0] + y * transform[1];
-  float y2 = x * transform[2] + y * transform[3];
+inline float CompactExponentialModel<ImageType>::evaluateModel(const EvaluateModelInfo& model_info, float x, float y) const {
+  float x2 = x * model_info.transform[0] + y * model_info.transform[1];
+  float y2 = x * model_info.transform[2] + y * model_info.transform[3];
   float r = std::sqrt(x2*x2 + y2*y2);
 
-  return float(m_i0->getValue()) * std::exp(float(-m_k->getValue() * r));
+  return float(model_info.i0) * std::exp(float(-model_info.k * r));
 }
 
 template<typename ImageType>
 double CompactExponentialModel<ImageType>::getValue(double x, double y) const {
-  auto transform = getCombinedTransform(1.0);
+  EvaluateModelInfo model_info;
+  model_info.transform = getCombinedTransform(1.0);
+  model_info.i0 = m_i0->getValue();
+  model_info.k = m_k->getValue();
+
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
-  return evaluateModel(transform, x, y) * area_correction;
+  return evaluateModel(model_info, x, y) * area_correction;
 }
 
 template<typename ImageType>
@@ -46,14 +50,18 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
 
   ImageType image = Traits::factory(size_x, size_y);
 
-  auto transform = getCombinedTransform(pixel_scale);
+  EvaluateModelInfo model_info;
+  model_info.transform = getCombinedTransform(pixel_scale);
+  model_info.i0 = m_i0->getValue();
+  model_info.k = m_k->getValue();
+
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
   for (std::size_t x=0; x<size_x; ++x) {
     float x_model = x - (size_x-1) / 2.;
     for (std::size_t y=0; y<size_y; ++y) {
       float y_model = y - (size_y-1) / 2.;
-      Traits::at(image, x, y) = evaluateModel(transform, x_model, y_model) * area_correction;
+      Traits::at(image, x, y) = evaluateModel(model_info, x_model, y_model) * area_correction;
     }
   }
 

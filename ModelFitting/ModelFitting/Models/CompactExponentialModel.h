@@ -27,12 +27,16 @@ public:
   double getValue(double x, double y) const override;
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
 
-protected:
+private:
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::m_jacobian;
 
-private:
-  float evaluateModel(const Mat22& transform, float x, float y) const;
+  struct EvaluateModelInfo {
+    Mat22 transform;
+    double i0, k;
+  };
+
+  float evaluateModel(const EvaluateModelInfo& transform, float x, float y) const;
 
   // Sersic parameters
   std::shared_ptr<BasicParameter> m_i0;

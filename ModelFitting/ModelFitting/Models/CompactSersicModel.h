@@ -29,15 +29,19 @@ public:
 
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
 
-  float evaluateModel(const Mat22& transform, float x, float y) const;
-  float samplePixel(const Mat22& transform, int x, int y, unsigned int subsampling) const;
-  float adaptiveSamplePixel(const Mat22& transform, int x, int y, unsigned int max_subsampling, float threshold=1.1) const;
-
-protected:
+private:
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::m_jacobian;
 
-private:
+  struct EvaluateModelInfo {
+    Mat22 transform;
+    double i0, k, n;
+  };
+
+  float evaluateModel(const EvaluateModelInfo& model_info, float x, float y) const;
+  float samplePixel(const EvaluateModelInfo& model_info, int x, int y, unsigned int subsampling) const;
+  float adaptiveSamplePixel(const EvaluateModelInfo& model_info, int x, int y, unsigned int max_subsampling, float threshold=1.1) const;
+
   float m_sharp_radius_squared;
 
   // Sersic parameters
