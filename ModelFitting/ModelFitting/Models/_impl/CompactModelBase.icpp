@@ -8,13 +8,13 @@
 namespace ModelFitting {
 
 template<typename ImageType>
-CompactModelBase<ImageType>::CompactModelBase(BasicParameter& x_scale, BasicParameter& y_scale,
-              BasicParameter& rotation, double width, double height,
-              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
-    : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y),
-      m_x_scale(x_scale.getValue()), m_x_scale_updater(x_scale, m_x_scale),
-      m_y_scale(y_scale.getValue()), m_y_scale_updater(y_scale, m_y_scale),
-      m_rotation(rotation.getValue()), m_rotation_updater(rotation, m_rotation)
+CompactModelBase<ImageType>::CompactModelBase(
+    std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+    std::shared_ptr<BasicParameter> rotation, double width, double height,
+    std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::tuple<double, double, double, double> transform)
+        : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y),
+          m_x_scale(x_scale), m_y_scale(y_scale), m_rotation(rotation)
 {
   m_jacobian = Mat22(transform).GetTranspose();
   m_inv_jacobian = m_jacobian.GetInverse();
@@ -23,15 +23,15 @@ CompactModelBase<ImageType>::CompactModelBase(BasicParameter& x_scale, BasicPara
 template<typename ImageType>
 Mat22 CompactModelBase<ImageType>::getCombinedTransform(double pixel_scale) const {
   double s, c;
-  sincos(m_rotation, &s, &c);
+  sincos(m_rotation->getValue(), &s, &c);
 
   Mat22 rotation(
       c, s,
       -s, c);
 
   Mat22 scale(
-      1. / m_x_scale, 0.0,
-      0.0, 1. / m_y_scale);
+      1. / m_x_scale->getValue(), 0.0,
+      0.0, 1. / m_y_scale->getValue());
 
   return scale * rotation * m_inv_jacobian * pixel_scale;
 }

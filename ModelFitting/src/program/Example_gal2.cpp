@@ -78,9 +78,9 @@ int main(int argc, char **argv) {
   //                         for a specific world value
   // - SigmoidConverter : Converts the parameter using the sigmoid function
   // - ExpSigmoidConverter : Converts the parameter using the exponential sigmoid function
-  EngineParameter i0 {50000., make_unique<ExpSigmoidConverter>(1, 1000000.)};
-  ManualParameter n {1.};
-  ManualParameter k {1.};
+  auto i0 = std::make_shared<EngineParameter>(50000., make_unique<ExpSigmoidConverter>(1, 1000000.));
+  auto n = std::make_shared<ManualParameter>(1.);
+  auto k = std::make_shared<ManualParameter>(1.);
   
   // We create the component list of the extended model with the single exponential
   auto reg_man = make_unique<OnlySmooth>();
@@ -90,11 +90,11 @@ int main(int argc, char **argv) {
   
   // We create the extended model. All of its parameters will be optimized by
   // the minimization engine.
-  EngineParameter x {120., make_unique<NormalizedConverter>(1500.)};
-  EngineParameter y {140., make_unique<NormalizedConverter>(1500.)};
-  EngineParameter x_scale {1.0, make_unique<SigmoidConverter>(0, 10.)};
-  EngineParameter y_scale {1.0, make_unique<SigmoidConverter>(0, 10.)};
-  EngineParameter rot_angle {20.0 * M_PI/180.0, make_unique<SigmoidConverter>(0, 2*M_PI)};
+  auto x = std::make_shared<EngineParameter>(120, make_unique<NormalizedConverter>(1500.));
+  auto y = std::make_shared<EngineParameter>(140, make_unique<NormalizedConverter>(1500.));
+  auto x_scale = std::make_shared<EngineParameter>(1.0, make_unique<SigmoidConverter>(0, 10.));
+  auto y_scale = std::make_shared<EngineParameter>(1.0, make_unique<SigmoidConverter>(0, 10.));
+  auto rot_angle = std::make_shared<EngineParameter>(20.0 * M_PI/180.0, make_unique<SigmoidConverter>(0, 2*M_PI));
   
   // The size of the extended model (??? from the detection step ???)
   double width = 128;
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
                                rot_angle, width, height, x, y);
   
   // We add a constant background
-  EngineParameter back {100., make_unique<ExpSigmoidConverter>(1, 1000000.)};
+  auto back = std::make_shared<EngineParameter>(100., make_unique<ExpSigmoidConverter>(1, 1000000.));
   vector<ConstantModel> constant_models {};
   constant_models.emplace_back(back);
 
@@ -163,13 +163,13 @@ int main(int argc, char **argv) {
   ));
   
   // We print the parameters before the minimization for comparison
-  cout << "I0 = " << i0.getValue() << '\n';
-  cout << "X = " << x.getValue() << '\n';
-  cout << "Y = " << y.getValue() << '\n';
-  cout << "X_SCALE = " << x_scale.getValue() << '\n';
-  cout << "Y_SCALE = " << y_scale.getValue() << '\n';
-  cout << "angle = " << rot_angle.getValue() << '\n';
-  cout << "Background = " << back.getValue() << '\n';
+  cout << "I0 = " << i0->getValue() << '\n';
+  cout << "X = " << x->getValue() << '\n';
+  cout << "Y = " << y->getValue() << '\n';
+  cout << "X_SCALE = " << x_scale->getValue() << '\n';
+  cout << "Y_SCALE = " << y_scale->getValue() << '\n';
+  cout << "angle = " << rot_angle->getValue() << '\n';
+  cout << "Background = " << back->getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
   auto engine = LeastSquareEngineManager::create(engine_impl);
@@ -181,13 +181,13 @@ int main(int argc, char **argv) {
   cout << "\nTime of fitting: " << chrono::duration <double, milli> (t2-t1).count() << " ms" << endl;
   cout << "\n";
   
-  cout << "I0 = " << i0.getValue() << '\n';
-  cout << "X = " << x.getValue() << '\n';
-  cout << "Y = " << y.getValue() << '\n';
-  cout << "X_SCALE = " << x_scale.getValue() << '\n';
-  cout << "Y_SCALE = " << y_scale.getValue() << '\n';
-  cout << "angle = " << rot_angle.getValue() << '\n';
-  cout << "Background = " << back.getValue() << '\n';
+  cout << "I0 = " << i0->getValue() << '\n';
+  cout << "X = " << x->getValue() << '\n';
+  cout << "Y = " << y->getValue() << '\n';
+  cout << "X_SCALE = " << x_scale->getValue() << '\n';
+  cout << "Y_SCALE = " << y_scale->getValue() << '\n';
+  cout << "angle = " << rot_angle->getValue() << '\n';
+  cout << "Background = " << back->getValue() << '\n';
  
   printLevmarInfo(boost::any_cast<array<double,10>>(solution.underlying_framework_info));
 

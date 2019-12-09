@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /*
  * BenchRendering.cpp
  *
@@ -68,9 +84,9 @@ template <typename ImageType>
 class DummyModel : public ExtendedModel<ImageType> {
 
 public:
-  DummyModel(BasicParameter& x_scale, BasicParameter& y_scale,
-             BasicParameter& rotation, double width, double height,
-             BasicParameter& x, BasicParameter& y)
+  DummyModel(std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+             std::shared_ptr<BasicParameter> rotation, double width, double height,
+             std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
   : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y)
     {}
 
@@ -89,9 +105,9 @@ template <typename ImageType>
 class DummyFillModel : public ExtendedModel<ImageType> {
 
 public:
-  DummyFillModel(BasicParameter& x_scale, BasicParameter& y_scale,
-             BasicParameter& rotation, double width, double height,
-             BasicParameter& x, BasicParameter& y)
+  DummyFillModel(std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+             std::shared_ptr<BasicParameter> rotation, double width, double height,
+             std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
   : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y)
     {}
 
@@ -118,9 +134,9 @@ template <typename ImageType>
 class DummyExpModel : public ExtendedModel<ImageType> {
 
 public:
-  DummyExpModel(BasicParameter& x_scale, BasicParameter& y_scale,
-             BasicParameter& rotation, double width, double height,
-             BasicParameter& x, BasicParameter& y)
+  DummyExpModel(std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+             std::shared_ptr<BasicParameter> rotation, double width, double height,
+             std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
   : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y)
     {}
 
@@ -146,9 +162,9 @@ template <typename ImageType>
 class DummySersicModel : public ExtendedModel<ImageType> {
 
 public:
-  DummySersicModel(BasicParameter& x_scale, BasicParameter& y_scale,
-             BasicParameter& rotation, double width, double height,
-             BasicParameter& x, BasicParameter& y)
+  DummySersicModel(std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+             std::shared_ptr<BasicParameter> rotation, double width, double height,
+             std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
   : ExtendedModel<ImageType>({}, x_scale, y_scale, rotation, width, height, x, y)
     {}
 
@@ -215,15 +231,17 @@ public:
     std::vector<PointModel> point_models;
 
     // Devaucouleurs component
-    ManualParameter x_param {128};
-    ManualParameter y_param {128};
 
-    ManualParameter xs (1);
-    ManualParameter ys (1);
-    ManualParameter rot (0);
-    ManualParameter dev_n { 4 };
-    ManualParameter dev_k { 10. };
-    ManualParameter dev_i0 { 10000 };
+    auto x_param = std::make_shared<ManualParameter>(128);
+    auto y_param = std::make_shared<ManualParameter>(128);
+
+    auto xs = std::make_shared<ManualParameter>(1);
+    auto ys = std::make_shared<ManualParameter>(1);
+
+    auto rot = std::make_shared<ManualParameter>(0);
+    auto dev_n = std::make_shared<ManualParameter>(4);
+    auto dev_k = std::make_shared<ManualParameter>(10);
+    auto dev_i0 = std::make_shared<ManualParameter>(1000);
 
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
     auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
@@ -253,15 +271,16 @@ public:
     std::vector<PointModel> point_models;
 
     // Devaucouleurs component
-    ManualParameter x_param {128};
-    ManualParameter y_param {128};
+    auto x_param = std::make_shared<ManualParameter>(128);
+    auto y_param = std::make_shared<ManualParameter>(128);
 
-    ManualParameter xs (1);
-    ManualParameter ys (1);
-    ManualParameter rot (0);
-    ManualParameter n { 4 };
-    ManualParameter k { 10. };
-    ManualParameter i0 { 10000 };
+    auto xs = std::make_shared<ManualParameter>(1);
+    auto ys = std::make_shared<ManualParameter>(1);
+
+    auto rot = std::make_shared<ManualParameter>(0);
+    auto n = std::make_shared<ManualParameter>(4);
+    auto k = std::make_shared<ManualParameter>(10);
+    auto i0 = std::make_shared<ManualParameter>(1000);
 
     extended_models.emplace_back(std::make_shared<ModelFitting::CompactSersicModel<ImageInterfaceTypePtr>>(
         3.0, i0, k, n,
@@ -288,15 +307,16 @@ public:
     std::vector<PointModel> point_models;
 
     // Devaucouleurs component
-    ManualParameter x_param {128};
-    ManualParameter y_param {128};
+    auto x_param = std::make_shared<ManualParameter>(128);
+    auto y_param = std::make_shared<ManualParameter>(128);
 
-    ManualParameter xs (1);
-    ManualParameter ys (1);
-    ManualParameter rot (0);
-    ManualParameter n { 4 };
-    ManualParameter k { 10. };
-    ManualParameter i0 { 10000 };
+    auto xs = std::make_shared<ManualParameter>(1);
+    auto ys = std::make_shared<ManualParameter>(1);
+
+    auto rot = std::make_shared<ManualParameter>(0);
+    auto n = std::make_shared<ManualParameter>(4);
+    auto k = std::make_shared<ManualParameter>(10);
+    auto i0 = std::make_shared<ManualParameter>(1000);
 
     extended_models.emplace_back(std::make_shared<T>(
         xs, ys, rot, 256, 256, x_param, y_param));

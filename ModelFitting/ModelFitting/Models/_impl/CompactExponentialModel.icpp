@@ -8,13 +8,14 @@
 namespace ModelFitting {
 
 template<typename ImageType>
-CompactExponentialModel<ImageType>::CompactExponentialModel(BasicParameter& i0, BasicParameter& k,
-              BasicParameter& x_scale, BasicParameter& y_scale,
-              BasicParameter& rotation, double width, double height,
-              BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform)
-    : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
-      m_i0(i0.getValue()), m_i0_updater(i0, m_i0),
-      m_k(k.getValue()), m_k_updater(k, m_k)
+CompactExponentialModel<ImageType>::CompactExponentialModel(
+    std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k,
+    std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+    std::shared_ptr<BasicParameter> rotation, double width, double height,
+    std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::tuple<double, double, double, double> transform)
+      : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
+        m_i0(i0), m_k(k)
 {}
 
 template<typename ImageType>
@@ -23,7 +24,7 @@ inline float CompactExponentialModel<ImageType>::evaluateModel(const Mat22& tran
   float y2 = x * transform[2] + y * transform[3];
   float r = std::sqrt(x2*x2 + y2*y2);
 
-  return float(m_i0) * std::exp(float(-m_k * r));
+  return float(m_i0->getValue()) * std::exp(float(-m_k->getValue() * r));
 }
 
 template<typename ImageType>

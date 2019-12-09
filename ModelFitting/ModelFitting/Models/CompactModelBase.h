@@ -21,9 +21,10 @@ template <typename ImageType>
 class CompactModelBase : public ExtendedModel<ImageType> {
 
 public:
-  CompactModelBase(BasicParameter& x_scale, BasicParameter& y_scale,
-                BasicParameter& rotation, double width, double height,
-                BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform);
+  CompactModelBase(std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+      std::shared_ptr<BasicParameter> rotation, double width, double height,
+      std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+      std::tuple<double, double, double, double> transform);
 
   virtual ~CompactModelBase() = default;
 
@@ -35,14 +36,9 @@ protected:
   Mat22 m_inv_jacobian;
 
 private:
-  double m_x_scale;
-  ReferenceUpdater m_x_scale_updater;
-
-  double m_y_scale;
-  ReferenceUpdater m_y_scale_updater;
-
-  double m_rotation;
-  ReferenceUpdater m_rotation_updater;
+  std::shared_ptr<BasicParameter> m_x_scale;
+  std::shared_ptr<BasicParameter> m_y_scale;
+  std::shared_ptr<BasicParameter> m_rotation;
 };
 
 }

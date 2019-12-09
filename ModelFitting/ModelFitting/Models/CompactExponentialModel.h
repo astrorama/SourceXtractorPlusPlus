@@ -16,10 +16,11 @@ template <typename ImageType>
 class CompactExponentialModel : public CompactModelBase<ImageType> {
 
 public:
-  CompactExponentialModel(BasicParameter& i0, BasicParameter& k,
-                BasicParameter& x_scale, BasicParameter& y_scale,
-                BasicParameter& rotation, double width, double height,
-                BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform);
+  CompactExponentialModel(std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k,
+                std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+                std::shared_ptr<BasicParameter> rotation, double width, double height,
+                std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+                std::tuple<double, double, double, double> transform);
 
   virtual ~CompactExponentialModel() = default;
 
@@ -34,11 +35,8 @@ private:
   float evaluateModel(const Mat22& transform, float x, float y) const;
 
   // Sersic parameters
-  double m_i0;
-  ReferenceUpdater m_i0_updater;
-
-  double m_k;
-  ReferenceUpdater m_k_updater;
+  std::shared_ptr<BasicParameter> m_i0;
+  std::shared_ptr<BasicParameter> m_k;
 };
 
 }

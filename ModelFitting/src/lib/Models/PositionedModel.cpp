@@ -24,25 +24,22 @@
 
 namespace ModelFitting {
 
-PositionedModel::PositionedModel(BasicParameter& x, BasicParameter& y)
-        : m_x {x.getValue()}, m_y{y.getValue()},
-          m_x_updater{x, m_x}, m_y_updater{y, m_y}
+PositionedModel::PositionedModel(std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
+        : m_x(x), m_y(y)
 {
 }
 
 PositionedModel::PositionedModel(PositionedModel&& other)
-        : m_x {other.m_x}, m_y{other.m_y},
-          m_x_updater{other.m_x_updater.getParameter(), m_x},
-          m_y_updater{other.m_y_updater.getParameter(), m_y}
+        : m_x {other.m_x}, m_y{other.m_y}
 {
 }
 
 double PositionedModel::getX() const {
-  return m_x;
+  return m_x->getValue();
 }
 
 double PositionedModel::getY() const {
-  return m_y;
+  return m_y->getValue();
 }
 
 } // end of namespace ModelFitting

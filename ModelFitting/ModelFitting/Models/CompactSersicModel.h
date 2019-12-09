@@ -16,10 +16,12 @@ template <typename ImageType>
 class CompactSersicModel : public CompactModelBase<ImageType> {
 
 public:
-  CompactSersicModel(double sharp_radius, BasicParameter& i0, BasicParameter& k, BasicParameter& n,
-                BasicParameter& x_scale, BasicParameter& y_scale,
-                BasicParameter& rotation, double width, double height,
-                BasicParameter& x, BasicParameter& y, std::tuple<double, double, double, double> transform);
+  CompactSersicModel(double sharp_radius,
+      std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k, std::shared_ptr<BasicParameter> n,
+      std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+      std::shared_ptr<BasicParameter> rotation, double width, double height,
+      std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+      std::tuple<double, double, double, double> transform);
 
   virtual ~CompactSersicModel() = default;
 
@@ -39,14 +41,9 @@ private:
   float m_sharp_radius_squared;
 
   // Sersic parameters
-  double m_i0;
-  ReferenceUpdater m_i0_updater;
-
-  double m_k;
-  ReferenceUpdater m_k_updater;
-
-  double m_n;
-  ReferenceUpdater m_n_updater;
+  std::shared_ptr<BasicParameter> m_i0;
+  std::shared_ptr<BasicParameter> m_k;
+  std::shared_ptr<BasicParameter> m_n;
 };
 
 }
