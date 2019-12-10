@@ -64,7 +64,7 @@ int main() {
   // models. Here we construct the vectors which will keep these models.
   vector<ConstantModel> constant_models {};
   vector<PointModel> point_models {};
-  vector<TransformedModel> extended_models {};
+  vector<std::shared_ptr<ExtendedModel<cv::Mat>>> extended_models {};
   
   // We will use a single constant model, which simulates the background. The
   // constant model gets a single parameter, its value.
@@ -113,8 +113,8 @@ int main() {
     auto dev = make_unique<SersicModelComponent>(move(dev_reg_man), dev_i0, dev_n, dev_k);
     
     // Finally we create the extended model and we add it to the list
-    extended_models.emplace_back(std::move(component_list), x_scale, y_scale, 
-                                 rot_angle, width, height, x, y);
+    extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(std::move(component_list), x_scale, y_scale,
+                                 rot_angle, width, height, x, y));
   }
   
   // The FrameModel needs a PSF so it can convolve its models. The type of the
