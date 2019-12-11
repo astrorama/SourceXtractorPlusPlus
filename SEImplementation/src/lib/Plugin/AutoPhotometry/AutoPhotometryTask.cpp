@@ -42,11 +42,6 @@
 
 namespace SourceXtractor {
 
-namespace {
-const SeFloat CROWD_THRESHOLD_AUTO = 0.1;
-const SeFloat BADAREA_THRESHOLD_AUTO = 0.1;
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
@@ -59,7 +54,6 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   const auto& measurement_image = measurement_frame->getSubtractedImage();
   const auto& variance_map = measurement_frame->getVarianceMap();
   const auto& variance_threshold = measurement_frame->getVarianceThreshold();
-  const auto& threshold_image = measurement_frame->getThresholdedImage();
   SeFloat gain = measurement_frame->getGain();
 
   // get the object center

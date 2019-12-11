@@ -37,10 +37,10 @@ public:
   WCS(const std::string& fits_file_path, int hdu_number = 1);
   virtual ~WCS();
 
-  virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const;
-  virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const;
+  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
+  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
 
-  virtual std::map<std::string, std::string> getFitsHeaders() const override;
+  std::map<std::string, std::string> getFitsHeaders() const override;
 
 private:
   std::unique_ptr<wcslib::wcsprm, std::function<void(wcslib::wcsprm*)>> m_wcs;

@@ -46,11 +46,11 @@ public:
     assert(false);
   }
 
-  int getWidth() const {
+  int getWidth() const override {
     return m_img->getWidth();
   }
 
-  int getHeight() const {
+  int getHeight() const override {
     return m_img->getHeight();
   }
 

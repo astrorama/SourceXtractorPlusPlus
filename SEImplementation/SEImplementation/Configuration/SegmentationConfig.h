@@ -79,7 +79,6 @@ private:
   std::shared_ptr<DetectionImageFrame::ImageFilter> loadASCIIFilter(const std::string& filename) const;
 
   Algorithm m_selected_algorithm;
-  bool m_filtering_enabled;
   std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
   int m_lutz_window_size;

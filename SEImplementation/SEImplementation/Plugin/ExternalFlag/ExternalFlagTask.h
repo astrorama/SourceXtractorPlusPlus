@@ -31,11 +31,11 @@
 namespace SourceXtractor {
 
 namespace ExternalFlagCombineTypes {
-class Or;
-class And;
-class Min;
-class Max;
-class Most;
+struct Or;
+struct And;
+struct Min;
+struct Max;
+struct Most;
 }
 
 /**
