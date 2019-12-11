@@ -21,6 +21,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #include <boost/regex.hpp>
 using boost::regex;
