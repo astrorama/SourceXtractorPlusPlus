@@ -22,7 +22,7 @@
 #include <utility>
 #include <limits>
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/tokenizer.hpp>
