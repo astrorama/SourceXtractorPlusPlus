@@ -30,7 +30,6 @@ using boost::smatch;
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
-#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
 
