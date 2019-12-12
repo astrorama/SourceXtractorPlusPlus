@@ -73,8 +73,6 @@ private:
   PIXTYPE* itsWhtMeanVals=NULL;
   //
   // data from the input image
-  int itsBitpix=0;
-  int itsNaxis=0;
   size_t itsNaxes[2]={0,0};
 };
 

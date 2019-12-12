@@ -69,8 +69,6 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask,
     WeightImage::PixelType variance_threshold) const {
 
-  bck_model_logger.debug() << "Analyzing background for " << image->getRepr();
-
   if (mask!=nullptr)
   {
     bck_model_logger.debug() << "\tMask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")";
@@ -94,6 +92,8 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
 
   // create the background model
   auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold);
+
+  bck_model_logger.info() << "Finished analyzing background for image: " << image->getRepr() << "!";
 
   // return model
   return bck_model;

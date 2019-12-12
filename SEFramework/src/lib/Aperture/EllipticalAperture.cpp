@@ -25,9 +25,6 @@
 
 namespace SourceXtractor {
 
-// enhancing from 5 to 10 smoothens the photometry
-const int SUPERSAMPLE_AUTO_NB = 10;
-
 
 EllipticalAperture::EllipticalAperture(SeFloat cxx, SeFloat cyy, SeFloat cxy,
                                        SeFloat rad_max)

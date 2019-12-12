@@ -343,7 +343,7 @@ public:
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
 
-    std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
+    std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
