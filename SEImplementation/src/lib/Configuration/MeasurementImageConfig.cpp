@@ -142,7 +142,6 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
         threshold = threshold * threshold;
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
-        threshold = threshold;
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
         if (threshold>0)
