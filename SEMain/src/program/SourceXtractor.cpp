@@ -426,10 +426,6 @@ public:
     }
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    logger.info() << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-        << " threshold: "  << detection_frame->getDetectionThreshold();
-
     //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
     // Perform measurements (multi-threaded part)
