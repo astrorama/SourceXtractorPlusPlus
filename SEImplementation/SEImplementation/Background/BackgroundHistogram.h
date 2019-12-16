@@ -26,6 +26,8 @@
 #define	BACKGROUNDHISTOGRAM_H
 
 #include <cstddef>
+#include <vector>
+#include "SEImplementation/Background/BackgroundDefine.h"
 
 namespace SourceXtractor {
 
