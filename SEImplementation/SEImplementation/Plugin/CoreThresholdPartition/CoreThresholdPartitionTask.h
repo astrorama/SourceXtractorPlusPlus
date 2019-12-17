@@ -51,10 +51,11 @@ public:
     const auto& snr_image    = source.getProperty<DetectionFrame>().getFrame()->getSnrImage();
 
     // go over all pixels
-    for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList())
+    for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
       // enhance the counter if the SNR is above the level
       if (snr_image->getValue(pixel_coord.m_x, pixel_coord.m_y) >= m_snr_level)
-	n_snr_level += 1;
+        n_snr_level += 1;
+    }
 
     // set the property
     source.setProperty<NCorePixel>(n_snr_level);

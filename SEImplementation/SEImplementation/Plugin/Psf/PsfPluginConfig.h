@@ -18,7 +18,7 @@
  * PsfPluginConfig.h
  *
  *  Created on: Jun 25, 2018
- *      Author: Alejandro ��lvarez Ayll��n
+ *      Author: Alejandro Álvarez Ayllón
  */
 
 #ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFCONFIG_H_
@@ -26,7 +26,6 @@
 
 #include <Configuration/Configuration.h>
 #include <SEFramework/Psf/VariablePsf.h>
-#include <SEFramework/Psf/VariablePsfStack.h>
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace SourceXtractor {
