@@ -109,8 +109,7 @@ std::vector<PixelCoordinate> TileBasedSegmentation::getHilbertCurve(unsigned int
   return hilbert_curve;
 }
 
-PixelCoordinate TileBasedSegmentation::getHilbertCurveCoordinate(unsigned int idx, unsigned int n) const {
-  auto index = idx;
+PixelCoordinate TileBasedSegmentation::getHilbertCurveCoordinate(unsigned int index, unsigned int n) const {
   unsigned int x = 0;
   unsigned int y = 0;
   for (unsigned int s=1; s<n; s*=2) {
