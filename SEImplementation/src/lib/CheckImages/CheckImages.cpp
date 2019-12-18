@@ -72,6 +72,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_group_filename = config.getGroupFilename();
   m_filtered_filename = config.getFilteredFilename();
   m_thresholded_filename = config.getThresholdedFilename();
+  m_snr_filename = config.getSnrFilename();
   m_auto_aperture_filename = config.getAutoApertureFilename();
   m_aperture_filename = config.getApertureFilename();
   m_moffat_filename = config.getMoffatFilename();
@@ -248,6 +249,11 @@ void CheckImages::saveImages() {
   // if possible, save the thresholded image
   if (m_thresholded_image != nullptr && m_thresholded_filename != "") {
     FitsWriter::writeFile(*m_thresholded_image, m_thresholded_filename.native(), m_coordinate_system);
+  }
+
+  // if possible, save the SNR image
+  if (m_snr_image != nullptr && m_snr_filename != "") {
+    FitsWriter::writeFile(*m_snr_image, m_snr_filename.native(), m_coordinate_system);
   }
 
   // if possible, create and save the residual image
