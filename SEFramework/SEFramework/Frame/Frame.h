@@ -123,6 +123,11 @@ public:
     return ThresholdedImage<T>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
   }
 
+  // Get the SNR image
+  std::shared_ptr<Image<T>> getSnrImage() const {
+    return SnrImage<T>::create(getFilteredImage(), getVarianceMap());
+  }
+
   //
   // Methods to get the image in one form or another
   //
