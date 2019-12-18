@@ -60,15 +60,18 @@ elements_add_library(SEUtils src/lib/*.cpp
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
 
-elements_add_unit_test(PixelCoordinate_test tests/src/PixelCoordinate_test.cpp 
+elements_add_unit_test(PixelCoordinate_test tests/src/PixelCoordinate_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
-elements_add_unit_test(NumericalDerivative_test tests/src/NumericalDerivative_test.cpp 
+elements_add_unit_test(NumericalDerivative_test tests/src/NumericalDerivative_test.cpp
+                     LINK_LIBRARIES SEUtils
+                     TYPE Boost)
+elements_add_unit_test(Misc_test tests/src/Misc_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
 
 if(GMOCK_FOUND)
-elements_add_unit_test(Observable_test tests/src/Observable_test.cpp 
+elements_add_unit_test(Observable_test tests/src/Observable_test.cpp
                      LINK_LIBRARIES SEUtils GMock pthread
                      INCLUDE_DIRS GMock
                      TYPE Boost)
