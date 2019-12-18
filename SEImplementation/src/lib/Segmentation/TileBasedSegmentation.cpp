@@ -96,17 +96,6 @@ std::vector<TileBasedSegmentation::Tile> TileBasedSegmentation::getTiles(const D
     }
   }
 
-
-//  for (int x=0; x < image.getWidth(); x += tile_width) {
-//    for (int y=0; y < image.getHeight(); y += tile_height) {
-//
-////
-////      std::cout << tiles.back().offset.m_x << " " << tiles.back().offset.m_y << " " <<
-////          tiles.back().width << " " << tiles.back().height << "\n";
-//    }
-//  }
-//  //std::cout << image.getWidth() << " x " << image.getHeight() << "\n";
-
   return tiles;
 }
 
@@ -142,7 +131,6 @@ PixelCoordinate TileBasedSegmentation::getHilbertCurveCoordinate(unsigned int id
     index >>= 2;
   }
 
-  std::cout << idx << "/" << (n*n) << " " << x << " " << y << "\n";
   return {(int) x, (int) y};
 }
 
