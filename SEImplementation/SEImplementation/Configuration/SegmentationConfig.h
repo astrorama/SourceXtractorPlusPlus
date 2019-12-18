@@ -41,7 +41,8 @@ public:
 
   enum class Algorithm {
     UNKNOWN,
-    LUTZ
+    LUTZ,
+    TILE_BASED
   };
 
   /**

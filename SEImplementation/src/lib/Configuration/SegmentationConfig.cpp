@@ -63,7 +63,7 @@ SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
   return { {"Detection image", {
       {SEGMENTATION_ALGORITHM.c_str(), po::value<std::string>()->default_value("LUTZ"),
-          "Segmentation algorithm to be used. Currently LUTZ is the only choice"},
+          "Segmentation algorithm to be used (LUTZ or TILES)"},
       {SEGMENTATION_DISABLE_FILTERING.c_str(), po::bool_switch(),
           "Disables filtering"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
@@ -75,9 +75,15 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
 
 void SegmentationConfig::preInitialize(const UserValues& args) {
   auto algorithm_name = boost::to_upper_copy(args.at(SEGMENTATION_ALGORITHM).as<std::string>());
-  if (algorithm_name != "LUTZ") {
+  if (algorithm_name == "LUTZ") {
+    m_selected_algorithm = Algorithm::LUTZ;
+  } else if (algorithm_name == "TILES") {
+    m_selected_algorithm = Algorithm::TILE_BASED;
+  } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
+
+
   if (args.at(SEGMENTATION_DISABLE_FILTERING).as<bool>()) {
     m_filter = nullptr;
   } else {
@@ -89,14 +95,12 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     } else {
       m_filter = getDefaultFilter();
     }
-
   }
 
   m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
 }
 
 void SegmentationConfig::initialize(const UserValues&) {
-  m_selected_algorithm = Algorithm::LUTZ;
 }
 
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::getDefaultFilter() const {
