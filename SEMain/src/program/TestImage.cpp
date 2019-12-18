@@ -92,15 +92,15 @@ public:
         m_rotation(rotation), m_scale(1.0/scale), m_shift_x(shift_x), m_shift_y(shift_y) {}
   virtual ~DummyWCS() {}
 
-  virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const {
+  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override {
     return WorldCoordinate(image_coordinate.m_x, image_coordinate.m_y);
   }
 
-  virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const {
+  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override {
     return ImageCoordinate(world_coordinate.m_alpha, world_coordinate.m_delta);
   }
 
-  virtual std::map<std::string, std::string> getFitsHeaders() const override {
+  std::map<std::string, std::string> getFitsHeaders() const override {
     auto c = cos(m_rotation);
     auto s = sin(m_rotation);
 

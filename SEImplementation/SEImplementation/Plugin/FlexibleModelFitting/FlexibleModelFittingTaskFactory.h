@@ -37,7 +37,7 @@ public:
   virtual ~FlexibleModelFittingTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
   void configure(Euclid::Configuration::ConfigManager& manager) override;

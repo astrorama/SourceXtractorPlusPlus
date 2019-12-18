@@ -40,11 +40,6 @@
 
 namespace SourceXtractor {
 
-namespace {
-const SeFloat CROWD_THRESHOLD_APER = 0.1;
-const SeFloat BADAREA_THRESHOLD_APER = 0.1;
-}
-
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AperturePhotometryTask::computeProperties(SourceInterface &source) const {

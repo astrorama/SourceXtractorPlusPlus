@@ -44,6 +44,7 @@ class Frame {
 public:
   class ImageFilter {
   public:
+    virtual ~ImageFilter() = default;
     virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> variance, T threshold) const = 0;
   };
 
