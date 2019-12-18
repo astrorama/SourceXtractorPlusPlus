@@ -32,7 +32,6 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/ThresholdedImage.h"
-#include "SEFramework/Image/SnrImage.h"
 #include "SEFramework/Image/InterpolatedImageSource.h"
 #include "SEFramework/Image/FunctionalImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
