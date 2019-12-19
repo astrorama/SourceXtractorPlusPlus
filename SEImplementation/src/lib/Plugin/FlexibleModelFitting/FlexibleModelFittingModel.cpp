@@ -137,8 +137,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
-      i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
+  extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
+      2.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, jacobian));
 }
 
