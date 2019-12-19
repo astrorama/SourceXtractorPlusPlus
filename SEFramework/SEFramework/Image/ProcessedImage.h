@@ -115,6 +115,15 @@ struct MultiplyOperation
 template<typename T>
 using MultiplyImage = ProcessedImage<T, MultiplyOperation<T>> ;
 
+template<typename T>
+struct SnrOperation
+{
+  static T process(const T& a, const T& b) { return a / sqrt(b); }
+};
+
+template<typename T>
+using SnrImage = ProcessedImage<T, SnrOperation<T>> ;
+
 } /* namespace SourceXtractor */
 
 
