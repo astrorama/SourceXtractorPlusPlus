@@ -36,4 +36,36 @@ Mat22 CompactModelBase<ImageType>::getCombinedTransform(double pixel_scale) cons
   return scale * rotation * m_inv_jacobian * pixel_scale;
 }
 
+template<typename ImageType>
+template<typename ModelEvaluator>
+inline float CompactModelBase<ImageType>::samplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int subsampling) const {
+  double acc = 0.;
+  for (std::size_t ix=0; ix<subsampling; ++ix) {
+    float x_model = (x - 0.5 + (ix+1) * 1.0 / (subsampling+1));
+    for (std::size_t iy=0; iy<subsampling; ++iy) {
+      float y_model = (y - 0.5 + (iy+1) * 1.0 / (subsampling+1));
+      acc += model_eval.evaluateModel(x_model, y_model);
+    }
+  }
+
+  return acc / (subsampling*subsampling);
+}
+
+template<typename ImageType>
+template<typename ModelEvaluator>
+inline float CompactModelBase<ImageType>::adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold) const {
+  float value = samplePixel(model_eval, x,y, 1);
+  for (unsigned int i=2; i<=max_subsampling; i+=2) {
+    float newValue = samplePixel(model_eval, x,y, i);
+    float ratio = newValue / value;
+    if (ratio < threshold && ratio > 1.0 / threshold) {
+      value = newValue;
+      break;
+    }
+    value = newValue;
+  }
+
+  return value;
+}
+
 }

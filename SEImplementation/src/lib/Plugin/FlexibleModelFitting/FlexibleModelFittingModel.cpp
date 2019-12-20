@@ -121,7 +121,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
+  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
   auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
 //  ManualParameter x_scale(1); // we don't scale the x coordinate
@@ -137,8 +137,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
-  extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
-      2.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
+  extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
+      2.0, i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, jacobian));
 }
 

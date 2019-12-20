@@ -31,6 +31,12 @@ public:
 protected:
   Mat22 getCombinedTransform(double pixel_scale) const;
 
+  template<typename ModelEvaluator>
+  float samplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int subsampling) const;
+
+  template<typename ModelEvaluator>
+  float adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold=1.1) const;
+
   // Jacobian transform
   Mat22 m_jacobian;
   Mat22 m_inv_jacobian;

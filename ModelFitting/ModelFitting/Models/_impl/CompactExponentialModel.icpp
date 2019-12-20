@@ -9,33 +9,26 @@ namespace ModelFitting {
 
 template<typename ImageType>
 CompactExponentialModel<ImageType>::CompactExponentialModel(
+    double sharp_radius,
     std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k,
     std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
     std::shared_ptr<BasicParameter> rotation, double width, double height,
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
     std::tuple<double, double, double, double> transform)
       : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
+        m_sharp_radius_squared(float(sharp_radius * sharp_radius)),
         m_i0(i0), m_k(k)
 {}
 
 template<typename ImageType>
-inline float CompactExponentialModel<ImageType>::evaluateModel(const EvaluateModelInfo& model_info, float x, float y) const {
-  float x2 = x * model_info.transform[0] + y * model_info.transform[1];
-  float y2 = x * model_info.transform[2] + y * model_info.transform[3];
-  float r = std::sqrt(x2*x2 + y2*y2);
-
-  return float(model_info.i0) * std::exp(float(-model_info.k * r));
-}
-
-template<typename ImageType>
 double CompactExponentialModel<ImageType>::getValue(double x, double y) const {
-  EvaluateModelInfo model_info;
+  ExponentialModelEvaluator model_info;
   model_info.transform = getCombinedTransform(1.0);
   model_info.i0 = m_i0->getValue();
   model_info.k = m_k->getValue();
 
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
-  return evaluateModel(model_info, x, y) * area_correction;
+  return model_info.evaluateModel(x, y) * area_correction;
 }
 
 template<typename ImageType>
@@ -50,18 +43,22 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
 
   ImageType image = Traits::factory(size_x, size_y);
 
-  EvaluateModelInfo model_info;
-  model_info.transform = getCombinedTransform(pixel_scale);
-  model_info.i0 = m_i0->getValue();
-  model_info.k = m_k->getValue();
+  ExponentialModelEvaluator model_eval;
+  model_eval.transform = getCombinedTransform(pixel_scale);
+  model_eval.i0 = m_i0->getValue();
+  model_eval.k = m_k->getValue();
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
-  for (std::size_t x=0; x<size_x; ++x) {
-    float x_model = x - (size_x-1) / 2.;
-    for (std::size_t y=0; y<size_y; ++y) {
-      float y_model = y - (size_y-1) / 2.;
-      Traits::at(image, x, y) = evaluateModel(model_info, x_model, y_model) * area_correction;
+  for (int x=0; x<(int)size_x; ++x) {
+    int dx = x - size_x / 2;
+    for (int y=0; y<(int)size_y; ++y) {
+      int dy = y - size_y / 2;
+      if (dx*dx + dy*dy < m_sharp_radius_squared) {
+        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 8, 1.01) * area_correction;
+      } else {
+        Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
+      }
     }
   }
 
