@@ -91,15 +91,18 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // create the background model
-  auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold);
+  SeFloat bck_median;
+  SeFloat var_median;
+  auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold, bck_median, var_median);
 
-  bck_model_logger.info() << "Finished analyzing background for image: " << image->getRepr() << "!";
+  // give some feedback
+  bck_model_logger.info() << "Background for image: " << image->getRepr() << " median: " << bck_median << " rms: " << sqrt(var_median) << "!";
 
   // return model
   return bck_model;
 }
 
-BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
+BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold, SeFloat &bck_median, SeFloat &var_median) const {
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelVarPtr;
@@ -112,6 +115,10 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
 
   // create the background model and the rms model
   bck_modeller->createSE2Models(splModelBckPtr, splModelVarPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
+
+  // assign the median and variance value
+  bck_median = splModelBckPtr->getMedian();
+  var_median = splModelVarPtr->getMedian();
 
   bck_model_logger.debug() << "\tMedian background value: "<< splModelBckPtr->getMedian();
   bck_model_logger.debug() << "\tMedian variance value: "<< splModelVarPtr->getMedian();
