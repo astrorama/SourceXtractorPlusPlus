@@ -102,6 +102,12 @@ std::shared_ptr<Image<T>> Frame<T>::getThresholdedImage() const {
 
 
 template<typename T>
+std::shared_ptr<Image<T>> Frame<T>::getSnrImage() const {
+  return SnrImage<T>::create(getFilteredImage(), getVarianceMap());
+}
+
+
+template<typename T>
 std::shared_ptr<WeightImage> Frame<T>::getVarianceMap() const {
   if (m_filtered_variance_map == nullptr) {
     const_cast<Frame<T> *>(this)->applyFilter();

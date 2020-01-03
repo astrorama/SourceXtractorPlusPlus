@@ -75,9 +75,7 @@ public:
   std::shared_ptr<Image<T>> getThresholdedImage() const;
 
   // Get the SNR image
-  std::shared_ptr<Image<T>> getSnrImage() const {
-    return SnrImage<T>::create(getFilteredImage(), getVarianceMap());
-  }
+  std::shared_ptr<Image<T>> getSnrImage() const;
 
   //
   // Methods to get the image in one form or another
