@@ -78,7 +78,9 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
   if (algorithm_name == "LUTZ") {
     m_selected_algorithm = Algorithm::LUTZ;
   } else if (algorithm_name == "TILES") {
-    m_selected_algorithm = Algorithm::TILE_BASED;
+    m_selected_algorithm = Algorithm::TILES_LUTZ;
+  } else if (algorithm_name == "BFS") {
+    m_selected_algorithm = Algorithm::TILES_BFS;
   } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
