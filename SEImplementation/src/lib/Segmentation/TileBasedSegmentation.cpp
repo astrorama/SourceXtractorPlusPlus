@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-#include "SEUtils/Misc.h"
+#include "SEUtils/HilbertCurve.h"
 
 #include "SEFramework/Image/SubImage.h"
 
@@ -40,10 +40,90 @@ public:
   virtual ~TilesLabellingListener() = default;
 
   void publishGroup(Lutz::PixelGroup& pixel_group) override {
+    bool process_now = true;
+    auto group = std::make_shared<std::vector<PixelCoordinate>>(pixel_group.pixel_list);
+
+    std::set<std::shared_ptr<std::vector<PixelCoordinate>>> groups_to_connect;
+    for (auto& pc : pixel_group.pixel_list) {
+      if (pc.m_x <= m_min_x || pc.m_x >= m_max_x || pc.m_y <= m_min_y || pc.m_y >= m_max_y) {
+        process_now = false;
+        m_groups_on_borders[pc] = group;
+      }
+
+      if (pc.m_x <= m_min_x) {
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y-1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y-1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y+1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y+1)]);
+        }
+      }
+      if (pc.m_x >= m_max_x) {
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y-1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y-1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y+1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y+1)]);
+        }
+      }
+      if (pc.m_y <= m_min_y) {
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x, pc.m_y-1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x, pc.m_y-1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y-1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y-1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y-1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y-1)]);
+        }
+      }
+      if (pc.m_y >= m_max_y) {
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x, pc.m_y+1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x, pc.m_y+1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y+1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y+1)]);
+        }
+        if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y+1)) != m_groups_on_borders.end()) {
+          groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y+1)]);
+        }
+      }
+    }
+
+    if (groups_to_connect.size() > 0) {
+      groups_to_connect.emplace(group);
+      mergeGroups(groups_to_connect);
+    }
+
+    if (process_now) {
+      publishSource(group);
+    }
+  }
+
+  void publishSource(std::shared_ptr<std::vector<PixelCoordinate>> group) {
     auto source = m_source_factory->createSource();
-    source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
+    source->setProperty<PixelCoordinateList>(*group);
     source->setProperty<SourceId>();
     m_listener.publishSource(source);
+  }
+
+  void mergeGroups(std::set<std::shared_ptr<std::vector<PixelCoordinate>>> groups) {
+    auto merged_group = std::make_shared<std::vector<PixelCoordinate>>();
+
+    for (auto& group : groups) {
+      merged_group->insert(merged_group->end(),
+          std::make_move_iterator(group->begin()), std::make_move_iterator(group->end()));
+    }
+
+    for (auto& pc : *merged_group) {
+      m_groups_on_borders[pc] = merged_group;
+    }
   }
 
   void notifyProgress(int line, int total) override {
@@ -54,9 +134,39 @@ public:
 //    }
   }
 
+  void setTileBoundary(PixelCoordinate offset, int width, int height) {
+    m_min_x =  offset.m_x;
+    m_max_x =  offset.m_x + width - 1;
+    m_min_y =  offset.m_y;
+    m_max_y =  offset.m_y + height - 1;
+  }
+
+  void setCurrentTile(PixelCoordinate pc) {
+    m_current_tile = pc;
+    m_visited_tiles.emplace(pc);
+  }
+
+  void flush() {
+    while (m_groups_on_borders.size() > 0) {
+      auto group = m_groups_on_borders.begin()->second;
+      publishSource(group);
+      for (auto& pc : *group) {
+        m_groups_on_borders.erase(pc);
+      }
+    }
+  }
+
 private:
   Segmentation::LabellingListener& m_listener;
   std::shared_ptr<SourceFactory> m_source_factory;
+
+  std::unordered_map<PixelCoordinate, std::shared_ptr<std::vector<PixelCoordinate>>> m_groups_on_borders;
+
+  int m_min_x, m_min_y;
+  int m_max_x, m_max_y;
+
+  PixelCoordinate m_current_tile;
+  std::unordered_set<PixelCoordinate> m_visited_tiles;
 };
 
 }
@@ -69,8 +179,10 @@ void TileBasedSegmentation::labelImage(Segmentation::LabellingListener& listener
   auto image = frame->getThresholdedImage();
   for (auto& tile : getTiles(*image)) {
     auto sub_image = SubImage<DetectionImage::PixelType>::create(image, tile.offset, tile.width, tile.height);
+    tiles_listener.setTileBoundary(tile.offset, tile.width, tile.height);
     lutz.labelImage(tiles_listener, *sub_image, tile.offset);
   }
+  tiles_listener.flush();
 }
 
 std::vector<TileBasedSegmentation::Tile> TileBasedSegmentation::getTiles(const DetectionImage& image) const {
@@ -83,7 +195,9 @@ std::vector<TileBasedSegmentation::Tile> TileBasedSegmentation::getTiles(const D
   int size = std::max((image.getWidth() + tile_width - 1) / tile_width,
                       (image.getHeight() + tile_height - 1) / tile_height);
 
-  for (auto& coord : getHilbertCurve(size)) {
+  HilbertCurve curve(size);
+
+  for (auto& coord : curve.getCurve()) {
     int x = coord.m_x * tile_width;
     int y = coord.m_y * tile_height;
 
@@ -99,38 +213,5 @@ std::vector<TileBasedSegmentation::Tile> TileBasedSegmentation::getTiles(const D
   return tiles;
 }
 
-std::vector<PixelCoordinate> TileBasedSegmentation::getHilbertCurve(unsigned int size) const {
-  size = nextPowerOfTwo(size);
-
-  std::vector<PixelCoordinate> hilbert_curve;
-  for (unsigned int i = 0; i < size * size; i++) {
-    hilbert_curve.emplace_back(getHilbertCurveCoordinate(i, size));
-  }
-  return hilbert_curve;
-}
-
-PixelCoordinate TileBasedSegmentation::getHilbertCurveCoordinate(unsigned int index, unsigned int n) const {
-  unsigned int x = 0;
-  unsigned int y = 0;
-  for (unsigned int s=1; s<n; s*=2) {
-    unsigned int rx = 1 & (index >> 1);
-    unsigned int ry = 1 & (index ^ rx);
-
-    if (ry == 0) {
-      if (rx == 1) {
-        x = s-1 - x;
-        y = s-1 - y;
-      }
-
-      std::swap(x, y);
-    }
-
-    x += s * rx;
-    y += s * ry;
-    index >>= 2;
-  }
-
-  return {(int) x, (int) y};
-}
 
 }
