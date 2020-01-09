@@ -20,9 +20,8 @@
  * @author mschefer
  */
 
-#include <fstream>
 #include <iostream>
-//#include <regex>
+#include <fstream>
 
 #include <boost/regex.hpp>
 using boost::regex;
@@ -32,16 +31,13 @@ using boost::smatch;
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
-#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
-#include "Configuration/CatalogConfig.h"
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/FITS/FitsReader.h"
 
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
-
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
 using namespace Euclid::Configuration;

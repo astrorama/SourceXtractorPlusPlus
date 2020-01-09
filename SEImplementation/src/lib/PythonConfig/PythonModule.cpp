@@ -19,7 +19,9 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <boost/python.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/enum.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 #include <SEFramework/Source/SourceFlags.h>

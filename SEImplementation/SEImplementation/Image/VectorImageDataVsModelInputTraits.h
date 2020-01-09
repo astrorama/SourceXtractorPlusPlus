@@ -25,9 +25,6 @@
 #define _SEIMPLEMENTATION_IMAGE_VECTORIMAGEDATAVSMODELINPUTTRAITS_H_
 
 #include "ModelFitting/Engine/DataVsModelInputTraits.h"
-
-#include "SEFramework/Image/VectorImage.h"
-
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 namespace ModelFitting {

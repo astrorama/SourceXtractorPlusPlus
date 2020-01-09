@@ -19,15 +19,19 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <string>
+#include "ElementsKernel/Logging.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
+#include "SEImplementation/PythonConfig/ObjectInfo.h"
+#include "SEImplementation/Configuration/PythonConfig.h"
+#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include "SEUtils/Python.h"
 
-#include <ElementsKernel/Logging.h>
-#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
-#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h>
-#include <SEImplementation/PythonConfig/ObjectInfo.h>
-#include <SEImplementation/Configuration/PythonConfig.h>
-#include <SEImplementation/Configuration/ModelFittingConfig.h>
-#include <SEUtils/Python.h>
+#include <string>
+#include <boost/python/extract.hpp>
+#include <boost/python/object.hpp>
+#include <boost/python/tuple.hpp>
+
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;

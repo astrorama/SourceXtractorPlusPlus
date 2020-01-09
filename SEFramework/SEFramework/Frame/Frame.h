@@ -28,12 +28,6 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/BufferedImage.h"
-#include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/ProcessedImage.h"
-#include "SEFramework/Image/ThresholdedImage.h"
-#include "SEFramework/Image/InterpolatedImageSource.h"
-#include "SEFramework/Image/FunctionalImage.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
@@ -52,34 +46,12 @@ public:
         std::shared_ptr<WeightImage> variance_map,
         WeightImage::PixelType variance_threshold,
         std::shared_ptr<CoordinateSystem> coordinate_system,
-        SeFloat gain, SeFloat saturation, int interpolation_gap)
-          : m_image(detection_image),
-            m_variance_map(variance_map),
-            m_coordinate_system(coordinate_system),
-            m_gain(gain),
-            m_saturation(saturation),
-            m_detection_threshold(0),
-            m_variance_threshold(variance_threshold),
-            m_interpolation_gap(interpolation_gap)
-            {}
+        SeFloat gain, SeFloat saturation, int interpolation_gap);
 
   // FIXME: this simplified version is used in unit tests, get rid of it
   Frame(std::shared_ptr<Image<T>> detection_image,
         std::shared_ptr<CoordinateSystem> coordinate_system = nullptr,
-        std::shared_ptr<WeightImage> variance_map = nullptr)
-          : m_image(detection_image),
-            m_variance_map(variance_map),
-            m_coordinate_system(coordinate_system),
-            m_gain(0),
-            m_saturation(0),
-            m_detection_threshold(0),
-            m_variance_threshold(1e6),
-            m_interpolation_gap(0)
-            {
-              if (variance_map == nullptr && detection_image != nullptr) {
-                m_variance_map = ConstantImage<WeightImage::PixelType>::create(detection_image->getWidth(), detection_image->getHeight(), .0001);
-              }
-            }
+        std::shared_ptr<WeightImage> variance_map = nullptr);
 
   //
   // Methods to get the image in one form or another
@@ -91,67 +63,27 @@ public:
   }
 
   // Returns the image with bad pixels interpolated (if interpolation is active, otherwise returns original)
-  std::shared_ptr<Image<T>> getInterpolatedImage() const {
-    if (m_interpolation_gap > 0) {
-      if (m_interpolated_image == nullptr) {
-        const_cast<Frame<T>*>(this)->m_interpolated_image = BufferedImage<T>::create(
-          std::make_shared<InterpolatedImageSource<T>>(getOriginalImage(), getOriginalVarianceMap(),
-                                                       getVarianceThreshold(), m_interpolation_gap)
-        );
-      }
-      return m_interpolated_image;
-    } else {
-      return getOriginalImage();
-    }
-  }
+  std::shared_ptr<Image<T>> getInterpolatedImage() const;
 
   // Get the image with the background subtracted
-  std::shared_ptr<Image<T>> getSubtractedImage() const {
-    return SubtractImage<T>::create(getInterpolatedImage(), getBackgroundLevelMap());
-  }
+  std::shared_ptr<Image<T>> getSubtractedImage() const;
 
   // Get the image with a filter applied to the subtracted image
-  std::shared_ptr<Image<T>> getFilteredImage() const {
-    if (m_filtered_image == nullptr) {
-      const_cast<Frame<T>*>(this)->applyFilter();
-    }
-    return m_filtered_image;
-  }
+  std::shared_ptr<Image<T>> getFilteredImage() const;
 
   // Get the filtered image with the detection threshold subtracted from it
-  std::shared_ptr<Image<T>> getThresholdedImage() const {
-    return ThresholdedImage<T>::create(getFilteredImage(), getVarianceMap(), m_detection_threshold);
-  }
+  std::shared_ptr<Image<T>> getThresholdedImage() const;
 
   // Get the SNR image
-  std::shared_ptr<Image<T>> getSnrImage() const {
-    return SnrImage<T>::create(getFilteredImage(), getVarianceMap());
-  }
+  std::shared_ptr<Image<T>> getSnrImage() const;
 
   //
   // Methods to get the image in one form or another
   //
 
-  std::shared_ptr<WeightImage> getVarianceMap() const {
-    if (m_filtered_variance_map == nullptr) {
-      const_cast<Frame<T>*>(this)->applyFilter();
-    }
-    return m_filtered_variance_map;
-  }
+  std::shared_ptr<WeightImage> getVarianceMap() const;
 
-  std::shared_ptr<WeightImage> getUnfilteredVarianceMap() const {
-    if (m_interpolation_gap > 0) {
-      if (!m_interpolated_variance) {
-        const_cast<Frame*>(this)->m_interpolated_variance = BufferedImage<WeightImage::PixelType>::create(
-          std::make_shared<InterpolatedImageSource<WeightImage::PixelType>>(m_variance_map, m_variance_map,
-                                                                            getVarianceThreshold(), m_interpolation_gap)
-        );
-      }
-      return m_interpolated_variance;
-    } else {
-      return m_variance_map;
-    }
-  }
+  std::shared_ptr<WeightImage> getUnfilteredVarianceMap() const;
 
   std::shared_ptr<WeightImage> getOriginalVarianceMap() const {
     return m_variance_map;
@@ -182,15 +114,7 @@ public:
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
   }
 
-  struct ThresholdOperation {
-    static T process(const T& a, const T& b) { return sqrt(a) * b; }
-  };
-
-  using ThresholdImage = ProcessedImage<T, ThresholdOperation> ;
-
-  std::shared_ptr<Image<T>> getDetectionThresholdMap() const {
-    return ThresholdImage::create(m_variance_map, m_detection_threshold);
-  }
+  std::shared_ptr<Image<T>> getDetectionThresholdMap() const;
 
   std::string getLabel() const {
     return m_label;
@@ -200,74 +124,25 @@ public:
   // Setters
   //
 
-  void setVarianceMap(std::shared_ptr<WeightImage> variance_map) {
-    m_variance_map = variance_map;
+  void setVarianceMap(std::shared_ptr<WeightImage> variance_map);
 
-    // resets the interpolated image cache and filtered image
-    m_interpolated_image = nullptr;
-    m_filtered_image = nullptr;
-    m_filtered_variance_map = nullptr;
-  }
+  void setVarianceThreshold(WeightImage::PixelType threshold);
 
-  void setVarianceThreshold(WeightImage::PixelType threshold) {
-    m_variance_threshold = threshold;
+  std::shared_ptr<Image<T>> getBackgroundLevelMap() const;
 
-    // resets the interpolated image cache and filtered image
-    m_interpolated_image = nullptr;
-    m_filtered_image = nullptr;
-    m_filtered_variance_map = nullptr;
-  }
+  void setDetectionThreshold(T detection_threshold);
 
-  std::shared_ptr<Image<T>> getBackgroundLevelMap() const {
-    if (m_background_level_map != nullptr) {
-      return m_background_level_map;
-    } else {
-      // background level = 0 by default
-      return ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), 0);
-    }
-  }
+  void setBackgroundLevel(T background_level);
 
-  void setDetectionThreshold(T detection_threshold) {
-    m_detection_threshold = detection_threshold;
-  }
+  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map);
 
-  void setBackgroundLevel(T background_level) {
-    setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level));
-  }
+  void setFilter(std::shared_ptr<ImageFilter> filter);
 
-  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {
-    m_background_level_map = background_level_map;
-    m_filtered_image = nullptr;
-  }
-
-  void setFilter(std::shared_ptr<ImageFilter> filter) {
-    m_filter = filter;
-    m_filtered_image = nullptr;
-    m_filtered_variance_map = nullptr;
-  }
-
-  void setLabel(const std::string &label) {
-    m_label = label;
-  }
+  void setLabel(const std::string &label);
 
 private:
 
-  void applyFilter() {
-    if (m_filter != nullptr) {
-      m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(), getVarianceThreshold());
-      auto filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(), getVarianceThreshold());
-      m_filtered_variance_map = FunctionalImage<T>::create(
-        m_filtered_image->getWidth(), m_filtered_image->getHeight(),
-        [filtered_variance_map](int x, int y) -> T {
-          return std::max(filtered_variance_map->getValue(x, y), 0.f);
-        }
-      );
-
-    } else {
-      m_filtered_image = getSubtractedImage();
-      m_filtered_variance_map = getUnfilteredVarianceMap();
-    }
-  }
+  void applyFilter();
 
   std::shared_ptr<Image<T>> m_image;
   std::shared_ptr<WeightImage> m_variance_map;

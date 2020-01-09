@@ -25,9 +25,6 @@
 #define _SEMAIN_PROGRESSBAR_H
 
 #include "SEMain/ProgressReporter.h"
-#include <boost/date_time/posix_time/ptime.hpp>
-#include <boost/thread.hpp>
-#include <vector>
 
 namespace SourceXtractor {
 

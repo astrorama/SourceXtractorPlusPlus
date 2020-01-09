@@ -24,6 +24,7 @@
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"

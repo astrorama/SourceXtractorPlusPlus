@@ -16,7 +16,9 @@
  */
 #include <Python.h>
 #include <ElementsKernel/Logging.h>
-#include <boost/python.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/handle.hpp>
+#include <boost/python/object.hpp>
 
 #include "SEUtils/Python.h"
 

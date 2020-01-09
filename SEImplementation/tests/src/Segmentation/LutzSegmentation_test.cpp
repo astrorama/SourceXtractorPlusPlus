@@ -26,9 +26,9 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Image/VectorImage.h"
-
-#include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Source/SimpleSourceFactory.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 
 using namespace SourceXtractor;
 

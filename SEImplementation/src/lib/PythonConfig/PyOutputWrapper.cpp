@@ -19,10 +19,9 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include <string>
-#include <boost/locale/encoding_utf.hpp>
-#include <boost/python.hpp>
 #include "SEImplementation/PythonConfig/PyOutputWrapper.h"
+#include <boost/locale/encoding_utf.hpp>
+#include <boost/python/extract.hpp>
 
 namespace SourceXtractor {
 

@@ -24,6 +24,7 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/TileManager.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"

@@ -24,7 +24,8 @@
 
 #include <strstream>
 #include <ElementsKernel/Logging.h>
-#include <boost/python.hpp>
+#include <boost/python/list.hpp>
+#include <boost/python/object.hpp>
 
 namespace SourceXtractor {
 

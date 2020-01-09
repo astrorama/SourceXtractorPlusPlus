@@ -25,8 +25,6 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
-
-#include "SEImplementation/Configuration/PythonConfig.h"
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
 
 namespace SourceXtractor {

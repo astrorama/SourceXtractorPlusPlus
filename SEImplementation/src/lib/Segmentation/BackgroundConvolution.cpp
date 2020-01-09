@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEImplementation/Segmentation/BgConvolutionImageSource.h"
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
