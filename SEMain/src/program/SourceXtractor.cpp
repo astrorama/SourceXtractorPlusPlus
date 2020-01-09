@@ -32,7 +32,6 @@
 #include "ElementsKernel/Main.h"
 #include "ElementsKernel/System.h"
 #include "ElementsKernel/Temporary.h"
-#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
@@ -67,8 +66,6 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
 #include "SEImplementation/Partition/PartitionFactory.h"
-#include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
-#include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
 
@@ -76,7 +73,6 @@
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
-#include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 

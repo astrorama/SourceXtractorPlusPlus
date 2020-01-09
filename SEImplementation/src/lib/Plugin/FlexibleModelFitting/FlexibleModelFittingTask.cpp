@@ -22,7 +22,6 @@
  */
 
 #include <mutex>
-#include <SEImplementation/Image/ImagePsf.h>
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/PointModel.h"
@@ -31,7 +30,6 @@
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
-#include "ModelFitting/Engine/ChiSquareComparator.h"
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/AsinhChiSquareComparator.h"
 
@@ -39,19 +37,15 @@
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-#include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
 #include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
-#include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
-#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"

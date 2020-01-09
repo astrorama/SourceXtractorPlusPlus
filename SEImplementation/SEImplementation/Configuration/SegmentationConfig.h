@@ -24,9 +24,6 @@
 #define _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
 
 #include <memory>
-
-#include "SEImplementation/Segmentation/BackgroundConvolution.h"
-
 #include "Configuration/Configuration.h"
 
 namespace SourceXtractor {

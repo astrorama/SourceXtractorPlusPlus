@@ -21,7 +21,11 @@
 
 #include <signal.h>
 #include <utility>
-#include <boost/python.hpp>
+#include <boost/python/dict.hpp>
+#include <boost/python/exec.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/import.hpp>
+#include <boost/python/object.hpp>
 #include <Python.h>
 
 #include <SEUtils/Python.h>
