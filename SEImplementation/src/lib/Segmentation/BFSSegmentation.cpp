@@ -28,6 +28,8 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/SourceId.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
 #include "SEImplementation/Segmentation/BFSSegmentation.h"
 
 namespace SourceXtractor {
@@ -38,6 +40,8 @@ void BFSSegmentation::labelImage(Segmentation::LabellingListener& listener,
   auto tiles = getTiles(*detection_image);
 
   VisitedMap visited(detection_image->getWidth(), detection_image->getHeight());
+
+  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   for (auto& tile : tiles) {
     for (int y=0; y<tile.height; y++) {
