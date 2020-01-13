@@ -48,7 +48,7 @@ class ExternalFlagTask : public SourceTask {
   
 public:
   
-  virtual ~ExternalFlagTask() = default;
+  virtual ~ExternalFlagTask();
   
   ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance);
 
