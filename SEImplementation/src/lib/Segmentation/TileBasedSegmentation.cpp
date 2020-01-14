@@ -20,6 +20,7 @@
 #include "SEUtils/HilbertCurve.h"
 
 #include "SEFramework/Image/SubImage.h"
+#include "SEFramework/Image/TileManager.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Segmentation/Lutz.h"

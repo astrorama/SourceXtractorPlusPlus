@@ -24,6 +24,7 @@
 #include "SEUtils/HilbertCurve.h"
 
 #include "SEFramework/Frame/Frame.h"
+#include "SEFramework/Image/TileManager.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/SourceId.h"
