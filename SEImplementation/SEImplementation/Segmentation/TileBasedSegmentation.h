@@ -50,6 +50,7 @@ public:
 private:
 
   struct Tile {
+    PixelCoordinate coord;
     PixelCoordinate offset;
     int width, height;
   };
