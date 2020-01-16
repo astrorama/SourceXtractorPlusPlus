@@ -69,7 +69,7 @@ fi
 cat /etc/yum.repos.d/astrorama.repo
 
 # Install dependencies
-yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib ${PYTHON}-psutil
+yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib ${PYTHON}-psutil ${PYTHON}-pip
 
 # Get the relevant version
 yum install -y "${TARGET_PACKAGE}-${TARGET_VERSION}"
