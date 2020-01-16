@@ -105,4 +105,4 @@ else
   PYTEST=pytest-3
 fi
 
-${PYTEST} -v -m "not report"
+${PYTEST} -v -m "not report" -k "not gsl"
