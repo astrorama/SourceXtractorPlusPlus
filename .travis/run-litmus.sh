@@ -22,7 +22,11 @@ if [ "$ID" == "fedora" ]; then
   fi
 elif [ "$ID" == "centos" ]; then
   yum install -y -q epel-release
-  PYTHON="python2"
+  if [ "$VERSION_ID" -ge 8 ]; then
+    PYTHON="python3"
+  else
+    PYTHON="python2"
+  fi
 fi
 
 # Always master repository
@@ -65,10 +69,7 @@ fi
 cat /etc/yum.repos.d/astrorama.repo
 
 # Install dependencies
-yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib
-if [ "${PYTHON}" == "python2" ]; then
-  yum install -y -q python2-enum34 python2-pathlib python2-configparser
-fi
+yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib ${PYTHON}-psutil
 
 # Get the relevant version
 yum install -y "${TARGET_PACKAGE}-${TARGET_VERSION}"
@@ -83,6 +84,11 @@ if [ -n "${TARGET_BRANCH}" ]; then
   (git fetch origin "${TARGET_BRANCH}:${TARGET_BRANCH}" && git checkout "${TARGET_BRANCH}") || true
 fi
 git lfs pull
+
+# Install requirements
+if [ -f "requirements.txt" ]; then
+  ${PYTHON} -m pip install --user -r "requirements.txt"
+fi
 
 # Patch config file
 sed -i "s:binary=.*:binary=/usr/bin/sourcextractor++:" pytest.ini
