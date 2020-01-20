@@ -54,7 +54,7 @@ private:
   unsigned int m_source_id, m_detection_id;
 
   static unsigned int getNewId() {
-    static unsigned int s_id  = 0;
+    static unsigned int s_id  = 1;
     return s_id++;
   }
 
