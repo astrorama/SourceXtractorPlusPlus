@@ -244,7 +244,8 @@ class ImageGroup(object):
         self.__images = []
         self.__subgroups = None
         self.__subgroup_names = set()
-        assert len(kwargs) == 1
+        if len(kwargs) != 1 or ('images' not in kwargs and 'subgroups' not in kwargs):
+            raise ValueError('ImageGroup only takes as parameter one of "images" or "subgroups"')
         key = list(kwargs.keys())[0]
         if key == 'images':
             if isinstance(kwargs[key], list):
@@ -587,7 +588,10 @@ class ByKeyword(object):
         """
         result = {}
         for im in images:
-            assert self.__key in im.meta
+            if self.__key not in im.meta:
+                raise KeyError('The image {}[{}] does not contain the key {}'.format(
+                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
+                ))
             if im.meta[self.__key] not in result:
                 result[im.meta[self.__key]] = []
             result[im.meta[self.__key]].append(im)
@@ -631,7 +635,10 @@ class ByPattern(object):
         """
         result = {}
         for im in images:
-            assert self.__key in im.meta
+            if self.__key not in im.meta:
+                raise KeyError('The image {}[{}] does not contain the key {}'.format(
+                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
+                ))
             group = re.match(self.__pattern, im.meta[self.__key]).group(1)
             if group not in result:
                 result[group] = []
