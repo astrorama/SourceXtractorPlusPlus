@@ -105,6 +105,9 @@ class MeasurementImage(cpp.MeasurementImage):
                                                os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
+        if image_hdu <= 0 or (weight_hdu is not None and weight_hdu <= 0) or (psf_hdu is not None and psf_hdu <= 0):
+            raise ValueError('HDU indexes start at 1')
+
         self.meta = {
             'IMAGE_FILENAME': self.file,
             'PSF_FILENAME': self.psf_file,
