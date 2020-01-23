@@ -50,7 +50,7 @@ Thanks to its flexibility, the Python language makes it possible to set up arbit
 
 .. code-block:: python
 
-  from sextractorxx.config import *
+  from sourcextractor.config import *
 
 The same goes for other Python libraries that might be needed for the current configuration, such as `glob <https://docs.python.org/library/glob.html>`_ for filename expansion, `math <https://docs.python.org/library/math.html>`_ or `NumPy <https://numpy.org/>`_ for numerical computations, ...
 
