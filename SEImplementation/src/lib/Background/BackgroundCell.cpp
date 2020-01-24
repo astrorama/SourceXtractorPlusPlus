@@ -203,7 +203,6 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
   // compute mean and sigma of all data
   if (statNData<=0){
-    //Utils::throwElementsException(std::string("Can not compute meaningful stats with statNData=")+tostr(statNData)+std::string("!"));
     throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
   }
   mean /= (double)statNData;
@@ -232,6 +231,10 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
   // compute mean and sigma
   // in the restricted range
+  if (statNData<=0){
+    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
+  }
+
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
   sigma = sigma>0.0 ? sqrt(sigma):0.0;

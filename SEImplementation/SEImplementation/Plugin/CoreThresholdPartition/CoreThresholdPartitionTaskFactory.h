@@ -30,7 +30,7 @@
 namespace SourceXtractor {
 class CoreThresholdPartitionTaskFactory : public TaskFactory {
 public:
-  CoreThresholdPartitionTaskFactory() {}
+  CoreThresholdPartitionTaskFactory(): m_core_threshold(0.) {}
   virtual ~CoreThresholdPartitionTaskFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
