@@ -59,11 +59,14 @@ public:
   
   const std::vector<std::string> getOutputProperties();
 
+  size_t getFlushSize() const;
+
 private:
  
   std::string m_out_file;
   OutputFileFormat m_format;
   std::vector<std::string> m_output_properties;
+  size_t m_flush_size;
 
 }; /* End of OutputConfig class */
 
