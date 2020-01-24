@@ -40,8 +40,9 @@ RotatedModelComponent::RotatedModelComponent(std::unique_ptr<ModelComponent> com
 
 RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
         : m_component {std::move(other.m_component)},
-          m_rotation_angle{other.m_rotation_angle},
-          m_cos{other.m_cos}, m_sin{other.m_sin} {
+          m_rotation_angle{std::move(other.m_rotation_angle)},
+          m_cos{other.m_cos}, m_sin{other.m_sin},
+          m_observer_id (other.m_observer_id) {
 }
 
 RotatedModelComponent::~RotatedModelComponent() {

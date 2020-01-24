@@ -229,13 +229,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   varPtr = TypedSplineModelWrapper<SeFloat>::create(itsNaxes, bckCellSize, gridSize, bckSigVals);
 
    // release memory
-  if (whtSigVals)
-    delete [] whtSigVals;
-  // release memory
-  if (gridData)
-    delete [] gridData;
-  if (weightData)
-    delete [] weightData;
+  delete [] whtSigVals;
+  delete [] gridData;
+  delete [] weightData;
 }
 
 void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * subImgNaxes)

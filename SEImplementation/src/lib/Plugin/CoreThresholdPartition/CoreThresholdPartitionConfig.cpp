@@ -39,7 +39,8 @@ static const std::string CORE_THRESHOLD   {"core-threshold-value" };
 static const std::string CORE_MINAREA     {"core-minimum-area" };
 static const std::string CORE_THRESH_USE {"partition-corethreshold" };
 
-CoreThresholdPartitionConfig::CoreThresholdPartitionConfig(long manager_id): Configuration(manager_id) {
+CoreThresholdPartitionConfig::CoreThresholdPartitionConfig(long manager_id)
+  : Configuration(manager_id), m_core_threshold(0.), m_core_minarea(0) {
   declareDependency<PartitionStepConfig>();
 
   ConfigManager::getInstance(manager_id).registerDependency<CoreThresholdPartitionConfig, MultiThresholdPartitionConfig>();

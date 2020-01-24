@@ -24,6 +24,7 @@
 #include <fstream>
 #include <system_error>
 #include <CCfits/CCfits>
+#include <ModelFitting/utils.h>
 
 #include "Table/AsciiWriter.h"
 #include "Table/FitsWriter.h"
@@ -40,7 +41,7 @@ namespace SourceXtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
   auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
-  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler));
+  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler, m_flush_size));
 }
 
 void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -50,8 +51,11 @@ void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManage
 void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
   m_output_properties = output_config.getOutputProperties();
+  m_flush_size = output_config.getFlushSize();
   
   auto out_file = output_config.getOutputFile();
+
+  std::shared_ptr<Euclid::Table::TableWriter> table_writer;
 
   if (out_file != "") {
     // Check if we can, at least, create it.
@@ -64,30 +68,31 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
       }
     }
 
+    std::unique_ptr<Euclid::Table::FitsWriter> fits_table_writer;
+
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
-        m_table_handler = [out_file](const Euclid::Table::Table& table) {
-          try {
-            Euclid::Table::FitsWriter{out_file, true}.setHduName("CATALOG").addData(table);
-          }
-          // This one doesn't inherit from std::exception, so wrap it up here
-          catch (const CCfits::FitsException &e) {
-            throw Elements::Exception(e.message());
-          }
-        };
+        fits_table_writer = make_unique<Euclid::Table::FitsWriter>(out_file, true);
+        fits_table_writer->setHduName("CATALOG");
+        table_writer = std::move(fits_table_writer);
         break;
       case OutputConfig::OutputFileFormat::ASCII:
-        m_table_handler = [out_file](const Euclid::Table::Table& table) {
-          std::ofstream out_stream {out_file};
-          Euclid::Table::AsciiWriter{out_stream}.addData(table);
-        };
+        table_writer = std::make_shared<Euclid::Table::AsciiWriter>(out_file);
         break;
     }
   } else {
-    m_table_handler = [](const Euclid::Table::Table& table) {
-      Euclid::Table::AsciiWriter{std::cout}.addData(table);
-    };
+    table_writer = std::make_shared<Euclid::Table::AsciiWriter>(std::cout);
   }
+
+  m_table_handler = [table_writer](const Euclid::Table::Table& table) {
+    try {
+      table_writer->addData(table);
+    }
+    // This one doesn't inherit from std::exception, so wrap it up here
+    catch (const CCfits::FitsException &e) {
+      throw Elements::Exception(e.message());
+    }
+  };
 }
 
 } // SourceXtractor namespace
