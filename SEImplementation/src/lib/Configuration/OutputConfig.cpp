@@ -78,10 +78,9 @@ void OutputConfig::initialize(const UserValues& args) {
   
   auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
   m_format = format_map.at(format);
-  m_flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
-  if (m_flush_size < 0) {
-    m_flush_size = 0;
-  }
+
+  int flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
+  m_flush_size = (flush_size >= 0) ? flush_size : 0;
 }
 
 std::string OutputConfig::getOutputFile() {

@@ -41,13 +41,14 @@ public:
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);
     }
-    auto written = m_rows.size();
+    m_total_rows_written += m_rows.size();
     m_rows.clear();
-    return written;
+    return m_total_rows_written;
   }
   
   TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler, size_t flush_size)
-          : m_source_to_row(source_to_row), m_table_handler(table_handler), m_flush_size(flush_size) {
+          : m_source_to_row(source_to_row), m_table_handler(table_handler),
+            m_flush_size(flush_size), m_total_rows_written(0) {
   }
 
   void outputSource(const SourceInterface& source) override {
@@ -62,6 +63,7 @@ private:
   TableHandler m_table_handler;
   std::vector<Euclid::Table::Row> m_rows {};
   size_t m_flush_size;
+  size_t m_total_rows_written;
 };
 
 } /* namespace SourceXtractor */
