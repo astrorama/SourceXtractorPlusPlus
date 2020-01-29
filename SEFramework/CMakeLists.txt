@@ -112,9 +112,6 @@ elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp
 elements_add_unit_test(ImageChunk_test tests/src/Image/ImageChunk_test.cpp 
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(SimpleSource_test tests/src/Source/SimpleSource_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(TemporaryFile_test tests/src/Filesystem/TemporaryFile_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)

@@ -24,8 +24,7 @@
 #ifndef _SEFRAMEWORK_SOURCE_SIMPLESOURCEFACTORY_H_
 #define _SEFRAMEWORK_SOURCE_SIMPLESOURCEFACTORY_H_
 
-#include "SEFramework/Source/SourceFactory.h"
-#include "SEFramework/Source/SimpleSource.h"
+#include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 
 namespace SourceXtractor {
 
@@ -34,15 +33,9 @@ namespace SourceXtractor {
  * @brief A SourceFactory implementation that produces a SimpleSource
  */
 
-class SimpleSourceFactory : public SourceFactory {
-
+class SimpleSourceFactory : public SourceWithOnDemandPropertiesFactory {
 public:
-
-  SimpleSourceFactory() {}
-
-  virtual std::shared_ptr<SourceInterface> createSource() const override {
-    return std::make_shared<SimpleSource>();
-  }
+  SimpleSourceFactory(): SourceWithOnDemandPropertiesFactory(nullptr) {}
 };
 
 }

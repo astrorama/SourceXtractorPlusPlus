@@ -24,7 +24,7 @@
 #ifndef _SEFRAMEWORK_SOURCE_SOURCEWITHONDEMANDPROPERTIESFACTORY_H_
 #define _SEFRAMEWORK_SOURCE_SOURCEWITHONDEMANDPROPERTIESFACTORY_H_
 
-#include "SEFramework/Source/SourceFactory.h"
+#include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 namespace SourceXtractor {
@@ -34,12 +34,12 @@ namespace SourceXtractor {
  * @brief A SourceFactory implementation that produces a SourceWithOnDemandProperties
  */
 
-class SourceWithOnDemandPropertiesFactory : public SourceFactory {
+class SourceWithOnDemandPropertiesFactory {
 public:
   SourceWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
-  virtual std::shared_ptr<SourceInterface> createSource() const override {
+  std::shared_ptr<SourceInterface> createSource() const {
     return std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
   }
 

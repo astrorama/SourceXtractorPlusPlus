@@ -22,26 +22,12 @@
 #ifndef _SEFRAMEWORK_SOURCEGROUPFACTORY_H
 #define _SEFRAMEWORK_SOURCEGROUPFACTORY_H
 
-#include <memory>
-#include "SEFramework/Source/SourceGroupInterface.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
 namespace SourceXtractor {
 
-/**
- * @class SourceGroupFactory
- * @brief A factory interface to create SourceGroupInterface instances
- *
- */
-
-
-class SourceGroupFactory {
-public:
-  virtual ~SourceGroupFactory() = default;
-
-  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const = 0;
-};
+using SourceGroupFactory = SourceGroupWithOnDemandPropertiesFactory;
 
 }
 
 #endif /* _SEFRAMEWORK_SOURCEGROUPFACTORY_H */
-

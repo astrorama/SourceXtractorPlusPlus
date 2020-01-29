@@ -22,8 +22,7 @@
 #ifndef _SEFRAMEWORK_SIMPLESOURCEGROUPFACTORY_H
 #define _SEFRAMEWORK_SIMPLESOURCEGROUPFACTORY_H
 
-#include "SEFramework/Source/SourceGroupFactory.h"
-#include "SEFramework/Source/SimpleSourceGroup.h"
+#include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
 namespace SourceXtractor {
 
@@ -32,13 +31,10 @@ namespace SourceXtractor {
  * @brief A SourceGroupFactory implementation that produces a SimpleSourceGroupFactory
  */
 
-class SimpleSourceGroupFactory : public SourceGroupFactory {
-  
+class SimpleSourceGroupFactory : public SourceGroupWithOnDemandPropertiesFactory {
 public:
 
-  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_shared<SimpleSourceGroup>();
-  }
+  SimpleSourceGroupFactory(): SourceGroupWithOnDemandPropertiesFactory(nullptr) {}
   
 };
 

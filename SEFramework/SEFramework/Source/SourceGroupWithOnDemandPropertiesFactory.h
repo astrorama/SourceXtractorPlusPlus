@@ -22,7 +22,6 @@
 #ifndef _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H
 #define _SEFRAMEWORK_SOURCEGROUPWITHONDEMANDPROPERTIESFACTORY_H
 
-#include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 
 namespace SourceXtractor {
@@ -32,14 +31,14 @@ namespace SourceXtractor {
  * @brief A SourceGroupFactory implementation that produces a SourceGroupWithOnDemandProperties
  */
 
-class SourceGroupWithOnDemandPropertiesFactory : public SourceGroupFactory {
+class SourceGroupWithOnDemandPropertiesFactory {
   
 public:
   
   SourceGroupWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
-  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
+  std::shared_ptr<SourceGroupWithOnDemandProperties> createSourceGroup() const {
     return std::make_shared<SourceGroupWithOnDemandProperties>(m_task_provider);
   }
   

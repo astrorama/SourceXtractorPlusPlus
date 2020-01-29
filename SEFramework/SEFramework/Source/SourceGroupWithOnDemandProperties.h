@@ -28,7 +28,6 @@
 #include <type_traits>
 
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Property/PropertyHolder.h"
 
@@ -39,9 +38,23 @@ namespace SourceXtractor {
  * @brief A SourceGroupInterface implementation which used a TaskProvider to compute missing properties
  *
  */
-class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
+class SourceGroupWithOnDemandProperties: public SourceInterface {
+protected:
+  class EntangledSource;
+
+  template <typename Collection>
+  using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
+
+  // This is used to determine if a type is a kind of std::shared_ptr
+  template <class T>
+  struct is_shared_ptr : std::false_type {};
+  template <class T>
+  struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
 
 public:
+
+  typedef std::list<EntangledSource>::iterator iterator;
+  typedef std::list<EntangledSource>::const_iterator const_iterator;
   
   SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
 
@@ -50,39 +63,54 @@ public:
    */
   virtual ~SourceGroupWithOnDemandProperties() = default;
 
-  iterator begin() override;
+  iterator begin();
   
-  iterator end() override;
+  iterator end();
   
-  const_iterator cbegin() override;
+  const_iterator cbegin();
   
-  const_iterator cend() override;
+  const_iterator cend();
   
-  const_iterator begin() const override;
+  const_iterator begin() const;
   
-  const_iterator end() const override;
+  const_iterator end() const;
   
-  void addSource(std::shared_ptr<SourceInterface> source) override;
-  
-  iterator removeSource(iterator pos) override;
-  
-  void merge(const SourceGroupInterface& other) override;
-  
-  unsigned int size() const override;
+  void addSource(std::shared_ptr<SourceInterface> source);
 
+  template<typename SourceCollection>
+  void addAllSources(const SourceCollection& sources) {
+    static_assert(is_shared_ptr < CollectionType < SourceCollection >> ::value,
+                  "SourceCollection must be a collection of std::shared_ptr");
+    static_assert(std::is_base_of<SourceInterface, typename CollectionType<SourceCollection>::element_type>::value,
+                  "SourceCollection must be a collection of std::shared_ptr to SourceInterface or a type that inherits from it");
+    for (auto& source : sources) {
+      addSource(source);
+    }
+  }
+
+
+  iterator removeSource(iterator pos);
+  
+  void merge(const SourceGroupWithOnDemandProperties& other);
+  
+  unsigned int size() const;
+
+  // Note : Because the get/setProperty() methods of the SourceInterface are
+  // templated, the overrides of the non-templated versions will hide them. For
+  // this reason it is necessary to re-introduce the templated methods, which is
+  // done by the using statements below.
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 
 protected:
-  
-  const Property& getProperty(const PropertyId& property_id) const override;
+  class EntangledSource;
 
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+  const Property& getProperty(const PropertyId& property_id) const final;
+
+  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) final;
 
 private:
-  
-  class iter;
-  class EntangledSource;
+
   std::list<EntangledSource> m_sources;
   PropertyHolder m_property_holder;
   std::shared_ptr<TaskProvider> m_task_provider;
@@ -101,71 +129,26 @@ public:
 
   virtual ~EntangledSource() = default;
 
-  const Property& getProperty(const PropertyId& property_id) const override;
-
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
-  
   bool operator<(const EntangledSource& other) const;
+
+  // Note : Because the get/setProperty() methods of the SourceInterface are
+  // templated, the overrides of the non-templated versions will hide them. For
+  // this reason it is necessary to re-introduce the templated methods, which is
+  // done by the using statements below.
+  using SourceInterface::getProperty;
+  using SourceInterface::setProperty;
 
 private:
   
   PropertyHolder m_property_holder;
   std::shared_ptr<SourceInterface> m_source;
   SourceGroupWithOnDemandProperties& m_group;
-  
+
+  const Property& getProperty(const PropertyId& property_id) const override;
+  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+
   friend void SourceGroupWithOnDemandProperties::clearGroupProperties();
-  friend void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface&);
-  
-};
-
-
-class SourceGroupWithOnDemandProperties::iter : public SourceGroupInterface::IteratorImpl {
-  
-public:
-  
-  iter(std::list<EntangledSource>::iterator m_entangled_it)
-          : m_entangled_it(m_entangled_it) {
-  }
-
-  virtual ~iter() = default;
-  
-  // Note to developers
-  // The std::set provides only constant iterator, because modifying its entries
-  // might mean that their ordering (which is used internally) might change. In
-  // our case we have no such problem, because the ordering of the EntangledSource
-  // is based on the pointer address of the encapsulated Source. This allows
-  // for the following const casts, so if the user iterates over a non-const
-  // SourceGroup he will get Sources on which he can call the setProperty().
-  SourceInterface& dereference() const override {
-    return const_cast<EntangledSource&>(*m_entangled_it);
-  }
-  
-  void increment() override {
-    ++m_entangled_it;
-  }
-  
-  void decrement() override {
-    --m_entangled_it;
-  }
-  
-  bool equal(const IteratorImpl& other) const override {
-    try {
-      auto& other_iter = dynamic_cast<const iter&>(other);
-      return this->m_entangled_it == other_iter.m_entangled_it;
-    } catch (...) {
-      return false;
-    }
-  }
-
-  std::shared_ptr<IteratorImpl> clone() const override {
-    return std::make_shared<iter>(m_entangled_it);
-  }
-
-private:
-  
-  std::list<EntangledSource>::iterator m_entangled_it;
-  
-  friend SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(SourceGroupWithOnDemandProperties::iterator);
+  friend void SourceGroupWithOnDemandProperties::merge(const SourceGroupWithOnDemandProperties&);
   
 };
 
