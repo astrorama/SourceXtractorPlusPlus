@@ -87,13 +87,13 @@ jobs:
     env: OS_TYPE=centos OS_VERSION=7
     script:
       - docker run --name appbuilder --device /dev/fuse --privileged -v "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-appimage.sh"
-      - docker cp "appbuilder:/sourcextractor++-x86_64.AppImage" "."
+      - docker cp "appbuilder:/SourceXtractor++-x86_64.AppImage" "."
     deploy:
       provider: releases
       on:
         tags: true
       api_key: $GITHUB_OAUTH_TOKEN
-      file: sourcextractor++-x86_64.AppImage
+      file: SourceXtractor++-x86_64.AppImage
       skip_cleanup: true
 
 # Clean up rpms unless they are from master or develop
