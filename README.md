@@ -6,6 +6,8 @@
 
 The next generation SExtractor.
 
+Documentation: https://sourcextractorplusplus.readthedocs.io/en/latest/Introduction.html
+
 
 RPMs for Fedora and CentOS are available here:
 
