@@ -24,7 +24,7 @@
 #include "SEFramework/Aperture/FluxMeasurement.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 
@@ -104,4 +104,4 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
   return measurement;
 }
 
-} // end SExtractor
+} // end SourceXtractor

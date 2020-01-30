@@ -24,21 +24,11 @@
 #define _SEFRAMEWORK_FFT_FFT_H
 
 #include <complex>
-#include <fftw3.h>
 #include <memory>
-#include <type_traits>
-#include <vector>
+#include <fftw3.h>
 
-#include <boost/thread/shared_mutex.hpp>
 
-namespace SExtractor {
-
-/**
- * FFTW3 requires a global mutex when creating a plan. Plan executions
- * are, on the other hand, thread safe.
- */
-extern boost::mutex fftw_global_plan_mutex;
-
+namespace SourceXtractor {
 
 /**
  * @brief Wrap FFTW types and functions depending on the primitive type (float or double)
@@ -120,48 +110,7 @@ struct FFT {
    *    A pointer to a plan fit to the given dimensions. It can be safely reused between threads.
    */
   static plan_ptr_t
-  createForwardPlan(int howmany, int width, int height, std::vector<T> &in, std::vector<complex_t> &out) {
-    // Make sure the buffers are big enough
-    assert(in.size() >= static_cast<size_t>(width * height * howmany));
-    assert(out.size() >= static_cast<size_t>(width * height * howmany));
-
-    // Cache plan, as they can be reused
-    static boost::shared_mutex mutex;
-    static std::map<std::tuple<int, int, int>, plan_ptr_t> plan_cache;
-
-    boost::upgrade_lock<boost::shared_mutex> read_lock{mutex};
-
-    auto pi = plan_cache.find(std::make_tuple(howmany, width, height));
-    if (pi != plan_cache.end()) {
-      return pi->second;
-    }
-
-    // No available plan yet, so get one from FFTW
-    boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
-    boost::lock_guard<boost::mutex> lock_planner{fftw_global_plan_mutex};
-
-    int dims[] = {height, width};
-    int total_size = height * width;
-    int rank = 2; // 2D only
-    int istride = 1, ostride = 1;
-    int idist = total_size;
-    int odist = total_size;
-
-    pi = plan_cache.emplace(
-      std::make_tuple(howmany, width, height),
-      plan_ptr_t{
-        fftw_traits::func_plan_fwd(
-            rank, dims, howmany,
-            in.data(), nullptr, istride, idist,
-            reinterpret_cast<typename fftw_traits::complex_t*>(out.data()), nullptr, ostride, odist,
-            FFTW_MEASURE | FFTW_DESTROY_INPUT
-          ),
-          fftw_traits::func_destroy_plan
-        }
-    ).first;
-
-    return pi->second;
-  }
+  createForwardPlan(int howmany, int width, int height, std::vector<T> &in, std::vector<complex_t> &out);
 
   /**
    * Create, or reuses if already exists, a 2D FFTW inverse plan.
@@ -181,48 +130,7 @@ struct FFT {
    *    A pointer to a plan fit to the given dimensions. It can be safely reused between threads.
    */
   static plan_ptr_t
-  createInversePlan(int howmany, int width, int height, std::vector<complex_t> &in, std::vector<T> &out) {
-    // Make sure the buffers are big enough
-    assert(in.size() >= static_cast<size_t>(width * height * howmany));
-    assert(out.size() >= static_cast<size_t>(width * height * howmany));
-
-    // Cache plan, as they can be reused
-    static boost::shared_mutex mutex;
-    static std::map<std::tuple<int, int, int>, plan_ptr_t> plan_cache;
-
-    boost::upgrade_lock<boost::shared_mutex> read_lock{mutex};
-
-    auto pi = plan_cache.find(std::make_tuple(howmany, width, height));
-    if (pi != plan_cache.end()) {
-      return pi->second;
-    }
-
-    // No available plan yet, so get one from FFTW
-    boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
-    boost::lock_guard<boost::mutex> lock_planner{fftw_global_plan_mutex};
-
-    int dims[] = {height, width};
-    int total_size = height * width;
-    int rank = 2;
-    int istride = 1, ostride = 1;
-    int idist = total_size;
-    int odist = total_size;
-
-    pi = plan_cache.emplace(
-      std::make_tuple(howmany, width, height),
-      plan_ptr_t{
-        fftw_traits::func_plan_inv(
-            rank, dims, howmany,
-            reinterpret_cast<typename fftw_traits::complex_t*>(in.data()), nullptr, istride, idist,
-            out.data(), nullptr, ostride, odist,
-            FFTW_MEASURE | FFTW_DESTROY_INPUT
-          ),
-          fftw_traits::func_destroy_plan
-        }
-    ).first;
-
-    return pi->second;
-  }
+  createInversePlan(int howmany, int width, int height, std::vector<complex_t> &in, std::vector<T> &out);
 
   /**
    * Execute a forward Fourier Transform
@@ -233,9 +141,7 @@ struct FFT {
    * @param out
    *    A buffer *in row major order* where the transform will be stored.
    */
-  static void executeForward(plan_ptr_t &plan, std::vector<T> &in, std::vector<complex_t> &out) {
-    fftw_traits::func_execute_fwd(plan.get(), in.data(), reinterpret_cast<typename fftw_traits::complex_t*>(out.data()));
-  }
+  static void executeForward(plan_ptr_t &plan, std::vector<T> &in, std::vector<complex_t> &out);
 
   /**
    * Execute an inverse Fourier Transform
@@ -246,9 +152,7 @@ struct FFT {
    * @param out
    *    A buffer *in row major order* where the transform will be stored.
    */
-  static void executeInverse(plan_ptr_t &plan, std::vector<complex_t> &in, std::vector<T> &out) {
-    fftw_traits::func_execute_inv(plan.get(), reinterpret_cast<typename fftw_traits::complex_t*>(in.data()), out.data());
-  }
+  static void executeInverse(plan_ptr_t &plan, std::vector<complex_t> &in, std::vector<T> &out);
 };
 
 /**
@@ -265,6 +169,6 @@ struct FFT {
  */
 int fftRoundDimension(int size);
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_FFT_FFT_H

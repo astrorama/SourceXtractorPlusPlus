@@ -51,26 +51,16 @@ public:
 
   virtual ~BasicParameter();
 
-  BasicParameter(const BasicParameter&) = default;
-  BasicParameter& operator=(const BasicParameter&) = default;
-  BasicParameter(BasicParameter&&) = default;
-  BasicParameter& operator=(BasicParameter&&) = default;
+  BasicParameter(const BasicParameter&) = delete;
+  BasicParameter& operator=(const BasicParameter&) = delete;
+  BasicParameter(BasicParameter&&) = delete;
+  BasicParameter& operator=(BasicParameter&&) = delete;
 
   /*
    * @brief Getter to access the private parameter value
    */
-  double getValue() const {
-    /**
-     * This is a terrible hack to allow DependentParameter to be evaluated lazily while respecting
-     * the API of ModelFitting. BasicParameter can, and is, passed around by value, which implies we need to
-     * reinvent the "virtual wheel" if we want to change the behaviour of this method.
-     * Models do not rely on getValue, as they use ReferenceUpdater instead, so this hack should not affect
-     * the performance of the model fitting.
-     */
-    if (m_get_value_hook) {
-      m_get_value_hook();
-    }
-    return *m_value;
+  virtual double getValue() const {
+    return m_value;
   }
 
   /**
@@ -91,21 +81,21 @@ protected:
   GetValueHook m_get_value_hook;
 
   BasicParameter(const double value) :
-      m_value {new double{value}} {
+      m_value(value) {
   }
 
   /*
    * @brief Setter for the new value, which also notify the
    * observers, by calling them with the new value.
    */
-  void setValue(const double new_value);
+  virtual void setValue(const double new_value);
+
+protected:
+  double m_value;
 
 private:
-
-  std::shared_ptr<double> m_value;
-  std::shared_ptr<std::map<std::size_t, ParameterObserver>> m_observer_map {
-                                    new std::map<std::size_t, ParameterObserver>{}};
-  std::shared_ptr<std::size_t> m_last_obs_id {new std::size_t{0}};
+  std::map<std::size_t, ParameterObserver> m_observer_map;
+  std::size_t m_last_obs_id = 0;
 };
 
 }

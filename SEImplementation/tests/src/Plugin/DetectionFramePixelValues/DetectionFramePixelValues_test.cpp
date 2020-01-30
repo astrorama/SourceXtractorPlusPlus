@@ -31,7 +31,7 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct DetectionFramePixelValuesFixture {
   SimpleSource source;

@@ -28,14 +28,14 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace ExternalFlagCombineTypes {
-class Or;
-class And;
-class Min;
-class Max;
-class Most;
+struct Or;
+struct And;
+struct Min;
+struct Max;
+struct Most;
 }
 
 /**
@@ -48,7 +48,7 @@ class ExternalFlagTask : public SourceTask {
   
 public:
   
-  virtual ~ExternalFlagTask() = default;
+  virtual ~ExternalFlagTask();
   
   ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance);
 
@@ -76,7 +76,7 @@ using ExternalFlagTaskMax = ExternalFlagTask<ExternalFlagCombineTypes::Max>;
 extern template class ExternalFlagTask<ExternalFlagCombineTypes::Most>;
 using ExternalFlagTaskMost = ExternalFlagTask<ExternalFlagCombineTypes::Most>;
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

@@ -30,9 +30,10 @@
 #include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,

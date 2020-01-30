@@ -28,7 +28,7 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Source/SourceFlags.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 struct FluxMeasurement {
   SeFloat m_flux;
@@ -94,6 +94,6 @@ void fillAperture(const std::shared_ptr<Aperture> &aperture, SeFloat centroid_x,
   }
 }
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_MEASUREFLUX_H

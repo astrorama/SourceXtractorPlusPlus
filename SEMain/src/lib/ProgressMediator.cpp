@@ -21,11 +21,9 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <ctime>
-#include <iomanip>
 #include "SEMain/ProgressMediator.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class ProgressMediator::ProgressCounter : public Observer<SegmentationProgress> {
 public:
@@ -112,4 +110,4 @@ void ProgressMediator::done() {
   this->DoneObservable::notifyObservers(true);
 }
 
-} // end SExtractor
+} // end SourceXtractor

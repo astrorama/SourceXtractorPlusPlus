@@ -39,6 +39,6 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/NDetectedPixels/NDetectedPixelsPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
   static StaticPlugin<NDetectedPixelsPlugin> n_detected_pixels;
 }

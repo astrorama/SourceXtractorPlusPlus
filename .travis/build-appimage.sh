@@ -6,12 +6,18 @@ source /etc/os-release
 
 CMAKEFLAGS="-DINSTALL_DOC=ON -DRPM_NO_CHECK=OFF"
 
-if [ $NAME == 'Fedora' ] && [ $VERSION_ID -ge 30 ]; then
-  PYTHON="python3"
-  PIP="pip3" 
-else
+if [ "$ID" == 'fedora' ]; then
+  if [ "$VERSION_ID" -ge 30 ]; then
+      PYTHON="python3"
+      PYTHON_ENUM="python-enum"
+  else
+      PYTHON="python2"
+      PYTHON_ENUM="python2-enum34"
+  fi
+elif [ "$ID" == "centos" ]; then
   PYTHON="python2"
-  PIP="pip2"
+  PYTHON_ENUM="python2-enum34"
+  yum install -y epel-release
 fi
 
 
@@ -19,50 +25,35 @@ fi
 cat > /etc/yum.repos.d/astrorama.repo << EOF
 [bintray--astrorama-fedora]
 name=bintray--astrorama-fedora
-baseurl=https://dl.bintray.com/astrorama/travis/master/fedora/\$releasever/\$basearch
+baseurl=https://dl.bintray.com/astrorama/travis/master/${ID}/\$releasever/\$basearch
 gpgcheck=0
 repo_gpgcheck=0
 enabled=1
 EOF
 
-# Install pip, virtualenv, fuse and which
-yum install -y ${PYTHON}-pip python3-virtualenv fuse-libs which
-
-# Install sextractor from rpms
-yum install -y SExtractorxx
+# Install some dependencies for this script and linuxdeploy
+yum install -y fuse-libs which file
 
 # Download linuxdeploy
 curl -OL 'https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage'
 chmod a+x 'linuxdeploy-x86_64.AppImage'
 
-# Create a virtualenv with the dependencies
-# are self-contained
+# Create a virtualenv with the dependencies are self-contained
 APPDIR=`mktemp -d`
-virtualenv --clear --no-pip --no-wheel --no-setuptools --python="${PYTHON}" "${APPDIR}"
-source "${APPDIR}/bin/activate"
 
-"${PIP}" --isolated install --ignore-installed --prefix "/usr" --root "${APPDIR}" astropy
+# Install sourcextractor++, and dependencies, there
+yum install -y SourceXtractorPlusPlus ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
 
-deactivate
+# Copy Python into the AppImage, and some of its dependencies
+mkdir -p "${APPDIR}/usr/lib64"
+mkdir -p "${APPDIR}/usr/lib"
+cp -vr /usr/lib64/python* "${APPDIR}/usr/lib64"
+cp -vr /usr/lib/python* "${APPDIR}/usr/lib"
 
-virtualenv --relocatable "${APPDIR}"
-
-sed -i 's/VIRTUAL_ENV=.*/VIRTUAL_ENV="${APPIMAGE_MOUNT}"/g' "${APPDIR}/bin/activate"
-
-# virtualenv create symlinks to the system Python installation
-# Replace them with the actual content
-# virtualenv has --always-copy, but it is quite buggy and the result ends being unusable
-PYTHONDIRNAME="$(ls -1 ${APPDIR}/usr/lib64/ | grep '^python')"
-for symlink in $(find "${APPDIR}/lib/${PYTHONDIRNAME}" -type l); do
-    original="$(readlink "${symlink}")"
-    echo "Replacing symlink with copy ${symlink} => ${original}"
-    rm -f "${symlink}"
-    cp -rfv "${original}" "${symlink}"
-done
-
-# These files are missing for some reason ¯\_(ツ)_/¯
-DISTUTILSDIR="$(dirname "$(${PYTHON} -c 'import distutils; print(distutils.__file__)')")"
-cp -vf ${DISTUTILSDIR}/*.py "${APPDIR}/lib/${PYTHONDIRNAME}/distutils"
+./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -e "$(which ${PYTHON})"
+ls /usr/lib64/atlas/* | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
+ls /usr/lib64/liberfa.so.1 | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
+ls /usr/lib64/python2.7/lib-dynload/*.so | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
 
 # Bundle
 SRCDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../"
@@ -71,14 +62,14 @@ SCRIPTDIR="${SRCDIR}/SEMain/scripts/"
 
 ./linuxdeploy-x86_64.AppImage \
     --appdir "${APPDIR}" \
-    -d "${RSCDIR}/sextractor++.desktop" -i "${RSCDIR}/sextractor++.png" \
+    -d "${RSCDIR}/sourcextractor++.desktop" -i "${RSCDIR}/sourcextractor++.png" \
     --custom-apprun="${SCRIPTDIR}/AppRun" \
-    -e $(which sextractor++) \
+    -e "/usr/bin/sourcextractor++" \
     -o appimage
 
 # Try it
 unset PYTHONPATH
-./sextractor++-x86_64.AppImage --version
+./SourceXtractor++-x86_64.AppImage --version
 if [[ $? != 0 ]]; then
     echo "Failed to build the AppImage!"
     exit 1

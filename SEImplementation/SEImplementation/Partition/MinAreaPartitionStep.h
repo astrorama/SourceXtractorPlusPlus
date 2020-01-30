@@ -25,7 +25,7 @@
 
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class MinAreaPartitionStep
@@ -51,7 +51,7 @@ private:
 
 }; /* End of MinAreaPartitionStep class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

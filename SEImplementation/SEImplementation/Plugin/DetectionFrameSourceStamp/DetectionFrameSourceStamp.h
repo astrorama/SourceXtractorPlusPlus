@@ -26,7 +26,7 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFrameSourceStamp
@@ -44,17 +44,24 @@ public:
 
   DetectionFrameSourceStamp(std::shared_ptr<DetectionImage> stamp,
       std::shared_ptr<DetectionImage> thresholded_stamp, PixelCoordinate top_left,
-      std::shared_ptr<WeightImage> variance_stamp) :
+      std::shared_ptr<WeightImage> variance_stamp, std::shared_ptr<DetectionImage> threshold_map_stamp) :
         m_stamp(stamp), m_thresholded_stamp(thresholded_stamp),
-        m_variance_stamp(variance_stamp), m_top_left(top_left) {}
+        m_threshold_map_stamp(threshold_map_stamp), m_variance_stamp(variance_stamp),
+        m_top_left(top_left) {}
 
   // Returns the stamp image
   const DetectionImage& getStamp() const {
     return *m_stamp;
   }
 
+  // Returns the filtered and thresholded stamp image
   const DetectionImage& getThresholdedStamp() const {
     return *m_thresholded_stamp;
+  }
+
+  // Returns the threshold map stamp
+  const DetectionImage& getThresholdMapStamp() const {
+    return *m_threshold_map_stamp;
   }
 
   // Returns the stamp's associated weight image
@@ -68,13 +75,14 @@ public:
 
 private:
   std::shared_ptr<DetectionImage> m_stamp, m_thresholded_stamp;
+  std::shared_ptr<DetectionImage> m_threshold_map_stamp;
   std::shared_ptr<WeightImage> m_variance_stamp;
   PixelCoordinate m_top_left;
 
 }; /* End of DetectionFrameSourceStamp class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

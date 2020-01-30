@@ -27,7 +27,7 @@
 
 #include "SEFramework/Task/GroupTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFrameGroupStampTask

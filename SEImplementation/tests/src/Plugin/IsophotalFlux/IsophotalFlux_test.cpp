@@ -26,13 +26,14 @@
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SimpleSource.h"
+#include "SEFramework/Image/ConstantImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct IsophotalFluxFixture {
   SimpleSource source;

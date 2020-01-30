@@ -14,34 +14,38 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MoffatModelFittingUtils.h
- *
- *  Created on: 2019 M02 20
- *      Author: mschefer
+/**
+ * @file SEMain/SourceXtractorConfig.h
+ * @date 07/20/16
+ * @author nikoapos
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_
-#define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_
+#ifndef _SEMAIN_SOURCEXTRACTORCONFIG_H
+#define _SEMAIN_SOURCEXTRACTORCONFIG_H
 
-#include "ModelFitting/Models/ExtendedModel.h"
-#include "SEFramework/Source/SourceInterface.h"
+#include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-class MoffatModelEvaluator {
+/**
+ * @class SourceXtractorConfig
+ * @brief
+ *
+ */
+class SourceXtractorConfig : public Euclid::Configuration::Configuration {
+
 public:
-  MoffatModelEvaluator(const SourceInterface& source);
-  double getValue(double x, double y) const {
-    return m_model->getValue(x, y);
-  }
 
-private:
-  std::shared_ptr<ModelFitting::ExtendedModel> m_model;
-};
+  /**
+   * @brief Destructor
+   */
+  virtual ~SourceXtractorConfig() = default;
 
-//ModelFitting::ExtendedModel createMoffatModel();
+  SourceXtractorConfig(long manager_id);
 
-}
+}; /* End of SourceXtractorConfig class */
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGUTILS_H_ */
+} /* namespace SourceXtractor */
+
+
+#endif

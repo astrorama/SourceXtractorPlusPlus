@@ -30,7 +30,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string MTHRESH_USE {"partition-multithreshold"};
 static const std::string MTHRESH_THRESHOLDS_NB {"partition-threshold-count"};
@@ -50,8 +50,6 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
       {MTHRESH_MIN_AREA.c_str(), po::value<int>()->default_value(3), "min area in pixels to consider partitioning"},
       {MTHRESH_MIN_CONTRAST.c_str(), po::value<double>()->default_value(0.005), "min contrast of for partitioning"}
   }}};
-
-  return {};
 }
 
 void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
@@ -75,4 +73,4 @@ void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
   }
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

@@ -23,10 +23,7 @@
 
 #include "SEFramework/Aperture/EllipticalAperture.h"
 
-namespace SExtractor {
-
-// enhancing from 5 to 10 smoothens the photometry
-const int SUPERSAMPLE_AUTO_NB = 10;
+namespace SourceXtractor {
 
 
 EllipticalAperture::EllipticalAperture(SeFloat cxx, SeFloat cyy, SeFloat cxy,
@@ -71,4 +68,4 @@ PixelCoordinate EllipticalAperture::getMaxPixel(SeFloat centroid_x, SeFloat cent
   return PixelCoordinate(centroid_x + dx + 1, centroid_y + dy + 1);
 }
 
-} // end SExtractor
+} // end SourceXtractor

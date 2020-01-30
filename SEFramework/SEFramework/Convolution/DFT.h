@@ -33,7 +33,7 @@
 #include <boost/thread/shared_mutex.hpp>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * Convolution strategy based on the Discrete Fourier Transform
@@ -233,6 +233,6 @@ private:
   std::shared_ptr<const Image<T>> m_kernel;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_CONVOLUTION_DFT_H

@@ -26,7 +26,7 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameRectanglePlugin : public Plugin {
 
@@ -41,6 +41,6 @@ private:
 
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLEPLUGIN_H_

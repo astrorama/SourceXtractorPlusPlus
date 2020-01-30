@@ -36,7 +36,6 @@
 #include "ModelFitting/Image/ImageTraits.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/MultiplyImage.h"
 
 #ifdef __APPLE__
 #define sincosf __sincosf
@@ -48,9 +47,9 @@ namespace ModelFitting {
 typedef enum  {INTERP_NEARESTNEIGHBOUR, INTERP_BILINEAR, INTERP_LANCZOS2,
     INTERP_LANCZOS3, INTERP_LANCZOS4}       interpenum;
 
-using ImageInterfaceType = SExtractor::VectorImage<SExtractor::SeFloat>;
+using ImageInterfaceType = SourceXtractor::VectorImage<SourceXtractor::SeFloat>;
 using ImageInterfaceTypePtr = std::shared_ptr<ImageInterfaceType>;
-using WriteableInterfaceType = SExtractor::WriteableImage<SExtractor::SeFloat>;
+using WriteableInterfaceType = SourceXtractor::WriteableImage<SourceXtractor::SeFloat>;
 using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 
 
@@ -226,7 +225,7 @@ struct ImageTraits<ImageInterfaceTypePtr> {
   using iterator = std::vector<ImageInterfaceType::PixelType>::iterator;
 
   static ImageInterfaceTypePtr factory(std::size_t width, std::size_t height) {
-    return SExtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
+    return SourceXtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
   }
 
   static std::size_t width(const ImageInterfaceTypePtr& image) {

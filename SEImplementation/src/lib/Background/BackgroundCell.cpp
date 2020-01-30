@@ -29,7 +29,7 @@
 #include "SEImplementation/Background/BackgroundHistogram.h"
 #include "SEImplementation/Background/BackgroundCell.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 BackgroundCell::BackgroundCell(const PIXTYPE* cellData, const size_t ndata, const PIXTYPE* cellWeight, const PIXTYPE weightThresh)
 {
@@ -167,8 +167,7 @@ void BackgroundCell::getBackgroundValuesOld(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
   theHisto->getBackGuess(bckVal, sigmaVal);
 
   // release the memory
-  if (theHisto)
-    delete theHisto;
+  delete theHisto;
 
   return;
 }
@@ -204,7 +203,6 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
   // compute mean and sigma of all data
   if (statNData<=0){
-    //Utils::throwElementsException(std::string("Can not compute meaningful stats with statNData=")+tostr(statNData)+std::string("!"));
     throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
   }
   mean /= (double)statNData;
@@ -233,6 +231,10 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
   // compute mean and sigma
   // in the restricted range
+  if (statNData<=0){
+    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
+  }
+
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
   sigma = sigma>0.0 ? sqrt(sigma):0.0;
@@ -341,4 +343,4 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   weightSigma = weightSigma/statNWeight - weightMean*weightMean;
   weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
 }
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

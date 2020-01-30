@@ -27,7 +27,7 @@
 #include <memory>
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class GroupingConfig
@@ -62,12 +62,17 @@ public:
     return m_moffat_threshold;
   }
 
+  double getMoffatMaxDistance() const {
+    return m_moffat_max_distance;
+  }
+
 private:
   Algorithm m_selected_algorithm;
   double m_moffat_threshold;
+  double m_moffat_max_distance;
 
 }; /* End of GroupingConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_CONFIGURATION_GROUPINGCONFIG_H_ */

@@ -22,7 +22,7 @@
 
 #include "SEFramework/Pipeline/Deblending.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Deblending::Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps)
   : m_deblend_steps(std::move(deblend_steps)) {

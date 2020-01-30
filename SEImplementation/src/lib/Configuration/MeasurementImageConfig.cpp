@@ -22,9 +22,8 @@
 #include <utility>
 #include <limits>
 
-#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/python.hpp>
+#include <boost/python/extract.hpp>
 #include <boost/tokenizer.hpp>
 
 #include <ElementsKernel/Logging.h>
@@ -32,8 +31,7 @@
 #include <SEUtils/Python.h>
 
 #include <SEFramework/Image/BufferedImage.h>
-#include <SEFramework/Image/MultiplyImage.h>
-#include <SEFramework/FITS/FitsReader.h>
+#include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/FITS/FitsImageSource.h>
 
 #include <SEImplementation/CoordinateSystem/WCS.h>
@@ -48,7 +46,7 @@ using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
 namespace py = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 MeasurementImageConfig::MeasurementImageConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
@@ -142,7 +140,6 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
         threshold = threshold * threshold;
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
-        threshold = threshold;
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
         if (threshold>0)
@@ -254,4 +251,4 @@ void MeasurementImageConfig::initialize(const UserValues&) {
   }
 }
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor

@@ -19,22 +19,26 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <string>
+#include "ElementsKernel/Logging.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
+#include "SEImplementation/PythonConfig/ObjectInfo.h"
+#include "SEImplementation/Configuration/PythonConfig.h"
+#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include "SEUtils/Python.h"
 
-#include <ElementsKernel/Logging.h>
-#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
-#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h>
-#include <SEImplementation/PythonConfig/ObjectInfo.h>
-#include <SEImplementation/Configuration/PythonConfig.h>
-#include <SEImplementation/Configuration/ModelFittingConfig.h>
-#include <SEUtils/Python.h>
+#include <string>
+#include <boost/python/extract.hpp>
+#include <boost/python/object.hpp>
+#include <boost/python/tuple.hpp>
+
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * Wrap py::extract *and* the call so Python errors can be properly translated and logged
@@ -276,6 +280,10 @@ void ModelFittingConfig::initializeInner() {
   m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
 
   auto parameters = getDependency<PythonConfig>().getInterpreter().getModelFittingParams();
+  m_least_squares_engine = py::extract<std::string>(parameters["engine"]);
+  if (m_least_squares_engine.empty()) {
+    m_least_squares_engine = "levmar";
+  }
   m_max_iterations = py::extract<int>(parameters["max_iterations"]);
   m_modified_chi_squared_scale = py::extract<double>(parameters["modified_chi_squared_scale"]);
 }

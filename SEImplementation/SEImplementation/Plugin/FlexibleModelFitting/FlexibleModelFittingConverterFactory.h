@@ -31,13 +31,14 @@ namespace ModelFitting {
   class CoordinateConverter;
 }
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SourceInterface;
 
 
 class FlexibleModelFittingConverterFactory {
 public:
+  virtual ~FlexibleModelFittingConverterFactory() = default;
   virtual std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const = 0;
 };
 

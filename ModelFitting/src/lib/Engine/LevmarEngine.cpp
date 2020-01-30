@@ -23,50 +23,55 @@
 #include <cmath>
 #include <mutex>
 
-#ifndef WITHOUT_LEVMAR
 #include <levmar.h>
-#endif
-
+#include <ElementsKernel/Exception.h>
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 
-#include <iostream>
-#include <ElementsKernel/Exception.h>
 
 namespace ModelFitting {
+
+static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
+  return std::make_shared<LevmarEngine>(max_iterations);
+}
+
+static LeastSquareEngineManager::StaticEngine levmar_engine{"levmar", createLevmarEngine};
 
 LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
                double epsilon2, double epsilon3, double delta)
       : m_itmax{itmax}, m_opts{tau, epsilon1, epsilon2, epsilon3, delta} { }
-      
+
 LevmarEngine::~LevmarEngine() = default;
 
-// The Levmar library seems to have some problems with multithreading, this mutex is used to ensure only one thread
-// in levmar
+
+#ifdef LINSOLVERS_RETAIN_MEMORY
+// If the Levmar library is not configured for multithreading, this mutex is used to ensure only one thread
+// at a time can enter levmar
 namespace {
   std::mutex levmar_mutex;
 }
+#endif
 
 LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_manager,
                                               ResidualEstimator& residual_estimator) {
-
-#ifdef WITHOUT_LEVMAR
-  throw Elements::Exception() << "Binary compiled without Levmar! No model fitting possible";
-#else
   // Create a tuple which keeps the references to the given manager and estimator
   auto adata = std::tie(parameter_manager, residual_estimator);
 
   // The function which is called by the levmar loop
   auto levmar_res_func = [](double *p, double *hx, int, int, void *extra) {
+#ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.unlock();
-
+#endif
     auto* extra_ptr = (decltype(adata)*)extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(p);
     ResidualEstimator& re = std::get<1>(*extra_ptr);
     re.populateResiduals(hx);
 
+#ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.lock();
-  };
+#endif
+    };
 
   // Create the vector which will be used for keeping the parameter values
   // and initialize it to the current values of the parameters
@@ -78,7 +83,9 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 
   std::vector<double> covariance_matrix (parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
 
+#ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.lock();
+#endif
   // Call the levmar library
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
                          param_values.data(), // The pointer where the parameter values are
@@ -92,8 +99,10 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          covariance_matrix.data(),
                          &adata // No additional data needed
                         );
+#ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.unlock();
-  
+#endif
+
   // Create and return the summary object
   LeastSquareSummary summary {};
 
@@ -106,7 +115,6 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   summary.iteration_no = info[5];
   summary.underlying_framework_info = info;
   return summary;
-#endif
 }
 
 } // end of namespace ModelFitting

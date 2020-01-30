@@ -31,7 +31,7 @@
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEUtils/TestUtils.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 /**
  * No Transformation is done: 1 to 1

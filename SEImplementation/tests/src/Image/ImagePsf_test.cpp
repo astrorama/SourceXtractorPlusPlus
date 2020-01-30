@@ -25,7 +25,7 @@
 
 #include "SEImplementation/Image/ImagePsf.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

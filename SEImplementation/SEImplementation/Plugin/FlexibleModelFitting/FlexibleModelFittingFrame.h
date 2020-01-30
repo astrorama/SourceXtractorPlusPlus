@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class FlexibleModelFittingFrame {
 public:

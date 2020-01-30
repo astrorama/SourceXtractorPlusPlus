@@ -23,10 +23,10 @@
 #define _SEIMPLEMENTATION_PYAPERTURE_H
 
 #include <vector>
-#include <boost/python.hpp>
+#include <boost/python/list.hpp>
 #include "SEImplementation/PythonConfig/PyId.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 class PyAperture : public PyId {

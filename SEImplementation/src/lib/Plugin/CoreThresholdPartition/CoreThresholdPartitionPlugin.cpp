@@ -15,37 +15,15 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file SEMain/SExtractorConfig.h
- * @date 07/20/16
- * @author nikoapos
- */
-
-#ifndef _SEMAIN_SEXTRACTORCONFIG_H
-#define _SEMAIN_SEXTRACTORCONFIG_H
-
-#include "Configuration/Configuration.h"
-
-namespace SExtractor {
-
-/**
- * @class SExtractorConfig
- * @brief
+ * @file CoreThresholdPartitionPlugin.cpp
  *
+ * @date May 27, 2019
+ * @author mkuemmel@usm.lmu.de
  */
-class SExtractorConfig : public Euclid::Configuration::Configuration {
 
-public:
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionPlugin.h"
 
-  /**
-   * @brief Destructor
-   */
-  virtual ~SExtractorConfig() = default;
-
-  SExtractorConfig(long manager_id);
-
-}; /* End of SExtractorConfig class */
-
-} /* namespace SExtractor */
-
-
-#endif
+namespace SourceXtractor {
+  static StaticPlugin<CoreThresholdPartitionPlugin> n_core_pixels;
+}

@@ -27,7 +27,7 @@
 #include <SEFramework/Image/VectorImage.h>
 #include "SEFramework/Property/PropertyHolder.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 /**

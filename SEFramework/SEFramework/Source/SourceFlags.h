@@ -28,7 +28,7 @@
 #include <vector>
 #include <stdint.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /// Flagging of bad sources
 enum class Flags : int64_t {
@@ -76,6 +76,6 @@ inline std::vector<int64_t> flags2long(const std::vector<Flags> &v) {
   return vl;
 }
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SOURCE_SOURCEFLAGS_H_

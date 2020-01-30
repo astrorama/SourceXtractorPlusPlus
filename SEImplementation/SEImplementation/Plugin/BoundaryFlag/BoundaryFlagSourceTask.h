@@ -44,7 +44,7 @@
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BoundaryFlagSourceTask : public SourceTask {
 public:
@@ -80,7 +80,7 @@ private:
   unsigned m_instance;
 }; // End of BoundaryFlagSourceTask class
 
-} // namespace SExtractor
+} // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGSOURCETASK_H_ */
 

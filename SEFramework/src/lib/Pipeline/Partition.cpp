@@ -22,7 +22,7 @@
 
 #include "SEFramework/Pipeline/Partition.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Partition::Partition(std::vector<std::shared_ptr<PartitionStep>> steps)
   : m_steps(std::move(steps)) {

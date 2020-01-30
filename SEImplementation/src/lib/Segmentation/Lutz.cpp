@@ -21,17 +21,19 @@
  *      Author: mschefer
  */
 
-#include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/TileManager.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-
 #include "SEImplementation/Segmentation/Lutz.h"
 
-namespace SExtractor {
+#include "SEImplementation/Segmentation/LutzSegmentation.h"
+
+namespace SourceXtractor {
 
 // class Lutz
 //
@@ -64,17 +66,24 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
   std::vector<LutzStatus> ps_stack;
 
   std::unordered_map<int, PixelGroup> inc_group_map;
-
   //std::shared_ptr<VectorImage<unsigned int>> check_image=VectorImage<unsigned int>::create(image.getWidth(), image.getHeight());
 
   int lines = image.getHeight();
+  int chunk_height = TileManager::getInstance()->getTileHeight();
+  std::shared_ptr<ImageChunk<DetectionImage::PixelType>> chunk;
+
   for (int y = 0; y < lines; y++) {
     LutzStatus ps = LutzStatus::COMPLETE;
     LutzStatus cs = LutzStatus::NONOBJECT;
 
+    if (y % chunk_height == 0) {
+      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+      chunk = image.getChunk(0, y, image.getWidth(), std::min(chunk_height, lines - y));
+    }
 
+    int dy = y % chunk_height;
     for (int x=0; x < width; x++) {
-      DetectionImage::PixelType value = (x == width - 1) ? 0.0 : image.getValue(PixelCoordinate(x, y) + offset);
+      DetectionImage::PixelType value = (x == width - 1) ? 0.0 : chunk->getValue(x, dy);
 
       LutzMarker last_marker = marker[x];
       marker[x] = LutzMarker::ZERO;

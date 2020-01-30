@@ -33,7 +33,7 @@
 #include "SEImplementation/Background/BackgroundDefine.h"
 #include "SEImplementation/Background/TypedSplineModelWrapper.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class SE2BackgroundModeller {
 
@@ -73,12 +73,10 @@ private:
   PIXTYPE* itsWhtMeanVals=NULL;
   //
   // data from the input image
-  int itsBitpix=0;
-  int itsNaxis=0;
   size_t itsNaxes[2]={0,0};
 };
 
-} // end of namespace SExtractor
+} // end of namespace SourceXtractor
 
 #endif	// BACKGROUNDMODELLER_H
 

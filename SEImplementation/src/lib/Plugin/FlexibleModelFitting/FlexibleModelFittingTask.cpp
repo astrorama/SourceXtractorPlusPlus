@@ -22,7 +22,6 @@
  */
 
 #include <mutex>
-#include <SEImplementation/Image/ImagePsf.h>
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/PointModel.h"
@@ -30,9 +29,7 @@
 #include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
-
-#include "ModelFitting/Engine/ChiSquareComparator.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/LogChiSquareComparator.h"
 #include "ModelFitting/Engine/AsinhChiSquareComparator.h"
 
@@ -40,19 +37,15 @@
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
-#include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
 #include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
-#include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
-#include "SEImplementation/Plugin/SourceIDs/SourceID.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
@@ -60,7 +53,7 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 using namespace ModelFitting;
 
@@ -106,11 +99,13 @@ void printLevmarInfo(std::array<double, 10> info) {
 
 }
 
-FlexibleModelFittingTask::FlexibleModelFittingTask(unsigned int max_iterations, double modified_chi_squared_scale,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
-                                                   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
-  : m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
+FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squares_engine,
+    unsigned int max_iterations, double modified_chi_squared_scale,
+    std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
+    std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
+    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
+  : m_least_squares_engine(least_squares_engine),
+    m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
     m_parameters(parameters), m_frames(frames), m_priors(priors) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
@@ -172,7 +167,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   return weight;
 }
 
-FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> FlexibleModelFittingTask::createFrameModel(
+FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> FlexibleModelFittingTask::createFrameModel(
   SourceGroupInterface& group,
   double pixel_scale, FlexibleModelFittingParameterManager& manager,
   std::shared_ptr<FlexibleModelFittingFrame> frame) const {
@@ -206,7 +201,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> Flexible
   }
 
   // Full frame model with all sources
-  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SExtractor::SeFloat>>> frame_model(
+  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
     std::move(constant_models), std::move(point_models), std::move(extended_models), group_psf);
 
@@ -304,8 +299,8 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   }
 
   // Model fitting
-  LevmarEngine engine{m_max_iterations, 1E-6, 1E-6, 1E-6, 1E-6, 1E-4};
-  auto solution = engine.solveProblem(engine_parameter_manager, res_estimator);
+  auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
+  auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
   size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
 
   int total_data_points = 0;

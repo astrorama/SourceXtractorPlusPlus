@@ -30,7 +30,7 @@
 #include "TestHelper.h"
 
 using namespace ModelFitting;
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 
 //-----------------------------------------------------------------------------
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_SUITE (RotatedModelComponent_test)
 BOOST_AUTO_TEST_CASE (RotatedModelComponent_noop_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter rotation{0.};
+  auto rotation = std::make_shared<ManualParameter>(0.);
   RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
   auto target = raster(rotated_model_component, 5);
 
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE (RotatedModelComponent_noop_test) {
 BOOST_AUTO_TEST_CASE (RotatedModelComponent_90_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter rotation{M_PI / 2};
+  auto rotation = std::make_shared<ManualParameter>(M_PI / 2);
   RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
   auto target = raster(rotated_model_component, 5);
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE (RotatedModelComponent_90_test) {
 BOOST_AUTO_TEST_CASE (RotatedModelComponent_45_test) {
   auto linear_model_component = make_unique<LinearModelComponent>(3., 1., LinearModelComponent::Decay::X_AXIS);
 
-  ManualParameter rotation{M_PI / 4};
+  auto rotation = std::make_shared<ManualParameter>(M_PI / 4);
   RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
   auto target = raster(rotated_model_component, 5);
 
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE (RotatedModelComponent_45_circular_test) {
 
   BOOST_CHECK(compareCollections(expected, reference, 1e-8, 1e-2));
 
-  ManualParameter rotation{M_PI / 4};
+  auto rotation = std::make_shared<ManualParameter>(M_PI / 4);
   RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
   auto target = raster(rotated_model_component, 5);
 
@@ -136,7 +136,7 @@ BOOST_AUTO_TEST_CASE (RotatedModelComponent_45_sharp_test) {
 
   BOOST_CHECK(compareCollections(expected, reference, 1e-8, 1e-2));
 
-  ManualParameter rotation{M_PI / 4};
+  auto rotation = std::make_shared<ManualParameter>(M_PI / 4);
   RotatedModelComponent rotated_model_component(std::move(linear_model_component), rotation);
   auto target = raster(rotated_model_component, 5);
 

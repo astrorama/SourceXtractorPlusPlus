@@ -27,7 +27,7 @@
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class DetectionFramePixelValuesTask
@@ -52,7 +52,7 @@ public:
 
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

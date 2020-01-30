@@ -31,7 +31,7 @@
 
 #include "SEFramework/Configuration/Configurable.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class OutputRegistry;
 class TaskFactory;

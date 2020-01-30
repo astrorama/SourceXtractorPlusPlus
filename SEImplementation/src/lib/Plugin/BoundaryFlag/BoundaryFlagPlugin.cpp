@@ -39,6 +39,6 @@
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
   static StaticPlugin<BoundaryFlagPlugin> boundary_flag;
 }

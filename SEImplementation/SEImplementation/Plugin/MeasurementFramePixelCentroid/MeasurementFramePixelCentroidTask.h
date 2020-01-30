@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/SourceTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class MeasurementFramePixelCentroidTask
@@ -53,7 +53,7 @@ private:
 }; /* End of MeasurementFramePixelCentroidTask class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

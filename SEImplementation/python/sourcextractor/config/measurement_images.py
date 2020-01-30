@@ -23,7 +23,7 @@ import sys
 
 from astropy.io import fits
 
-import _SExtractorPy as cpp
+import _SourceXtractorPy as cpp
 
 if sys.version_info.major < 3:
     from StringIO import StringIO
@@ -36,7 +36,7 @@ measurement_images = {}
 
 class MeasurementImage(cpp.MeasurementImage):
     """
-    A MeasurementImage is the processing unit for SExtractor++. Measurements and model fitting can be done
+    A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
 
     Parameters
@@ -105,6 +105,9 @@ class MeasurementImage(cpp.MeasurementImage):
                                                os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
+        if image_hdu <= 0 or (weight_hdu is not None and weight_hdu <= 0) or (psf_hdu is not None and psf_hdu <= 0):
+            raise ValueError('HDU indexes start at 1')
+
         self.meta = {
             'IMAGE_FILENAME': self.file,
             'PSF_FILENAME': self.psf_file,
@@ -114,6 +117,8 @@ class MeasurementImage(cpp.MeasurementImage):
         hdu_meta = hdu_list[image_hdu-1].header
         for key in hdu_meta:
             self.meta[key] = hdu_meta[key]
+            
+        self._load_header_file(fits_file, image_hdu)
 
         if gain is not None:
             self.gain = gain
@@ -167,6 +172,30 @@ class MeasurementImage(cpp.MeasurementImage):
 
         global measurement_images
         measurement_images[self.id] = self
+        
+    # overrides the FITS headers using an ascii .head file if it can be found
+    def _load_header_file(self, filename, hdu):
+        pre, ext = os.path.splitext(filename)
+        header_file = pre + ".head"
+        current_hdu = 1
+        
+        if os.path.exists(header_file):
+            print("processing ascii header file: " + header_file)
+            
+            with open(header_file) as f:
+                for line in f:
+                    line = re.sub("\\s*#.*", "", line)
+                    line = re.sub("\\s*$", "", line)
+                    
+                    if line == "":
+                        continue
+                    
+                    if line.upper() == "END":
+                        current_hdu += 1
+                    elif current_hdu == hdu:
+                        m = re.match("(.+)=(.+)", line)
+                        if m:
+                            self.meta[m.group(1)] = m.group(2)
 
     def __str__(self):
         """
@@ -215,7 +244,8 @@ class ImageGroup(object):
         self.__images = []
         self.__subgroups = None
         self.__subgroup_names = set()
-        assert len(kwargs) == 1
+        if len(kwargs) != 1 or ('images' not in kwargs and 'subgroups' not in kwargs):
+            raise ValueError('ImageGroup only takes as parameter one of "images" or "subgroups"')
         key = list(kwargs.keys())[0]
         if key == 'images':
             if isinstance(kwargs[key], list):
@@ -424,175 +454,102 @@ class ImageCacheEntry(object):
 
 _image_cache = {}
 
+def load_fits_image(image, psf=None, weight=None, **kwargs):
+    """Creates an image group with the images of a (possibly multi-HDU) single FITS file.
+    
+    If image is multi-hdu, psf and weight can either be multi hdu or lists of individual files.
+ 
+    In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.
+ 
+    :param image: The FITS file containing the image(s)
+    :param psf: psf file or list of psf files
+    :param weight: FITS file for the weight image or a list of such files
 
-def load_fits_image(im, **kwargs):
-    """Returns a new MeasurementImage, or an existing one if the image was already loaded.
-
-    If the image was loaded previously, then the arguments will be cross-checked to make sure it was instantiated
-    either with the same parameters, or at least with a superset (i.e on the second call you may skip a parameter,
-    but you may *not* add a new one).
-
-    Parameters
-    ----------
-    im : str
-        Relative path to the image FITS file
-    kwargs :
-        These will be forwarded to the constructor, or used to verify the parameters match the previous instantiation
-
-    Raises
-    ------
-    ValueError
-        If `im` was already loaded before, but the parameters do not match what was used before.
-
-    Returns
-    -------
-    MeasurementImage
-        A MeasurementImage instance
-    """
-    if im in _image_cache:
-        entry = _image_cache[im]
-        mismatch = entry.match_kwargs(kwargs)
-        if mismatch:
-            raise ValueError(
-                'The image "{}" was constructed before with different parameters: {}'.format(im, ', '.join(mismatch))
-            )
-        return entry.image
-    _image_cache[im] = ImageCacheEntry(MeasurementImage(im, **kwargs), kwargs)
-    return _image_cache[im].image
-
-
-def load_fits_images(image_list, psf_list=None, weight_list=None, **kwargs):
-    """Creates an image group for the given images.
-
-    The parameter images is a list of relative paths to the FITS files containing
-    the images. The optional parameter hdu_list can be used to control the HDU of
-    each file where the image is stored. By default the primary HDU is used. The
-    psf_list must contain relative paths to the FITS files containing the PSF of
-    each image and it must match one-to-one the images in the image_list. Finally,
-    the weight_list can be used to define the weight images. The entries of this
-    list can be either a filename or one of None and empty string, which mean no
-    weights.
-
-    Note that this method will set the gain, saturation level and fux scale using
-    the header keywords GAIN, SATURATE and FLUXSCALE respectively, or the values
-    0., 0., and 1. in the cases the keywords are missing. To override this
-    default behavior one should create the ImageGroup manually from a list of
-    MeasurementImage instances.
-
-    The same is true for the weight map configuration, where the type is set to
-    background, the scaling to 1, the weights are treated as relative and there
-    is no weight threshold.
-
-    Parameters
-    ----------
-    image_list : list of str
-        A list of relative paths to the images FITS files.
-    psf_list : list of str
-        A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
-    weight_list : list of str
-        A list of relative paths to the weight files (optional). It must match the length of image_list or be None.
-
-    Returns
-    -------
-    ImageGroup
-        A ImageGroup representing the images
-
-    Raises
-    ------
-    ValueError
-        The image list if empty
-    AssertionError
-        If psf_list or weight_list are not None, and their length do not match the length of image_list
-    """
-    if len(image_list) == 0:
-        raise ValueError('An empty list passed to load_fits_images')
-    if psf_list is None:
-        psf_list = [None] * len(image_list)
-    else:
-        assert len(image_list) == len(psf_list)
-    if weight_list is None:
-        weight_list = [None] * len(image_list)
-    else:
-        assert len(image_list) == len(weight_list)
-    meas_image_list = []
-    for im, psf, w in zip(image_list, psf_list, weight_list):
-        meas_image_list.append(
-            load_fits_image(im, psf_file=psf, weight_file=w, **kwargs)
-        )
-    return ImageGroup(images=meas_image_list)
-
-
-def load_multi_hdu_fits(image_file, psf=None, weight=None, **kwargs):
-    """Creates an image group with the images of a multi-HDU FITS file.
-
-    The psf parameter can either be a multi-HDU FITS file where the HDUs match
-    one-to-one the HDUs of the image file or a list of single HDU PSFs. Note that
-    any HDUs not containing images (two dimensional arrays) are ignored.
-
-    :param image_file: The multi-HDU FITS file containing the images
-    :param psf: Either a multi-HDU FITS file containing the PSFs or a list of
-        single HDU FITS files, one for each PSF
-    :param weight: Either a multi-HDU FITS file containing the weight maps or a list of
-        single HDU FITS files, one for each weight map
     :return: A ImageGroup representing the images
     """
-    hdu_list = [i for i, hdu in enumerate(fits.open(image_file)) if hdu.is_image and hdu.header['NAXIS'] == 2]
-    
+
+    hdu_list = [i for i, hdu in enumerate(fits.open(image)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+     
     # handles the PSFs
     if isinstance(psf, list):
-        assert(len(psf) == len(hdu_list))
+        if len(psf) != len(hdu_list):
+            raise ValueError("The number of psf files must match the number of images!")
         psf_list = psf
         psf_hdu_list = [0] * len(psf_list)
     else:
         psf_list = [psf] * len(hdu_list)
-        psf_hdu_list = hdu_list
-        
+        psf_hdu_list = range(len(hdu_list))
+         
     # handles the weight maps
     if isinstance(weight, list):
-        assert(len(weight) == len(hdu_list))
+        if len(weight) != len(hdu_list):
+            raise ValueError("The number of weight files must match the number of images!")
         weight_list = weight
         weight_hdu_list = [0] * len(weight_list)
     else:
-        weight_list = [weight] * len(hdu_list)
-        weight_hdu_list = hdu_list
-
+        if weight is None:
+            weight_list = [None] * len(hdu_list)
+            weight_hdu_list = [0] * len(weight_list)
+        else:
+            weight_hdu_list = [i for i, hdu in enumerate(fits.open(weight)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+            weight_list = [weight] * len(hdu_list)
+ 
     image_list = []
     for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
             hdu_list, psf_list, psf_hdu_list, weight_list, weight_hdu_list):
-        image_list.append(MeasurementImage(image_file, psf_file, weight_file,
+        image_list.append(MeasurementImage(image, psf_file, weight_file,
                                            image_hdu=hdu+1, psf_hdu=psf_hdu+1, weight_hdu=weight_hdu+1, **kwargs))
-
+ 
     return ImageGroup(images=image_list)
 
+def load_fits_images(images, psfs=None, weights=None, **kwargs):
+    """Creates an image group for the given images.
+ 
+    Parameters
+    ----------
+    images : list of str
+        A list of relative paths to the images FITS files. Can also be single string in which case,
+         this function acts like load_fits_image 
+    psfs : list of str
+        A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
+    weights : list of str
+        A list of relative paths to the weight files (optional). It must match the length of image_list or be None.
+ 
+    Returns
+    -------
+    ImageGroup
+        A ImageGroup representing the images
+ 
+    Raises
+    ------
+    ValueError
+        In case of mismatched list of files
+    """
 
-# def load_fits_cube(image_file, psf, hdu=0):
-#     """Creates an image group with the immages of a FITS cube HDU.
-#
-#     The psf parameter can either be a multi-HDU FITS file with as many HDUs as the
-#     cubes third dimension or a list of single HDU PSFs. Note that all the images
-#     of the cube will share in their metadata the information of the FITS header.
-#
-#     :param image_file: The cube FITS file
-#     :param psf: Either a multi-HDU FITS fie containing the PSFs or a list of
-#         single HDU FITS files, one for each PSF
-#     :param hdu: The HDU of the image_file containing the cube (optional)
-#     :return: A ImageGroup representing the images
-#     """
-#     fits_header = fits.open(image_file)[hdu].header
-#     assert fits_header['NAXIS'] == 3
-#     image_no = fits_header['NAXIS3']
-#     if isinstance(psf, list):
-#         assert len(psf) == image_no
-#         psf_list = psf
-#         psf_hdu_list = [0] * image_no
-#     else:
-#         psf_list = [psf] * image_no
-#         psf_hdu_list = range(image_no)
-#     meas_image_list = []
-#     for i, psf, psf_hdu in zip(range(image_no), psf_list, psf_hdu_list):
-#         meas_image_list.append(MeasurementImage(image_file, hdu, i, psf, psf_hdu))
-#     return ImageGroup(images=meas_image_list)
+    if isinstance(images, list):
+        if len(images) == 0:
+            raise ValueError("An empty list passed to load_fits_images")
 
+        psfs = psfs or [None] * len(images)
+        weights = weights or [None] * len(images)
+
+        if not isinstance(psfs, list) or len(psfs) != len(images):
+            raise ValueError("The number of image files and psf files must match!")
+  
+        if not isinstance(weights, list) or len(weights) != len(images):
+            raise ValueError("The number of image files and weight files must match!")
+
+        groups = []
+        for f, p, w in zip(images, psfs, weights):
+            groups.append(load_fits_image(f, p, w, **kwargs))
+
+        image_list = []
+        for g in groups:
+            image_list += g
+              
+        return ImageGroup(images=image_list)
+    else:
+        load_fits_image(images, psfs, weights, **kwargs)
 
 class ByKeyword(object):
     """
@@ -631,7 +588,10 @@ class ByKeyword(object):
         """
         result = {}
         for im in images:
-            assert self.__key in im.meta
+            if self.__key not in im.meta:
+                raise KeyError('The image {}[{}] does not contain the key {}'.format(
+                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
+                ))
             if im.meta[self.__key] not in result:
                 result[im.meta[self.__key]] = []
             result[im.meta[self.__key]].append(im)
@@ -675,7 +635,10 @@ class ByPattern(object):
         """
         result = {}
         for im in images:
-            assert self.__key in im.meta
+            if self.__key not in im.meta:
+                raise KeyError('The image {}[{}] does not contain the key {}'.format(
+                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
+                ))
             group = re.match(self.__pattern, im.meta[self.__key]).group(1)
             if group not in result:
                 result[group] = []

@@ -43,7 +43,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlagTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class BoundaryFlagPlugin : public Plugin {
 public:
@@ -60,5 +60,5 @@ public:
 private:
 }; // end of BoundaryFlagPlugin class
 
-}  // namespace SExtractor
+}  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_BOUNDARYFLAGPLUGIN_H_ */

@@ -35,8 +35,11 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Frame/Frame.h"
 
+#include "SEFramework/Pipeline/SourceGrouping.h"
 
-namespace SExtractor {
+
+
+namespace SourceXtractor {
 
 /**
  * @struct SegmentationProgress
@@ -52,7 +55,8 @@ struct SegmentationProgress {
  * results in a notification of the Segmentation's Observers.
  *
  */
-class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress> {
+class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress>,
+    public Observable<ProcessSourcesEvent> {
 
 public:
   class LabellingListener;
@@ -66,7 +70,7 @@ public:
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {
     static_assert(std::is_base_of<Labelling, LabellingType>::value,
-        "LabellingType must inherit from SExtractor::Segmentation::Labelling");
+        "LabellingType must inherit from SourceXtractor::Segmentation::Labelling");
     static_assert(std::is_constructible<LabellingType, Args...>::value,
         "LabellingType must be constructible from args");
 
@@ -102,6 +106,10 @@ public:
     m_segmentation.Observable<SegmentationProgress>::notifyObservers(SegmentationProgress{position, total});
   }
 
+  void requestProcessing(const ProcessSourcesEvent& event) {
+    m_segmentation.Observable<ProcessSourcesEvent>::notifyObservers(event);
+  }
+
 private:
   const Segmentation& m_segmentation;
   std::shared_ptr<DetectionImageFrame> m_detection_frame;
@@ -115,6 +123,6 @@ public:
   virtual void labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) = 0;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif

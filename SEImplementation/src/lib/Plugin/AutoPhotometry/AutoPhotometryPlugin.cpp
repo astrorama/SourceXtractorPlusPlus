@@ -29,7 +29,7 @@
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryTaskFactory.h"
 #include "SEImplementation/Plugin/AutoPhotometry/AutoPhotometryPlugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static StaticPlugin<AutoPhotometryPlugin> aperture_photometry_plugin;
 

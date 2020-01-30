@@ -32,7 +32,7 @@
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct DetectionFrameSourceStampFixture {
   SimpleSource source;

@@ -27,7 +27,7 @@
 
 #include "SEFramework/Output/Output.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class TableOutput : public Output {
   
@@ -41,25 +41,32 @@ public:
       Euclid::Table::Table table {m_rows};
       m_table_handler(table);
     }
-    return m_rows.size();
+    m_total_rows_written += m_rows.size();
+    m_rows.clear();
+    return m_total_rows_written;
   }
   
-  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler) 
-          : m_source_to_row(source_to_row), m_table_handler(table_handler) {
+  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler, size_t flush_size)
+          : m_source_to_row(source_to_row), m_table_handler(table_handler),
+            m_flush_size(flush_size), m_total_rows_written(0) {
   }
 
   void outputSource(const SourceInterface& source) override {
     m_rows.emplace_back(m_source_to_row(source));
+    if (m_flush_size > 0 && m_rows.size() % m_flush_size == 0) {
+      flush();
+    }
   }
   
 private:
   SourceToRowConverter m_source_to_row;
   TableHandler m_table_handler;
   std::vector<Euclid::Table::Row> m_rows {};
-  
+  size_t m_flush_size;
+  size_t m_total_rows_written;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_TABLEOUTPUT_H */
 

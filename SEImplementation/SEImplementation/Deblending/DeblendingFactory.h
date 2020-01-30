@@ -28,7 +28,7 @@
 
 #include <SEImplementation/Configuration/DeblendStepConfig.h>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DeblendingFactory : public Configurable {
   
@@ -58,7 +58,7 @@ private:
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_DEBLENDINGFACTORY_H */
 

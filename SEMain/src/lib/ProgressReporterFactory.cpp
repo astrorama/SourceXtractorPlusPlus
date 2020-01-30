@@ -14,19 +14,19 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/ProgressLogger.h"
 #include "SEMain/ProgressNCurses.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace po = boost::program_options;
 
 static const std::string PROGRESS_MIN_INTERVAL{"progress-min-interval"};
 static const std::string PROGRESS_BAR_DISABLED{"progress-bar-disable"};
 
-ProgressReporterFactory::ProgressReporterFactory(): m_disable_progress_bar{false} {}
+ProgressReporterFactory::ProgressReporterFactory() : m_min_interval{std::chrono::seconds(5)},
+                                                     m_disable_progress_bar{false} {}
 
 void ProgressReporterFactory::addOptions(boost::program_options::options_description& options) const {
   options.add_options() (PROGRESS_MIN_INTERVAL.c_str(), po::value<int>()->default_value(5),
@@ -61,4 +61,4 @@ std::shared_ptr<ProgressMediator> ProgressReporterFactory::createProgressMediato
   return mediator;
 }
 
-} // end SExtractor
+} // end SourceXtractor

@@ -26,7 +26,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class LegacyModelFittingConfig : public Euclid::Configuration::Configuration {
 
@@ -44,12 +44,17 @@ public:
     return m_max_iterations;
   }
 
+  std::string getLeastSquaresEngine() const {
+    return m_least_squares_engine;
+  }
+
 private:
+  std::string m_least_squares_engine;
   int m_max_iterations;
 
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 

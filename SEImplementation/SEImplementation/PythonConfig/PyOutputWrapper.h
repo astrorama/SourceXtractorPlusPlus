@@ -24,9 +24,10 @@
 
 #include <strstream>
 #include <ElementsKernel/Logging.h>
-#include <boost/python.hpp>
+#include <boost/python/list.hpp>
+#include <boost/python/object.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * File-like object used to redirect stdout and stderr from Python into
@@ -56,7 +57,7 @@ public:
 
   // These do something!
   bool writable() const;
-  int write(const std::string&);
+  int write(const boost::python::object&);
   void writelines(const boost::python::list&);
 
 private:
@@ -64,6 +65,6 @@ private:
   std::ostringstream m_buffer;
 };
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PYOUTPUTWRAPPER_H

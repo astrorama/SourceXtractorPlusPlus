@@ -27,7 +27,7 @@
 
 #include "SEFramework/Plugin/Plugin.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MultiframeModelFittingPlugin : public Plugin {
 

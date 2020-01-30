@@ -23,16 +23,20 @@
 
 #include <iostream>
 
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTaskFactory.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluatorTask.h"
 #include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> MoffatModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<MoffatModelFitting>()) {
-    return std::make_shared<MoffatModelFittingTask>(m_max_iterations);
+    return std::make_shared<MoffatModelFittingTask>(m_least_squares_engine, m_max_iterations);
+  } else if (property_id == PropertyId::create<MoffatModelEvaluator>()) {
+    return std::make_shared<MoffatModelEvaluatorTask>();
   } else {
     return nullptr;
   }
@@ -45,6 +49,7 @@ void MoffatModelFittingTaskFactory::reportConfigDependencies(Euclid::Configurati
 void MoffatModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& model_fitting_config = manager.getConfiguration<LegacyModelFittingConfig>();
   m_max_iterations = model_fitting_config.getMaxIterations();
+  m_least_squares_engine = model_fitting_config.getLeastSquaresEngine();
 }
 
 }

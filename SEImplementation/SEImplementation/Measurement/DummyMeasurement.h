@@ -26,7 +26,7 @@
 
 #include "SEFramework/Pipeline/Measurement.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class DummyMeasurement : public Measurement {
 public:

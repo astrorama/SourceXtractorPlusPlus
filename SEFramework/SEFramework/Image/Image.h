@@ -28,7 +28,7 @@
 #include "SEUtils/Types.h"
 #include "SEUtils/PixelCoordinate.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 template <typename T>
 class ImageChunk;
@@ -83,7 +83,7 @@ using WeightImage = Image<SeFloat>;
 /// Alias for the flag image, to make easier its type modification
 using FlagImage = Image<std::int64_t>;
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

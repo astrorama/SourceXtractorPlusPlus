@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class GroupInfoTaskFactory
@@ -48,6 +48,6 @@ public:
 private:
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_GROUPINFO_GROUPINFOTASKFACTORY_H_ */

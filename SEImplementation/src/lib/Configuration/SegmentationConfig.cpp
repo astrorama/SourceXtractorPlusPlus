@@ -20,9 +20,8 @@
  * @author mschefer
  */
 
-#include <fstream>
 #include <iostream>
-//#include <regex>
+#include <fstream>
 
 #include <boost/regex.hpp>
 using boost::regex;
@@ -32,31 +31,29 @@ using boost::smatch;
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
-#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
-#include "Configuration/CatalogConfig.h"
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/FITS/FitsReader.h"
 
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
-
 #include "SEImplementation/Configuration/SegmentationConfig.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
+static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-    m_selected_algorithm(Algorithm::UNKNOWN), m_filtering_enabled(true) {
+    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
@@ -67,6 +64,8 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
           "Disables filtering"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
           "Loads a filter"},
+      {SEGMENTATION_LUTZ_WINDOW_SIZE.c_str(), po::value<int>()->default_value(0),
+          "Lutz sliding window size (0=disable)"},
   }}};
 }
 
@@ -88,6 +87,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     }
 
   }
+
+  m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
 }
 
 void SegmentationConfig::initialize(const UserValues&) {
@@ -216,4 +217,4 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
   return std::make_shared<BackgroundConvolution>(convolution_kernel, normalize);
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace

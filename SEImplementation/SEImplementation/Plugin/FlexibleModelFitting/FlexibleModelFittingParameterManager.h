@@ -31,7 +31,7 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 // Needed to store the source in a reference_wrapper
 inline bool operator<(std::reference_wrapper<const SourceInterface> a, std::reference_wrapper<const SourceInterface> b) {
@@ -65,12 +65,6 @@ public:
     }
   }
 
-  // Used to just store a parameter's pointer for the duration of the model fitting
-  // This is necessary to keep dependent parameters working
-  void storeParameter(std::shared_ptr<ModelFitting::BasicParameter> param) {
-    m_storage.emplace_back(param);
-  }
-
   int getParameterNb() const {
     return m_params.size();
   }
@@ -95,7 +89,6 @@ public:
 private:
   std::map<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<const FlexibleModelFittingParameter>>, std::shared_ptr<ModelFitting::BasicParameter>> m_params;
   mutable std::set<std::tuple<std::reference_wrapper<const SourceInterface>, std::shared_ptr<const FlexibleModelFittingParameter>>> m_accessed_params;
-  std::vector<std::shared_ptr<ModelFitting::BasicParameter>> m_storage;
 
   // remember the order of the parameters for model fitting (used to retrieve sigma)
   int m_current_parameter_index;

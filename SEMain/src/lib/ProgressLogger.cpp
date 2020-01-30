@@ -15,10 +15,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 #include <iomanip>
-#include <boost/date_time.hpp>
 #include "SEMain/ProgressLogger.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 ProgressLogger::ProgressLogger(const std::chrono::steady_clock::duration& min_interval) :
   m_logger{Elements::Logging::getLogger("Progress")}, m_min_interval{min_interval},
@@ -66,4 +65,4 @@ void ProgressLogger::handleMessage(const bool& done) {
   print();
 }
 
-} // end SExtractor
+} // end SourceXtractor

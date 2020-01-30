@@ -24,12 +24,9 @@
 #define _SEIMPLEMENTATION_SEGMENTATIONCONFIG_H
 
 #include <memory>
-
-#include "SEImplementation/Segmentation/BackgroundConvolution.h"
-
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SegmentationConfig
@@ -60,6 +57,10 @@ public:
     return m_selected_algorithm;
   }
 
+  int getLutzWindowSize() const {
+    return m_lutz_window_size;
+  }
+
   bool isFilteringEnabled() const {
     return m_filter != nullptr;
   }
@@ -75,12 +76,12 @@ private:
   std::shared_ptr<DetectionImageFrame::ImageFilter> loadASCIIFilter(const std::string& filename) const;
 
   Algorithm m_selected_algorithm;
-  bool m_filtering_enabled;
   std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
+  int m_lutz_window_size;
 }; /* End of SegmentationConfig class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

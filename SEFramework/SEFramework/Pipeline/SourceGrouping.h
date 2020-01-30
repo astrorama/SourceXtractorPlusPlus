@@ -32,7 +32,7 @@
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Source/SourceGroupFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class SelectionCriteria
@@ -125,7 +125,7 @@ private:
 }; /* End of SourceGrouping class */
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

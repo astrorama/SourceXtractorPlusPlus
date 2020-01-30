@@ -26,7 +26,7 @@
 
 #include "Configuration/Configuration.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MemoryConfig : public Euclid::Configuration::Configuration {
 public:

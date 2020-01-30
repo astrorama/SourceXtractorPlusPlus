@@ -24,13 +24,14 @@
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct ExternalFlagFixture {
   SimpleSource source;

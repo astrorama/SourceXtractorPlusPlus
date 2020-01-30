@@ -7,12 +7,10 @@
 #ifndef _SEFRAMEWORK_IMAGE_FITSREADER_H
 #define _SEFRAMEWORK_IMAGE_FITSREADER_H
 
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class FitsReader
@@ -36,7 +34,7 @@ public:
 
 }; /* End of FitsReader class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

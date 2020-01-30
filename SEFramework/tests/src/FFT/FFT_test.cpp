@@ -24,7 +24,7 @@
 #include <numeric>
 #include "SEFramework/FFT/FFT.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 

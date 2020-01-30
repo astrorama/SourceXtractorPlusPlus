@@ -29,7 +29,7 @@
 
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
   const auto& detection_frame = source.getProperty<DetectionFrame>();
@@ -49,7 +49,8 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
 
   // Add variance from gain
   SeFloat gain = detection_frame.getFrame()->getGain();
-  total_variance += total_flux / gain;
+  if (gain >0.0)
+    total_variance += total_flux / gain;
 
   auto flux_error = sqrt(total_variance);
 

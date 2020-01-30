@@ -30,7 +30,7 @@
 #include <SEFramework/Property/DetectionFrame.h>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 void MeasurementFrameGroupRectangleTask::computeProperties(SourceGroupInterface& group) const {
   auto frame = group.begin()->getProperty<MeasurementFrame>(m_instance).getFrame();

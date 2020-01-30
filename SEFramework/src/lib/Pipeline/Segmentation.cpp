@@ -22,7 +22,7 @@
 
 #include "SEFramework/Pipeline/Segmentation.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 Segmentation::Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing)
     : m_filter_image_processing(image_processing) {
@@ -37,6 +37,10 @@ void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) cons
     LabellingListener listener(*this, frame);
     m_labelling->labelImage(listener, frame);
   }
+
+  // Flush source grouping buffer
+  SelectAllCriteria select_all_criteria;
+  Observable<ProcessSourcesEvent>::notifyObservers(ProcessSourcesEvent(select_all_criteria));
 }
 
 }

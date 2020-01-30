@@ -32,11 +32,12 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string OUTPUT_FILE {"output-catalog-filename"};
 static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
+static const std::string OUTPUT_FLUSH_SIZE {"output-flush-size"};
 
 static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
   {"ASCII", OutputConfig::OutputFileFormat::ASCII},
@@ -52,8 +53,10 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
           "The file to store the output catalog"},
       {OUTPUT_FILE_FORMAT.c_str(), po::value<std::string>()->default_value("FITS"),
           "The format of the output catalog, one of ASCII or FITS (default: FITS)"},
-          {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value("PixelCentroid"),
-          "The output properties to add in the output catalog"}
+      {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value("PixelCentroid"),
+          "The output properties to add in the output catalog"},
+      {OUTPUT_FLUSH_SIZE.c_str(), po::value<int>()->default_value(100),
+         "Write to the catalog after this number of sources have been processed (0 means once at the end)"}
   }}};
 }
 
@@ -75,6 +78,9 @@ void OutputConfig::initialize(const UserValues& args) {
   
   auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
   m_format = format_map.at(format);
+
+  int flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
+  m_flush_size = (flush_size >= 0) ? flush_size : 0;
 }
 
 std::string OutputConfig::getOutputFile() {
@@ -87,6 +93,10 @@ OutputConfig::OutputFileFormat OutputConfig::getOutputFileFormat() {
 
 const std::vector<std::string> OutputConfig::getOutputProperties() {
   return m_output_properties;
+}
+
+size_t OutputConfig::getFlushSize() const {
+  return m_flush_size;
 }
 
 } // SEImplementation namespace

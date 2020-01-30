@@ -29,7 +29,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string CHECK_MODEL_FITTING { "check-image-model-fitting" };
 static const std::string CHECK_RESIDUAL { "check-image-residual" };
@@ -40,6 +40,7 @@ static const std::string CHECK_PARTITION { "check-image-partition" };
 static const std::string CHECK_GROUPING { "check-image-grouping" };
 static const std::string CHECK_FILTERED { "check-image-filtered" };
 static const std::string CHECK_THRESHOLDED { "check-image-thresholded" };
+static const std::string CHECK_SNR { "check-image-snr" };
 static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
 static const std::string CHECK_MOFFAT { "check-image-moffat" };
@@ -67,7 +68,9 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
       {CHECK_FILTERED.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the filtered check image"},
       {CHECK_THRESHOLDED.c_str(), po::value<std::string>()->default_value(""),
-        "Path to save the thresholded check image"},
+         "Path to save the thresholded check image"},
+      {CHECK_SNR.c_str(), po::value<std::string>()->default_value(""),
+         "Path to save the SNR check image"},
       {CHECK_AUTO_APERTURE.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the auto aperture check image"},
       {CHECK_APERTURE.c_str(), po::value<std::string>()->default_value(""),
@@ -89,12 +92,13 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_group_filename = args.find(CHECK_GROUPING)->second.as<std::string>();
   m_filtered_filename = args.find(CHECK_FILTERED)->second.as<std::string>();
   m_thresholded_filename = args.find(CHECK_THRESHOLDED)->second.as<std::string>();
+  m_snr_filename = args.find(CHECK_SNR)->second.as<std::string>();
   m_auto_aperture_filename = args.find(CHECK_AUTO_APERTURE)->second.as<std::string>();
   m_aperture_filename = args.find(CHECK_APERTURE)->second.as<std::string>();
   m_moffat_filename = args.find(CHECK_MOFFAT)->second.as<std::string>();
   m_psf_filename = args.find(CHECK_PSF)->second.as<std::string>();
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 

@@ -27,7 +27,7 @@
 #include "SEFramework/Configuration/Configurable.h"
 #include "TableOutput.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class OutputFactory
@@ -56,10 +56,11 @@ private:
   std::shared_ptr<OutputRegistry> m_output_registry;
   TableOutput::TableHandler m_table_handler;
   std::vector<std::string> m_output_properties;
+  size_t m_flush_size;
 
 }; /* End of OutputFactory class */
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

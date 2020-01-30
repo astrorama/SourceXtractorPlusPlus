@@ -49,7 +49,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
 #include "SEImplementation/Property/SourceId.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 class DummyCoordinateSystem : public CoordinateSystem {
 public:
@@ -89,7 +89,7 @@ public:
   std::list<std::shared_ptr<SourceInterface>> m_list;
 };
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
@@ -144,7 +144,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 2);
 }
@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr);
+  source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
   partition.handleMessage(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }

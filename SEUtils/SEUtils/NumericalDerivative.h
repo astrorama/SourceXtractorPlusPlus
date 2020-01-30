@@ -26,7 +26,7 @@
 
 #include <functional>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class NumericalDerivative {
 public:
@@ -47,6 +47,6 @@ public:
 };
 
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif /* _SEUTILS_NUMERICALDERIVATIVE_H_ */

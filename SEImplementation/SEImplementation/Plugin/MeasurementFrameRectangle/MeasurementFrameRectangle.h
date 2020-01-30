@@ -22,13 +22,13 @@
  */
 
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEPRECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
+#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MeasurementFrameRectangle: public Property {
 public:
@@ -68,6 +68,6 @@ private:
   PixelCoordinate m_min_coord, m_max_coord;
 };
 
-} // end SExtractor
+} // end SourceXtractor
 
 #endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_

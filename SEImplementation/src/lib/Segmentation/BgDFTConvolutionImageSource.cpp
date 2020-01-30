@@ -23,10 +23,10 @@
  */
 
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
-#include "SEFramework/Image/MultiplyImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/FunctionalImage.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 
 BgDFTConvolutionImageSource::BgDFTConvolutionImageSource(std::shared_ptr<Image<DetectionImage::PixelType>> image,
@@ -106,5 +106,5 @@ void BgDFTConvolutionImageSource::generateTile(std::shared_ptr<Image<DetectionIm
   }
 }
 
-} // end namespace SExtractor
+} // end namespace SourceXtractor
 

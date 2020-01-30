@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroidTask.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroidTaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 std::shared_ptr<Task> MeasurementFramePixelCentroidTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == PropertyId::create<MeasurementFramePixelCentroid>().getTypeId()) {

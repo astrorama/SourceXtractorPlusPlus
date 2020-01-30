@@ -19,7 +19,9 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
-#include <boost/python.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/enum.hpp>
+#include <boost/python/module.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 #include <SEFramework/Source/SourceFlags.h>
@@ -31,9 +33,9 @@
 
 namespace bp = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-BOOST_PYTHON_MODULE(_SExtractorPy) {
+BOOST_PYTHON_MODULE(_SourceXtractorPy) {
 
   bp::class_<PyOutputWrapper, boost::noncopyable>("OutputWrapper",
     "A file-like object used to wrap stdout and stderr", bp::no_init)
@@ -55,7 +57,7 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def("writelines", &PyOutputWrapper::writelines);
 
   bp::class_<ObjectInfo>("ObjectInfo",
-    "A source detected by SExtractor after the segmentation and deblending", bp::init<SourceInterface&>())
+    "A source detected by SourceXtractor++ after the segmentation and deblending", bp::init<SourceInterface&>())
       .def("get_centroid_x", &ObjectInfo::getCentroidX, "Get the X coordinate of the pixel centroid")
       .def("get_centroid_y", &ObjectInfo::getCentroidY, "Get the Y coordinate of the pixel centroid")
       .def("get_iso_flux", &ObjectInfo::getIsoFlux, "Get the isophotal flux")
@@ -126,4 +128,4 @@ BOOST_PYTHON_MODULE(_SExtractorPy) {
     .def(bp::vector_indexing_suite<std::vector<float> >());
 }
 
-} // namespace SExtractor
+} // namespace SourceXtractor

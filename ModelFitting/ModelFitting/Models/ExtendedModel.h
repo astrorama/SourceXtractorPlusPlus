@@ -36,9 +36,9 @@ class ExtendedModel : public PositionedModel {
 public:
   
   ExtendedModel(std::vector<std::unique_ptr<ModelComponent>>&& component_list,
-                BasicParameter& x_scale, BasicParameter& y_scale,
-                BasicParameter& rotation_angle, double width, double height,
-                BasicParameter& x, BasicParameter& y);
+                std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+                std::shared_ptr<BasicParameter> rotation_angle, double width, double height,
+                std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y);
   
   ExtendedModel(ExtendedModel&&);
   

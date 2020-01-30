@@ -23,7 +23,7 @@
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 bool OverlappingBoundariesCriteria::shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
   auto& first_boundaries = first.getProperty<PixelBoundaries>();
@@ -35,7 +35,7 @@ bool OverlappingBoundariesCriteria::shouldGroup(const SourceInterface& first, co
 }
 
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

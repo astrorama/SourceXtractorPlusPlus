@@ -14,10 +14,12 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+
 #include "SEImplementation/PythonConfig/PyAperture.h"
+#include <boost/python/extract.hpp>
 
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 namespace bp = boost::python;
 
@@ -40,4 +42,4 @@ std::string PyAperture::toString() const {
   return str.str();
 }
 
-} // end SExtractor
+} // end SourceXtractor

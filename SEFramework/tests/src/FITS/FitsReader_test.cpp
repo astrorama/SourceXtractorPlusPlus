@@ -23,12 +23,14 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 
+#include <ElementsKernel/Exception.h>
+
 #include "SEFramework/FITS/FitsReader.h"
 #include "SEFramework/Filesystem/TemporaryFile.h"
 
 #include "1px.fits.h"
 
-using namespace SExtractor;
+using namespace SourceXtractor;
 
 struct FitsReaderFixture {
   TemporaryFile m_tmp_fits;
@@ -50,6 +52,15 @@ BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
   BOOST_CHECK_EQUAL(img->getWidth(), 1);
   BOOST_CHECK_EQUAL(img->getHeight(), 1);
   BOOST_CHECK_EQUAL(img->getValue(0, 0), 42);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE ( image_source, FitsReaderFixture ) {
+  auto img = FitsImageSource<SeFloat>(m_tmp_fits.getPath());
+  int naxis;
+  img.readFitsKeyword("NAXIS", naxis);
+  BOOST_CHECK_EQUAL(naxis, 2);
 }
 
 //-----------------------------------------------------------------------------

@@ -50,31 +50,26 @@ public:
 
   EngineParameter(const double world_value, std::unique_ptr<CoordinateConverter> converter)
               : BasicParameter(world_value),
-                m_engine_value{new double{converter->worldToEngine(world_value)}},
+                m_engine_value{converter->worldToEngine(world_value)},
                 m_converter{std::move(converter)} { }
 
   double getEngineValue() const {
-    return *m_engine_value;
+    return m_engine_value;
   }
 
   void setEngineValue(const double engine_value);
 
   double getEngineToWorldDerivative() const;
 
-protected:
-  /*
-   * The setValue should not be implemented in this class, nor in any
-   * extension
-   */
-  void setValue(const double value) = delete;
+  void setValue(const double value) override;
 
 private:
 
   /// The parameter value in Engine coordinates
-  std::shared_ptr<double> m_engine_value;
+  double m_engine_value;
 
   /// The parameter converter
-  std::shared_ptr<CoordinateConverter> m_converter;
+  std::unique_ptr<CoordinateConverter> m_converter;
 
 };
 

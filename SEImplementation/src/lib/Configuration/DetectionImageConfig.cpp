@@ -21,7 +21,7 @@
  */
 #include "Configuration/ConfigManager.h"
 
-#include <SEFramework/Image/MultiplyImage.h>
+#include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/Image/BufferedImage.h>
 #include "SEFramework/FITS/FitsImageSource.h"
 
@@ -32,7 +32,7 @@
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string DETECTION_IMAGE_GAIN { "detection-image-gain" };
@@ -73,7 +73,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
   auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-  m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>());
+  m_coordinate_system = std::make_shared<WCS>(args.find(DETECTION_IMAGE)->second.as<std::string>(), fits_image_source->getHDU());
 
   double detection_image_gain = 0, detection_image_saturate = 0;
   fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
@@ -129,7 +129,7 @@ std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() co
   return m_coordinate_system;
 }
 
-} // SExtractor namespace
+} // SourceXtractor namespace
 
 
 

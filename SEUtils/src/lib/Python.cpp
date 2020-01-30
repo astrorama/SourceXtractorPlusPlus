@@ -16,19 +16,21 @@
  */
 #include <Python.h>
 #include <ElementsKernel/Logging.h>
-#include <boost/python.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/handle.hpp>
+#include <boost/python/object.hpp>
 
 #include "SEUtils/Python.h"
 
 
 namespace py = boost::python;
 
-namespace SExtractor {
+namespace SourceXtractor {
 
-Elements::Exception pyToElementsException(Elements::Logging &logger) {
+Elements::Exception pyToElementsException(Elements::Logging& logger) {
   GILStateEnsure ensure;
 
-  PyObject *ptype, *pvalue, *ptraceback;
+  PyObject * ptype, *pvalue, *ptraceback;
   PyErr_Fetch(&ptype, &pvalue, &ptraceback);
   PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
 
@@ -37,9 +39,12 @@ Elements::Exception pyToElementsException(Elements::Logging &logger) {
   py::handle<> handle_traceback(py::allow_null(ptraceback));
 
   // Get only the error message
-  py::object
-  err_msg_obj(py::handle<>(PyObject_Str(pvalue)));
+  py::object err_msg_obj(py::handle<>(PyObject_Str(pvalue)));
   std::string err_msg = py::extract<std::string>(err_msg_obj);
+  if (err_msg.empty()) {
+    py::object err_repr_obj(py::handle<>(PyObject_Repr(pvalue)));
+    err_msg = py::extract<std::string>(err_repr_obj);
+  }
 
   // Dump to ERR the traceback
   logger.error() << "Python exception " << err_msg;
@@ -70,4 +75,4 @@ GILStateEnsure::~GILStateEnsure() {
   PyGILState_Release(m_state);
 }
 
-} // end SExtractor
+} // end SourceXtractor

@@ -21,7 +21,11 @@
 
 #include <signal.h>
 #include <utility>
-#include <boost/python.hpp>
+#include <boost/python/dict.hpp>
+#include <boost/python/exec.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/import.hpp>
+#include <boost/python/object.hpp>
 #include <Python.h>
 
 #include <SEUtils/Python.h>
@@ -34,7 +38,7 @@ static Elements::Logging logger = Elements::Logging::getLogger("Python::Interpre
 static Elements::Logging stdout_logger = Elements::Logging::getLogger("Python::stdout");
 static Elements::Logging stderr_logger = Elements::Logging::getLogger("Python::stderr");
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 PythonInterpreter &PythonInterpreter::getSingleton() {
   static PythonInterpreter singleton{};
@@ -92,7 +96,7 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
     PySys_SetArgv(argv.size() + 1, py_argv);
 
     // Import ourselves so the conversions are registered
-    py::import("_SExtractorPy");
+    py::import("_SourceXtractorPy");
 
     // Setup stdout and stderr
     PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());
@@ -113,7 +117,7 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
   GILStateEnsure ensure;
 
   try {
-    py::object meas_images_module = py::import("sextractorxx.config.measurement_images");
+    py::object meas_images_module = py::import("sourcextractor.config.measurement_images");
     py::dict images = py::extract<py::dict>(meas_images_module.attr("measurement_images"));
     py::list ids = images.keys();
     std::map<int, PyMeasurementImage> result{};
@@ -133,7 +137,7 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
   GILStateEnsure ensure;
 
   try {
-    py::object apertures_module = py::import("sextractorxx.config.aperture");
+    py::object apertures_module = py::import("sourcextractor.config.aperture");
     py::dict apertures = py::extract<py::dict>(apertures_module.attr("apertures_for_image"));
     py::list ids = apertures.keys();
     std::map<int, PyAperture> result;
@@ -153,7 +157,7 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
   GILStateEnsure ensure;
 
   try {
-    py::object output_module = py::import("sextractorxx.config.output");
+    py::object output_module = py::import("sourcextractor.config.output");
     py::list output = py::extract<py::list>(output_module.attr("model_fitting_parameter_columns"));
     std::vector<std::pair<std::string, std::vector<int>>> result;
     for (int i = 0; i < py::len(output); ++i) {
@@ -185,7 +189,7 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
   GILStateEnsure ensure;
 
   try {
-    py::object output_module = py::import("sextractorxx.config.output");
+    py::object output_module = py::import("sourcextractor.config.output");
     py::list output = py::extract<py::list>(output_module.attr("aperture_columns"));
     std::map<std::string, std::vector<int>> result;
     for (int i = 0; i < py::len(output); ++i) {
@@ -236,46 +240,46 @@ std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, 
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getConstantParameters() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "constant_parameter_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "constant_parameter_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getFreeParameters() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "free_parameter_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "free_parameter_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getDependentParameters() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "dependent_parameter_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "dependent_parameter_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getPriors() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "prior_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "prior_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getConstantModels() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "constant_model_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "constant_model_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getPointSourceModels() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "point_source_model_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "point_source_model_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getSersicModels() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "sersic_model_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "sersic_model_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getExponentialModels() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "exponential_model_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "exponential_model_dict");
 }
 
 std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels() {
-  return getMapFromDict("sextractorxx.config.model_fitting", "de_vaucouleurs_model_dict");
+  return getMapFromDict("sourcextractor.config.model_fitting", "de_vaucouleurs_model_dict");
 }
 
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
   GILStateEnsure ensure;
   try {
     std::map<int, std::vector<int>> result{};
-    py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+    py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
     py::dict frame_dict = py::extract<py::dict>(model_fitting_module.attr("frame_models_dict"));
     py::list frame_ids = frame_dict.keys();
     for (int i = 0; i < py::len(frame_ids); ++i) {
@@ -296,7 +300,7 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
 std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
   GILStateEnsure ensure;
 
-  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
   py::list ids = parameters.keys();
   std::map<std::string, boost::python::object> result;
@@ -312,7 +316,7 @@ std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
   GILStateEnsure ensure;
 
   try {
-    py::object model_fitting_module = py::import("sextractorxx.config.measurement_images");
+    py::object model_fitting_module = py::import("sourcextractor.config.measurement_images");
     py::list groups = py::extract<py::list>(model_fitting_module.attr("MeasurementGroup").attr("_all_groups"));
     std::vector <boost::python::object> result;
     for (int i = 0; i < py::len(groups); ++i) {
@@ -328,7 +332,7 @@ std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
   GILStateEnsure ensure;
 
-  py::object model_fitting_module = py::import("sextractorxx.config.model_fitting");
+  py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");
   python_function(coordinate_system);
 }

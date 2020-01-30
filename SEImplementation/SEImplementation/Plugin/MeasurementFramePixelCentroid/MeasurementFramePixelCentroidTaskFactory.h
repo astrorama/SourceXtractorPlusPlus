@@ -25,7 +25,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class MeasurementFramePixelCentroidTaskFactory
@@ -43,7 +43,7 @@ public:
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 };
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 #endif

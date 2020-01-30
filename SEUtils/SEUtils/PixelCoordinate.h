@@ -26,7 +26,7 @@
 #include <functional>
 #include <boost/functional/hash.hpp>
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 /**
  * @class PixelCoordinate
@@ -75,15 +75,15 @@ struct PixelCoordinate {
 };
 
 
-} /* namespace SExtractor */
+} /* namespace SourceXtractor */
 
 
 namespace std {
 
 template <>
-struct hash<SExtractor::PixelCoordinate>
+struct hash<SourceXtractor::PixelCoordinate>
 {
-  std::size_t operator()(const SExtractor::PixelCoordinate& coord) const {
+  std::size_t operator()(const SourceXtractor::PixelCoordinate& coord) const {
     std::size_t hash = 0;
     boost::hash_combine(hash, coord.m_x);
     boost::hash_combine(hash, coord.m_y);

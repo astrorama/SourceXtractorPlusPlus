@@ -28,13 +28,13 @@
 
 #include "SEImplementation/Image/ImagePsf.h"
 
-namespace SExtractor {
+namespace SourceXtractor {
 
 class MoffatModelFittingTask : public SourceTask {
 
 public:
-  MoffatModelFittingTask(unsigned int max_iterations)
-    : m_max_iterations(max_iterations) {}
+  MoffatModelFittingTask(const std::string& least_squares_engine, unsigned int max_iterations)
+    : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations) {}
 
   virtual ~MoffatModelFittingTask() = default;
 
@@ -42,6 +42,7 @@ public:
 
 private:
 
+  std::string m_least_squares_engine;
   unsigned int m_max_iterations;
 };
 
