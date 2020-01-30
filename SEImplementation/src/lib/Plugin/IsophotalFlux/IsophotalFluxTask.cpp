@@ -49,7 +49,8 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
 
   // Add variance from gain
   SeFloat gain = detection_frame.getFrame()->getGain();
-  total_variance += total_flux / gain;
+  if (gain >0.0)
+    total_variance += total_flux / gain;
 
   auto flux_error = sqrt(total_variance);
 
