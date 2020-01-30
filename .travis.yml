@@ -3,9 +3,13 @@ os: linux
 
 branches:
   only:
+  - master
   - develop
   - /travis\/*/
   - /^\d+.\d+(.\d+)?(-\S*)?$/
+  
+exclude:
+  - if: branch = master AND type != pull_request
 
 env:
   global:
