@@ -110,8 +110,9 @@ In practice, the easier way to load large series of images, |PSF| models and wei
 
   imagegroup = load_fits_images(
       sorted(glob("image_??.fits")),
-      psf_list=sorted(glob("image_??.psf")),
-      weight_list=sorted(glob("image_??.weight.fits"))
+      psfs=sorted(glob("image_??.psf")),
+      weights=sorted(glob("image_??.weight.fits")),
+      weight_type='weight'
   )
 
 All non-empty lists must contain the same number of items.
@@ -121,8 +122,9 @@ It is possible to add images or another group to a pre-existing image group usin
 
   anotherimage = load_fits_image(
       "anotherimage.fits",
-      psf_file="anotherimage.psf",
-      weight_file="anotherimage.weight.fits"
+      psf="anotherimage.psf",
+      weight="anotherimage.weight.fits",
+      weight_type='weight'
   )
   imagegroup.add_images(anotherimage)
 
