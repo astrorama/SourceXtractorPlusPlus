@@ -26,7 +26,8 @@ namespace po = boost::program_options;
 static const std::string PROGRESS_MIN_INTERVAL{"progress-min-interval"};
 static const std::string PROGRESS_BAR_DISABLED{"progress-bar-disable"};
 
-ProgressReporterFactory::ProgressReporterFactory(): m_disable_progress_bar{false} {}
+ProgressReporterFactory::ProgressReporterFactory() : m_min_interval{std::chrono::seconds(5)},
+                                                     m_disable_progress_bar{false} {}
 
 void ProgressReporterFactory::addOptions(boost::program_options::options_description& options) const {
   options.add_options() (PROGRESS_MIN_INTERVAL.c_str(), po::value<int>()->default_value(5),

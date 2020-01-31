@@ -167,8 +167,7 @@ void BackgroundCell::getBackgroundValuesOld(PIXTYPE& bckVal, PIXTYPE& sigmaVal)
   theHisto->getBackGuess(bckVal, sigmaVal);
 
   // release the memory
-  if (theHisto)
-    delete theHisto;
+  delete theHisto;
 
   return;
 }

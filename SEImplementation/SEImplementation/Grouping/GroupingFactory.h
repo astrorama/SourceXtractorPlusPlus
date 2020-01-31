@@ -64,7 +64,7 @@ public:
       m_grouping_criteria = std::make_shared<SplitSourcesCriteria>();
       break;
     case GroupingConfig::Algorithm::MOFFAT:
-      m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold());
+      m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
       break;
     }
   }

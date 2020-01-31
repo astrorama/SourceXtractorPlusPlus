@@ -26,13 +26,38 @@ CPUs
 ----
 
 |SourceXtractor++|'s measurement pipeline is multithreaded and can take advantage of multiple CPU cores.
-
+As of version 0.7.1, |SourceXtractor++| scales reasonably well up to 8 cores.
 
 Obtaining |SourceXtractor++|
 ----------------------------
 
+The source package may be downloaded from the official repository `https://github.com/astrorama/SourceXtractorPlusPlus`.
+Links to binary packages for a selection of operating systems are also available at the URL above.
+
 Software requirements
 ---------------------
+
+|SourceXtractor++| relies on the |Elements|_ and |Alexandria|_ packages, which may be downloaded from `Astrorama  <https://github.com/astrorama>`_ repositories.
+|SourceXtractor++| requires the following packages for installation:
+
+* `Boost <https://www.boost.org/>`_
+* `CCFITS <https://heasarc.gsfc.nasa.gov/fitsio/CCfits/>`_
+* `CFITSIO <https://heasarc.gsfc.nasa.gov/fitsio/>`_
+* `FFTW3 <http://www.fftw.org/>`_
+* `Log4cpp <http://log4cpp.sf.net/>`_
+* `OpenCV <https://opencv.org/>`_
+* `Python <https://www.python.org/>`_ (Python3.x recommended)
+* `Python-AstroPy <https://www.astropy.org/>`_
+* `WCSlib <https://www.atnf.csiro.au/people/mcalabre/WCS/index.html>`_
+
+The following packages are optional:
+
+* `Readline <https://tiswww.case.edu/php/chet/readline/rltop.html>`_
+* `Ncurses <https://invisible-island.net/ncurses/>`_ (progress bar display)
+* `LevMar <http://users.ics.forth.gr/~lourakis/levmar/>`_ (model fitting)
+
+All or most of these packages are available in the main linux distributions.
+You will also need the ``-devel`` version of the packages if you compile |SourceXtractor++| from the source.
 
 Installation
 ------------
@@ -45,32 +70,6 @@ To install from the |GitHub| source package, you must first uncompress the archi
 
 A new directory called :file:`sextractorxx-<version>` should now appear at the current location on your disk.
 
-
---------------
-Installing the SourceXtractor++ source package on Ubuntu 19.04
---------------------------------------------------------------
-
-The follwing ios a protokol for the installation of the entire SourceXtractor++ on a Ubuntu-19.04 system which was freshly installed as a virtual machine.
-
-1. Install necessary libraries
-the following packages are necessary to run SourceXtractor++:
-
-* CCFits;
-* cfitsio;
-* boost;
-* fftw3;
-* python (recommende is python3, python2 is still accepted);
-* astropy;
-* log4cpp;
-* wcslib;
-
-These packages can be installed with the usual tools either at the beginning of the installation process or whenever a missing library is reported. Please make sure to always install the development packages as well!
-
-The following packages are optional:
-
-* readline
-* ncurses (optional, for the project bar)
-* levmar (optional, for model fitting: http://users.ics.forth.gr/~lourakis/levmar/)
 
 2. Do the setup::
 

@@ -1,6 +1,9 @@
 .. |ADU| replace:: :abbr:`ADU (Analog-to-Digital Unit)`
 .. _ADU: https://en.wikipedia.org/wiki/Analog-to-digital_converter
 
+.. |Alexandria| replace:: :program:`Alexandria`
+.. _Alexandria: http://github.com/astrorama/Alexandria
+
 .. |ATLAS| replace:: :program:`ATLAS`
 .. _ATLAS: http://math-atlas.sourceforge.net
 
@@ -12,6 +15,9 @@
 
 .. |.dmg| replace:: :file:`.dmg`
 .. _.dmg: https://en.wikipedia.org/wiki/Apple_Disk_Image
+
+.. |Elements| replace:: :program:`Elements`
+.. _Elements: http://github.com/astrorama/Elements
 
 .. |FFTw| replace:: :program:`FFTw`
 .. _FFTw: http://www.fftw.org
@@ -71,7 +77,7 @@
 .. _SExtractor: http://astromatic.net/software/sextractor
 
 .. |SourceXtractor++| replace:: :program:`SourceXtractor++`
-.. _SourceXtractor++: http://github.com/ebertin/sextractorxx
+.. _SourceXtractor++: http://github.com/astrorama/SourceXtractorPlusPlus
 
 .. |SkyMaker| replace:: :program:`SkyMaker`
 .. _SkyMaker: http://astromatic.net/software/skymaker
