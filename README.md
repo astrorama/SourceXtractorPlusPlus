@@ -29,5 +29,5 @@ dnf install SourcextractorPlusPlus
 
 SourceXtractor++ is also available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
 ```bash
- conda install -c astrorama sourcextractor 
+conda install -c conda-forge -c astrorama sourcextractor 
  ```
