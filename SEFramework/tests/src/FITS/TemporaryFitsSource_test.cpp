@@ -33,7 +33,11 @@ using namespace SourceXtractor;
 BOOST_AUTO_TEST_SUITE (TemporaryFitsSource_test)
 
 BOOST_AUTO_TEST_CASE ( automatic_cleanup ) {
-  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10, true);
+  Elements::Environment env;
+  if (env.hasKey(Elements::DEFAULT_TMP_KEEP_VAR))
+    env.unSet(Elements::DEFAULT_TMP_KEEP_VAR);
+
+  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10);
   auto full_path = temporary_source->getFullPath();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
@@ -46,7 +50,10 @@ BOOST_AUTO_TEST_CASE ( automatic_cleanup ) {
 }
 
 BOOST_AUTO_TEST_CASE ( keep_file ) {
-  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10, false);
+  Elements::Environment env;
+  env.set(Elements::DEFAULT_TMP_KEEP_VAR, "1");
+
+  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10);
   auto full_path = temporary_source->getFullPath();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
