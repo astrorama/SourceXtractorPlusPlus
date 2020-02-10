@@ -21,7 +21,7 @@
  *      Author: mschefer
  */
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 
 #include "ModelFitting/Models/TransformedModel.h"
 
@@ -48,6 +48,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 static const double MODEL_MIN_SIZE = 4.0;
 static const double MODEL_SIZE_FACTOR = 1.2;

@@ -26,9 +26,10 @@
 #include <vector>
 #include <valarray>
 #include <boost/any.hpp>
-#include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <mutex>
 
+#include "AlexandriaKernel/memory_tools.h"
+#include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "ElementsKernel/PathSearch.h"
@@ -52,7 +53,6 @@
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
 
-#include "ModelFitting/utils.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
@@ -83,6 +83,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 namespace {
 

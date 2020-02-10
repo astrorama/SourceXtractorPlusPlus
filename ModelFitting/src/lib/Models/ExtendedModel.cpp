@@ -21,10 +21,12 @@
  */
 
 #include <numeric> // for std::accumulate
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Models/ScaledModelComponent.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
 #include "ModelFitting/Models/ExtendedModel.h"
-#include "ModelFitting/utils.h"
+
+using Euclid::make_unique;
 
 namespace ModelFitting {
 
