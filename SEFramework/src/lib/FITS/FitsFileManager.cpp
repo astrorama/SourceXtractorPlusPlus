@@ -93,7 +93,7 @@ fitsfile* FitsFileManager::openFitsFile(const std::string& filename, bool writea
   int status = 0;
   fitsfile* fptr =  nullptr;
 
-  fits_open_file(&fptr, filename.c_str(), writeable ? READWRITE : READONLY, &status);
+  fits_open_image(&fptr, filename.c_str(), writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
     throw Elements::Exception() << "Can't open FITS file: " << filename;
   }

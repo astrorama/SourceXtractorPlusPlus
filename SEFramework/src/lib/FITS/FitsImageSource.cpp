@@ -69,27 +69,8 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
   auto fptr = m_manager->getFitsFile(filename);
 
   if (m_hdu_number <= 0) {
-    int hdunum, hdutype;
-    fits_get_num_hdus(fptr, &hdunum, &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Can't get the number of HDUs in the FITS file: " << filename;
-    }
-
-    m_hdu_number = 0;
-    do {
-      ++m_hdu_number;
-      switchHdu(fptr, m_hdu_number);
-      fits_get_hdu_type(fptr, &hdutype, &status);
-      if (status == 0 && hdutype == IMAGE_HDU) {
-        fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
-      }
-      if (status != 0) {
-        throw Elements::Exception() << "Can't get the type of the HDU " << m_hdu_number << " in the FITS file: "
-                                    << filename;
-      }
-    } while (m_hdu_number <=hdunum && !(hdutype == IMAGE_HDU && naxis == 2));
-    if (hdutype != IMAGE_HDU) {
-      throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename;
+    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
     }
   }
   else {
