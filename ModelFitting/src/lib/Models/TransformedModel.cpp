@@ -21,10 +21,12 @@
  *      Author: mschefer
  */
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 
 #include "ModelFitting/Models/TransformModelComponent.h"
 #include "ModelFitting/Models/TransformedModel.h"
+
+using Euclid::make_unique;
 
 namespace ModelFitting {
 

@@ -48,7 +48,6 @@ elements_add_library(SEFramework
                      src/lib/Output/*.cpp
                      src/lib/Plugin/*.cpp
                      src/lib/Image/*.cpp
-                     src/lib/Filesystem/*.cpp
                      src/lib/Psf/*.cpp
                      src/lib/FFT/*.cpp
                      src/lib/FITS/*.cpp
@@ -113,9 +112,6 @@ elements_add_unit_test(ImageChunk_test tests/src/Image/ImageChunk_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(SimpleSource_test tests/src/Source/SimpleSource_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
-elements_add_unit_test(TemporaryFile_test tests/src/Filesystem/TemporaryFile_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(VariablePsf_test tests/src/Psf/VariablePsf_test.cpp

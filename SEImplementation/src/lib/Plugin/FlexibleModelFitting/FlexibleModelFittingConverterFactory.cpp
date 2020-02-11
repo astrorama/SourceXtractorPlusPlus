@@ -21,10 +21,11 @@
  *      Author: mschefer
  */
 
+#include "AlexandriaKernel/memory_tools.h"
+
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 #include "ModelFitting/Parameters/NormalizedConverter.h"
-#include "ModelFitting/utils.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 #include "SEUtils/Python.h"
@@ -32,6 +33,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {

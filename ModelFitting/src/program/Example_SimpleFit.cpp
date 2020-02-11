@@ -22,15 +22,16 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <AlexandriaKernel/memory_tools.h>
 #include <ModelFitting/Parameters/NeutralConverter.h>
 #include <ModelFitting/Engine/LeastSquareEngineManager.h>
 #include <ModelFitting/Engine/EngineParameterManager.h>
-#include <ModelFitting/utils.h>
-#include <chrono>
 #include <ModelFitting/Parameters/NormalizedConverter.h>
 #include "utils.h"
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 class ExpResidualProvider: public ResidualBlockProvider {
 private:

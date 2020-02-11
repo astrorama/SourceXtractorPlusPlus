@@ -25,7 +25,7 @@
 #define _SEFRAMEWORK_IMAGE_TEMPORARYFITSIMAGESOURCE_H_
 
 #include "FitsImageSource.h"
-#include "SEFramework/Filesystem/TemporaryFile.h"
+#include "ElementsKernel/Temporary.h"
 
 namespace SourceXtractor {
 
@@ -35,24 +35,20 @@ namespace SourceXtractor {
 template <typename T>
 class TemporaryFitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
-  TemporaryFitsImageSource(const std::string &dir, const std::string &pattern,
-    int width, int height, bool autoremove = true)
-      : m_temp_file(dir, pattern, autoremove),
-        m_image_source(new FitsImageSource<T>(m_temp_file.getPath(), width, height)) {
+  TemporaryFitsImageSource(const std::string &pattern, int width, int height)
+      : m_temp_file(pattern),
+        m_image_source(new FitsImageSource<T>(m_temp_file.path().native(), width, height)) {
   }
 
-  TemporaryFitsImageSource(const std::string pattern, int width, int height, bool autoremove = true)
-      : TemporaryFitsImageSource("", pattern, width, height, autoremove) {
-  }
-
-  TemporaryFitsImageSource(int width, int height, bool autoremove = true)
-      : TemporaryFitsImageSource("", "", width, height, autoremove) {
+  TemporaryFitsImageSource(int width, int height)
+    : m_temp_file(),
+      m_image_source(new FitsImageSource<T>(m_temp_file.path(), width, height)) {
   }
 
   virtual ~TemporaryFitsImageSource() = default;
 
   std::string getFullPath() const {
-    return m_temp_file.getPath();
+    return m_temp_file.path().native();
   }
 
   virtual std::string getRepr() const override {
@@ -76,7 +72,7 @@ public:
   }
 
 private:
-  TemporaryFile m_temp_file;
+  Elements::TempFile m_temp_file;
   std::shared_ptr<FitsImageSource<T>> m_image_source;
 };
 

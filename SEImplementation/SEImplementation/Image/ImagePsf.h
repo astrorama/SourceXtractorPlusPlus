@@ -25,12 +25,10 @@
 #define _SEIMPLEMENTATION_IMAGE_IMAGEPSF_H_
 
 #include "ElementsKernel/Exception.h"
-
+#include "AlexandriaKernel/memory_tools.h"
+#include "ModelFitting/Image/PsfTraits.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
-#include "ModelFitting/Image/PsfTraits.h"
-#include "ModelFitting/utils.h"
-
 #include "SEFramework/Convolution/Convolution.h"
 
 

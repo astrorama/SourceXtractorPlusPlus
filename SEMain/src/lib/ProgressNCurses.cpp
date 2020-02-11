@@ -14,8 +14,8 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEMain/ProgressNCurses.h"
-#include "ModelFitting/utils.h"
 
 #include <poll.h>
 #include <semaphore.h>
@@ -29,6 +29,9 @@
 #include <mutex>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/thread.hpp>
+
+
+using Euclid::make_unique;
 
 
 namespace SourceXtractor {

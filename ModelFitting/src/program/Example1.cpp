@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 //
 // This example demonstrates the following:

@@ -38,6 +38,8 @@
 #include <boost/random.hpp>
 
 #include <CCfits/CCfits>
+
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEFramework/Image/VectorImage.h"
@@ -49,7 +51,6 @@
 
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
-#include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/OldSharp.h"
@@ -68,6 +69,7 @@ namespace fs = boost::filesystem;
 
 using namespace SourceXtractor;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 const double pixel_scale = 1.0;
 

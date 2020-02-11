@@ -22,7 +22,7 @@
  */
 
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
@@ -33,6 +33,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   m_iterations = model.getIterations();
