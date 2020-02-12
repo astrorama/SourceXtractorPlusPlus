@@ -27,11 +27,11 @@
 #include "fitsio.h"
 
 #include "ElementsKernel/Exception.h"
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
-#include "SEImplementation/Background/TypedSplineModelWrapper.h"
-#include "SEImplementation/Background/BackgroundCell.h"
-#include "SEImplementation/Background/SE2BackgroundModeller.h"
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
+#include "SEImplementation/Background/SE2/TypedSplineModelWrapper.h"
+#include "SEImplementation/Background/SE2/BackgroundCell.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundModeller.h"
 #define SIZETSUB(X, Y)  ((X) > (Y) ? (X-Y) : (Y-X))
 using namespace std;
 

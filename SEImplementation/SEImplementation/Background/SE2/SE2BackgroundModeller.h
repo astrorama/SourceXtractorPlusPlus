@@ -30,8 +30,8 @@
 #include <boost/filesystem.hpp>
 #include "fitsio.h"
 #include "SEFramework/Image/Image.h"
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/TypedSplineModelWrapper.h"
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/TypedSplineModelWrapper.h"
 
 namespace SourceXtractor {
 

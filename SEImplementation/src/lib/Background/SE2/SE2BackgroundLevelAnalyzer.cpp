@@ -33,11 +33,9 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/BufferedImage.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
-#include "SEImplementation/Background/SE2BackgroundModeller.h"
-#include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
-
-#include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundModeller.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 
 
 namespace SourceXtractor {

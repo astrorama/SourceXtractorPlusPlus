@@ -22,7 +22,7 @@
  */
 
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
 
 #include <memory>
 #include <algorithm>

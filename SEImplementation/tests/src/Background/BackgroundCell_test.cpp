@@ -16,7 +16,7 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include "SEImplementation/Background/BackgroundCell.h"
+#include "SEImplementation/Background/SE2/BackgroundCell.h"
 #include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;

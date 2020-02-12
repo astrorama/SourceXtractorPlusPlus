@@ -25,11 +25,9 @@
 #include <cmath>
 #include <limits>
 #include "ElementsKernel/Exception.h"       // for Elements Exception
-#include "SEImplementation/Background/BackgroundDefine.h"
-//#include "BackgroundModule/UtilFunctions.h"
-#include "SEImplementation/Background/BackgroundHistogram.h"
-#include "SEImplementation/Background/BackgroundCell.h"
-#include <iostream>
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/BackgroundHistogram.h"
+#include "SEImplementation/Background/SE2/BackgroundCell.h"
 
 namespace SourceXtractor {
 

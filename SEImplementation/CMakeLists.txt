@@ -59,7 +59,8 @@ file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
 list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
 
 elements_add_library(SEImplementation
-            src/lib/Background/*.cpp
+			src/lib/Background/*.cpp
+			src/lib/Background/*/*.cpp
             src/lib/Partition/*.cpp
             src/lib/Segmentation/*.cpp
             src/lib/Grouping/*.cpp

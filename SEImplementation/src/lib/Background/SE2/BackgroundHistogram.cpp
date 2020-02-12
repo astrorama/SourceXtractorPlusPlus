@@ -24,8 +24,8 @@
  */
 #include <cmath>
 #include <cstddef>
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/BackgroundHistogram.h"
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/BackgroundHistogram.h"
 
 namespace SourceXtractor {
 

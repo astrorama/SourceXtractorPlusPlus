@@ -16,7 +16,7 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include "SEImplementation/Background/BackgroundHistogram.h"
+#include "SEImplementation/Background/SE2/BackgroundHistogram.h"
 #include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;

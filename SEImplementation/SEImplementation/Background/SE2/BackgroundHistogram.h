@@ -27,7 +27,7 @@
 
 #include <cstddef>
 #include <vector>
-#include "SEImplementation/Background/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
 
 namespace SourceXtractor {
 

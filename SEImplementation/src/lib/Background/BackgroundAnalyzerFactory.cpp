@@ -25,7 +25,7 @@
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 
 namespace SourceXtractor {
 
