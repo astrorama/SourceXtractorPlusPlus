@@ -19,6 +19,8 @@
  * @author nikoapos
  */
 
+#include <algorithm>
+#include "AlexandriaKernel/StringUtils.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 
@@ -46,11 +48,24 @@ std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig:
 }
 
 void SE2BackgroundConfig::initialize(const UserValues& args) {
+  auto cell_size_str = args.find(CELLSIZE_VALUE)->second.as<std::string>();
+  auto smoothing_box_str = args.find(SMOOTHINGBOX_VALUE)->second.as<std::string>();
+
   if (args.find(CELLSIZE_VALUE) != args.end()) {
-    m_cell_size = args.find(CELLSIZE_VALUE)->second.as<std::string>();
+    m_cell_size = Euclid::stringToVector<int>(cell_size_str);
   }
   if (args.find(SMOOTHINGBOX_VALUE) != args.end()) {
-    m_smoothing_box = args.find(SMOOTHINGBOX_VALUE)->second.as<std::string>();
+    m_smoothing_box = Euclid::stringToVector<int>(smoothing_box_str);
+  }
+
+  auto less_eq_0 = [](int v) { return v <= 0; };
+  auto less_0 = [](int v) { return v < 0; };
+
+  if (std::find_if(m_cell_size.begin(), m_cell_size.end(), less_eq_0) != m_cell_size.end()) {
+    throw Elements::Exception() << "There are value(s) < 1 in backgound-cell-size: " << cell_size_str;
+  }
+  if (std::find_if(m_smoothing_box.begin(), m_smoothing_box.end(), less_0) != m_smoothing_box.end()) {
+    throw Elements::Exception() << "There are value(s) < 0 in smoothing-box-size: " << smoothing_box_str;
   }
 }
 

@@ -40,37 +40,19 @@
 
 namespace SourceXtractor {
 
-SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_size,
-                                                       const std::string &smoothing_box,
-                                                       const WeightImageConfig::WeightType weight_type): m_weight_type(weight_type)
+SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::vector<int>& cell_size,
+                                                       const std::vector<int>& smoothing_box,
+                                                       const WeightImageConfig::WeightType weight_type)
+  : m_weight_type(weight_type)
 {
-  // initialize the parameters
-  m_cell_size = stringToIntVec(cell_size, std::string(","));
-  m_smoothing_box=stringToIntVec(smoothing_box,  std::string(","));
-
-  // double a single paramter if necessary
-  if (m_cell_size.size()<1){
-    throw Elements::Exception() << "Can not convert to 'int': '" << cell_size;
-  }
-  else if (m_cell_size.size()<2){
-    m_cell_size.push_back(m_cell_size[0]);
-  }
-
-  // make sure the cell size is positive
-  if (m_cell_size[0]<1 || m_cell_size[1]<1)
-	  throw Elements::Exception() << "There are value(s) < 1 in backgound-cell-size: " << cell_size;
-
-  if (m_smoothing_box.size()<1){
-    throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box;
-  }
-  else if (m_smoothing_box.size()<2){
-    m_smoothing_box.push_back(m_smoothing_box[0]);
-  }
-
-  // make sure the cell size is positive
-  if (m_smoothing_box[0]<0 || m_smoothing_box[1]<0)
-	  throw Elements::Exception() << "There are value(s) < 1 in smoothing-box-size: " << smoothing_box;
-
+  assert(cell_size.size() > 0 && cell_size.size() <= 2);
+  assert(smoothing_box.size() > 0 && smoothing_box.size() <= 2);
+  m_cell_size[0] = cell_size.front();
+  m_cell_size[1] = cell_size.back();
+  assert(m_cell_size[0] > 0 && m_cell_size[1] > 0);
+  m_smoothing_box[0] = smoothing_box.front();
+  m_smoothing_box[1] = smoothing_box.back();
+  assert(m_smoothing_box[0] >= 0 && m_smoothing_box[1] >= 0);
 }
 
 BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
@@ -151,68 +133,5 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
     );
   }
 }
-
-std::vector<int> SE2BackgroundLevelAnalyzer::stringToIntVec(const std::string inString, const std::string delimiters)
-{
-  std::vector<int> result;
-  int anInt=0;
-  std::size_t first;
-  std::size_t last;
-
-  // convert the input string to a vector of strings along the commas
-  std::vector<std::string> stringVec=stringSplit(inString, delimiters);
-
-  // go over all members
-  for (size_t index=0; index<stringVec.size(); index++)
-  {
-    // prepare trimming
-    first = stringVec[index].find_first_not_of(' ');
-    last  = stringVec[index].find_last_not_of(' ');
-
-    try
-    {
-      // try converting to int and append to result vector
-      anInt = boost::lexical_cast<size_t>(stringVec[index].substr(first, last-first+1));
-      result.push_back(anInt);
-    }
-    catch ( const boost::bad_lexical_cast &exc ) // conversion failed, exception thrown by lexical_cast and caught
-    {
-      throw Elements::Exception() << "Can not convert to 'int': '" << stringVec[index].substr(first, last-first+1) << "'";
-    }
-  }
-
-  return result;
-}
-
-std::vector<std::string> SE2BackgroundLevelAnalyzer::stringSplit(const std::string inString, const std::string delimiters)
-{
-  std::vector<std::string> result;
-  std::string trimString;
-  size_t current;
-  size_t next = -1;
-  size_t first=0;
-  size_t last=0;
-
-  // trim blanks from both sides;
-  // return the empty vector if there
-  // are only blanks
-  first = inString.find_first_not_of(' ');
-  if (first == std::string::npos)
-    return result;
-  last  = inString.find_last_not_of(' ');
-  trimString = inString.substr(first, last-first+1);
-
-  do
-  { // split along the delimiter
-    // and add to the result vector
-    current = next + 1;
-    next = trimString.find_first_of( delimiters, current );
-    result.push_back(trimString.substr( current, next - current ));
-  }
-  while (next != std::string::npos);
-
-  return result;
-}
-
 
 }

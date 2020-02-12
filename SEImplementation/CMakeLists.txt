@@ -14,6 +14,7 @@ elements_subdir(SEImplementation)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(AlexandriaKernel) # From Alexandria
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table) # From Alexandria
 elements_depends_on_subdirs(NdArray) # From Alexandria

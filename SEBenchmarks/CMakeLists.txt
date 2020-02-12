@@ -13,6 +13,7 @@ elements_subdir(SEBenchmarks)
 #   For creating a dependency onto an other accessible module
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
+elements_depends_on_subdirs(AlexandriaKernel)
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(SEImplementation)

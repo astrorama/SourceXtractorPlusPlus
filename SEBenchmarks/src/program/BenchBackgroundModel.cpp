@@ -31,12 +31,13 @@
 #include <Configuration/ConfigManager.h>
 #include <Configuration/Utils.h>
 #include <AlexandriaKernel/memory_tools.h>
+#include <AlexandriaKernel/StringUtils.h>
 
 #include "SEFramework/Image/TileManager.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
@@ -58,7 +59,8 @@ private:
   DetectionImageConfig m_detection_config;
   WeightImageConfig m_weight_config;
 
-  std::string m_output_bg, m_output_var, m_cell_size, m_smooth;
+  std::string m_output_bg, m_output_var;
+  std::vector<int> m_cell_size, m_smooth;
 
   enum class Algorithm {
     SIMPLE, SE2
@@ -134,8 +136,8 @@ public:
     else
       throw Elements::Exception() << "Unknown algorithm " << algorithm_str;
 
-    m_cell_size = args.at("cell-size").as<std::string>();
-    m_smooth = args.at("smooth-size").as<std::string>();
+    m_cell_size = stringToVector<int>(args.at("cell-size").as<std::string>());
+    m_smooth = stringToVector<int>(args.at("smooth-size").as<std::string>());
 
     auto tile_size = args.at("tile-size").as<int>();
     auto tile_memory = args.at("tile-memory").as<int>();
