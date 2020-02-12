@@ -73,55 +73,10 @@ protected:
   
 private:
   
-  class iter;
-  std::list<std::shared_ptr<SourceInterface>> m_sources;
+  std::list<SourceWrapper> m_sources;
   PropertyHolder m_property_holder;
   
 }; /* End of SimpleSourceGroup class */
-
-
-class SimpleSourceGroup::iter : public SourceGroupInterface::IteratorImpl {
-  
-public:
-  iter(std::list<std::shared_ptr<SourceInterface>>::iterator wrapped_it)
-          : m_wrapped_it(wrapped_it) {
-  }
-
-  virtual ~iter() = default;
-  
-  SourceInterface& dereference() const override {
-    return const_cast<SourceInterface&>(**m_wrapped_it);
-  }
-  
-  void increment() override {
-    ++m_wrapped_it;
-  }
-  
-  void decrement() override {
-    --m_wrapped_it;
-  }
-  
-  bool equal(const IteratorImpl& other) const override {
-      try {
-        auto& other_iter = dynamic_cast<const iter&>(other);
-        return this->m_wrapped_it == other_iter.m_wrapped_it;
-      } catch (...) {
-        return false;
-      }
-  }
-
-  std::shared_ptr<IteratorImpl> clone() const override {
-    return std::make_shared<iter>(m_wrapped_it);
-  }
-
-
-private:
-  
-  std::list<std::shared_ptr<SourceInterface>>::iterator m_wrapped_it;
-  
-  friend SimpleSourceGroup::iterator SimpleSourceGroup::removeSource(SimpleSourceGroup::iterator);
-  
-};
 
 } /* namespace SourceXtractor */
 

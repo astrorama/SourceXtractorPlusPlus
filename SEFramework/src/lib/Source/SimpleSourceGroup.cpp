@@ -24,42 +24,44 @@
 namespace SourceXtractor {
 
 SimpleSourceGroup::iterator SimpleSourceGroup::begin() {
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return m_sources.begin();
 }
 
 SimpleSourceGroup::iterator SimpleSourceGroup::end() {
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return m_sources.end();
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::cbegin() {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return m_sources.cbegin();
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::cend() {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return m_sources.cend();
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::begin() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SimpleSourceGroup*>(this)->m_sources.begin()}));
+  return m_sources.cbegin();
 }
 
 SimpleSourceGroup::const_iterator SimpleSourceGroup::end() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SimpleSourceGroup*>(this)->m_sources.end()}));
+  return m_sources.cend();
 }
 
 void SimpleSourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
-  m_sources.push_back(source);
+  m_sources.emplace_back(SourceWrapper(source));
 }
 
 SourceGroupInterface::iterator SimpleSourceGroup::removeSource(iterator pos) {
-  iter& iter_impl = dynamic_cast<iter&>(pos.getImpl());
-  auto next_wrapped_it = m_sources.erase(iter_impl.m_wrapped_it);
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{next_wrapped_it}));
+  auto next_iter = m_sources.erase(pos);
+  return next_iter;
 }
 
 void SimpleSourceGroup::merge(const SourceGroupInterface& other) {
   auto& other_group = dynamic_cast<const SimpleSourceGroup&>(other);
-  addAllSources(other_group.m_sources);
+  for (auto& source : other_group.m_sources) {
+    this->m_sources.emplace_back(source);
+  }
+  m_property_holder.clear();
 }
 
 const Property& SimpleSourceGroup::getProperty(const PropertyId& property_id) const {
