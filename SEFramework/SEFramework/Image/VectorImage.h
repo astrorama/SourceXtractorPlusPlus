@@ -33,8 +33,6 @@
 #include "SEFramework/Image/ImageBase.h"
 
 
-// FIXME get rid of offset, it was a bad idea
-
 namespace SourceXtractor {
 
 /**
@@ -56,11 +54,6 @@ class VectorImage final : public ImageBase<T>, public WriteableImage<T> {
 protected:
 
   VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height) {
-    assert(width > 0 && height > 0);
-  }
-
-  VectorImage(int width, int height, PixelCoordinate offset) :
-    m_width(width), m_height(height), m_data(width * height) {
     assert(width > 0 && height > 0);
   }
 

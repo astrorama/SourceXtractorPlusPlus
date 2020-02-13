@@ -71,10 +71,9 @@ public:
   }
 
   template <typename T>
-    static std::shared_ptr<WriteableImage<T>> newTemporaryImage(const std::string &pattern, int width, int height,
-      bool auto_remove = true) {
+    static std::shared_ptr<WriteableImage<T>> newTemporaryImage(const std::string &pattern, int width, int height) {
     fitsWriterLogger.debug() << "Creating temporary fits file";
-    auto image_source = std::make_shared<TemporaryFitsImageSource<T>>(pattern, width, height, auto_remove);
+    auto image_source = std::make_shared<TemporaryFitsImageSource<T>>(pattern, width, height);
     return WriteableBufferedImage<T>::create(image_source);
   }
 

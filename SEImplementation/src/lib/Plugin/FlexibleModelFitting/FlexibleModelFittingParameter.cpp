@@ -36,7 +36,7 @@ namespace bmd = boost::math::tools;
 
 #endif
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"

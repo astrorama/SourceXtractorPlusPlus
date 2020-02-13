@@ -46,6 +46,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 int main(int argc, char **argv) {
   std::string engine_impl("levmar");

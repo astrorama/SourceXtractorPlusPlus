@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_CONVOLUTION_DFT_H
 #define _SEFRAMEWORK_CONVOLUTION_DFT_H
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/RecenterImage.h"
@@ -102,7 +102,7 @@ public:
    *    A context than can be used by `convolve` to avoid re-computing the kernel multiple times
    */
   std::unique_ptr<ConvolutionContext> prepare(const std::shared_ptr<Image<T>> model_ptr) const {
-    auto context = make_unique<ConvolutionContext>();
+    auto context = Euclid::make_unique<ConvolutionContext>();
 
     // Dimension of the working padded images
     context->m_padded_width = model_ptr->getWidth() + m_kernel->getWidth() - 1;

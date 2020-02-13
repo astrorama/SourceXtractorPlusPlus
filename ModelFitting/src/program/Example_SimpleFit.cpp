@@ -1,3 +1,19 @@
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
 /**
  * @file Example_SimpleFit.cpp
  * @date April 12, 2019
@@ -6,15 +22,16 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
+#include <AlexandriaKernel/memory_tools.h>
 #include <ModelFitting/Parameters/NeutralConverter.h>
 #include <ModelFitting/Engine/LeastSquareEngineManager.h>
 #include <ModelFitting/Engine/EngineParameterManager.h>
-#include <ModelFitting/utils.h>
-#include <chrono>
 #include <ModelFitting/Parameters/NormalizedConverter.h>
 #include "utils.h"
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 class ExpResidualProvider: public ResidualBlockProvider {
 private:

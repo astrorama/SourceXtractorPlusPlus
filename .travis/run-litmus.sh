@@ -9,7 +9,11 @@ fi
 TARGET_PACKAGE=$1
 TARGET_VERSION=$2
 TARGET_REPO=$3
-TARGET_BRANCH=$4 # Optional
+
+# The changes happened, or have been pulled into, this branch
+TARGET_BRANCH=$4
+# In the case of pull requests, this is the origin branch
+ORIGIN_BRANCH=$5
 
 # Platform-specific configuration
 source /etc/os-release
@@ -22,7 +26,11 @@ if [ "$ID" == "fedora" ]; then
   fi
 elif [ "$ID" == "centos" ]; then
   yum install -y -q epel-release
-  PYTHON="python2"
+  if [ "$VERSION_ID" -ge 8 ]; then
+    PYTHON="python3"
+  else
+    PYTHON="python2"
+  fi
 fi
 
 # Always master repository
@@ -65,24 +73,34 @@ fi
 cat /etc/yum.repos.d/astrorama.repo
 
 # Install dependencies
-yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib
-if [ "${PYTHON}" == "python2" ]; then
-  yum install -y -q python2-enum34 python2-pathlib python2-configparser
-fi
+yum install -y -q git git-lfs ${PYTHON}-pytest ${PYTHON}-astropy ${PYTHON}-numpy ${PYTHON}-matplotlib ${PYTHON}-psutil ${PYTHON}-pip
 
 # Get the relevant version
 yum install -y "${TARGET_PACKAGE}-${TARGET_VERSION}"
 
 # Checkout the tests
 if ! [ -d /tmp/sourcextractor-litmus ]; then
-  git clone --depth=1 https://github.com/astrorama/SourceXtractor-litmus.git /tmp/sourcextractor-litmus
+  GIT_LFS_SKIP_SMUDGE=1 git clone --depth=1 https://github.com/astrorama/SourceXtractor-litmus.git /tmp/sourcextractor-litmus
 fi
 cd /tmp/sourcextractor-litmus
-if [ -n "${TARGET_BRANCH}" ]; then
-  echo "Trying to use a branch for the tests that matches the target branch"
-  (git fetch origin "${TARGET_BRANCH}:${TARGET_BRANCH}" && git checkout "${TARGET_BRANCH}") || true
-fi
+
+# Try to use a better set of tests by this order
+# 1: Those contained on a branch that matches the origin of the pull request (if it is a pull)
+# 2: Those contained on a branch that matches the destination of the pull request (or the name of the branch)
+# 3: The default branch for the tests (i.e. master)
+BRANCHES=("${ORIGIN_BRANCH}" "${TARGET_BRANCH}" "master")
+for b in ${BRANCHES[@]}; do
+  echo "Try $b"
+  git fetch --update-head-ok origin "$b:$b" && git checkout "$b" && break
+done
+
+git status
 git lfs pull
+
+# Install requirements
+if [ -f "requirements.txt" ]; then
+  ${PYTHON} -m pip install --user -r "requirements.txt"
+fi
 
 # Patch config file
 sed -i "s:binary=.*:binary=/usr/bin/sourcextractor++:" pytest.ini
@@ -99,4 +117,4 @@ else
   PYTEST=pytest-3
 fi
 
-${PYTEST} -v -m "not report"
+${PYTEST} -v -m "not report" -k "not gsl"

@@ -24,7 +24,7 @@
 #include <iostream>
 #include <mutex>
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"

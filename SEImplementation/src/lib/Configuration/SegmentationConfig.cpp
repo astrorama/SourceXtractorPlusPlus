@@ -53,7 +53,7 @@ static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
 static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-    m_selected_algorithm(Algorithm::UNKNOWN) {
+    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {

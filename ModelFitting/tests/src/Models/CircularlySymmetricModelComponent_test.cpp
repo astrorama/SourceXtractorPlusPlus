@@ -23,15 +23,16 @@
 
 #include <boost/test/unit_test.hpp>
 #include <numeric>
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/OldSharp.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
-#include "ModelFitting/utils.h"
 #include "SEUtils/IsClose.h"
 
 using namespace ModelFitting;
 using namespace SourceXtractor;
+using Euclid::make_unique;
 
 //-----------------------------------------------------------------------------
 

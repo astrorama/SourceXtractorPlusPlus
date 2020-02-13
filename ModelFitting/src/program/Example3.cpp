@@ -46,6 +46,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 // This example demonstrates how to use the DataVsModelResiduals to perform
 // minimization over an observed image and a FrameModel. The real parameters

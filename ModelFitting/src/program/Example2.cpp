@@ -39,6 +39,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 // This example demonstrates how to create a FrameModel with a single constant
 // model and a random number of point and extended models.
