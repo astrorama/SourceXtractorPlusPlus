@@ -38,6 +38,7 @@
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 #include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
@@ -63,12 +64,13 @@ private:
   std::vector<int> m_cell_size, m_smooth;
 
   enum class Algorithm {
-    SIMPLE, SE2
+    SIMPLE, SE2, NG
   } m_algorithm;
 
   std::map<std::string, Algorithm> s_algo_map{
     {"simple", Algorithm::SIMPLE},
-    {"se2",    Algorithm::SE2}
+    {"se2",    Algorithm::SE2},
+    {"ng",     Algorithm::NG}
   };
 
   /**
@@ -89,9 +91,15 @@ private:
 
   std::unique_ptr<BackgroundAnalyzer>
   getBackgroundAnalyzer() {
-    if (m_algorithm == Algorithm::SE2)
-      return make_unique<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
-    return make_unique<SimpleBackgroundAnalyzer>();
+    switch (m_algorithm) {
+      case Algorithm::SIMPLE:
+        return make_unique<SimpleBackgroundAnalyzer>();
+      case Algorithm::SE2:
+        return make_unique<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
+      case Algorithm::NG:
+        return make_unique<SEBackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
+    }
+    return nullptr;
   }
 
 public:
