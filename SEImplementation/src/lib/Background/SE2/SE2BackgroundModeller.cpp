@@ -27,6 +27,7 @@
 #include "fitsio.h"
 
 #include "ElementsKernel/Exception.h"
+#include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SE2/BackgroundDefine.h"
 #include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SE2/TypedSplineModelWrapper.h"

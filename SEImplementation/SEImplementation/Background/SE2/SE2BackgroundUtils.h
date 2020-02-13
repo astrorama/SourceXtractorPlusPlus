@@ -30,8 +30,6 @@
 
 namespace SourceXtractor {
 
-static Elements::Logging bck_model_logger = Elements::Logging::getLogger("BackgroundModel");
-
 class SE2BackgroundUtils {
 
  public:
