@@ -32,7 +32,6 @@
 #include "ModelFitting/Models/ModelComponent.h"
 #include "ModelFitting/Models/ScaledModelComponent.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
-#include "ModelFitting/utils.h"
 
 namespace ModelFitting {
 

@@ -22,8 +22,14 @@
 
 #include <iostream>
 #include <cmath> // for std::sqrt
+
 #include "ElementsKernel/Exception.h"
+
+#include "AlexandriaKernel/memory_tools.h"
+
 #include "ModelFitting/Image/ImageTraits.h"
+
+using Euclid::make_unique;
 
 namespace ModelFitting {
 
