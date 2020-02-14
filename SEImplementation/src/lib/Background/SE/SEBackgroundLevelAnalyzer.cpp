@@ -22,6 +22,10 @@
 #include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SE/HistogramImage.h"
 
+#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/statistics/stats.hpp>
+#include <boost/accumulators/statistics/median.hpp>
+
 namespace SourceXtractor {
 
 SEBackgroundLevelAnalyzer::SEBackgroundLevelAnalyzer(const std::vector<int>& cell_size,
@@ -34,6 +38,26 @@ SEBackgroundLevelAnalyzer::SEBackgroundLevelAnalyzer(const std::vector<int>& cel
   m_cell_size[1] = cell_size.back();
   m_smoothing_box[0] = smoothing_box.front();
   m_smoothing_box[1] = smoothing_box.back();
+}
+
+static float computeScaling(const std::shared_ptr<Image<DetectionImage::PixelType>>& variance,
+                            const std::shared_ptr<Image<WeightImage::PixelType>>& weight) {
+  namespace ba = boost::accumulators;
+
+  ba::accumulator_set<WeightImage::PixelType, ba::stats<ba::tag::median> > acc;
+
+  for (int y = 0; y < variance->getHeight(); ++y) {
+    for (int x = 0; x < variance->getWidth(); ++x) {
+      auto w = weight->getValue(x, y);
+      auto v = variance->getValue(x, y);
+      auto ratio = v / w;
+      if (ratio > 0) {
+        acc(ratio);
+      }
+    }
+  }
+
+  return ba::median(acc);
 }
 
 BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
@@ -70,8 +94,13 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   // Smooth both with the smooth_box (median filtering)
   //    Note: Bad pixels *on the block model* are interpolated, we already have a class for that.
   //          That could happen if *half the pixels* on a block are bad (-BIG)
-  HistogramImage<SeFloat> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
-  return BackgroundModel(histo.getModeImage(), histo.getSigmaImage(), 1);
+  HistogramImage<SeFloat> histo(image, variance_map, variance_threshold,
+                                m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+  SeFloat scaling = 99999;
+  if (variance_map) {
+    scaling = computeScaling(histo.getVarianceImage(), histo.getWeightImage());
+  }
+  return BackgroundModel(histo.getModeImage(), histo.getWeightImage(), scaling);
 }
 
 } // end of namespace SourceXtractor

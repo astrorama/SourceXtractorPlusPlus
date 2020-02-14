@@ -26,7 +26,9 @@ namespace SourceXtractor {
 template<typename T>
 class HistogramImage {
 public:
-  HistogramImage(const std::shared_ptr<Image<T>>& image, int cell_w, int cell_h,
+
+  HistogramImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance, T var_threshold,
+                 int cell_w, int cell_h,
                  T invalid_value, T kappa1=2, T kappa2=5, T kappa3=3,
                  T rtol = 1e-4, size_t max_iter = 100);
 
@@ -34,15 +36,19 @@ public:
 
   std::shared_ptr<Image<T>> getModeImage() const;
 
-  std::shared_ptr<Image<T>> getSigmaImage() const;
+  std::shared_ptr<Image<T>> getVarianceImage() const;
+
+  std::shared_ptr<Image<T>> getWeightImage() const;
 
 private:
-  std::shared_ptr<Image<T>> m_img;
-  std::shared_ptr<VectorImage<T>> m_mode, m_sigma;
+  std::shared_ptr<Image<T>> m_image, m_variance;
+  std::shared_ptr<VectorImage<T>> m_mode, m_sigma, m_weight_mode, m_weight_sigma;
+  T m_variance_threshold;
   int m_cell_w, m_cell_h;
   T m_invalid, m_kappa1, m_kappa2, m_kappa3, m_rtol;
   size_t m_max_iter;
 
+  std::tuple<T, T> getBackGuess(const std::vector<T> &data) const;
   void processCell(int x, int y);
 };
 

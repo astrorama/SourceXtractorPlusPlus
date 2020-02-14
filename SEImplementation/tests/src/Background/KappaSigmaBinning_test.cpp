@@ -16,6 +16,7 @@
  */
 
 #include <boost/test/unit_test.hpp>
+#include "Histogram/Histogram.h"
 #include "SEImplementation/Background/SE/KappaSigmaBinning.h"
 
 using namespace SourceXtractor;
@@ -77,6 +78,29 @@ BOOST_AUTO_TEST_CASE(allOnes) {
   BOOST_CHECK_EQUAL(2, edges.size());
   BOOST_CHECK_LT(edges.front(), 1);
   BOOST_CHECK_GT(edges.back(), 1);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(allOnesHistogram) {
+  std::vector<float> ones{1, 1, 1, 1};
+
+  Euclid::Histogram::Histogram<float> histo(KappaSigmaBinning(), ones.begin(), ones.end());
+  auto edges = histo.getEdges();
+  auto counts = histo.getCounts();
+  float total = 0;
+  for (size_t i = 0; i < counts.size(); ++i) {
+    if (edges[i] <= 1. && edges[i+1] >= 1) {
+      total += counts[i];
+    }
+  }
+  BOOST_CHECK_EQUAL(4.f, total);
+
+  float mean, median, sigma;
+  std::tie(mean, median, sigma) = histo.getStats();
+  BOOST_CHECK_CLOSE(1.f, mean, 1e-2);
+  BOOST_CHECK_CLOSE(1.f, median, 1e-2);
+  BOOST_CHECK_SMALL(sigma, 1e-5f);
 }
 
 //-----------------------------------------------------------------------------
