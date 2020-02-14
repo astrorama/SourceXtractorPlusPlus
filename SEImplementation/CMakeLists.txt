@@ -109,6 +109,9 @@ elements_add_unit_test(BackgroundCell_test tests/src/Background/BackgroundCell_t
 elements_add_unit_test(BackgroundHistogram_test tests/src/Background/BackgroundHistogram_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
+elements_add_unit_test(KappaSigmaBinning_test tests/src/Background/KappaSigmaBinning_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
