@@ -40,8 +40,12 @@ public:
 
   std::shared_ptr<Image<T>> getWeightImage() const;
 
+  std::shared_ptr<Image<T>> getWeightVarianceImage() const;
+
+  T getMedianVariance() const;
+
 private:
-  std::shared_ptr<Image<T>> m_image, m_variance;
+  std::shared_ptr<const Image<T>> m_image, m_variance;
   std::shared_ptr<VectorImage<T>> m_mode, m_sigma, m_weight_mode, m_weight_sigma;
   T m_variance_threshold;
   int m_cell_w, m_cell_h;

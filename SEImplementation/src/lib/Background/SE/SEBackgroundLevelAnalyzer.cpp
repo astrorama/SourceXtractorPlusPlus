@@ -17,14 +17,16 @@
 
 #include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
 
-#include "SEFramework/Image/MaskedImage.h"
-
-#include "SEImplementation/Background/Utils.h"
-#include "SEImplementation/Background/SE/HistogramImage.h"
-
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/median.hpp>
+
+#include "SEFramework/Image/ConstantImage.h"
+#include "SEFramework/Image/MaskedImage.h"
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEImplementation/Background/Utils.h"
+#include "SEImplementation/Background/SE/HistogramImage.h"
+#include "SEImplementation/Background/SE/MedianFilter.h"
 
 namespace SourceXtractor {
 
@@ -44,13 +46,13 @@ static float computeScaling(const std::shared_ptr<Image<DetectionImage::PixelTyp
                             const std::shared_ptr<Image<WeightImage::PixelType>>& weight) {
   namespace ba = boost::accumulators;
 
-  ba::accumulator_set<WeightImage::PixelType, ba::stats<ba::tag::median> > acc;
+  ba::accumulator_set<WeightImage::PixelType, ba::stats<ba::tag::median>> acc;
 
   for (int y = 0; y < variance->getHeight(); ++y) {
     for (int x = 0; x < variance->getWidth(); ++x) {
       auto w = weight->getValue(x, y);
       auto v = variance->getValue(x, y);
-      auto ratio = v / w;
+      auto ratio = (v * v) / w;
       if (ratio > 0) {
         acc(ratio);
       }
@@ -66,15 +68,15 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
 
   const auto mask_value = std::numeric_limits<DetectionImage::PixelType>::min();
 
-  if (mask!=nullptr)
-  {
+  if (mask != nullptr) {
     bck_model_logger.debug() << "\tMask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")";
 
     // make sure the dimensions are the same
-    if (image->getWidth()!=mask->getWidth())
+    if (image->getWidth() != mask->getWidth())
       throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " mask=" << mask->getWidth();
-    if (image->getHeight()!=mask->getHeight())
-      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask=" << mask->getHeight();
+    if (image->getHeight() != mask->getHeight())
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask="
+                                  << mask->getHeight();
 
     image = MaskedImage<DetectionImage::PixelType, unsigned char>::create(image, mask, mask_value);
   }
@@ -96,11 +98,25 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   //          That could happen if *half the pixels* on a block are bad (-BIG)
   HistogramImage<SeFloat> histo(image, variance_map, variance_threshold,
                                 m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+
+  auto mode = histo.getModeImage();
+  auto var = histo.getVarianceImage();
+  auto weight = histo.getWeightImage();
+  auto weight_var = histo.getWeightVarianceImage();
+
+  std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
+
   SeFloat scaling = 99999;
-  if (variance_map) {
-    scaling = computeScaling(histo.getVarianceImage(), histo.getWeightImage());
+  if (m_weight_type == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE) {
+    var = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), histo.getMedianVariance());
   }
-  return BackgroundModel(histo.getModeImage(), histo.getWeightImage(), scaling);
+  else {
+    std::tie(weight, weight_var) = MedianFilter<WeightImage::PixelType>(m_smoothing_box)(*weight, *weight_var);
+    scaling = computeScaling(var, weight);
+    var = MultiplyImage<WeightImage::PixelType>::create(var, var);
+  }
+
+  return BackgroundModel(mode, var, scaling);
 }
 
 } // end of namespace SourceXtractor

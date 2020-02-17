@@ -73,8 +73,25 @@ std::shared_ptr<Image<T>> HistogramImage<T>::getWeightImage() const {
   return m_weight_mode;
 }
 
-template <typename T>
-std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T> &data) const {
+template<typename T>
+std::shared_ptr<Image<T>> HistogramImage<T>::getWeightVarianceImage() const {
+  return m_weight_sigma;
+}
+
+template<typename T>
+T HistogramImage<T>::getMedianVariance() const {
+  auto v = m_sigma->getData();
+  std::sort(v.begin(), v.end());
+  auto nitems = v.size();
+  if (nitems % 2 == 1) {
+    return v[nitems / 2];
+  }
+  return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
+
+}
+
+template<typename T>
+std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
   Histogram<T> histo(KappaSigmaBinning(m_kappa1, m_kappa2), data.begin(), data.end());
 
   T mean, median, sigma;
@@ -93,11 +110,11 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T> &data) con
   if (std::abs(sigma) <= 0) {
     mode = mean;
   }
-  // Not crowded: mean and median do not differ more than 30%
+    // Not crowded: mean and median do not differ more than 30%
   else if (std::abs((mean - median) / sigma) < 0.3) {
     mode = 2.5 * median - 1.5 * mean;
   }
-  // Crowded case: we use the median
+    // Crowded case: we use the median
   else {
     mode = median;
   }
@@ -133,10 +150,10 @@ void HistogramImage<T>::processCell(int x, int y) {
     T wmode, wsigma;
     std::tie(wmode, wsigma) = getBackGuess(filtered_weight);
     m_weight_mode->setValue(x, y, wmode);
-    m_weight_sigma->setValue(x, y, wsigma*wsigma);
+    m_weight_sigma->setValue(x, y, wsigma);
   }
   else {
-    for (size_t i =0; i < data.size(); ++i) {
+    for (size_t i = 0; i < data.size(); ++i) {
       if (data[i] != m_invalid)
         filtered.emplace_back(data[i]);
     }
@@ -145,7 +162,7 @@ void HistogramImage<T>::processCell(int x, int y) {
   T mode, sigma;
   std::tie(mode, sigma) = getBackGuess(filtered);
   m_mode->setValue(x, y, mode);
-  m_sigma->setValue(x, y, sigma*sigma);
+  m_sigma->setValue(x, y, sigma);
 }
 
 template

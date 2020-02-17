@@ -90,6 +90,10 @@ public:
     return tile;
   }
 
+  void gridToFits(boost::filesystem::path path) const {
+    m_spline_model->gridToFits(path);
+  }
+
   void saveTile(ImageTile<T>& /*tile*/) override {
     assert(false);
   }
