@@ -132,8 +132,8 @@ int main() {
   component_list.emplace_back(move(rotated_dev));
   
   // We finally create the extended model
-  ExtendedModel extended_model {move(component_list), model_scale, model_scale,
-                                model_angle, width, height, x, y};
+  auto extended_model = std::make_shared<ExtendedModel<cv::Mat>>(move(component_list), model_scale, model_scale,
+                                model_angle, width, height, x, y);
                                 
   //
   // Model demonstration
@@ -149,7 +149,7 @@ int main() {
   // class is provided. For the cv::Mat this specialization is defined in the
   // ModelFitting/Image/OpenCvMatImageTraits.h file, which is included at the
   // top of this file.
-  auto image = extended_model.getRasterizedImage<cv::Mat>(.1, 201, 301);
+  auto image = extended_model->getRasterizedImage(.1, 201, 301);
   writeToFits(image, "example1.fits");
   
 }
