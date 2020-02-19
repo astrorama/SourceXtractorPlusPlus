@@ -25,6 +25,7 @@
 #define SEFRAMEWORK_SEFRAMEWORK_IMAGE_MASKEDIMAGE_H_
 
 #include "SEFramework/Image/ImageBase.h"
+#include "VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -40,7 +41,7 @@ namespace SourceXtractor {
  * @note
  *  The image is masked where the operator evaluates to true on the mask image
  */
-template<typename T, typename M, typename Operator = std::bit_and<M>>
+template<typename T, typename M, template <typename> class Operator = std::bit_and>
 class MaskedImage : public ImageBase<T> {
 private:
   MaskedImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<M>>& mask,
@@ -52,7 +53,7 @@ private:
   std::shared_ptr<Image<M>> m_mask;
   T m_replacement;
   M m_mask_flag;
-  Operator m_operator;
+  Operator<M> m_operator;
 
 public:
   virtual ~MaskedImage() = default;
@@ -77,22 +78,37 @@ public:
     return std::shared_ptr<MaskedImage<T, M, Operator>>(new MaskedImage<T, M, Operator>(image, mask, replacement, mask_flag));
   }
 
-  std::string getRepr() const override {
+  std::string getRepr() const final {
     return std::string("Masked(" + m_image->getRepr() + ")");
   }
 
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const final {
     if (m_operator(m_mask->getValue(x, y), m_mask_flag))
       return m_replacement;
     return m_image->getValue(x, y);
   }
 
-  int getWidth() const override {
+  int getWidth() const final {
     return m_image->getWidth();
   }
 
-  int getHeight() const override {
+  int getHeight() const final {
     return m_image->getHeight();
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
+    auto img_chunk = m_image->getChunk(x, y, width, height);
+    auto mask_chunk = m_mask->getChunk(x, y, width, height);
+    std::vector<T> data(width * height);
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        if (m_operator(mask_chunk->getValue(ix, iy), m_mask_flag))
+          data[ix + iy * width] = m_replacement;
+        else
+          data[ix + iy * width] = img_chunk->getValue(ix, iy);
+      }
+    }
+    return UniversalImageChunk<T>::create(std::move(data), width, height);
   }
 };
 

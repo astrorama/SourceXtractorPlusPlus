@@ -82,7 +82,7 @@ BOOST_FIXTURE_TEST_CASE(maskEqual, MaskedImageFixture) {
       7,    8,    9
     });
 
-  auto masked = MaskedImage<SeFloat, char, std::equal_to<char>>::create(img, mask, 1024, 0x01);
+  auto masked = MaskedImage<SeFloat, char, std::equal_to>::create(img, mask, 1024, 0x01);
   BOOST_CHECK(compareImages(expected, masked));
 }
 
@@ -98,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE(maskNotEqual, MaskedImageFixture) {
       7, 1024, 1024
     });
 
-  auto masked = MaskedImage<SeFloat, char, std::not_equal_to<char>>::create(img, mask, 1024, 0x00);
+  auto masked = MaskedImage<SeFloat, char, std::not_equal_to>::create(img, mask, 1024, 0x00);
   BOOST_CHECK(compareImages(expected, masked));
 }
 

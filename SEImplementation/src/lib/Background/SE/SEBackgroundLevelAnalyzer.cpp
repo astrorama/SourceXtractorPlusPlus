@@ -91,14 +91,10 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
       throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight();
 
     // Anything above the threshold is masked out
-    auto variance_mask = FunctionalImage<uint8_t>::create(
-      image->getWidth(), image->getHeight(),
-      [variance_map, variance_threshold](int x, int y) {
-        return variance_map->getValue(x, y) >= variance_threshold;
-      }
-    );
-    image = MaskedImage<DetectionImage::PixelType, uint8_t>::create(image, variance_mask, mask_value);
-    variance_map = MaskedImage<DetectionImage::PixelType, uint8_t>::create(variance_map, variance_mask, mask_value);
+    image = MaskedImage<DetectionImage::PixelType, WeightImage::PixelType, std::greater_equal>::create(
+      image, variance_map, mask_value, variance_threshold);
+    variance_map = MaskedImage<WeightImage::PixelType, WeightImage::PixelType, std::greater_equal>::create(
+      variance_map, variance_map, mask_value, variance_threshold);
   }
 
   // Create histogram model for the image
