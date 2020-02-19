@@ -18,12 +18,6 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 #define SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/count.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-
 #include "Histogram/Histogram.h"
 
 namespace SourceXtractor {
@@ -71,29 +65,26 @@ public:
    */
   template<typename Iterator>
   void computeBins(Iterator begin, Iterator end) {
-    using value_type = typename std::iterator_traits<Iterator>::value_type;
-    namespace ba = boost::accumulators;
-
     // Compute mean and standard deviation of the original data set
-    ba::accumulator_set<value_type, ba::stats<ba::tag::variance, ba::tag::mean>> data_acc;
-    std::for_each(begin, end, std::bind<void>(std::ref(data_acc), std::placeholders::_1));
-    auto sigma = std::sqrt(ba::variance(data_acc));
-    auto mean = ba::mean(data_acc);
+    float mean, sigma;
+    size_t ndata;
+    Stats stats;
+    for (auto i = begin; i != end; ++i) {
+      stats(*i);
+    }
+    std::tie(mean, sigma, ndata) = stats.get();
 
     // Cuts
     auto lcut = mean - sigma * m_kappa;
     auto hcut = mean + sigma * m_kappa;
 
     // Re-compute mean and standard deviation of values within cut
-    ba::accumulator_set<value_type, ba::stats<ba::tag::variance, ba::tag::mean, ba::tag::count>> cut_acc;
-    std::for_each(begin, end, [lcut, hcut, &cut_acc](value_type v){
-      if (v >= lcut && v <= hcut)
-        cut_acc(v);
-    });
-
-    sigma = std::sqrt(ba::variance(cut_acc));
-    mean = ba::mean(cut_acc);
-    size_t ndata = ba::count(cut_acc);
+    stats.reset();
+    for (auto i = begin; i != end; ++i) {
+      if (*i >= lcut && *i <= hcut)
+        stats(*i);
+    }
+    std::tie(mean, sigma, ndata) = stats.get();
 
     // Number of bins
     m_nbins = computeBinCount(ndata);
@@ -129,6 +120,34 @@ private:
     size_t nbins = ndata * std::sqrt(M_2_PI) * m_kappa2 / m_min_pixels + 1;
     return std::min(nbins, static_cast<size_t>(4096));
   }
+
+  /**
+   * Online mean and standard deviation computation
+   * Similar to boost::accumulators, but this turned out to be faster
+   */
+  struct Stats {
+    VarType mean = 0, sigma = 0;
+    size_t ndata = 0;
+
+    void operator() (VarType v) {
+      mean += v;
+      sigma += v * v;
+      ++ndata;
+    }
+
+    std::tuple<VarType, VarType, size_t> get() {
+      mean /= ndata;
+      sigma = sigma / ndata - mean * mean;
+      if (sigma > 0)
+        sigma = std::sqrt(sigma);
+      return std::make_tuple(mean, sigma, ndata);
+    }
+
+    void reset() {
+      mean = sigma = 0;
+      ndata = 0;
+    }
+  };
 };
 
 } // end of namespace SourceXtractor
