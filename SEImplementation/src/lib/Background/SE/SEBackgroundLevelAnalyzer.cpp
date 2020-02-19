@@ -78,7 +78,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
       throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " mask="
                                   << mask->getHeight();
 
-    image = MaskedImage<DetectionImage::PixelType, unsigned char>::create(image, mask, mask_value);
+    image = MaskedImage<DetectionImage::PixelType, uint8_t>::create(image, mask, mask_value);
   }
 
   if (variance_map!=nullptr)
@@ -89,33 +89,43 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
       throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth();
     if (image->getHeight()!=variance_map->getHeight())
       throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight();
+
+    // Anything above the threshold is masked out
+    auto variance_mask = FunctionalImage<uint8_t>::create(
+      image->getWidth(), image->getHeight(),
+      [variance_map, variance_threshold](int x, int y) {
+        return variance_map->getValue(x, y) >= variance_threshold;
+      }
+    );
+    image = MaskedImage<DetectionImage::PixelType, uint8_t>::create(image, variance_mask, mask_value);
+    variance_map = MaskedImage<DetectionImage::PixelType, uint8_t>::create(variance_map, variance_mask, mask_value);
   }
 
-  // Create histogram model for masked image, everything that is -BIG is filtered out
-  // Create histogram model for the variance image, everything that is above the threshold is filtered out
-  // Smooth both with the smooth_box (median filtering)
-  //    Note: Bad pixels *on the block model* are interpolated, we already have a class for that.
-  //          That could happen if *half the pixels* on a block are bad (-BIG)
-  HistogramImage<SeFloat> histo(image, variance_map, variance_threshold,
-                                m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
-
+  // Create histogram model for the image
+  HistogramImage<SeFloat> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
   auto mode = histo.getModeImage();
-  auto var = histo.getVarianceImage();
-  auto weight = histo.getWeightImage();
-  auto weight_var = histo.getWeightVarianceImage();
-
+  auto var = histo.getSigmaImage();
+  // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
 
   SeFloat scaling = 99999;
-  if (m_weight_type == WeightImageConfig::WeightType::WEIGHT_TYPE_NONE) {
-    var = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), histo.getMedianVariance());
-  }
-  else {
+
+  if (variance_map) {
+    // Create histogram model for the variance image
+    HistogramImage<SeFloat> var_histo(variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+    auto weight = var_histo.getModeImage();
+    auto weight_var = var_histo.getSigmaImage();
+    // Smooth with the smooth_box (median filtering)
     std::tie(weight, weight_var) = MedianFilter<WeightImage::PixelType>(m_smoothing_box)(*weight, *weight_var);
+    // Compute scaling
     scaling = computeScaling(var, weight);
+    // Transform RMS to variance
     var = MultiplyImage<WeightImage::PixelType>::create(var, var);
   }
-
+  else {
+    auto sigma = histo.getMedianSigma();
+    var = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), sigma*sigma);
+  }
   return BackgroundModel(mode, var, scaling);
 }
 

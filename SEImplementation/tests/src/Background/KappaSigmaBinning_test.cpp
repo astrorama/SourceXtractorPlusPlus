@@ -37,8 +37,9 @@ BOOST_AUTO_TEST_SUITE(KappaSigmaBinning_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(nsigma5, KappaSigmaBinningFixture) {
-  KappaSigmaBinning binning(1, 5);
-  auto edges = binning(data.begin(), data.end());
+  KappaSigmaBinning<float> binning(1, 5);
+  binning.computeBins(data.begin(), data.end());
+  auto edges = binning.getEdges();
 
   BOOST_CHECK_EQUAL(16, edges.size());
   BOOST_CHECK(std::is_sorted(edges.begin(), edges.end()));
@@ -49,8 +50,9 @@ BOOST_FIXTURE_TEST_CASE(nsigma5, KappaSigmaBinningFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(nsigma1, KappaSigmaBinningFixture) {
-  KappaSigmaBinning binning(1, 1);
-  auto edges = binning(data.begin(), data.end());
+  KappaSigmaBinning<float> binning(1, 1);
+  binning.computeBins(data.begin(), data.end());
+  auto edges = binning.getEdges();
 
   BOOST_CHECK_EQUAL(4, edges.size());
   BOOST_CHECK(std::is_sorted(edges.begin(), edges.end()));
@@ -62,8 +64,9 @@ BOOST_FIXTURE_TEST_CASE(nsigma1, KappaSigmaBinningFixture) {
 
 BOOST_AUTO_TEST_CASE(allZeros) {
   std::vector<float> zeros{0, 0, 0, 0};
-  KappaSigmaBinning binning(1, 1);
-  auto edges = binning(zeros.begin(), zeros.end());
+  KappaSigmaBinning<float> binning(1, 1);
+  binning.computeBins(zeros.begin(), zeros.end());
+  auto edges = binning.getEdges();
   BOOST_CHECK_EQUAL(2, edges.size());
   BOOST_CHECK_LT(edges.front(), 0);
   BOOST_CHECK_GT(edges.back(), 0);
@@ -73,8 +76,9 @@ BOOST_AUTO_TEST_CASE(allZeros) {
 
 BOOST_AUTO_TEST_CASE(allOnes) {
   std::vector<float> ones{1, 1, 1, 1};
-  KappaSigmaBinning binning(1, 1);
-  auto edges = binning(ones.begin(), ones.end());
+  KappaSigmaBinning<float> binning(1, 1);
+  binning.computeBins(ones.begin(), ones.end());
+  auto edges = binning.getEdges();
   BOOST_CHECK_EQUAL(2, edges.size());
   BOOST_CHECK_LT(edges.front(), 1);
   BOOST_CHECK_GT(edges.back(), 1);
@@ -85,7 +89,7 @@ BOOST_AUTO_TEST_CASE(allOnes) {
 BOOST_AUTO_TEST_CASE(allOnesHistogram) {
   std::vector<float> ones{1, 1, 1, 1};
 
-  Euclid::Histogram::Histogram<float> histo(KappaSigmaBinning(), ones.begin(), ones.end());
+  Euclid::Histogram::Histogram<float> histo(ones.begin(), ones.end(), KappaSigmaBinning<float>{});
   auto edges = histo.getEdges();
   auto counts = histo.getCounts();
   float total = 0;

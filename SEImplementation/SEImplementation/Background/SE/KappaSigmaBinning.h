@@ -24,6 +24,8 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 
+#include "Histogram/Histogram.h"
+
 namespace SourceXtractor {
 
 /**
@@ -39,7 +41,8 @@ namespace SourceXtractor {
  * The number of bins is directly proportional to \f$ \kappa_2 \f$ and the number of data points, and limited
  * to 4096 bins by default.
  */
-class KappaSigmaBinning {
+template <typename VarType>
+class KappaSigmaBinning: public Euclid::Histogram::BinStrategy<VarType> {
 public:
   /**
    * Constructor
@@ -53,7 +56,7 @@ public:
    *    Maximum number of bins
    */
   KappaSigmaBinning(float kappa1 = 2., float kappa2 = 5., size_t min_pixels = 4, size_t max_size = 4096)
-    : m_kappa(kappa1), m_kappa2(kappa2), m_min_pixels(min_pixels), m_max_size(max_size) {}
+    : m_kappa(kappa1), m_kappa2(kappa2), m_min_pixels(min_pixels), m_max_size(max_size), m_start(0), m_step(1) {}
 
   /**
    * Get the list of bin edges for the given data points
@@ -67,7 +70,7 @@ public:
    *    A vector with the bin *edges*
    */
   template<typename Iterator>
-  auto operator()(Iterator begin, Iterator end) const -> std::vector<typename std::iterator_traits<Iterator>::value_type> {
+  void computeBins(Iterator begin, Iterator end) {
     using value_type = typename std::iterator_traits<Iterator>::value_type;
     namespace ba = boost::accumulators;
 
@@ -93,30 +96,34 @@ public:
     size_t ndata = ba::count(cut_acc);
 
     // Number of bins
-    size_t nbins = computeBinCount(ndata);
+    m_nbins = computeBinCount(ndata);
 
     // Bin size and offset
-    auto bin_scale = 2 * (m_kappa2 * sigma) / nbins;
-    if (bin_scale == 0)
-      bin_scale = 1;
+    m_step = 2 * (m_kappa2 * sigma) / m_nbins;
+    if (m_step == 0)
+      m_step = 1;
     auto bin_zero = mean - (m_kappa2 * sigma);
-    auto bin_const = 0.49999 - bin_zero / bin_scale;
+    auto bin_const = 0.49999 - bin_zero / m_step;
+    m_start = -bin_const * m_step;
+  }
 
-    // Initialize edges
-    auto v = -bin_const * bin_scale;
-    size_t nedges = nbins + 1;
-    std::vector<value_type> result(nedges);
-    std::generate(result.begin(), result.end(), [bin_scale, &v]() {
-      auto aux = v;
-      v += bin_scale;
-      return aux;
-    });
-    return result;
+  ssize_t getBinIndex(VarType value) const final {
+    return (value - m_start) / m_step;
+  }
+
+  VarType getEdge(size_t e) const final {
+    return e * m_step + m_start;
+  }
+
+  VarType getBin(size_t i) const final {
+    return (i + 0.5) * m_step + m_start;
   }
 
 private:
   float m_kappa, m_kappa2;
   size_t m_min_pixels, m_max_size;
+  using Euclid::Histogram::BinStrategy<VarType>::m_nbins;
+  VarType m_start, m_step;
 
   size_t computeBinCount(size_t ndata) const {
     size_t nbins = ndata * std::sqrt(M_2_PI) * m_kappa2 / m_min_pixels + 1;
