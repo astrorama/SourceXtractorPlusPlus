@@ -40,7 +40,7 @@ std::string BgConvolutionImageSource::getRepr() const {
   return "BgConvolutionImageSource(" + getImageRepr() + ")";
 }
 
-void BgConvolutionImageSource::generateTile(std::shared_ptr<Image<DetectionImage::PixelType>> image,
+void BgConvolutionImageSource::generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image,
                                             ImageTile<DetectionImage::PixelType>& tile,
                                             int start_x, int start_y, int width, int height) const {
   const int hx = m_kernel->getWidth() / 2;

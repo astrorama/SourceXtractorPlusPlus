@@ -48,7 +48,7 @@ public:
 protected:
   using ProcessingImageSource<T>::getImageRepr;
 
-  void generateTile(std::shared_ptr<Image<T>> image, ImageTile<T>& tile,
+  void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile<T>& tile,
                     int x, int y, int width, int height) const override {
     // Get the chunks we are interested in, and its surrounding area so we can convolve
     auto chunk_start_x = x - m_interpolation_gap;
