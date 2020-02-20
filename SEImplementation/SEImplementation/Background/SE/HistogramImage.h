@@ -23,20 +23,74 @@
 
 namespace SourceXtractor {
 
+/**
+ * Computes the background of an image using a \f$ \kappa \sigma \f$ clipping
+ * individually for each cell.
+ * @details
+ * For each cell, pixel values are clipped to a maximum deviation of \f$ \kappa_1 \f$
+ * around the mean, For the remaining pixels, and histogram ranging \f \pm \kappa_2 \sigma \f
+ * is built, and iteratively clipped \f$ to \kappa_3 \sigma \f$ around the median until convergence.
+ *
+ * The background value for the given cell is considered to be either:
+ *
+ * - The mean if the standard deviation is 0
+ * - 2.5 * median - 1.5 mean if the mean and the median do not diverge more than 30% (not crowded cell)
+ * - The median otherwise (crowded cell)
+ * @see KappaSigmaBinning
+ * @tparam T
+ *  Pixel type
+ */
 template<typename T>
 class HistogramImage {
 public:
 
+  /**
+   * Constructor
+   * @param image
+   *    The image to model
+   * @param cell_w
+   *    Cell width
+   * @param cell_h
+   *    Cell height
+   * @param invalid_value
+   *    Pixels with this value will be discarded
+   * @param kappa1
+   *    First cut
+   * @param kappa2
+   *    Histogram range
+   * @param kappa3
+   *    Iterative cut
+   * @param rtol
+   *    Relative tolerance used to test for convergence around the median
+   * @param max_iter
+   *    Maximum number of iterations
+   */
   HistogramImage(const std::shared_ptr<Image<T>>& image, int cell_w, int cell_h,
                  T invalid_value, T kappa1=2, T kappa2=5, T kappa3=3,
                  T rtol = 1e-4, size_t max_iter = 100);
 
+  /**
+   * Destructor
+   */
   virtual ~HistogramImage() = default;
 
+  /**
+   * @return An image with the background value for each cell.
+   * @note
+   * Dimensions will be image->getWidth() / cell_width, ceil(image->getHeight() / cell_height)
+   */
   std::shared_ptr<Image<T>> getModeImage() const;
 
+  /**
+   * @return An image with the standard deviation for each cell.
+   * @note
+   * Dimensions will be image->getWidth() / cell_width, ceil(image->getHeight() / cell_height)
+   */
   std::shared_ptr<Image<T>> getSigmaImage() const;
 
+  /**
+   * @return The median standard deviation for the whole image
+   */
   T getMedianSigma() const;
 
 private:
