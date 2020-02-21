@@ -115,6 +115,9 @@ elements_add_unit_test(KappaSigmaBinning_test tests/src/Background/KappaSigmaBin
 elements_add_unit_test(MedianFilterImage_test tests/src/Background/MedianFilterImage_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
+elements_add_unit_test(ReplaceUndefImage_test tests/src/Background/ReplaceUndefImage_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

@@ -27,6 +27,7 @@
 #include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SE/HistogramImage.h"
 #include "SEImplementation/Background/SE/MedianFilter.h"
+#include "SEImplementation/Background/SE/ReplaceUndefImage.h"
 
 namespace SourceXtractor {
 
@@ -101,6 +102,11 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   HistogramImage<SeFloat> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
+
+  // Interpolate missing values
+  mode = ReplaceUndefImage<SeFloat>::create(mode, mask_value);
+  var = ReplaceUndefImage<SeFloat>::create(var, mask_value);
+
   // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
 
