@@ -24,6 +24,8 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/MaskedImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ScaledImageSource.h"
 #include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SE/HistogramImage.h"
 #include "SEImplementation/Background/SE/MedianFilter.h"
@@ -99,22 +101,29 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // Create histogram model for the image
-  HistogramImage<SeFloat> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+  HistogramImage<DetectionImage::PixelType> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
 
   // Interpolate missing values
-  mode = ReplaceUndefImage<SeFloat>::create(mode, mask_value);
-  var = ReplaceUndefImage<SeFloat>::create(var, mask_value);
+  mode = ReplaceUndefImage<DetectionImage::PixelType>::create(mode, mask_value);
+  var = ReplaceUndefImage<DetectionImage::PixelType>::create(var, mask_value);
 
   // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
+
+  mode = BufferedImage<DetectionImage::PixelType>::create(
+    std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
+      mode, image->getWidth(), image->getHeight(),
+      ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
+    )
+  );
 
   SeFloat scaling = 99999;
 
   if (variance_map) {
     // Create histogram model for the variance image
-    HistogramImage<SeFloat> var_histo(variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+    HistogramImage<WeightImage::PixelType> var_histo(variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
     auto weight = var_histo.getModeImage();
     auto weight_var = var_histo.getSigmaImage();
     // Smooth with the smooth_box (median filtering)
@@ -122,12 +131,20 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     // Compute scaling
     scaling = computeScaling(var, weight);
     // Transform RMS to variance
-    var = MultiplyImage<WeightImage::PixelType>::create(var, var);
+    var = MultiplyImage<DetectionImage::PixelType>::create(var, var);
+    var = BufferedImage<DetectionImage::PixelType>::create(
+      std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
+        var, image->getWidth(), image->getHeight(),
+        ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
+      )
+    );
   }
   else {
     auto sigma = histo.getMedianSigma();
-    var = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), sigma*sigma);
+    var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), sigma*sigma);
   }
+
+
   return BackgroundModel(mode, var, scaling);
 }
 
