@@ -47,22 +47,27 @@ SEBackgroundLevelAnalyzer::SEBackgroundLevelAnalyzer(const std::vector<int>& cel
 
 static float computeScaling(const std::shared_ptr<Image<DetectionImage::PixelType>>& variance,
                             const std::shared_ptr<Image<WeightImage::PixelType>>& weight) {
-  namespace ba = boost::accumulators;
-
-  ba::accumulator_set<WeightImage::PixelType, ba::stats<ba::tag::median>> acc;
+  std::vector<float> ratios;
+  ratios.reserve(variance->getWidth() * variance->getHeight());
 
   for (int y = 0; y < variance->getHeight(); ++y) {
     for (int x = 0; x < variance->getWidth(); ++x) {
       auto w = weight->getValue(x, y);
-      auto v = variance->getValue(x, y);
-      auto ratio = (v * v) / w;
-      if (ratio > 0) {
-        acc(ratio);
+      if (w > 0) {
+        auto v = variance->getValue(x, y);
+        auto ratio = (v * v) / w;
+        if (ratio > 0) {
+          ratios.emplace_back(ratio);
+        }
       }
     }
   }
 
-  return ba::median(acc);
+  std::sort(ratios.begin(), ratios.end());
+  if (ratios.size() % 2 == 1) {
+    return ratios[ratios.size() / 2];
+  }
+  return (ratios[ratios.size() / 2] + ratios[ratios.size() / 2 - 1]) / 2;
 }
 
 BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
@@ -126,6 +131,8 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     HistogramImage<WeightImage::PixelType> var_histo(variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
     auto weight = var_histo.getModeImage();
     auto weight_var = var_histo.getSigmaImage();
+    // Interpolate missing values
+    weight = ReplaceUndefImage<DetectionImage::PixelType>::create(weight, mask_value);
     // Smooth with the smooth_box (median filtering)
     std::tie(weight, weight_var) = MedianFilter<WeightImage::PixelType>(m_smoothing_box)(*weight, *weight_var);
     // Compute scaling

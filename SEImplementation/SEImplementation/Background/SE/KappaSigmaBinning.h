@@ -74,9 +74,11 @@ public:
     }
     std::tie(mean, sigma, ndata) = stats.get();
 
+    assert(sigma >= 0);
+
     // Cuts
-    auto lcut = mean - sigma * m_kappa;
-    auto hcut = mean + sigma * m_kappa;
+    auto lcut = mean - (sigma + 0.5) * m_kappa;
+    auto hcut = mean + (sigma + 0.5) * m_kappa;
 
     // Re-compute mean and standard deviation of values within cut
     stats.reset();
@@ -85,6 +87,8 @@ public:
         stats(*i);
     }
     std::tie(mean, sigma, ndata) = stats.get();
+
+    assert(ndata > 0);
 
     // Number of bins
     m_nbins = computeBinCount(ndata);
@@ -138,8 +142,10 @@ private:
     std::tuple<VarType, VarType, size_t> get() {
       mean /= ndata;
       sigma = sigma / ndata - mean * mean;
-      if (sigma > 0)
+      if (sigma > 0.)
         sigma = std::sqrt(sigma);
+      else
+        sigma = 0.;
       return std::make_tuple(mean, sigma, ndata);
     }
 
