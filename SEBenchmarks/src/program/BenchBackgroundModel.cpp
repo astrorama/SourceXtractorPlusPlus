@@ -84,7 +84,9 @@ private:
     auto input = m_detection_config.getDetectionImagePath();
     auto basename = boost::filesystem::basename(input);
     auto extension = boost::filesystem::extension(input);
-    auto output = boost::filesystem::temp_directory_path() / boost::filesystem::path(basename + "_" + default_suffix);
+    auto algo = args.at("algorithm").as<std::string>();
+    auto output =
+      boost::filesystem::temp_directory_path() / boost::filesystem::path(basename + "_" + algo + "_" + default_suffix);
     output.replace_extension(extension);
     return output.native();
   }
