@@ -23,7 +23,12 @@ CompactModelBase<ImageType>::CompactModelBase(
 template<typename ImageType>
 Mat22 CompactModelBase<ImageType>::getCombinedTransform(double pixel_scale) const {
   double s, c;
+#ifdef _GNU_SOURCE
   sincos(m_rotation->getValue(), &s, &c);
+#else
+  s = sin(m_rotation->getValue());
+  c = cos(m_rotation->getValue());
+#endif
 
   Mat22 rotation(
       c, s,

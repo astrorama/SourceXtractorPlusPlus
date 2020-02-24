@@ -502,7 +502,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "Rel
     add_definitions(-DNDEBUG)
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
   add_definitions(-D_GNU_SOURCE -Df2cFortran)
 endif()
 
