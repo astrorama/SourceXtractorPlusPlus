@@ -229,7 +229,7 @@ CheckImages::getPsfImage(std::shared_ptr<const SourceXtractor::MeasurementImageF
 }
 
 void CheckImages::saveImages() {
-  lock();
+  std::lock_guard<std::mutex> lock(m_access_mutex);
 
   // if possible, save the background image
   if (m_background_image != nullptr && m_model_background_filename != "") {
@@ -276,8 +276,6 @@ void CheckImages::saveImages() {
       FitsWriter::writeFile(*std::get<0>(entry.second), filename.native());
     }
   }
-
-  unlock();
 }
 
 }

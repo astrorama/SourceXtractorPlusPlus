@@ -372,7 +372,7 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
 
       auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
       if (debug_image) {
-        CheckImages::getInstance().lock();
+        std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
         for (int x = 0; x < final_stamp->getWidth(); x++) {
           for (int y = 0; y < final_stamp->getHeight(); y++) {
             auto x_coord = stamp_rect.getTopLeft().m_x + x;
@@ -382,8 +382,6 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
           }
         }
       }
-
-      CheckImages::getInstance().unlock();
     }
     frame_id++;
   }
