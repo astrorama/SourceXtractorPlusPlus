@@ -119,13 +119,7 @@ public:
     return *m_instance;
   }
 
-  void lock() {
-    m_access_mutex.lock();
-  }
-
-  void unlock() {
-    m_access_mutex.unlock();
-  }
+  std::mutex m_access_mutex;
 
 private:
   CheckImages();
@@ -167,8 +161,6 @@ private:
   boost::filesystem::path m_psf_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
-
-  std::mutex m_access_mutex;
 };
 
 }
