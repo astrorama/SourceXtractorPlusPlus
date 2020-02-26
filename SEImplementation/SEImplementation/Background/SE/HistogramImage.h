@@ -79,14 +79,14 @@ public:
    * @note
    * Dimensions will be image->getWidth() / cell_width, ceil(image->getHeight() / cell_height)
    */
-  std::shared_ptr<Image<T>> getModeImage() const;
+  std::shared_ptr<VectorImage<T>> getModeImage() const;
 
   /**
    * @return An image with the standard deviation for each cell.
    * @note
    * Dimensions will be image->getWidth() / cell_width, ceil(image->getHeight() / cell_height)
    */
-  std::shared_ptr<Image<T>> getSigmaImage() const;
+  std::shared_ptr<VectorImage<T>> getSigmaImage() const;
 
   /**
    * @return The median standard deviation for the whole image

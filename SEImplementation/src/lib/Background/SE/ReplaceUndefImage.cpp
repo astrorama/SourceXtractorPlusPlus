@@ -20,7 +20,7 @@
 namespace SourceXtractor {
 
 template<typename T>
-ReplaceUndefImage<T>::ReplaceUndefImage(const std::shared_ptr<Image<T>>& image, T invalid)
+ReplaceUndefImage<T>::ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid)
   : m_image{image}, m_invalid{invalid} {
 }
 

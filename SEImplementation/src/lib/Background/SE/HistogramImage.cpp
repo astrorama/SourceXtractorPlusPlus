@@ -53,12 +53,12 @@ HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, int ce
 }
 
 template<typename T>
-std::shared_ptr<Image<T>> HistogramImage<T>::getModeImage() const {
+std::shared_ptr<VectorImage<T>> HistogramImage<T>::getModeImage() const {
   return m_mode;
 }
 
 template<typename T>
-std::shared_ptr<Image<T>> HistogramImage<T>::getSigmaImage() const {
+std::shared_ptr<VectorImage<T>> HistogramImage<T>::getSigmaImage() const {
   return m_sigma;
 }
 

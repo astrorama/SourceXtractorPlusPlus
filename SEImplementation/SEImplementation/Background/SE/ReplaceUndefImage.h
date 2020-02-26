@@ -18,7 +18,7 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_REPLACEUNDEFIMAGE_H
 #define SOURCEXTRACTORPLUSPLUS_REPLACEUNDEFIMAGE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -30,7 +30,7 @@ namespace SourceXtractor {
 template <typename T>
 class ReplaceUndefImage: public ImageBase<T> {
 private:
-  ReplaceUndefImage(const std::shared_ptr<Image<T>>& image, T invalid);
+  ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid);
 
 public:
   /**
@@ -47,7 +47,7 @@ public:
    * @return
    *    A new image
    */
-  static std::shared_ptr<ReplaceUndefImage<T>> create(const std::shared_ptr<Image<T>>& image, T undefined) {
+  static std::shared_ptr<ReplaceUndefImage<T>> create(const std::shared_ptr<VectorImage<T>>& image, T undefined) {
     return std::shared_ptr<ReplaceUndefImage<T>>(new ReplaceUndefImage(image, undefined));
   };
 
@@ -60,7 +60,7 @@ public:
   int getHeight() const final;
 
 private:
-  std::shared_ptr<Image<T>> m_image;
+  std::shared_ptr<VectorImage<T>> m_image;
   T m_invalid;
 };
 

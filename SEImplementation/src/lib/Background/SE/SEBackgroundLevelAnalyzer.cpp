@@ -45,8 +45,8 @@ SEBackgroundLevelAnalyzer::SEBackgroundLevelAnalyzer(const std::vector<int>& cel
   m_smoothing_box[1] = smoothing_box.back();
 }
 
-static float computeScaling(const std::shared_ptr<Image<DetectionImage::PixelType>>& variance,
-                            const std::shared_ptr<Image<WeightImage::PixelType>>& weight) {
+static float computeScaling(const std::shared_ptr<VectorImage<DetectionImage::PixelType>>& variance,
+                            const std::shared_ptr<VectorImage<WeightImage::PixelType>>& weight) {
   std::vector<float> ratios;
   ratios.reserve(variance->getWidth() * variance->getHeight());
 
@@ -89,14 +89,16 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     image = MaskedImage<DetectionImage::PixelType, uint8_t>::create(image, mask, mask_value);
   }
 
-  if (variance_map!=nullptr)
-  {
-    bck_model_logger.debug() << "\tVariance image with size: (" << variance_map->getWidth() << "," << variance_map->getHeight() << ")";
+  if (variance_map != nullptr) {
+    bck_model_logger.debug() << "\tVariance image with size: (" << variance_map->getWidth() << ","
+                             << variance_map->getHeight() << ")";
     // make sure the dimensions are the same
-    if (image->getWidth()!=variance_map->getWidth())
-      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance=" << variance_map->getWidth();
-    if (image->getHeight()!=variance_map->getHeight())
-      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance=" << variance_map->getHeight();
+    if (image->getWidth() != variance_map->getWidth())
+      throw Elements::Exception() << "X-dims do not match: image=" << image->getWidth() << " variance="
+                                  << variance_map->getWidth();
+    if (image->getHeight() != variance_map->getHeight())
+      throw Elements::Exception() << "Y-dims do not match: image=" << image->getHeight() << " variance="
+                                  << variance_map->getHeight();
 
     // Anything above the threshold is masked out
     image = MaskedImage<DetectionImage::PixelType, WeightImage::PixelType, std::greater_equal>::create(
@@ -111,20 +113,18 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   auto var = histo.getSigmaImage();
 
   // Interpolate missing values
-  mode = ReplaceUndefImage<DetectionImage::PixelType>::create(mode, mask_value);
-  var = ReplaceUndefImage<DetectionImage::PixelType>::create(var, mask_value);
+  // The result is "materialized" into a VectorImage to avoid redundant computations on the next steps
+  mode = VectorImage<DetectionImage::PixelType>::create(
+    ReplaceUndefImage<DetectionImage::PixelType>::create(mode, mask_value));
+  var = VectorImage<DetectionImage::PixelType>::create(
+    ReplaceUndefImage<DetectionImage::PixelType>::create(var, mask_value));
 
   // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
 
-  mode = BufferedImage<DetectionImage::PixelType>::create(
-    std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
-      mode, image->getWidth(), image->getHeight(),
-      ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
-    )
-  );
-
   SeFloat scaling = 99999;
+
+  std::shared_ptr<Image<DetectionImage::PixelType>> final_bg, final_var;
 
   if (variance_map) {
     // Create histogram model for the variance image
@@ -132,14 +132,15 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     auto weight = var_histo.getModeImage();
     auto weight_var = var_histo.getSigmaImage();
     // Interpolate missing values
-    weight = ReplaceUndefImage<DetectionImage::PixelType>::create(weight, mask_value);
+    weight = VectorImage<WeightImage::PixelType>::create(
+      ReplaceUndefImage<DetectionImage::PixelType>::create(weight, mask_value));
     // Smooth with the smooth_box (median filtering)
     std::tie(weight, weight_var) = MedianFilter<WeightImage::PixelType>(m_smoothing_box)(*weight, *weight_var);
     // Compute scaling
     scaling = computeScaling(var, weight);
     // Transform RMS to variance
-    var = MultiplyImage<DetectionImage::PixelType>::create(var, var);
-    var = BufferedImage<DetectionImage::PixelType>::create(
+    final_var = MultiplyImage<DetectionImage::PixelType>::create(var, var);
+    final_var = BufferedImage<DetectionImage::PixelType>::create(
       std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
         var, image->getWidth(), image->getHeight(),
         ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
@@ -148,11 +149,17 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
   else {
     auto sigma = histo.getMedianSigma();
-    var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), sigma*sigma);
+    final_var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), sigma * sigma);
   }
 
+  final_bg = BufferedImage<DetectionImage::PixelType>::create(
+    std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
+      mode, image->getWidth(), image->getHeight(),
+      ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
+    )
+  );
 
-  return BackgroundModel(mode, var, scaling);
+  return BackgroundModel(final_bg, final_var, scaling);
 }
 
 } // end of namespace SourceXtractor
