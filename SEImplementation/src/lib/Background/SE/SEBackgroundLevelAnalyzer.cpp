@@ -17,10 +17,6 @@
 
 #include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
 
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/median.hpp>
-
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/MaskedImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
@@ -74,7 +70,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map,
   std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
 
-  const auto mask_value = std::numeric_limits<DetectionImage::PixelType>::min();
+  const auto mask_value = std::numeric_limits<DetectionImage::PixelType>::lowest();
 
   if (mask != nullptr) {
     bck_model_logger.debug() << "\tMask image with size: (" << mask->getWidth() << "," << mask->getHeight() << ")";
@@ -142,7 +138,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     final_var = MultiplyImage<DetectionImage::PixelType>::create(var, var);
     final_var = BufferedImage<DetectionImage::PixelType>::create(
       std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
-        var, image->getWidth(), image->getHeight(),
+        final_var, image->getWidth(), image->getHeight(),
         ScaledImageSource<DetectionImage::PixelType>::InterpolationType::BICUBIC
       )
     );

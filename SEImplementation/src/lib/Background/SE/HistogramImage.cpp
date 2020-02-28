@@ -76,7 +76,7 @@ T HistogramImage<T>::getMedianSigma() const {
 
 template<typename T>
 std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
-  Histogram<T> histo(data.begin(), data.end(), KappaSigmaBinning<T>(m_kappa1, m_kappa2));
+  Histogram<double> histo(data.begin(), data.end(), KappaSigmaBinning<double>(m_kappa1, m_kappa2));
 
   T mean, median, sigma;
   std::tie(mean, median, sigma) = histo.template getStats<KappaSigmaBinning>();

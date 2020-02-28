@@ -77,9 +77,9 @@ public:
 
     // Store interpolation along columns
     m_interpolated_cols.reserve(image->getWidth());
-    for (size_t x = 0; x < image->getWidth(); ++x) {
+    for (int x = 0; x < image->getWidth(); ++x) {
       std::vector<double> values(image->getHeight());
-      for (size_t y = 0; y < image->getHeight(); ++y) {
+      for (int y = 0; y < image->getHeight(); ++y) {
         values[y] = image->getValue(x, y);
       }
       m_interpolated_cols.emplace_back(
@@ -117,7 +117,7 @@ public:
 
     for (int off_y = 0; off_y < height; ++off_y) {
       std::vector<double> v(m_x_coords);
-      for (int ix = 0; ix < m_x_coords.size(); ++ix) {
+      for (size_t ix = 0; ix < m_x_coords.size(); ++ix) {
         auto& fy = *m_interpolated_cols[ix];
         v[ix] = fy(y + off_y);
       }
@@ -132,7 +132,7 @@ public:
   /**
    * A tile of this type can not be saved
    */
-  void saveTile(ImageTile<T>& tile) final {
+  void saveTile(ImageTile<T>&) final {
     assert(false);
   }
 
