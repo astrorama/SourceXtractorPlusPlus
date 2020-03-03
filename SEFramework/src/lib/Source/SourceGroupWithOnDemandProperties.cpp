@@ -30,39 +30,38 @@ SourceGroupWithOnDemandProperties::SourceGroupWithOnDemandProperties(std::shared
 }
 
 SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::begin() {
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return m_sources.begin();
 }
 
 SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::end() {
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return m_sources.end();
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cbegin() {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.begin()}));
+  return m_sources.cbegin();
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cend() {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{m_sources.end()}));
+  return m_sources.cend();
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::begin() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SourceGroupWithOnDemandProperties*>(this)->m_sources.begin()}));
+  return m_sources.cbegin();
 }
 
 SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::end() const {
-  return const_iterator(std::unique_ptr<IteratorImpl>(new iter{const_cast<SourceGroupWithOnDemandProperties*>(this)->m_sources.end()}));
+  return m_sources.cend();
 }
 
 void SourceGroupWithOnDemandProperties::addSource(std::shared_ptr<SourceInterface> source) {
   clearGroupProperties();
-  m_sources.emplace_back(source, *this);
+  m_sources.emplace_back(std::make_shared<EntangledSource>(source, *this));
 }
 
 SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(iterator pos) {
-  iter& iter_impl = dynamic_cast<iter&>(pos.getImpl());
-  auto next_entangled_it = m_sources.erase(iter_impl.m_entangled_it);
+  auto next_iter = m_sources.erase(pos);
   clearGroupProperties();
-  return iterator(std::unique_ptr<IteratorImpl>(new iter{next_entangled_it}));
+  return next_iter;
 }
 
 void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface& other) {
@@ -71,9 +70,10 @@ void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface& other)
   // locally, pointing to the same wrapped sources. This is necessary, so the
   // new EntangledSources have a reference to the correct group.
   for (auto& source : other_group.m_sources) {
-    this->m_sources.emplace_back( source.m_source, *this);
+    auto& entangled_source = dynamic_cast<EntangledSource&>(source.getRef());
+    m_sources.emplace_back(std::make_shared<EntangledSource>(entangled_source.m_source, *this));
   }
-  this->clearGroupProperties();
+  clearGroupProperties();
 }
 
 const Property& SourceGroupWithOnDemandProperties::getProperty(const PropertyId& property_id) const {
@@ -100,7 +100,7 @@ void SourceGroupWithOnDemandProperties::setProperty(std::unique_ptr<Property> pr
 void SourceGroupWithOnDemandProperties::clearGroupProperties() {
   m_property_holder.clear();
   for (auto& source : m_sources) {
-    const_cast<EntangledSource&>(source).m_property_holder.clear();
+    dynamic_cast<EntangledSource&>(source.getRef()).m_property_holder.clear();
   }
 }
 

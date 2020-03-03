@@ -81,9 +81,8 @@ protected:
 
 private:
   
-  class iter;
   class EntangledSource;
-  std::list<EntangledSource> m_sources;
+  std::list<SourceWrapper> m_sources;
   PropertyHolder m_property_holder;
   std::shared_ptr<TaskProvider> m_task_provider;
   
@@ -115,58 +114,7 @@ private:
   
   friend void SourceGroupWithOnDemandProperties::clearGroupProperties();
   friend void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface&);
-  
-};
 
-
-class SourceGroupWithOnDemandProperties::iter : public SourceGroupInterface::IteratorImpl {
-  
-public:
-  
-  iter(std::list<EntangledSource>::iterator m_entangled_it)
-          : m_entangled_it(m_entangled_it) {
-  }
-
-  virtual ~iter() = default;
-  
-  // Note to developers
-  // The std::set provides only constant iterator, because modifying its entries
-  // might mean that their ordering (which is used internally) might change. In
-  // our case we have no such problem, because the ordering of the EntangledSource
-  // is based on the pointer address of the encapsulated Source. This allows
-  // for the following const casts, so if the user iterates over a non-const
-  // SourceGroup he will get Sources on which he can call the setProperty().
-  SourceInterface& dereference() const override {
-    return const_cast<EntangledSource&>(*m_entangled_it);
-  }
-  
-  void increment() override {
-    ++m_entangled_it;
-  }
-  
-  void decrement() override {
-    --m_entangled_it;
-  }
-  
-  bool equal(const IteratorImpl& other) const override {
-    try {
-      auto& other_iter = dynamic_cast<const iter&>(other);
-      return this->m_entangled_it == other_iter.m_entangled_it;
-    } catch (...) {
-      return false;
-    }
-  }
-
-  std::shared_ptr<IteratorImpl> clone() const override {
-    return std::make_shared<iter>(m_entangled_it);
-  }
-
-private:
-  
-  std::list<EntangledSource>::iterator m_entangled_it;
-  
-  friend SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(SourceGroupWithOnDemandProperties::iterator);
-  
 };
 
 } /* namespace SourceXtractor */

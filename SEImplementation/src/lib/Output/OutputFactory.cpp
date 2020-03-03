@@ -24,8 +24,8 @@
 #include <fstream>
 #include <system_error>
 #include <CCfits/CCfits>
-#include <ModelFitting/utils.h>
 
+#include "AlexandriaKernel/memory_tools.h"
 #include "Table/AsciiWriter.h"
 #include "Table/FitsWriter.h"
 
@@ -36,6 +36,8 @@
 #include "SEImplementation/Configuration/OutputConfig.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+
+using Euclid::make_unique;
 
 namespace SourceXtractor {
 

@@ -24,19 +24,19 @@
 #include <fstream>
 
 #include <ElementsKernel/Exception.h>
+#include <ElementsKernel/Temporary.h>
 
 #include "SEFramework/FITS/FitsReader.h"
-#include "SEFramework/Filesystem/TemporaryFile.h"
 
 #include "1px.fits.h"
 
 using namespace SourceXtractor;
 
 struct FitsReaderFixture {
-  TemporaryFile m_tmp_fits;
+  Elements::TempFile m_tmp_fits;
 
-  FitsReaderFixture(): m_tmp_fits{true} {
-    std::ofstream out{m_tmp_fits.getPath().c_str()};
+  FitsReaderFixture() {
+    std::ofstream out{m_tmp_fits.path().c_str()};
     out.write(reinterpret_cast<const char*>(image_fits), image_fits_len);
   }
 };
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_SUITE (FitsReader_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
-  auto img = FitsReader<SeFloat>::readFile(m_tmp_fits.getPath());
+  auto img = FitsReader<SeFloat>::readFile(m_tmp_fits.path().native());
   BOOST_CHECK_EQUAL(img->getWidth(), 1);
   BOOST_CHECK_EQUAL(img->getHeight(), 1);
   BOOST_CHECK_EQUAL(img->getValue(0, 0), 42);
@@ -57,7 +57,7 @@ BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE ( image_source, FitsReaderFixture ) {
-  auto img = FitsImageSource<SeFloat>(m_tmp_fits.getPath());
+  auto img = FitsImageSource<SeFloat>(m_tmp_fits.path().native());
   int naxis;
   img.readFitsKeyword("NAXIS", naxis);
   BOOST_CHECK_EQUAL(naxis, 2);

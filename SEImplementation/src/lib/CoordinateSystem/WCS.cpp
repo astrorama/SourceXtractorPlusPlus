@@ -34,12 +34,31 @@ namespace wcslib {
 }
 
 #include "ElementsKernel/Exception.h"
+#include "ElementsKernel/Logging.h"
 #include "SEImplementation/CoordinateSystem/WCS.h"
 #include <boost/algorithm/string/trim.hpp>
+#include <mutex>
 
 namespace SourceXtractor {
 
+static auto logger = Elements::Logging::getLogger("WCS");
+
 using namespace wcslib;
+
+decltype(&lincpy) safe_lincpy = &lincpy;
+
+/**
+ * wcslib < 5.18 is not fully safe thread, as some functions (like discpy, called by lincpy)
+ * rely on global variables for determining the allocation sizes. For those versions, this is called
+ * instead, wrapping the call with a mutex.
+ */
+static int wrapped_lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst) {
+  static std::mutex lincpy_mutex;
+  std::lock_guard<std::mutex> lock(lincpy_mutex);
+
+  return lincpy(alloc, linsrc, lindst);
+}
+
 
 WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nullptr) {
   fitsfile *fptr = NULL;
@@ -65,18 +84,32 @@ WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nul
 
     m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
       int nwcs_copy = nwcs;
+      wcsfree(wcs);
       wcsvfree(&nwcs_copy, &wcs);
     });
   }
 
   free(header);
   fits_close_file(fptr, &status);
+
+  int wcsver[3];
+  wcslib_version(wcsver);
+  if (wcsver[0] < 5 || (wcsver[0] == 5 && wcsver[1] < 18)) {
+    logger.info() << "wcslib " << wcsver[0] << "." << wcsver[1]
+                  << " is not fully thread safe, using wrapped lincpy call!";
+    safe_lincpy = &wrapped_lincpy;
+  }
 }
 
 WCS::~WCS() {
 }
 
 WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
+  // wcsprm is in/out, since its member lin is modified by wcsp2s
+  wcslib::wcsprm wcs_copy = *m_wcs;
+  wcs_copy.lin.flag = -1;
+  safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
+  linset(&wcs_copy.lin);
 
   // +1 as fits standard coordinates start at 1
   double pc_array[2] {image_coordinate.m_x + 1, image_coordinate.m_y + 1};
@@ -86,19 +119,27 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  wcsp2s(m_wcs.get(), 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  linfree(&wcs_copy.lin);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
 
 ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
+  // wcsprm is in/out, since its member lin is modified by wcss2p
+  wcslib::wcsprm wcs_copy = *m_wcs;
+  wcs_copy.lin.flag = -1;
+  safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
+  linset(&wcs_copy.lin);
+
   double pc_array[2] {0, 0};
   double ic_array[2] {0, 0};
   double wc_array[2] {world_coordinate.m_alpha, world_coordinate.m_delta};
   double phi, theta;
 
   int status = 0;
-  wcss2p(m_wcs.get(), 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  linfree(&wcs_copy.lin);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }

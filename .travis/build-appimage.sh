@@ -53,7 +53,10 @@ cp -vr /usr/lib/python* "${APPDIR}/usr/lib"
 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -e "$(which ${PYTHON})"
 ls /usr/lib64/atlas/* | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
 ls /usr/lib64/liberfa.so.1 | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
-ls /usr/lib64/python2.7/lib-dynload/*.so | xargs -L1 ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l
+for l in $(find /usr/lib64/python2.7/ -name "*.so"); do
+    echo "Deploy $l"
+    ./linuxdeploy-x86_64.AppImage --appdir "${APPDIR}" -l "$l" &> /dev/null
+done
 
 # Bundle
 SRCDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/../"

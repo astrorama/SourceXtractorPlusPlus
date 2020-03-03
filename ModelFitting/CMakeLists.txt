@@ -48,7 +48,7 @@ elements_add_library(ModelFitting
 #elements_install_python_modules()
 
 # Install the configuration files
-elements_install_conf_files()
+# elements_install_conf_files()
 
 # Instruction for building C++ tests
 elements_add_unit_test(ManualParameter_test                  

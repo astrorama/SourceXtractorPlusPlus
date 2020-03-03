@@ -505,9 +505,9 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   // This adds the current directory as a valid location for the default "sourcextractor++.conf" configuration
   Elements::TempEnv local_env;
   if (local_env["ELEMENTS_CONF_PATH"].empty()) {
-    local_env["ELEMENTS_CONF_PATH"] = ".";
+    local_env["ELEMENTS_CONF_PATH"] = ".:/etc";
   } else {
-    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"];
+    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"] + ":/etc";
   }
 
   setupEnvironment();

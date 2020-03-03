@@ -46,6 +46,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 int main(int argc, char **argv) {
   std::string engine_impl("levmar");
@@ -93,9 +94,9 @@ int main(int argc, char **argv) {
   double height = 10;
   
   // We create the extended model list with a single model
-  vector<TransformedModel> extended_models {};
-  extended_models.emplace_back(std::move(component_list), x_scale, y_scale,
-                               rot_angle, width, height, x, y);
+  vector<std::shared_ptr<ExtendedModel<cv::Mat>>> extended_models {};
+  extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(std::move(component_list), x_scale, y_scale,
+                               rot_angle, width, height, x, y));
   
   // We read the PSF from the file
   auto psf_path = Elements::pathSearchInEnvVariable("psf.fits", "ELEMENTS_AUX_PATH");

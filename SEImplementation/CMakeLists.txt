@@ -70,6 +70,7 @@ elements_add_library(SEImplementation
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
+            src/lib/Image/*.cpp
 			${SE_PYTHON_SRC}
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB BoostPython PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
