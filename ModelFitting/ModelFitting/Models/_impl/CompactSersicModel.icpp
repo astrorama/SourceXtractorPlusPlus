@@ -28,10 +28,36 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
+  model_eval.max_r = 1e6; // FIXME
 
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
   return model_eval.evaluateModel(x, y) * area_correction;
 }
+
+template<typename ImageType>
+double CompactSersicModel<ImageType>::getMaxRadius(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {
+
+  double square_determinant = transform[0] * transform[3] - transform[1] * transform[2];
+  square_determinant *= square_determinant;
+
+  //?
+  double max_size_pixels = std::min(size_x / 2.0, size_y / 2.0) - 1.0;
+
+  double x_axis_square = transform[0]*transform[0] + transform[2]*transform[2];
+  double y_axis_square = transform[1]*transform[1] + transform[3]*transform[3];
+
+  double r_max_width = max_size_pixels * max_size_pixels * x_axis_square / square_determinant;
+  double r_max_height = max_size_pixels * max_size_pixels * y_axis_square / square_determinant;
+
+//  double r_max_width = x_max * x_max * square_determinant / y_axis_square;
+//  double r_max_height = y_max * y_max * square_determinant / x_axis_square;
+
+  //  double r_max_width = x_max * x_max * x_axis_square;
+//  double r_max_height = y_max * y_max * y_axis_square;
+
+  return sqrtf(std::min(r_max_width, r_max_height));
+}
+
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
@@ -43,13 +69,18 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
         << "but got (" << size_x << ',' << size_y << ")";
   }
 
+
   ImageType image = Traits::factory(size_x, size_y);
 
+  auto combined_tranform = getCombinedTransform(pixel_scale);
+
   SersicModelEvaluator model_eval;
-  model_eval.transform = getCombinedTransform(pixel_scale);
+  model_eval.transform = combined_tranform;
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
+  model_eval.max_r = getMaxRadius(size_x, size_y, combined_tranform);
+  //model_eval.max_r = 10.;
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 

@@ -103,7 +103,7 @@ void addExtendedModels(ImageType& image, const std::vector<std::shared_ptr<Exten
       ++height;
     }
     auto extended_image = model->getRasterizedImage(psf.getPixelScale(), width, height);
-    psf.convolve(i, extended_image);
+    //psf.convolve(i, extended_image);
     Traits::addImageToImage(image, extended_image, scale_factor, model->getX(), model->getY());
   }
 }
