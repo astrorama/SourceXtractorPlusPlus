@@ -76,7 +76,10 @@ T HistogramImage<T>::getMedianSigma() const {
 
 template<typename T>
 std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
-  Histogram<double> histo(data.begin(), data.end(), KappaSigmaBinning<double>(m_kappa1, m_kappa2));
+  Histogram<float> histo(data.begin(), data.end(), KappaSigmaBinning<float>(m_kappa1, m_kappa2));
+
+  auto ref_bin = histo.getBinEdges(0);
+  auto atol = (ref_bin.second - ref_bin.first) * 0.1;
 
   T mean, median, sigma;
   std::tie(mean, median, sigma) = histo.template getStats<KappaSigmaBinning>();
@@ -84,7 +87,7 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) con
 
   assert(!std::isnan(mean));
 
-  for (size_t iter = 0; iter < m_max_iter && sigma > 0.1 && std::abs(sigma / prev_sigma - 1.0) > m_rtol; ++iter) {
+  for (size_t iter = 0; iter < m_max_iter && sigma > atol && std::abs(sigma / prev_sigma - 1.0) > m_rtol; ++iter) {
     histo.clip(median - sigma * m_kappa3, median + sigma * m_kappa3);
     prev_sigma = sigma;
     std::tie(mean, median, sigma) = histo.template getStats<KappaSigmaBinning>();
