@@ -116,18 +116,21 @@ void HistogramImage<T>::processCell(int x, int y) {
   int w = std::min(m_cell_w, m_image->getWidth() - off_x);
   int h = std::min(m_cell_h, m_image->getHeight() - off_y);
 
-  auto img_chunk = VectorImage<T>::create(m_image->getChunk(off_x, off_y, w, h));
-  auto& data = img_chunk->getData();
+  auto img_chunk_ptr = m_image->getChunk(off_x, off_y, w, h);
+  auto& img_chunk = *img_chunk_ptr;
 
   std::vector<T> filtered;
-  filtered.reserve(data.size());
+  filtered.reserve(w * h);
 
-  for (size_t i = 0; i < data.size(); ++i) {
-    if (data[i] != m_invalid)
-      filtered.emplace_back(data[i]);
+  for (int y = 0; y < h; ++y) {
+    for (int x = 0; x < w; ++x) {
+      auto v = img_chunk.getValue(x, y);
+      if (v != m_invalid)
+        filtered.emplace_back(v);
+    }
   }
 
-  if (filtered.size() / static_cast<float>(data.size()) < 0.5) {
+  if (filtered.size() / static_cast<float>(w * h) < 0.5) {
     m_mode->setValue(x, y, m_invalid);
     m_sigma->setValue(x, y, m_invalid);
   }
