@@ -97,18 +97,15 @@ public:
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
-    auto img_chunk = m_image->getChunk(x, y, width, height);
+    auto chunk = UniversalImageChunk<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
     auto mask_chunk = m_mask->getChunk(x, y, width, height);
-    std::vector<T> data(width * height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         if (m_operator(mask_chunk->getValue(ix, iy), m_mask_flag))
-          data[ix + iy * width] = m_replacement;
-        else
-          data[ix + iy * width] = img_chunk->getValue(ix, iy);
+          chunk->setValue(ix, iy, m_replacement);
       }
     }
-    return UniversalImageChunk<T>::create(std::move(data), width, height);
+    return chunk;
   }
 };
 
