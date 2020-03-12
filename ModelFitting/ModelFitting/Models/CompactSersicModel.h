@@ -33,22 +33,23 @@ public:
   struct SersicModelEvaluator {
     Mat22 transform;
     double i0, k, n;
-    double max_r;
-
-    inline float getRadius(float x, float y) const {
-      float x2 = x * transform[0] + y * transform[1];
-      float y2 = x * transform[2] + y * transform[3];
-      return std::sqrt(x2*x2 + y2*y2);
-    }
+    double max_r_sqr;
 
     inline float evaluateModel(float x, float y) const {
-      float r = getRadius(x, y);
-      return r <= max_r ? i0 * std::exp(float(-k * powf(r, 1. / n))) : 10.f;
+      float x2 = x * transform[0] + y * transform[1];
+      float y2 = x * transform[2] + y * transform[3];
+      float r_sqr = x2*x2 + y2*y2;
+      if (r_sqr < max_r_sqr) {
+        float r = std::sqrt(r_sqr);
+        return i0 * std::exp(float(-k * powf(r, 1. / n)));
+      } else {
+        return 0;
+      }
     }
   };
 
 private:
-  double getMaxRadius(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
+  double getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
 
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::samplePixel;

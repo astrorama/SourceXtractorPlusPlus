@@ -28,34 +28,28 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
-  model_eval.max_r = 1e6; // FIXME
+  model_eval.max_r_sqr = 1e30;
 
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
   return model_eval.evaluateModel(x, y) * area_correction;
 }
 
 template<typename ImageType>
-double CompactSersicModel<ImageType>::getMaxRadius(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {
+double CompactSersicModel<ImageType>::getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {
 
-  double square_determinant = transform[0] * transform[3] - transform[1] * transform[2];
-  square_determinant *= square_determinant;
+  float x_x = (size_x * 0.95f / 2.f - 1) * transform[0];
+  float x_y = (size_x * 0.95f / 2.f - 1) * transform[2];
 
-  //?
-  double max_size_pixels = std::min(size_x / 2.0, size_y / 2.0) - 1.0;
+  float y_x = (size_y * 0.95f / 2.f - 1)  * transform[1];
+  float y_y = (size_y * 0.95f / 2.f - 1)  * transform[3];
 
-  double x_axis_square = transform[0]*transform[0] + transform[2]*transform[2];
-  double y_axis_square = transform[1]*transform[1] + transform[3]*transform[3];
+  float xy_x = x_x + y_x;
+  float xy_y = x_y + y_y;
 
-  double r_max_width = max_size_pixels * max_size_pixels * x_axis_square / square_determinant;
-  double r_max_height = max_size_pixels * max_size_pixels * y_axis_square / square_determinant;
+  float d1 = (xy_x * x_y - xy_y * x_x) * (xy_x * x_y - xy_y * x_x) / ((xy_x - x_x) * (xy_x - x_x) + (xy_y - x_y) * (xy_y - x_y));
+  float d2 = (xy_x * y_y - xy_y * y_x) * (xy_x * y_y - xy_y * y_x) / ((xy_x - y_x) * (xy_x - y_x) + (xy_y - y_y) * (xy_y - y_y));
 
-//  double r_max_width = x_max * x_max * square_determinant / y_axis_square;
-//  double r_max_height = y_max * y_max * square_determinant / x_axis_square;
-
-  //  double r_max_width = x_max * x_max * x_axis_square;
-//  double r_max_height = y_max * y_max * y_axis_square;
-
-  return sqrtf(std::min(r_max_width, r_max_height));
+  return std::min(d1, d2);
 }
 
 
@@ -69,7 +63,6 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
         << "but got (" << size_x << ',' << size_y << ")";
   }
 
-
   ImageType image = Traits::factory(size_x, size_y);
 
   auto combined_tranform = getCombinedTransform(pixel_scale);
@@ -79,8 +72,7 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
-  model_eval.max_r = getMaxRadius(size_x, size_y, combined_tranform);
-  //model_eval.max_r = 10.;
+  model_eval.max_r_sqr = getMaxRadiusSqr(size_x, size_y, combined_tranform);
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
