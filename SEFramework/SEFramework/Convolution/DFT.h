@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_CONVOLUTION_DFT_H
 #define _SEFRAMEWORK_CONVOLUTION_DFT_H
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/RecenterImage.h"
@@ -102,7 +102,7 @@ public:
    *    A context than can be used by `convolve` to avoid re-computing the kernel multiple times
    */
   std::unique_ptr<ConvolutionContext> prepare(const std::shared_ptr<Image<T>> model_ptr) const {
-    auto context = make_unique<ConvolutionContext>();
+    auto context = Euclid::make_unique<ConvolutionContext>();
 
     // Dimension of the working padded images
     context->m_padded_width = model_ptr->getWidth() + m_kernel->getWidth() - 1;
@@ -167,7 +167,14 @@ public:
 
     // Multiply the two DFT
     for (int i = 0; i < context->m_total_size; ++i) {
-      context->m_complex_buffer[i] *= context->m_kernel_transform[i];
+      //context->m_complex_buffer[i] *= context->m_kernel_transform[i];
+
+      const auto& a = context->m_complex_buffer[i];
+      const auto& b = context->m_kernel_transform[i];
+      float re = a.real() * b.real() - a.imag() * b.imag();
+      float im = a.real() * b.imag() + a.imag() * b.real();
+
+      context->m_complex_buffer[i] = std::complex<float>(re, im);
     }
 
     // Inverse DFT

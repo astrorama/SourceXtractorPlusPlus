@@ -22,10 +22,12 @@
  */
 
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
+
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
@@ -33,6 +35,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   m_iterations = model.getIterations();
@@ -54,7 +57,7 @@ MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   component_list.clear();
   component_list.emplace_back(std::move(moff));
 
-  m_model = std::make_shared<ExtendedModel>(
+  m_model = std::make_shared<ExtendedModel<ImageInterfaceTypePtr>>(
       std::move(component_list), x_scale, y_scale, moffat_rotation, size, size, x, y);
 }
 

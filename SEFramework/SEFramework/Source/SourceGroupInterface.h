@@ -47,10 +47,39 @@ class SourceGroupInterface : protected SourceInterface {
 
 public:
   
-  template <typename T>
-  class GroupIterator;
-  using iterator = GroupIterator<SourceInterface>;
-  using const_iterator = GroupIterator<const SourceInterface>;
+  class SourceWrapper : public SourceInterface {
+  public:
+
+    SourceWrapper(std::shared_ptr<SourceInterface> source) : m_source(source) {}
+
+    SourceWrapper(const SourceWrapper& source) : m_source(source.m_source) {}
+
+    const Property& getProperty(const PropertyId& property_id) const override {
+      return m_source->getProperty(property_id);
+    }
+
+    void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
+      m_source->setProperty(std::move(property), property_id);
+    }
+
+    bool operator<(const SourceWrapper& other) const {
+      return this->m_source < other.m_source;
+    }
+
+    SourceInterface& getRef() const {
+      return *m_source;
+    }
+
+    using SourceInterface::getProperty;
+    using SourceInterface::setProperty;
+    using SourceInterface::setIndexedProperty;
+
+  private:
+    std::shared_ptr<SourceInterface> m_source;
+  };
+
+  using iterator = std::list<SourceWrapper>::iterator;
+  using const_iterator = std::list<SourceWrapper>::const_iterator;
 
   virtual iterator begin() = 0;
   virtual iterator end() = 0;
@@ -78,45 +107,13 @@ public:
   
   // We introduce the get/setProperty methods from the SourceInterface in the
   // public symbols so they become part of the SourceGroupInterface. The group
-  // implementations must implemented the protected methods with the PropertyId
+  // implementations must implement the methods with the PropertyId
   // in their signature.
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
   using SourceInterface::setIndexedProperty;
   
-protected:
-  
-  class IteratorImpl {
-  public:
-    virtual ~IteratorImpl() = default;
-    virtual SourceInterface& dereference() const = 0;
-    virtual void increment() = 0;
-    virtual void decrement() = 0;
-    virtual bool equal(const IteratorImpl& other) const = 0;
-    virtual std::shared_ptr<IteratorImpl> clone() const = 0;
-  };
-  
 }; // end of SourceGroupInterface class 
-
-
-template <typename T>
-class SourceGroupInterface::GroupIterator : public std::iterator<std::forward_iterator_tag, T> {
-public:
-  GroupIterator(std::unique_ptr<IteratorImpl> it) : m_it(std::move(it)) { }
-
-  GroupIterator(const GroupIterator& other) : m_it(other.m_it->clone()) {}
-  GroupIterator& operator=(const GroupIterator& other) { m_it = other.m_it->clone(); return *this; }
-
-  T& operator*() const { return m_it->dereference(); }
-  T* operator->() const { return &(m_it->dereference()); }
-  GroupIterator& operator++() { m_it->increment(); return *this; }
-  GroupIterator& operator--() { m_it->decrement(); return *this; }
-  bool operator==(const GroupIterator& other) const { return m_it->equal(*other.m_it); }
-  bool operator!=(const GroupIterator& other) const { return !m_it->equal(*other.m_it); }
-  IteratorImpl& getImpl() { return *m_it; }
-private:
-  std::shared_ptr<IteratorImpl> m_it;
-}; // end of SourceGroupInterface::GroupIterator
 
 } /* namespace SourceXtractor */
 

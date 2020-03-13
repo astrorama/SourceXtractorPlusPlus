@@ -35,6 +35,7 @@
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
@@ -48,6 +49,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 int main(int argc, char **argv) {
   std::string engine_impl("levmar");
@@ -101,10 +103,10 @@ int main(int argc, char **argv) {
   double height = 128;
   
   // We create the extended model list with a single model
-  vector<TransformedModel> extended_models {};
-  extended_models.emplace_back(std::move(component_list), x_scale, y_scale,
-                               rot_angle, width, height, x, y);
-  
+  vector<std::shared_ptr<ExtendedModel<cv::Mat>>> extended_models {};
+  extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(std::move(component_list),
+      x_scale, y_scale, rot_angle, width, height, x, y));
+
   // We add a constant background
   auto back = std::make_shared<EngineParameter>(100., make_unique<ExpSigmoidConverter>(1, 1000000.));
   vector<ConstantModel> constant_models {};
@@ -197,8 +199,8 @@ int main(int argc, char **argv) {
   component_list.clear();
   component_list.emplace_back(move(exp));
   extended_models.clear();
-  extended_models.emplace_back(move(component_list),x_scale, y_scale,
-                                rot_angle, width, height, x, y);
+  extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(move(component_list),x_scale, y_scale,
+                                rot_angle, width, height, x, y));
   constant_models.clear();
   constant_models.emplace_back(back);
   FrameModel<OpenCvPsf, cv::Mat> frame_model_after {

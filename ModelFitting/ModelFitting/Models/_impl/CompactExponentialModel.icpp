@@ -1,0 +1,69 @@
+/*
+ * CompactExponentialModel.icpp
+ *
+ *  Created on: Aug 19, 2019
+ *      Author: mschefer
+ */
+
+namespace ModelFitting {
+
+template<typename ImageType>
+CompactExponentialModel<ImageType>::CompactExponentialModel(
+    double sharp_radius,
+    std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k,
+    std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
+    std::shared_ptr<BasicParameter> rotation, double width, double height,
+    std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::tuple<double, double, double, double> transform)
+      : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
+        m_sharp_radius_squared(float(sharp_radius * sharp_radius)),
+        m_i0(i0), m_k(k)
+{}
+
+template<typename ImageType>
+double CompactExponentialModel<ImageType>::getValue(double x, double y) const {
+  ExponentialModelEvaluator model_info;
+  model_info.transform = getCombinedTransform(1.0);
+  model_info.i0 = m_i0->getValue();
+  model_info.k = m_k->getValue();
+
+  auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
+  return model_info.evaluateModel(x, y) * area_correction;
+}
+
+template<typename ImageType>
+ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
+  //std::cout << "]] " << getX() << " " << getY() << "\n";
+  using Traits = ImageTraits<ImageType>;
+
+  if (size_x % 2 == 0 || size_y % 2 == 0) {
+    throw Elements::Exception() << "Rasterized image dimensions must be odd numbers "
+        << "but got (" << size_x << ',' << size_y << ")";
+  }
+
+  ImageType image = Traits::factory(size_x, size_y);
+
+  ExponentialModelEvaluator model_eval;
+  model_eval.transform = getCombinedTransform(pixel_scale);
+  model_eval.i0 = m_i0->getValue();
+  model_eval.k = m_k->getValue();
+
+  float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
+
+  for (int x=0; x<(int)size_x; ++x) {
+    int dx = x - size_x / 2;
+    for (int y=0; y<(int)size_y; ++y) {
+      int dy = y - size_y / 2;
+      if (dx*dx + dy*dy < m_sharp_radius_squared) {
+        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 8, 1.01) * area_correction;
+      } else {
+        Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
+      }
+    }
+  }
+
+  return image;
+}
+
+}
+

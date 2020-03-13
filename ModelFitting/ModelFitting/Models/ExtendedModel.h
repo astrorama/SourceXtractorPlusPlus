@@ -25,12 +25,17 @@
 
 #include <vector>
 #include <memory> // for std::unique_ptr
+#include <numeric> // for std::accumulate
+
 #include "ModelFitting/Parameters/BasicParameter.h"
 #include "ModelFitting/Models/PositionedModel.h"
 #include "ModelFitting/Models/ModelComponent.h"
+#include "ModelFitting/Models/ScaledModelComponent.h"
+#include "ModelFitting/Models/RotatedModelComponent.h"
 
 namespace ModelFitting {
 
+template <typename ImageType>
 class ExtendedModel : public PositionedModel {
   
 public:
@@ -40,18 +45,21 @@ public:
                 std::shared_ptr<BasicParameter> rotation_angle, double width, double height,
                 std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y);
   
-  ExtendedModel(ExtendedModel&&);
+  ExtendedModel(ExtendedModel&&) = default;
   
-  virtual ~ExtendedModel();
+  virtual ~ExtendedModel() = default;
   
-  double getValue(double x, double y) const;
+  virtual double getValue(double x, double y) const;
   
-  template <typename ImageType>
-  ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const;
+  virtual ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const;
   
-  double getWidth() const;
-  
-  double getHeight() const;
+  double getWidth() const {
+    return m_width;
+  }
+
+  double getHeight() const {
+    return m_height;
+  }
 
 protected:
   std::vector<std::unique_ptr<ModelComponent>> m_component_list {};

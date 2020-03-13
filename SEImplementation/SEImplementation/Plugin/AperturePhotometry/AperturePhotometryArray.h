@@ -24,8 +24,8 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYARRAY_H_
 #define _SEIMPLEMENTATION_PLUGIN_APERTUREPHOTOMETRY_APERTUREPHOTOMETRYARRAY_H_
 
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "ModelFitting/utils.h"
 #include "NdArray/NdArray.h"
 #include <memory>
 #include <cassert>
@@ -48,6 +48,8 @@ public:
   virtual ~AperturePhotometryArray() = default;
 
   AperturePhotometryArray(const std::vector<AperturePhotometry> &measurements) {
+    using Euclid::make_unique;
+
     assert(measurements.size() > 0);
     size_t nentries = measurements.size();
     size_t napertures = measurements.front().getFlags().size();

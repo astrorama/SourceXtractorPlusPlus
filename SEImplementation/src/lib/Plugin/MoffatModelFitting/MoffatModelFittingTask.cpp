@@ -26,9 +26,10 @@
 #include <vector>
 #include <valarray>
 #include <boost/any.hpp>
-#include <SEImplementation/Plugin/Psf/PsfProperty.h>
 #include <mutex>
 
+#include "AlexandriaKernel/memory_tools.h"
+#include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "ElementsKernel/PathSearch.h"
@@ -52,7 +53,6 @@
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
 
-#include "ModelFitting/utils.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
@@ -83,6 +83,7 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 namespace {
 
@@ -133,14 +134,15 @@ struct SourceModel {
     manager.registerParameter(moffat_rotation);
   }
 
-  void createModels(std::vector<TransformedModel>& extended_models, std::vector<PointModel>& /*point_models*/) {
+  void createModels(std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models, std::vector<PointModel>& /*point_models*/) {
     // Moffat model
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
       auto moff = make_unique<FlattenedMoffatComponent>(moffat_i0, moffat_index, minkowski_exponent, flat_top_offset);
       component_list.clear();
       component_list.emplace_back(std::move(moff));
-      extended_models.emplace_back(std::move(component_list), moffat_x_scale, moffat_y_scale, moffat_rotation, m_size, m_size, x, y);
+      extended_models.emplace_back(std::make_shared<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>(
+          std::move(component_list), moffat_x_scale, moffat_y_scale, moffat_rotation, m_size, m_size, x, y));
     }
   }
 };
@@ -169,7 +171,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   EngineParameterManager manager {};
   std::vector<ConstantModel> constant_models;
-  std::vector<TransformedModel> extended_models;
+  std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
   std::vector<PointModel> point_models;
 
   auto& pixel_centroid = source.getProperty<PixelCentroid>();
@@ -257,7 +259,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   {
 
   // renders an image of the model for a single source with the final parameters
-  std::vector<TransformedModel> extended_models {};
+  std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models {};
   std::vector<PointModel> point_models {};
   source_model->createModels(extended_models, point_models);
   FrameModel<NullPsf<VectorImageType>, VectorImageType> frame_model_after {

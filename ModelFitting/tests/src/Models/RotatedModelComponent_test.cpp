@@ -23,14 +23,15 @@
 
 #include <boost/test/unit_test.hpp>
 #include <numeric>
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/RotatedModelComponent.h"
-#include "ModelFitting/utils.h"
 #include "SEUtils/TestUtils.h"
 #include "TestHelper.h"
 
 using namespace ModelFitting;
 using namespace SourceXtractor;
+using Euclid::make_unique;
 
 
 //-----------------------------------------------------------------------------

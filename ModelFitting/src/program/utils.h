@@ -32,8 +32,8 @@
 #include <opencv2/opencv.hpp>
 #include <CCfits/CCfits>
 #include "ElementsKernel/Exception.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Image/OpenCvPsf.h"
-#include "ModelFitting/utils.h"
 
 /// Writes an OpenCv Mat to an image FITS file (prepend the filename with '!' to
 /// override existing files)

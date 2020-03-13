@@ -36,7 +36,7 @@ void GroupIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface
     // get the ID of the group
     auto group_id = group->getProperty<GroupInfo>().getGroupId();
 
-    CheckImages::getInstance().lock();
+    std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
 
     for (auto& source : *group) {
       auto& coordinates = source.getProperty<PixelCoordinateList>();
@@ -46,8 +46,6 @@ void GroupIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface
         m_check_image->setValue(coord.m_x, coord.m_y, group_id);
       }
     }
-
-    CheckImages::getInstance().unlock();
   }
 }
 

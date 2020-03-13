@@ -26,6 +26,8 @@
 
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Image/VectorImage.h"
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 
 namespace SourceXtractor {
@@ -42,7 +44,7 @@ public:
   }
 
 private:
-  std::shared_ptr<ModelFitting::ExtendedModel> m_model;
+  std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>> m_model;
   unsigned m_iterations;
 };
 
