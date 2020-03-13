@@ -34,24 +34,6 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   return model_eval.evaluateModel(x, y) * area_correction;
 }
 
-template<typename ImageType>
-double CompactSersicModel<ImageType>::getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {
-
-  float x_x = (size_x * 0.95f / 2.f - 1) * transform[0];
-  float x_y = (size_x * 0.95f / 2.f - 1) * transform[2];
-
-  float y_x = (size_y * 0.95f / 2.f - 1)  * transform[1];
-  float y_y = (size_y * 0.95f / 2.f - 1)  * transform[3];
-
-  float xy_x = x_x + y_x;
-  float xy_y = x_y + y_y;
-
-  float d1 = (xy_x * x_y - xy_y * x_x) * (xy_x * x_y - xy_y * x_x) / ((xy_x - x_x) * (xy_x - x_x) + (xy_y - x_y) * (xy_y - x_y));
-  float d2 = (xy_x * y_y - xy_y * y_x) * (xy_x * y_y - xy_y * y_x) / ((xy_x - y_x) * (xy_x - y_x) + (xy_y - y_y) * (xy_y - y_y));
-
-  return std::min(d1, d2);
-}
-
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {

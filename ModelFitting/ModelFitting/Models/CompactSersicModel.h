@@ -49,8 +49,7 @@ public:
   };
 
 private:
-  double getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
-
+  using CompactModelBase<ImageType>::getMaxRadiusSqr;
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
