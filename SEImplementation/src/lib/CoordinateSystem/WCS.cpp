@@ -23,15 +23,11 @@
 
 #include <fitsio.h>
 
-namespace wcslib {
-
 #include <wcslib/wcs.h>
 #include <wcslib/wcshdr.h>
 #include <wcslib/wcsfix.h>
 #include <wcslib/wcsprintf.h>
 #include <wcslib/getwcstab.h>
-
-}
 
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
@@ -42,8 +38,6 @@ namespace wcslib {
 namespace SourceXtractor {
 
 static auto logger = Elements::Logging::getLogger("WCS");
-
-using namespace wcslib;
 
 decltype(&lincpy) safe_lincpy = &lincpy;
 
@@ -106,7 +100,7 @@ WCS::~WCS() {
 
 WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   // wcsprm is in/out, since its member lin is modified by wcsp2s
-  wcslib::wcsprm wcs_copy = *m_wcs;
+  wcsprm wcs_copy = *m_wcs;
   wcs_copy.lin.flag = -1;
   safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
   linset(&wcs_copy.lin);
@@ -127,7 +121,7 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
 
 ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   // wcsprm is in/out, since its member lin is modified by wcss2p
-  wcslib::wcsprm wcs_copy = *m_wcs;
+  wcsprm wcs_copy = *m_wcs;
   wcs_copy.lin.flag = -1;
   safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
   linset(&wcs_copy.lin);
