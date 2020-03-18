@@ -35,14 +35,15 @@
 namespace SourceXtractor {
 
 
-static std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr) {
+template<typename T>
+std::map<std::string, std::string> FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) {
   std::map<std::string, std::string> headers;
   char record[81];
   int keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("(.+)=([^\\/]*)(.*)");
+    static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
     std::string record_str(record);
 
     boost::smatch sub_matches;
@@ -252,6 +253,36 @@ void FitsImageSource<T>::loadHeadFile() {
   }
 }
 
+template<typename T>
+std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& number_of_records) const {
+  number_of_records = 0;
+  std::string records;
+
+  for (auto record : m_header) {
+    auto key = record.first;
+
+    std::string record_string(key);
+    if (record_string.size() < 8) {
+      record_string += std::string(8 - record_string.size(), ' ');
+    }
+
+    record_string += "= " +  m_header.at(key);
+
+
+    record_string += std::string(80 - record_string.size(), ' ');
+
+    records += record_string;
+    number_of_records++;
+  }
+
+  std::string record_string("END");
+  record_string += std::string(80 - record_string.size(), ' ');
+  records += record_string;
+
+  std::unique_ptr<std::vector<char>> buffer(new std::vector<char>(records.begin(), records.end()));
+  buffer->emplace_back(0);
+  return buffer;
+}
 
 template <>
 int FitsImageSource<double>::getDataType() const { return TDOUBLE; }

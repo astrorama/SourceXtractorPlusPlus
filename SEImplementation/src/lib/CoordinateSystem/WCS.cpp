@@ -60,37 +60,21 @@ static int wrapped_lincpy(int alloc, const struct linprm *linsrc, struct linprm 
 }
 
 
-WCS::WCS(const std::string& fits_file_path, int hdu_number) : m_wcs(nullptr, nullptr) {
-  fitsfile *fptr = NULL;
-  int status = 0;
-  fits_open_file(&fptr, fits_file_path.c_str(), READONLY, &status);
+WCS::WCS(const FitsImageSource<SeFloat>& fits_image_source) : m_wcs(nullptr, nullptr) {
+  int number_of_records = 0;
+  auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
 
-  int hdu_type;
-  fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
+  int nreject = 0, nwcs = 0;
+  wcsprm* wcs;
+  wcspih(&(*fits_headers)[0], number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+  wcsset(wcs);
 
-  if (status != 0 || hdu_type != IMAGE_HDU) {
-    throw Elements::Exception() << "Can't read WCS information from " << fits_file_path << " HDU " << hdu_number;
-  }
+  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
+    int nwcs_copy = nwcs;
+    wcsfree(wcs);
+    wcsvfree(&nwcs_copy, &wcs);
+  });
 
-  int nkeyrec;
-  char* header;
-  fits_hdr2str(fptr, 1, NULL, 0, &header, &nkeyrec, &status);
-
-  if (hdu_type == IMAGE_HDU) {
-    int nreject = 0, nwcs = 0;
-    wcsprm* wcs;
-    wcspih(header, nkeyrec, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
-    wcsset(wcs);
-
-    m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
-      int nwcs_copy = nwcs;
-      wcsfree(wcs);
-      wcsvfree(&nwcs_copy, &wcs);
-    });
-  }
-
-  free(header);
-  fits_close_file(fptr, &status);
 
   int wcsver[3];
   wcslib_version(wcsver);

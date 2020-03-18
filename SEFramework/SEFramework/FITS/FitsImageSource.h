@@ -24,12 +24,14 @@
 #ifndef _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
+#include <vector>
+#include <iostream>
+
+#include <boost/lexical_cast.hpp>
+
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/FITS/FitsFileManager.h"
-
-#include <iostream>
-#include <boost/lexical_cast.hpp>
 
 
 namespace SourceXtractor {
@@ -74,7 +76,7 @@ public:
   void saveTile(ImageTile<T>& tile) override;
 
   template <typename TT>
-  bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
+  bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
     auto i = m_header.find(header_keyword);
     if (i != m_header.end()) {
       out_value = boost::lexical_cast<TT>(i->second);
@@ -87,10 +89,13 @@ public:
     return m_hdu_number;
   }
 
+  std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
+
 private:
 
   void switchHdu(fitsfile* fptr, int hdu_number) const;
 
+  std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr);
   void loadHeadFile();
 
   int getDataType() const;
