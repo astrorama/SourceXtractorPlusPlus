@@ -104,7 +104,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // Create histogram model for the image
-  HistogramImage<DetectionImage::PixelType> histo(image, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+  HistogramImage<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
 
@@ -124,9 +124,8 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
 
   if (variance_map) {
     // Create histogram model for the variance image
-    HistogramImage<WeightImage::PixelType> var_histo(variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
-    auto weight = var_histo.getModeImage();
-    auto weight_var = var_histo.getSigmaImage();
+    auto weight = histo.getVarianceModeImage();
+    auto weight_var = histo.getVarianceSigmaImage();
     // Interpolate missing values
     weight = VectorImage<WeightImage::PixelType>::create(
       ReplaceUndefImage<DetectionImage::PixelType>::create(weight, mask_value));

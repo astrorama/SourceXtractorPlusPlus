@@ -27,7 +27,8 @@ using Euclid::Histogram::Histogram;
 namespace SourceXtractor {
 
 template<typename T>
-HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, int cell_w, int cell_h,
+HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
+                                  int cell_w, int cell_h,
                                   T invalid_value, T kappa1, T kappa2, T kappa3,
                                   T rtol, size_t max_iter): m_image(image),
                                                             m_cell_w(cell_w), m_cell_h(cell_h),
@@ -44,10 +45,22 @@ HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, int ce
   m_mode = VectorImage<T>::create(hist_width.quot, hist_height.quot);
   m_sigma = VectorImage<T>::create(hist_width.quot, hist_height.quot);
 
-  // Initialize grid
-  for (int y = 0; y < m_mode->getHeight(); ++y) {
-    for (int x = 0; x < m_mode->getWidth(); ++x) {
-      processCell(x, y);
+  if (variance) {
+    m_var_mode = VectorImage<T>::create(hist_width.quot, hist_height.quot);
+    m_var_sigma = VectorImage<T>::create(hist_width.quot, hist_height.quot);
+
+    for (int y = 0; y < m_mode->getHeight(); ++y) {
+      for (int x = 0; x < m_mode->getWidth(); ++x) {
+        processCell(*image, x, y, *m_mode, *m_sigma);
+        processCell(*variance, x, y, *m_var_mode, *m_var_sigma);
+      }
+    }
+  }
+  else {
+    for (int y = 0; y < m_mode->getHeight(); ++y) {
+      for (int x = 0; x < m_mode->getWidth(); ++x) {
+        processCell(*image, x, y, *m_mode, *m_sigma);
+      }
     }
   }
 }
@@ -60,6 +73,16 @@ std::shared_ptr<VectorImage<T>> HistogramImage<T>::getModeImage() const {
 template<typename T>
 std::shared_ptr<VectorImage<T>> HistogramImage<T>::getSigmaImage() const {
   return m_sigma;
+}
+
+template<typename T>
+std::shared_ptr<VectorImage<T>> HistogramImage<T>::getVarianceModeImage() const {
+  return m_var_mode;
+}
+
+template<typename T>
+std::shared_ptr<VectorImage<T>> HistogramImage<T>::getVarianceSigmaImage() const {
+  return m_var_sigma;
 }
 
 template<typename T>
@@ -110,13 +133,14 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) con
 }
 
 template<typename T>
-void HistogramImage<T>::processCell(int x, int y) {
+void HistogramImage<T>::processCell(const Image<T>& img, int x, int y,
+                                    VectorImage<T>& out_mode, VectorImage<T>& out_sigma) const {
   int off_x = x * m_cell_w;
   int off_y = y * m_cell_h;
-  int w = std::min(m_cell_w, m_image->getWidth() - off_x);
-  int h = std::min(m_cell_h, m_image->getHeight() - off_y);
+  int w = std::min(m_cell_w, img.getWidth() - off_x);
+  int h = std::min(m_cell_h, img.getHeight() - off_y);
 
-  auto img_chunk_ptr = m_image->getChunk(off_x, off_y, w, h);
+  auto img_chunk_ptr = img.getChunk(off_x, off_y, w, h);
   auto& img_chunk = *img_chunk_ptr;
 
   std::vector<T> filtered;
@@ -131,14 +155,14 @@ void HistogramImage<T>::processCell(int x, int y) {
   }
 
   if (filtered.size() / static_cast<float>(w * h) < 0.5) {
-    m_mode->setValue(x, y, m_invalid);
-    m_sigma->setValue(x, y, m_invalid);
+    out_mode.setValue(x, y, m_invalid);
+    out_sigma.setValue(x, y, m_invalid);
   }
   else {
     T mode, sigma;
     std::tie(mode, sigma) = getBackGuess(filtered);
-    m_mode->setValue(x, y, mode);
-    m_sigma->setValue(x, y, sigma);
+    out_mode.setValue(x, y, mode);
+    out_sigma.setValue(x, y, sigma);
   }
 }
 

@@ -65,8 +65,9 @@ public:
    * @param max_iter
    *    Maximum number of iterations
    */
-  HistogramImage(const std::shared_ptr<Image<T>>& image, int cell_w, int cell_h,
-                 T invalid_value, T kappa1=2, T kappa2=5, T kappa3=3,
+  HistogramImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
+                 int cell_w, int cell_h,
+                 T invalid_value, T kappa1 = 2, T kappa2 = 5, T kappa3 = 3,
                  T rtol = 1e-4, size_t max_iter = 100);
 
   /**
@@ -88,6 +89,9 @@ public:
    */
   std::shared_ptr<VectorImage<T>> getSigmaImage() const;
 
+  std::shared_ptr<VectorImage<T>> getVarianceModeImage() const;
+  std::shared_ptr<VectorImage<T>> getVarianceSigmaImage() const;
+
   /**
    * @return The median standard deviation for the whole image
    */
@@ -96,12 +100,13 @@ public:
 private:
   std::shared_ptr<const Image<T>> m_image;
   std::shared_ptr<VectorImage<T>> m_mode, m_sigma;
+  std::shared_ptr<VectorImage<T>> m_var_mode, m_var_sigma;
   int m_cell_w, m_cell_h;
   T m_invalid, m_kappa1, m_kappa2, m_kappa3, m_rtol;
   size_t m_max_iter;
 
   std::tuple<T, T> getBackGuess(const std::vector<T> &data) const;
-  void processCell(int x, int y);
+  void processCell(const Image<T>& img, int x, int y, VectorImage<T>& out_mode, VectorImage<T>& out_sigma) const;
 };
 
 extern template
