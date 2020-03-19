@@ -67,15 +67,13 @@ public:
   template<typename Iterator>
   void computeBins(Iterator begin, Iterator end) {
     // Compute mean and standard deviation of the original data set
-    VarType mean, sigma;
+    double mean, sigma;
     size_t ndata;
     Stats stats;
     for (auto i = begin; i != end; ++i) {
       stats(*i);
     }
     std::tie(mean, sigma, ndata) = stats.get();
-
-    assert(sigma >= 0);
 
     // Cuts
     auto lcut = mean - sigma * m_kappa;
@@ -130,7 +128,7 @@ private:
    * Similar to boost::accumulators, but this turned out to be faster
    */
   struct Stats {
-    VarType mean = 0, sigma = 0;
+    double mean = 0, sigma = 0;
     size_t ndata = 0;
 
     void operator() (VarType v) {
@@ -139,7 +137,7 @@ private:
       ++ndata;
     }
 
-    std::tuple<VarType, VarType, size_t> get() {
+    std::tuple<double, double, size_t> get() {
       mean /= ndata;
       sigma = sigma / ndata - mean * mean;
       if (sigma > 0.)
