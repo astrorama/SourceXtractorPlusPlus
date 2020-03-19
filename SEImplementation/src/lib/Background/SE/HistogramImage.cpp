@@ -94,7 +94,17 @@ T HistogramImage<T>::getMedianSigma() const {
     return v[nitems / 2];
   }
   return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
+}
 
+template<typename T>
+T HistogramImage<T>::getMedian() const {
+  auto v = m_mode->getData();
+  std::sort(v.begin(), v.end());
+  auto nitems = v.size();
+  if (nitems % 2 == 1) {
+    return v[nitems / 2];
+  }
+  return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
 }
 
 template<typename T>

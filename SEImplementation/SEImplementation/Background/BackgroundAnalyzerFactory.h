@@ -47,6 +47,7 @@ public:
 private:
   std::vector<int> m_cell_size;
   std::vector<int> m_smoothing_box;
+  bool m_legacy;
   WeightImageConfig::WeightType m_weight_type;
 };
 

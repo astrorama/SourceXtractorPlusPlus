@@ -47,9 +47,14 @@ public:
     return m_smoothing_box;
   }
 
+  bool useLegacy() const {
+    return m_legacy;
+  }
+
 private:
   std::vector<int> m_cell_size;
   std::vector<int> m_smoothing_box;
+  bool m_legacy;
 
 };
 

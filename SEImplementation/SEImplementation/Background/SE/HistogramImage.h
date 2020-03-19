@@ -89,13 +89,27 @@ public:
    */
   std::shared_ptr<VectorImage<T>> getSigmaImage() const;
 
+  /**
+   * @return An image with the mode of each cell of the variance map,
+   *         or nullptr if there is no variance map.
+   */
   std::shared_ptr<VectorImage<T>> getVarianceModeImage() const;
+
+  /**
+   * @return An image with the standard deviation of each cell from the variance map,
+   *         or nullptr if there is no variance map.
+   */
   std::shared_ptr<VectorImage<T>> getVarianceSigmaImage() const;
 
   /**
-   * @return The median standard deviation for the whole image
+   * @return The median cell standard deviation for the whole image
    */
   T getMedianSigma() const;
+
+  /**
+   * @return The median cell mode for the whole image
+   */
+  T getMedian() const;
 
 private:
   std::shared_ptr<const Image<T>> m_image;

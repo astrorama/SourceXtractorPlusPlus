@@ -147,6 +147,9 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     final_var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), sigma * sigma);
   }
 
+  bck_model_logger.info() << "Background for image: " << image->getRepr() << " median: " << histo.getMedian()
+                          << " rms: " << histo.getMedianSigma() << "!";
+
   final_bg = BufferedImage<DetectionImage::PixelType>::create(
     std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(
       mode, image->getWidth(), image->getHeight(),
