@@ -109,7 +109,7 @@ T HistogramImage<T>::getMedian() const {
 
 template<typename T>
 std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
-  Histogram<float> histo(data.begin(), data.end(), KappaSigmaBinning<float>(m_kappa1, m_kappa2));
+  Histogram<double, int64_t> histo(data.begin(), data.end(), KappaSigmaBinning<double>(m_kappa1, m_kappa2));
 
   auto ref_bin = histo.getBinEdges(0);
   auto atol = (ref_bin.second - ref_bin.first) * 0.1;
