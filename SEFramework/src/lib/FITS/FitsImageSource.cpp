@@ -232,9 +232,8 @@ void FitsImageSource<T>::loadHeadFile() {
       std::string line;
       std::getline(file, line);
 
-      line = boost::regex_replace(line, boost::regex("\\s*#.*"), std::string(""));
-      line = boost::regex_replace(line, boost::regex("\\s*$"), std::string(""));
-
+      static boost::regex regex_blank_line("\\s*$");
+      line = boost::regex_replace(line, regex_blank_line, std::string(""));
       if (line.size() == 0) {
         continue;
       }
@@ -243,10 +242,14 @@ void FitsImageSource<T>::loadHeadFile() {
         current_hdu++;
       }
       else if (current_hdu == m_hdu_number) {
+        static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
         boost::smatch sub_matches;
-        if (boost::regex_match(line, sub_matches, boost::regex("(.+)=(.+)")) && sub_matches.size() == 3) {
+        if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
           auto keyword = boost::to_upper_copy(sub_matches[1].str());
-          m_header[keyword] = sub_matches[2];
+          auto value = sub_matches[2].str();
+          boost::trim(keyword);
+          boost::trim(value);
+          m_header[keyword] = value;
         }
       }
     }

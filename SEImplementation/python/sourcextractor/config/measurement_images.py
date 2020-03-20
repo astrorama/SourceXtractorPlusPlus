@@ -184,18 +184,18 @@ class MeasurementImage(cpp.MeasurementImage):
             
             with open(header_file) as f:
                 for line in f:
-                    line = re.sub("\\s*#.*", "", line)
                     line = re.sub("\\s*$", "", line)
-                    
                     if line == "":
                         continue
                     
                     if line.upper() == "END":
                         current_hdu += 1
                     elif current_hdu == hdu:
-                        m = re.match("(.+)=(.+)", line)
+                        m = re.match("([^=]+)=([^\\/]*)(.*)", line)
                         if m:
-                            self.meta[m.group(1)] = m.group(2)
+                            keyword = m.group(1).strip().upper()
+                            value = m.group(2).strip()
+                            self.meta[keyword] = value
 
     def __str__(self):
         """
