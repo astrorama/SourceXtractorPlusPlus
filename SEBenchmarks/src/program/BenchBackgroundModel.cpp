@@ -85,8 +85,8 @@ private:
     auto basename = boost::filesystem::basename(input);
     auto extension = boost::filesystem::extension(input);
     auto algo = args.at("algorithm").as<std::string>();
-    auto output =
-      boost::filesystem::temp_directory_path() / boost::filesystem::path(basename + "_" + algo + "_" + default_suffix);
+    auto output_area = boost::filesystem::path(args.at("output-area").as<std::string>());
+    auto output = output_area / boost::filesystem::path(basename + "_" + algo + "_" + default_suffix);
     output.replace_extension(extension);
     return output.native();
   }
@@ -119,6 +119,7 @@ public:
     options.add_options()
       ("output", po::value<std::string>(), "Output image for the background")
       ("output-variance", po::value<std::string>(), "Output image for the variance")
+      ("output-area", po::value<std::string>()->default_value(boost::filesystem::temp_directory_path().native()), "Output area")
       ("algorithm", po::value<std::string>()->required(), "Algorithm to use: Simple, SE2")
       ("cell-size", po::value<std::string>()->default_value("64"), "Cell size for the histogram")
       ("smooth-size", po::value<std::string>()->default_value("3"), "Box size for the median filtering")
