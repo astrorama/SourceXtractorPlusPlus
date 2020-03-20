@@ -115,7 +115,7 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) con
   auto atol = (ref_bin.second - ref_bin.first) * 0.1;
 
   T mean, median, sigma;
-  std::tie(mean, median, sigma) = histo.template getStats<KappaSigmaBinning>();
+  std::tie(mean, median, sigma) = histo.getStats();
   T prev_sigma = sigma * 10;
 
   assert(!std::isnan(mean));
@@ -123,7 +123,7 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) con
   for (size_t iter = 0; iter < m_max_iter && sigma > atol && std::abs(sigma / prev_sigma - 1.0) > m_rtol; ++iter) {
     histo.clip(median - sigma * m_kappa3, median + sigma * m_kappa3);
     prev_sigma = sigma;
-    std::tie(mean, median, sigma) = histo.template getStats<KappaSigmaBinning>();
+    std::tie(mean, median, sigma) = histo.getStats();
   }
 
   // Sigma is 0
