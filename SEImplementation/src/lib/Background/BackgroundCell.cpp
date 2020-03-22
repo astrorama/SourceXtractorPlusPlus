@@ -251,8 +251,7 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   double weightHcut=0;
   double  pixVal=0;
   double  weightVal=0;
-  double  sigmaOrig=0.0;
-  double  weightSigmaOrig=0.0;
+  int weightSigma_zero=0;
 
   // go over the data and make the sums
   // for mean and sigma
@@ -288,28 +287,18 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute mean and sigma of all data
   mean /= (double)statNData;
   sigma = sigma/(double)statNData - mean*mean;
-  sigmaOrig = sigma;
   sigma = sigma>0.0 ? sqrt(sigma):0.0;
   weightMean /= (double)statNData;
   weightSigma = weightSigma/(double)statNData - weightMean*weightMean;
-  weightSigmaOrig=weightSigma;
-  //std::cerr << " weightSigma: " <<weightSigma << std::endl << std::flush;
   weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
+  if (weightSigma==0.0 && statNData>0)
+	  weightSigma_zero=1;
 
   // define the ranges for the second round
   lcut = mean - BACK_FKAPPA*sigma;
   hcut = mean + BACK_FKAPPA*sigma;
-  weightLcut = (weightMean - BACK_FKAPPA*weightSigma);
-  weightHcut = (weightMean + BACK_FKAPPA*weightSigma);
-
-  int has_sigzero=0;
-  //if (weightSigma < 1.0e-30) {
-  if (weightSigma==0.0 && statNData>0) {
-	  std::cerr << " wmean: " << weightMean << " wsigma: " << weightSigma << " ndata: "<< ndata<< " equal: " << (int)(weightLcut==weightHcut) << " weightSigmaOrig: " << weightSigmaOrig << " sigmaOrig: " << sigmaOrig <<std::endl << std::flush;
-	  has_sigzero=1;
-  }
-  //has_sigzero=0;
-  //weightSigmaOrig=weightSigma;
+  weightLcut = weightMean - BACK_FKAPPA*weightSigma;
+  weightHcut = weightMean + BACK_FKAPPA*weightSigma;
 
   // go over the data and make the sums
   // for mean and sigma
@@ -328,29 +317,19 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
       mean  += pixVal;
       sigma += pixVal*pixVal;
       statNData++;
-      //if (weightVal<=(double)weightHcut && weightVal>= (double)weightLcut)
-      if ((weightVal<=weightHcut && weightVal>=weightLcut)||has_sigzero)
+
+      if ((weightVal<=weightHcut && weightVal>=weightLcut) || weightSigma_zero)
       {
         weightMean  += weightVal;
         weightSigma += weightVal*weightVal;
         statNWeight++;
       }
-      //else{
-      	  //if (has_sigzero) {
-    		//  //std::cout << " value: " << weightVal << " lower: " << weightLcut<< " higher: " << weightHcut;
-    		 // //std::cout << " l_equal: "<< (int)(weightVal>=(double)weightLcut) << " h_equal: "<< (int)(weightVal<=(double)weightHcut);
-    		 // std::cout << " l_equal: "<< (int)(weightVal>=weightLcut) << " h_equal: "<< (int)(weightVal<=weightHcut);
-    	  //}
-      //}
     }
   }
-
-  //std::cout << "wndata: " << ndata << " wstatNData: " << statNData << std::endl;
 
   // compute mean and sigma of the data
   // within the cuts
   if (statNData<=0){
-	  //std::cout << "wndata: " << ndata << " wstatNData: " << statNData << std::endl;
     throw Elements::Exception() << "Can not compute meaningful data stats with statNData=" << statNData;
  }
   mean /= (double)statNData;
@@ -360,8 +339,7 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute the mean and sigma of the weights
   // within the cuts
   if (statNWeight<=0){
-	  std::cerr << " wndata: " << ndata << " wstatNData: " << statNWeight << " lower: " << weightLcut<< " higher: " << weightHcut << std::endl << std::flush;
-    throw Elements::Exception() << "Can not compute meaningful weight stats with statNWeight=" << statNWeight << " weightSigmaOrig: "<< weightSigmaOrig;
+	throw Elements::Exception() << "Can not compute meaningful weight stats with statNWeight=" << statNWeight;
   }
   weightMean /= (double)statNWeight;
   weightSigma = weightSigma/statNWeight - weightMean*weightMean;
