@@ -28,6 +28,7 @@
 //#include "BackgroundModule/UtilFunctions.h"
 #include "SEImplementation/Background/BackgroundHistogram.h"
 #include "SEImplementation/Background/BackgroundCell.h"
+#include <iostream>
 
 namespace SourceXtractor {
 
@@ -37,6 +38,8 @@ BackgroundCell::BackgroundCell(const PIXTYPE* cellData, const size_t ndata, cons
   itsCellWeight=cellWeight;
   itsNdata=ndata;
   itsWeightThresh=weightThresh;
+
+  //std::cout << "weightThresh: " << weightThresh << std::endl << std::endl;
 
   // compute some basic statistics on the
   // cell data and weights: mean, sigma (with a clipping), npix
@@ -119,7 +122,11 @@ void BackgroundCell::getBackgroundValues(PIXTYPE& meanVal, PIXTYPE& sigmaVal, PI
         // add to the histograms
         itsHisto->addDatum(pixVal);
         itsWeightHisto->addDatum(whtVal);
+        //std::cout << "added: " << whtVal;
      }
+      else{
+    	  std::cout << " " << whtVal;
+      }
     }
   }
   else {
@@ -201,6 +208,8 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
     return;
   }
 
+  std::cout << "ndata: " << ndata << " statNData: " << statNData << std::endl;
+
   // compute mean and sigma of all data
   if (statNData<=0){
     throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
@@ -250,8 +259,10 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   PIXTYPE hcut=0;
   PIXTYPE weightLcut=0;
   PIXTYPE weightHcut=0;
-  double  pixVal=0;
-  double  weightVal=0;
+  PIXTYPE pixVal=0;
+  PIXTYPE weightVal=0;
+  //double  pixVal=0;
+  //double  weightVal=0;
 
   // go over the data and make the sums
   // for mean and sigma
@@ -298,7 +309,12 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   weightLcut = (PIXTYPE)(weightMean - BACK_FKAPPA*weightSigma);
   weightHcut = (PIXTYPE)(weightMean + BACK_FKAPPA*weightSigma);
 
-
+  int has_sigzero=0;
+  //if (weightSigma < 1.0e-30) {
+  if (weightSigma==0.0) {
+	  std::cout << " wmean: " << weightMean << " wsigma: " << weightSigma << " ndata: "<< ndata<< " equal: " << (int)(weightLcut==weightHcut) << std::endl;
+	  has_sigzero=1;
+  }
   // go over the data and make the sums
   // for mean and sigma
   weightMean = 0.0;
@@ -316,19 +332,30 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
       mean  += pixVal;
       sigma += pixVal*pixVal;
       statNData++;
-      if (weightVal<=weightHcut && weightVal>= weightLcut)
+      //if (weightVal<=(double)weightHcut && weightVal>= (double)weightLcut)
+      if ((weightVal<=weightHcut && weightVal>=weightLcut)||has_sigzero)
       {
         weightMean  += weightVal;
         weightSigma += weightVal*weightVal;
         statNWeight++;
       }
+      else{
+    	  if (has_sigzero) {
+    		  //std::cout << " value: " << weightVal << " lower: " << weightLcut<< " higher: " << weightHcut;
+    		  //std::cout << " l_equal: "<< (int)(weightVal>=(double)weightLcut) << " h_equal: "<< (int)(weightVal<=(double)weightHcut);
+    		  std::cout << " l_equal: "<< (int)(weightVal>=weightLcut) << " h_equal: "<< (int)(weightVal<=weightHcut);
+    	  }
+      }
     }
   }
+
+  //std::cout << "wndata: " << ndata << " wstatNData: " << statNData << std::endl;
 
   // compute mean and sigma of the data
   // within the cuts
   if (statNData<=0){
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData;
+	  //std::cout << "wndata: " << ndata << " wstatNData: " << statNData << std::endl;
+    throw Elements::Exception() << "Can not compute mmeaningful stats with statNData=" << statNData;
  }
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
@@ -337,7 +364,8 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute the mean and sigma of the weights
   // within the cuts
   if (statNWeight<=0){
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNWeight;
+	  std::cout << " wndata: " << ndata << " wstatNData: " << statNWeight << " lower: " << weightLcut<< " higher: " << weightHcut << std::endl;
+    throw Elements::Exception() << "Can not compute mmmeaningful stats with statNData=" << statNWeight;
   }
   weightMean /= (double)statNWeight;
   weightSigma = weightSigma/statNWeight - weightMean*weightMean;
