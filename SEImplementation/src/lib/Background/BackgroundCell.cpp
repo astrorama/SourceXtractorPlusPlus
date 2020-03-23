@@ -23,6 +23,7 @@
  * Author:   $Author$
  */
 #include <cmath>
+#include <limits>
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEImplementation/Background/BackgroundDefine.h"
 //#include "BackgroundModule/UtilFunctions.h"
@@ -208,7 +209,7 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
   }
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
-  sigma = sigma>0.0 ? sqrt(sigma):0.0;
+  sigma = sigma > std::numeric_limits<double>::epsilon() ? sqrt(sigma):0.0;
 
   // define the range for the second round
   lcut = (PIXTYPE)(mean - BACK_FKAPPA*sigma);
@@ -287,10 +288,10 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute mean and sigma of all data
   mean /= static_cast<double>(statNData);
   sigma = sigma/static_cast<double>(statNData) - mean*mean;
-  sigma = sigma>0.0 ? sqrt(sigma):0.0;
+  sigma = sigma > std::numeric_limits<double>::epsilon() ? sqrt(sigma):0.0;
   weightMean /= static_cast<double>(statNData);
   weightSigma = weightSigma/static_cast<double>(statNData) - weightMean*weightMean;
-  weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
+  weightSigma = weightSigma > std::numeric_limits<double>::epsilon() ? sqrt(weightSigma) : 0.0;
   if (weightSigma==0.0 && statNData>0)
 	  weightSigma_zero=1;
 
