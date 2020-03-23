@@ -18,6 +18,7 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 #define SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 
+#include <iostream>
 #include "Histogram/Histogram.h"
 
 namespace SourceXtractor {
@@ -75,9 +76,16 @@ public:
     }
     std::tie(mean, sigma, ndata) = stats.get();
 
+    if (sigma == 0) {
+      sigma = std::abs(*begin - mean);
+    }
+    else {
+      sigma *= m_kappa;
+    }
+
     // Cuts
-    auto lcut = mean - sigma * m_kappa;
-    auto hcut = mean + sigma * m_kappa;
+    auto lcut = mean - sigma;
+    auto hcut = mean + sigma;
 
     // Re-compute mean and standard deviation of values within cut
     stats.reset();
@@ -140,7 +148,7 @@ private:
     std::tuple<double, double, size_t> get() {
       mean /= ndata;
       sigma = sigma / ndata - mean * mean;
-      if (sigma > 0.)
+      if (sigma > std::numeric_limits<double>::epsilon())
         sigma = std::sqrt(sigma);
       else
         sigma = 0.;
