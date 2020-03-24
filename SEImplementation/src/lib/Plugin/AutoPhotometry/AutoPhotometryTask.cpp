@@ -82,7 +82,10 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
                                  m_use_symmetry);
 
   // compute the derived quantities
-  auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
+  auto total_variance = measurement.m_variance;
+  if (gain >0.0)
+	  total_variance += measurement.m_flux / gain;
+  auto flux_error = sqrt(total_variance);
   auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : std::numeric_limits<SeFloat>::quiet_NaN();
   auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 
