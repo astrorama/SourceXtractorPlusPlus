@@ -42,7 +42,7 @@ chmod a+x 'linuxdeploy-x86_64.AppImage'
 APPDIR=`mktemp -d`
 
 # Install sourcextractor++, and dependencies, there
-yum install -y SourceXtractorPlusPlus ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM}
+yum install -y SourceXtractorPlusPlus ${PYTHON}-numpy ${PYTHON}-astropy ${PYTHON_ENUM} blas
 
 # Copy Python into the AppImage, and some of its dependencies
 mkdir -p "${APPDIR}/usr/lib64"

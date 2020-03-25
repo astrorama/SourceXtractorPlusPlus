@@ -30,9 +30,7 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
-namespace wcslib {
 struct wcsprm;
-}
 
 namespace SourceXtractor {
 
@@ -47,7 +45,7 @@ public:
   std::map<std::string, std::string> getFitsHeaders() const override;
 
 private:
-  std::unique_ptr<wcslib::wcsprm, std::function<void(wcslib::wcsprm*)>> m_wcs;
+  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };
 
 }
