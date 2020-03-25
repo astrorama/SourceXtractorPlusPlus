@@ -21,16 +21,19 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/FITS/FitsImageSource.h"
-#include <ElementsKernel/Exception.h>
 #include <iomanip>
 #include <fstream>
+#include <string>
+
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#include <ElementsKernel/Exception.h>
+
+#include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 

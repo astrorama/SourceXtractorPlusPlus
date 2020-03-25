@@ -21,6 +21,10 @@
  *      Author: mschefer
  */
 
+#include <mutex>
+
+#include <boost/algorithm/string/trim.hpp>
+
 #include <fitsio.h>
 
 namespace wcslib {
@@ -35,9 +39,8 @@ namespace wcslib {
 
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
+
 #include "SEImplementation/CoordinateSystem/WCS.h"
-#include <boost/algorithm/string/trim.hpp>
-#include <mutex>
 
 namespace SourceXtractor {
 

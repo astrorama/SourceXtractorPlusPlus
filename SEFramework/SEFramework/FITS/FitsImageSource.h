@@ -24,8 +24,9 @@
 #ifndef _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
+#include <memory>
 #include <vector>
-#include <iostream>
+#include <map>
 
 #include <boost/lexical_cast.hpp>
 
