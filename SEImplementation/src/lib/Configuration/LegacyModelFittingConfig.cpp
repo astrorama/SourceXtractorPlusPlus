@@ -22,6 +22,7 @@
  */
 
 #include "SEImplementation/Configuration/LegacyModelFittingConfig.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -35,11 +36,16 @@ LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configurat
 }
 
 auto LegacyModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
+  auto known_engines = ModelFitting::LeastSquareEngineManager::getImplementations();
+  std::string default_engine;
+  if (!known_engines.empty())
+    default_engine = known_engines.front();
+
   return {{"Model Fitting",
       {
         {MFIT_MAX_ITERATIONS.c_str(), po::value<int>()->default_value(1000),
          "Maximum number of iterations allowed for model fitting"},
-        {MFIT_ENGINE.c_str(), po::value<std::string>()->default_value("levmar"),
+        {MFIT_ENGINE.c_str(), po::value<std::string>()->default_value(default_engine),
          "Least squares engine"}
       }
   }};
