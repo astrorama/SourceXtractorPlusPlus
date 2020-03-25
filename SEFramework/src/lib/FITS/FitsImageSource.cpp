@@ -21,28 +21,32 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/FITS/FitsImageSource.h"
-#include <ElementsKernel/Exception.h>
 #include <iomanip>
 #include <fstream>
+#include <string>
+
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
+#include <ElementsKernel/Exception.h>
+
+#include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 
 
-static std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr) {
+template<typename T>
+std::map<std::string, std::string> FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) {
   std::map<std::string, std::string> headers;
   char record[81];
   int keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("(.+)=([^\\/]*)(.*)");
+    static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
     std::string record_str(record);
 
     boost::smatch sub_matches;
@@ -231,9 +235,8 @@ void FitsImageSource<T>::loadHeadFile() {
       std::string line;
       std::getline(file, line);
 
-      line = boost::regex_replace(line, boost::regex("\\s*#.*"), std::string(""));
-      line = boost::regex_replace(line, boost::regex("\\s*$"), std::string(""));
-
+      static boost::regex regex_blank_line("\\s*$");
+      line = boost::regex_replace(line, regex_blank_line, std::string(""));
       if (line.size() == 0) {
         continue;
       }
@@ -242,16 +245,58 @@ void FitsImageSource<T>::loadHeadFile() {
         current_hdu++;
       }
       else if (current_hdu == m_hdu_number) {
+        static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
         boost::smatch sub_matches;
-        if (boost::regex_match(line, sub_matches, boost::regex("(.+)=(.+)")) && sub_matches.size() == 3) {
+        if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
           auto keyword = boost::to_upper_copy(sub_matches[1].str());
-          m_header[keyword] = sub_matches[2];
+          auto value = sub_matches[2].str();
+          boost::trim(keyword);
+          boost::trim(value);
+          m_header[keyword] = value;
         }
       }
     }
   }
 }
 
+template<typename T>
+std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& number_of_records) const {
+  number_of_records = 0;
+  std::string records;
+
+  for (auto record : m_header) {
+    auto key = record.first;
+
+    std::string record_string(key);
+    if (record_string.size() > 8) {
+      throw Elements::Exception() << "FITS keyword longer than 8 characters";
+    } else if (record_string.size() < 8) {
+      record_string += std::string(8 - record_string.size(), ' ');
+    }
+
+    record_string += "= " +  m_header.at(key);
+
+    if (record_string.size() > 80) {
+      throw Elements::Exception() << "FITS record longer than 80 characters";
+    }
+
+
+    if (record_string.size() < 80) {
+      record_string += std::string(80 - record_string.size(), ' ');
+    }
+
+    records += record_string;
+    number_of_records++;
+  }
+
+  std::string record_string("END");
+  record_string += std::string(80 - record_string.size(), ' ');
+  records += record_string;
+
+  std::unique_ptr<std::vector<char>> buffer(new std::vector<char>(records.begin(), records.end()));
+  buffer->emplace_back(0);
+  return buffer;
+}
 
 template <>
 int FitsImageSource<double>::getDataType() const { return TDOUBLE; }
