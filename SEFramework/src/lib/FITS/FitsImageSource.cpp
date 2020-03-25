@@ -265,14 +265,22 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
     auto key = record.first;
 
     std::string record_string(key);
-    if (record_string.size() < 8) {
+    if (record_string.size() > 8) {
+      throw Elements::Exception() << "FITS keyword longer than 8 characters";
+    } else if (record_string.size() < 8) {
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
     record_string += "= " +  m_header.at(key);
 
+    if (record_string.size() > 80) {
+      throw Elements::Exception() << "FITS record longer than 80 characters";
+    }
 
-    record_string += std::string(80 - record_string.size(), ' ');
+
+    if (record_string.size() < 80) {
+      record_string += std::string(80 - record_string.size(), ' ');
+    }
 
     records += record_string;
     number_of_records++;
