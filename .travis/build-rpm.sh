@@ -73,6 +73,6 @@ PRUNE_REGEX=${PRUNE_REGEX:0:$((${#PRUNE_REGEX}-1))}
 # Build
 mkdir -p /build
 cd /build
-cmake -DCMAKE_INSTALL_PREFIX=/usr $CMAKEFLAGS /src
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DINSTALL_TESTS=OFF -DRPM_NO_CHECK=OFF $CMAKEFLAGS /src
 make $MAKEFLAGS rpm | grep -vE "^${PRUNE_REGEX}"
 
