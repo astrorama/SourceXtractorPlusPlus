@@ -79,11 +79,11 @@ void validateImagePaths(const PyMeasurementImage& image) {
   }
 }
 
-std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImage& py_image) {
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file, py_image.image_hdu);
+std::shared_ptr<MeasurementImage> createMeasurementImage(
+    std::shared_ptr<FitsImageSource<DetectionImage::PixelType>> fits_image_source, double flux_scale) {
   std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-  if (py_image.flux_scale != 1.) {
-    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
+  if (flux_scale != 1.) {
+    image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
   }
   return image;
 }
@@ -187,8 +187,11 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_path = py_image.file;
       info.m_psf_path = py_image.psf_file;
 
-      info.m_measurement_image = createMeasurementImage(py_image);
-      info.m_coordinate_system = std::make_shared<WCS>(py_image.file, py_image.image_hdu);
+
+      auto fits_image_source =
+          std::make_shared<FitsImageSource<MeasurementImage::PixelType>>(py_image.file, py_image.image_hdu);
+      info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
+      info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;

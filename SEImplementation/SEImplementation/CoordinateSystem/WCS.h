@@ -24,17 +24,19 @@
 #ifndef _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
 #define _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
 
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include <memory>
+#include <map>
 
-namespace wcslib {
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/FITS/FitsImageSource.h"
+
 struct wcsprm;
-}
 
 namespace SourceXtractor {
 
 class WCS : public CoordinateSystem {
 public:
-  WCS(const std::string& fits_file_path, int hdu_number = 1);
+  explicit WCS(const FitsImageSource<SeFloat>& fits_image_source);
   virtual ~WCS();
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
@@ -43,7 +45,7 @@ public:
   std::map<std::string, std::string> getFitsHeaders() const override;
 
 private:
-  std::unique_ptr<wcslib::wcsprm, std::function<void(wcslib::wcsprm*)>> m_wcs;
+  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };
 
 }

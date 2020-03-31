@@ -23,11 +23,13 @@
  * Author:   $Author$
  */
 #include <cmath>
+#include <limits>
 #include "ElementsKernel/Exception.h"       // for Elements Exception
 #include "SEImplementation/Background/BackgroundDefine.h"
 //#include "BackgroundModule/UtilFunctions.h"
 #include "SEImplementation/Background/BackgroundHistogram.h"
 #include "SEImplementation/Background/BackgroundCell.h"
+#include <iostream>
 
 namespace SourceXtractor {
 
@@ -207,7 +209,7 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
   }
   mean /= (double)statNData;
   sigma = sigma/statNData - mean*mean;
-  sigma = sigma>0.0 ? sqrt(sigma):0.0;
+  sigma = sigma > std::numeric_limits<double>::epsilon() ? sqrt(sigma):0.0;
 
   // define the range for the second round
   lcut = (PIXTYPE)(mean - BACK_FKAPPA*sigma);
@@ -244,14 +246,13 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
 void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata, const PIXTYPE* cellWeight, const PIXTYPE weightThresh, double& mean, double& sigma, size_t& statNData, double& weightMean, double& weightSigma, size_t& statNWeight)
 {
-  //size_t  npix=0;
-  //size_t  weightNpix=0;
-  PIXTYPE lcut=0;
-  PIXTYPE hcut=0;
-  PIXTYPE weightLcut=0;
-  PIXTYPE weightHcut=0;
+  double lcut=0;
+  double hcut=0;
+  double weightLcut=0;
+  double weightHcut=0;
   double  pixVal=0;
   double  weightVal=0;
+  int weightSigma_zero=0;
 
   // go over the data and make the sums
   // for mean and sigma
@@ -261,9 +262,9 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   sigma=0.0;
   for (size_t index=0; index<ndata; index++)
   {
-    pixVal    = cellData[index];
-    weightVal = cellWeight[index];
-    if (weightVal < weightThresh && pixVal > -BIG)
+    pixVal    = static_cast<double>(cellData[index]);
+    weightVal = static_cast<double>(cellWeight[index]);
+    if (weightVal < static_cast<double>(weightThresh) && pixVal > -BIG)
     {
       mean        += pixVal;
       sigma       += pixVal*pixVal;
@@ -275,7 +276,7 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   }
 
   // check whether there is enough data to continue
-  if ((float)statNData < (float)(ndata*BACK_MINGOODFRAC))
+  if (static_cast<float>(statNData) < static_cast<float>(ndata*BACK_MINGOODFRAC))
   {
     mean        = -BIG;
     sigma       = -BIG;
@@ -285,19 +286,20 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   }
 
   // compute mean and sigma of all data
-  mean /= (double)statNData;
-  sigma = sigma/statNData - mean*mean;
-  sigma = sigma>0.0 ? sqrt(sigma):0.0;
-  weightMean /= (double)statNData;
-  weightSigma = weightSigma/statNData - weightMean*weightMean;
-  weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
+  mean /= static_cast<double>(statNData);
+  sigma = sigma/static_cast<double>(statNData) - mean*mean;
+  sigma = sigma > std::numeric_limits<double>::epsilon() ? sqrt(sigma):0.0;
+  weightMean /= static_cast<double>(statNData);
+  weightSigma = weightSigma/static_cast<double>(statNData) - weightMean*weightMean;
+  weightSigma = weightSigma > std::numeric_limits<double>::epsilon() ? sqrt(weightSigma) : 0.0;
+  if (weightSigma==0.0 && statNData>0)
+	  weightSigma_zero=1;
 
   // define the ranges for the second round
-  lcut = (PIXTYPE)(mean - BACK_FKAPPA*sigma);
-  hcut = (PIXTYPE)(mean + BACK_FKAPPA*sigma);
-  weightLcut = (PIXTYPE)(weightMean - BACK_FKAPPA*weightSigma);
-  weightHcut = (PIXTYPE)(weightMean + BACK_FKAPPA*weightSigma);
-
+  lcut = mean - BACK_FKAPPA*sigma;
+  hcut = mean + BACK_FKAPPA*sigma;
+  weightLcut = weightMean - BACK_FKAPPA*weightSigma;
+  weightHcut = weightMean + BACK_FKAPPA*weightSigma;
 
   // go over the data and make the sums
   // for mean and sigma
@@ -309,14 +311,15 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   statNWeight=0;
   for (size_t index=0; index<ndata; index++)
   {
-    pixVal    = cellData[index];
-    weightVal = cellWeight[index];
+    pixVal    = static_cast<double>(cellData[index]);
+    weightVal = static_cast<double>(cellWeight[index]);
     if (weightVal < weightThresh && pixVal <=hcut && pixVal>=lcut)
     {
       mean  += pixVal;
       sigma += pixVal*pixVal;
       statNData++;
-      if (weightVal<=weightHcut && weightVal>= weightLcut)
+
+      if ((weightVal<=weightHcut && weightVal>=weightLcut) || weightSigma_zero)
       {
         weightMean  += weightVal;
         weightSigma += weightVal*weightVal;
@@ -328,19 +331,19 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
   // compute mean and sigma of the data
   // within the cuts
   if (statNData<=0){
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData;
+    throw Elements::Exception() << "Can not compute meaningful data stats with statNData=" << statNData;
  }
-  mean /= (double)statNData;
+  mean /= static_cast<double>(statNData);
   sigma = sigma/statNData - mean*mean;
   sigma = sigma>0.0 ? sqrt(sigma):0.0;
 
   // compute the mean and sigma of the weights
   // within the cuts
   if (statNWeight<=0){
-    throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNWeight;
+	throw Elements::Exception() << "Can not compute meaningful weight stats with statNWeight=" << statNWeight;
   }
-  weightMean /= (double)statNWeight;
-  weightSigma = weightSigma/statNWeight - weightMean*weightMean;
+  weightMean /= static_cast<double>(statNWeight);
+  weightSigma = weightSigma/static_cast<double>(statNWeight) - weightMean*weightMean;
   weightSigma = weightSigma>0.0 ? sqrt(weightSigma):0.0;
 }
 } // end of namespace SourceXtractor
