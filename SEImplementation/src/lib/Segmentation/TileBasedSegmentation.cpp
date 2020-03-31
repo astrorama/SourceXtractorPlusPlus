@@ -38,6 +38,45 @@ public:
     std::vector<PixelCoordinate> m_pixels;
     std::unordered_set<PixelCoordinate> m_missing_tiles;
 
+    PartialGroup() : m_pixels(), m_missing_tiles() {}
+
+    PartialGroup(const std::vector<PixelCoordinate>& pixels, const std::unordered_set<PixelCoordinate>& missing_tiles={})
+        : m_pixels(pixels), m_missing_tiles(missing_tiles) {}
+
+    void determineMissingTiles(PixelCoordinate current_tile, int min_x, int min_y, int max_x, int max_y) {
+      bool left=false, right=false, bottom=false, top=false;
+      for (auto& pc : m_pixels) {
+          left   |= (pc.m_x <= min_x);
+          right  |= (pc.m_x >= max_x);
+          bottom |= (pc.m_y <= min_y);
+          top    |= (pc.m_y >= max_y);
+      }
+
+      if (left) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(-1,0));
+      }
+      if (right) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(1,0));
+      }
+      if (bottom) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(0,-1));
+      }
+      if (top) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(0,1));
+      }
+      if (left && bottom) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(-1,-1));
+      }
+      if (left && top) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(-1,1));
+      }
+      if (right && bottom) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(1,-1));
+      }
+      if (right && top) {
+        m_missing_tiles.emplace(current_tile + PixelCoordinate(1,1));
+      }
+    }
 
 //    void debugPrint() const {
 //      std::cout << "group with " << m_pixels.size() << " pixels and missing: ";
@@ -55,140 +94,32 @@ public:
   virtual ~TilesLabellingListener() = default;
 
   void publishGroup(Lutz::PixelGroup& pixel_group) override {
-    auto group = std::make_shared<PartialGroup>(PartialGroup {pixel_group.pixel_list, {}});
-    bool safeGroup = true;
+    auto group = std::make_shared<PartialGroup>(pixel_group.pixel_list);
 
-    std::set<std::shared_ptr<PartialGroup>> groups_to_connect;
+    group->determineMissingTiles(m_current_tile, m_min_x, m_min_y, m_max_x, m_max_y);
 
-    bool has_visited_left =
-        m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y)) != m_visited_tiles.end();
-    bool has_visited_right =
-        m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y)) != m_visited_tiles.end();
-    bool has_visited_top =
-        m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x, m_current_tile.m_y+1)) != m_visited_tiles.end();
-    bool has_visited_bottom =
-        m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x, m_current_tile.m_y-1)) != m_visited_tiles.end();
-
-    for (auto& pc : pixel_group.pixel_list) {
-      if (pc.m_x <= m_min_x || pc.m_x >= m_max_x || pc.m_y <= m_min_y || pc.m_y >= m_max_y) {
-        m_groups_on_borders[pc] = group;
-        safeGroup = false;
-      }
-
-      if (pc.m_x <= m_min_x) {
-        if (has_visited_left) {
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y-1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y-1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y+1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y+1)]);
-          }
-        } else {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y));
-        }
-      }
-
-      if (pc.m_x >= m_max_x) {
-        if (has_visited_right) {
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y-1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y-1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y+1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y+1)]);
-          }
-        } else {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y));
-        }
-      }
-
-      if (pc.m_y <= m_min_y) {
-        if (has_visited_bottom) {
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x, pc.m_y-1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x, pc.m_y-1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y-1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y-1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y-1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y-1)]);
-          }
-        } else {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x, m_current_tile.m_y-1));
-        }
-      }
-
-      if (pc.m_y >= m_max_y) {
-        if (has_visited_top) {
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x, pc.m_y+1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x, pc.m_y+1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x-1, pc.m_y+1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x-1, pc.m_y+1)]);
-          }
-          if (m_groups_on_borders.find(PixelCoordinate(pc.m_x+1, pc.m_y+1)) != m_groups_on_borders.end()) {
-            groups_to_connect.emplace(m_groups_on_borders[PixelCoordinate(pc.m_x+1, pc.m_y+1)]);
-          }
-        } else {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x, m_current_tile.m_y+1));
-        }
-      }
-
-      // corner cases
-      if (pc.m_x <= m_min_x && pc.m_y <= m_min_y) {
-        if (m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y-1)) == m_visited_tiles.end()) {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y-1));
-        }
-      }
-      if (pc.m_x <= m_min_x && pc.m_y >= m_max_y) {
-        if (m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y+1)) == m_visited_tiles.end()) {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x-1, m_current_tile.m_y+1));
-        }
-      }
-      if (pc.m_x >= m_max_x && pc.m_y <= m_min_y) {
-        if (m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y-1)) == m_visited_tiles.end()) {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y-1));
-        }
-      }
-      if (pc.m_x >= m_max_x && pc.m_y >= m_max_y) {
-        if (m_visited_tiles.find(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y+1)) == m_visited_tiles.end()) {
-          group->m_missing_tiles.emplace(PixelCoordinate(m_current_tile.m_x+1, m_current_tile.m_y+1));
-        }
-      }
-    }
-
-    if (safeGroup) {
+    if (group->m_missing_tiles.empty()) {
       publishSource(group);
     } else {
-      if (!groups_to_connect.empty()) {
-        groups_to_connect.emplace(group);
-        group = mergeGroups(groups_to_connect);
-        group->m_missing_tiles.erase(m_current_tile);
-      }
-      //group->debugPrint();
-
-      if (group->m_missing_tiles.empty()) {
-        m_tile_buffer.emplace(group);
-      }
-    }
-  }
-
-  void flushTile() {
-    //std::cout << "flush tile:\n";
-    for (auto group : m_tile_buffer) {
-      publishSource(group);
       for (auto& pc : group->m_pixels) {
-        m_groups_on_borders.erase(pc);
+        m_groups_on_borders[pc] = group;
       }
     }
-
-    m_tile_buffer.clear();
   }
+
+//  void evaluateTile(PixelCoordinate tile) {
+//    for (auto group : m_incomplete_groups[tile]) {
+//    }
+////    //std::cout << "flush tile:\n";
+////    for (auto group : m_tile_buffer) {
+////      publishSource(group);
+////      for (auto& pc : group->m_pixels) {
+////        m_groups_on_borders.erase(pc);
+////      }
+////    }
+////
+////    m_tile_buffer.clear();
+//  }
 
   void publishSource(std::shared_ptr<PartialGroup> group) {
     auto source = m_source_factory->createSource();
@@ -200,27 +131,27 @@ public:
     m_listener.publishSource(source);
   }
 
-  std::shared_ptr<PartialGroup> mergeGroups(std::set<std::shared_ptr<PartialGroup>> groups) {
-    auto merged_group = std::make_shared<PartialGroup>();
-
-    for (auto& group : groups) {
-      m_tile_buffer.erase(group);
-
-      //std::cout << " merging ";
-      //group->debugPrint();
-
-      merged_group->m_pixels.insert(merged_group->m_pixels.end(),
-          std::make_move_iterator(group->m_pixels.begin()), std::make_move_iterator(group->m_pixels.end()));
-
-      merged_group->m_missing_tiles.insert(group->m_missing_tiles.begin(), group->m_missing_tiles.end());
-    }
-
-    for (auto& pc : merged_group->m_pixels) {
-      m_groups_on_borders[pc] = merged_group;
-    }
-
-    return merged_group;
-  }
+//  std::shared_ptr<PartialGroup> mergeGroups(std::set<std::shared_ptr<PartialGroup>> groups) {
+//    auto merged_group = std::make_shared<PartialGroup>();
+//
+//    for (auto& group : groups) {
+//      m_tile_buffer.erase(group);
+//
+//      //std::cout << " merging ";
+//      //group->debugPrint();
+//
+//      merged_group->m_pixels.insert(merged_group->m_pixels.end(),
+//          std::make_move_iterator(group->m_pixels.begin()), std::make_move_iterator(group->m_pixels.end()));
+//
+//      merged_group->m_missing_tiles.insert(group->m_missing_tiles.begin(), group->m_missing_tiles.end());
+//    }
+//
+//    for (auto& pc : merged_group->m_pixels) {
+//      m_groups_on_borders[pc] = merged_group;
+//    }
+//
+//    return merged_group;
+//  }
 
   void notifyProgress(int line, int total) override {
 //    m_listener.notifyProgress(line, total);
@@ -243,19 +174,19 @@ public:
     m_visited_tiles.emplace(pc);
   }
 
-  void flush() {
-    //std::cout << "FLUSHING: \n";
-    while (m_groups_on_borders.size() > 0) {
-      auto group = m_groups_on_borders.begin()->second;
-
-//      group->debugPrint();
-
-      publishSource(group);
-      for (auto& pc : group->m_pixels) {
-        m_groups_on_borders.erase(pc);
-      }
-    }
-  }
+//  void flush() {
+//    //std::cout << "FLUSHING: \n";
+//    while (m_groups_on_borders.size() > 0) {
+//      auto group = m_groups_on_borders.begin()->second;
+//
+////      group->debugPrint();
+//
+//      publishSource(group);
+//      for (auto& pc : group->m_pixels) {
+//        m_groups_on_borders.erase(pc);
+//      }
+//    }
+//  }
 
 private:
   Segmentation::LabellingListener& m_listener;
@@ -269,7 +200,9 @@ private:
   PixelCoordinate m_current_tile;
   std::unordered_set<PixelCoordinate> m_visited_tiles;
 
-  std::unordered_set<std::shared_ptr<PartialGroup>> m_tile_buffer;
+  std::unordered_map<PixelCoordinate, std::shared_ptr<PartialGroup>> m_incomplete_groups;
+
+  //std::unordered_set<std::shared_ptr<PartialGroup>> m_tile_buffer;
 };
 
 }
@@ -297,9 +230,9 @@ void TileBasedSegmentation::labelImage(Segmentation::LabellingListener& listener
     auto sub_image = SubImage<DetectionImage::PixelType>::create(image, tile.offset, tile.width, tile.height);
     tiles_listener.setTileBoundary(tile.offset, tile.width, tile.height);
     lutz.labelImage(tiles_listener, *sub_image, tile.offset);
-    tiles_listener.flushTile();
+//    tiles_listener.evaluateTile();
   }
-  tiles_listener.flush();
+  //tiles_listener.flush();
 }
 
 std::vector<TileBasedSegmentation::Tile> TileBasedSegmentation::getTiles(const DetectionImage& image) const {

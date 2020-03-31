@@ -118,5 +118,3 @@ std::vector<BFSSegmentation::Tile> BFSSegmentation::getTiles(const DetectionImag
 }
 
 }
-
-
