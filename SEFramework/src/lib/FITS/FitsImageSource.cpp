@@ -46,7 +46,7 @@ std::map<std::string, std::string> FitsImageSource<T>::loadFitsHeader(fitsfile *
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
+    static boost::regex regex("([^=]{8})=([^\\/]*)(.*)");
     std::string record_str(record);
 
     boost::smatch sub_matches;
@@ -245,7 +245,7 @@ void FitsImageSource<T>::loadHeadFile() {
         current_hdu++;
       }
       else if (current_hdu == m_hdu_number) {
-        static boost::regex regex("([^=]+)=([^\\/]*)(.*)");
+        static boost::regex regex("([^=]{1,8})=([^\\/]*)(.*)");
         boost::smatch sub_matches;
         if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
           auto keyword = boost::to_upper_copy(sub_matches[1].str());
