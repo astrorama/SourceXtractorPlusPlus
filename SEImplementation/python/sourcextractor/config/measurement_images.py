@@ -197,7 +197,7 @@ class MeasurementImage(cpp.MeasurementImage):
                     if line.upper() == "END":
                         current_hdu += 1
                     elif current_hdu == hdu:
-                        m = re.match("([^=]+)=([^\\/]*)(.*)", line)
+                        m = re.match("([^=]{1,8})=([^\\/]*)(.*)", line)
                         if m:
                             keyword = m.group(1).strip().upper()
                             value = m.group(2).strip()
