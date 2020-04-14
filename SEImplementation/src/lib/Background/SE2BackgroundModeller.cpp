@@ -142,6 +142,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
     // iterate over cells in x
     for (size_t xIndex=0; xIndex<gridSize[0]; xIndex++){
 
+    	//bck_model_logger.debug() << "yIndex="  << yIndex << " xIndex=" << xIndex;
+
+
       // set the boundaries in x
       fpixel[0] = (long)xIndex*bckCellSize[0];
       lpixel[0] = xIndex < gridSize[0]-1 ? (long)(xIndex+1)*bckCellSize[0] : (long)itsNaxes[0];
@@ -149,6 +152,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       // compute the length of the cell sub-image
       subImgNaxes[0] =(size_t)(lpixel[0]-fpixel[0]);
       subImgNaxes[1] =(size_t)(lpixel[1]-fpixel[1]);
+      increment[0] = 1;
+      increment[1] = 1;
+
 
       // compute the increments to limit the number
       // of pixels read in, the total number of elements
@@ -167,12 +173,21 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
         nData=nElements;
       }
 
+   	//bck_model_logger.debug() << "Start loading pixel data...";
+   	//bck_model_logger.debug() << " nElements:" << nElements;
+ 	//bck_model_logger.debug() << " fpixel[1]:" << fpixel[1] <<  " lpixel[1]:" <<  lpixel[1] << " increment[1]: " << increment[1] << " subImgNaxes[1]: " << subImgNaxes[1];
+ 	//bck_model_logger.debug() << " fpixel[0]:" << fpixel[0] <<  " lpixel[0]:" <<  lpixel[0] << " increment[0]: " << increment[0] << " subImgNaxes[0]: " << subImgNaxes[0];
       // load in the image data
       long pixIndex=0;
       for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
-        for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
-          gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
+        for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0]){
+        	//bck_model_logger.debug() << " yIndex:" << yIndex <<  " xIndex: " <<  xIndex;
+        	//if ((size_t)pixIndex >= nElements)
+        	//	//bck_model_logger.debug() << " index: " << pixIndex;
+        	//	throw Elements::Exception() << "Array index: " << pixIndex << " available elements: " << nElements;
 
+          gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
+        }
       if (itsHasVariance){
         long pixIndex=0;
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
@@ -239,8 +254,11 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
   float axisRatio;
   ldiv_t divResult;
 
+  size_t tmpImgNaxes[2] = {subImgNaxes[0], subImgNaxes[1]};
+
   // compute the number of elements
   nElements = subImgNaxes[0]*subImgNaxes[1];
+  bck_model_logger.debug() << "Start subImgNaxes[0]: " << subImgNaxes[0] << " subImgNaxes[1]: " << subImgNaxes[1] << " nElements: " << nElements;
 
   // check if something needs to be done at all
   if (nElements <= BACK_BUFSIZE)
@@ -252,11 +270,12 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
   }
 
   // compute the axis ratio
-  axisRatio = float(subImgNaxes[0]) / float(subImgNaxes[1]);
+  axisRatio = float(tmpImgNaxes[0]) / float(tmpImgNaxes[1]);
 
   // iterate until the number is small enough
   while (nElements > BACK_BUFSIZE)
   {
+	  //bck_model_logger.debug() << " nElements: " << nElements << " BACK_BUFSIZE: " << BACK_BUFSIZE << " axisRatio: " << axisRatio;
 
     // change the increments such
     // that pixels sampled in x and y
@@ -268,21 +287,28 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
 
     // get the number of pixels sampled in x
     divResult = std::div(long(subImgNaxes[0]), long(incr[0]));
-    subImgNaxes[0] = size_t(divResult.quot);
+    tmpImgNaxes[0] = size_t(divResult.quot);
     if (divResult.rem)
-      subImgNaxes[0] += 1;
+    	tmpImgNaxes[0] += 1;
 
     // get the number of pixels sampled in y
     divResult = std::div(long(subImgNaxes[1]), long(incr[1]));
-    subImgNaxes[1] = size_t(divResult.quot);
+    tmpImgNaxes[1] = size_t(divResult.quot);
     if (divResult.rem)
-      subImgNaxes[1] += 1;
+    	tmpImgNaxes[1] += 1;
 
     // re-compute the number of elements and the
     // axis ratio
-    nElements = subImgNaxes[0]*subImgNaxes[1];
-    axisRatio = float(subImgNaxes[0]) / float(subImgNaxes[1]);
+    nElements = tmpImgNaxes[0]*tmpImgNaxes[1];
+    axisRatio = float(tmpImgNaxes[0]) / float(tmpImgNaxes[1]);
+
+    //bck_model_logger.debug() << "1 incr[0]: " << incr[0] << " BACK_BUFSIZE: " << BACK_BUFSIZE << " axisRatio: " << axisRatio << " tmpImgNaxes[0]: " << tmpImgNaxes[0] << " nElements: " << nElements;
+    //bck_model_logger.debug() << "2 incr[1]: " << incr[1] << " BACK_BUFSIZE: " << BACK_BUFSIZE << " axisRatio: " << axisRatio << " tmpImgNaxes[1]: " << tmpImgNaxes[1] << " nElements: " << nElements;
   }
+  subImgNaxes[0] = tmpImgNaxes[0];
+  subImgNaxes[1] = tmpImgNaxes[1];
+  bck_model_logger.debug() << "End subImgNaxes[0]: " << subImgNaxes[0] << " subImgNaxes[1]: " << subImgNaxes[1] << " nElements: " << nElements;
+
   return;
   /*
    * NOTE: python snippet with the same functionality
