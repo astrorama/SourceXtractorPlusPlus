@@ -48,7 +48,7 @@ public:
   void computeScalingFactor(PIXTYPE* whtMeanVals, PIXTYPE* bckSigVals, PIXTYPE& sigFac, const size_t nGridPoints);
   ///
 private:
-  void getMinIncr(size_t &nElements, long *incr, size_t *subImgNaxes);
+  void getMinIncr(size_t &nElements, long *incr, const size_t *subImgNaxes);
 
   void filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals, const size_t* gridSize, const size_t* filterSize, const float &filterThreshold=0.0);
   void replaceUNDEF(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize);
