@@ -288,7 +288,7 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, const size
   }
 
   // some feedback for the new increments and sizes
-  bck_model_logger.debug() << "New incement=(" << incr[0] << "," << incr[1] << ") sampledPixels=("<< tmpImgNaxes[0] << "," << tmpImgNaxes[1] << ") nElements=" << nElements;
+  bck_model_logger.debug() << "New increment=(" << incr[0] << "," << incr[1] << ") sampledPixels=("<< tmpImgNaxes[0] << "," << tmpImgNaxes[1] << ") nElements=" << nElements;
 
   return;
 }
