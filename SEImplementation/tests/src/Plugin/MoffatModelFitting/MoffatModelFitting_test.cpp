@@ -43,6 +43,7 @@
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 using namespace SourceXtractor;
 
@@ -63,7 +64,8 @@ struct MoffatModelFittingFixture {
   std::shared_ptr<MoffatModelFittingTask> model_fitting_task;
 
   MoffatModelFittingFixture() {
-    model_fitting_task = std::make_shared<MoffatModelFittingTask>("levmar", 100);
+    auto known_engines = ModelFitting::LeastSquareEngineManager::getImplementations();
+    model_fitting_task = std::make_shared<MoffatModelFittingTask>(known_engines.front(), 100);
   }
 };
 
