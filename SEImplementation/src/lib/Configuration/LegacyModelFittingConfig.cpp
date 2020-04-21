@@ -38,8 +38,13 @@ LegacyModelFittingConfig::LegacyModelFittingConfig(long manager_id) : Configurat
 auto LegacyModelFittingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   auto known_engines = ModelFitting::LeastSquareEngineManager::getImplementations();
   std::string default_engine;
-  if (!known_engines.empty())
+
+  if (std::find(known_engines.begin(), known_engines.end(), "levmar") != known_engines.end()) {
+    default_engine = "levmar";
+  }
+  else if (!known_engines.empty()) {
     default_engine = known_engines.front();
+  }
 
   return {{"Model Fitting",
       {
