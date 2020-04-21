@@ -70,7 +70,7 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
   }
 
   // make sure the cell size is positive
-  if (m_smoothing_box[0]<1 || m_smoothing_box[1]<1)
+  if (m_smoothing_box[0]<0 || m_smoothing_box[1]<0)
 	  throw Elements::Exception() << "There are value(s) < 1 in smoothing-box-size: " << smoothing_box;
 
 }
