@@ -150,7 +150,10 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       subImgNaxes[0] =(size_t)(lpixel[0]-fpixel[0]);
       subImgNaxes[1] =(size_t)(lpixel[1]-fpixel[1]);
 
-      // compute the increments to limit the number
+      // some feedback on the corners of the image to be treated
+      bck_model_logger.debug() << "Background cell from fpixel=(" << fpixel[0] << "," << fpixel[1] << ") to lpixel=("<< lpixel[0] << "," << lpixel[1] << ")";
+
+      // compute the increments to perhaps limit the number
       // of pixels read in, the total number of elements
       // and the numbers read in x and y
       getMinIncr(nElements, increment, subImgNaxes);
@@ -170,9 +173,9 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       // load in the image data
       long pixIndex=0;
       for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
-        for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
-          gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
-
+        for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0]){
+        	gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
+        }
       if (itsHasVariance){
         long pixIndex=0;
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
@@ -234,30 +237,30 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
   delete [] weightData;
 }
 
-void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * subImgNaxes)
+void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, const size_t * subImgNaxes)
 {
   float axisRatio;
   ldiv_t divResult;
 
-  // compute the number of elements
-  nElements = subImgNaxes[0]*subImgNaxes[1];
+  // copy the original dimensions
+  size_t tmpImgNaxes[2] = {subImgNaxes[0], subImgNaxes[1]};
 
+  // set the default increment
+  incr[0] = 1;
+  incr[1] = 1;
+
+  // compute the number of elements;
   // check if something needs to be done at all
+  nElements = tmpImgNaxes[0]*tmpImgNaxes[1];
   if (nElements <= BACK_BUFSIZE)
-  {
-    // give defaults
-    incr[0]=1;
-    incr[1]=1;
-    return;
-  }
+	  return;
 
   // compute the axis ratio
-  axisRatio = float(subImgNaxes[0]) / float(subImgNaxes[1]);
+  axisRatio = float(tmpImgNaxes[0]) / float(tmpImgNaxes[1]);
 
   // iterate until the number is small enough
   while (nElements > BACK_BUFSIZE)
   {
-
     // change the increments such
     // that pixels sampled in x and y
     // are about equal
@@ -268,72 +271,26 @@ void SE2BackgroundModeller::getMinIncr(size_t &nElements, long* incr, size_t * s
 
     // get the number of pixels sampled in x
     divResult = std::div(long(subImgNaxes[0]), long(incr[0]));
-    subImgNaxes[0] = size_t(divResult.quot);
+    tmpImgNaxes[0] = size_t(divResult.quot);
     if (divResult.rem)
-      subImgNaxes[0] += 1;
+    	tmpImgNaxes[0] += 1;
 
     // get the number of pixels sampled in y
     divResult = std::div(long(subImgNaxes[1]), long(incr[1]));
-    subImgNaxes[1] = size_t(divResult.quot);
+    tmpImgNaxes[1] = size_t(divResult.quot);
     if (divResult.rem)
-      subImgNaxes[1] += 1;
+    	tmpImgNaxes[1] += 1;
 
     // re-compute the number of elements and the
     // axis ratio
-    nElements = subImgNaxes[0]*subImgNaxes[1];
-    axisRatio = float(subImgNaxes[0]) / float(subImgNaxes[1]);
+    nElements = tmpImgNaxes[0]*tmpImgNaxes[1];
+    axisRatio = float(tmpImgNaxes[0]) / float(tmpImgNaxes[1]);
   }
+
+  // some feedback for the new increments and sizes
+  bck_model_logger.debug() << "New increment=(" << incr[0] << "," << incr[1] << ") sampledPixels=("<< tmpImgNaxes[0] << "," << tmpImgNaxes[1] << ") nElements=" << nElements;
+
   return;
-  /*
-   * NOTE: python snippet with the same functionality
-   *
-   * def makeIncrementNaxes(nPixMax, naxes):
-      import math
-
-      minIncr = [1,1]
-
-      nPixAct = naxes[0]*naxes[1]
-
-      # "natural" increments
-      if nPixAct<=nPixMax:
-          return minIncr
-
-      # the factor of too many pixels
-      fracNPix  = float(nPixAct)/float(nPixMax)
-
-      # the axis ratio
-      axisRatioAct = float(naxes[0])/float(naxes[1])
-
-      nPixSampled = [0,0]
-      while nPixAct>nPixMax:
-
-          if axisRatioAct >= 1.0:
-              minIncr[0] += 1
-          else:
-              minIncr[1] += 1
-
-          divModX = divmod(naxes[0], minIncr[0])
-          print divModX
-          divModY = divmod(naxes[1], minIncr[1])
-          print divModY
-
-          if divModX[1]:
-              nPixSampled[0] = divModX[0]+1
-          else:
-              nPixSampled[0] = divModX[0]
-
-          if divModY[1]:
-              nPixSampled[1] = divModY[0]+1
-          else:
-              nPixSampled[1] = divModY[0]
-
-          nPixAct = nPixSampled[0]*nPixSampled[1]
-
-          # the axis ratio
-          axisRatioAct = float(nPixSampled[0])/float(nPixSampled[1])
-
-      return minIncr, nPixAct
-  */
 }
 
 void SE2BackgroundModeller::filter(PIXTYPE* bckVals, PIXTYPE* sigmaVals,const size_t* gridSize, const size_t* filterSize, const float &filterThreshold)
