@@ -81,13 +81,14 @@ private:
     auto i = args.find(var);
     if (i != args.end())
       return i->second.as<std::string>();
-    auto input = m_detection_config.getDetectionImagePath();
-    auto basename = boost::filesystem::basename(input);
-    auto extension = boost::filesystem::extension(input);
+    auto input = boost::filesystem::path(m_detection_config.getDetectionImagePath());
+    auto basename = input.leaf();
+    while (!basename.extension().empty())
+      basename = basename.stem();
     auto algo = args.at("algorithm").as<std::string>();
     auto output_area = boost::filesystem::path(args.at("output-area").as<std::string>());
-    auto output = output_area / boost::filesystem::path(basename + "_" + algo + "_" + default_suffix);
-    output.replace_extension(extension);
+    auto output = output_area / boost::filesystem::path(basename.native() + "_" + algo + "_" + default_suffix);
+    output.replace_extension("fits");
     return output.native();
   }
 
