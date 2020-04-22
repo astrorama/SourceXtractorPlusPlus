@@ -101,16 +101,6 @@ public:
    */
   std::shared_ptr<VectorImage<T>> getVarianceSigmaImage() const;
 
-  /**
-   * @return The median cell standard deviation for the whole image
-   */
-  T getMedianSigma() const;
-
-  /**
-   * @return The median cell mode for the whole image
-   */
-  T getMedian() const;
-
 private:
   std::shared_ptr<const Image<T>> m_image;
   std::shared_ptr<VectorImage<T>> m_mode, m_sigma;

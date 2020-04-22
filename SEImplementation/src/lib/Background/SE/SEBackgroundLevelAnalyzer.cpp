@@ -66,6 +66,16 @@ static float computeScaling(const std::shared_ptr<VectorImage<DetectionImage::Pi
   return (ratios[ratios.size() / 2] + ratios[ratios.size() / 2 - 1]) / 2;
 }
 
+static float getMedian(const VectorImage<DetectionImage::PixelType>& img) {
+  auto v = img.getData();
+  std::sort(v.begin(), v.end());
+  auto nitems = v.size();
+  if (nitems % 2 == 1) {
+    return v[nitems / 2];
+  }
+  return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
+}
+
 BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map,
   std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
@@ -117,6 +127,8 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
 
   // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
+  auto median = getMedian(*mode);
+  auto median_sigma = getMedian(*var);
 
   SeFloat scaling = 99999;
 
@@ -143,12 +155,12 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     );
   }
   else {
-    auto sigma = histo.getMedianSigma();
-    final_var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), sigma * sigma);
+    final_var = ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(),
+                                                                 median_sigma * median_sigma);
   }
 
-  bck_model_logger.info() << "Background for image: " << image->getRepr() << " median: " << histo.getMedian()
-                          << " rms: " << histo.getMedianSigma() << "!";
+  bck_model_logger.info() << "Background for image: " << image->getRepr() << " median: " << median
+                          << " rms: " << median_sigma << "!";
 
   final_bg = BufferedImage<DetectionImage::PixelType>::create(
     std::make_shared<ScaledImageSource<DetectionImage::PixelType>>(

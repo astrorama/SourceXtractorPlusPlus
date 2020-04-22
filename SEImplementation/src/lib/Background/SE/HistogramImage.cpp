@@ -86,28 +86,6 @@ std::shared_ptr<VectorImage<T>> HistogramImage<T>::getVarianceSigmaImage() const
 }
 
 template<typename T>
-T HistogramImage<T>::getMedianSigma() const {
-  auto v = m_sigma->getData();
-  std::sort(v.begin(), v.end());
-  auto nitems = v.size();
-  if (nitems % 2 == 1) {
-    return v[nitems / 2];
-  }
-  return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
-}
-
-template<typename T>
-T HistogramImage<T>::getMedian() const {
-  auto v = m_mode->getData();
-  std::sort(v.begin(), v.end());
-  auto nitems = v.size();
-  if (nitems % 2 == 1) {
-    return v[nitems / 2];
-  }
-  return (v[nitems / 2] + v[nitems / 2 - 1]) / 2;
-}
-
-template<typename T>
 std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
   Histogram<double, int64_t> histo(data.begin(), data.end(), KappaSigmaBinning<double>(m_kappa1, m_kappa2));
 
