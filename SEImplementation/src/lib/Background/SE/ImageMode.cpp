@@ -18,7 +18,7 @@
 #include <Histogram/Histogram.h> // From Alexandria
 
 #include "SEFramework/Image/ImageChunk.h"
-#include "SEImplementation/Background/SE/HistogramImage.h"
+#include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEImplementation/Background/SE/KappaSigmaBinning.h"
 
 
@@ -27,10 +27,10 @@ using Euclid::Histogram::Histogram;
 namespace SourceXtractor {
 
 template<typename T>
-HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
-                                  int cell_w, int cell_h,
-                                  T invalid_value, T kappa1, T kappa2, T kappa3,
-                                  T rtol, size_t max_iter): m_image(image),
+ImageMode<T>::ImageMode(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
+                        int cell_w, int cell_h,
+                        T invalid_value, T kappa1, T kappa2, T kappa3,
+                        T rtol, size_t max_iter): m_image(image),
                                                             m_cell_w(cell_w), m_cell_h(cell_h),
                                                             m_invalid(invalid_value),
                                                             m_kappa1(kappa1), m_kappa2(kappa2), m_kappa3(kappa3),
@@ -66,27 +66,27 @@ HistogramImage<T>::HistogramImage(const std::shared_ptr<Image<T>>& image, const 
 }
 
 template<typename T>
-std::shared_ptr<VectorImage<T>> HistogramImage<T>::getModeImage() const {
+std::shared_ptr<VectorImage<T>> ImageMode<T>::getModeImage() const {
   return m_mode;
 }
 
 template<typename T>
-std::shared_ptr<VectorImage<T>> HistogramImage<T>::getSigmaImage() const {
+std::shared_ptr<VectorImage<T>> ImageMode<T>::getSigmaImage() const {
   return m_sigma;
 }
 
 template<typename T>
-std::shared_ptr<VectorImage<T>> HistogramImage<T>::getVarianceModeImage() const {
+std::shared_ptr<VectorImage<T>> ImageMode<T>::getVarianceModeImage() const {
   return m_var_mode;
 }
 
 template<typename T>
-std::shared_ptr<VectorImage<T>> HistogramImage<T>::getVarianceSigmaImage() const {
+std::shared_ptr<VectorImage<T>> ImageMode<T>::getVarianceSigmaImage() const {
   return m_var_sigma;
 }
 
 template<typename T>
-std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) const {
+std::tuple<T, T> ImageMode<T>::getBackGuess(const std::vector<T>& data) const {
   Histogram<double, int64_t> histo(data.begin(), data.end(), KappaSigmaBinning<double>(m_kappa1, m_kappa2));
 
   auto ref_bin = histo.getBinEdges(0);
@@ -121,8 +121,8 @@ std::tuple<T, T> HistogramImage<T>::getBackGuess(const std::vector<T>& data) con
 }
 
 template<typename T>
-void HistogramImage<T>::processCell(const Image<T>& img, int x, int y,
-                                    VectorImage<T>& out_mode, VectorImage<T>& out_sigma) const {
+void ImageMode<T>::processCell(const Image<T>& img, int x, int y,
+                               VectorImage<T>& out_mode, VectorImage<T>& out_sigma) const {
   int off_x = x * m_cell_w;
   int off_y = y * m_cell_h;
   int w = std::min(m_cell_w, img.getWidth() - off_x);
@@ -155,6 +155,6 @@ void HistogramImage<T>::processCell(const Image<T>& img, int x, int y,
 }
 
 template
-class HistogramImage<SeFloat>;
+class ImageMode<SeFloat>;
 
 } // end of namespace SourceXtractor

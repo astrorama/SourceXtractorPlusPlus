@@ -23,7 +23,7 @@
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ScaledImageSource.h"
 #include "SEImplementation/Background/Utils.h"
-#include "SEImplementation/Background/SE/HistogramImage.h"
+#include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEImplementation/Background/SE/MedianFilter.h"
 #include "SEImplementation/Background/SE/ReplaceUndefImage.h"
 
@@ -114,7 +114,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // Create histogram model for the image
-  HistogramImage<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+  ImageMode<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
 

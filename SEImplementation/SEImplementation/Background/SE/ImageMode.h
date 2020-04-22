@@ -15,8 +15,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef SOURCEXTRACTORPLUSPLUS_HISTOGRAMIMAGE_H
-#define SOURCEXTRACTORPLUSPLUS_HISTOGRAMIMAGE_H
+#ifndef SOURCEXTRACTORPLUSPLUS_IMAGEMODE_H
+#define SOURCEXTRACTORPLUSPLUS_IMAGEMODE_H
 
 #include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -41,7 +41,7 @@ namespace SourceXtractor {
  *  Pixel type
  */
 template<typename T>
-class HistogramImage {
+class ImageMode {
 public:
 
   /**
@@ -65,15 +65,15 @@ public:
    * @param max_iter
    *    Maximum number of iterations
    */
-  HistogramImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
-                 int cell_w, int cell_h,
-                 T invalid_value, T kappa1 = 2, T kappa2 = 5, T kappa3 = 3,
-                 T rtol = 1e-4, size_t max_iter = 100);
+  ImageMode(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
+            int cell_w, int cell_h,
+            T invalid_value, T kappa1 = 2, T kappa2 = 5, T kappa3 = 3,
+            T rtol = 1e-4, size_t max_iter = 100);
 
   /**
    * Destructor
    */
-  virtual ~HistogramImage() = default;
+  virtual ~ImageMode() = default;
 
   /**
    * @return An image with the background value for each cell.
@@ -114,8 +114,8 @@ private:
 };
 
 extern template
-class HistogramImage<SeFloat>;
+class ImageMode<SeFloat>;
 
 } // end of namespace SourceXtractor
 
-#endif // SOURCEXTRACTORPLUSPLUS_HISTOGRAMIMAGE_H
+#endif //SOURCEXTRACTORPLUSPLUS_IMAGEMODE_H

@@ -17,7 +17,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "SEImplementation/Background/SE2/BackgroundHistogram.h"
-#include "SEImplementation/Background/SE/HistogramImage.h"
+#include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;
@@ -131,7 +131,7 @@ BOOST_FIXTURE_TEST_CASE(basic_test, Histogram_Cell_1) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(histogramImage_test, Histogram_Cell_1) {
-  HistogramImage<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
+  ImageMode<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
 
   auto model = histo.getModeImage();
   auto sigma = histo.getSigmaImage();
@@ -164,7 +164,7 @@ BOOST_FIXTURE_TEST_CASE(basic_test2, Histogram_Cell_2) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(histogramImage_test2, Histogram_Cell_2) {
-  HistogramImage<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
+  ImageMode<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
 
   auto model = histo.getModeImage();
   auto sigma = histo.getSigmaImage();
@@ -196,7 +196,7 @@ BOOST_FIXTURE_TEST_CASE(basic_test3, Histogram_Cell_3) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(histogramImage_test3, Histogram_Cell_3) {
-  HistogramImage<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
+  ImageMode<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
 
   auto model = histo.getModeImage();
   auto sigma = histo.getSigmaImage();
@@ -228,7 +228,7 @@ BOOST_FIXTURE_TEST_CASE(basic_test4, Histogram_Cell_4) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(histogramImage_test4, Histogram_Cell_4) {
-  HistogramImage<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
+  ImageMode<float> histo(VectorImage<float>::create(10, 10, values), nullptr, 10, 10, std::numeric_limits<float>::max());
 
   auto model = histo.getModeImage();
   auto sigma = histo.getSigmaImage();
