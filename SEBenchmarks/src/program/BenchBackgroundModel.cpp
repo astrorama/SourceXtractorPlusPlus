@@ -49,7 +49,7 @@ using namespace Euclid;
 using namespace SourceXtractor;
 
 static long config_manager_id = Configuration::getUniqueManagerId();
-static Elements::Logging logger = Elements::Logging::getLogger("BenchConvolution");
+static Elements::Logging logger = Elements::Logging::getLogger("BenchBackgroundModel");
 
 /**
  * @class BenchBackgroundModel
