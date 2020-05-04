@@ -57,12 +57,22 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
   else if (m_cell_size.size()<2){
     m_cell_size.push_back(m_cell_size[0]);
   }
+
+  // make sure the cell size is positive
+  if (m_cell_size[0]<1 || m_cell_size[1]<1)
+	  throw Elements::Exception() << "There are value(s) < 1 in backgound-cell-size: " << cell_size;
+
   if (m_smoothing_box.size()<1){
     throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box;
   }
   else if (m_smoothing_box.size()<2){
     m_smoothing_box.push_back(m_smoothing_box[0]);
   }
+
+  // make sure the cell size is positive
+  if (m_smoothing_box[0]<0 || m_smoothing_box[1]<0)
+	  throw Elements::Exception() << "There are value(s) < 1 in smoothing-box-size: " << smoothing_box;
+
 }
 
 BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
