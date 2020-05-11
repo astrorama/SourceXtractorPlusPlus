@@ -66,42 +66,21 @@ R py_call_wrapper(const py::object& func, T... args) {
   }
 }
 
-/**
- * @brief Hold a reference to a Python object
- * @details
- *  A boost::python::object contains a pointer to the underlying Python struct, which is
- *  copied as-is (shared) when copied. When the boost::python::object is destroyed, it checks,
- *  and then decrements, the reference count. This destruction is *not* thread safe, as the pointer
- *  is not protected by a mutex or anything.
- *  This class holds a single reference to the Python object, and relies on the mechanism of
- *  std::shared_ptr to destroy the object once there is no one using it. std::shared_ptr *is*
- *  thread safe, unlike boost::python::object.
- */
-class PyObjectHolder {
-  public:
-    PyObjectHolder(py::object&& obj): m_obj_ptr(std::make_shared<py::object>(obj)) {}
+class MagFromFlux : public DependentFunctionFactory {
+  FlexibleModelFittingDependentParameter::ValueFunc create(PyObjectHolder param_list) const override {
+    py::list l(*param_list);
+    double zero = py::extract<double>(l[0]);
 
-    PyObjectHolder(const PyObjectHolder&) = default;
-    PyObjectHolder(PyObjectHolder&&) = default;
-
-    operator const py::object&() const {
-      return *m_obj_ptr;
-    }
-
-    const py::object& operator *() const {
-      return *m_obj_ptr;
-    }
-
-    py::object attr(const char *name) {
-      return m_obj_ptr->attr(name);
-    }
-
-  private:
-    std::shared_ptr<py::object> m_obj_ptr;
+    return [zero](const std::shared_ptr<CoordinateSystem> &, const std::vector<double> &params) -> double {
+        return -2.5 * log10(params[0]) + zero;
+    };
+  }
 };
 
 ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
+
+  m_predefined_functions["MagFromFlux"] = std::make_shared<MagFromFlux>();
 }
 
 ModelFittingConfig::~ModelFittingConfig() {
@@ -177,6 +156,8 @@ void ModelFittingConfig::initializeInner() {
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
     auto py_func = PyObjectHolder(p.second.attr("func"));
+    std::string py_func_type(py::extract<char const*>(py_func.attr("__class__").attr("__name__")));
+
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
     py::list param_ids = py::extract<py::list>(p.second.attr("params"));
     for (int i = 0; i < py::len(param_ids); ++i) {
@@ -184,19 +165,30 @@ void ModelFittingConfig::initializeInner() {
       params.push_back(m_parameters[id]);
     }
 
-    auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
-      try {
-        GILStateEnsure ensure;
-        PythonInterpreter::getSingleton().setCoordinateSystem(cs);
-        return py::extract<double>((*py_func)(*py::tuple(params)));
-      }
-      catch (const py::error_already_set&) {
-        throw pyToElementsException(logger);
-      }
-    };
+    if (py_func_type == "function") {
+      auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+        try {
+          GILStateEnsure ensure;
+          PythonInterpreter::getSingleton().setCoordinateSystem(cs);
+          return py::extract<double>((*py_func)(*py::tuple(params)));
+        }
+        catch (const py::error_already_set&) {
+          throw pyToElementsException(logger);
+        }
+      };
 
-    m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
+      m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
                                                       p.first, dependent_func, params);
+    } else if (py_func_type == "PluginFunction") {
+      std::string function_name(py::extract<char const*>(py_func.attr("function_name")));
+      if (m_predefined_functions.find(function_name) != m_predefined_functions.end()) {
+        auto func = m_predefined_functions.at(function_name);
+        m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(p.first, func->create(py_func.attr("params")), params);
+
+      } else {
+        throw Elements::Exception("Unknown custom function: " + function_name);
+      }
+    }
   }
   
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {

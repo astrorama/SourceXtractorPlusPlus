@@ -1052,3 +1052,8 @@ def get_world_parameters(x, y, radius, angle, ratio):
     
     return (ra, dec, wc_rad, wc_angle, wc_ratio)
 
+class PluginFunction:
+    def __init__(self, function_name, *params):
+        self.function_name = function_name
+        self.params = params
+
