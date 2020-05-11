@@ -304,6 +304,11 @@ void ModelFitting::ImageTraits<ImageInterfaceTypePtr>::addImageToImage(ImageInte
   double x_shift = x - scaled_width / 2. - x_min;
   double y_shift = y - scaled_height / 2. - y_min;
   // Create the scaled and shifted window
+
+  if (window_width <= 0 || window_height <= 0) {
+    return; // make sure we don't crash when we get garbage coordinates
+  }
+
   auto window = factory(window_width, window_height);
 
   //shiftResize(source_image, window, scale_factor, x_shift, y_shift);

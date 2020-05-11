@@ -59,7 +59,9 @@ public:
   virtual ~FitsImageSource() = default;
 
   std::string getRepr() const override {
-    return m_filename;
+    std::stringstream sstream;
+    sstream <<  m_filename << "[" <<  m_hdu_number << "]" << "(" << m_width << " x " << m_height << ")";
+    return sstream.str();
   }
 
   std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override;
