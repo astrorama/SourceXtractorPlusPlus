@@ -27,7 +27,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file Vignet.h
@@ -41,18 +41,23 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 class Vignet : public Property {
 public:
   virtual ~Vignet() = default;
-  Vignet(std::vector<SeFloat> vignet) : m_vignet(vignet) {}
-  const std::vector<SeFloat> &getVignet () const {
-    return m_vignet;
+
+  Vignet(const std::shared_ptr<VectorImage<DetectionImage::PixelType>> vignet) : m_vignet(vignet) {}
+
+  const VectorImage<DetectionImage::PixelType>& getVignet() const {
+    return *m_vignet;
   }
+
 private:
-  std::vector<SeFloat> m_vignet;
+  std::shared_ptr<VectorImage<DetectionImage::PixelType>> m_vignet;
 }; // end of Vignet class
+
 } // namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_VIGNET_H_*/

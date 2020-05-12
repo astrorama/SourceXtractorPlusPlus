@@ -19,6 +19,7 @@
  * @author mkuemmel
  */
 
+#include <AlexandriaKernel/StringUtils.h>
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Plugin/Vignet/VignetConfig.h"
 
@@ -31,9 +32,9 @@ static const std::string VIGNET_SIZE {"vignet-size" };
 static const std::string VIGNET_DEFAULT_PIXVAL {"vignet-default-pixval" };
 
 VignetConfig::VignetConfig(long manager_id) :
-    Configuration(manager_id),
-    m_vignet_size(),
-    m_vignet_default_pixval() {
+  Configuration(manager_id),
+  m_vignet_size(),
+  m_vignet_default_pixval() {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> VignetConfig::getProgramOptions() {
@@ -46,8 +47,18 @@ std::map<std::string, Configuration::OptionDescriptionList> VignetConfig::getPro
 }
 
 void VignetConfig::initialize(const UserValues& args) {
-  if (args.find(VIGNET_SIZE) != args.end()) {
-    m_vignet_size = args.find(VIGNET_SIZE)->second.as<std::string>();
+  auto vignet_iter = args.find(VIGNET_SIZE);
+  if (vignet_iter != args.end()) {
+    auto vignet_str = vignet_iter->second.as<std::string>();
+    auto vignet_vector = Euclid::stringToVector<int>(vignet_str);
+    if (vignet_vector.size() > 2) {
+      throw Elements::Exception() << VIGNET_SIZE << " only accepts one or two numbers";
+    }
+    m_vignet_size[0] = vignet_vector.front();
+    m_vignet_size[1] = vignet_vector.back();
+    if (m_vignet_size[0] < 0 || m_vignet_size[1] < 0) {
+      throw Elements::Exception() << VIGNET_SIZE << " only accept positive numbers";
+    }
   }
   if (args.find(VIGNET_DEFAULT_PIXVAL) != args.end()) {
     m_vignet_default_pixval = args.find(VIGNET_DEFAULT_PIXVAL)->second.as<double>();

@@ -27,7 +27,7 @@
  *  
  * You should have received a copy of the GNU Lesser General Public License along with this library; if not, write to  
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA  
- */    
+ */
 
 /**
  * @file VignetPlugin.h
@@ -39,30 +39,42 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETPLUGIN_H_
 #define _SEIMPLEMENTATION_PLUGIN_VIGNETPLUGIN_H_
 
+#include <NdArray/NdArray.h>
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/Vignet/VignetTaskFactory.h"
 #include "Vignet.h"
 
 namespace SourceXtractor {
+
+template<typename T>
+using NdArray = Euclid::NdArray::NdArray<T>;
+
 class VignetPlugin : public Plugin {
 public:
   virtual ~VignetPlugin() = default;
+
   virtual void registerPlugin(PluginAPI& plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<VignetTaskFactory, Vignet>();
-    plugin_api.getOutputRegistry().registerColumnConverter<Vignet, std::vector<SeFloat>>(
-            "vignet",
-            [](const Vignet& prop){
-              return prop.getVignet();
-            },
-            "[]",
-            "The object vignet data"
+    plugin_api.getOutputRegistry().registerColumnConverter<Vignet, NdArray<DetectionImage::PixelType >>(
+      "vignet",
+      [](const Vignet& prop) {
+        const auto& vignette = prop.getVignet();
+        return NdArray<DetectionImage::PixelType>(
+          std::vector<size_t>{static_cast<size_t>(vignette.getWidth()), static_cast<size_t>(vignette.getHeight())},
+          vignette.getData());
+      },
+      "[]",
+      "The object vignet data"
     );
     plugin_api.getOutputRegistry().enableOutput<Vignet>("Vignet");
   }
+
   virtual std::string getIdString() const {
     return "Vignet";
   }
+
 private:
 }; // end of VignetPlugin class
+
 }  // namespace SourceXtractor
 #endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETPLUGIN_H_ */

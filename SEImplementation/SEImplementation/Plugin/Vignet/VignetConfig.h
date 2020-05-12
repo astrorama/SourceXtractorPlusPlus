@@ -28,18 +28,18 @@
 namespace SourceXtractor {
 
 class VignetConfig : public Euclid::Configuration::Configuration {
-  
+
 public:
-  
+
   VignetConfig(long manager_id);
-  
+
   virtual ~VignetConfig() = default;
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
-  
+
   void initialize(const UserValues& args) override;
-  
-  std::string getVignetSize() const {
+
+  const std::array<int, 2>& getVignetSize() const {
     return m_vignet_size;
   }
 
@@ -48,8 +48,8 @@ public:
   }
 
 private:
-  std::string m_vignet_size;
-  double      m_vignet_default_pixval;
+  std::array<int, 2> m_vignet_size;
+  double m_vignet_default_pixval;
 
 };
 
