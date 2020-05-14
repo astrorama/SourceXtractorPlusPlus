@@ -84,7 +84,7 @@ public:
     return m_tile_image->setValue(x-m_x, y-m_y, value);
   }
 
-  std::shared_ptr<VectorImage<T>> getImage() {
+  std::shared_ptr<VectorImage<T>>& getImage() {
     return m_tile_image;
   }
 

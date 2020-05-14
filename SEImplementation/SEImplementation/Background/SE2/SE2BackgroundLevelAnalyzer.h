@@ -35,7 +35,8 @@ namespace SourceXtractor {
 class SE2BackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
 
-  SE2BackgroundLevelAnalyzer(const std::string &cell_size, const std::string &smoothing_box, const WeightImageConfig::WeightType weight_type);
+  SE2BackgroundLevelAnalyzer(const std::vector<int>& cell_size, const std::vector<int>& smoothing_box,
+                             const WeightImageConfig::WeightType weight_type);
 
   virtual ~SE2BackgroundLevelAnalyzer() = default;
 
@@ -46,11 +47,9 @@ private:
   //SeFloat getMedian(std::shared_ptr<DetectionImageFrame> frame) const;
 
   BackgroundModel fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold, SeFloat &bck_median, SeFloat &var_median) const;
-  std::vector<int>                stringToIntVec(const std::string inString, const std::string delimiters);
-  std::vector<std::string>        stringSplit(const std::string inString, const std::string delimiters);
 
-  std::vector<int> m_cell_size;
-  std::vector<int> m_smoothing_box;
+  std::array<int, 2> m_cell_size;
+  std::array<int, 2> m_smoothing_box;
 
   WeightImageConfig::WeightType m_weight_type;
 };

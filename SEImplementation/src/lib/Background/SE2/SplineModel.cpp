@@ -27,9 +27,9 @@
 #include <boost/filesystem.hpp>             // for boost path type
 #include "fitsio.h"
 #include "ElementsKernel/Exception.h"       // for Elements Exception
-#include "SEImplementation/Background/BackgroundDefine.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
-#include "SEImplementation/Background/SplineModel.h"
+#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
+#include "SEImplementation/Background/SE2/SplineModel.h"
 #include <iostream>
 //////////
 //#define	QMALLOC(ptr, typ, nel) ptr = (typ *)malloc((size_t)(nel)*sizeof(typ))

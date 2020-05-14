@@ -25,7 +25,7 @@
 #ifndef BACKGROUNDCELL_H
 #define	BACKGROUNDCELL_H
 
-#include "SEImplementation/Background/BackgroundHistogram.h"
+#include "SEImplementation/Background/SE2/BackgroundHistogram.h"
 
 namespace SourceXtractor {
 

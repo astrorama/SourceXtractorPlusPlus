@@ -28,7 +28,7 @@
 #include <boost/filesystem.hpp>
 #include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageSource.h"
-#include "SEImplementation/Background/SplineModel.h"
+#include "SEImplementation/Background/SE2/SplineModel.h"
 
 namespace SourceXtractor {
 
@@ -88,6 +88,10 @@ public:
       }
     }
     return tile;
+  }
+
+  void gridToFits(boost::filesystem::path path) const {
+    m_spline_model->gridToFits(path);
   }
 
   void saveTile(ImageTile<T>& /*tile*/) override {
