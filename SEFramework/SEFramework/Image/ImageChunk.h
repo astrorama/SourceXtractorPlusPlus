@@ -74,14 +74,6 @@ public:
   }
 
 protected:
-
-  // We use this in cases when the ImageChunk subclass allocates a buffer to store the chunk after construction
-  // of the base ImageChunk
-  void setDataPtr(const T* data) {
-    m_data = data;
-  }
-
-private:
   const T* m_data;
   int m_stride;
   int m_width, m_height;
@@ -93,11 +85,33 @@ template <typename T>
 class UniversalImageChunk : public ImageChunk<T> {
 
 protected:
+
+  /**
+   * This move constructor from an ImageChunk uses a dynamic cast, so if the chunk is
+   * another universal chunk, we can avoid copying data, and we just move-assign the underlying vector
+   */
+  UniversalImageChunk(ImageChunk<T>&& chunk) :
+    ImageChunk<T>(nullptr, chunk.getWidth(), chunk.getHeight(), chunk.getWidth()) {
+    UniversalImageChunk<T>* universal_ptr = dynamic_cast<UniversalImageChunk<T>*>(&chunk);
+    if (universal_ptr) {
+      m_chunk_vector = std::move(universal_ptr->m_chunk_vector);
+    }
+    else {
+      m_chunk_vector.resize(m_width * m_height);
+      for (int cy = 0; cy < m_height; cy++) {
+        for (int cx = 0; cx < m_width; cx++) {
+          m_chunk_vector[cx + cy * m_stride] = chunk.getValue(cx, cy);
+        }
+      }
+    }
+    m_data = &m_chunk_vector[0];
+  }
+
   UniversalImageChunk(std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) :
       ImageChunk<T>(nullptr, width, height, width),
       m_chunk_vector(width * height) {
 
-    this->setDataPtr(&m_chunk_vector[0]);
+    m_data = &m_chunk_vector[0];
 
     for (int cy=0; cy < height; cy++) {
       for (int cx=0; cx < width; cx++) {
@@ -110,7 +124,7 @@ protected:
     ImageChunk<T>(nullptr, width, height, width), m_chunk_vector(std::move(data))
   {
     assert(static_cast<int>(m_chunk_vector.size()) == width * height);
-    this->setDataPtr(&m_chunk_vector[0]);
+    m_data = &m_chunk_vector[0];
   }
 
 public:
@@ -122,9 +136,16 @@ public:
   virtual ~UniversalImageChunk() {
   }
 
+  void setValue(int x, int y, T value) {
+    m_chunk_vector[x + y * m_stride] = value;
+  }
+
 private:
   std::vector<T> m_chunk_vector;
-
+  using ImageChunk<T>::m_width;
+  using ImageChunk<T>::m_height;
+  using ImageChunk<T>::m_stride;
+  using ImageChunk<T>::m_data;
 };
 
 

@@ -39,17 +39,22 @@ public:
   
   void initialize(const UserValues& args) override;
   
-  std::string getCellSize() const {
+  std::vector<int> getCellSize() const {
     return m_cell_size;
   }
 
-  std::string getSmoothingBox() const {
+  std::vector<int> getSmoothingBox() const {
     return m_smoothing_box;
   }
 
+  bool useLegacy() const {
+    return m_legacy;
+  }
+
 private:
-  std::string m_cell_size;
-  std::string m_smoothing_box;
+  std::vector<int> m_cell_size;
+  std::vector<int> m_smoothing_box;
+  bool m_legacy;
 
 };
 

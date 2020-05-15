@@ -98,6 +98,24 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           "Total number of detected pixels"
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "elongation",
+          [](const ShapeParameters& prop) {
+            return prop.getElongation();
+          },
+          "[]",
+          "The object elongation (a_image / b_image)"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipticity",
+          [](const ShapeParameters& prop) {
+            return prop.getEllipticity();
+          },
+          "[]",
+          "The object ellipticity"
+  );
+
   plugin_api.getOutputRegistry().enableOutput<ShapeParameters>("ShapeParameters");
 }
 

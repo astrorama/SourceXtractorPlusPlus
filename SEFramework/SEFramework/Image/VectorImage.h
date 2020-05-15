@@ -90,24 +90,24 @@ public:
     return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
   }
 
-  std::string getRepr() const override {
+  std::string getRepr() const final {
     return "VectorImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
   }
 
-  int getHeight() const override {
+  int getHeight() const final {
     return m_height;
   }
   
-  int getWidth() const override {
+  int getWidth() const final {
     return m_width;
   }
 
   using Image<T>::getValue;
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const final {
     return const_cast<VectorImage<T>*>(this)->at(x, y);
   }
   
-  void setValue(int x, int y, T value) override {
+  void setValue(int x, int y, T value) final {
     at(x,y) = value;
   }
 

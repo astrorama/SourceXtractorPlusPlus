@@ -25,7 +25,8 @@
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 
 namespace SourceXtractor {
 
@@ -37,12 +38,13 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
     WeightImageConfig::WeightType weight_type) const {
   // make a SE2 background if cell size and smoothing box are given
   if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0) {
-    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
-    return background_level;
+    if (m_legacy)
+      return std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
+    else
+      return std::make_shared<SEBackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
   } else {
     // make a simple background
-    auto background_level =  std::make_shared<SimpleBackgroundAnalyzer>();
-    return background_level;
+    return std::make_shared<SimpleBackgroundAnalyzer>();
   }
 }
 
@@ -56,6 +58,7 @@ void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& 
   auto weight_image_config = manager.getConfiguration<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
+  m_legacy = se2background_config.useLegacy();
   m_weight_type = weight_image_config.getWeightType();
 }
 

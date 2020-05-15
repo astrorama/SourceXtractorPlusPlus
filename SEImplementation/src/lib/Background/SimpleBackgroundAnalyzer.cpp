@@ -21,13 +21,12 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
 
 #include <memory>
 #include <algorithm>
 
-#include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessedImage.h"

@@ -14,49 +14,16 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * Created on Jan 05, 2015
- * @author: mkuemmel@usm.lmu.de
- *
- * Date:     $Date$
- * Revision: $Revision$
- * Author:   $Author$
- */
-#ifndef BACKGROUNDHISTOGRAM_H
-#define	BACKGROUNDHISTOGRAM_H
 
-#include <cstddef>
+#ifndef _SEIMPLEMENTATION_BACKGROUND_UTILS_H_
+#define _SEIMPLEMENTATION_BACKGROUND_UTILS_H_
+
+#include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 
 namespace SourceXtractor {
 
-class BackgroundHistogram {
-
-public:
-  BackgroundHistogram(const double& mean, const double& sigm, const size_t& ndata);
-  virtual ~BackgroundHistogram();
-
-  //void fillInData(const PIXTYPE* cellData, const size_t ndata);
-  void addDatum(const PIXTYPE& pixVal);
-  
-  void getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal);
-  void getBackGuess(PIXTYPE& bckVal, PIXTYPE& sigmaVal);
-
-  double itsMean=0.0;
-  double itsSigma=0.0;
-
-private:
-  size_t itsStatNData=0;
-
-  float itsQzero  = 0.0;
-  float itsQscale = 0.0;
-  float itsCste   = 0.0;
-
-  int* itsHisto=NULL;
-  size_t itsNLevels=0;
-};
+static Elements::Logging bck_model_logger = Elements::Logging::getLogger("BackgroundModel");
 
 } // end of namespace SourceXtractor
 
-
-#endif	/* BACKGROUNDHISTOGRAM_H */
-
+#endif // _SEIMPLEMENTATION_BACKGROUND_UTILS_H_
