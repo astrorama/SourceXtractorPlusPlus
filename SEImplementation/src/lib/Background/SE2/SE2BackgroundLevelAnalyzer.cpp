@@ -112,8 +112,9 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
   bck_median = splModelBckPtr->getMedian();
   var_median = splModelVarPtr->getMedian();
 
+  auto medianVariance = splModelVarPtr->getMedian();
   bck_model_logger.debug() << "\tMedian background value: "<< splModelBckPtr->getMedian();
-  bck_model_logger.debug() << "\tMedian variance value: "<< splModelVarPtr->getMedian();
+  bck_model_logger.debug() << "\tMedian variance value: " << medianVariance;
   bck_model_logger.debug() << "\tScaling value: "<< sigFac;
 
   // check for the weight type
@@ -122,7 +123,7 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
     // create a background model using the splines and the variance with a constant image from the median value
     return BackgroundModel(BufferedImage<SeFloat>::create(splModelBckPtr),
                            ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), splModelVarPtr->getMedian()),
-                           99999);
+                           99999, std::sqrt(medianVariance));
   }
   else {
     bck_model_logger.debug() << "\tVariable background and variance.";
@@ -130,7 +131,7 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
     return BackgroundModel(
         BufferedImage<SeFloat>::create(splModelBckPtr),
         BufferedImage<SeFloat>::create(splModelVarPtr),
-        sigFac
+        sigFac, std::sqrt(medianVariance)
     );
   }
 }

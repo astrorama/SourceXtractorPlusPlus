@@ -71,19 +71,19 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   }
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
-  m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-  m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
+  m_fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
+  m_detection_image = BufferedImage<DetectionImage::PixelType>::create(m_fits_image_source);
+  m_coordinate_system = std::make_shared<WCS>(*m_fits_image_source);
 
   double detection_image_gain = 0, detection_image_saturate = 0;
-  fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
-  fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
+  m_fits_image_source->readFitsKeyword("GAIN", detection_image_gain);
+  m_fits_image_source->readFitsKeyword("SATURATE", detection_image_saturate);
 
   if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
     m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
   }
   else {
-    fits_image_source->readFitsKeyword("FLXSCALE", m_flux_scale);
+    m_fits_image_source->readFitsKeyword("FLXSCALE", m_flux_scale);
   }
 
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {

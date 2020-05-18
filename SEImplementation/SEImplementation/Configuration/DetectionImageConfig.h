@@ -26,6 +26,7 @@
 #include "Configuration/Configuration.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 
@@ -62,10 +63,16 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   // we still need to know what it was to adjust the weight map
   double getOriginalFluxScale() const { return m_flux_scale; }
 
+  // Get the detection image source
+  std::shared_ptr<FitsImageSource<DetectionImage::PixelType>> getImageSource() {
+    return m_fits_image_source;
+  }
+
 private:
   std::string m_detection_image_path;
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
+  std::shared_ptr<FitsImageSource<DetectionImage::PixelType>> m_fits_image_source;
   double m_gain;
   double m_saturation;
 

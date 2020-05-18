@@ -109,6 +109,10 @@ public:
     return m_saturation;
   }
 
+  SeFloat getBackgroundMedianRms() const {
+    return m_background_rms;
+  }
+
   T getDetectionThreshold() const {
     // FIXME using the 0,0 pixel makes no sense
     return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
@@ -134,7 +138,7 @@ public:
 
   void setBackgroundLevel(T background_level);
 
-  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map);
+  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map, T background_rms);
 
   void setFilter(std::shared_ptr<ImageFilter> filter);
 
@@ -152,6 +156,7 @@ private:
 
   SeFloat m_gain;
   SeFloat m_saturation;
+  SeFloat m_background_rms;
 
   T m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;
