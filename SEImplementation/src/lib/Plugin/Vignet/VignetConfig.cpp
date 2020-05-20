@@ -41,7 +41,7 @@ std::map<std::string, Configuration::OptionDescriptionList> VignetConfig::getPro
   return { {"Vignet output", {
       {VIGNET_SIZE.c_str(), po::value<std::string>()->default_value(std::string("15,15")),
           "X- and Y-size of the vignet."},
-      {VIGNET_DEFAULT_PIXVAL.c_str(), po::value<double>()->default_value(-1.0E30),
+	      {VIGNET_DEFAULT_PIXVAL.c_str(), po::value<double>()->default_value(std::nan("")), //Note: the SE2 value is "1.0E30", but nan is more consistent
           "Default pixel value for the vignet data"},
   }}};
 }
