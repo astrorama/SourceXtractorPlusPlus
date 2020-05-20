@@ -104,13 +104,15 @@ void LdacWriter::writeImHead() {
   // History, why not
   generateHistory(ldac_imhead);
 
-  // Write the single row
+  // Write the table
   auto column_info = std::make_shared<ColumnInfo>(std::vector<ColumnInfo::info_type>{
-    {"Field Header Card", typeid(std::vector<std::string>)}
+    {"Field Header Card", typeid(std::string)}
   });
-  Row row{std::vector<Row::cell_type>{ldac_imhead}, column_info};
-
-  imhead_writer->addData(Table{std::vector<Row>{row}});
+  std::vector<Row> rows;
+  for (const auto& header : ldac_imhead) {
+    rows.emplace_back(std::vector<Row::cell_type>{header}, column_info);
+  }
+  imhead_writer->addData(Table{std::vector<Row>{rows}});
 }
 
 void LdacWriter::init(const Table&) {
