@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
 
 #include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/Vignet/Vignet.h"
 #include "SEImplementation/Plugin/Vignet/VignetConfig.h"
 #include "SEImplementation/Plugin/Vignet/VignetSourceTask.h"
 
