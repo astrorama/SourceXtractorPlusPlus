@@ -15,36 +15,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * @file VignetSourceTask.h
- *
- * @date Jan. 23, 2020
- * @author mkuemmel@usm.lmu.de
- */
-
-#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_
-
-#include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Plugin/Vignet/Vignet.h"
+#include "SEImplementation/Plugin/Vignet/VignetArray.h"
+#include "SEImplementation/Plugin/Vignet/VignetArraySourceTask.h"
 
 namespace SourceXtractor {
-class VignetSourceTask : public SourceTask {
-public:
-  VignetSourceTask(unsigned instance, std::array<int, 2> vignet_size, double vignet_default_pixval) :
-    m_instance(instance),
-    m_vignet_size(vignet_size),
-    m_vignet_default_pixval((SeFloat) vignet_default_pixval) {};
 
-  virtual ~VignetSourceTask() = default;
+VignetArraySourceTask::VignetArraySourceTask(const std::vector<unsigned> images): m_images{images} {
+}
 
-  virtual void computeProperties(SourceInterface& source) const;
+void VignetArraySourceTask::computeProperties(SourceInterface& source) const {
+  std::vector<std::reference_wrapper<const Vignet>> vignets;
+  for (auto img_idx : m_images) {
+    vignets.emplace_back(source.getProperty<Vignet>(img_idx));
+  }
+  source.setProperty<VignetArray>(vignets);
+}
 
-private:
-  unsigned m_instance;
-  std::array<int, 2> m_vignet_size;
-  SeFloat m_vignet_default_pixval;
-}; // End of VignetSourceTask class
-
-} // namespace SourceXtractor
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_ */
+} // end of namespace SourceXtractor

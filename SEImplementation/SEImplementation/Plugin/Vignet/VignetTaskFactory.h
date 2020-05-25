@@ -25,9 +25,6 @@
 #define _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
 
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/Vignet/Vignet.h"
-#include "SEImplementation/Plugin/Vignet/VignetConfig.h"
-#include "SEImplementation/Plugin/Vignet/VignetSourceTask.h"
 
 namespace SourceXtractor {
 class VignetTaskFactory : public TaskFactory {
@@ -36,31 +33,17 @@ public:
 
   virtual ~VignetTaskFactory() = default;
 
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-    manager.registerConfiguration<VignetConfig>();
-  };
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
-  void configure(Euclid::Configuration::ConfigManager& manager) {
-
-    // get the input parameter
-    auto vignet_config = manager.getConfiguration<VignetConfig>();
-    m_vignet_size = vignet_config.getVignetSize();
-    m_vignet_default_pixval = vignet_config.getVignetDefaultPixval();
-  };
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const {
-    if (property_id == PropertyId::create<Vignet>()) {
-      return std::make_shared<VignetSourceTask>(m_vignet_size, m_vignet_default_pixval);
-    }
-    else {
-      return nullptr;
-    }
-  }
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
   std::array<int, 2> m_vignet_size;
   double m_vignet_default_pixval;
+  std::vector<unsigned> m_images;
 }; // end of VignetTaskFactory class
 
 }  // namespace SourceXtractor

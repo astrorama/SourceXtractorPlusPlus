@@ -29,6 +29,7 @@
 #include "SEFramework/Plugin/Plugin.h"
 #include "SEImplementation/Plugin/Vignet/VignetTaskFactory.h"
 #include "Vignet.h"
+#include "VignetArray.h"
 
 namespace SourceXtractor {
 
@@ -40,19 +41,16 @@ public:
   virtual ~VignetPlugin() = default;
 
   virtual void registerPlugin(PluginAPI& plugin_api) {
-    plugin_api.getTaskFactoryRegistry().registerTaskFactory<VignetTaskFactory, Vignet>();
-    plugin_api.getOutputRegistry().registerColumnConverter<Vignet, NdArray<DetectionImage::PixelType >>(
+    plugin_api.getTaskFactoryRegistry().registerTaskFactory<VignetTaskFactory, Vignet, VignetArray>();
+    plugin_api.getOutputRegistry().registerColumnConverter<VignetArray, NdArray<DetectionImage::PixelType >>(
       "vignet",
-      [](const Vignet& prop) {
-        const auto& vignette = prop.getVignet();
-        return NdArray<DetectionImage::PixelType>(
-          std::vector<size_t>{static_cast<size_t>(vignette.getWidth()), static_cast<size_t>(vignette.getHeight())},
-          vignette.getData());
+      [](const VignetArray& prop) {
+        return prop.getVignets();
       },
       "[]",
       "The object vignet data"
     );
-    plugin_api.getOutputRegistry().enableOutput<Vignet>("Vignet");
+    plugin_api.getOutputRegistry().enableOutput<VignetArray>("Vignet");
   }
 
   virtual std::string getIdString() const {

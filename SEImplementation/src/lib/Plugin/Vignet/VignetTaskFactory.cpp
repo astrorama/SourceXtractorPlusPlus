@@ -22,5 +22,44 @@
  * @author mkuemmel@usm.lmu.de
  */
 
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
+#include "SEImplementation/Plugin/Vignet/VignetTaskFactory.h"
+#include "SEImplementation/Plugin/Vignet/VignetConfig.h"
+#include "SEImplementation/Plugin/Vignet/Vignet.h"
+#include "SEImplementation/Plugin/Vignet/VignetArray.h"
+#include "SEImplementation/Plugin/Vignet/VignetSourceTask.h"
+#include "SEImplementation/Plugin/Vignet/VignetArraySourceTask.h"
+
 namespace SourceXtractor {
+
+void VignetTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+  manager.registerConfiguration<VignetConfig>();
 }
+
+void VignetTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  auto vignet_config = manager.getConfiguration<VignetConfig>();
+  m_vignet_size = vignet_config.getVignetSize();
+  m_vignet_default_pixval = vignet_config.getVignetDefaultPixval();
+
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  const auto& image_infos = measurement_config.getImageInfos();
+
+  std::map<std::string, unsigned> pos_in_group;
+
+  for (size_t i = 0; i < image_infos.size(); ++i) {
+    m_images.push_back(image_infos[i].m_id);
+  }
+}
+
+std::shared_ptr<Task> VignetTaskFactory::createTask(const PropertyId& property_id) const {
+  if (property_id.getTypeId() == typeid(Vignet)) {
+    return std::make_shared<VignetSourceTask>(property_id.getIndex(), m_vignet_size, m_vignet_default_pixval);
+  }
+  else if (property_id == PropertyId::create<VignetArray>()) {
+    return std::make_shared<VignetArraySourceTask>(m_images);
+  }
+  return nullptr;
+}
+
+} // end of namespace SourceXtractor
+

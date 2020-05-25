@@ -23,10 +23,11 @@
  */
 
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/Vignet/Vignet.h"
-#include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/Vignet/VignetSourceTask.h"
 
@@ -34,18 +35,27 @@ namespace SourceXtractor {
 void VignetSourceTask::computeProperties(SourceInterface& source) const {
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
-  // get the detection, the variance and the threshold frames
-  const auto& sub_image = source.getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
-  const auto& var_image = source.getProperty<DetectionFrame>().getFrame()->getUnfilteredVarianceMap();
-  const auto& var_threshold = source.getProperty<DetectionFrame>().getFrame()->getVarianceThreshold();
-  const auto& thresh_image = source.getProperty<DetectionFrame>().getFrame()->getThresholdedImage();
+  // pixel and mask from the measurement frame
+  const auto& measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
+  const auto& measurement_sub_image = measurement_frame->getSubtractedImage();
+  const auto& measurement_var_image = measurement_frame->getVarianceMap();
+  const auto& measurement_var_threshold = measurement_frame->getVarianceThreshold();
 
-  // get the object pixel data
-  const auto& pixel_coords = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  // neighbor masking from the detection image
+  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  const auto& detection_thresh_image = detection_frame->getThresholdedImage();
+
+  // get the object pixel coordinates from the detection image
+  const auto& pixel_coords = source.getProperty<PixelCoordinateList>();
+
+  // coordinate systems
+  auto detection_coordinate_system = detection_frame->getCoordinateSystem();
+  auto measurement_coordinate_system = measurement_frame->getCoordinateSystem();
 
   // get the central pixel coord
-  const int x_pix = (int) (source.getProperty<PixelCentroid>().getCentroidX() + 0.5);
-  const int y_pix = (int) (source.getProperty<PixelCentroid>().getCentroidY() + 0.5);
+  const auto& centroid = source.getProperty<MeasurementFramePixelCentroid>(m_instance);
+  const int x_pix = static_cast<int>(centroid.getCentroidX() + 0.5);
+  const int y_pix = static_cast<int>(centroid.getCentroidY() + 0.5);
 
   // get the sub-image boundaries
   int x_start = x_pix - m_vignet_size[0] / 2;
@@ -53,41 +63,36 @@ void VignetSourceTask::computeProperties(SourceInterface& source) const {
   int x_end = x_start + m_vignet_size[0];
   int y_end = y_start + m_vignet_size[1];
 
-  // create and fill the vignet vector
+  // create and fill the vignet vector using the measurement frame
   std::vector<SeFloat> vignet_vector(m_vignet_size[0] * m_vignet_size[1], m_vignet_default_pixval);
   int index = 0;
   for (int iy = y_start; iy < y_end; iy++) {
     for (int ix = x_start; ix < x_end; ix++, index++) {
 
       // skip pixels outside of the image
-      if (ix < 0 || iy < 0 || ix >= sub_image->getWidth() || iy >= sub_image->getHeight())
+      if (ix < 0 || iy < 0 || ix >= measurement_sub_image->getWidth() || iy >= measurement_sub_image->getHeight())
         continue;
 
-      // skip masked pixels
-      if (var_image->getValue(ix, iy) < var_threshold && thresh_image->getValue(ix, iy) <= 0.0)
-        vignet_vector[index] = sub_image->getValue(ix, iy);
+      // translate pixel coordinates to the detection frame
+      auto world_coord = measurement_coordinate_system->imageToWorld({static_cast<double>(ix), static_cast<double>(iy)});
+      auto detection_coord = detection_coordinate_system->worldToImage(world_coord);
+
+      // copy the pixel value if it is not masked, and if it does not correspond to a detection pixel
+      // if it corresponds to a detection pixel, use it if it belongs to the source
+      int detection_x = static_cast<int>(detection_coord.m_x + 0.5);
+      int detection_y = static_cast<int>(detection_coord.m_y + 0.5);
+
+      bool is_masked = measurement_var_image->getValue(ix, iy) > measurement_var_threshold;
+      bool is_detection_pixel = detection_thresh_image->getValue(detection_x, detection_y) > 0;
+
+      if (!is_masked && (!is_detection_pixel || pixel_coords.contains({detection_x, detection_y}))) {
+        vignet_vector[index] = measurement_sub_image->getValue(ix, iy);
+      }
     }
   }
 
-  // go over all pixel coordinates
-  for (auto one_coord: pixel_coords) {
-    // skip coordinates outside of the vignet
-    if (one_coord.m_y < y_start || one_coord.m_x < x_start || one_coord.m_y >= y_end || one_coord.m_x >= x_end)
-      continue;
-
-    // compute the vector index
-    index = (one_coord.m_y - y_start) * m_vignet_size[0] + one_coord.m_x - x_start;
-    if (index < 0 || index >= (int) vignet_vector.size())
-      //lets leave that sanity check in
-      throw Elements::Exception() << "Invalid index: " << index << " for vector of size: " << vignet_vector.size();
-    else
-      // insert the pixel value (again)
-      vignet_vector[(one_coord.m_y - y_start) * m_vignet_size[0] + one_coord.m_x - x_start] = sub_image->getValue(
-        one_coord.m_x, one_coord.m_y);
-  }
-
   // set the property
-  source.setProperty<Vignet>(
+  source.setIndexedProperty<Vignet>(m_instance,
     VectorImage<DetectionImage::PixelType>::create(m_vignet_size[0], m_vignet_size[1], std::move(vignet_vector)));
 }
 } // namespace SourceXtractor

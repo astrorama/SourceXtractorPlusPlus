@@ -15,36 +15,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * @file VignetSourceTask.h
- *
- * @date Jan. 23, 2020
- * @author mkuemmel@usm.lmu.de
- */
-
-#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETARRAYSOURCETASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_VIGNETARRAYSOURCETASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
-class VignetSourceTask : public SourceTask {
+
+class VignetArraySourceTask: public SourceTask {
 public:
-  VignetSourceTask(unsigned instance, std::array<int, 2> vignet_size, double vignet_default_pixval) :
-    m_instance(instance),
-    m_vignet_size(vignet_size),
-    m_vignet_default_pixval((SeFloat) vignet_default_pixval) {};
+  virtual ~VignetArraySourceTask() = default;
 
-  virtual ~VignetSourceTask() = default;
+  VignetArraySourceTask(const std::vector<unsigned> images);
 
-  virtual void computeProperties(SourceInterface& source) const;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
-  unsigned m_instance;
-  std::array<int, 2> m_vignet_size;
-  SeFloat m_vignet_default_pixval;
-}; // End of VignetSourceTask class
+  std::vector<unsigned> m_images;
+};
 
-} // namespace SourceXtractor
+} // end of namespace SourceXtractor
 
-#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETARRAYSOURCETASK_H_ */
