@@ -30,18 +30,33 @@ class VignetArray: public Property {
 public:
   VignetArray(const std::vector<std::reference_wrapper<const Vignet>>& vignets) {
     const auto& representative = vignets.front().get().getVignet();
-    std::vector<size_t> shape{
-      vignets.size(), static_cast<size_t>(representative.getWidth()), static_cast<size_t>(representative.getHeight())
-    };
-    m_vignets = Euclid::make_unique<Euclid::NdArray::NdArray<DetectionImage::PixelType>>(shape);
 
-    for (size_t v = 0; v < vignets.size(); ++v) {
-      const auto& img = vignets[v].get().getVignet();
-      assert (img.getWidth() == representative.getWidth());
-      assert (img.getHeight() == representative.getHeight());
-      for (int x = 0; x < img.getWidth(); ++x) {
-        for (int y = 0; y < img.getHeight(); ++y) {
-          m_vignets->at(v, x, y) = img.getValue(x, y);
+    if (vignets.size() > 1) {
+      std::vector<size_t> shape{
+        vignets.size(), static_cast<size_t>(representative.getWidth()), static_cast<size_t>(representative.getHeight())
+      };
+      m_vignets = Euclid::make_unique<Euclid::NdArray::NdArray<DetectionImage::PixelType>>(shape);
+
+      for (size_t v = 0; v < vignets.size(); ++v) {
+        const auto& img = vignets[v].get().getVignet();
+        assert (img.getWidth() == representative.getWidth());
+        assert (img.getHeight() == representative.getHeight());
+        for (int x = 0; x < img.getWidth(); ++x) {
+          for (int y = 0; y < img.getHeight(); ++y) {
+            m_vignets->at(v, x, y) = img.getValue(x, y);
+          }
+        }
+      }
+    }
+    else {
+      std::vector<size_t> shape{
+        static_cast<size_t>(representative.getWidth()), static_cast<size_t>(representative.getHeight())
+      };
+      m_vignets = Euclid::make_unique<Euclid::NdArray::NdArray<DetectionImage::PixelType>>(shape);
+
+      for (int x = 0; x < representative.getWidth(); ++x) {
+        for (int y = 0; y < representative.getHeight(); ++y) {
+          m_vignets->at(x, y) = representative.getValue(x, y);
         }
       }
     }
