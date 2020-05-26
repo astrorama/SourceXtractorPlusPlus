@@ -97,8 +97,8 @@ void LdacWriter::writeImHead() {
 
   // Headers from the configuration and detection
   auto gain = detection_image_config.getGain();
-  ldac_imhead.emplace_back(generateHeader("SEXGAIN", gain, "Gain used"));
-  ldac_imhead.emplace_back(generateHeader("SEXBKDEV", m_rms, "Median background RMS"));
+  ldac_imhead.emplace_back(generateHeader("SPPGAIN", gain, "Gain used"));
+  ldac_imhead.emplace_back(generateHeader("SPPBKDEV", m_rms, "Median background RMS"));
   ldac_imhead.emplace_back("END" + std::string(77, ' '));
 
   // History, why not
