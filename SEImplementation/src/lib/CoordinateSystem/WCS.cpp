@@ -33,6 +33,10 @@
 #include <wcslib/wcsprintf.h>
 #include <wcslib/getwcstab.h>
 
+
+#include <wcslib/lin.h>
+#include <wcslib/dis.h>
+
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
 
@@ -63,8 +67,24 @@ WCS::WCS(const FitsImageSource<SeFloat>& fits_image_source) : m_wcs(nullptr, nul
 
   int nreject = 0, nwcs = 0;
   wcsprm* wcs;
-  wcspih(&(*fits_headers)[0], number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+
+
+  int ret_val = wcspih(&(*fits_headers)[0], number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+  if (ret_val !=0) {
+    std::cout << "\nwcspih fail " << ret_val << "\n";
+  }
+
   wcsset(wcs);
+
+//  int  i, stat[NWCSFIX], status = 0;
+//  if ((status = wcsfix(7, 0, wcs, stat))) {
+//     for (i = 0; i < NWCSFIX; i++) {
+//       if (stat[i] > 0) {
+//         fprintf(stdout, "wcsfix ERROR %d: %s.\n", status,
+//                 wcsfix_errmsg[stat[i]]);
+//       }
+//     }
+//   }
 
   m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
     int nwcs_copy = nwcs;
@@ -80,6 +100,8 @@ WCS::WCS(const FitsImageSource<SeFloat>& fits_image_source) : m_wcs(nullptr, nul
                   << " is not fully thread safe, using wrapped lincpy call!";
     safe_lincpy = &wrapped_lincpy;
   }
+
+  wcserr_enable(1);
 }
 
 WCS::~WCS() {
@@ -100,7 +122,11 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  if (ret_val != 0) {
+    std::cout << "wcslib wcss2p returned with error code: " << ret_val << " = " << std::string(wcs_copy.err->msg) << "\n";
+  }
+
   linfree(&wcs_copy.lin);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
@@ -119,7 +145,12 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  if (ret_val != 0) {
+//    std::cout << world_coordinate.m_alpha << " " <<  world_coordinate.m_delta << " " << pc_array[0] << " " << pc_array[1] << "\n";
+    std::cout << "wcslib wcss2p returned with error code: " << ret_val << " = " << std::string(wcs_copy.err->msg) << "\n";
+  }
+
   linfree(&wcs_copy.lin);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1

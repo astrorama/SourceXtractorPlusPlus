@@ -290,6 +290,7 @@ namespace ModelFitting {
 // Adds the source_image to the target image scaled by scale_factor and centered at x, y
 void ModelFitting::ImageTraits<ImageInterfaceTypePtr>::addImageToImage(ImageInterfaceTypePtr& target_image, const ImageInterfaceTypePtr& source_image,
                             double scale_factor, double x, double y) {
+
   // Calculate the size in pixels of the image2 after in the scale of image1
   double scaled_width = width(source_image) * scale_factor;
   double scaled_height = height(source_image) * scale_factor;
@@ -306,14 +307,24 @@ void ModelFitting::ImageTraits<ImageInterfaceTypePtr>::addImageToImage(ImageInte
   // Create the scaled and shifted window
 
   if (window_width <= 0 || window_height <= 0) {
+    std::cout << "zero size image \n";
     return; // make sure we don't crash when we get garbage coordinates
   }
 
+  std::cout << window_width << " " << window_height << "\n";
   auto window = factory(window_width, window_height);
 
+////  window_width = 4;
+////  window_height = 4;
+//
+//  x_shift = y_shift = 0;
+
+  std::cout << "srlf: " << scale_factor << " " << x_shift << " " << y_shift << "\n";
   //shiftResize(source_image, window, scale_factor, x_shift, y_shift);
   //shiftResizeLancszos(source_image, window, scale_factor, x_shift, y_shift);
   shiftResizeLancszosFast(source_image, window, scale_factor, x_shift, y_shift);
+
+  std::cout << "srlf ok\n";
 
   // We need to correct the window for the scaling, so it has the same integral
   // with the image2
