@@ -27,6 +27,7 @@
 #include <memory>
 #include <string>
 #include <list>
+#include <vector>
 #include <unordered_map>
 
 #include <fitsio.h>
@@ -52,14 +53,13 @@ public:
   }
 
 private:
-  fitsfile* openFitsFile(const std::string& filename, bool writeable) const;
-  void closeFitsFile(fitsfile* fptr) const;
-  void closeExtraFiles();
 
   struct FitsInfo {
     fitsfile* m_file_pointer;
     bool m_is_file_opened;
     bool m_is_writeable;
+
+    std::vector<int> m_image_hdus;
   };
 
   std::unordered_map<std::string, FitsInfo> m_fits_files;
@@ -68,6 +68,10 @@ private:
   std::list<std::string> m_open_files;
 
   static std::shared_ptr<FitsFileManager> s_instance;
+
+  void openFitsFile(const std::string& filename, FitsInfo& fits_info) const;
+  void closeFitsFile(fitsfile* fptr) const;
+  void closeExtraFiles();
 };
 
 }

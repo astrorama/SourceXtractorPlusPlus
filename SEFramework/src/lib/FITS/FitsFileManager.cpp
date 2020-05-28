@@ -62,8 +62,7 @@ fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeab
   FitsInfo& info = m_fits_files[filename];
   if (!info.m_is_file_opened) {
     info.m_is_writeable = info.m_is_writeable || writeable;
-    info.m_file_pointer = openFitsFile(filename, info.m_is_writeable);
-    info.m_is_file_opened = true;
+    openFitsFile(filename, info);
     m_open_files.push_front(filename);
 
     closeExtraFiles();
@@ -71,8 +70,8 @@ fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeab
 
   if (writeable && !info.m_is_writeable) {
     closeFitsFile(info.m_file_pointer);
-    info.m_file_pointer = openFitsFile(filename, true);
     info.m_is_writeable = true;
+    openFitsFile(filename, info);
   }
 
   return info.m_file_pointer;
@@ -89,17 +88,39 @@ void FitsFileManager::closeExtraFiles() {
 }
 
 
-fitsfile* FitsFileManager::openFitsFile(const std::string& filename, bool writeable) const {
-  int status = 0;
-  fitsfile* fptr =  nullptr;
+void FitsFileManager::openFitsFile(const std::string& filename, FitsInfo& fits_info) const {
+  if (fits_info.m_is_file_opened) {
+    return;
+  }
 
-  fits_open_image(&fptr, filename.c_str(), writeable ? READWRITE : READONLY, &status);
+  int status = 0;
+
+  fits_open_image(&fits_info.m_file_pointer, filename.c_str(), fits_info.m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
     throw Elements::Exception() << "Can't open FITS file: " << filename;
   }
-  assert(fptr != nullptr);
+  assert(fits_info.m_file_pointer != nullptr);
 
-  return fptr;
+  fits_info.m_is_file_opened = true;
+
+  if (fits_info.m_image_hdus.empty()) {
+    int number_of_hdus = 0;
+    if (fits_get_num_hdus(fits_info.m_file_pointer, &number_of_hdus, &status) < 0) {
+      throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << filename;
+    }
+
+    for (int hdu_number=1; hdu_number <= number_of_hdus; hdu_number++) {
+      int hdu_type = 0;
+      fits_movabs_hdu(fits_info.m_file_pointer, hdu_number, &hdu_type, &status);
+      if (status != 0) {
+        throw Elements::Exception() << "Can't switch HDUs while opening: " << filename;
+      }
+
+      if (hdu_type == IMAGE_HDU) {
+        fits_info.m_image_hdus.emplace_back(hdu_number);
+      }
+    }
+  }
 }
 
 void FitsFileManager::closeFitsFile(fitsfile* fptr) const {
