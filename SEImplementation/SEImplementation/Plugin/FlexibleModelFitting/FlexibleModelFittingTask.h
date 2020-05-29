@@ -71,6 +71,8 @@ private:
   SeFloat computeChiSquared(SourceGroupInterface& group,
       double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const;
 
+  void setDummyProperty(SourceGroupInterface& group, FlexibleModelFittingParameterManager& parameter_manager, Flags flags) const;
+
   // Task configuration
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;
