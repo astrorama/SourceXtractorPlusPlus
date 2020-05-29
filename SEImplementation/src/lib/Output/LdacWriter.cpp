@@ -15,6 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <sstream>
 #include <AlexandriaKernel/memory_tools.h>
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Output/LdacWriter.h"
@@ -63,20 +64,25 @@ static std::string generateHeader(const std::string& name, T value, const std::s
 }
 
 static void generateHistory(std::vector<std::string>& headers) {
-  std::vector<std::stringstream> entries;
+  std::vector<std::string> entries;
+  std::stringstream str;
 
-  entries.emplace_back();
-  entries.back() << "Version " << SOURCEXTRACTORPLUSPLUS_VERSION_STRING;
+  str << "Version " << SOURCEXTRACTORPLUSPLUS_VERSION_STRING;
+  entries.emplace_back(str.str());
+  str.str("");
 
   auto t = std::time(nullptr);
   auto now = *std::gmtime(&t);
 
-  entries.emplace_back();
-  entries.back() << "Called at " << std::put_time(&now, "%Y-%m-%dT%H:%M:%SZ");
+  char date_str[32];
+  strftime(date_str, sizeof(date_str), "%Y-%m-%dT%H:%M:%SZ", &now);
+  str << "Called at " << date_str;
+  entries.emplace_back(str.str());
+  str.str("");
 
   for (auto& e : entries) {
     std::stringstream padder;
-    padder << "HISTORY s++: " << std::setw(67) << std::left << e.str();
+    padder << "HISTORY s++: " << std::setw(67) << std::left << e;
     headers.emplace_back(padder.str());
   }
 }
