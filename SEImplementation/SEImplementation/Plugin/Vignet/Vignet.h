@@ -14,45 +14,36 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
- * @file PixelCoordinateList.h
- * @author nikoapos
+
+/**
+ * @file Vignet.h
+ *
+ * @date Jan 17, 2020
+ * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
-#define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNET_H_
+#define _SEIMPLEMENTATION_PLUGIN_VIGNET_H_
 
-#include <algorithm>
-#include "SEUtils/PixelCoordinate.h"
+#include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
-
-class PixelCoordinateList : public Property {
-  
+class Vignet : public Property {
 public:
-  
-  PixelCoordinateList(std::vector<PixelCoordinate> coordinate_list) 
-      : m_coordinate_list(std::move(coordinate_list)) {
+  virtual ~Vignet() = default;
+
+  Vignet(const std::shared_ptr<VectorImage<DetectionImage::PixelType>> vignet) : m_vignet(vignet) {}
+
+  const VectorImage<DetectionImage::PixelType>& getVignet() const {
+    return *m_vignet;
   }
 
-  virtual ~PixelCoordinateList() = default;
-  
-  const std::vector<PixelCoordinate>& getCoordinateList() const {
-    return m_coordinate_list;
-  }
-
-  bool contains(const PixelCoordinate& coord) const {
-    return std::find(m_coordinate_list.begin(), m_coordinate_list.end(), coord) != m_coordinate_list.end();
-  }
-  
 private:
+  std::shared_ptr<VectorImage<DetectionImage::PixelType>> m_vignet;
+}; // end of Vignet class
 
-  std::vector<PixelCoordinate> m_coordinate_list;
-  
-}; /* End of PixelCoordinateList class */
+} // namespace SourceXtractor
 
-} /* namespace SourceXtractor */
-
-#endif /* _SEIMPLEMENTATION_PIXELCOORDINATELIST_H */
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNET_H_*/

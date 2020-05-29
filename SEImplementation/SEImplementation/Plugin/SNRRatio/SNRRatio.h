@@ -14,45 +14,34 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
- * @file PixelCoordinateList.h
- * @author nikoapos
+
+/**
+ * @file SNRRatio.h
+ *
+ * @date Jan 29, 2020
+ * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
-#define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_SNRRATIO_H_
+#define _SEIMPLEMENTATION_PLUGIN_SNRRATIO_H_
 
-#include <algorithm>
-#include "SEUtils/PixelCoordinate.h"
+#include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
 
 namespace SourceXtractor {
-
-class PixelCoordinateList : public Property {
-  
+class SNRRatio : public Property {
 public:
-  
-  PixelCoordinateList(std::vector<PixelCoordinate> coordinate_list) 
-      : m_coordinate_list(std::move(coordinate_list)) {
+  virtual ~SNRRatio() = default;
+
+  SNRRatio(SeFloat snrratio) : m_snrratio(snrratio) {}
+
+  SeFloat getSNRRatio() const {
+    return m_snrratio;
   }
 
-  virtual ~PixelCoordinateList() = default;
-  
-  const std::vector<PixelCoordinate>& getCoordinateList() const {
-    return m_coordinate_list;
-  }
-
-  bool contains(const PixelCoordinate& coord) const {
-    return std::find(m_coordinate_list.begin(), m_coordinate_list.end(), coord) != m_coordinate_list.end();
-  }
-  
 private:
+  SeFloat m_snrratio;
+}; // end of SNRRatio class
+} // namespace SourceXtractor
 
-  std::vector<PixelCoordinate> m_coordinate_list;
-  
-}; /* End of PixelCoordinateList class */
-
-} /* namespace SourceXtractor */
-
-#endif /* _SEIMPLEMENTATION_PIXELCOORDINATELIST_H */
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_SNRRATIO_H_*/

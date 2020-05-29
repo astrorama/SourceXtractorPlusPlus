@@ -15,44 +15,45 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /* 
- * @file PixelCoordinateList.h
+ * @file BackgroundConfiguration.h
  * @author nikoapos
  */
 
-#ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
-#define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETCONFIG_H
+#define _SEIMPLEMENTATION_PLUGIN_VIGNETCONFIG_H
 
-#include <algorithm>
-#include "SEUtils/PixelCoordinate.h"
-#include "SEFramework/Property/Property.h"
+#include "Configuration/Configuration.h"
+#include "SEFramework/Image/Image.h"
 
 namespace SourceXtractor {
 
-class PixelCoordinateList : public Property {
-  
+class VignetConfig : public Euclid::Configuration::Configuration {
+
 public:
-  
-  PixelCoordinateList(std::vector<PixelCoordinate> coordinate_list) 
-      : m_coordinate_list(std::move(coordinate_list)) {
+
+  VignetConfig(long manager_id);
+
+  virtual ~VignetConfig() = default;
+
+  std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
+
+  void initialize(const UserValues& args) override;
+
+  const std::array<int, 2>& getVignetSize() const {
+    return m_vignet_size;
   }
 
-  virtual ~PixelCoordinateList() = default;
-  
-  const std::vector<PixelCoordinate>& getCoordinateList() const {
-    return m_coordinate_list;
+  double getVignetDefaultPixval() const {
+    return m_vignet_default_pixval;
   }
 
-  bool contains(const PixelCoordinate& coord) const {
-    return std::find(m_coordinate_list.begin(), m_coordinate_list.end(), coord) != m_coordinate_list.end();
-  }
-  
 private:
+  std::array<int, 2> m_vignet_size;
+  double m_vignet_default_pixval;
 
-  std::vector<PixelCoordinate> m_coordinate_list;
-  
-}; /* End of PixelCoordinateList class */
+};
 
 } /* namespace SourceXtractor */
 
-#endif /* _SEIMPLEMENTATION_PIXELCOORDINATELIST_H */
+#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETCONFIG_H */
 
