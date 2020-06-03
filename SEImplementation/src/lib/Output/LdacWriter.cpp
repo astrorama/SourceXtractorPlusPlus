@@ -16,6 +16,7 @@
  */
 
 #include <sstream>
+#include <boost/io/detail/quoted_manip.hpp>
 #include <AlexandriaKernel/memory_tools.h>
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Output/LdacWriter.h"
@@ -51,14 +52,39 @@ void LdacWriter::notifySource(const SourceInterface& source) {
 }
 
 template<typename T>
-static std::string generateHeader(const std::string& name, T value, const std::string& comment) {
+std::string generateHeader(const std::string& name, T value, const std::string& comment) {
   std::stringstream str;
 
   str << std::setw(8) << std::left << name << "= "
       << std::scientific << std::setw(20) << std::right << value
-      << " / "
-      << std::setw(47) << std::left << comment;
-  assert(str.str().size() == 80);
+      << " / ";
+
+  size_t remaining = 80 - str.str().size();
+  str << comment << std::string(remaining-comment.size(), ' ');
+
+  if (str.str().size() != 80) {
+    throw Elements::Exception() << "Header must be exactly 80 characters long: \"" << str.str() << "\"";
+  }
+
+  return str.str();
+}
+
+template<>
+std::string generateHeader<std::string>(const std::string& name, std::string value, const std::string& comment) {
+  std::stringstream str, quoted_value;
+
+  quoted_value << boost::io::quoted(value, '\'', '\'');
+
+  str << std::setw(8) << std::left << name << "= "
+      << std::setw(20) << std::left << quoted_value.str()
+      << " / ";
+
+  size_t remaining = 80 - str.str().size();
+  str << comment << std::string(remaining-comment.size(), ' ');
+
+  if (str.str().size() != 80) {
+    throw Elements::Exception() << "Header must be exactly 80 characters long: \"" << str.str() << "\"";
+  }
 
   return str.str();
 }
@@ -95,20 +121,27 @@ void LdacWriter::writeImHead() {
   // Headers from the image
   std::vector<std::string> ldac_imhead;
   auto img_source = detection_image_config.getImageSource();
-  int n_headers;
-  auto img_headers = img_source->getFitsHeaders(n_headers);
-  for (int i = 0; i < n_headers; ++i) {
-    ldac_imhead.emplace_back(&(*img_headers)[80 * i], 80);
+  auto img_metadata = img_source->getMetadata();
+  for (const auto &p : img_metadata) {
+    std::string comment;
+    if (p.second.m_extra.count("comment"))
+      comment = p.second.m_extra.at("comment");
+    if (p.second.m_value.type() == typeid(std::string))
+      ldac_imhead.emplace_back(generateHeader(p.first, boost::get<std::string>(p.second.m_value), comment));
+    else
+      ldac_imhead.emplace_back(generateHeader(p.first, p.second.m_value, comment));
   }
 
   // Headers from the configuration and detection
   auto gain = detection_image_config.getGain();
   ldac_imhead.emplace_back(generateHeader("SPPGAIN", gain, "Gain used"));
   ldac_imhead.emplace_back(generateHeader("SPPBKDEV", m_rms, "Median background RMS"));
-  ldac_imhead.emplace_back("END" + std::string(77, ' '));
 
   // History, why not
   generateHistory(ldac_imhead);
+
+  // END
+  ldac_imhead.emplace_back("END" + std::string(77, ' '));
 
   // Write the table
   auto column_info = std::make_shared<ColumnInfo>(std::vector<ColumnInfo::info_type>{
