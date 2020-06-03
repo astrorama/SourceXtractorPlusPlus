@@ -31,11 +31,11 @@ template <typename T>
 class ImageSourceWithMetadata: public ImageSource<T> {
 public:
   /**
-   * Accepted values are bool, int64_t, double and string
+   * Accepted values are bool, char, int64_t, double and string
    * Other types must be promoted (i.e. int32_t => int64_t, float => double)
    */
   struct MetadataEntry {
-    typedef boost::variant<bool, int64_t, double, std::string> value_t;
+    typedef boost::variant<bool, char, int64_t, double, std::string> value_t;
 
     value_t m_value;
 

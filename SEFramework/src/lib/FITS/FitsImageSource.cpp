@@ -44,6 +44,7 @@ namespace SourceXtractor {
  * Cast a string to a C++ type depending on the format of the content.
  * - if only digits are present, it will be casted to int64_t
  * - if it matches the regex (one dot and/or exponent present), it will be casted to double
+ * - if there is one single character, it will be casted to char
  * - anything else will be casted to std::string, removing simple quotes if necessary
  */
 template <typename T>
@@ -63,6 +64,9 @@ static typename FitsImageSource<T>::MetadataEntry::value_t valueAutoCast(const s
   }
   else if (boost::regex_match(value, float_regex)) {
     return std::stod(value);
+  }
+  else if (value.size() == 1) {
+    return value.at(0);
   }
   std::stringstream quoted(value);
   std::string unquoted;
