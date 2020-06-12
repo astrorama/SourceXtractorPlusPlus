@@ -26,13 +26,15 @@
 
 #include "ElementsKernel/Exception.h"
 
+#include "SEFramework/FITS/FitsFile.h"
+
 #include "SEFramework/FITS/FitsFileManager.h"
 
 namespace SourceXtractor {
 
 std::shared_ptr<FitsFileManager> FitsFileManager::s_instance;
 
-FitsFileManager::FitsFileManager() : m_max_open_files(500) {
+FitsFileManager::FitsFileManager(unsigned int max_open_files) : m_max_open_files(max_open_files) {
 }
 
 FitsFileManager::~FitsFileManager() {
@@ -41,91 +43,32 @@ FitsFileManager::~FitsFileManager() {
 
 void FitsFileManager::closeAllFiles() {
   for (auto& file : m_fits_files) {
-    if (file.second.m_is_file_opened) {
-      closeFitsFile(file.second.m_file_pointer);
-      file.second.m_is_file_opened = false;
-      file.second.m_file_pointer = nullptr;
+    file.second->close();
+  }
+}
+
+std::shared_ptr<FitsFile> FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
+  if (m_fits_files.find(filename) != m_fits_files.end()) {
+    auto fits_file = m_fits_files.at(filename);
+    if (writeable) {
+      fits_file->setWriteMode();
     }
+
+    return fits_file;
+  } else {
+    auto new_fits_file = std::shared_ptr<FitsFile>(new FitsFile(filename, writeable, shared_from_this()));
+    m_fits_files[filename] = new_fits_file;
+    return new_fits_file;
   }
 }
 
-
-fitsfile* FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
-  if (m_fits_files.find(filename) == m_fits_files.end()) {
-    FitsInfo info;
-    info.m_is_file_opened = false;
-    info.m_file_pointer = nullptr;
-    info.m_is_writeable = writeable;
-    m_fits_files[filename] = info;
-  }
-
-  FitsInfo& info = m_fits_files[filename];
-  if (!info.m_is_file_opened) {
-    info.m_is_writeable = info.m_is_writeable || writeable;
-    openFitsFile(filename, info);
-    m_open_files.push_front(filename);
-
-    closeExtraFiles();
-  }
-
-  if (writeable && !info.m_is_writeable) {
-    closeFitsFile(info.m_file_pointer);
-    info.m_is_writeable = true;
-    openFitsFile(filename, info);
-  }
-
-  return info.m_file_pointer;
-}
 
 void FitsFileManager::closeExtraFiles() {
   while (m_open_files.size() > m_max_open_files) {
     auto& file_to_close = m_fits_files[m_open_files.back()];
-    closeFitsFile(file_to_close.m_file_pointer);
-    file_to_close.m_is_file_opened = false;
-    file_to_close.m_file_pointer = nullptr;
+    file_to_close->close();
     m_open_files.pop_back();
   }
-}
-
-
-void FitsFileManager::openFitsFile(const std::string& filename, FitsInfo& fits_info) const {
-  if (fits_info.m_is_file_opened) {
-    return;
-  }
-
-  int status = 0;
-
-  fits_open_image(&fits_info.m_file_pointer, filename.c_str(), fits_info.m_is_writeable ? READWRITE : READONLY, &status);
-  if (status != 0) {
-    throw Elements::Exception() << "Can't open FITS file: " << filename;
-  }
-  assert(fits_info.m_file_pointer != nullptr);
-
-  fits_info.m_is_file_opened = true;
-
-  if (fits_info.m_image_hdus.empty()) {
-    int number_of_hdus = 0;
-    if (fits_get_num_hdus(fits_info.m_file_pointer, &number_of_hdus, &status) < 0) {
-      throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << filename;
-    }
-
-    for (int hdu_number=1; hdu_number <= number_of_hdus; hdu_number++) {
-      int hdu_type = 0;
-      fits_movabs_hdu(fits_info.m_file_pointer, hdu_number, &hdu_type, &status);
-      if (status != 0) {
-        throw Elements::Exception() << "Can't switch HDUs while opening: " << filename;
-      }
-
-      if (hdu_type == IMAGE_HDU) {
-        fits_info.m_image_hdus.emplace_back(hdu_number);
-      }
-    }
-  }
-}
-
-void FitsFileManager::closeFitsFile(fitsfile* fptr) const {
-  int status = 0;
-  fits_close_file(fptr, &status);
 }
 
 }

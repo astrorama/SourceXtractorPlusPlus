@@ -32,16 +32,15 @@
 
 #include <fitsio.h>
 
-
 namespace SourceXtractor {
 
-class FitsFileManager {
+class FitsFile;
+
+class FitsFileManager : public std::enable_shared_from_this<FitsFileManager> {
 public:
 
-  FitsFileManager();
+  FitsFileManager(unsigned int max_open_files = 500);
   virtual ~FitsFileManager();
-
-  fitsfile* getFitsFile(const std::string& filename, bool writeable = false);
 
   void closeAllFiles();
 
@@ -52,25 +51,16 @@ public:
     return s_instance;
   }
 
+  std::shared_ptr<FitsFile> getFitsFile(const std::string& filename, bool writeable=false);
+
 private:
-
-  struct FitsInfo {
-    fitsfile* m_file_pointer;
-    bool m_is_file_opened;
-    bool m_is_writeable;
-
-    std::vector<int> m_image_hdus;
-  };
-
-  std::unordered_map<std::string, FitsInfo> m_fits_files;
+  std::unordered_map<std::string, std::shared_ptr<FitsFile>> m_fits_files;
 
   unsigned int m_max_open_files;
   std::list<std::string> m_open_files;
 
   static std::shared_ptr<FitsFileManager> s_instance;
 
-  void openFitsFile(const std::string& filename, FitsInfo& fits_info) const;
-  void closeFitsFile(fitsfile* fptr) const;
   void closeExtraFiles();
 };
 

@@ -33,34 +33,11 @@
 
 #include <ElementsKernel/Exception.h>
 
+#include "SEFramework/FITS/FitsFile.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 
-
-template<typename T>
-std::map<std::string, std::string> FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) {
-  std::map<std::string, std::string> headers;
-  char record[81];
-  int keynum = 1, status = 0;
-
-  fits_read_record(fptr, keynum, record, &status);
-  while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]{8})=([^\\/]*)(.*)");
-    std::string record_str(record);
-
-    boost::smatch sub_matches;
-    if (boost::regex_match(record_str, sub_matches, regex)) {
-      auto keyword = boost::to_upper_copy(sub_matches[1].str());
-      boost::trim(keyword);
-      auto i = headers.emplace(keyword, sub_matches[2]);
-      boost::trim(i.first->second);
-    }
-    fits_read_record(fptr, ++keynum, record, &status);
-  }
-
-  return headers;
-}
 
 template<typename T>
 FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
@@ -70,7 +47,8 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
   int bitpix, naxis;
   long naxes[2] = {1,1};
 
-  auto fptr = m_manager->getFitsFile(filename);
+  m_fits_file = m_manager->getFitsFile(filename);
+  auto fptr = m_fits_file->getFitsFilePtr();
 
   if (m_hdu_number <= 0) {
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
@@ -88,9 +66,6 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
 
   m_width = naxes[0];
   m_height = naxes[1];
-
-  m_header = loadFitsHeader(fptr);
-  loadHeadFile();
 }
 
 
@@ -145,14 +120,16 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int width, int 
     }
   }
 
-  auto fptr = m_manager->getFitsFile(filename, true);
+  // Reopens the newly created file through theFitsFileManager
+  m_fits_file = m_manager->getFitsFile(filename, true);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 }
 
 
 template<typename T>
 std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int width, int height) const {
-  auto fptr = m_manager->getFitsFile(m_filename);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   auto tile = std::make_shared<ImageTile<T>>((const_cast<FitsImageSource *>(this))->shared_from_this(), x, y, width,
@@ -176,7 +153,7 @@ std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int
 
 template<typename T>
 void FitsImageSource<T>::saveTile(ImageTile<T>& tile) {
-  auto fptr = m_manager->getFitsFile(m_filename, true);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   auto image = tile.getImage();
@@ -213,58 +190,14 @@ void FitsImageSource<T>::switchHdu(fitsfile *fptr, int hdu_number) const {
 }
 
 
-template<typename T>
-void FitsImageSource<T>::loadHeadFile() {
-  auto filename = boost::filesystem::path(m_filename);
-  auto base_name = filename.stem();
-  base_name.replace_extension(".head");
-  auto head_filename = filename.parent_path() / base_name;
-
-  int current_hdu = 1;
-
-  if (boost::filesystem::exists(head_filename)) {
-    std::ifstream file;
-
-    // open the file and check
-    file.open(head_filename.native());
-    if (!file.good() || !file.is_open()) {
-      throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
-    }
-
-    while (file.good()) {
-      std::string line;
-      std::getline(file, line);
-
-      static boost::regex regex_blank_line("\\s*$");
-      line = boost::regex_replace(line, regex_blank_line, std::string(""));
-      if (line.size() == 0) {
-        continue;
-      }
-
-      if (boost::to_upper_copy(line) == "END") {
-        current_hdu++;
-      }
-      else if (current_hdu == m_hdu_number) {
-        static boost::regex regex("([^=]{1,8})=([^\\/]*)(.*)");
-        boost::smatch sub_matches;
-        if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
-          auto keyword = boost::to_upper_copy(sub_matches[1].str());
-          auto value = sub_matches[2].str();
-          boost::trim(keyword);
-          boost::trim(value);
-          m_header[keyword] = value;
-        }
-      }
-    }
-  }
-}
 
 template<typename T>
 std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;
   std::string records;
 
-  for (auto record : m_header) {
+  auto& headers = getHeaders();
+  for (auto record : headers) {
     auto key = record.first;
 
     std::string record_string(key);
@@ -274,7 +207,7 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
-    record_string += "= " +  m_header.at(key);
+    record_string += "= " +  headers.at(key);
 
     if (record_string.size() > 80) {
       throw Elements::Exception() << "FITS record longer than 80 characters";

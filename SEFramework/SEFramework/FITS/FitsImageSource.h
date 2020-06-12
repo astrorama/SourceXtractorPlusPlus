@@ -33,6 +33,7 @@
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/FITS/FitsFileManager.h"
+#include "SEFramework/FITS/FitsFile.h"
 
 
 namespace SourceXtractor {
@@ -78,8 +79,9 @@ public:
 
   template <typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
-    auto i = m_header.find(header_keyword);
-    if (i != m_header.end()) {
+    auto& headers = getHeaders();
+    auto i = headers.find(header_keyword);
+    if (i != headers.end()) {
       out_value = boost::lexical_cast<TT>(i->second);
       return true;
     }
@@ -94,23 +96,23 @@ public:
 
 private:
 
-  void switchHdu(fitsfile* fptr, int hdu_number) const;
+  const std::map<std::string, std::string>& getHeaders() const {
+    return m_fits_file->getHDUHeaders(m_hdu_number);
+  }
 
-  std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr);
-  void loadHeadFile();
+  void switchHdu(fitsfile* fptr, int hdu_number) const;
 
   int getDataType() const;
   int getImageType() const;
 
   std::string m_filename;
+  std::shared_ptr<FitsFile> m_fits_file;
   std::shared_ptr<FitsFileManager> m_manager;
 
   int m_width;
   int m_height;
 
   int m_hdu_number;
-
-  std::map<std::string, std::string> m_header;
 };
 
 }
