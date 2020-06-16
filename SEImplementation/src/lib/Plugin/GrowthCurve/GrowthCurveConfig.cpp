@@ -36,6 +36,9 @@ auto GrowthCurveConfig::getProgramOptions() -> std::map<std::string, OptionDescr
 void GrowthCurveConfig::initialize(const Configuration::UserValues& args) {
   if (args.count(GROWTH_NSAMPLES)) {
     m_nsamples = args.at(GROWTH_NSAMPLES).as<int>();
+    if (m_nsamples <= 0) {
+      throw Elements::Exception() << GROWTH_NSAMPLES << " must be greater than 0";
+    }
   }
 }
 

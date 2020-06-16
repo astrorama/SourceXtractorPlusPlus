@@ -22,30 +22,41 @@
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveResampledTask.h"
 
 using namespace Euclid::MathUtils;
+using namespace Euclid::NdArray;
 
 namespace SourceXtractor {
 
-GrowthCurveResampledTask::GrowthCurveResampledTask(int nsamples) : m_nsamples{nsamples} {}
+GrowthCurveResampledTask::GrowthCurveResampledTask(const std::vector<unsigned>& instances, size_t nsamples)
+  : m_instances{instances}, m_nsamples{nsamples} {}
 
 void GrowthCurveResampledTask::computeProperties(SourceInterface& source) const {
-  auto& growth_curve_prop = source.getProperty<GrowthCurve>();
-  auto& growth_curve = growth_curve_prop.getCurve();
-  auto step_size = growth_curve_prop.getStepSize();
-  auto new_step_size = growth_curve_prop.getMax() / m_nsamples;
+  NdArray<DetectionImage::PixelType> data{m_instances.size(), m_nsamples};
+  std::vector<double> step_sizes(m_instances.size());
 
-  std::vector<double> steps(growth_curve.size());
-  for (size_t i = 0; i < steps.size(); ++i) {
-    steps[i] = (i + 1) * step_size;
+  for (size_t i = 0; i < m_instances.size(); ++i) {
+    auto& growth_curve_prop = source.getProperty<GrowthCurve>(m_instances[i]);
+    auto& growth_curve = growth_curve_prop.getCurve();
+    auto step_size = growth_curve_prop.getStepSize();
+    auto new_step_size = growth_curve_prop.getMax() / m_nsamples;
+    step_sizes[i] = new_step_size;
+
+    std::vector<double> steps(growth_curve.size());
+    for (size_t s = 0; s < steps.size(); ++s) {
+      steps[s] = (s + 1) * step_size;
+    }
+
+    auto interpolated = interpolate(steps, growth_curve, InterpolationType::LINEAR, true);
+    for (size_t s = 0; s < m_nsamples; ++s) {
+      data.at(i, s) = (*interpolated)((s + 1) * new_step_size);
+    }
   }
 
-  auto interpolated = interpolate(steps, growth_curve, InterpolationType::LINEAR, true);
-
-  std::vector<DetectionImage::PixelType> samples(m_nsamples);
-  for (int i = 0; i < m_nsamples; ++i) {
-    samples[i] = (*interpolated)((i + 1) * new_step_size);
+  // Drop one dimension if there is only one measurement frame
+  if (m_instances.size() == 1) {
+    data.reshape(m_nsamples);
   }
 
-  source.setProperty<GrowthCurveResampled>(std::move(samples), new_step_size);
+  source.setProperty<GrowthCurveResampled>(std::move(data), std::move(step_sizes));
 }
 
 } // end of namespace SourceXtractor

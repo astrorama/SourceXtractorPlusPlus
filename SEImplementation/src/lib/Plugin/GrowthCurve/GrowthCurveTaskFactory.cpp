@@ -15,6 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <SEImplementation/Configuration/MeasurementImageConfig.h>
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurve.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveResampled.h"
@@ -26,11 +27,11 @@
 namespace SourceXtractor {
 
 std::shared_ptr<Task> GrowthCurveTaskFactory::createTask(const PropertyId& property_id) const {
-  if (property_id == PropertyId::create<GrowthCurve>()) {
-    return std::make_shared<GrowthCurveTask>(m_use_symmetry);
+  if (property_id.getTypeId() == typeid(GrowthCurve)) {
+    return std::make_shared<GrowthCurveTask>(property_id.getIndex(), m_use_symmetry);
   }
-  else if (property_id == PropertyId::create<GrowthCurveResampled>()) {
-    return std::make_shared<GrowthCurveResampledTask>(m_nsamples);
+  else if (property_id.getTypeId() == typeid(GrowthCurveResampled)) {
+    return std::make_shared<GrowthCurveResampledTask>(m_images, m_nsamples);
   }
   return nullptr;
 }
@@ -38,11 +39,21 @@ std::shared_ptr<Task> GrowthCurveTaskFactory::createTask(const PropertyId& prope
 void GrowthCurveTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<GrowthCurveConfig>();
   manager.registerConfiguration<WeightImageConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void GrowthCurveTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   m_nsamples = manager.getConfiguration<GrowthCurveConfig>().m_nsamples;
   m_use_symmetry = manager.getConfiguration<WeightImageConfig>().symmetryUsage();
+
+  auto& measurement_config = manager.getConfiguration<MeasurementImageConfig>();
+  const auto& image_infos = measurement_config.getImageInfos();
+
+  std::map<std::string, unsigned> pos_in_group;
+
+  for (size_t i = 0; i < image_infos.size(); ++i) {
+    m_images.push_back(image_infos[i].m_id);
+  }
 }
 
 } // end of namespace SourceXtractor

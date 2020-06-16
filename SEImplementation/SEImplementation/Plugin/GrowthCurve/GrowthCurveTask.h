@@ -26,11 +26,12 @@ class GrowthCurveTask : public SourceTask {
 public:
   virtual ~GrowthCurveTask() = default;
 
-  GrowthCurveTask(bool use_symmetry);
+  GrowthCurveTask(unsigned instance, bool use_symmetry);
 
   void computeProperties(SourceInterface& source) const override;
 
 private:
+  unsigned m_instance;
   bool m_use_symmetry;
 };
 

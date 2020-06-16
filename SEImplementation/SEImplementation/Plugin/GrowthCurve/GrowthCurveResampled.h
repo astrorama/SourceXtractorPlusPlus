@@ -18,7 +18,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVERESAMPLED_H_
 #define _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVERESAMPLED_H_
 
-#include <vector>
+#include <NdArray/NdArray.h>
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
 
@@ -32,20 +32,20 @@ class GrowthCurveResampled : public Property {
 public:
   virtual ~GrowthCurveResampled() = default;
 
-  GrowthCurveResampled(std::vector<DetectionImage::PixelType>&& samples, double step_size)
-    : m_samples{std::move(samples)}, m_step_size{step_size} {}
+  GrowthCurveResampled(Euclid::NdArray::NdArray<DetectionImage::PixelType>&& samples, std::vector<double>&& step_size)
+    : m_samples{std::move(samples)}, m_step_size{std::move(step_size)} {}
 
-  const std::vector<DetectionImage::PixelType>& getSamples() const {
+  const Euclid::NdArray::NdArray<DetectionImage::PixelType> & getSamples() const {
     return m_samples;
   }
 
-  double getStepSize() const {
+  std::vector<double> getStepSize() const {
     return m_step_size;
   }
 
 private:
-  std::vector<DetectionImage::PixelType> m_samples;
-  double m_step_size;
+  Euclid::NdArray::NdArray<DetectionImage::PixelType> m_samples;
+  std::vector<double> m_step_size;
 };
 
 } // end of namespace SourceXtractor

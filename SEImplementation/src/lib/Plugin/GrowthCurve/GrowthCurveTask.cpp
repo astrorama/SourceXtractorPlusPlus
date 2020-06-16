@@ -16,34 +16,53 @@
  */
 
 #include "SEFramework/Aperture/CircularAperture.h"
-#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurve.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveTask.h"
+#include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
+#include "SEUtils/Mat22.h"
 
 
 namespace SourceXtractor {
 
+using SExtractor::Mat22;
+
 static const SeFloat GROWTH_NSIG = 6.;
 static const size_t GROWTH_NSAMPLES = 64;
 
-GrowthCurveTask::GrowthCurveTask(bool use_symmetry): m_use_symmetry{use_symmetry} {}
+GrowthCurveTask::GrowthCurveTask(unsigned instance, bool use_symmetry)
+  : m_instance{instance}, m_use_symmetry{use_symmetry} {}
 
 void GrowthCurveTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<DetectionFrame>().getFrame();
-  auto image = detection_frame->getSubtractedImage();
-  auto variance_map = detection_frame->getVarianceMap();
-  auto variance_threshold = detection_frame->getVarianceThreshold();
+  // Measurement frame and properties defined on it
+  auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
+  auto image = measurement_frame->getSubtractedImage();
+  auto variance_map = measurement_frame->getVarianceMap();
+  auto variance_threshold = measurement_frame->getVarianceThreshold();
+  auto centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
+  auto centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
+  Mat22 jacobian{source.getProperty<JacobianSource>(m_instance).asTuple()};
+
+  // These are from the detection frame
   auto& shape = source.getProperty<ShapeParameters>();
   auto& kron = source.getProperty<KronRadius>();
-  auto centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
-  auto centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
 
-  // Radius for computing the growth curve and step size
-  double rlim = std::max(GROWTH_NSIG * shape.getEllipseA(), kron.getKronRadius());
+  // Radius for computing the growth curve and step size *on the detection frame*
+  double detection_rlim = std::max(GROWTH_NSIG * shape.getEllipseA(), kron.getKronRadius());
+
+  // Now we need to compute the rlim for the measurement frame
+  // We take two vectors defined by the radius on the detection frame along the X and Y,
+  // transform them, and we use as a limit now the longest of the two after the transformation
+  Mat22 radius_22{detection_rlim, 0, 0, detection_rlim};
+  radius_22 = radius_22 * jacobian;
+  double r1 = radius_22[0] * radius_22[0] + radius_22[1] * radius_22[1];
+  double r2 = radius_22[2] * radius_22[2] + radius_22[3] * radius_22[3];
+  double rlim = std::sqrt(std::max(r1, r2));
+
   double step_size = rlim / GROWTH_NSAMPLES;
 
   // List of apertures
@@ -55,8 +74,9 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   }
 
   // Boundaries for the computation
-  PixelCoordinate min_coord{static_cast<int>(centroid_x - rlim), static_cast<int>(centroid_y - rlim)};
-  PixelCoordinate max_coord{static_cast<int>(centroid_x + rlim + 1), static_cast<int>(centroid_y + rlim + 1)};
+  // We know the last aperture is the widest, so we take the limits from it
+  auto min_coord = apertures.back().getMinPixel(centroid_x, centroid_y);
+  auto max_coord = apertures.back().getMaxPixel(centroid_x, centroid_y);
 
   // Compute fluxes for each ring
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
@@ -114,7 +134,7 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   }
 
   // Set property
-  source.setProperty<GrowthCurve>(std::move(fluxes), rlim);
+  source.setIndexedProperty<GrowthCurve>(m_instance, std::move(fluxes), rlim);
 }
 
 } // end of namespace SourceXtractor

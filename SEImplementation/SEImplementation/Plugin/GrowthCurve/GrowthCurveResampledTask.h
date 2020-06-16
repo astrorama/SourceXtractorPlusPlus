@@ -26,12 +26,13 @@ class GrowthCurveResampledTask : public SourceTask {
 public:
   virtual ~GrowthCurveResampledTask() = default;
 
-  GrowthCurveResampledTask(int nsamples);
+  GrowthCurveResampledTask(const std::vector<unsigned>& instances, size_t nsamples);
 
   void computeProperties(SourceInterface& source) const override;
 
 private:
-  int m_nsamples;
+  std::vector<unsigned> m_instances;
+  size_t m_nsamples;
 };
 
 } // end of namespace SourceXtractor

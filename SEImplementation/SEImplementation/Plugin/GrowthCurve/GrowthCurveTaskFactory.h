@@ -35,6 +35,7 @@ public:
 private:
   int m_nsamples;
   bool m_use_symmetry;
+  std::vector<unsigned> m_images;
 };
 
 } // end of namespace SourceXtractor

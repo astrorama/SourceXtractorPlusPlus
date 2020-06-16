@@ -22,6 +22,9 @@
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurve.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveResampled.h"
 
+template <typename T>
+using NdArray = Euclid::NdArray::NdArray<T>;
+
 namespace SourceXtractor {
 
 static StaticPlugin<GrowthCurvePlugin> growthcurve_plugin;
@@ -34,7 +37,7 @@ std::string SourceXtractor::GrowthCurvePlugin::getIdString() const {
 void SourceXtractor::GrowthCurvePlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<GrowthCurveTaskFactory, GrowthCurve, GrowthCurveResampled>();
 
-  plugin_api.getOutputRegistry().registerColumnConverter<GrowthCurveResampled, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<GrowthCurveResampled, std::vector<double>>(
     "flux_growth_step",
     [](const GrowthCurveResampled& prop){
       return prop.getStepSize();
@@ -42,7 +45,7 @@ void SourceXtractor::GrowthCurvePlugin::registerPlugin(PluginAPI& plugin_api) {
     "[pixel]",
     "Growth curve step size"
   );
-  plugin_api.getOutputRegistry().registerColumnConverter<GrowthCurveResampled, std::vector<DetectionImage::PixelType>>(
+  plugin_api.getOutputRegistry().registerColumnConverter<GrowthCurveResampled, NdArray<DetectionImage::PixelType>>(
     "flux_growth",
     [](const GrowthCurveResampled& prop) {
       return prop.getSamples();
