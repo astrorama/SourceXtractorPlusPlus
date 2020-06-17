@@ -45,7 +45,7 @@ double ExpSigmoidConverter::engineToWorld(const double engine_value) const {
 }
 
 double ExpSigmoidConverter::getEngineToWorldDerivative(const double value) const {
-  return value * log(value - m_min_value) * log(m_max_value - value) / log(m_max_value - m_min_value);
+  return value * log(value / m_min_value) * log(m_max_value / value) / log(m_max_value / m_min_value);
 }
 
 
