@@ -39,9 +39,10 @@ static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 static const std::string OUTPUT_FLUSH_SIZE {"output-flush-size"};
 
-static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
-  {"ASCII", OutputConfig::OutputFileFormat::ASCII},
-  {"FITS", OutputConfig::OutputFileFormat::FITS}
+static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
+  {"ASCII",     OutputConfig::OutputFileFormat::ASCII},
+  {"FITS",      OutputConfig::OutputFileFormat::FITS},
+  {"FITS_LDAC", OutputConfig::OutputFileFormat::FITS_LDAC}
 };
 
 OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII) {
