@@ -191,7 +191,6 @@ void FitsFile::loadHeadFile() {
   auto head_filename = filename.parent_path() / base_name;
 
   auto hdu_iter = m_image_hdus.begin();
-  int current_hdu = *hdu_iter;
 
   if (boost::filesystem::exists(head_filename)) {
     std::ifstream file;
@@ -203,6 +202,8 @@ void FitsFile::loadHeadFile() {
     }
 
     while (file.good() && hdu_iter != m_image_hdus.end()) {
+      int current_hdu = *hdu_iter;
+
       std::string line;
       std::getline(file, line);
 
