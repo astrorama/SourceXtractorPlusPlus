@@ -72,12 +72,6 @@ void FluxRadiusTask::computeProperties(SourceInterface& source) const {
       radii.at(i, j) = target_radius;
     }
   }
-
-  // Drop one dimension if there is a single instance
-  if (m_instances.size() == 1) {
-    radii.reshape(m_flux_fraction.size());
-  }
-
   source.setProperty<FluxRadius>(std::move(radii));
 }
 

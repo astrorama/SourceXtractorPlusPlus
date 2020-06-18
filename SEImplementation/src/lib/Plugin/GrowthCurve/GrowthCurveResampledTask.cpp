@@ -50,12 +50,6 @@ void GrowthCurveResampledTask::computeProperties(SourceInterface& source) const 
       data.at(i, s) = (*interpolated)((s + 1) * new_step_size);
     }
   }
-
-  // Drop one dimension if there is only one measurement frame
-  if (m_instances.size() == 1) {
-    data.reshape(m_nsamples);
-  }
-
   source.setProperty<GrowthCurveResampled>(std::move(data), std::move(step_sizes));
 }
 
