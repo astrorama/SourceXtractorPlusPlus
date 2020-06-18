@@ -55,18 +55,22 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
     ndigits += std::isdigit(c);
   }
 
-  if (value.empty()) {
-    return value;
+  try {
+    if (value.empty()) {
+      return value;
+    }
+    else if (ndigits == value.size()) {
+      return std::stol(value);
+    }
+    else if (boost::regex_match(value, float_regex)) {
+      return std::stod(value);
+    }
+    else if (value.size() == 1) {
+      return value.at(0);
+    }
+  } catch (...) {
   }
-  else if (ndigits == value.size()) {
-    return std::stol(value);
-  }
-  else if (boost::regex_match(value, float_regex)) {
-    return std::stod(value);
-  }
-  else if (value.size() == 1) {
-    return value.at(0);
-  }
+
   std::stringstream quoted(value);
   std::string unquoted;
   quoted >> boost::io::quoted(unquoted, '\'', '\'');
