@@ -79,7 +79,7 @@ void MeasurementFrameTaskFactory::configure(Euclid::Configuration::ConfigManager
     if (image_info.m_is_background_constant) {
       measurement_frame->setBackgroundLevel(image_info.m_constant_background_value);
     } else {
-      measurement_frame->setBackgroundLevel(background_model.getLevelMap());
+      measurement_frame->setBackgroundLevel(background_model.getLevelMap(), background_model.getMedianRms());
     }
 
     std::stringstream label;

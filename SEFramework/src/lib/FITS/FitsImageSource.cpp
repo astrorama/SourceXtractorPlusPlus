@@ -23,6 +23,7 @@
 
 #include <iomanip>
 #include <fstream>
+#include <numeric>
 #include <string>
 
 #include <boost/filesystem/path.hpp>
@@ -30,31 +31,69 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/io/detail/quoted_manip.hpp>
 
 #include <ElementsKernel/Exception.h>
 
+#include "SEUtils/VariantCast.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 
+/**
+ * Cast a string to a C++ type depending on the format of the content.
+ * - if only digits are present, it will be casted to int64_t
+ * - if it matches the regex (one dot and/or exponent present), it will be casted to double
+ * - if there is one single character, it will be casted to char
+ * - anything else will be casted to std::string, removing simple quotes if necessary
+ */
+template <typename T>
+static typename FitsImageSource<T>::MetadataEntry::value_t valueAutoCast(const std::string& value) {
+  boost::regex float_regex("^[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?$");
+
+  size_t ndigits = 0;
+  for (auto c : value) {
+    ndigits += std::isdigit(c);
+  }
+
+  if (value.empty()) {
+    return value;
+  }
+  else if (ndigits == value.size()) {
+    return std::stol(value);
+  }
+  else if (boost::regex_match(value, float_regex)) {
+    return std::stod(value);
+  }
+  else if (value.size() == 1) {
+    return value.at(0);
+  }
+  std::stringstream quoted(value);
+  std::string unquoted;
+  quoted >> boost::io::quoted(unquoted, '\'', '\'');
+  return unquoted;
+}
 
 template<typename T>
-std::map<std::string, std::string> FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) {
-  std::map<std::string, std::string> headers;
+auto FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) -> std::map<std::string, MetadataEntry> {
+  std::map<std::string, MetadataEntry> headers;
   char record[81];
   int keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]{8})=([^\\/]*)(.*)");
+    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/ (.*))?");
     std::string record_str(record);
 
     boost::smatch sub_matches;
     if (boost::regex_match(record_str, sub_matches, regex)) {
       auto keyword = boost::to_upper_copy(sub_matches[1].str());
+      auto value = sub_matches[2].str();
+      auto comment = sub_matches[4].str();
       boost::trim(keyword);
-      auto i = headers.emplace(keyword, sub_matches[2]);
-      boost::trim(i.first->second);
+      boost::trim(value);
+      boost::trim(comment);
+      headers.emplace(keyword, MetadataEntry{valueAutoCast<T>(value), {{"comment", comment}}});
     }
     fits_read_record(fptr, ++keynum, record, &status);
   }
@@ -245,14 +284,16 @@ void FitsImageSource<T>::loadHeadFile() {
         current_hdu++;
       }
       else if (current_hdu == m_hdu_number) {
-        static boost::regex regex("([^=]{1,8})=([^\\/]*)(.*)");
+        static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
         boost::smatch sub_matches;
         if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
           auto keyword = boost::to_upper_copy(sub_matches[1].str());
           auto value = sub_matches[2].str();
+          auto comment = sub_matches[4].str();
           boost::trim(keyword);
           boost::trim(value);
-          m_header[keyword] = value;
+          boost::trim(comment);
+          m_header[keyword] = MetadataEntry{valueAutoCast<T>(value), {{"comment", comment}}};
         }
       }
     }
@@ -274,7 +315,12 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
-    record_string += "= " +  m_header.at(key);
+    if (m_header.at(key).m_value.type() == typeid(std::string)) {
+      record_string += "= '" + VariantCast<std::string>(m_header.at(key).m_value) + "'";
+    }
+    else {
+      record_string += "= " + VariantCast<std::string>(m_header.at(key).m_value);
+    }
 
     if (record_string.size() > 80) {
       throw Elements::Exception() << "FITS record longer than 80 characters";
@@ -319,6 +365,11 @@ int FitsImageSource<long long>::getDataType() const { return TLONGLONG; }
 
 template <>
 int FitsImageSource<double>::getImageType() const { return DOUBLE_IMG; }
+
+template<typename T>
+auto FitsImageSource<T>::getMetadata() const -> std::map<std::string, MetadataEntry> {
+  return m_header;
+}
 
 template <>
 int FitsImageSource<float>::getImageType() const { return FLOAT_IMG; }

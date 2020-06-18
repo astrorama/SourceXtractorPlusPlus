@@ -186,13 +186,14 @@ void Frame<T>::setDetectionThreshold(T detection_threshold) {
 
 template<typename T>
 void Frame<T>::setBackgroundLevel(T background_level) {
-  setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level));
+  setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level), 0.);
 }
 
 
 template<typename T>
-void Frame<T>::setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {
+void Frame<T>::setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map, T background_rms) {
   m_background_level_map = background_level_map;
+  m_background_rms = background_rms;
   m_filtered_image = nullptr;
 }
 

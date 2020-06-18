@@ -101,7 +101,12 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
 
   int status = 0;
   wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   linfree(&wcs_copy.lin);
+  if (ret_val != 0) {
+    logger.error() << "wcslib's wcsp2s returned with error code: " << ret_val;
+    throw Elements::Exception() << "WCS exception";
+  }
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
@@ -119,8 +124,12 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   linfree(&wcs_copy.lin);
+  if (ret_val != 0) {
+    logger.error() << "wcslib's wcss2p returned with error code: " << ret_val;
+    throw Elements::Exception() << "WCS exception";
+  }
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }

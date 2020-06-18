@@ -31,15 +31,18 @@
 #include <boost/lexical_cast.hpp>
 
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/ImageSourceWithMetadata.h"
 #include "SEFramework/FITS/FitsFileManager.h"
+#include "SEUtils/VariantCast.h"
 
 
 namespace SourceXtractor {
 
 template <typename T>
-class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
+class FitsImageSource : public ImageSourceWithMetadata<T>, public std::enable_shared_from_this<ImageSource<T>>  {
 public:
+
+  using MetadataEntry = typename ImageSourceWithMetadata<T>::MetadataEntry;
 
   /**
    * Constructor
@@ -80,7 +83,7 @@ public:
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
     auto i = m_header.find(header_keyword);
     if (i != m_header.end()) {
-      out_value = boost::lexical_cast<TT>(i->second);
+      out_value = VariantCast<TT>(i->second.m_value);
       return true;
     }
     return false;
@@ -92,11 +95,13 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
+  std::map<std::string, MetadataEntry> getMetadata() const override;
+
 private:
 
   void switchHdu(fitsfile* fptr, int hdu_number) const;
 
-  std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr);
+  std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
   void loadHeadFile();
 
   int getDataType() const;
@@ -110,7 +115,7 @@ private:
 
   int m_hdu_number;
 
-  std::map<std::string, std::string> m_header;
+  std::map<std::string, MetadataEntry> m_header;
 };
 
 }
