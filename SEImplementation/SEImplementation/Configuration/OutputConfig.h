@@ -38,7 +38,7 @@ class OutputConfig : public Euclid::Configuration::Configuration {
 public:
   
   enum class OutputFileFormat {
-    ASCII, FITS
+    ASCII, FITS, FITS_LDAC
   };
   
   /// Destructor

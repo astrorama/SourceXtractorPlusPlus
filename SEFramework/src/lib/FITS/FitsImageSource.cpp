@@ -23,6 +23,7 @@
 
 #include <iomanip>
 #include <fstream>
+#include <numeric>
 #include <string>
 
 #include <boost/filesystem/path.hpp>
@@ -30,14 +31,43 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/io/detail/quoted_manip.hpp>
 
 #include <ElementsKernel/Exception.h>
 
 #include "SEFramework/FITS/FitsFile.h"
+#include "SEUtils/VariantCast.h"
+
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
 
+//template<typename T>
+//auto FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) -> std::map<std::string, MetadataEntry> {
+//  std::map<std::string, MetadataEntry> headers;
+//  char record[81];
+//  int keynum = 1, status = 0;
+//
+//  fits_read_record(fptr, keynum, record, &status);
+//  while (status == 0 && strncmp(record, "END", 3) != 0) {
+//    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/ (.*))?");
+//    std::string record_str(record);
+//
+//    boost::smatch sub_matches;
+//    if (boost::regex_match(record_str, sub_matches, regex)) {
+//      auto keyword = boost::to_upper_copy(sub_matches[1].str());
+//      auto value = sub_matches[2].str();
+//      auto comment = sub_matches[4].str();
+//      boost::trim(keyword);
+//      boost::trim(value);
+//      boost::trim(comment);
+//      headers.emplace(keyword, MetadataEntry{valueAutoCast<T>(value), {{"comment", comment}}});
+//    }
+//    fits_read_record(fptr, ++keynum, record, &status);
+//  }
+//
+//  return headers;
+//}
 
 template<typename T>
 FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
@@ -196,7 +226,7 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
   number_of_records = 0;
   std::string records;
 
-  auto& headers = getHeaders();
+  auto& headers = getMetadata();
   for (auto record : headers) {
     auto key = record.first;
 
@@ -207,7 +237,12 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
-    record_string += "= " +  headers.at(key);
+    if (headers.at(key).m_value.type() == typeid(std::string)) {
+      record_string += "= '" + VariantCast<std::string>(headers.at(key).m_value) + "'";
+    }
+    else {
+      record_string += "= " + VariantCast<std::string>(headers.at(key).m_value);
+    }
 
     if (record_string.size() > 80) {
       throw Elements::Exception() << "FITS record longer than 80 characters";

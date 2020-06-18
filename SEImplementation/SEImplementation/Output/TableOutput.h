@@ -35,6 +35,7 @@ public:
   
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   using TableHandler = std::function<void(const Euclid::Table::Table&)>;
+  using SourceHandler = std::function<void(const SourceInterface& source)>;
   
   size_t flush() override {
     if (!m_rows.empty()) {
@@ -46,12 +47,15 @@ public:
     return m_total_rows_written;
   }
   
-  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler, size_t flush_size)
-          : m_source_to_row(source_to_row), m_table_handler(table_handler),
-            m_flush_size(flush_size), m_total_rows_written(0) {
+  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler, SourceHandler source_handler,
+              size_t flush_size)
+    : m_source_to_row(source_to_row), m_table_handler(table_handler), m_source_handler(source_handler),
+      m_flush_size(flush_size), m_total_rows_written(0) {
   }
 
   void outputSource(const SourceInterface& source) override {
+    if (m_source_handler)
+      m_source_handler(source);
     m_rows.emplace_back(m_source_to_row(source));
     if (m_flush_size > 0 && m_rows.size() % m_flush_size == 0) {
       flush();
@@ -61,6 +65,7 @@ public:
 private:
   SourceToRowConverter m_source_to_row;
   TableHandler m_table_handler;
+  SourceHandler m_source_handler;
   std::vector<Euclid::Table::Row> m_rows {};
   size_t m_flush_size;
   size_t m_total_rows_written;

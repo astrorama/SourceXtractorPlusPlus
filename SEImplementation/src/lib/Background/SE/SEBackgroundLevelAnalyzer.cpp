@@ -169,7 +169,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     )
   );
 
-  return BackgroundModel(final_bg, final_var, scaling);
+  return BackgroundModel(final_bg, final_var, scaling, median_sigma);
 }
 
 } // end of namespace SourceXtractor

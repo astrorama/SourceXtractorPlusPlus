@@ -40,6 +40,38 @@
 
 namespace SourceXtractor {
 
+/**
+ * Cast a string to a C++ type depending on the format of the content.
+ * - if only digits are present, it will be casted to int64_t
+ * - if it matches the regex (one dot and/or exponent present), it will be casted to double
+ * - if there is one single character, it will be casted to char
+ * - anything else will be casted to std::string, removing simple quotes if necessary
+ */
+static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
+  boost::regex float_regex("^[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?$");
+
+  size_t ndigits = 0;
+  for (auto c : value) {
+    ndigits += std::isdigit(c);
+  }
+
+  if (value.empty()) {
+    return value;
+  }
+  else if (ndigits == value.size()) {
+    return std::stol(value);
+  }
+  else if (boost::regex_match(value, float_regex)) {
+    return std::stod(value);
+  }
+  else if (value.size() == 1) {
+    return value.at(0);
+  }
+  std::stringstream quoted(value);
+  std::string unquoted;
+  quoted >> boost::io::quoted(unquoted, '\'', '\'');
+  return unquoted;
+}
 
 FitsFile::FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager) :
       m_filename(filename),
@@ -161,22 +193,25 @@ void FitsFile::loadHeaders() {
   fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
 }
 
-std::map<std::string, std::string> FitsFile::loadFitsHeader(fitsfile *fptr) {
-  std::map<std::string, std::string> headers;
+std::map<std::string, MetadataEntry> FitsFile::loadFitsHeader(fitsfile *fptr) {
+  std::map<std::string, MetadataEntry> headers;
   char record[81];
   int keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]{8})=([^\\/]*)(.*)");
+    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/ (.*))?");
     std::string record_str(record);
 
     boost::smatch sub_matches;
     if (boost::regex_match(record_str, sub_matches, regex)) {
       auto keyword = boost::to_upper_copy(sub_matches[1].str());
+      auto value = sub_matches[2].str();
+      auto comment = sub_matches[4].str();
       boost::trim(keyword);
-      auto i = headers.emplace(keyword, sub_matches[2]);
-      boost::trim(i.first->second);
+      boost::trim(value);
+      boost::trim(comment);
+      headers.emplace(keyword, MetadataEntry{valueAutoCast(value), {{"comment", comment}}});
     }
     fits_read_record(fptr, ++keynum, record, &status);
   }
@@ -217,14 +252,16 @@ void FitsFile::loadHeadFile() {
         current_hdu = *(++hdu_iter);
       }
       else {
-        static boost::regex regex("([^=]{1,8})=([^\\/]*)(.*)");
+        static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
         boost::smatch sub_matches;
         if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
           auto keyword = boost::to_upper_copy(sub_matches[1].str());
           auto value = sub_matches[2].str();
+          auto comment = sub_matches[4].str();
           boost::trim(keyword);
           boost::trim(value);
-          m_headers.at(current_hdu-1)[keyword] = value;
+          boost::trim(comment);
+          m_headers.at(current_hdu-1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};;
         }
       }
     }

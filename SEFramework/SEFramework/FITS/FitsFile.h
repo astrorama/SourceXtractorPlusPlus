@@ -31,6 +31,7 @@
 
 #include <fitsio.h>
 
+#include "SEFramework/Image/ImageSourceWithMetadata.h"
 #include "SEFramework/FITS/FitsFileManager.h"
 
 namespace SourceXtractor {
@@ -59,7 +60,7 @@ public:
     return m_image_hdus;
   }
 
-  const std::map<std::string, std::string>& getHDUHeaders(int hdu) const {
+  const std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu) const {
     return m_headers.at(hdu-1);
   }
 
@@ -72,7 +73,7 @@ private:
   void openFirstTime();
   void reopen();
 
-  std::map<std::string, std::string> loadFitsHeader(fitsfile *fptr);
+  std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
   void loadHeaders();
   void loadHeadFile();
 
@@ -84,7 +85,7 @@ private:
 
   std::vector<int> m_image_hdus;
 
-  std::vector<std::map<std::string, std::string>> m_headers;
+  std::vector<std::map<std::string, MetadataEntry>> m_headers;
 
   std::shared_ptr<FitsFileManager> m_manager;
 

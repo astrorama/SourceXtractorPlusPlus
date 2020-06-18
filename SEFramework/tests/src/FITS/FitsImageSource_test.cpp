@@ -48,6 +48,11 @@ BOOST_FIXTURE_TEST_CASE(default_is_primary_test, FitsImageSourceFixture) {
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue(0, 0), 1024.44f, 1e-8);
+  auto metadata = img_src->getMetadata();
+  BOOST_CHECK_EQUAL(boost::get<double>(metadata["GAIN"].m_value), 42);
+  BOOST_CHECK_EQUAL(metadata["GAIN"].m_extra["comment"], "ADU");
+  BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["STRF"].m_value), "A string 'header'");
+  BOOST_CHECK_EQUAL(metadata["STRF"].m_extra["comment"], "Some random stuff");
 }
 
 //-----------------------------------------------------------------------------

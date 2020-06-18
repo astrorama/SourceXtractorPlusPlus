@@ -391,7 +391,7 @@ public:
     CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
     CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
 
-    detection_frame->setBackgroundLevel(background_model.getLevelMap());
+    detection_frame->setBackgroundLevel(background_model.getLevelMap(), background_model.getMedianRms());
 
     if (weight_image != nullptr) {
       if (is_weight_absolute) {
@@ -413,7 +413,7 @@ public:
       auto background = ConstantImage<DetectionImage::PixelType>::create(
           detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-      detection_frame->setBackgroundLevel(background);
+      detection_frame->setBackgroundLevel(background, 0.);
       CheckImages::getInstance().setBackgroundCheckImage(background);
     }
 
