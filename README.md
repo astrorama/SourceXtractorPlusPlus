@@ -25,7 +25,7 @@ enabled=1
 And install normally with
 
 ```bash
-dnf install SourcextractorPlusPlus
+dnf install SourceXtractorPlusPlus
 ```
 
 SourceXtractor++ is also available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
