@@ -60,7 +60,7 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
       return value;
     }
     else if (ndigits == value.size()) {
-      return std::stol(value);
+      return static_cast<int64_t>(std::stoll(value));
     }
     else if (boost::regex_match(value, float_regex)) {
       return std::stod(value);
