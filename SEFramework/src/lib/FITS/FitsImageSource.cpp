@@ -35,71 +35,12 @@
 
 #include <ElementsKernel/Exception.h>
 
+#include "SEFramework/FITS/FitsFile.h"
 #include "SEUtils/VariantCast.h"
+
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
-
-/**
- * Cast a string to a C++ type depending on the format of the content.
- * - if only digits are present, it will be casted to int64_t
- * - if it matches the regex (one dot and/or exponent present), it will be casted to double
- * - if there is one single character, it will be casted to char
- * - anything else will be casted to std::string, removing simple quotes if necessary
- */
-template <typename T>
-static typename FitsImageSource<T>::MetadataEntry::value_t valueAutoCast(const std::string& value) {
-  boost::regex float_regex("^[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?$");
-
-  size_t ndigits = 0;
-  for (auto c : value) {
-    ndigits += std::isdigit(c);
-  }
-
-  if (value.empty()) {
-    return value;
-  }
-  else if (ndigits == value.size()) {
-    return std::stol(value);
-  }
-  else if (boost::regex_match(value, float_regex)) {
-    return std::stod(value);
-  }
-  else if (value.size() == 1) {
-    return value.at(0);
-  }
-  std::stringstream quoted(value);
-  std::string unquoted;
-  quoted >> boost::io::quoted(unquoted, '\'', '\'');
-  return unquoted;
-}
-
-template<typename T>
-auto FitsImageSource<T>::loadFitsHeader(fitsfile *fptr) -> std::map<std::string, MetadataEntry> {
-  std::map<std::string, MetadataEntry> headers;
-  char record[81];
-  int keynum = 1, status = 0;
-
-  fits_read_record(fptr, keynum, record, &status);
-  while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/ (.*))?");
-    std::string record_str(record);
-
-    boost::smatch sub_matches;
-    if (boost::regex_match(record_str, sub_matches, regex)) {
-      auto keyword = boost::to_upper_copy(sub_matches[1].str());
-      auto value = sub_matches[2].str();
-      auto comment = sub_matches[4].str();
-      boost::trim(keyword);
-      boost::trim(value);
-      boost::trim(comment);
-      headers.emplace(keyword, MetadataEntry{valueAutoCast<T>(value), {{"comment", comment}}});
-    }
-    fits_read_record(fptr, ++keynum, record, &status);
-  }
-
-  return headers;
-}
 
 template<typename T>
 FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
@@ -109,7 +50,8 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
   int bitpix, naxis;
   long naxes[2] = {1,1};
 
-  auto fptr = m_manager->getFitsFile(filename);
+  m_fits_file = m_manager->getFitsFile(filename);
+  auto fptr = m_fits_file->getFitsFilePtr();
 
   if (m_hdu_number <= 0) {
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
@@ -127,9 +69,6 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
 
   m_width = naxes[0];
   m_height = naxes[1];
-
-  m_header = loadFitsHeader(fptr);
-  loadHeadFile();
 }
 
 
@@ -184,14 +123,16 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int width, int 
     }
   }
 
-  auto fptr = m_manager->getFitsFile(filename, true);
+  // Reopens the newly created file through theFitsFileManager
+  m_fits_file = m_manager->getFitsFile(filename, true);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 }
 
 
 template<typename T>
 std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int width, int height) const {
-  auto fptr = m_manager->getFitsFile(m_filename);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   auto tile = std::make_shared<ImageTile<T>>((const_cast<FitsImageSource *>(this))->shared_from_this(), x, y, width,
@@ -215,7 +156,7 @@ std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int
 
 template<typename T>
 void FitsImageSource<T>::saveTile(ImageTile<T>& tile) {
-  auto fptr = m_manager->getFitsFile(m_filename, true);
+  auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   auto image = tile.getImage();
@@ -252,60 +193,14 @@ void FitsImageSource<T>::switchHdu(fitsfile *fptr, int hdu_number) const {
 }
 
 
-template<typename T>
-void FitsImageSource<T>::loadHeadFile() {
-  auto filename = boost::filesystem::path(m_filename);
-  auto base_name = filename.stem();
-  base_name.replace_extension(".head");
-  auto head_filename = filename.parent_path() / base_name;
-
-  int current_hdu = 1;
-
-  if (boost::filesystem::exists(head_filename)) {
-    std::ifstream file;
-
-    // open the file and check
-    file.open(head_filename.native());
-    if (!file.good() || !file.is_open()) {
-      throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
-    }
-
-    while (file.good()) {
-      std::string line;
-      std::getline(file, line);
-
-      static boost::regex regex_blank_line("\\s*$");
-      line = boost::regex_replace(line, regex_blank_line, std::string(""));
-      if (line.size() == 0) {
-        continue;
-      }
-
-      if (boost::to_upper_copy(line) == "END") {
-        current_hdu++;
-      }
-      else if (current_hdu == m_hdu_number) {
-        static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
-        boost::smatch sub_matches;
-        if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
-          auto keyword = boost::to_upper_copy(sub_matches[1].str());
-          auto value = sub_matches[2].str();
-          auto comment = sub_matches[4].str();
-          boost::trim(keyword);
-          boost::trim(value);
-          boost::trim(comment);
-          m_header[keyword] = MetadataEntry{valueAutoCast<T>(value), {{"comment", comment}}};
-        }
-      }
-    }
-  }
-}
 
 template<typename T>
 std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;
   std::string records;
 
-  for (auto record : m_header) {
+  auto& headers = getMetadata();
+  for (auto record : headers) {
     auto key = record.first;
 
     std::string record_string(key);
@@ -315,11 +210,11 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
-    if (m_header.at(key).m_value.type() == typeid(std::string)) {
-      record_string += "= '" + VariantCast<std::string>(m_header.at(key).m_value) + "'";
+    if (headers.at(key).m_value.type() == typeid(std::string)) {
+      record_string += "= '" + VariantCast<std::string>(headers.at(key).m_value) + "'";
     }
     else {
-      record_string += "= " + VariantCast<std::string>(m_header.at(key).m_value);
+      record_string += "= " + VariantCast<std::string>(headers.at(key).m_value);
     }
 
     if (record_string.size() > 80) {
@@ -365,11 +260,6 @@ int FitsImageSource<long long>::getDataType() const { return TLONGLONG; }
 
 template <>
 int FitsImageSource<double>::getImageType() const { return DOUBLE_IMG; }
-
-template<typename T>
-auto FitsImageSource<T>::getMetadata() const -> std::map<std::string, MetadataEntry> {
-  return m_header;
-}
 
 template <>
 int FitsImageSource<float>::getImageType() const { return FLOAT_IMG; }
