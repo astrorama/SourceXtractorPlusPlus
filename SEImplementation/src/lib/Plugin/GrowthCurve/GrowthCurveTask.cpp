@@ -109,13 +109,16 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
         auto dx = x - centroid_x;
         auto dy = y - centroid_y;
         double r = std::sqrt(dx * dx + dy * dy);
-        auto aperture_idx = static_cast<size_t>(r / step_size);
-        // Consider previous and following rings
+        // The pixel may be affected by multiple rings, so we look for those
+        // that overlap the start and the end of the pixels (which has size sqrt(2) on the diagonal)
         size_t idx = 0;
-        if (aperture_idx > 0)
-          idx = aperture_idx - 1;
+        if (r > 1.42 / 2.) {
+          idx = static_cast<size_t>((r - 1.42 / 2.) / step_size);
+        }
+        size_t outer_idx = static_cast<size_t>(std::ceil((r + 1.42 / 2.) / step_size));
+
         double inner = 0;
-        for (; idx <= aperture_idx + 1; ++idx) {
+        for (; idx <= outer_idx; ++idx) {
           if (idx < apertures.size()) {
             auto& aperture = apertures[idx];
             auto area = aperture.getArea(centroid_x, centroid_y, x, y);
