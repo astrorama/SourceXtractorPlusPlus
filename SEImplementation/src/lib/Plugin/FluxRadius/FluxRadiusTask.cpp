@@ -44,7 +44,7 @@ void FluxRadiusTask::computeProperties(SourceInterface& source) const {
     }
 
     for (size_t j = 0; j < m_flux_fraction.size(); ++j) {
-      auto target_flux = growth_curve.back() * m_flux_fraction[j];
+      auto target_flux = std::max(0., growth_curve.back() * m_flux_fraction[j]);
 
       // We can not use Alexandria's interpolation because the accumulated flux is not
       // strictly increasing, so we search for the first bin where the accumulated flux is
@@ -69,7 +69,7 @@ void FluxRadiusTask::computeProperties(SourceInterface& source) const {
 
       SeFloat slope = (y1 - y0) / (x1 - x0);
       SeFloat target_radius = y0 + (target_flux - x0) * slope;
-      radii.at(i, j) = target_radius;
+      radii.at(i, j) = std::min(target_radius, static_cast<SeFloat>(steps.back()));
     }
   }
   source.setProperty<FluxRadius>(std::move(radii));
