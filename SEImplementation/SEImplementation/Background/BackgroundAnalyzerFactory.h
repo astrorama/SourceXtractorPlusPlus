@@ -36,6 +36,7 @@ class BackgroundAnalyzerFactory  : public Configurable {
 public:
   /// Destructor
   virtual ~BackgroundAnalyzerFactory() = default;
+  BackgroundAnalyzerFactory(): m_legacy(false) {}
 
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer() const;
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer(WeightImageConfig::WeightType weight_type) const;

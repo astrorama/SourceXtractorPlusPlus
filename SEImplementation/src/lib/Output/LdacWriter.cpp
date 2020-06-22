@@ -31,7 +31,7 @@ using namespace Euclid::Table;
 
 
 LdacWriter::LdacWriter(const std::string& filename, ConfigManager& manager)
-  : m_config_manager(manager), m_filename(filename) {
+  : m_config_manager(manager), m_filename(filename), m_rms(0) {
 }
 
 void LdacWriter::addComment(const std::string& comment) {

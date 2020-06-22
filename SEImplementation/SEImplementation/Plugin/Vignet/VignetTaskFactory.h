@@ -24,12 +24,13 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
 #define _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
 
+#include <limits>
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SourceXtractor {
 class VignetTaskFactory : public TaskFactory {
 public:
-  VignetTaskFactory() {}
+  VignetTaskFactory():m_vignet_default_pixval(std::numeric_limits<double>::quiet_NaN()) {}
 
   virtual ~VignetTaskFactory() = default;
 
