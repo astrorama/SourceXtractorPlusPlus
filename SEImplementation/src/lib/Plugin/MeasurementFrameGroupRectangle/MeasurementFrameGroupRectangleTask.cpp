@@ -21,14 +21,12 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <iostream>
-#include <mutex>
-#include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
+#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+
 #include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h>
 #include <SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangleTask.h>
-#include <SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h>
-#include <SEFramework/Property/DetectionFrame.h>
-
 
 namespace SourceXtractor {
 
@@ -36,7 +34,7 @@ void MeasurementFrameGroupRectangleTask::computeProperties(SourceGroupInterface&
   auto frame = group.begin()->getProperty<MeasurementFrame>(m_instance).getFrame();
   auto frame_coordinates = frame->getCoordinateSystem();
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
-  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   // Get the coordinates of the detection frame group stamp
   auto stamp_top_left = detection_group_stamp.getTopLeft();

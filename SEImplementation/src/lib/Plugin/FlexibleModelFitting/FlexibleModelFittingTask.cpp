@@ -40,12 +40,12 @@
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
@@ -178,7 +178,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   auto frame_coordinates =
     group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
   auto ref_coordinates =
-    group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+    group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto psf_property = group.getProperty<PsfProperty>(frame_index);

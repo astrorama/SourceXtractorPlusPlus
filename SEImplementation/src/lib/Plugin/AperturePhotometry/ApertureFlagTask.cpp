@@ -21,21 +21,22 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <iostream>
-
-#include "SEFramework/Aperture/CircularAperture.h"
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEFramework/Aperture/NeighbourInfo.h"
 #include "SEFramework/Source/SourceFlags.h"
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEFramework/Aperture/CircularAperture.h"
+#include "SEFramework/Aperture/NeighbourInfo.h"
+
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
-#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
+#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
 #include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "SEImplementation/Plugin/SourceFlags/SourceFlags.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
 
 namespace SourceXtractor {
 
@@ -45,16 +46,16 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 }
 
 void ApertureFlagTask::computeProperties(SourceInterface &source) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  // get the detection frame info
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
+  const auto variance_threshold = detection_frame_info.getVarianceThreshold();
 
-  // get the detection frame
-  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
+  // get detection frame images
+  const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
 
-  // get the images and image information from the frame
-  const auto& detection_image = detection_frame->getSubtractedImage();
-  const auto& detection_variance = detection_frame->getVarianceMap();
-  const auto& variance_threshold = detection_frame->getVarianceThreshold();
-  const auto& threshold_image = detection_frame->getThresholdedImage();
+  const auto detection_image = detection_frame_images.getLockedImage(LayerSubtractedImage);
+  const auto detection_variance = detection_frame_images.getLockedImage(LayerVarianceMap);
+  const auto threshold_image = detection_frame_images.getLockedImage(LayerThresholdedImage);
 
   // get the object center
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();

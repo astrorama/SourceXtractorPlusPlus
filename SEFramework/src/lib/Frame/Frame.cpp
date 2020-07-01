@@ -62,6 +62,43 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
   }
 }
 
+template<typename T>
+std::shared_ptr<Image<T>> Frame<T>::getImage(FrameImageLayer layer) const {
+  // FIXME replace switch with a better system
+  switch(layer) {
+  default:
+  case LayerOriginalImage:
+    return getOriginalImage();
+    break;
+  case LayerInterpolatedImage:
+    return getInterpolatedImage();
+    break;
+  case LayerSubtractedImage:
+    return getSubtractedImage();
+    break;
+  case LayerFilteredImage:
+    return getFilteredImage();
+    break;
+  case LayerThresholdedImage:
+    return getThresholdedImage();
+    break;
+  case LayerSignalToNoiseMap:
+    return getSnrImage();
+    break;
+  case LayerOriginalVarianceMap:
+    return getOriginalVarianceMap();
+    break;
+  case LayerUnfilteredVarianceMap:
+    return getUnfilteredVarianceMap();
+    break;
+  case LayerVarianceMap:
+    return getVarianceMap();
+    break;
+  case LayerDetectionThresholdMap:
+    return getDetectionThresholdMap();
+    break;
+  }
+}
 
 template<typename T>
 std::shared_ptr<Image<T>> Frame<T>::getInterpolatedImage() const {

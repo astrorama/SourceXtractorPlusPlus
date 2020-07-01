@@ -21,14 +21,12 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <iostream>
-#include <mutex>
-#include <SEFramework/Property/DetectionFrame.h>
 #include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
+#include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTask.h>
-#include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
-
 
 namespace SourceXtractor {
 
@@ -36,7 +34,7 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   auto frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
   auto frame_coordinates = frame->getCoordinateSystem();
   auto& detection_group_stamp = source.getProperty<PixelBoundaries>();
-  auto detection_frame_coordinates = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+  auto detection_frame_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   // Get the coordinates of the detection frame group stamp
   auto stamp_top_left = detection_group_stamp.getMin();

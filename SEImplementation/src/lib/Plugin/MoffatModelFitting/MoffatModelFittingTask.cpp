@@ -71,7 +71,8 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
-#include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
@@ -221,9 +222,9 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
     weight->at(pixel.m_x, pixel.m_y) = 1;
   }
 
-  auto frame = source.getProperty<DetectionFrame>().getFrame();
-  SeFloat gain = frame->getGain();
-  SeFloat saturation = frame->getSaturation();
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
+  SeFloat gain = detection_frame_info.getGain();
+  SeFloat saturation = detection_frame_info.getSaturation();
 
   for (int y=0; y < source_stamp.getHeight(); y++) {
     for (int x=0; x < source_stamp.getWidth(); x++) {
@@ -282,7 +283,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
     }
   }
 
-  auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+  auto coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   SeFloat x = stamp_top_left.m_x + source_model->x->getValue() - 0.5f;
   SeFloat y = stamp_top_left.m_y + source_model->y->getValue() - 0.5f;

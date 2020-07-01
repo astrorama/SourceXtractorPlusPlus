@@ -22,13 +22,15 @@
  * @author mkuemmel@usm.lmu.de
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
-#include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+
 #include "SEImplementation/Plugin/Vignet/Vignet.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/Vignet/VignetSourceTask.h"
 
 namespace SourceXtractor {
@@ -42,14 +44,14 @@ void VignetSourceTask::computeProperties(SourceInterface& source) const {
   const auto& measurement_var_threshold = measurement_frame->getVarianceThreshold();
 
   // neighbor masking from the detection image
-  const auto& detection_frame = source.getProperty<DetectionFrame>().getFrame();
-  const auto& detection_thresh_image = detection_frame->getThresholdedImage();
+  const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
+  const auto& detection_thresh_image = detection_frame_images.getLockedImage(LayerThresholdedImage);
 
   // get the object pixel coordinates from the detection image
   const auto& pixel_coords = source.getProperty<PixelCoordinateList>();
 
   // coordinate systems
-  auto detection_coordinate_system = detection_frame->getCoordinateSystem();
+  auto detection_coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
   auto measurement_coordinate_system = measurement_frame->getCoordinateSystem();
 
   // get the central pixel coord

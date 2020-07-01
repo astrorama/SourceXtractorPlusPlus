@@ -38,6 +38,7 @@
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -94,12 +95,13 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
   auto detection_frame = std::make_shared<DetectionImageFrame>(
     image, nullptr, 10, std::make_shared<DummyCoordinateSystem>(), 1, 65000, 1);
 
-  source->setProperty<DetectionFrameSourceStamp>(image, image, PixelCoordinate(0,0), variance_image, variance_image);
+  source->setProperty<DetectionFrameSourceStamp>(image, image, image, PixelCoordinate(0,0), variance_image, variance_image);
   source->setProperty<PixelCentroid>(13, 12);
   source->setProperty<ShapeParameters>(10, 10, 0, 0, 0, 0, 0, 0);
   source->setProperty<IsophotalFlux>(500., 0., 1., 0.);
   source->setProperty<PixelCoordinateList>(pixel_coordinates);
   source->setProperty<DetectionFrame>(detection_frame);
+  source->setProperty<DetectionFrameCoordinates>(std::make_shared<DummyCoordinateSystem>());
 
   model_fitting_task->computeProperties(*source);
 

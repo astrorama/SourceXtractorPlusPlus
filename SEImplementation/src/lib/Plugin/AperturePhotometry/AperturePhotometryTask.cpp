@@ -21,22 +21,25 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
+
+#include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
-#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
-#include "SEFramework/Aperture/CircularAperture.h"
 
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 namespace SourceXtractor {
 
