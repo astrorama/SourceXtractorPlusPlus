@@ -15,37 +15,29 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-/**
- * @file VignetTaskFactory.h
- *
- * @date Jan 17, 2020
- * @author mkuemmel@usm.lmu.de
- */
-#ifndef _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVETASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVETASKFACTORY_H_
 
-#include <limits>
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SourceXtractor {
-class VignetTaskFactory : public TaskFactory {
-public:
-  VignetTaskFactory():m_vignet_default_pixval(std::numeric_limits<double>::quiet_NaN()) {}
 
-  virtual ~VignetTaskFactory() = default;
+class GrowthCurveTaskFactory: public TaskFactory {
+public:
+  virtual ~GrowthCurveTaskFactory() = default;
+
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  // TaskFactory implementation
-  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
-
 private:
-  std::array<int, 2> m_vignet_size;
-  double m_vignet_default_pixval;
+  int m_nsamples;
+  bool m_use_symmetry;
   std::vector<unsigned> m_images;
-}; // end of VignetTaskFactory class
+};
 
-}  // namespace SourceXtractor
-#endif /* _SEIMPLEMENTATION_PLUGIN_VIGNETTASKFACTORY_H_ */
+} // end of namespace SourceXtractor
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVETASKFACTORY_H_ */

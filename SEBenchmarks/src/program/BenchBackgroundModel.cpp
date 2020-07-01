@@ -106,7 +106,8 @@ private:
   }
 
 public:
-  BenchBackgroundModel() : m_detection_config(config_manager_id), m_weight_config(config_manager_id) {
+  BenchBackgroundModel() : m_detection_config(config_manager_id), m_weight_config(config_manager_id),
+                           m_algorithm(Algorithm::SIMPLE) {
   }
 
   po::options_description defineSpecificProgramOptions() override {

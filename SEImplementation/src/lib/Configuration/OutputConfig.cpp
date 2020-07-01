@@ -45,7 +45,8 @@ static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
   {"FITS_LDAC", OutputConfig::OutputFileFormat::FITS_LDAC}
 };
 
-OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII) {
+OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII),
+                                              m_flush_size(100) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getProgramOptions() {
