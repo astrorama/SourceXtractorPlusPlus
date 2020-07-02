@@ -19,50 +19,16 @@
 #define _SEIMPLEMENTATION_PLUGIN_DETECTIONFRAMEIMAGES_DETECTIONFRAMEIMAGES_H_
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageChunk.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Frame/Frame.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+#include "SEImplementation/Image/LockedImage.h"
 
 
 namespace SourceXtractor {
-
-template <typename T>
-class LockedImage: public ImageBase<T> {
-protected:
-  LockedImage(std::shared_ptr<const Image<T>> img) : m_img{img}, m_lock(MultithreadedMeasurement::g_global_mutex) {
-  }
-
-public:
-  template<typename... Args>
-  static std::shared_ptr<LockedImage<T>> create(Args &&... args) {
-    return std::shared_ptr<LockedImage<T>>(new LockedImage{std::forward<Args>(args)...});
-  }
-
-  std::string getRepr() const override {
-    return "LockedImage(" + m_img->getRepr() + ")";
-  }
-
-  int getWidth() const override {
-    return m_img->getWidth();
-  }
-
-  int getHeight() const override {
-    return m_img->getHeight();
-  }
-
-  T getValue(int x, int y) const override {
-    return m_img->getValue(x, y);
-  }
-
-private:
-  std::shared_ptr<const Image<T>> m_img;
-  std::lock_guard<std::recursive_mutex> m_lock;
-};
 
 class DetectionFrameImages : public Property {
 

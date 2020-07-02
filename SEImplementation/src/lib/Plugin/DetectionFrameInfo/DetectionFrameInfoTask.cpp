@@ -29,7 +29,8 @@ void DetectionFrameInfoTask::computeProperties(SourceInterface& source) const {
   auto height = detection_frame->getOriginalImage()->getHeight();
 
   source.setProperty<DetectionFrameInfo>(width, height,
-      detection_frame->getGain(), detection_frame->getSaturation(), detection_frame->getVarianceThreshold());
+      detection_frame->getGain(), detection_frame->getSaturation(),
+      detection_frame->getVarianceThreshold(), detection_frame->getBackgroundMedianRms());
 }
 
 } // SEImplementation namespace

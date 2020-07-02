@@ -67,7 +67,7 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
     for (auto& source_pixels : merged) {
       auto new_source = m_source_factory->createSource();
       new_source->setProperty<PixelCoordinateList>(source_pixels);
-      new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
+      new_source->setProperty<DetectionFrame>(detection_frame.getEncapsulatedFrame());
 
       sources.push_back(new_source);
     }

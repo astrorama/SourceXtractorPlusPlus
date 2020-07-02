@@ -57,11 +57,16 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
   auto width = max.m_x - min.m_x +1;
   auto height = max.m_y - min.m_y + 1;
 
-  std::shared_ptr<DetectionImage> stamp = detection_frame_images.getImageChunk(LayerSubtractedImage, min.m_x, min.m_y, width, height);
-  std::shared_ptr<DetectionImage> filtered_stamp = detection_frame_images.getImageChunk(LayerFilteredImage, min.m_x, min.m_y, width, height);
-  std::shared_ptr<DetectionImage> thresholded_stamp = detection_frame_images.getImageChunk(LayerThresholdedImage, min.m_x, min.m_y, width, height);
-  std::shared_ptr<WeightImage> variance_stamp = detection_frame_images.getImageChunk(LayerVarianceMap, min.m_x, min.m_y, width, height);
-  std::shared_ptr<DetectionImage> threshold_map_stamp = detection_frame_images.getImageChunk(LayerDetectionThresholdMap, min.m_x, min.m_y, width, height);
+  std::shared_ptr<DetectionImage> stamp = VectorImage<DetectionImage::PixelType>::create(
+      *detection_frame_images.getImageChunk(LayerSubtractedImage, min.m_x, min.m_y, width, height));
+  std::shared_ptr<DetectionImage> filtered_stamp = VectorImage<DetectionImage::PixelType>::create(
+      *detection_frame_images.getImageChunk(LayerFilteredImage, min.m_x, min.m_y, width, height));
+  std::shared_ptr<DetectionImage> thresholded_stamp = VectorImage<DetectionImage::PixelType>::create(
+      *detection_frame_images.getImageChunk(LayerThresholdedImage, min.m_x, min.m_y, width, height));
+  std::shared_ptr<WeightImage> variance_stamp = VectorImage<WeightImage::PixelType>::create(
+      *detection_frame_images.getImageChunk(LayerVarianceMap, min.m_x, min.m_y, width, height));
+  std::shared_ptr<DetectionImage> threshold_map_stamp = VectorImage<DetectionImage::PixelType>::create(
+      *detection_frame_images.getImageChunk(LayerDetectionThresholdMap, min.m_x, min.m_y, width, height));
 
   source.setProperty<DetectionFrameSourceStamp>(stamp, filtered_stamp, thresholded_stamp, min, variance_stamp, threshold_map_stamp);
 }

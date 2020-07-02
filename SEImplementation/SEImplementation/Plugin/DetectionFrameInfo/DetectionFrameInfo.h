@@ -30,9 +30,11 @@ class DetectionFrameInfo : public Property {
 public:
   virtual ~DetectionFrameInfo() = default;
 
-  DetectionFrameInfo(int width, int height, double gain, double saturation, double variance_threshold)
+  DetectionFrameInfo(int width, int height, double gain, double saturation,
+      double variance_threshold, double background_median_rms)
       : m_width(width), m_height(height),
-        m_gain(gain), m_saturation(saturation), m_variance_threshold(variance_threshold) {}
+        m_gain(gain), m_saturation(saturation),
+        m_variance_threshold(variance_threshold), m_background_median_rms(background_median_rms) {}
 
   double getGain() const {
     return m_gain;
@@ -54,6 +56,10 @@ public:
     return m_variance_threshold;
   }
 
+  SeFloat getBackgroundMedianRms() const {
+    return m_background_median_rms;
+  }
+
 private:
   int m_width;
   int m_height;
@@ -62,6 +68,7 @@ private:
   double m_saturation;
 
   double m_variance_threshold;
+  double m_background_median_rms;
 };
 
 }
