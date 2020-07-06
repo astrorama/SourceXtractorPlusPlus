@@ -18,6 +18,8 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEINFO_MEASUREMENTFRAMEINFO_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEINFO_MEASUREMENTFRAMEINFO_H_
 
+#include "SEUtils/Types.h"
+
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
@@ -28,11 +30,45 @@ class MeasurementFrameInfo : public Property {
 public:
   virtual ~MeasurementFrameInfo() = default;
 
-  MeasurementFrameInfo()
-      {}
+  MeasurementFrameInfo(int width, int height, double gain, double saturation,
+      double variance_threshold, double background_median_rms)
+      : m_width(width), m_height(height),
+        m_gain(gain), m_saturation(saturation),
+        m_variance_threshold(variance_threshold), m_background_median_rms(background_median_rms) {}
 
+  double getGain() const {
+    return m_gain;
+  }
+
+  double getSaturation() const {
+    return m_saturation;
+  }
+
+  int getWidth() const {
+    return m_width;
+  }
+
+  int getHeight() const {
+    return m_height;
+  }
+
+  SeFloat getVarianceThreshold() const {
+    return m_variance_threshold;
+  }
+
+  SeFloat getBackgroundMedianRms() const {
+    return m_background_median_rms;
+  }
 
 private:
+  int m_width;
+  int m_height;
+
+  double m_gain;
+  double m_saturation;
+
+  double m_variance_threshold;
+  double m_background_median_rms;
 
 };
 

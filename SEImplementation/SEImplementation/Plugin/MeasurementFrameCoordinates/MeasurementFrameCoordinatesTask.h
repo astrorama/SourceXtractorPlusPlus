@@ -36,13 +36,16 @@ public:
   virtual ~MeasurementFrameCoordinatesTask() = default;
 
   /// Constructor
-  MeasurementFrameCoordinatesTask() {}
+  MeasurementFrameCoordinatesTask(unsigned int instance) : m_instance(instance) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
+
+private:
+  unsigned int m_instance;
 
 }; /* End of MeasurementFrameCoordinatesTask class */
 
 }
 
 
-#endif /* SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMECOORDINATES_MEASUREMENTFRAMECOORDINATESTASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMECOORDINATES_MEASUREMENTFRAMECOORDINATESTASK_H_ */

@@ -23,7 +23,6 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Frame/Frame.h"
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 #include "SEImplementation/Image/LockedImage.h"
 

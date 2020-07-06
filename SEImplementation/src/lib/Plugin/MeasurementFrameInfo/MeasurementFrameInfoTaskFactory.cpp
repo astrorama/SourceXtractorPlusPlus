@@ -25,9 +25,8 @@ using namespace Euclid::Configuration;
 namespace SourceXtractor {
 
 std::shared_ptr<Task> MeasurementFrameInfoTaskFactory::createTask(const PropertyId& property_id) const {
-
-  if (property_id == PropertyId::create<MeasurementFrameInfo>()) {
-    return std::make_shared<MeasurementFrameInfoTask>();
+  if (property_id.getTypeId() == PropertyId::create<MeasurementFrameInfo>().getTypeId()) {
+    return std::make_shared<MeasurementFrameInfoTask>(property_id.getIndex());
   } else {
     return nullptr;
   }

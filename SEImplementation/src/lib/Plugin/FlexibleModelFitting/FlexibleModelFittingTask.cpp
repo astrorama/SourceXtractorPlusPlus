@@ -40,7 +40,11 @@
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+
+
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
@@ -116,38 +120,29 @@ bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int fra
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createImageCopy(
   SourceGroupInterface& group, int frame_index) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_image = frame->getSubtractedImage();
-
+  const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-  auto image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-  for (int y = 0; y < rect.getHeight(); y++) {
-    for (int x = 0; x < rect.getWidth(); x++) {
-      image->at(x, y) = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-    }
-  }
+  auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
+      LayerSubtractedImage, rect.getTopLeft().m_x, rect.getTopLeft().m_y, rect.getWidth(), rect.getHeight()));
 
   return image;
 }
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImage(
   SourceGroupInterface& group, int frame_index) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
 
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_image = frame->getSubtractedImage();
-  auto frame_image_thresholded = frame->getThresholdedImage();
-  auto variance_map = frame->getVarianceMap();
+  auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
+  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
+  auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+
+  const auto& frame_info = group.begin()->getProperty<MeasurementFrameInfo>(frame_index);
+  SeFloat gain = frame_info.getGain();
+  SeFloat saturation = frame_info.getSaturation();
 
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   std::fill(weight->getData().begin(), weight->getData().end(), 1);
-
-  auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  SeFloat gain = measurement_frame->getGain();
-  SeFloat saturation = measurement_frame->getSaturation();
 
   for (int y = 0; y < rect.getHeight(); y++) {
     for (int x = 0; x < rect.getWidth(); x++) {
@@ -176,7 +171,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates =
-    group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+    group.begin()->getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates =
     group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
@@ -376,20 +371,21 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       auto final_stamp = frame_model.getImage();
 
       auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
-      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
-      if (debug_image) {
-        std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
-        for (int x = 0; x < final_stamp->getWidth(); x++) {
-          for (int y = 0; y < final_stamp->getHeight(); y++) {
-            auto x_coord = stamp_rect.getTopLeft().m_x + x;
-            auto y_coord = stamp_rect.getTopLeft().m_y + y;
-            debug_image->setValue(x_coord, y_coord,
-                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
-          }
-        }
-      }
+      //FIXME checkimages should not require a frame
+//      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
+//      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
+//      if (debug_image) {
+//        std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
+//        for (int x = 0; x < final_stamp->getWidth(); x++) {
+//          for (int y = 0; y < final_stamp->getHeight(); y++) {
+//            auto x_coord = stamp_rect.getTopLeft().m_x + x;
+//            auto y_coord = stamp_rect.getTopLeft().m_y + y;
+//            debug_image->setValue(x_coord, y_coord,
+//                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+//          }
+//        }
+//      }
     }
     frame_id++;
   }

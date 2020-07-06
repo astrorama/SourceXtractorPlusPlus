@@ -36,13 +36,16 @@ public:
   virtual ~MeasurementFrameImagesTask() = default;
 
   /// Constructor
-  MeasurementFrameImagesTask() {}
+  MeasurementFrameImagesTask(unsigned int instance) : m_instance(instance) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
+
+private:
+  unsigned int m_instance;
 
 }; /* End of MeasurementFrameImagesTask class */
 
 }
 
 
-#endif /* SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEIMAGES_MEASUREMENTFRAMEIMAGESTASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEIMAGES_MEASUREMENTFRAMEIMAGESTASK_H_ */

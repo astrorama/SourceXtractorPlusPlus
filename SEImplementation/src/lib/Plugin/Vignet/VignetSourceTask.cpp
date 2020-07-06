@@ -22,9 +22,10 @@
  * @author mkuemmel@usm.lmu.de
  */
 
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>
+#include <SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h>
+#include <SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h>
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
@@ -35,13 +36,13 @@
 
 namespace SourceXtractor {
 void VignetSourceTask::computeProperties(SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
 
-  // pixel and mask from the measurement frame
-  const auto& measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-  const auto& measurement_sub_image = measurement_frame->getSubtractedImage();
-  const auto& measurement_var_image = measurement_frame->getVarianceMap();
-  const auto& measurement_var_threshold = measurement_frame->getVarianceThreshold();
+  auto measurement_var_threshold = measurement_frame_info.getVarianceThreshold();
+
+  const auto measurement_sub_image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
+  const auto measurement_var_image = measurement_frame_images.getLockedImage(LayerVarianceMap);
 
   // neighbor masking from the detection image
   const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
@@ -52,7 +53,7 @@ void VignetSourceTask::computeProperties(SourceInterface& source) const {
 
   // coordinate systems
   auto detection_coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
-  auto measurement_coordinate_system = measurement_frame->getCoordinateSystem();
+  auto measurement_coordinate_system = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
 
   // get the central pixel coord
   const auto& centroid = source.getProperty<MeasurementFramePixelCentroid>(m_instance);

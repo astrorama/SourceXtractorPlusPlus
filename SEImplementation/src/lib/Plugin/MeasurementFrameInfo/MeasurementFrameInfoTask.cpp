@@ -24,8 +24,13 @@
 namespace SourceXtractor {
 
 void MeasurementFrameInfoTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<MeasurementFrame>().getFrame();
-  source.setProperty<MeasurementFrameInfo>();
+  auto frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
+  auto width = frame->getOriginalImage()->getWidth();
+  auto height = frame->getOriginalImage()->getHeight();
+
+  source.setIndexedProperty<MeasurementFrameInfo>(m_instance, width, height,
+      frame->getGain(), frame->getSaturation(),
+      frame->getVarianceThreshold(), frame->getBackgroundMedianRms());
 }
 
 } // SEImplementation namespace

@@ -18,8 +18,13 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEIMAGES_MEASUREMENTFRAMEIMAGES_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEIMAGES_MEASUREMENTFRAMEIMAGES_H_
 
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
+
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/Frame/Frame.h"
+
+#include "SEImplementation/Image/LockedImage.h"
 
 namespace SourceXtractor {
 
@@ -28,16 +33,32 @@ class MeasurementFrameImages : public Property {
 public:
   virtual ~MeasurementFrameImages() = default;
 
-  MeasurementFrameImages(std::shared_ptr<CoordinateSystem> coordinate_system)
-      : m_coordinate_system(coordinate_system) {}
+  MeasurementFrameImages( std::shared_ptr<MeasurementImageFrame> frame, int width, int height)
+    : m_width(width), m_height(height), m_frame(frame) {}
 
-  const std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
-    return m_coordinate_system;
+  std::shared_ptr<Image<SeFloat>> getLockedImage(FrameImageLayer layer) const {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+    return LockedImage<SeFloat>::create(m_frame->getImage(layer));
+  }
+
+  std::shared_ptr<ImageChunk<MeasurementImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width, int height) const {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+
+    return m_frame->getImage(layer)->getChunk(x, y, width, height);
+  }
+
+  int getWidth() const {
+    return m_width;
+  }
+
+  int getHeight() const {
+    return m_height;
   }
 
 private:
-  std::shared_ptr<CoordinateSystem> m_coordinate_system;
-
+  int m_width;
+  int m_height;
+  std::shared_ptr<MeasurementImageFrame> m_frame;
 };
 
 }

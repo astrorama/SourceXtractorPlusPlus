@@ -23,8 +23,8 @@
 namespace SourceXtractor {
 
 void MeasurementFrameCoordinatesTask::computeProperties(SourceInterface& source) const {
-  auto coordinate_system = source.getProperty<MeasurementFrame>().getFrame()->getCoordinateSystem();
-  source.setProperty<MeasurementFrameCoordinates>(coordinate_system);
+  auto coordinate_system = source.getProperty<MeasurementFrame>(m_instance).getFrame()->getCoordinateSystem();
+  source.setIndexedProperty<MeasurementFrameCoordinates>(m_instance, coordinate_system);
 }
 
 } // SEImplementation namespace

@@ -16,7 +16,7 @@
  */
 
 #include "SEFramework/Property/DetectionFrame.h"
-
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImagesTask.h"

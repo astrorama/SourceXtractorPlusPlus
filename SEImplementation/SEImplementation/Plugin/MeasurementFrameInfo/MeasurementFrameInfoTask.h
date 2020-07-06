@@ -30,19 +30,20 @@ namespace SourceXtractor {
 class MeasurementFrameInfoTask : public SourceTask {
 public:
 
-  /**
-   * @brief Destructor
-   */
+  /// Constructor
+  MeasurementFrameInfoTask(unsigned int instance) : m_instance(instance) {}
+
   virtual ~MeasurementFrameInfoTask() = default;
 
-  /// Constructor
-  MeasurementFrameInfoTask() {}
 
   virtual void computeProperties(SourceInterface& source) const override;
+
+private:
+  unsigned int m_instance;
 
 }; /* End of MeasurementFrameInfoTask class */
 
 }
 
 
-#endif /* SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEINFO_MEASUREMENTFRAMEINFOTASK_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEINFO_MEASUREMENTFRAMEINFOTASK_H_ */
