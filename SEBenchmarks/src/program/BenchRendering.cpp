@@ -244,7 +244,7 @@ public:
     auto dev_i0 = std::make_shared<ManualParameter>(1000);
 
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
-    auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
+    auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
     component_list.clear();
     component_list.emplace_back(std::move(exp));
     extended_models.emplace_back(std::make_shared<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>(

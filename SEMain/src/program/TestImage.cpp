@@ -223,7 +223,7 @@ public:
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
+      auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(
@@ -242,7 +242,7 @@ public:
           source.dev_flux * pow(10, 3.33) / (7.2 * M_PI * source.dev_rad * source.dev_rad * source.dev_aspect));
 
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
+      auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(

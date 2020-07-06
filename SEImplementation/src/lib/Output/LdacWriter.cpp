@@ -115,7 +115,7 @@ static void generateHistory(std::vector<std::string>& headers) {
 
 void LdacWriter::writeImHead() {
   auto& detection_image_config = m_config_manager.getConfiguration<DetectionImageConfig>();
-  auto imhead_writer = make_unique<FitsWriter>(m_filename, true);
+  auto imhead_writer = Euclid::make_unique<FitsWriter>(m_filename, true);
   imhead_writer->setHduName("LDAC_IMHEAD");
 
   // Headers from the image
@@ -159,7 +159,7 @@ void LdacWriter::init(const Table&) {
   writeImHead();
 
   // Initialize LDAC_OBJECTS HDU
-  m_objects_writer = make_unique<FitsWriter>(m_filename, false);
+  m_objects_writer = Euclid::make_unique<FitsWriter>(m_filename, false);
   m_objects_writer->setHduName("LDAC_OBJECTS");
   for (auto& comment: m_comments) {
     m_objects_writer->addComment(comment);

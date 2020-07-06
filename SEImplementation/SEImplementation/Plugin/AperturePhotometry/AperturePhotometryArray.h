@@ -55,11 +55,11 @@ public:
     size_t napertures = measurements.front().getFlags().size();
     std::vector<size_t> shape{nentries, napertures};
 
-    m_fluxes = make_unique<NdArray<SeFloat>>(shape);
-    m_flux_errors = make_unique<NdArray<SeFloat>>(shape);
-    m_mags = make_unique<NdArray<SeFloat>>(shape);
-    m_mag_errors = make_unique<NdArray<SeFloat>>(shape);
-    m_flags = make_unique<NdArray<int64_t>>(shape);
+    m_fluxes = Euclid::make_unique<NdArray<SeFloat>>(shape);
+    m_flux_errors = Euclid::make_unique<NdArray<SeFloat>>(shape);
+    m_mags = Euclid::make_unique<NdArray<SeFloat>>(shape);
+    m_mag_errors = Euclid::make_unique<NdArray<SeFloat>>(shape);
+    m_flags = Euclid::make_unique<NdArray<int64_t>>(shape);
 
     for (size_t entry_idx = 0; entry_idx < nentries; ++entry_idx) {
       const auto& entry = measurements[entry_idx];
