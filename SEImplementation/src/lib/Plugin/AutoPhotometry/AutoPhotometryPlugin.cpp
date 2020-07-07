@@ -42,7 +42,7 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const AutoPhotometryArray& prop){
             return prop.getFluxes();
           },
-          "[count]",
+          "count",
           "Flux within a Kron-like elliptical aperture"
           );
 
@@ -51,7 +51,7 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const AutoPhotometryArray& prop){
             return prop.getFluxErrors();
           },
-          "[count]",
+          "count",
           "Flux error within a Kron-like elliptical aperture"
           );
 
@@ -60,7 +60,7 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const AutoPhotometryArray& prop){
             return prop.getMags();
           },
-          "[count]",
+          "mag",
           "Magnitude within a Kron-like elliptical aperture"
           );
 
@@ -69,7 +69,7 @@ void AutoPhotometryPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const AutoPhotometryArray& prop){
             return prop.getMagErrors();
           },
-          "[count]",
+          "mag",
           "Magnitude error within a Kron-like elliptical aperture"
           );
 

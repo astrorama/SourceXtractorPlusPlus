@@ -47,7 +47,7 @@ public:
       [](const VignetArray& prop) {
         return prop.getVignets();
       },
-      "[]",
+      "count",
       "The object vignet data"
     );
     plugin_api.getOutputRegistry().enableOutput<VignetArray>("Vignet");

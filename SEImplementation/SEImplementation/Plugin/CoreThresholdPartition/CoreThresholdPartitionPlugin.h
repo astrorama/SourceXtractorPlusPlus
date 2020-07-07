@@ -39,7 +39,7 @@ public:
             [](const NCorePixel& prop){
               return prop.getNCorePixel();
             },
-            "[]",
+            "pixel",
             "Number of core pixels used for partitioning"
     );
     plugin_api.getOutputRegistry().enableOutput<NCorePixel>("NCorePixel");

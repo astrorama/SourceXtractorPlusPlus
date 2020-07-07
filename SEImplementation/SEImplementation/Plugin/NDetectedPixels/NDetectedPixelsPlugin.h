@@ -54,7 +54,7 @@ public:
             [](const NDetectedPixels& prop){
               return prop.getNDetectedPixels();
             },
-            "[]",
+            "pixel",
             "Total number of detected pixels"
     );
     plugin_api.getOutputRegistry().enableOutput<NDetectedPixels>("NDetectedPixels");
