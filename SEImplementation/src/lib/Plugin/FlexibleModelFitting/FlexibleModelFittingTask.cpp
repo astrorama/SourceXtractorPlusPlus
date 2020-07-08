@@ -372,20 +372,17 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
 
       auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
 
-      //FIXME checkimages should not require a frame
-//      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-//      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
-//      if (debug_image) {
-//        std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
-//        for (int x = 0; x < final_stamp->getWidth(); x++) {
-//          for (int y = 0; y < final_stamp->getHeight(); y++) {
-//            auto x_coord = stamp_rect.getTopLeft().m_x + x;
-//            auto y_coord = stamp_rect.getTopLeft().m_y + y;
-//            debug_image->setValue(x_coord, y_coord,
-//                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
-//          }
-//        }
-//      }
+      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
+      if (debug_image) {
+        for (int x = 0; x < final_stamp->getWidth(); x++) {
+          for (int y = 0; y < final_stamp->getHeight(); y++) {
+            auto x_coord = stamp_rect.getTopLeft().m_x + x;
+            auto y_coord = stamp_rect.getTopLeft().m_y + y;
+            debug_image->setValue(x_coord, y_coord,
+                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+          }
+        }
+      }
     }
     frame_id++;
   }

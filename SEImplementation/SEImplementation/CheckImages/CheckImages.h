@@ -38,6 +38,8 @@
 #include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Frame/Frame.h"
 
+#include "SEImplementation/Image/LockedWriteableImage.h"
+
 
 namespace SourceXtractor {
 
@@ -50,40 +52,60 @@ public:
   void saveImages();
 
   std::shared_ptr<WriteableImage<unsigned int>> getSegmentationImage() const {
-    return m_segmentation_image;
+    if (m_segmentation_image != nullptr) {
+      return LockedWriteableImage<unsigned int>::create(m_segmentation_image);
+    } else {
+      return nullptr;
+    }
   }
 
   std::shared_ptr<WriteableImage<unsigned int>> getPartitionImage() const {
-    return m_partition_image;
+    if (m_partition_image != nullptr) {
+      return LockedWriteableImage<unsigned int>::create(m_partition_image);
+    } else {
+      return nullptr;
+    }
   }
 
   std::shared_ptr<WriteableImage<unsigned int>> getGroupImage() const {
-    return m_group_image;
+    if (m_group_image != nullptr) {
+      return LockedWriteableImage<unsigned int>::create(m_group_image);
+    } else {
+      return nullptr;
+    }
   }
 
   std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage() const {
-    return m_auto_aperture_image;
+    if (m_auto_aperture_image != nullptr) {
+      return LockedWriteableImage<unsigned int>::create(m_auto_aperture_image);
+    } else {
+      return nullptr;
+    }
   }
 
   std::shared_ptr<WriteableImage<unsigned int>> getApertureImage() const {
-    return m_aperture_image;
+    if (m_aperture_image != nullptr) {
+      return LockedWriteableImage<unsigned int>::create(m_aperture_image);
+    } else {
+      return nullptr;
+    }
   }
 
   std::shared_ptr<WriteableImage<SeFloat>> getMoffatImage() const {
-    return m_moffat_image;
+    if (m_moffat_image != nullptr) {
+      return LockedWriteableImage<SeFloat>::create(m_moffat_image);
+    } else {
+      return nullptr;
+    }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>>
-  getAutoApertureImage(std::shared_ptr<const MeasurementImageFrame> frame);
+  std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<unsigned int>>
-  getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame);
+  std::shared_ptr<WriteableImage<unsigned int>> getApertureImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-  getModelFittingImage(std::shared_ptr<const MeasurementImageFrame> frame);
+  std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getModelFittingImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-  getPsfImage(std::shared_ptr<const MeasurementImageFrame> frame);
+  std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getPsfImage(unsigned int frame_number);
 
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
     m_background_image = background_image;
@@ -119,12 +141,16 @@ public:
     return *m_instance;
   }
 
-  std::mutex m_access_mutex;
-
 private:
   CheckImages();
 
   static std::unique_ptr<CheckImages> m_instance;
+
+  struct FrameInfo {
+    std::string m_label;
+    int m_width, m_height;
+    std::shared_ptr<CoordinateSystem> m_coordinate_system;
+  };
 
   // check image
   std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
@@ -133,9 +159,9 @@ private:
   std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
   std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
   std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
-  std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_aperture_image)> m_measurement_aperture_images;
-  std::map<std::shared_ptr<const MeasurementImageFrame>, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
-  std::map<std::shared_ptr<const MeasurementImageFrame>, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
+  std::map<unsigned int, decltype(m_aperture_image)> m_measurement_aperture_images;
+  std::map<unsigned int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
@@ -161,6 +187,10 @@ private:
   boost::filesystem::path m_psf_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
+
+  std::vector<FrameInfo> m_measurement_frames;
+
+  std::mutex m_access_mutex;
 };
 
 }

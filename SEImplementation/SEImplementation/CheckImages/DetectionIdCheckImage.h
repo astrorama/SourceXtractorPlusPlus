@@ -33,14 +33,9 @@ namespace SourceXtractor {
 class DetectionIdCheckImage : public Observer<std::shared_ptr<SourceInterface>> {
 public:
 
-  DetectionIdCheckImage(std::shared_ptr<WriteableImage<unsigned int>> check_image) :
-      m_check_image(check_image)
-      {}
+  DetectionIdCheckImage() {}
 
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source);
-
-private:
-  std::shared_ptr<WriteableImage<unsigned int>> m_check_image;
 };
 
 }

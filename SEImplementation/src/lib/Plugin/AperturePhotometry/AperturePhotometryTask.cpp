@@ -107,12 +107,11 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(m_apertures[0] / 2.),
                                                         jacobian.asTuple());
 
-  // FIXME check images should not require measurement_frame!
-//  auto aperture_check_img = CheckImages::getInstance().getApertureImage(measurement_frame);
-//  if (aperture_check_img) {
-//    auto src_id = source.getProperty<SourceID>().getId();
-//    fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
-//  }
+  auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance);
+  if (aperture_check_img) {
+    auto src_id = source.getProperty<SourceID>().getId();
+    fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+  }
 }
 
 }

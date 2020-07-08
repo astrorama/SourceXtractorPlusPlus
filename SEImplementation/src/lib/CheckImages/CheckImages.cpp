@@ -24,6 +24,7 @@
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -111,121 +112,136 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
     );
   }
+
+  // Measurement images
+  auto& measurement_images_info = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
+  for (auto& info : measurement_images_info) {
+    std::stringstream label;
+    label << boost::filesystem::basename(info.m_path) << "_" << info.m_image_hdu;
+
+    m_measurement_frames.emplace_back(FrameInfo {
+      label.str(),
+      info.m_measurement_image->getWidth(),
+      info.m_measurement_image->getHeight(),
+      info.m_coordinate_system
+    });
+  }
 }
 
-std::shared_ptr<WriteableImage<unsigned int>>
-CheckImages::getAutoApertureImage(std::shared_ptr<const MeasurementImageFrame> frame) {
+std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getAutoApertureImage(unsigned int frame_number) {
   if (m_auto_aperture_filename.empty()) {
     return nullptr;
   }
 
   std::lock_guard<std::mutex> lock{m_access_mutex};
 
-  auto i = m_measurement_auto_aperture_images.find(frame);
+  auto i = m_measurement_auto_aperture_images.find(frame_number);
   if (i == m_measurement_auto_aperture_images.end()) {
+    auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_auto_aperture_filename.stem();
-    filename += "_" + frame->getLabel();
+    filename += "_" + frame_info.m_label;
     filename.replace_extension(m_auto_aperture_filename.extension());
     auto frame_filename = m_auto_aperture_filename.parent_path() / filename;
     i = m_measurement_auto_aperture_images.emplace(
       std::make_pair(
-        frame,
+        frame_number,
         FitsWriter::newImage<unsigned int>(
           frame_filename.native(),
-          frame->getOriginalImage()->getWidth(),
-          frame->getOriginalImage()->getHeight(),
-          frame->getCoordinateSystem()
+          frame_info.m_width,
+          frame_info.m_height,
+          frame_info.m_coordinate_system
         ))).first;
   }
-  return i->second;
+  return LockedWriteableImage<unsigned int>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<unsigned int>>
-CheckImages::getApertureImage(std::shared_ptr<const MeasurementImageFrame> frame) {
+std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getApertureImage(unsigned int frame_number) {
   if (m_aperture_filename.empty()) {
     return nullptr;
   }
 
   std::lock_guard<std::mutex> lock{m_access_mutex};
 
-  auto i = m_measurement_aperture_images.find(frame);
+  auto i = m_measurement_aperture_images.find(frame_number);
   if (i == m_measurement_aperture_images.end()) {
+    auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_aperture_filename.stem();
-    filename += "_" + frame->getLabel();
+    filename += "_" + frame_info.m_label;
     filename.replace_extension(m_aperture_filename.extension());
     auto frame_filename = m_aperture_filename.parent_path() / filename;
     i = m_measurement_aperture_images.emplace(
       std::make_pair(
-        frame,
+        frame_number,
         FitsWriter::newImage<unsigned int>(
           frame_filename.native(),
-          frame->getOriginalImage()->getWidth(),
-          frame->getOriginalImage()->getHeight(),
-          frame->getCoordinateSystem()
+          frame_info.m_width,
+          frame_info.m_height,
+          frame_info.m_coordinate_system
         ))).first;
   }
-  return i->second;
+  return LockedWriteableImage<unsigned int>::create(i->second);
 }
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-CheckImages::getModelFittingImage(std::shared_ptr<const SourceXtractor::MeasurementImageFrame> frame) {
+CheckImages::getModelFittingImage(unsigned int frame_number) {
   if (m_model_fitting_image_filename.empty() && m_residual_filename.empty()) {
     return nullptr;
   }
 
   std::lock_guard<std::mutex> lock{m_access_mutex};
 
-  auto i = m_check_image_model_fitting.find(frame);
+  auto i = m_check_image_model_fitting.find(frame_number);
   if (i == m_check_image_model_fitting.end()) {
+    auto& frame_info = m_measurement_frames.at(frame_number);
     std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> writeable_image;
 
     if (m_model_fitting_image_filename.empty()) {
       writeable_image = FitsWriter::newTemporaryImage<DetectionImage::PixelType>(
         "sourcextractor_check_model_%%%%%%.fits",
-        frame->getOriginalImage()->getWidth(), frame->getOriginalImage()->getHeight()
+        frame_info.m_width, frame_info.m_height
       );
     } else {
       auto filename = m_model_fitting_image_filename.stem();
-      filename += "_" + frame->getLabel();
+      filename += "_" + frame_info.m_label;
       filename.replace_extension(m_model_fitting_image_filename.extension());
       auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
       writeable_image = FitsWriter::newImage<MeasurementImage::PixelType>(
         frame_filename.native(),
-        frame->getOriginalImage()->getWidth(),
-        frame->getOriginalImage()->getHeight(),
-        frame->getCoordinateSystem()
+        frame_info.m_width,
+        frame_info.m_height,
+        frame_info.m_coordinate_system
       );
     }
-    i = m_check_image_model_fitting.emplace(std::make_pair(frame, writeable_image)).first;
+    i = m_check_image_model_fitting.emplace(std::make_pair(frame_number, writeable_image)).first;
   }
-  return i->second;
+  return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
-CheckImages::getPsfImage(std::shared_ptr<const SourceXtractor::MeasurementImageFrame> frame) {
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsfImage(unsigned int frame_number) {
   if (m_psf_filename.empty()) {
     return nullptr;
   }
 
   std::lock_guard<std::mutex> lock{m_access_mutex};
 
-  auto i = m_check_image_psf.find(frame);
+  auto i = m_check_image_psf.find(frame_number);
   if (i == m_check_image_psf.end()) {
+    auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_psf_filename.stem();
-    filename += "_" + frame->getLabel();
+    filename += "_" + frame_info.m_label;
     filename.replace_extension(m_psf_filename.extension());
     auto frame_filename = m_psf_filename.parent_path() / filename;
     i = m_check_image_psf.emplace(
       std::make_pair(
-        frame,
+        frame_number,
         FitsWriter::newImage<MeasurementImage::PixelType>(
           frame_filename.native(),
-          frame->getOriginalImage()->getWidth(),
-          frame->getOriginalImage()->getHeight(),
-          frame->getCoordinateSystem()
+          frame_info.m_width,
+          frame_info.m_height,
+          frame_info.m_coordinate_system
         ))).first;
   }
-  return i->second;
+  return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
 }
 
 void CheckImages::saveImages() {
@@ -256,17 +272,18 @@ void CheckImages::saveImages() {
     FitsWriter::writeFile(*m_snr_image, m_snr_filename.native(), m_coordinate_system);
   }
 
-  // if possible, create and save the residual image
-  if (m_residual_filename != "") {
-    for (auto &ci : m_check_image_model_fitting) {
-      auto residual_image = SubtractImage<SeFloat>::create(ci.first->getSubtractedImage(), ci.second);
-      auto filename = m_residual_filename.stem();
-      filename += "_" + ci.first->getLabel();
-      filename.replace_extension(m_residual_filename.extension());
-      auto frame_filename = m_residual_filename.parent_path() / filename;
-      FitsWriter::writeFile(*residual_image, frame_filename.native(), ci.first->getCoordinateSystem());
-    }
-  }
+  // FIXME temporarily disable residuals
+//  // if possible, create and save the residual image
+//  if (m_residual_filename != "") {
+//    for (auto &ci : m_check_image_model_fitting) {
+//      auto residual_image = SubtractImage<SeFloat>::create(ci.first->getSubtractedImage(), ci.second);
+//      auto filename = m_residual_filename.stem();
+//      filename += "_" + ci.first->getLabel();
+//      filename.replace_extension(m_residual_filename.extension());
+//      auto frame_filename = m_residual_filename.parent_path() / filename;
+//      FitsWriter::writeFile(*residual_image, frame_filename.native(), ci.first->getCoordinateSystem());
+//    }
+//  }
 
   for (auto const& entry : m_custom_images) {
     if (std::get<1>(entry.second)) {

@@ -61,21 +61,17 @@ void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) con
   auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
   group.setIndexedProperty<PsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
 
-  // FIXME check image disabled due to measurementframe dependency
-//  // Check image
-//  if (group.size()) {
-//    auto& frame = group.begin()->getProperty<MeasurementFrame>(m_instance);
-//    auto check_image = CheckImages::getInstance().getPsfImage(frame.getFrame());
-//    if (check_image) {
-//      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-//
-//      auto x = component_value_getters["X_IMAGE"](group, m_instance);
-//      auto y = component_value_getters["Y_IMAGE"](group, m_instance);
-//
-//      ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
-//        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
-//    }
-//  }
+  // Check image
+  if (group.size()) {
+    auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
+    if (check_image) {
+      auto x = component_value_getters["X_IMAGE"](group, m_instance);
+      auto y = component_value_getters["Y_IMAGE"](group, m_instance);
+
+      ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
+        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+    }
+  }
 }
 
 }

@@ -96,14 +96,13 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   // set the source properties
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
 
-  //FIXME Fix the check image using measurement frames
-//  // Draw the aperture
-//  auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage(measurement_frame);
-//  if (aperture_check_img) {
-//    auto src_id = source.getProperty<SourceID>().getId();
-//
-//    fillAperture(ell_aper, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
-//  }
+  // Draw the aperture
+  auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage(m_instance);
+  if (aperture_check_img) {
+    auto src_id = source.getProperty<SourceID>().getId();
+
+    fillAperture(ell_aper, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+  }
 }
 
 }

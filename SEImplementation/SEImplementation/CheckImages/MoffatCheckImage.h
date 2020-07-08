@@ -33,13 +33,9 @@ namespace SourceXtractor {
 class MoffatCheckImage : public Observer<std::shared_ptr<SourceGroupInterface>> {
 public:
 
-  MoffatCheckImage(std::shared_ptr<WriteableImage<SeFloat>> check_image) :
-      m_check_image(check_image) {}
+  MoffatCheckImage() {}
 
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group);
-
-private:
-  std::shared_ptr<WriteableImage<SeFloat>> m_check_image;
 };
 
 

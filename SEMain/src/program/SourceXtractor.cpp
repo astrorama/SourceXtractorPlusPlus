@@ -362,19 +362,19 @@ public:
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
-          std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+          std::make_shared<DetectionIdCheckImage>());
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+          std::make_shared<SourceIdCheckImage>());
     }
     if (CheckImages::getInstance().getGroupImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+          std::make_shared<GroupIdCheckImage>());
     }
     if (CheckImages::getInstance().getMoffatImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
+          std::make_shared<MoffatCheckImage>());
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
