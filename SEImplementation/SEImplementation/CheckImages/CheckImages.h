@@ -150,6 +150,7 @@ private:
     std::string m_label;
     int m_width, m_height;
     std::shared_ptr<CoordinateSystem> m_coordinate_system;
+    std::shared_ptr<DetectionImage> m_subtracted_image;
   };
 
   // check image
@@ -188,7 +189,7 @@ private:
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 
-  std::vector<FrameInfo> m_measurement_frames;
+  std::map<int, FrameInfo> m_measurement_frames;
 
   std::mutex m_access_mutex;
 };

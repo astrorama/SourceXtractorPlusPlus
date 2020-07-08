@@ -25,6 +25,7 @@
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
+#include "SEImplementation/Configuration/MeasurementFrameConfig.h"
 #include "SEImplementation/Configuration/CheckImagesConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -38,6 +39,9 @@ CheckImages::CheckImages() {
 
 void CheckImages::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<CheckImagesConfig>();
+  manager.registerConfiguration<DetectionImageConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
+  manager.registerConfiguration<MeasurementFrameConfig>();
 }
 
 std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std::string id, int width, int height) {
@@ -114,17 +118,19 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   }
 
   // Measurement images
-  auto& measurement_images_info = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
+  const auto& measurement_images_info = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
+  const auto& frames = manager.getConfiguration<MeasurementFrameConfig>().getFrames();
   for (auto& info : measurement_images_info) {
     std::stringstream label;
     label << boost::filesystem::basename(info.m_path) << "_" << info.m_image_hdu;
 
-    m_measurement_frames.emplace_back(FrameInfo {
+    m_measurement_frames[info.m_id] = FrameInfo {
       label.str(),
       info.m_measurement_image->getWidth(),
       info.m_measurement_image->getHeight(),
-      info.m_coordinate_system
-    });
+      info.m_coordinate_system,
+      frames.at(info.m_id)->getImage(LayerSubtractedImage)
+    };
   }
 }
 
@@ -272,18 +278,19 @@ void CheckImages::saveImages() {
     FitsWriter::writeFile(*m_snr_image, m_snr_filename.native(), m_coordinate_system);
   }
 
-  // FIXME temporarily disable residuals
-//  // if possible, create and save the residual image
-//  if (m_residual_filename != "") {
-//    for (auto &ci : m_check_image_model_fitting) {
-//      auto residual_image = SubtractImage<SeFloat>::create(ci.first->getSubtractedImage(), ci.second);
-//      auto filename = m_residual_filename.stem();
-//      filename += "_" + ci.first->getLabel();
-//      filename.replace_extension(m_residual_filename.extension());
-//      auto frame_filename = m_residual_filename.parent_path() / filename;
-//      FitsWriter::writeFile(*residual_image, frame_filename.native(), ci.first->getCoordinateSystem());
-//    }
-//  }
+  // if possible, create and save the residual image
+  if (m_residual_filename != "") {
+    for (auto &ci : m_check_image_model_fitting) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto residual_image = SubtractImage<SeFloat>::create(frame_info.m_subtracted_image, ci.second);
+      auto filename = m_residual_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename.replace_extension(m_residual_filename.extension());
+      auto frame_filename = m_residual_filename.parent_path() / filename;
+      FitsWriter::writeFile(*residual_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
 
   for (auto const& entry : m_custom_images) {
     if (std::get<1>(entry.second)) {
