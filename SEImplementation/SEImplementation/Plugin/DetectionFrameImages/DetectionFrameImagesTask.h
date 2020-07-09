@@ -38,7 +38,7 @@ public:
   /// Constructor
   DetectionFrameImagesTask() {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 }; /* End of DetectionFrameImagesTask class */
 

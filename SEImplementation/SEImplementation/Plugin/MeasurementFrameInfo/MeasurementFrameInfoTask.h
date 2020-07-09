@@ -36,7 +36,7 @@ public:
   virtual ~MeasurementFrameInfoTask() = default;
 
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned int m_instance;
