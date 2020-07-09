@@ -34,7 +34,7 @@ class DetectionFrameImages : public Property {
 public:
   virtual ~DetectionFrameImages() = default;
 
-  DetectionFrameImages( std::shared_ptr<DetectionImageFrame> frame, int width, int height)
+  DetectionFrameImages(std::shared_ptr<DetectionImageFrame> frame, int width, int height)
     : m_width(width), m_height(height), m_frame(frame) {}
 
   std::shared_ptr<Image<SeFloat>> getLockedImage(FrameImageLayer layer) const {

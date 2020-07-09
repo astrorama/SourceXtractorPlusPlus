@@ -29,6 +29,7 @@
 #include "SEFramework/Image/ConstantImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
@@ -55,6 +56,9 @@ BOOST_FIXTURE_TEST_CASE(one_pixel_test, IsophotalFluxFixture) {
     std::vector<DetectionImage::PixelType>(),
     std::vector<WeightImage::PixelType>({0.01}));
 
+  source.setProperty<DetectionFrameInfo>(1, 1, 1, 65000, 1e6, 1);
+
+
   isophotal_flux_task.computeProperties(source);
 
   auto isophotal_flux = source.getProperty<IsophotalFlux>();
@@ -70,6 +74,8 @@ BOOST_FIXTURE_TEST_CASE(isophotal_test, IsophotalFluxFixture) {
     std::vector<DetectionImage::PixelType>({1.0, 3.0, 5.7}),
     std::vector<DetectionImage::PixelType>(),
     std::vector<WeightImage::PixelType>({0.01, 0.01, 0.01}));
+
+  source.setProperty<DetectionFrameInfo>(1, 1, 1, 65000, 1e6, 1);
 
   isophotal_flux_task.computeProperties(source);
 

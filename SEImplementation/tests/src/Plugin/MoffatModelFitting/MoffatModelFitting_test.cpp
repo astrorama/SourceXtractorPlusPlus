@@ -39,6 +39,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
@@ -102,6 +103,7 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
   source->setProperty<PixelCoordinateList>(pixel_coordinates);
   source->setProperty<DetectionFrame>(detection_frame);
   source->setProperty<DetectionFrameCoordinates>(std::make_shared<DummyCoordinateSystem>());
+  source->setProperty<DetectionFrameInfo>(20, 20, 1, 65000, 1e6, 1);
 
   model_fitting_task->computeProperties(*source);
 

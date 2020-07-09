@@ -34,7 +34,6 @@
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
@@ -47,6 +46,11 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroidTaskFactory.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImagesTaskFactory.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTaskFactory.h"
+
 #include "SEImplementation/Property/SourceId.h"
 
 using namespace SourceXtractor;
@@ -77,6 +81,8 @@ struct MultiThresholdPartitionFixture {
     task_factory_registry->registerTaskFactory<DetectionFramePixelValuesTaskFactory, DetectionFramePixelValues>();
     task_factory_registry->registerTaskFactory<PeakValueTaskFactory, PeakValue>();
     task_factory_registry->registerTaskFactory<PixelBoundariesTaskFactory, PixelBoundaries>();
+    task_factory_registry->registerTaskFactory<DetectionFrameImagesTaskFactory, DetectionFrameImages>();
+    task_factory_registry->registerTaskFactory<DetectionFrameSourceStampTaskFactory, DetectionFrameSourceStamp>();
   }
 };
 

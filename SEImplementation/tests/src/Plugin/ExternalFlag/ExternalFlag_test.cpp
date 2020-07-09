@@ -26,6 +26,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -37,9 +38,7 @@ struct ExternalFlagFixture {
   SimpleSource source;
 
   ExternalFlagFixture() {
-    source.setProperty<DetectionFrame>(
-      std::make_shared<DetectionImageFrame>(ConstantImage<SeFloat>::create(4, 1, 0),
-                                            nullptr, 1e6, nullptr, 1, 1, 0));
+    source.setProperty<DetectionFrameInfo>(4, 1, 1, 60000, 1e6, 1);
   }
 };
 
