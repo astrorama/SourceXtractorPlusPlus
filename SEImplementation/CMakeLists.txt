@@ -148,6 +148,12 @@ elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/Ove
 elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(FluxRadius_test tests/src/Plugin/FluxRadius/FluxRadius_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(GrowthCurve_test tests/src/Plugin/GrowthCurve/GrowthCurve_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

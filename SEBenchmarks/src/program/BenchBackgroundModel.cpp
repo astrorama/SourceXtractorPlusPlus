@@ -96,17 +96,18 @@ private:
   getBackgroundAnalyzer() {
     switch (m_algorithm) {
       case Algorithm::SIMPLE:
-        return make_unique<SimpleBackgroundAnalyzer>();
+        return Euclid::make_unique<SimpleBackgroundAnalyzer>();
       case Algorithm::SE2:
-        return make_unique<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
+        return Euclid::make_unique<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
       case Algorithm::NG:
-        return make_unique<SEBackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
+        return Euclid::make_unique<SEBackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
     }
     return nullptr;
   }
 
 public:
-  BenchBackgroundModel() : m_detection_config(config_manager_id), m_weight_config(config_manager_id) {
+  BenchBackgroundModel() : m_detection_config(config_manager_id), m_weight_config(config_manager_id),
+                           m_algorithm(Algorithm::SIMPLE) {
   }
 
   po::options_description defineSpecificProgramOptions() override {

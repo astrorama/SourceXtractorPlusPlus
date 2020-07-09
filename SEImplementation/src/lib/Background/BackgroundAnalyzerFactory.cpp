@@ -48,7 +48,7 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
   }
 }
 
-BackgroundAnalyzerFactory::BackgroundAnalyzerFactory(long manager_id) : Configuration(manager_id) {
+BackgroundAnalyzerFactory::BackgroundAnalyzerFactory(long manager_id) : Configuration(manager_id),  m_legacy(false) {
   declareDependency<SE2BackgroundConfig>();
   declareDependency<WeightImageConfig>();
 }

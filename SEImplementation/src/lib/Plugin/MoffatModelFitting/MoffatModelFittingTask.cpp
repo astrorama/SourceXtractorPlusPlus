@@ -139,7 +139,7 @@ struct SourceModel {
     // Moffat model
     {
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto moff = make_unique<FlattenedMoffatComponent>(moffat_i0, moffat_index, minkowski_exponent, flat_top_offset);
+      auto moff = Euclid::make_unique<FlattenedMoffatComponent>(moffat_i0, moffat_index, minkowski_exponent, flat_top_offset);
       component_list.clear();
       component_list.emplace_back(std::move(moff));
       extended_models.emplace_back(std::make_shared<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>(

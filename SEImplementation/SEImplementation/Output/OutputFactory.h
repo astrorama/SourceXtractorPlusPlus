@@ -38,7 +38,8 @@ class OutputFactory : public Configurable {
 
 public:
 
-  OutputFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry) {
+  OutputFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry),
+                                                                   m_flush_size(100) {
   }
 
 
