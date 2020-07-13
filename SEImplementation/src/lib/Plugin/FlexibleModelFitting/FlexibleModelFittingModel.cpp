@@ -222,9 +222,18 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
 
+  std::vector<std::unique_ptr<ModelComponent>> sersic_component;
+  sersic_component.emplace_back(new SersicModelComponent(make_unique<OldSharp>(), i0,
+                                                         manager.getParameter(source, m_sersic_index), k));
+
+  extended_models.emplace_back(std::make_shared<TransformedModel<ImageInterfaceTypePtr>>(
+    std::move(sersic_component), x_scale, manager.getParameter(source, m_aspect_ratio),
+    manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, jacobian));
+/*
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
       manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, jacobian));
+*/
 }
 
 void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,
