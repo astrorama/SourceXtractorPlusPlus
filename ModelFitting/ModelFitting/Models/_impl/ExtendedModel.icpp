@@ -102,8 +102,8 @@ ExtendedModel<ImageType>::ExtendedModel(std::vector<std::unique_ptr<ModelCompone
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
         : PositionedModel(x, y), m_width(width), m_height(height) {
   for (auto& component : component_list) {
-    auto scaled = make_unique<ScaledModelComponent>(std::move(component), x_scale, y_scale);
-    auto rotated = make_unique<RotatedModelComponent>(std::move(scaled), rotation_angle);
+    auto scaled = Euclid::make_unique<ScaledModelComponent>(std::move(component), x_scale, y_scale);
+    auto rotated = Euclid::make_unique<RotatedModelComponent>(std::move(scaled), rotation_angle);
     m_component_list.emplace_back(std::move(rotated));
   }
 }

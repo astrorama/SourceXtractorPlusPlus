@@ -45,20 +45,30 @@ public:
     return std::shared_ptr<FunctionalImage<T>>(new FunctionalImage{std::forward<Args>(args)...});
   }
 
-  std::string getRepr() const override {
+  std::string getRepr() const final {
     return "FunctionalImage<" + std::string(m_functor.target_type().name()) + ">";
   }
 
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const final {
     return m_functor(x, y);
   }
 
-  int getWidth() const override {
+  int getWidth() const final {
     return m_width;
   }
 
-  int getHeight() const override {
+  int getHeight() const final {
     return m_height;
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
+    std::vector<T> data(width * height);
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        data[ix + iy * width] = m_functor(x + ix, y + iy);
+      }
+    }
+    return UniversalImageChunk<T>::create(std::move(data), width, height);
   }
 
 private:

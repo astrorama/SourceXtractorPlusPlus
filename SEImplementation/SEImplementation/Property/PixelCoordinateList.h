@@ -22,6 +22,7 @@
 #ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
 #define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
 
+#include <algorithm>
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/Property.h"
 
@@ -39,6 +40,10 @@ public:
   
   const std::vector<PixelCoordinate>& getCoordinateList() const {
     return m_coordinate_list;
+  }
+
+  bool contains(const PixelCoordinate& coord) const {
+    return std::find(m_coordinate_list.begin(), m_coordinate_list.end(), coord) != m_coordinate_list.end();
   }
   
 private:

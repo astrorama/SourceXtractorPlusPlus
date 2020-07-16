@@ -106,6 +106,7 @@ def rm(bintray, args):
         entries = bintray.recursive(args.path)
     else:
         entries = bintray.listdir(args.path)
+        entries = [os.path.join(args.path, e) for e in entries]
 
     regex = re.compile(args.pattern) if args.pattern else None
 

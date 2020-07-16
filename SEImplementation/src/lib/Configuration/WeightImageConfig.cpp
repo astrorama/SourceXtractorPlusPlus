@@ -152,32 +152,34 @@ protected:
     return "WeightMapImageSource(" + getImageRepr() + ")";
   }
 
-  virtual void generateTile(std::shared_ptr<Image<WeightImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
+  void generateTile(const std::shared_ptr<Image<WeightImage::PixelType>>& image,
+                    ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const final {
+    auto image_chunk = image->getChunk(x, y, width, height);
     switch (m_weight_type) {
       case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
-            tile.getImage()->setValue(ix - x, iy - y, value * value);
+        for (int iy = 0; iy < height; iy++) {
+          for (int ix = 0; ix < width; ix++) {
+            auto value = image_chunk->getValue(ix, iy) * m_scaling;
+            tile.getImage()->setValue(ix, iy, value * value);
           }
         }
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
-            tile.getImage()->setValue(ix - x, iy - y, value);
+        for (int iy = 0; iy < height; iy++) {
+          for (int ix = 0; ix < width; ix++) {
+            auto value = image_chunk->getValue(ix, iy) * m_scaling;
+            tile.getImage()->setValue(ix, iy, value);
           }
         }
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
+        for (int iy = 0; iy < height; iy++) {
+          for (int ix = 0; ix < width; ix++) {
+            auto value = image_chunk->getValue(ix, iy) * m_scaling;
             if (value > 0) {
-              tile.getImage()->setValue(ix - x, iy - y, 1.0 / value);
+              tile.getImage()->setValue(ix, iy, 1.0 / value);
             } else {
-              tile.getImage()->setValue(ix - x, iy - y, std::numeric_limits<WeightImage::PixelType>::max());
+              tile.getImage()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::max());
             }
           }
         }

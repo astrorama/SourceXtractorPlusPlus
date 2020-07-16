@@ -31,6 +31,8 @@ public:
     std::get<2>(tuple),
     std::get<3>(tuple)} {}
 
+  Mat22(const Mat22&) = default;
+
   Mat22& operator=(const Mat22& other) {
     m_mat[0] = other[0];
     m_mat[1] = other[1];

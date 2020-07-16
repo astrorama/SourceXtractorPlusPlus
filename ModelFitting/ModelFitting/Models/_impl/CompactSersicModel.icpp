@@ -28,10 +28,12 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
+  model_eval.max_r_sqr = 1e30;
 
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
   return model_eval.evaluateModel(x, y) * area_correction;
 }
+
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
@@ -45,11 +47,14 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
 
   ImageType image = Traits::factory(size_x, size_y);
 
+  auto combined_tranform = getCombinedTransform(pixel_scale);
+
   SersicModelEvaluator model_eval;
-  model_eval.transform = getCombinedTransform(pixel_scale);
+  model_eval.transform = combined_tranform;
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
   model_eval.n = m_n->getValue();
+  model_eval.max_r_sqr = getMaxRadiusSqr(size_x, size_y, combined_tranform);
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 

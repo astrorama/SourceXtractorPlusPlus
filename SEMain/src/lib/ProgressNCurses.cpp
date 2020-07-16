@@ -820,7 +820,7 @@ public:
       throw std::system_error(errno, std::generic_category());
     }
     m_stderr = fdopen(new_stderr_fd, "w");
-    m_ui_thread = make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
+    m_ui_thread = Euclid::make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
   }
 
   /**

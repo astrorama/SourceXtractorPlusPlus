@@ -14,6 +14,7 @@ elements_subdir(SEImplementation)
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
+elements_depends_on_subdirs(AlexandriaKernel) # From Alexandria
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(Table) # From Alexandria
 elements_depends_on_subdirs(NdArray) # From Alexandria
@@ -59,7 +60,8 @@ file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
 list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
 
 elements_add_library(SEImplementation
-            src/lib/Background/*.cpp
+			src/lib/Background/*.cpp
+			src/lib/Background/*/*.cpp
             src/lib/Partition/*.cpp
             src/lib/Segmentation/*.cpp
             src/lib/Grouping/*.cpp
@@ -101,6 +103,21 @@ elements_add_python_module(SourceXtractorPy
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
+elements_add_unit_test(BackgroundCell_test tests/src/Background/BackgroundCell_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(BackgroundHistogram_test tests/src/Background/BackgroundHistogram_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(KappaSigmaBinning_test tests/src/Background/KappaSigmaBinning_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(MedianFilterImage_test tests/src/Background/MedianFilterImage_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(ReplaceUndefImage_test tests/src/Background/ReplaceUndefImage_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
@@ -131,6 +148,12 @@ elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/Ove
 elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalFlag_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(FluxRadius_test tests/src/Plugin/FluxRadius/FluxRadius_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
+elements_add_unit_test(GrowthCurve_test tests/src/Plugin/GrowthCurve/GrowthCurve_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp 
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

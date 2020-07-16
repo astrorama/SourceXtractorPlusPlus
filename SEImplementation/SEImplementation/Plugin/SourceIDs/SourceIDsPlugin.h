@@ -60,7 +60,7 @@ public:
             [](const SourceID& prop){
               return prop.getId();
             },
-            "[]",
+            "",
             "Running object number"
     );
     plugin_api.getOutputRegistry().registerColumnConverter<SourceID, int>(
@@ -68,7 +68,7 @@ public:
             [](const SourceID& prop){
               return prop.getDetectionId();
             },
-            "[]",
+            "",
             "Running detection number"
     );
     plugin_api.getOutputRegistry().enableOutput<SourceID>("SourceIDs");

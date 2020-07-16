@@ -154,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   auto detection_frame = std::make_shared<DetectionImageFrame>(image);
 
-  detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0));
+  detection_frame->setBackgroundLevel(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0), 0.);
   detection_frame->setVarianceMap(ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0.25));
   segmentation.processFrame(detection_frame);
 

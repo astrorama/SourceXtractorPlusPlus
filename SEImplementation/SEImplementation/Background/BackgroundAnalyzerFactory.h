@@ -36,6 +36,7 @@ class BackgroundAnalyzerFactory  : public Configurable {
 public:
   /// Destructor
   virtual ~BackgroundAnalyzerFactory() = default;
+  BackgroundAnalyzerFactory(): m_legacy(false) {}
 
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer() const;
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer(WeightImageConfig::WeightType weight_type) const;
@@ -45,8 +46,9 @@ public:
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-  std::string m_cell_size;
-  std::string m_smoothing_box;
+  std::vector<int> m_cell_size;
+  std::vector<int> m_smoothing_box;
+  bool m_legacy;
   WeightImageConfig::WeightType m_weight_type;
 };
 
