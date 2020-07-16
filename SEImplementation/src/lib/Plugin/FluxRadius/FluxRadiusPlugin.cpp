@@ -38,7 +38,7 @@ void FluxRadiusPlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const FluxRadius& prop){
       return prop.getFluxRadius();
     },
-    "[pixel]",
+    "pixel",
     "Radius containing a fraction of the flux"
   );
 

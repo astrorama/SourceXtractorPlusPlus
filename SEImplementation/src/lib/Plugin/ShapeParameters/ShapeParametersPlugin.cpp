@@ -40,7 +40,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseA();
           },
-          "[pixel]",
+          "pixel",
           "Profile RMS along major axis"
   );
 
@@ -49,7 +49,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseB();
           },
-          "[pixel]",
+          "pixel",
           "Profile RMS along minor axis"
   );
 
@@ -58,7 +58,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseTheta() * 180.0 / M_PI;
           },
-          "[deg]",
+          "deg",
           "Position angle (CCW/x)"
   );
 
@@ -67,7 +67,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseCxx();
           },
-          "[pixel^{-2}]",
+          "pixel^{-2}",
           "Cxx object ellipse parameter"
   );
 
@@ -76,7 +76,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseCyy();
           },
-          "[pixel^{-2}]",
+          "pixel^{-2}",
           "Cyy object ellipse parameter"
   );
 
@@ -85,7 +85,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getEllipseCxy();
           },
-          "[pixel^{-2}]",
+          "pixel^{-2}",
           "Cxy object ellipse parameter"
   );
 
@@ -94,7 +94,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop){
             return prop.getArea();
           },
-          "[]",
+          "pixel",
           "Total number of detected pixels"
   );
 
@@ -103,7 +103,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop) {
             return prop.getElongation();
           },
-          "[]",
+          "",
           "The object elongation (a_image / b_image)"
   );
 
@@ -112,7 +112,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ShapeParameters& prop) {
             return prop.getEllipticity();
           },
-          "[]",
+          "",
           "The object ellipticity"
   );
 

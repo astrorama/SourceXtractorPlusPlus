@@ -41,7 +41,7 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const MoffatModelFitting& prop) {
             return prop.getX() + 1.0;
           },
-          "[pixel]",
+          "pixel",
           "X-position of the Moffat fit"
   );
 
@@ -50,7 +50,7 @@ void MoffatModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const MoffatModelFitting& prop) {
             return prop.getY() + 1.0;
           },
-          "[pixel]",
+          "pixel",
           "Y-position of the Moffat fit"
   );
 

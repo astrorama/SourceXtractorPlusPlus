@@ -42,7 +42,7 @@ void SourceXtractor::GrowthCurvePlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const GrowthCurveResampled& prop){
       return prop.getStepSize();
     },
-    "[pixel]",
+    "pixel",
     "Growth curve step size"
   );
   plugin_api.getOutputRegistry().registerColumnConverter<GrowthCurveResampled, NdArray<DetectionImage::PixelType>>(
@@ -50,7 +50,7 @@ void SourceXtractor::GrowthCurvePlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const GrowthCurveResampled& prop) {
       return prop.getSamples();
     },
-    "[count]",
+    "count",
     "Growth curve samples"
   );
 

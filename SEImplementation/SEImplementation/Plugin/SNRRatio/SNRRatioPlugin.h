@@ -41,7 +41,7 @@ public:
       [](const SNRRatio& prop) {
         return prop.getSNRRatio();
       },
-      "[]",
+      "",
       "The object signal-to-noise ratio"
     );
     plugin_api.getOutputRegistry().enableOutput<SNRRatio>("SNRRatio");

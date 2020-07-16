@@ -74,7 +74,7 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
 
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
-        fits_table_writer = make_unique<Euclid::Table::FitsWriter>(out_file, true);
+        fits_table_writer = Euclid::make_unique<Euclid::Table::FitsWriter>(out_file, true);
         fits_table_writer->setHduName("CATALOG");
         table_writer = std::move(fits_table_writer);
         break;
