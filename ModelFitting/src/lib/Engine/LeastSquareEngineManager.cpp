@@ -53,8 +53,8 @@ std::string LeastSquareEngineManager::getDefault() {
   auto known_engines = ModelFitting::LeastSquareEngineManager::getImplementations();
   std::string default_engine;
 
-  if (std::find(known_engines.begin(), known_engines.end(), "gsl") != known_engines.end()) {
-    return "gsl";
+  if (std::find(known_engines.begin(), known_engines.end(), "levmar") != known_engines.end()) {
+    return "levmar";
   }
   else if (!known_engines.empty()) {
     return known_engines.front();
