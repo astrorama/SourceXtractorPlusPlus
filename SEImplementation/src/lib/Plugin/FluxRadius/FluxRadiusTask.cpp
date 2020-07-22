@@ -51,6 +51,9 @@ void FluxRadiusTask::computeProperties(SourceInterface& source) const {
       // >= the target flux, and interpolate with the previous one
       auto next = std::find_if(std::begin(growth_curve), std::end(growth_curve),
                                std::bind2nd(std::greater_equal<double>(), target_flux));
+      if (next == std::end(growth_curve)) {
+        --next;
+      }
       size_t next_i = std::distance(std::begin(growth_curve), next);
 
       SeFloat y0, y1;

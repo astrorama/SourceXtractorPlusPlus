@@ -35,7 +35,6 @@
 #include <boost/algorithm/string/trim.hpp>
 
 #include "ElementsKernel/Exception.h"
-
 #include "SEFramework/FITS/FitsFile.h"
 
 namespace SourceXtractor {
@@ -67,9 +66,23 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   } catch (...) {
   }
 
-  std::stringstream quoted(value);
+  // Single quotes are used as escape code of another single quote, and
+  // the string starts and ends with single quotes.
+  // We used to use boost::io::quoted here, but it seems that starting with 1.73 it
+  // does not work well when the escape code and the delimiter are the same
   std::string unquoted;
-  quoted >> boost::io::quoted(unquoted, '\'', '\'');
+  bool escape = false;
+  unquoted.reserve(value.size());
+  for (auto i = value.begin(); i != value.end(); ++i) {
+    if (*i == '\'' && !escape) {
+      escape = true;
+      // skip this char
+    }
+    else {
+      escape = false;
+      unquoted.push_back(*i);
+    }
+  }
   return unquoted;
 }
 

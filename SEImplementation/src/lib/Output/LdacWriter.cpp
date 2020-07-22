@@ -16,12 +16,17 @@
  */
 
 #include <sstream>
-#include <boost/io/detail/quoted_manip.hpp>
 #include <AlexandriaKernel/memory_tools.h>
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Output/LdacWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SOURCEXTRACTORPLUSPLUS_VERSION.h"
+
+#if BOOST_VERSION < 107300
+#include <boost/io/detail/quoted_manip.hpp>
+#else
+#include <boost/io/quoted.hpp>
+#endif
 
 namespace SourceXtractor {
 
