@@ -41,7 +41,7 @@ void WorldCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const WorldCentroid& prop){
             return prop.getCentroidAlpha();
           },
-          "[deg]",
+          "deg",
           "RA object position"
   );
 
@@ -50,7 +50,7 @@ void WorldCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const WorldCentroid& prop){
             return prop.getCentroidDelta();
           },
-          "[deg]",
+          "deg",
           "Dec object position"
   );
 

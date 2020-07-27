@@ -31,7 +31,6 @@
 #include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
-#include <boost/io/detail/quoted_manip.hpp>
 
 #include <ElementsKernel/Exception.h>
 

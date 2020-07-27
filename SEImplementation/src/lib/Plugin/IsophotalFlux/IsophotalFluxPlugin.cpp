@@ -40,7 +40,7 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const IsophotalFlux& prop){
             return prop.getFlux();
           },
-          "[count]",
+          "count",
           "Isophotal flux"
   );
 
@@ -49,7 +49,7 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const IsophotalFlux& prop){
             return prop.getFluxError();
           },
-          "[count]",
+          "count",
           "Isophotal flux error"
   );
 
@@ -58,7 +58,7 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const IsophotalFlux& prop){
             return prop.getMag();
           },
-          "[mag]",
+          "mag",
           "Isophotal magnitude"
   );
 
@@ -67,7 +67,7 @@ void IsophotalFluxPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const IsophotalFlux& prop){
             return prop.getMagError();
           },
-          "[mag]",
+          "mag",
           "Isophotal magnitude error"
   );
 

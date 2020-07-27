@@ -40,7 +40,7 @@ void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ExternalFlag& prop){
             return prop.getFlag();
           },
-          "[]",
+          "",
           "Flags for the isophotal magnitude"
   );
 
@@ -49,7 +49,7 @@ void ExternalFlagPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const ExternalFlag& prop){
             return prop.getCount();
           },
-          "[]",
+          "",
           "Flags provided from input images"
   );
 

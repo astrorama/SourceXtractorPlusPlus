@@ -40,7 +40,7 @@ void DetectionFrameGroupStampPlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const DetectionFrameGroupStamp &d) {
       return d.getTopLeft().m_y;
     },
-    "[pixel]",
+    "pixel",
     "Maximum y-coordinate of the detection group"
   );
   plugin_api.getOutputRegistry().registerColumnConverter<DetectionFrameGroupStamp, int>(
@@ -48,7 +48,7 @@ void DetectionFrameGroupStampPlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const DetectionFrameGroupStamp &d) {
       return d.getTopLeft().m_x;
     },
-    "[pixel]",
+    "pixel",
     "Minimum x-coordinate of the detection group"
   );
   plugin_api.getOutputRegistry().registerColumnConverter<DetectionFrameGroupStamp, int>(
@@ -56,7 +56,7 @@ void DetectionFrameGroupStampPlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const DetectionFrameGroupStamp &d) {
       return d.getStamp().getWidth();
     },
-    "[pixel]",
+    "pixel",
     "Width of the detection group"
   );
   plugin_api.getOutputRegistry().registerColumnConverter<DetectionFrameGroupStamp, int>(
@@ -64,7 +64,7 @@ void DetectionFrameGroupStampPlugin::registerPlugin(PluginAPI& plugin_api) {
     [](const DetectionFrameGroupStamp &d) {
       return d.getStamp().getHeight();
     },
-    "[pixel]",
+    "pixel",
     "Height of the detection group"
   );
   plugin_api.getOutputRegistry().enableOutput<DetectionFrameGroupStamp>("GroupStamp");

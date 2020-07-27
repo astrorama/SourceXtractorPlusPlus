@@ -42,7 +42,7 @@ void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelBoundaries& prop){
             return prop.getMin().m_x;
           },
-          "[pixel]",
+          "pixel",
           "Minimum x-coordinate of the detection area"
   );
 
@@ -51,7 +51,7 @@ void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelBoundaries& prop){
             return prop.getMin().m_y;
           },
-          "[pixel]",
+          "pixel",
           "Minimum y-coordinate of the detection area"
   );
 
@@ -60,7 +60,7 @@ void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelBoundaries& prop){
             return prop.getMax().m_x;
           },
-          "[pixel]",
+          "pixel",
           "Maximum x-coordinate of the detection area"
   );
 
@@ -69,7 +69,7 @@ void PixelBoundariesPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelBoundaries& prop){
             return prop.getMax().m_y;
           },
-          "[pixel]",
+          "pixel",
           "Maximum y-coordinate of the detection area"
   );
 

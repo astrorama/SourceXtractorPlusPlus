@@ -35,7 +35,6 @@
 #include <boost/algorithm/string/trim.hpp>
 
 #include "ElementsKernel/Exception.h"
-
 #include "SEFramework/FITS/FitsFile.h"
 
 namespace SourceXtractor {
@@ -49,17 +48,13 @@ namespace SourceXtractor {
  */
 static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   boost::regex float_regex("^[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?$");
-
-  size_t ndigits = 0;
-  for (auto c : value) {
-    ndigits += std::isdigit(c);
-  }
+  boost::regex int_regex("^[-+]?\\d+$");
 
   try {
     if (value.empty()) {
       return value;
     }
-    else if (ndigits == value.size()) {
+    else if (boost::regex_match(value, int_regex)) {
       return static_cast<int64_t>(std::stoll(value));
     }
     else if (boost::regex_match(value, float_regex)) {
@@ -71,9 +66,23 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   } catch (...) {
   }
 
-  std::stringstream quoted(value);
+  // Single quotes are used as escape code of another single quote, and
+  // the string starts and ends with single quotes.
+  // We used to use boost::io::quoted here, but it seems that starting with 1.73 it
+  // does not work well when the escape code and the delimiter are the same
   std::string unquoted;
-  quoted >> boost::io::quoted(unquoted, '\'', '\'');
+  bool escape = false;
+  unquoted.reserve(value.size());
+  for (auto i = value.begin(); i != value.end(); ++i) {
+    if (*i == '\'' && !escape) {
+      escape = true;
+      // skip this char
+    }
+    else {
+      escape = false;
+      unquoted.push_back(*i);
+    }
+  }
   return unquoted;
 }
 
@@ -204,7 +213,7 @@ std::map<std::string, MetadataEntry> FitsFile::loadFitsHeader(fitsfile *fptr) {
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
-    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/ (.*))?");
+    static boost::regex regex("([^=]{8})=([^\\/]*)(\\/(.*))?");
     std::string record_str(record);
 
     boost::smatch sub_matches;

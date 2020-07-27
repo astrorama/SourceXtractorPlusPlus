@@ -49,6 +49,19 @@ std::vector<std::string> LeastSquareEngineManager::getImplementations() {
   return keys;
 }
 
+std::string LeastSquareEngineManager::getDefault() {
+  auto known_engines = ModelFitting::LeastSquareEngineManager::getImplementations();
+  std::string default_engine;
+
+  if (std::find(known_engines.begin(), known_engines.end(), "levmar") != known_engines.end()) {
+    return "levmar";
+  }
+  else if (!known_engines.empty()) {
+    return known_engines.front();
+  }
+  return "";
+}
+
 std::shared_ptr<LeastSquareEngine> LeastSquareEngineManager::create(const std::string& name, unsigned max_iterations) {
   auto factory = getEngineFactories().find(boost::algorithm::to_lower_copy(name));
   if (factory == getEngineFactories().end()) {
