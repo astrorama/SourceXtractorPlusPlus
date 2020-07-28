@@ -145,7 +145,6 @@ class SEMain : public Elements::Program {
   GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
-  BackgroundAnalyzerFactory background_level_analyzer_factory {};
   ProgressReporterFactory progress_printer_factory {};
 
   bool config_initialized = false;
@@ -167,6 +166,7 @@ public:
       config_manager.registerConfiguration<BackgroundConfig>();
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
+      config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -179,7 +179,6 @@ public:
       deblending_factory.reportConfigDependencies(config_manager);
       measurement_factory.reportConfigDependencies(config_manager);
       output_factory.reportConfigDependencies(config_manager);
-      background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
       config_parameters.add(config_manager.closeRegistration());
       config_initialized = true;
@@ -318,7 +317,6 @@ public:
     deblending_factory.configure(config_manager);
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
-    background_level_analyzer_factory.configure(config_manager);
     
     if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
       output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
@@ -362,19 +360,19 @@ public:
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
-          std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+          std::make_shared<DetectionIdCheckImage>());
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+          std::make_shared<SourceIdCheckImage>());
     }
     if (CheckImages::getInstance().getGroupImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+          std::make_shared<GroupIdCheckImage>());
     }
     if (CheckImages::getInstance().getMoffatImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
+          std::make_shared<MoffatCheckImage>());
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
@@ -383,7 +381,7 @@ public:
         detection_image_saturation, interpolation_gap);
     detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
-    auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    auto background_analyzer = config_manager.getConfiguration<BackgroundAnalyzerFactory>().createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 

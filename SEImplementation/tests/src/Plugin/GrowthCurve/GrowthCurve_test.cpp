@@ -26,6 +26,8 @@
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 
 using namespace SourceXtractor;
 
@@ -45,8 +47,10 @@ struct GrowthCurveFixture {
     frame0 = std::make_shared<MeasurementImageFrame>(img0);
     frame1 = std::make_shared<MeasurementImageFrame>(img1);
 
-    source.setIndexedProperty<MeasurementFrame>(0, frame0);
-    source.setIndexedProperty<MeasurementFrame>(1, frame1);
+    source.setIndexedProperty<MeasurementFrameImages>(0, frame0, 5, 5);
+    source.setIndexedProperty<MeasurementFrameImages>(1, frame1, 5, 5);
+    source.setIndexedProperty<MeasurementFrameInfo>(0, 5, 5, 1, 65000, 1e6, 1);
+    source.setIndexedProperty<MeasurementFrameInfo>(1, 5, 5, 1, 65000, 1e6, 1);
 
     source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 2, 2);
     source.setIndexedProperty<MeasurementFramePixelCentroid>(1, -5, -5);

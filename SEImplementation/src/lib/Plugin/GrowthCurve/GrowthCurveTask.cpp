@@ -16,12 +16,12 @@
  */
 
 #include "SEFramework/Aperture/CircularAperture.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurve.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEUtils/Mat22.h"
@@ -38,11 +38,14 @@ GrowthCurveTask::GrowthCurveTask(unsigned instance, bool use_symmetry)
   : m_instance{instance}, m_use_symmetry{use_symmetry} {}
 
 void GrowthCurveTask::computeProperties(SourceInterface& source) const {
-  // Measurement frame and properties defined on it
-  auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-  auto image = measurement_frame->getSubtractedImage();
-  auto variance_map = measurement_frame->getVarianceMap();
-  auto variance_threshold = measurement_frame->getVarianceThreshold();
+  const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
+
+  auto variance_threshold = measurement_frame_info.getVarianceThreshold();
+
+  const auto image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
+  const auto variance_map = measurement_frame_images.getLockedImage(LayerVarianceMap);
+
   auto centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
   auto centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
   Mat22 jacobian{source.getProperty<JacobianSource>(m_instance).asTuple()};
@@ -79,7 +82,6 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   auto max_coord = apertures.back().getMaxPixel(centroid_x, centroid_y);
 
   // Compute fluxes for each ring
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
   for (auto y = min_coord.m_y; y <= max_coord.m_y; ++y) {
     for (auto x = min_coord.m_x; x <= max_coord.m_x; ++x) {
       if (x >= 0 && x < image->getWidth() && y >= 0 && y < image->getHeight()) {

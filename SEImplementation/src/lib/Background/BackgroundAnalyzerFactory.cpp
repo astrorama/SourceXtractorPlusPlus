@@ -48,14 +48,14 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
   }
 }
 
-void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<SE2BackgroundConfig>();
-  manager.registerConfiguration<WeightImageConfig>();
+BackgroundAnalyzerFactory::BackgroundAnalyzerFactory(long manager_id) : Configuration(manager_id),  m_legacy(false) {
+  declareDependency<SE2BackgroundConfig>();
+  declareDependency<WeightImageConfig>();
 }
 
-void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto se2background_config = manager.getConfiguration<SE2BackgroundConfig>();
-  auto weight_image_config = manager.getConfiguration<WeightImageConfig>();
+void BackgroundAnalyzerFactory::initialize(const UserValues&) {
+  auto se2background_config = getDependency<SE2BackgroundConfig>();
+  auto weight_image_config = getDependency<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
   m_legacy = se2background_config.useLegacy();

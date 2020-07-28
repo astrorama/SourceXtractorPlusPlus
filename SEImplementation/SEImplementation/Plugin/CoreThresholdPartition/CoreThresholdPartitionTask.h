@@ -25,11 +25,11 @@
 #define _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDTASK_H_
 
 #include "NCorePixel.h"
-#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 
 #include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
@@ -43,12 +43,11 @@ public:
   virtual ~CoreThresholdPartitionTask() = default;
 
   virtual void computeProperties(SourceInterface& source) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
     long int n_snr_level=0;
 
     // get the detection frame and the SNR image
-    const auto& snr_image    = source.getProperty<DetectionFrame>().getFrame()->getSnrImage();
+    const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
+    const auto& snr_image = detection_frame_images.getLockedImage(LayerSignalToNoiseMap);
 
     // go over all pixels
     for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {

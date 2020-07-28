@@ -159,7 +159,7 @@ std::shared_ptr<SourceInterface> Cleaning::mergeSources(SourceInterface& parent,
   // Create a new source with the minimum necessary properties
   auto new_source = m_source_factory->createSource();
   new_source->setProperty<PixelCoordinateList>(pixel_list);
-  new_source->setProperty<DetectionFrame>(parent.getProperty<DetectionFrame>().getFrame());
+  new_source->setProperty<DetectionFrame>(parent.getProperty<DetectionFrame>().getEncapsulatedFrame());
   new_source->setProperty<SourceId>(parent.getProperty<SourceId>().getSourceId());
 
   return new_source;

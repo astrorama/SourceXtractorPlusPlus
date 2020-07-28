@@ -30,9 +30,8 @@
 namespace SourceXtractor {
 
 void DetectionIdCheckImage::handleMessage(const std::shared_ptr<SourceInterface>& source) {
-  if (m_check_image) {
-    std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
-
+  auto check_image = CheckImages::getInstance().getSegmentationImage();
+  if (check_image != nullptr) {
     auto coordinates = source->getProperty<PixelCoordinateList>();
 
     // get the ID for each detected source
@@ -40,7 +39,7 @@ void DetectionIdCheckImage::handleMessage(const std::shared_ptr<SourceInterface>
 
     // iterate over the pixels and set the detection_id value
     for (auto& coord : coordinates.getCoordinateList()) {
-      m_check_image->setValue(coord.m_x, coord.m_y, source_id);
+      check_image->setValue(coord.m_x, coord.m_y, source_id);
     }
   }
 }

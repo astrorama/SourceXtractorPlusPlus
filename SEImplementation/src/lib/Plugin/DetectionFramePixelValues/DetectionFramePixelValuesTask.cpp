@@ -20,31 +20,31 @@
  * @author mschefer
  */
 #include <memory>
-#include <mutex>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEFramework/Property/DetectionFrame.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
 
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
-
 namespace SourceXtractor {
 
 void DetectionFramePixelValuesTask::computeProperties(SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  const auto& stamp = source.getProperty<DetectionFrameSourceStamp>();
 
-  auto detection_image = source.getProperty<DetectionFrame>().getFrame()->getSubtractedImage();
-  auto filtered_image = source.getProperty<DetectionFrame>().getFrame()->getFilteredImage();
-  auto variance_map = source.getProperty<DetectionFrame>().getFrame()->getVarianceMap();
+  auto& detection_image = stamp.getStamp();
+  auto& filtered_image = stamp.getFilteredStamp();
+  auto& variance_map = stamp.getVarianceStamp();
+
+  auto offset = stamp.getTopLeft();
 
   std::vector<DetectionImage::PixelType> values, filtered_values;
   std::vector<WeightImage::PixelType> variances;
   for (auto pixel_coord : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-    values.push_back(detection_image->getValue(pixel_coord.m_x, pixel_coord.m_y));
-    filtered_values.push_back(filtered_image->getValue(pixel_coord.m_x, pixel_coord.m_y));
-    variances.push_back(variance_map->getValue(pixel_coord.m_x, pixel_coord.m_y));
+    auto offset_coord = pixel_coord - offset;
+    values.push_back(detection_image.getValue(offset_coord.m_x, offset_coord.m_y));
+    filtered_values.push_back(filtered_image.getValue(offset_coord.m_x, offset_coord.m_y));
+    variances.push_back(variance_map.getValue(offset_coord.m_x, offset_coord.m_y));
   }
 
   source.setProperty<DetectionFramePixelValues>(std::move(values), std::move(filtered_values), std::move(variances));
