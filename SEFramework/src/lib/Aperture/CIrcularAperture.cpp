@@ -35,25 +35,23 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pi
   SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
 
   auto distance_squared = dx * dx + dy * dy;
-  if (distance_squared <= max_supersampled_radius_squared) {
-    if (distance_squared < min_supersampled_radius_squared) {
-      return 1.0;
-    } else {
-      SeFloat area = 0.0;
-      for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
-        for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
-          auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
-          auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
-          auto supersampled_distance_squared = dx2 * dx2 + dy2 * dy2;
-          if (supersampled_distance_squared <= m_radius * m_radius) {
-            area += 1.0 / (SUPERSAMPLE_NB * SUPERSAMPLE_NB);
-          }
+  SeFloat area = 0.0;
+  if (distance_squared < min_supersampled_radius_squared) {
+    area = 1.0;
+  }
+  else if (distance_squared <= max_supersampled_radius_squared) {
+    for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
+      for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
+        auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
+        auto dy2 = dy + SeFloat(sub_y - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
+        auto supersampled_distance_squared = dx2 * dx2 + dy2 * dy2;
+        if (supersampled_distance_squared <= m_radius * m_radius) {
+          area += 1.0 / (SUPERSAMPLE_NB * SUPERSAMPLE_NB);
         }
       }
-      return area;
     }
   }
-  return 0.0;
+  return area;
 }
 
 SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
