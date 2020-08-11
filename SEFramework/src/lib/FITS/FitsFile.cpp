@@ -238,44 +238,45 @@ void FitsFile::loadHeadFile() {
   base_name.replace_extension(".head");
   auto head_filename = filename.parent_path() / base_name;
 
+  if (!boost::filesystem::exists(head_filename)) {
+    return;
+  }
+
   auto hdu_iter = m_image_hdus.begin();
+  std::ifstream file;
 
-  if (boost::filesystem::exists(head_filename)) {
-    std::ifstream file;
+  // open the file and check
+  file.open(head_filename.native());
+  if (!file.good() || !file.is_open()) {
+    throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
+  }
 
-    // open the file and check
-    file.open(head_filename.native());
-    if (!file.good() || !file.is_open()) {
-      throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
+  while (file.good() && hdu_iter != m_image_hdus.end()) {
+    int current_hdu = *hdu_iter;
+
+    std::string line;
+    std::getline(file, line);
+
+    static boost::regex regex_blank_line("\\s*$");
+    line = boost::regex_replace(line, regex_blank_line, std::string(""));
+    if (line.size() == 0) {
+      continue;
     }
 
-    while (file.good() && hdu_iter != m_image_hdus.end()) {
-      int current_hdu = *hdu_iter;
-
-      std::string line;
-      std::getline(file, line);
-
-      static boost::regex regex_blank_line("\\s*$");
-      line = boost::regex_replace(line, regex_blank_line, std::string(""));
-      if (line.size() == 0) {
-        continue;
-      }
-
-      if (boost::to_upper_copy(line) == "END") {
-        current_hdu = *(++hdu_iter);
-      }
-      else {
-        static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
-        boost::smatch sub_matches;
-        if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
-          auto keyword = boost::to_upper_copy(sub_matches[1].str());
-          auto value = sub_matches[2].str();
-          auto comment = sub_matches[4].str();
-          boost::trim(keyword);
-          boost::trim(value);
-          boost::trim(comment);
-          m_headers.at(current_hdu-1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};;
-        }
+    if (boost::to_upper_copy(line) == "END") {
+      current_hdu = *(++hdu_iter);
+    }
+    else {
+      static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
+      boost::smatch sub_matches;
+      if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
+        auto keyword = boost::to_upper_copy(sub_matches[1].str());
+        auto value = sub_matches[2].str();
+        auto comment = sub_matches[4].str();
+        boost::trim(keyword);
+        boost::trim(value);
+        boost::trim(comment);
+        m_headers.at(current_hdu-1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};;
       }
     }
   }
