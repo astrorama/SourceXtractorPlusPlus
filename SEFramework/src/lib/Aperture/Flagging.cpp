@@ -49,42 +49,34 @@ Flags computeFlags(const std::shared_ptr<Aperture>& aperture,
 
       // get the area coverage and continue if there is overlap
       auto area = aperture->getArea(centroid_x, centroid_y, pixel_x, pixel_y);
-      if (area > 0) {
+      if (area == 0) {
+        continue;
+      }
 
-        // make sure the pixel is inside the image
-        if (pixel_x >= 0 && pixel_y >= 0 &&
-            pixel_x < detection_img->getWidth() && pixel_y < detection_img->getHeight()) {
+      // make sure the pixel is inside the image
+      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_img->getWidth() && pixel_y < detection_img->getHeight()) {
 
-          // enhance the area
-          total_area += area;
+        // enhance the area
+        total_area += area;
 
-          auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y)
-                                                 : 1;
-          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) ||
-              variance_tmp > variance_threshold) {
+        auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
 
-            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
-              full_area += 1;
-            if (variance_tmp > variance_threshold)
-              bad_area += 1;
-          }
-        }
-        else {
-          flag |= Flags::BOUNDARY;
-        }
+        full_area += neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y);
+        bad_area += (variance_tmp > variance_threshold);
+      }
+      else {
+        flag |= Flags::BOUNDARY;
       }
     }
   }
 
-  if (total_area > 0) {
-    // check/set the bad area flag
-    if (bad_area / total_area > BADAREA_THRESHOLD_APER)
-      flag |= Flags::BIASED;
+  // check/set the bad area flag
+  if (total_area > 0 && bad_area / total_area > BADAREA_THRESHOLD_APER)
+    flag |= Flags::BIASED;
 
-    // check/set the crowded area flag
-    if (full_area / total_area > CROWD_THRESHOLD_APER)
-      flag |= Flags::NEIGHBORS;
-  }
+  // check/set the crowded area flag
+  if (total_area > 0 && full_area / total_area > CROWD_THRESHOLD_APER)
+    flag |= Flags::NEIGHBORS;
 
   return flag;
 }
