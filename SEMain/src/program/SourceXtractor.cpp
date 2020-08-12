@@ -499,7 +499,8 @@ static void forwardOptions(int argc, char *const *argv, std::vector<std::string>
   for (int i = 0; i < argc; ++i) {
     std::string option{argv[i]};
     if (option == "--config-file") {
-
+      plugin_options_input.emplace_back("--config-file");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
     }
     if (boost::starts_with(option, "--config-file=")) {
       plugin_options_input.emplace_back(option);
