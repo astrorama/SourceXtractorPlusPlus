@@ -54,7 +54,7 @@ Flags computeFlags(const std::shared_ptr<Aperture>& aperture,
       }
 
       // make sure the pixel is inside the image
-      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_img->getWidth() && pixel_y < detection_img->getHeight()) {
+      if (detection_img->isInside(pixel_x, pixel_y)) {
 
         // enhance the area
         total_area += area;

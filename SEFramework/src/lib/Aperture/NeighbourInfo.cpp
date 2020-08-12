@@ -48,8 +48,7 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate& min_pixel, const PixelCoordi
       int offset_y = act_y + m_offset.m_y;
 
       // set surrounding pixels that do not belong to the image and are above the threshold to 1, all others to 0
-      if (offset_x >= 0 && offset_y >= 0 && offset_x < threshold_image->getWidth() &&
-          offset_y < threshold_image->getHeight()) {
+      if (threshold_image->isInside(offset_x, offset_y)) {
         bool is_above_threshold = threshold_image->getValue(offset_x, offset_y) > 0;
         bool belongs = m_neighbour_image->getValue(act_x, act_y) == -1;
         m_neighbour_image->setValue(act_x, act_y, is_above_threshold && !belongs);

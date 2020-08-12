@@ -36,7 +36,7 @@ getMirrorPixel(SeFloat centroid_x, SeFloat centroid_y, int pixel_x, int pixel_y,
   // get the mirror pixel
   auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
   auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
-  if (mirror_x >= 0 && mirror_y >= 0 && mirror_x < img->getWidth() && mirror_y < img->getHeight()) {
+  if (img->isInside(mirror_x, mirror_y)) {
     auto variance_tmp = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
     if (variance_tmp < variance_threshold) {
       // mirror pixel is OK: take the value
@@ -77,7 +77,7 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
       measurement.m_total_area += area;
 
       // make sure the pixel is inside the image
-      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < img->getWidth() && pixel_y < img->getHeight()) {
+      if (img->isInside(pixel_x, pixel_y)) {
 
         SeFloat variance_tmp = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
         if (variance_tmp > variance_threshold) {
@@ -86,7 +86,8 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
             std::tie(pixel_value, pixel_variance) = getMirrorPixel(
               centroid_x, centroid_y, pixel_x, pixel_y, img, variance_map, variance_threshold);
           }
-        } else {
+        }
+        else {
           pixel_value = img->getValue(pixel_x, pixel_y);
           pixel_variance = variance_tmp;
         }

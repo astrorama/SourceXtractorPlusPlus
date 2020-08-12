@@ -202,7 +202,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
             int src_x = ix + i - INTERP_MAXKERNELWIDTH / 2;
             int src_y = iy + j - INTERP_MAXKERNELWIDTH / 2;
 
-            if (src_x >= 0 && src_y >= 0 && src_x < source->getWidth() && src_y < source->getHeight()) {
+            if (source->isInside(src_x, src_y)) {
               buffer[j * INTERP_MAXKERNELWIDTH + i] = source->getValue(src_x, src_y);
             }
           }

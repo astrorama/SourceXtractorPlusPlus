@@ -101,8 +101,7 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
       }
 
       // make sure the pixel is inside the image
-      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_image->getWidth() &&
-          pixel_y < detection_image->getHeight()) {
+      if (detection_image->isInside(pixel_x, pixel_y)) {
         SeFloat value = 0;
 
         // enhance the area

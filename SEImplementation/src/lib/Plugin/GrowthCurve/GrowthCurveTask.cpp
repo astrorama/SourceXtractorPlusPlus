@@ -110,7 +110,7 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   // Compute fluxes for each ring
   for (auto y = min_coord.m_y; y <= max_coord.m_y; ++y) {
     for (auto x = min_coord.m_x; x <= max_coord.m_x; ++x) {
-      if (x < 0 || x >= image->getWidth() || y < 0 || y >= image->getHeight()) {
+      if (!image->isInside(x, y)) {
         continue;
       }
 
