@@ -77,84 +77,72 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   const auto& min_pixel = ell_aper->getMinPixel(centroid_x, centroid_y);
   const auto& max_pixel = ell_aper->getMaxPixel(centroid_x, centroid_y);
 
-// get the pixel list
+  // get the pixel list
   const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
 
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
-  SeFloat radius_flux_sum=0.;
-  SeFloat flux_sum=0.;
-  long int area_sum=0;
-  long int area_bad=0;
-  long int area_full=0;
-  long int flag=0;
+  SeFloat radius_flux_sum = 0.;
+  SeFloat flux_sum = 0.;
+  SeFloat area_sum = 0;
+  SeFloat area_bad = 0;
+  SeFloat area_full = 0;
+  long int flag = 0;
 
   // iterate over the aperture pixels
   for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
     for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
-      SeFloat value = 0;
-      SeFloat pixel_variance = 0;
 
       // check whether the current pixel is inside
-      if (ell_aper->getArea(centroid_x, centroid_y, pixel_x, pixel_y) > 0){
+      SeFloat area = ell_aper->getArea(centroid_x, centroid_y, pixel_x, pixel_y);
+      if (area <= 0) {
+        continue;
+      }
 
-        // make sure the pixel is inside the image
-        if (pixel_x >=0 && pixel_y >=0 && pixel_x < detection_image->getWidth() && pixel_y < detection_image->getHeight()) {
+      // make sure the pixel is inside the image
+      if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_image->getWidth() &&
+          pixel_y < detection_image->getHeight()) {
+        SeFloat value = 0;
 
-          // enhance the area
-          area_sum += 1;
+        // enhance the area
+        area_sum += 1;
 
-          // get the variance value
-          pixel_variance = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
+        // get the variance value
+        auto pixel_variance = detection_variance->getValue(pixel_x, pixel_y);
 
-          // check whether the pixel is good
-          if (pixel_variance < variance_threshold) {
-            value = detection_image->getValue(pixel_x, pixel_y);
-          }
-          else {
-            // set bad pixel values to zero
-            value=0.0;
-            pixel_variance=0.0;
-            area_bad += 1;
-          }
+        // check whether the pixel is good
+        bool is_good = pixel_variance < variance_threshold;
+        value = detection_image->getValue(pixel_x, pixel_y) * is_good;
+        area_bad += !is_good;
 
-          // check whether the pixel is part of another object
-          if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
-            area_full += 1;
-          }
-          else {
-            // add the pixel quantity
-            radius_flux_sum += value*sqrt(ell_aper->getRadiusSquared(centroid_x, centroid_y, pixel_x, pixel_y));
-            flux_sum        += value;
-          }
+        // check whether the pixel is part of another object
+        if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y)) {
+          area_full += 1;
         }
         else {
-          // set the border flag
-          flag |= 0x0008;
+          // add the pixel quantity
+          radius_flux_sum += value * sqrt(ell_aper->getRadiusSquared(centroid_x, centroid_y, pixel_x, pixel_y));
+          flux_sum += value;
         }
+      }
+      else {
+        // set the border flag
+        flag |= 0x0008;
       }
     }
   }
 
-  if (area_sum>0) {
-    // check/set the bad area flag
-    if ((SeFloat)area_bad/(SeFloat)area_sum > BADAREA_THRESHOLD_KRON)
-      flag |= 0x0001;
+  // check/set the bad area flag
+  bool bad_threshold = area_sum > 0 && area_bad / area_sum > BADAREA_THRESHOLD_KRON;
+  flag |= 0x0001 * bad_threshold;
 
-    // check/set the crowded area flag
-    if ((SeFloat)area_full/(SeFloat)area_sum > CROWD_THRESHOLD_KRON)
-      flag |= 0x0002;
-  }
+  // check/set the crowded area flag
+  bool crowded = area_sum > 0 && area_full / area_sum > CROWD_THRESHOLD_KRON;
+  flag |= crowded;
 
   // set the property
-  if (flux_sum>0){
-    source.setProperty<KronRadius>(radius_flux_sum/flux_sum, flag);
-  }
-  else {
-    // the default value
-    source.setProperty<KronRadius>(0.0, flag);
-  }
+  source.setProperty<KronRadius>(flux_sum > 0 ? radius_flux_sum / flux_sum : 0, flag);
 }
 }
 
