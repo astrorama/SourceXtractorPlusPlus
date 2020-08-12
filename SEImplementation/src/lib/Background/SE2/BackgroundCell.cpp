@@ -202,7 +202,7 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
   }
 
   // compute mean and sigma of all data
-  if (statNData<=0){
+  if (statNData == 0) {
     throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
   }
   mean /= (double)statNData;
@@ -231,7 +231,7 @@ void BackgroundCell::getStats(const PIXTYPE* cellData, const size_t& ndata, doub
 
   // compute mean and sigma
   // in the restricted range
-  if (statNData<=0){
+  if (statNData == 0) {
     throw Elements::Exception() << "Can not compute meaningful stats with statNData=" << statNData << "!";
   }
 
@@ -328,7 +328,7 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
 
   // compute mean and sigma of the data
   // within the cuts
-  if (statNData<=0){
+  if (statNData == 0) {
     throw Elements::Exception() << "Can not compute meaningful data stats with statNData=" << statNData;
  }
   mean /= static_cast<double>(statNData);
@@ -337,7 +337,7 @@ void BackgroundCell::getStatsWeight(const PIXTYPE* cellData, const size_t& ndata
 
   // compute the mean and sigma of the weights
   // within the cuts
-  if (statNWeight<=0){
+  if (statNWeight == 0) {
 	throw Elements::Exception() << "Can not compute meaningful weight stats with statNWeight=" << statNWeight;
   }
   weightMean /= static_cast<double>(statNWeight);

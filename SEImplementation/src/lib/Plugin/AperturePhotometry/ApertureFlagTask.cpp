@@ -21,9 +21,9 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include "SEFramework/Source/SourceFlags.h"
+#include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/CircularAperture.h"
-#include "SEFramework/Aperture/NeighbourInfo.h"
+#include "SEFramework/Aperture/Flagging.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -34,16 +34,10 @@
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-
 #include "SEImplementation/Plugin/AperturePhotometry/ApertureFlagTask.h"
 
 namespace SourceXtractor {
 
-namespace {
-const SeFloat CROWD_THRESHOLD_APER = 0.1;
-const SeFloat BADAREA_THRESHOLD_APER = 0.1;
-}
 
 void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get the detection frame info
@@ -67,86 +61,23 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   std::map<float, Flags> all_flags;
 
   for (auto aperture_diameter : m_apertures) {
-    auto aperture = CircularAperture(aperture_diameter / 2.);
-
-    // get the aperture borders on the image
-    auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
-    auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
-
-    // get the neighbourhood information
-    NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
-
-    Flags flag = Flags::NONE;
-    SeFloat total_area = 0.0;
-    SeFloat bad_area = 0;
-    SeFloat full_area = 0;
-
-    // iterate over the aperture pixels
-    for (int pixel_y = min_pixel.m_y; pixel_y <= max_pixel.m_y; pixel_y++) {
-      for (int pixel_x = min_pixel.m_x; pixel_x <= max_pixel.m_x; pixel_x++) {
-
-        // get the area coverage and continue if there is overlap
-        auto area = aperture.getArea(centroid_x, centroid_y, pixel_x, pixel_y);
-        if (area > 0) {
-
-          // make sure the pixel is inside the image
-          if (pixel_x >= 0 && pixel_y >= 0 && pixel_x < detection_image->getWidth() &&
-              pixel_y < detection_image->getHeight()) {
-
-            // enhance the area
-            total_area += area;
-
-            auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
-            if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y) || variance_tmp > variance_threshold) {
-
-              if (neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y))
-                full_area += 1;
-              if (variance_tmp > variance_threshold)
-                bad_area += 1;
-            }
-          } else {
-            flag |= Flags::BOUNDARY;
-          }
-        }
-      }
-    }
-
-    if (total_area > 0) {
-      // check/set the bad area flag
-      if (bad_area / total_area > BADAREA_THRESHOLD_APER)
-        flag |= Flags::BIASED;
-
-      // check/set the crowded area flag
-      if (full_area / total_area > CROWD_THRESHOLD_APER)
-        flag |= Flags::NEIGHBORS;
-    }
-
+    auto aperture = std::make_shared<CircularAperture>(aperture_diameter / 2.);
+    auto flag = computeFlags(aperture, centroid_x, centroid_y, pix_list, detection_image,
+                             detection_variance, threshold_image, variance_threshold);
     all_flags.emplace(std::make_pair(aperture_diameter, flag));
   }
 
   // set the source properties
   source.setProperty<ApertureFlag>(all_flags);
 
-  // Draw the checkimage for the last aperture on the detection image
+  // draw check image
   auto aperture_check_img = CheckImages::getInstance().getApertureImage();
   if (aperture_check_img) {
-    auto src_id = source.getProperty<SourceID>().getId();
+    unsigned int src_id = source.getProperty<SourceID>().getId();
+    auto aperture = std::make_shared<CircularAperture>(m_apertures[0] / 2.);
 
-    auto aperture = CircularAperture(m_apertures[0] / 2.);
-    auto min_pixel = aperture.getMinPixel(centroid_x, centroid_y);
-    auto max_pixel = aperture.getMaxPixel(centroid_x, centroid_y);
-
-    for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
-      for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
-        if (aperture.getArea(centroid_x, centroid_y, x, y) > 0) {
-          if (x >= 0 && y >= 0 && x < aperture_check_img->getWidth() && y < aperture_check_img->getHeight()) {
-            aperture_check_img->setValue(x, y, src_id);
-          }
-        }
-      }
-    }
+    fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, src_id);
   }
 }
 
-}
-
+} // end of namespace SourceXtractor

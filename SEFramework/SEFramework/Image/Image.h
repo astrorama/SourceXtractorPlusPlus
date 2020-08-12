@@ -41,9 +41,9 @@ class ImageChunk;
  */
 template <typename T>
 class Image {
-  
+
 public:
-  
+
   using PixelType = T;
 
   /**
@@ -56,18 +56,23 @@ public:
 
   /// Returns the value of the pixel with the coordinates (x,y)
   virtual T getValue(int x, int y) const = 0;
-  
+
   T getValue(PixelCoordinate pc) const {
     return getValue(pc.m_x, pc.m_y);
   }
 
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
-  
+
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
   virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const = 0;
+
+  /// Returns true if the given coordinates are inside the image bounds
+  bool isInside(int x, int y) const {
+    return x >= 0 && y >= 0 && x < getWidth() && y < getHeight();
+  }
 
 }; /* End of Image class */
 
