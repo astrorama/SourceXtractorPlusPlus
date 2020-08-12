@@ -59,10 +59,8 @@ Flags computeFlags(const std::shared_ptr<Aperture>& aperture,
         // enhance the area
         total_area += area;
 
-        auto variance_tmp = detection_variance ? detection_variance->getValue(pixel_x, pixel_y) : 1;
-
         full_area += neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y);
-        bad_area += (variance_tmp > variance_threshold);
+        bad_area += (detection_variance->getValue(pixel_x, pixel_y) > variance_threshold);
       }
       else {
         flag |= Flags::BOUNDARY;

@@ -37,7 +37,7 @@ getMirrorPixel(SeFloat centroid_x, SeFloat centroid_y, int pixel_x, int pixel_y,
   auto mirror_x = 2 * centroid_x - pixel_x + 0.49999;
   auto mirror_y = 2 * centroid_y - pixel_y + 0.49999;
   if (img->isInside(mirror_x, mirror_y)) {
-    auto variance_tmp = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
+    auto variance_tmp = variance_map->getValue(mirror_x, mirror_y);
     if (variance_tmp < variance_threshold) {
       // mirror pixel is OK: take the value
       return std::make_pair(img->getValue(mirror_x, mirror_y), variance_tmp);
@@ -79,7 +79,7 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
       // make sure the pixel is inside the image
       if (img->isInside(pixel_x, pixel_y)) {
 
-        SeFloat variance_tmp = variance_map ? variance_map->getValue(pixel_x, pixel_y) : 1;
+        SeFloat variance_tmp = variance_map->getValue(pixel_x, pixel_y);
         if (variance_tmp > variance_threshold) {
           measurement.m_bad_area += 1;
           if (use_symmetry) {
@@ -101,11 +101,8 @@ FluxMeasurement measureFlux(const std::shared_ptr<Aperture> &aperture, SeFloat c
   }
 
   // check/set the bad area flag
-  if (measurement.m_total_area > 0 &&
-      measurement.m_bad_area / measurement.m_total_area > BADAREA_THRESHOLD_APER) {
-    measurement.m_flags |= Flags::BIASED;
-  }
-
+  bool is_biased = measurement.m_total_area > 0 && measurement.m_bad_area / measurement.m_total_area > BADAREA_THRESHOLD_APER;
+  measurement.m_flags |= Flags::BIASED * is_biased;
   return measurement;
 }
 
