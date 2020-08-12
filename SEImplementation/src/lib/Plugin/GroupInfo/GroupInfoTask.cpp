@@ -22,8 +22,6 @@
  */
 
 
-#include "SEFramework/Property/DetectionFrame.h"
-
 #include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoTask.h"
 

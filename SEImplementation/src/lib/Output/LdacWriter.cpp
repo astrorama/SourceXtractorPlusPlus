@@ -16,12 +16,21 @@
  */
 
 #include <sstream>
-#include <boost/io/detail/quoted_manip.hpp>
+
 #include <AlexandriaKernel/memory_tools.h>
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Output/LdacWriter.h"
-#include "SEImplementation/Configuration/DetectionImageConfig.h"
+
 #include "SOURCEXTRACTORPLUSPLUS_VERSION.h"
+
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
+
+#include "SEImplementation/Output/LdacWriter.h"
+
+#if BOOST_VERSION < 107300
+#include <boost/io/detail/quoted_manip.hpp>
+#else
+#include <boost/io/quoted.hpp>
+#endif
 
 namespace SourceXtractor {
 
@@ -47,8 +56,8 @@ void LdacWriter::notifySource(const SourceInterface& source) {
   if (m_objects_writer)
     return;
 
-  const auto& detection_frame = source.getProperty<DetectionFrame>();
-  m_rms = detection_frame.getFrame()->getBackgroundMedianRms();
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
+  m_rms = detection_frame_info.getBackgroundMedianRms();
 }
 
 template<typename T>

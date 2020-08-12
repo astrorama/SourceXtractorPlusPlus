@@ -139,6 +139,31 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFITSFi
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
 }
 
+static bool getNormalization(std::istream& line_stream) {
+  std::string conv, norm_type;
+  line_stream >> conv >> norm_type;
+  if (conv != "CONV") {
+    throw Elements::Exception() << "Unexpected start for ASCII filter: " << conv;
+  }
+  if (norm_type == "NORM") {
+    return true;
+  }
+  else if (norm_type == "NONORM") {
+    return false;
+  }
+
+  throw Elements::Exception() << "Unexpected normalization type: " << norm_type;
+}
+
+template <typename T>
+static void extractValues(std::istream& line_stream, std::vector<T>& data) {
+  T value;
+  while (line_stream.good()) {
+    line_stream >> value;
+    data.push_back(value);
+  }
+}
+
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIFilter(const std::string& filename) const {
   std::ifstream file;
 
@@ -171,37 +196,17 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
     std::stringstream line_stream(line);
 
     switch (state) {
-      SeFloat value;
       case LoadState::STATE_START:
-        {
-          std::string conv, norm_type;
-          line_stream >> conv >> norm_type;
-          if (conv != "CONV") {
-            return nullptr;
-          }
-          if (norm_type == "NORM") {
-            normalize = true;
-          } else if (norm_type == "NONORM") {
-            normalize = false;
-          } else {
-            return nullptr;
-          }
-          state = LoadState::STATE_FIRST_LINE;
-        }
+        normalize = getNormalization(line_stream);
+        state = LoadState::STATE_FIRST_LINE;
         break;
       case LoadState::STATE_FIRST_LINE:
-        while (line_stream.good()) {
-          line_stream >> value;
-          kernel_data.push_back(value);
-        }
+        extractValues(line_stream, kernel_data);
         kernel_width = kernel_data.size();
         state = LoadState::STATE_OTHER_LINES;
         break;
       case LoadState::STATE_OTHER_LINES:
-        while (line_stream.good()) {
-          line_stream >> value;
-          kernel_data.push_back(value);
-        }
+        extractValues(line_stream, kernel_data);
         break;
       }
   }

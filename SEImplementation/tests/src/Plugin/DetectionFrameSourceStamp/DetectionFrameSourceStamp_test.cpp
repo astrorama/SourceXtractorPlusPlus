@@ -25,9 +25,9 @@
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
@@ -48,7 +48,7 @@ BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
   auto image = VectorImage<DetectionImage::PixelType>::create(3, 2,
       std::vector<DetectionImage::PixelType>{0.0, 1.0, 2.0, 3.0, 4.0, 5.0});
 
-  source.setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(image));
+  source.setProperty<DetectionFrameImages>(std::make_shared<DetectionImageFrame>(image), image->getWidth(), image->getHeight());
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
   source.setProperty<PixelBoundaries>(1, 0, 2, 1);
 

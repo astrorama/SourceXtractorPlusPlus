@@ -22,10 +22,9 @@
 
 #include <mutex>
 
-#include "SEFramework/Property/DetectionFrame.h"
-
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
 
@@ -43,16 +42,17 @@ ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_imag
 
 template<typename Combine>
 void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
+  // FIXME: for flag_image access, the external flags image not part of detection frame?!
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
-  const auto& detection_frame = source.getProperty<DetectionFrame>();
-  const auto& detection_image = detection_frame.getFrame()->getOriginalImage();
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
 
-  if (m_flag_image->getWidth() != detection_image->getWidth() || m_flag_image->getHeight() != detection_image->getHeight()) {
+  if (m_flag_image->getWidth() != detection_frame_info.getWidth() ||
+      m_flag_image->getHeight() != detection_frame_info.getHeight()) {
     throw Elements::Exception()
       << "The flag image size does not match the detection image size: "
       << m_flag_image->getWidth() << "x" << m_flag_image->getHeight() << " != "
-      << detection_image->getWidth() << "x" << detection_image->getHeight();
+      << detection_frame_info.getWidth() << "x" << detection_frame_info.getHeight();
   }
 
   std::vector<FlagImage::PixelType> pixel_flags{};

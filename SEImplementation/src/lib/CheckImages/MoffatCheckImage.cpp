@@ -37,8 +37,8 @@ namespace SourceXtractor {
 using namespace ModelFitting;
 
 void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  if (m_check_image) {
-
+  auto check_image = CheckImages::getInstance().getMoffatImage();
+  if (check_image != nullptr) {
     for (auto& source : *group) {
       auto& model = source.getProperty<MoffatModelEvaluator>();
 
@@ -46,10 +46,9 @@ void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>
         continue;
       }
 
-      std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
-      for (int y=0; y<m_check_image->getHeight(); y++) {
-        for (int x=0; x<m_check_image->getWidth(); x++) {
-          m_check_image->setValue(x, y, m_check_image->getValue(x, y) + model.getValue(x - 0.5, y - 0.5));
+      for (int y=0; y<check_image->getHeight(); y++) {
+        for (int x=0; x<check_image->getWidth(); x++) {
+          check_image->setValue(x, y, check_image->getValue(x, y) + model.getValue(x - 0.5, y - 0.5));
         }
       }
     }

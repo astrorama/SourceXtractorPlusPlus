@@ -26,7 +26,9 @@
 #include "SEFramework/Source/SimpleSourceGroup.h"
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 #include "SEImplementation/Plugin/Jacobian/JacobianTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEUtils/TestUtils.h"
@@ -99,12 +101,8 @@ BOOST_AUTO_TEST_CASE (JacobianIdentity_test) {
   auto source = std::make_shared<SimpleSource>();
   auto measurement_coord_system = std::make_shared<NoopCoordinateSystem>();
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
-  source->setProperty<MeasurementFrame>(std::make_shared<MeasurementImageFrame>(
-    nullptr, measurement_coord_system, nullptr
-  ));
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-    nullptr, detection_coord_system, nullptr
-  ));
+  source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
+  source->setProperty<DetectionFrameCoordinates>(detection_coord_system);
 
   auto world_center = detection_coord_system->imageToWorld({150, 150});
   auto measurement_center = measurement_coord_system->worldToImage(world_center);
@@ -138,12 +136,8 @@ BOOST_AUTO_TEST_CASE (JacobianScale_test) {
   auto source = std::make_shared<SimpleSource>();
   auto measurement_coord_system = std::make_shared<ScaleCoordinateSystem>(2);
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
-  source->setProperty<MeasurementFrame>(std::make_shared<MeasurementImageFrame>(
-    nullptr, measurement_coord_system, nullptr
-  ));
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-    nullptr, detection_coord_system, nullptr
-  ));
+  source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
+  source->setProperty<DetectionFrameCoordinates>(detection_coord_system);
 
   auto world_center = detection_coord_system->imageToWorld({150, 150});
   auto measurement_center = measurement_coord_system->worldToImage(world_center);
@@ -177,12 +171,8 @@ BOOST_AUTO_TEST_CASE (JacobianShear_test) {
   auto source = std::make_shared<SimpleSource>();
   auto measurement_coord_system = std::make_shared<ShearCoordinates>();
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
-  source->setProperty<MeasurementFrame>(std::make_shared<MeasurementImageFrame>(
-    nullptr, measurement_coord_system, nullptr
-  ));
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-    nullptr, detection_coord_system, nullptr
-  ));
+  source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
+  source->setProperty<DetectionFrameCoordinates>(detection_coord_system);
 
   auto world_center = detection_coord_system->imageToWorld({150, 150});
   auto measurement_center = measurement_coord_system->worldToImage(world_center);

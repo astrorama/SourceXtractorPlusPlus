@@ -21,19 +21,16 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
-
-#include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 
+#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
 #include "SEImplementation/Plugin/WorldCentroid/WorldCentroidTask.h"
 
 namespace SourceXtractor {
 
 void WorldCentroidTask::computeProperties(SourceInterface& source) const {
-  auto coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+  auto coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   ImageCoordinate image_coordinate(
       source.getProperty<PixelCentroid>().getCentroidX(), source.getProperty<PixelCentroid>().getCentroidY());

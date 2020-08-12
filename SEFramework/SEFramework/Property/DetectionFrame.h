@@ -32,12 +32,42 @@ namespace SourceXtractor {
 
 class DetectionFrame : public Property {
 public:
-  DetectionFrame(std::shared_ptr<DetectionImageFrame> detection_frame) : m_detection_frame(detection_frame) {
+  class EncapsulatedDetectionImageFrame {
+  public:
+    explicit EncapsulatedDetectionImageFrame(std::shared_ptr<DetectionImageFrame> frame)
+        : m_frame(frame) {}
+
+  private:
+    std::shared_ptr<DetectionImageFrame> getFrame() const {
+      return m_frame;
+    }
+
+    std::shared_ptr<DetectionImageFrame> m_frame;
+
+    friend class DetectionFrame;
+    friend class MeasurementFrame;
+  };
+
+  DetectionFrame(std::shared_ptr<DetectionImageFrame> detection_frame)
+      : m_detection_frame(detection_frame) {}
+
+  DetectionFrame(EncapsulatedDetectionImageFrame encapsulated_frame)
+      : m_detection_frame(encapsulated_frame.getFrame()) {}
+
+  EncapsulatedDetectionImageFrame getEncapsulatedFrame() const {
+    return EncapsulatedDetectionImageFrame(m_detection_frame);
   }
 
+protected:
   std::shared_ptr<DetectionImageFrame> getFrame() const {
     return m_detection_frame;
   }
+
+  // To enforce multi-threading safety only those tasks are allowed to use the content of the DetectionFrame property
+  friend class DetectionFrameCoordinatesTask;
+  friend class DetectionFrameInfoTask;
+  friend class DetectionFrameImagesTask;
+  friend class DefaultMeasurementFrameTask;
 
 private:
   std::shared_ptr<DetectionImageFrame> m_detection_frame;

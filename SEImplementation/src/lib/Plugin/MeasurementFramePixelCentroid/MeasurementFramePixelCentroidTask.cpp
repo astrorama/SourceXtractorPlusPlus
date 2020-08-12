@@ -21,8 +21,8 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -31,8 +31,8 @@
 namespace SourceXtractor {
 
 void MeasurementFramePixelCentroidTask::computeProperties(SourceInterface& source) const {
-  auto detection_coordinate_system = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
-  auto measurement_coordinate_system = source.getProperty<MeasurementFrame>(m_instance).getFrame()->getCoordinateSystem();
+  auto detection_coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto measurement_coordinate_system = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
   auto pixel_centroid = source.getProperty<PixelCentroid>();
 
   ImageCoordinate detection_image_coordinate(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());

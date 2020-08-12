@@ -21,22 +21,22 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <iostream>
-#include <mutex>
-#include <SEFramework/Property/DetectionFrame.h>
-#include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
+#include <SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h>
+#include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>
+#include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTask.h>
-#include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
-
 
 namespace SourceXtractor {
 
 void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) const {
-  auto frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-  auto frame_coordinates = frame->getCoordinateSystem();
   auto& detection_group_stamp = source.getProperty<PixelBoundaries>();
-  auto detection_frame_coordinates = source.getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+  auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  auto detection_frame_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+
+  const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
 
   // Get the coordinates of the detection frame group stamp
   auto stamp_top_left = detection_group_stamp.getMin();
@@ -44,13 +44,13 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   auto height = detection_group_stamp.getHeight();
 
   // Transform the 4 corner coordinates from detection image
-  auto coord1 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto coord1 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
     stamp_top_left.m_x, stamp_top_left.m_y)));
-  auto coord2 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto coord2 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
     stamp_top_left.m_x + width, stamp_top_left.m_y)));
-  auto coord3 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto coord3 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
     stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
-  auto coord4 = frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
+  auto coord4 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
     stamp_top_left.m_x, stamp_top_left.m_y + height)));
 
   // Determine the min/max coordinates
@@ -65,18 +65,17 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   max_coord.m_x = int(max_x) + 1;
   max_coord.m_y = int(max_y) + 1;
 
-  auto frame_image = frame->getSubtractedImage();
-
   // The full boundaries may lie outside of the frame
-  if (max_coord.m_x < 0 || max_coord.m_y < 0 || min_coord.m_x >= frame_image->getWidth() || min_coord.m_y >= frame_image->getHeight()) {
+  if (max_coord.m_x < 0 || max_coord.m_y < 0 ||
+      min_coord.m_x >= measurement_frame_info.getWidth() || min_coord.m_y >= measurement_frame_info.getHeight()) {
     source.setIndexedProperty<MeasurementFrameRectangle>(m_instance);
   }
   // Clip the coordinates to fit the available image
   else {
     min_coord.m_x = std::max(0, min_coord.m_x);
     min_coord.m_y = std::max(0, min_coord.m_y);
-    max_coord.m_x = std::min(frame_image->getWidth() - 1, max_coord.m_x);
-    max_coord.m_y = std::min(frame_image->getHeight() - 1, max_coord.m_y);
+    max_coord.m_x = std::min(measurement_frame_info.getWidth() - 1, max_coord.m_x);
+    max_coord.m_y = std::min(measurement_frame_info.getHeight() - 1, max_coord.m_y);
 
     source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, min_coord, max_coord);
   }
