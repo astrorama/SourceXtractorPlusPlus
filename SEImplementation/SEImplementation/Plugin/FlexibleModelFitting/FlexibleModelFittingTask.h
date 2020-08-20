@@ -31,6 +31,7 @@
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
 
+#include "SEImplementation/Configuration/SamplingConfig.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"

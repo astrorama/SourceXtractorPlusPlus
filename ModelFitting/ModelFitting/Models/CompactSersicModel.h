@@ -16,12 +16,24 @@ template <typename ImageType>
 class CompactSersicModel : public CompactModelBase<ImageType> {
 
 public:
+
+  enum class SamplingMethod {
+    LEGACY=0,
+    ADAPTIVE=1,
+    GRID=2,
+    STOCHASTIC=3,
+  };
+
   CompactSersicModel(double sharp_radius,
       std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k, std::shared_ptr<BasicParameter> n,
       std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
       std::shared_ptr<BasicParameter> rotation, double width, double height,
       std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
-      std::tuple<double, double, double, double> transform);
+      std::tuple<double, double, double, double> transform,
+      SamplingMethod sampling_method = SamplingMethod::ADAPTIVE,
+      int sample_nb = 16,
+      double adaptive_target = .001
+  );
 
   virtual ~CompactSersicModel() = default;
 
@@ -53,6 +65,7 @@ private:
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
+  using CompactModelBase<ImageType>::sampleStochastic;
 
   using CompactModelBase<ImageType>::m_jacobian;
 
@@ -62,6 +75,10 @@ private:
   std::shared_ptr<BasicParameter> m_i0;
   std::shared_ptr<BasicParameter> m_k;
   std::shared_ptr<BasicParameter> m_n;
+
+  SamplingMethod m_sampling_method;
+  int m_sample_nb;
+  double m_adaptive_target;
 };
 
 }

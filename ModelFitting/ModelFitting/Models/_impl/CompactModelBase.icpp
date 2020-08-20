@@ -5,6 +5,9 @@
  *      Author: mschefer
  */
 
+
+#include <random>
+
 namespace ModelFitting {
 
 template<typename ImageType>
@@ -55,6 +58,22 @@ inline float CompactModelBase<ImageType>::samplePixel(const ModelEvaluator& mode
 
   return acc / (subsampling*subsampling);
 }
+
+template<typename ImageType>
+template<typename ModelEvaluator>
+inline float CompactModelBase<ImageType>::sampleStochastic(const ModelEvaluator& model_eval, int x, int y, unsigned int samples) const {
+  double acc = 0.;
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution(-.5,.5);
+
+  for (unsigned int i=0; i<samples; i++) {
+    acc += model_eval.evaluateModel(double(x) + distribution(generator), double(y) + distribution(generator));
+  }
+
+  return acc / samples;
+}
+
+
 
 template<typename ImageType>
 template<typename ModelEvaluator>

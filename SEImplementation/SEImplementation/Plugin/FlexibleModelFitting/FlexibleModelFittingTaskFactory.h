@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGTASKFACTORY_H_
 
 #include "SEFramework/Task/TaskFactory.h"
+
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
 
 namespace SourceXtractor {
