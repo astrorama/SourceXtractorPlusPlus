@@ -43,7 +43,7 @@ auto SamplingConfig::getProgramOptions() -> std::map<std::string, OptionDescript
   return {{"Model Fitting Sampling",
       {
         {SAMPLING_METHOD.c_str(), po::value<std::string>()->default_value("ADAPTIVE"),
-         "Sampling method used for model fitting"},
+         "Sampling method used for model fitting (LEGACY, ADAPTIVE, GRID or STOCHASTIC)"},
         {SAMPLING_SAMPLES_NB.c_str(), po::value<int>()->default_value(8),
          "Number of samples (for adpative/grid size of grid, for stochastic total)"},
         {SAMPLING_ADAPTIVE_TARGET.c_str(), po::value<double>()->default_value(0.001),
