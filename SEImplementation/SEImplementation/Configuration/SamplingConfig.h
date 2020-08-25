@@ -55,10 +55,16 @@ public:
     return m_adaptive_target;
   }
 
+  double getScaleFactor() const {
+    return m_scale_factor;
+  }
+
+
 private:
   SamplingMethod m_sampling_method;
   int m_sample_nb;
   double m_adaptive_target;
+  double m_scale_factor;
 };
 
 

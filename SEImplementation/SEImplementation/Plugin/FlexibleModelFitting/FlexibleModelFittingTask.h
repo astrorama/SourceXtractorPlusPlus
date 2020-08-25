@@ -45,7 +45,9 @@ public:
       unsigned int max_iterations, double modified_chi_squared_scale,
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
       std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
-      std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors);
+      std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
+      double scale_factor=1.0
+      );
 
   virtual ~FlexibleModelFittingTask();
 
@@ -82,6 +84,8 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
+
+  double m_scale_factor;
 };
 
 }
