@@ -28,6 +28,7 @@ static const std::string SAMPLING_METHOD {"sampling-method"};
 static const std::string SAMPLING_SAMPLES_NB {"sampling-sample-nb"};
 static const std::string SAMPLING_ADAPTIVE_TARGET {"sampling-adaptive-target"};
 static const std::string SAMPLING_SCALE_FACTOR {"sampling-scale-factor"};
+static const std::string SAMPLING_RENORMALIZE {"sampling-renormalize"};
 
 static std::map<std::string, SamplingConfig::SamplingMethod> sampling_method_map {
   {"LEGACY", SamplingConfig::SamplingMethod::LEGACY},
@@ -37,19 +38,21 @@ static std::map<std::string, SamplingConfig::SamplingMethod> sampling_method_map
 };
 
 SamplingConfig::SamplingConfig(long manager_id) : Configuration(manager_id),
-    m_sampling_method(SamplingMethod::ADAPTIVE), m_sample_nb(8), m_adaptive_target(0.001) {}
+    m_sampling_method(SamplingMethod::ADAPTIVE), m_sample_nb(8), m_adaptive_target(0.001), m_renormalize(true) {}
 
 auto SamplingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"Model Fitting Sampling",
       {
         {SAMPLING_METHOD.c_str(), po::value<std::string>()->default_value("ADAPTIVE"),
          "Sampling method used for model fitting (LEGACY, ADAPTIVE, GRID or STOCHASTIC)"},
-        {SAMPLING_SAMPLES_NB.c_str(), po::value<int>()->default_value(8),
+        {SAMPLING_SAMPLES_NB.c_str(), po::value<int>()->default_value(64),
          "Number of samples (for adpative/grid size of grid, for stochastic total)"},
         {SAMPLING_ADAPTIVE_TARGET.c_str(), po::value<double>()->default_value(0.001),
          "Adaptive sampling will stop when difference is less than this"},
         {SAMPLING_SCALE_FACTOR.c_str(), po::value<double>()->default_value(1.0),
-         "Scaling factor for the rendering of models (e.g. 2 = twice the resolution)"}
+         "Scaling factor for the rendering of models (e.g. 2 = twice the resolution)"},
+        {SAMPLING_RENORMALIZE.c_str(), po::value<bool>()->default_value(true),
+         "Renormalize flux in the rendered models"}
       }
   }};
 }
@@ -68,6 +71,7 @@ void SamplingConfig::initialize(const UserValues& args) {
 
   auto method_name  = boost::to_upper_copy(args.at(SAMPLING_METHOD).as<std::string>());
   m_sampling_method = sampling_method_map.at(method_name);
+  m_renormalize = args.at(SAMPLING_RENORMALIZE).as<bool>();
 }
 
 } /* namespace SourceXtractor */

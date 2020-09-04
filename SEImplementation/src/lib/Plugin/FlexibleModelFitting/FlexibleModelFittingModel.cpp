@@ -187,6 +187,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   auto sampling_method = sampling_config.getSamplingMethod();
   auto sample_nb = sampling_config.getSampleNb();
   auto adaptive_target = sampling_config.getAdaptiveTargetPrecision();
+  bool renormalize = sampling_config.getRenormalize();
 
   if (sampling_config.getSamplingMethod() == SamplingConfig::SamplingMethod::LEGACY) {
     std::vector<std::unique_ptr<ModelComponent>> sersic_component;
@@ -198,7 +199,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
   } else {
     extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
         3.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
-        size, size, pixel_x, pixel_y, jacobian, CompactSersicModel<ImageInterfaceTypePtr>::SamplingMethod(sampling_method), sample_nb, adaptive_target));
+        size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian, CompactSersicModel<ImageInterfaceTypePtr>::SamplingMethod(sampling_method), sample_nb, adaptive_target, renormalize));
   }
 }
 
@@ -246,6 +247,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   auto sampling_method = sampling_config.getSamplingMethod();
   auto sample_nb = sampling_config.getSampleNb();
   auto adaptive_target = sampling_config.getAdaptiveTargetPrecision();
+  bool renormalize = sampling_config.getRenormalize();
 
   if (sampling_config.getSamplingMethod() == SamplingConfig::SamplingMethod::LEGACY) {
     std::vector<std::unique_ptr<ModelComponent>> sersic_component;
@@ -258,8 +260,8 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
   } else {
     extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
         3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
-        manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, jacobian,
-        CompactSersicModel<ImageInterfaceTypePtr>::SamplingMethod(sampling_method), sample_nb, adaptive_target));
+        manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian,
+        CompactSersicModel<ImageInterfaceTypePtr>::SamplingMethod(sampling_method), sample_nb, adaptive_target, renormalize));
   }
 }
 

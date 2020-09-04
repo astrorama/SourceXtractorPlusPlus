@@ -15,18 +15,20 @@ CompactSersicModel<ImageType>::CompactSersicModel(double sharp_radius,
     std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
     std::shared_ptr<BasicParameter> rotation, double width, double height,
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::shared_ptr<BasicParameter> flux,
     std::tuple<double, double, double, double> transform,
     SamplingMethod sampling_method,
     int sample_nb,
-    double adaptive_target
+    double adaptive_target,
+    bool renormalize
 )
         : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
           m_sharp_radius_squared(float(sharp_radius * sharp_radius)),
-          m_i0(i0), m_k(k), m_n(n),
+          m_i0(i0), m_k(k), m_n(n), m_flux(flux),
           m_sampling_method(sampling_method),
           m_sample_nb(sample_nb),
-          m_adaptive_target(adaptive_target)
-
+          m_adaptive_target(adaptive_target),
+          m_renormalize(renormalize)
 {}
 
 template<typename ImageType>
@@ -42,6 +44,30 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   return model_eval.evaluateModel(x, y) * area_correction;
 }
 
+template<typename ImageType>
+void CompactSersicModel<ImageType>::renormalize(ImageType& image) const {
+  using Traits = ImageTraits<ImageType>;
+
+  int width = Traits::width(image);
+  int height = Traits::height(image);
+
+  double acc = 0.0;
+
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      acc += Traits::at(image, x, y);
+    }
+  }
+
+  if (acc > 0.0) {
+    double scale = m_flux->getValue() / acc;
+    for (int y=0; y<height; y++) {
+      for (int x=0; x<width; x++) {
+        Traits::at(image, x, y) = Traits::at(image, x, y) * scale;
+      }
+    }
+  }
+}
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
@@ -73,6 +99,7 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
       for (int y=0; y<(int)size_y; ++y) {
         int dy = y - size_y / 2;
         if (dx*dx + dy*dy < m_sharp_radius_squared) {
+          //std::cout << m_adaptive_target << "<<<\n";
           Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, m_sample_nb, 1.0 + m_adaptive_target) * area_correction;
         } else {
           Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
@@ -103,6 +130,10 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
         }
       }
     }
+  }
+
+  if (m_renormalize) {
+    renormalize(image);
   }
 
   return image;

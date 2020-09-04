@@ -59,12 +59,16 @@ public:
     return m_scale_factor;
   }
 
+  bool getRenormalize() const {
+    return m_renormalize;
+  }
 
 private:
   SamplingMethod m_sampling_method;
   int m_sample_nb;
   double m_adaptive_target;
   double m_scale_factor;
+  bool m_renormalize;
 };
 
 

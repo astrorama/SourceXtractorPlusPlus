@@ -29,10 +29,12 @@ public:
       std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
       std::shared_ptr<BasicParameter> rotation, double width, double height,
       std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+      std::shared_ptr<BasicParameter> flux,
       std::tuple<double, double, double, double> transform,
       SamplingMethod sampling_method = SamplingMethod::ADAPTIVE,
       int sample_nb = 16,
-      double adaptive_target = .001
+      double adaptive_target = .001,
+      bool renormalize=true
   );
 
   virtual ~CompactSersicModel() = default;
@@ -40,6 +42,9 @@ public:
   double getValue(double x, double y) const override;
 
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
+
+
+  void renormalize(ImageType& image) const;
 
 
   struct SersicModelEvaluator {
@@ -75,10 +80,12 @@ private:
   std::shared_ptr<BasicParameter> m_i0;
   std::shared_ptr<BasicParameter> m_k;
   std::shared_ptr<BasicParameter> m_n;
+  std::shared_ptr<BasicParameter> m_flux;
 
   SamplingMethod m_sampling_method;
   int m_sample_nb;
   double m_adaptive_target;
+  bool m_renormalize;
 };
 
 }
