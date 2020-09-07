@@ -16,7 +16,7 @@ find_package(GSL 2.2.1)
 #    src/lib/*.cpp are the source files
 file (GLOB ENGINE_SRC src/lib/Engine/*.cpp)
 
-if (NOT LEVMAR_FOUND)
+if (NOT Levmar_FOUND)
     file(GLOB LEVMAR_SRC src/lib/Engine/LevmarEngine.cpp)
     list(REMOVE_ITEM  ENGINE_SRC ${LEVMAR_SRC})
     message("Levmar library not found, compiling without Levmar support!")
@@ -51,27 +51,27 @@ elements_add_library(ModelFitting
 # elements_install_conf_files()
 
 # Instruction for building C++ tests
-elements_add_unit_test(ManualParameter_test                  
+elements_add_unit_test(ManualParameter_test
                        tests/src/Parameters/ManualParameter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )   
-                       
-elements_add_unit_test(NeutralConverter_test                  
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(NeutralConverter_test
                        tests/src/Parameters/NeutralConverter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )   
-                       
-elements_add_unit_test(SigmoidConverter_test                  
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(SigmoidConverter_test
                        tests/src/Parameters/SigmoidConverter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )   
-                       
-elements_add_unit_test(ExpSigmoidConverter_test                  
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(ExpSigmoidConverter_test
                        tests/src/Parameters/ExpSigmoidConverter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )   
-                       
-elements_add_unit_test(EngineParameter_test              
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(EngineParameter_test
                        tests/src/Parameters/EngineParameter_test.cpp
-                       LINK_LIBRARIES ModelFitting TYPE Boost )   
-                       
-elements_add_unit_test(DependentParameter_test              
+                       LINK_LIBRARIES ModelFitting TYPE Boost )
+
+elements_add_unit_test(DependentParameter_test
                        tests/src/Parameters/DependentParameter_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )
 
