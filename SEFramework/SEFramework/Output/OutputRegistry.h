@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file OutputRegistry.h
  * @author nikoapos
  */
@@ -34,14 +34,14 @@
 namespace SourceXtractor {
 
 class OutputRegistry {
-  
+
 public:
-  
+
   template <typename PropertyType, typename OutType>
   using ColumnConverter = std::function<OutType(const PropertyType&)>;
-  
+
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
-  
+
   template <typename PropertyType, typename OutType>
   void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter,
                                std::string column_unit="", std::string column_description="") {
@@ -123,16 +123,29 @@ public:
     names.erase(std::find(names.begin(), names.end(), current_name));
     std::copy(new_names.begin(), new_names.end(), std::back_inserter(names));
   }
-  
+
+  /**
+   * Register into the registry the output alias so PropertyType can be serialized into the
+   * output catalog
+   * @tparam PropertyType
+   *    The property holder
+   * @param alias_name
+   *    The alias that will be added as an option to "output-properties"
+   * @param configurable_output
+   *    By default, OutputRegistry verifies that there are column converters registered
+   *    for PropertyType. If this option is set to true, the check will be skipped,
+   *    and it will be assumed that the output columns will be added during the configuration
+   *    of the plugin
+   */
   template <typename PropertyType>
-  void enableOutput(std::string alias_name) {
-    if (m_property_to_names_map.count(typeid(PropertyType)) == 0) {
+  void enableOutput(std::string alias_name, bool configurable_output = false) {
+    if (m_property_to_names_map.count(typeid(PropertyType)) == 0 && !configurable_output) {
       throw Elements::Exception() << "No registered ColumnConverters for"
               << " property " << typeid(PropertyType).name();
     }
     m_output_properties.emplace(alias_name, typeid(PropertyType));
   }
-  
+
   std::set<std::string> getOutputPropertyNames() {
     std::set<std::string> result {};
     for (auto& pair : m_output_properties) {
@@ -140,13 +153,13 @@ public:
     }
     return result;
   }
-  
+
   SourceToRowConverter getSourceToRowConverter(const std::vector<std::string>& enabled_optional);
-  
+
   void printPropertyColumnMap(const std::vector<std::string>& properties={});
-  
+
 private:
-  
+
   class ColumnFromSource {
   public:
     template <typename PropertyType, typename OutType>
@@ -162,17 +175,17 @@ private:
   private:
     std::function<Euclid::Table::Row::cell_type(const SourceInterface&, std::size_t index)> m_convert_func;
   };
-  
+
   struct ColInfo {
     std::string unit;
     std::string description;
   };
-  
+
   std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
   std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
   std::map<std::string, ColInfo> m_name_to_col_info_map {};
   std::multimap<std::string, std::type_index> m_output_properties {};
-  
+
 };
 
 } /* namespace SourceXtractor */
