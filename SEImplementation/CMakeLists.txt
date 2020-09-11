@@ -37,6 +37,9 @@ find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
 
+find_package(OnnxRuntime)
+include(Onnx)
+
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
 Numerical differentiation is available starting from Boost 106700 (${Boost_VERSION} found instead).
@@ -56,8 +59,22 @@ endif ()
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
 
+set(OPT_INCLUDES)
+set(OPT_LIBRARIES)
+
 file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
 list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
+
+file(GLOB PLUGIN_SRC src/lib/Plugin/*/*.cpp)
+
+if(NOT OnnxRuntime_FOUND OR NOT Onnx_FOUND)
+  message("ONNX Runtime not found")
+  file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onnx/*.cpp)
+  list(REMOVE_ITEM PLUGIN_SRC ${ONNXPLUGIN_SRC})
+else()
+  list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
+  list(APPEND OPT_LIBRARIES Onnx OnnxRuntime)
+endif()
 
 elements_add_library(SEImplementation
 			src/lib/Background/*.cpp
@@ -70,14 +87,18 @@ elements_add_library(SEImplementation
            	src/lib/Measurement/*.cpp
            	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
-            src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
             src/lib/Image/*.cpp
+            ${PLUGIN_SRC}
 			${SE_PYTHON_SRC}
-            LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB BoostPython PythonLibs PythonInterp Configuration
-            INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
+            LINK_LIBRARIES
+              ElementsKernel Configuration Table
+              SEUtils SEFramework ModelFitting
+              WCSLIB BoostPython PythonLibs PythonInterp
+              ${OPT_LIBRARIES}
+            INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
             PUBLIC_HEADERS SEImplementation)
-            
+
 #===============================================================================
 # SEImplementation has a part that needs to be reachable from Python.
 #===============================================================================
@@ -118,34 +139,34 @@ elements_add_unit_test(MedianFilterImage_test tests/src/Background/MedianFilterI
 elements_add_unit_test(ReplaceUndefImage_test tests/src/Background/ReplaceUndefImage_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
-elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp 
+elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCentroid_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues/DetectionFramePixelValues_test.cpp 
+elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues/DetectionFramePixelValues_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries/PixelBoundaries_test.cpp 
+elements_add_unit_test(PixelBoundaries_test tests/src/Plugin/PixelBoundaries/PixelBoundaries_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp_test.cpp 
+elements_add_unit_test(DetectionFrameSourceStamp_test tests/src/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(Lutz_test tests/src/Segmentation/LutzSegmentation_test.cpp 
+elements_add_unit_test(Lutz_test tests/src/Segmentation/LutzSegmentation_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(MinAreaPartitionStep_test tests/src/Partition/MinAreaPartitionStep_test.cpp 
+elements_add_unit_test(MinAreaPartitionStep_test tests/src/Partition/MinAreaPartitionStep_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(AttractorsPartitionStep_test tests/src/Partition/AttractorsPartitionStep_test.cpp 
+elements_add_unit_test(AttractorsPartitionStep_test tests/src/Partition/AttractorsPartitionStep_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(MultiThresholdPartitionStep_test tests/src/Partition/MultiThresholdPartitionStep_test.cpp 
+elements_add_unit_test(MultiThresholdPartitionStep_test tests/src/Partition/MultiThresholdPartitionStep_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/OverlappingBoundariesCriteria_test.cpp 
+elements_add_unit_test(OverlappingBoundariesCriteria_test tests/src/Grouping/OverlappingBoundariesCriteria_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalFlag_test.cpp 
+elements_add_unit_test(ExternalFlag_test tests/src/Plugin/ExternalFlag/ExternalFlag_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(FluxRadius_test tests/src/Plugin/FluxRadius/FluxRadius_test.cpp
@@ -154,10 +175,10 @@ elements_add_unit_test(FluxRadius_test tests/src/Plugin/FluxRadius/FluxRadius_te
 elements_add_unit_test(GrowthCurve_test tests/src/Plugin/GrowthCurve/GrowthCurve_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
-elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp 
+elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
-elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp 
+elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(JacobianGroup_test tests/src/Plugin/Jacobian/JacobianGroupTask_test.cpp
