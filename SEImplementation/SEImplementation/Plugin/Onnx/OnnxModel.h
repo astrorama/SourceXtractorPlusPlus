@@ -32,6 +32,8 @@ struct OnnxModel {
   std::string m_prop_name;   ///< Name that will be written into the catalog
   std::string m_input_name;  ///< Input tensor name
   std::string m_output_name; ///< Output tensor name
+  int m_input_type;  ///< Input type
+  int m_output_type; ///< Output type
   std::vector<std::size_t> m_input_shape;  ///< Input tensor shape
   std::vector<std::size_t> m_output_shape; ///< Output tensor shape
   std::string m_model_path; ///< Path to the ONNX model

@@ -30,14 +30,11 @@ namespace SourceXtractor {
  * Note that we expect to have a first dimension of 0, corresponding to an arbitrary batch size,
  * and a second dimension corresponding to the channels, for which we only support 1
  */
-static std::vector<size_t> getValueShape(const onnx::ValueInfoProto& info) {
+static std::tuple<int, std::vector<size_t>> getValueTypeAndShape(const onnx::ValueInfoProto& info) {
   if (!info.type().has_tensor_type()) {
     throw Elements::Exception() << "Only input/output tensors are supported for ONNX models";
   }
   const auto& tensor = info.type().tensor_type();
-  if (tensor.elem_type() != onnx::TensorProto::DataType::TensorProto_DataType_FLOAT) {
-    throw Elements::Exception() << "Only input/output float tensors are supported for ONNX models";
-  }
 
   std::vector<size_t> shape;
   std::transform(tensor.shape().dim().begin(), tensor.shape().dim().end(), std::back_inserter(shape),
@@ -52,7 +49,8 @@ static std::vector<size_t> getValueShape(const onnx::ValueInfoProto& info) {
   if (shape[1] != 1) {
     throw Elements::Exception() << "Only 1 channel supported for ONNX models";
   }
-  return shape;
+
+  return std::make_tuple(tensor.elem_type(), shape);
 }
 
 std::string formatShape(const std::vector<size_t>& shape) {
@@ -82,26 +80,29 @@ void OnnxTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   const auto& models = onnx_config.getModels();
 
   for (auto model_path : models) {
+    OnnxModel model_info;
+    model_info.m_model_path = model_path;
+
     onnx_logger.info() << "Loading ONNX model " << model_path;
 
-    onnx::ModelProto model;
+    onnx::ModelProto model_proto;
     std::ifstream in_stream(model_path);
-    if (!model.ParseFromIstream(&in_stream)) {
+    if (!model_proto.ParseFromIstream(&in_stream)) {
       throw Elements::Exception() << "Could not parse the ONNX model";
     }
 
-    std::string output_name = model.domain();
-    if (!output_name.empty()) {
-      output_name.push_back('_');
+    model_info.m_prop_name = model_proto.domain();
+    if (!model_info.m_prop_name.empty()) {
+      model_info.m_prop_name.push_back('_');
     }
-    output_name += model.graph().name();
-    onnx_logger.info() << "Output name will be " << output_name;
+    model_info.m_prop_name += model_proto.graph().name();
+    onnx_logger.info() << "Output name will be " << model_info.m_prop_name;
 
-    auto& input_list = model.graph().input();
+    auto& input_list = model_proto.graph().input();
     if (input_list.empty()) {
       throw Elements::Exception() << "No input on the ONNX model";
     }
-    auto& output_list = model.graph().output();
+    auto& output_list = model_proto.graph().output();
     if (output_list.size() != 1) {
       throw Elements::Exception() << "Only support ONNX models with a single tensor output";
     }
@@ -109,26 +110,49 @@ void OnnxTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
     const auto& input = *input_list.begin();
     const auto& output = *output_list.begin();
 
-    auto input_shape = getValueShape(input);
-    auto output_shape = getValueShape(output);
+    model_info.m_input_name = input.name();
+    model_info.m_output_name = output.name();
 
-    onnx_logger.info() << "ONNX model with input of " << formatShape(input_shape);
-    onnx_logger.info() << "ONNX model with output of " << formatShape(output_shape);
+    std::tie(model_info.m_input_type, model_info.m_input_shape) = getValueTypeAndShape(input);
+    std::tie(model_info.m_output_type, model_info.m_output_shape) = getValueTypeAndShape(output);
 
-    m_models.emplace_back(OnnxModel{
-      output_name, input.name(), output.name(), input_shape, output_shape, model_path
-    });
+    if (model_info.m_input_type != onnx::TensorProto::DataType::TensorProto_DataType_FLOAT) {
+      throw Elements::Exception() << "Only supports ONNX models with float as input";
+    }
+
+    onnx_logger.info() << "ONNX model with input of " << formatShape(model_info.m_input_shape);
+    onnx_logger.info() << "ONNX model with output of " << formatShape(model_info.m_output_shape);
+
+    m_models.emplace_back(std::move(model_info));
   }
+}
+
+template<typename T>
+static void registerColumnConverter(OutputRegistry& registry, const OnnxModel& model) {
+  auto key = model.m_model_path;
+
+  registry.registerColumnConverter<OnnxProperty, Euclid::NdArray::NdArray<T>>(
+    model.m_prop_name, [key](const OnnxProperty& prop) {
+      return prop.getData<T>(key);
+    }, "", model.m_model_path
+  );
 }
 
 void OnnxTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
   for (const auto& model : m_models) {
     auto key = model.m_model_path;
-    registry.registerColumnConverter<OnnxProperty, Euclid::NdArray::NdArray<float>>(
-      model.m_prop_name, [key](const OnnxProperty& prop) {
-        return prop.getData(key);
-      }, "", model.m_model_path
-    );
+
+    switch (model.m_output_type) {
+      case onnx::TensorProto::DataType::TensorProto_DataType_FLOAT:
+        registerColumnConverter<float>(registry, model);
+        break;
+      case onnx::TensorProto::DataType::TensorProto_DataType_INT32:
+        registerColumnConverter<int32_t>(registry, model);
+        break;
+      default:
+        throw Elements::Exception() << "Unsupported output type: "
+                                    << onnx::TensorProto_DataType_Name(model.m_output_type);
+    }
   }
 }
 

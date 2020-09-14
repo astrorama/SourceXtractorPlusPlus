@@ -29,6 +29,18 @@ namespace SourceXtractor {
  */
 class OnnxProperty : public Property {
 public:
+  struct NdWrapperBase {
+    virtual ~NdWrapperBase() = default;
+  };
+
+  template<typename T>
+  struct NdWrapper : public NdWrapperBase {
+    Euclid::NdArray::NdArray<T> m_ndarray;
+
+    template <typename ...Args>
+    NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
+  };
+
   virtual ~OnnxProperty() = default;
 
   /**
@@ -37,7 +49,7 @@ public:
    *    A map where the key corresponds to the path of one of the ONNX models, and the
    *    value to the corresponding output tensor
    */
-  OnnxProperty(std::map<std::string, Euclid::NdArray::NdArray<float>>&& output) : m_output(std::move(output)) {}
+  OnnxProperty(std::map<std::string, std::unique_ptr<NdWrapperBase>>&& output) : m_output(std::move(output)) {}
 
   /**
    * @param key
@@ -45,12 +57,13 @@ public:
    * @return
    *    Corresponding output tensor
    */
-  const Euclid::NdArray::NdArray<float>& getData(const std::string& key) const {
-    return m_output.at(key);
+  template<typename T>
+  const Euclid::NdArray::NdArray<T>& getData(const std::string& key) const {
+    return dynamic_cast<NdWrapper<T> *>(m_output.at(key).get())->m_ndarray;
   }
 
 private:
-  std::map<std::string, Euclid::NdArray::NdArray<float>> m_output;
+  std::map<std::string, std::unique_ptr<NdWrapperBase>> m_output;
 };
 
 } // end of namespace SourceXtractor
