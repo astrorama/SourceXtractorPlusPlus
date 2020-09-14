@@ -29,10 +29,17 @@ namespace SourceXtractor {
  */
 class OnnxProperty : public Property {
 public:
+  /**
+   * To support dynamic output types (int, float,...) the property stores a pointer to this base type,
+   * performing a type erasure on the multidimensional output array
+   */
   struct NdWrapperBase {
     virtual ~NdWrapperBase() = default;
   };
 
+  /**
+   * Concrete types. We use dynamic_cast to get it back when writing the output.
+   */
   template<typename T>
   struct NdWrapper : public NdWrapperBase {
     Euclid::NdArray::NdArray<T> m_ndarray;
@@ -41,6 +48,9 @@ public:
     NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
   };
 
+  /**
+   * Destructor
+   */
   virtual ~OnnxProperty() = default;
 
   /**

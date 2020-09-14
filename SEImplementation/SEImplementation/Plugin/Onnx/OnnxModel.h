@@ -21,6 +21,7 @@
 
 #include <string>
 #include <vector>
+#include <onnxruntime_cxx_api.h>
 
 namespace SourceXtractor {
 
@@ -37,6 +38,7 @@ struct OnnxModel {
   std::vector<std::size_t> m_input_shape;  ///< Input tensor shape
   std::vector<std::size_t> m_output_shape; ///< Output tensor shape
   std::string m_model_path; ///< Path to the ONNX model
+  std::unique_ptr<Ort::Session> m_session; ///< Session, one per model. In theory, it is thread-safe
 };
 
 } // end of namespace SourceXtractor

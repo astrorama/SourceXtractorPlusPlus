@@ -28,8 +28,6 @@ namespace NdArray = Euclid::NdArray;
 
 namespace SourceXtractor {
 
-// There can be only one!
-static Ort::Env ORT_ENV;
 
 template<typename T>
 static void fillCutout(const Image<T>& image, int center_x, int center_y, int width, int height, std::vector<T>& out) {
@@ -50,14 +48,19 @@ static void fillCutout(const Image<T>& image, int center_x, int center_y, int wi
 
 OnnxSourceTask::OnnxSourceTask(const std::vector<OnnxModel>& models) : m_models(models) {}
 
+/**
+ * Templated implementation of computeProperties
+ * @details
+ *  An ONNX model can have different input and output element types (float, integer) with different
+ *  precision. We only support float for input, but in order to support also integer outputs
+ *  (i.e for classification) we template the computeProperties method on the output value type
+ */
 template<typename O>
 static std::unique_ptr<OnnxProperty::NdWrapperBase>
 computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages& detection_frame_images,
                              const PixelCentroid& centroid) {
   Ort::RunOptions run_options;
   auto mem_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
-
-  Ort::Session session{ORT_ENV, model.m_model_path.c_str(), Ort::SessionOptions{nullptr}};
 
   const int center_x = static_cast<int>(centroid.getCentroidX() + 0.5);
   const int center_y = static_cast<int>(centroid.getCentroidY() + 0.5);
@@ -88,9 +91,9 @@ computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages&
   // Run the model
   const char *input_name = model.m_input_name.c_str();
   const char *output_name = model.m_output_name.c_str();
-  session.Run(run_options,
-              &input_name, &input_tensor, 1,
-              &output_name, &output_tensor, 1);
+  model.m_session->Run(run_options,
+                       &input_name, &input_tensor, 1,
+                       &output_name, &output_tensor, 1);
 
   // Set the output
   std::vector<size_t> catalog_shape{model.m_output_shape.begin() + 1, model.m_output_shape.end()};
@@ -117,7 +120,7 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
         throw Elements::Exception() << "This should have not happened!" << model.m_output_type;
     }
 
-    output_dict.emplace(model.m_model_path, std::move(result));
+    output_dict.emplace(model.m_prop_name, std::move(result));
   }
 
   source.setProperty<OnnxProperty>(std::move(output_dict));

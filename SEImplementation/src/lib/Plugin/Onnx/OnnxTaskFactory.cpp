@@ -22,8 +22,12 @@
 #include "SEImplementation/Plugin/Onnx/OnnxConfig.h"
 #include "onnx.pb.h"
 #include <NdArray/NdArray.h>
+#include <AlexandriaKernel/memory_tools.h>
 
 namespace SourceXtractor {
+
+// There can be only one!
+static Ort::Env ORT_ENV;
 
 /**
  * Extract the shape info from the ONNX ValueInfoProto
@@ -123,13 +127,14 @@ void OnnxTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
     onnx_logger.info() << "ONNX model with input of " << formatShape(model_info.m_input_shape);
     onnx_logger.info() << "ONNX model with output of " << formatShape(model_info.m_output_shape);
 
+    model_info.m_session = Euclid::make_unique<Ort::Session>(ORT_ENV, model_path.c_str(), Ort::SessionOptions{nullptr});
     m_models.emplace_back(std::move(model_info));
   }
 }
 
 template<typename T>
 static void registerColumnConverter(OutputRegistry& registry, const OnnxModel& model) {
-  auto key = model.m_model_path;
+  auto key = model.m_prop_name;
 
   registry.registerColumnConverter<OnnxProperty, Euclid::NdArray::NdArray<T>>(
     model.m_prop_name, [key](const OnnxProperty& prop) {
@@ -140,8 +145,6 @@ static void registerColumnConverter(OutputRegistry& registry, const OnnxModel& m
 
 void OnnxTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
   for (const auto& model : m_models) {
-    auto key = model.m_model_path;
-
     switch (model.m_output_type) {
       case onnx::TensorProto::DataType::TensorProto_DataType_FLOAT:
         registerColumnConverter<float>(registry, model);
