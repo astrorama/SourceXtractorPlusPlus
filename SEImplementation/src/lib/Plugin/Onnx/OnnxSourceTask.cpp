@@ -26,6 +26,9 @@ namespace NdArray = Euclid::NdArray;
 
 namespace SourceXtractor {
 
+// There can be only one!
+static Ort::Env ORT_ENV;
+
 template<typename T>
 static void fillCutout(const Image<T>& image, int center_x, int center_y, int width, int height, std::vector<T>& out) {
   int x_start = center_x - width / 2;
@@ -64,8 +67,7 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
   auto mem_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
   for (const auto& model : m_models) {
-    Ort::Env env;
-    Ort::Session session{env, model.m_model_path.c_str(), Ort::SessionOptions{nullptr}};
+    Ort::Session session{ORT_ENV, model.m_model_path.c_str(), Ort::SessionOptions{nullptr}};
 
     // Allocate memory
     std::vector<int64_t> input_shape(model.m_input_shape.begin(), model.m_input_shape.end());
