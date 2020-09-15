@@ -42,6 +42,8 @@ protected:
 
   double getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
 
+  void renormalize(ImageType& image, double flux) const;
+
   // Jacobian transform
   Mat22 m_jacobian;
   Mat22 m_inv_jacobian;

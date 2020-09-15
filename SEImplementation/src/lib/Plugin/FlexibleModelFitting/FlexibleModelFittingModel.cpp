@@ -144,7 +144,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
   extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
       2.0, i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
-      size, size, pixel_x, pixel_y, jacobian));
+      size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
 }
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,

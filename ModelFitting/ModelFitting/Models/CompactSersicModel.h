@@ -44,9 +44,6 @@ public:
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override;
 
 
-  void renormalize(ImageType& image) const;
-
-
   struct SersicModelEvaluator {
     Mat22 transform;
     double i0, k, n;
@@ -71,6 +68,7 @@ private:
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
   using CompactModelBase<ImageType>::sampleStochastic;
+  using CompactModelBase<ImageType>::renormalize;
 
   using CompactModelBase<ImageType>::m_jacobian;
 

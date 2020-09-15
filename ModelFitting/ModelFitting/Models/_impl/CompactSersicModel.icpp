@@ -44,30 +44,6 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
   return model_eval.evaluateModel(x, y) * area_correction;
 }
 
-template<typename ImageType>
-void CompactSersicModel<ImageType>::renormalize(ImageType& image) const {
-  using Traits = ImageTraits<ImageType>;
-
-  int width = Traits::width(image);
-  int height = Traits::height(image);
-
-  double acc = 0.0;
-
-  for (int y=0; y<height; y++) {
-    for (int x=0; x<width; x++) {
-      acc += Traits::at(image, x, y);
-    }
-  }
-
-  if (acc > 0.0) {
-    double scale = m_flux->getValue() / acc;
-    for (int y=0; y<height; y++) {
-      for (int x=0; x<width; x++) {
-        Traits::at(image, x, y) = Traits::at(image, x, y) * scale;
-      }
-    }
-  }
-}
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
@@ -133,7 +109,7 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
   }
 
   if (m_renormalize) {
-    renormalize(image);
+    renormalize(image, m_flux->getValue());
   }
 
   return image;

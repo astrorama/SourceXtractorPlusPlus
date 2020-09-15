@@ -14,10 +14,11 @@ CompactExponentialModel<ImageType>::CompactExponentialModel(
     std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
     std::shared_ptr<BasicParameter> rotation, double width, double height,
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::shared_ptr<BasicParameter> flux,
     std::tuple<double, double, double, double> transform)
       : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
         m_sharp_radius_squared(float(sharp_radius * sharp_radius)),
-        m_i0(i0), m_k(k)
+        m_i0(i0), m_k(k), m_flux(flux)
 {}
 
 template<typename ImageType>
@@ -65,6 +66,8 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
       }
     }
   }
+
+  renormalize(image, m_flux->getValue());
 
   return image;
 }
