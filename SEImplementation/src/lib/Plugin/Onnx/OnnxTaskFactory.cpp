@@ -44,9 +44,6 @@ static std::tuple<int, std::vector<size_t>> getValueTypeAndShape(const onnx::Val
   std::transform(tensor.shape().dim().begin(), tensor.shape().dim().end(), std::back_inserter(shape),
                  [](onnx::TensorShapeProto::Dimension d) { return d.dim_value(); });
 
-  if (shape.size() != 4) {
-    throw Elements::Exception() << "Expected 4 axes";
-  }
   if (shape[0] != 0) {
     throw Elements::Exception() << "Expected a batch size of 0";
   }
@@ -122,6 +119,9 @@ void OnnxTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
 
     if (model_info.m_input_type != onnx::TensorProto::DataType::TensorProto_DataType_FLOAT) {
       throw Elements::Exception() << "Only supports ONNX models with float as input";
+    }
+    if (model_info.m_input_shape.size() != 4) {
+      throw Elements::Exception() << "Expected 4 axes for the input layer, got " << model_info.m_input_shape.size();
     }
 
     onnx_logger.info() << "ONNX model with input of " << formatShape(model_info.m_input_shape);
