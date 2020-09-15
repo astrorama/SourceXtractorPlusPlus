@@ -15,7 +15,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <google/protobuf/stubs/common.h>
 #include "SEImplementation/Plugin/Onnx/OnnxPlugin.h"
 #include "SEFramework/Plugin/StaticPlugin.h"
 #include "SEImplementation/Plugin/Onnx/OnnxProperty.h"
@@ -31,8 +30,6 @@ std::string OnnxPlugin::getIdString() const {
 }
 
 void OnnxPlugin::registerPlugin(PluginAPI& plugin_api) {
-  GOOGLE_PROTOBUF_VERIFY_VERSION;
-
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<OnnxTaskFactory, OnnxProperty>();
   // Note that we do not now the output yet, so we do not register any columns
   plugin_api.getOutputRegistry().enableOutput<OnnxProperty>("ONNX", true);

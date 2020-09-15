@@ -38,7 +38,6 @@ find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
 
 find_package(OnnxRuntime)
-include(Onnx)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -67,13 +66,13 @@ list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/
 
 file(GLOB PLUGIN_SRC src/lib/Plugin/*/*.cpp)
 
-if(NOT OnnxRuntime_FOUND OR NOT Onnx_FOUND)
+if(NOT OnnxRuntime_FOUND)
   message("ONNX Runtime not found")
   file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onnx/*.cpp)
   list(REMOVE_ITEM PLUGIN_SRC ${ONNXPLUGIN_SRC})
 else()
   list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
-  list(APPEND OPT_LIBRARIES Onnx OnnxRuntime)
+  list(APPEND OPT_LIBRARIES OnnxRuntime)
 endif()
 
 elements_add_library(SEImplementation

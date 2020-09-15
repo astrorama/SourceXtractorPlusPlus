@@ -20,9 +20,8 @@
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include <NdArray/NdArray.h>
-#include <onnxruntime_cxx_api.h>
 #include <AlexandriaKernel/memory_tools.h>
-#include "onnx.pb.h"
+#include <onnxruntime_cxx_api.h>
 
 namespace NdArray = Euclid::NdArray;
 
@@ -110,10 +109,10 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
     std::unique_ptr<OnnxProperty::NdWrapperBase> result;
 
     switch (model.m_output_type) {
-      case onnx::TensorProto_DataType_FLOAT:
+      case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
         result = computePropertiesSpecialized<float>(model, detection_frame_images, centroid);
         break;
-      case onnx::TensorProto_DataType_INT32:
+      case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32:
         result = computePropertiesSpecialized<int32_t>(model, detection_frame_images, centroid);
         break;
       default:
