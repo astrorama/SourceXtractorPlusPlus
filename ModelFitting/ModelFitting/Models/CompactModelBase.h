@@ -38,7 +38,11 @@ protected:
   float sampleStochastic(const ModelEvaluator& model_eval, int x, int y, unsigned int samples=100) const;
 
   template<typename ModelEvaluator>
-  float adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold=1.1) const;
+  float adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold) const;
+
+  template<typename ModelEvaluator>
+  float adaptiveNew(const ModelEvaluator& model_eval,
+      double x, double y, double l, double aa, double ab, double ba, double bb, unsigned int max_iter, float threshold) const;
 
   double getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
 

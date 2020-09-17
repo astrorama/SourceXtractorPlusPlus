@@ -31,6 +31,7 @@ public:
     ADAPTIVE=1,
     GRID=2,
     STOCHASTIC=3,
+    NEW=4,
   };
 
   SamplingConfig(long manager_id);

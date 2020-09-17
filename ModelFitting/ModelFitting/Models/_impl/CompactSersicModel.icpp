@@ -76,7 +76,7 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
         int dy = y - size_y / 2;
         if (dx*dx + dy*dy < m_sharp_radius_squared) {
           //std::cout << m_adaptive_target << "<<<\n";
-          Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, m_sample_nb, 1.0 + m_adaptive_target) * area_correction;
+          Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, m_sample_nb, m_adaptive_target) * area_correction;
         } else {
           Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
         }
@@ -101,6 +101,23 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
         int dy = y - size_y / 2;
         if (dx*dx + dy*dy < m_sharp_radius_squared) {
           Traits::at(image, x, y) = sampleStochastic(model_eval, dx, dy, m_sample_nb) * area_correction;
+        } else {
+          Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
+        }
+      }
+    }
+  } else if (m_sampling_method == SamplingMethod::NEW) {
+    for (int x=0; x<(int)size_x; ++x) {
+      int dx = x - size_x / 2;
+      for (int y=0; y<(int)size_y; ++y) {
+        int dy = y - size_y / 2;
+        if (dx*dx + dy*dy < m_sharp_radius_squared) {
+          //std::cout << m_adaptive_target << "<<<\n";
+          double aa = model_eval.evaluateModel(dx-0.5, dy-0.5);
+          double ab = model_eval.evaluateModel(dx-0.5, dy+0.5);
+          double ba = model_eval.evaluateModel(dx+0.5, dy-0.5);
+          double bb = model_eval.evaluateModel(dx+0.5, dy+0.5);
+          Traits::at(image, x, y) = adaptiveNew(model_eval, dx-0.5, dy-0.5, 1.0, aa, ab, ba, bb, 8, m_adaptive_target) * area_correction;
         } else {
           Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
         }

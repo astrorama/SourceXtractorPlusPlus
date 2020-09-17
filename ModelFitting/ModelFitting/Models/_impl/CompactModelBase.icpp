@@ -82,16 +82,49 @@ inline float CompactModelBase<ImageType>::adaptiveSamplePixel(const ModelEvaluat
   float value = samplePixel(model_eval, x,y, 1);
   for (unsigned int i=2; i < (sizeof(steps)/sizeof(steps[0])) && steps[i] <= max_subsampling; i++) {
     float newValue = samplePixel(model_eval, x,y, steps[i] + (max_subsampling % 2));
-    float ratio = newValue / value;
-    if (ratio < threshold && ratio > 1.0 / threshold) {
+
+    double diff = fabs(newValue - value);
+    if (diff <= threshold * value) {
       value = newValue;
       break;
     }
+
     value = newValue;
   }
 
   return value;
 }
+
+template<typename ImageType>
+template<typename ModelEvaluator>
+inline float CompactModelBase<ImageType>::adaptiveNew(const ModelEvaluator& model_eval,
+    double x, double y, double l, double aa, double ab, double ba, double bb, unsigned int max_iter, float threshold) const {
+
+  double avg = (aa+ab+ba+bb) / 4.0;
+
+  if (max_iter <= 0) {
+    return avg;
+  }
+
+  double h = l / 2.0;
+  double m = model_eval.evaluateModel(x + h, y + h);
+  double diff = fabs(m - avg);
+
+  if (diff <= threshold * m) {
+    return m;
+  } else {
+    double ha = model_eval.evaluateModel(x + h, y);
+    double hb = model_eval.evaluateModel(x + h, y + l);
+    double ah = model_eval.evaluateModel(x, y + h);
+    double bh = model_eval.evaluateModel(x + l, y + h);
+
+    return (adaptiveNew(model_eval, x, y, h, aa, ah, ha, m, max_iter-1, threshold) +
+            adaptiveNew(model_eval, x+h, y, h, ha, m, ba, bh, max_iter-1, threshold) +
+            adaptiveNew(model_eval, x, y+h, h, ah, ab, m, hb, max_iter-1, threshold) +
+            adaptiveNew(model_eval, x+h, y+h, h, m, hb, bh, bb, max_iter-1, threshold)) / 4.0;
+  }
+}
+
 
 template<typename ImageType>
 double CompactModelBase<ImageType>::getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {

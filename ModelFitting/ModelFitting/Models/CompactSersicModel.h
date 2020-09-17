@@ -22,6 +22,7 @@ public:
     ADAPTIVE=1,
     GRID=2,
     STOCHASTIC=3,
+    NEW=4
   };
 
   CompactSersicModel(double sharp_radius,
@@ -67,6 +68,7 @@ private:
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
+  using CompactModelBase<ImageType>::adaptiveNew;
   using CompactModelBase<ImageType>::sampleStochastic;
   using CompactModelBase<ImageType>::renormalize;
 

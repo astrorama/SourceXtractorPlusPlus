@@ -35,6 +35,7 @@ static std::map<std::string, SamplingConfig::SamplingMethod> sampling_method_map
   {"ADAPTIVE", SamplingConfig::SamplingMethod::ADAPTIVE},
   {"GRID", SamplingConfig::SamplingMethod::GRID},
   {"STOCHASTIC", SamplingConfig::SamplingMethod::STOCHASTIC},
+  {"NEW", SamplingConfig::SamplingMethod::NEW},
 };
 
 SamplingConfig::SamplingConfig(long manager_id) : Configuration(manager_id),
