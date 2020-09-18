@@ -5,6 +5,9 @@
  *      Author: mschefer
  */
 
+
+#include <random>
+
 namespace ModelFitting {
 
 template<typename ImageType>
@@ -58,15 +61,34 @@ inline float CompactModelBase<ImageType>::samplePixel(const ModelEvaluator& mode
 
 template<typename ImageType>
 template<typename ModelEvaluator>
+inline float CompactModelBase<ImageType>::sampleStochastic(const ModelEvaluator& model_eval, int x, int y, unsigned int samples) const {
+  double acc = 0.;
+  std::default_random_engine generator;
+  std::uniform_real_distribution<double> distribution(-.5,.5);
+
+  for (unsigned int i=0; i<samples; i++) {
+    acc += model_eval.evaluateModel(double(x) + distribution(generator), double(y) + distribution(generator));
+  }
+
+  return acc / samples;
+}
+
+
+
+template<typename ImageType>
+template<typename ModelEvaluator>
 inline float CompactModelBase<ImageType>::adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold) const {
+  unsigned int steps[] = {1,3,5,7,11,15,23,31,47,63,95,127};
   float value = samplePixel(model_eval, x,y, 1);
-  for (unsigned int i=2; i<=max_subsampling; i+=2) {
-    float newValue = samplePixel(model_eval, x,y, i);
-    float ratio = newValue / value;
-    if (ratio < threshold && ratio > 1.0 / threshold) {
+  for (unsigned int i=2; i < (sizeof(steps)/sizeof(steps[0])) && steps[i] <= max_subsampling; i++) {
+    float newValue = samplePixel(model_eval, x,y, steps[i] + (max_subsampling % 2));
+
+    double diff = fabs(newValue - value);
+    if (diff <= threshold * value) {
       value = newValue;
       break;
     }
+
     value = newValue;
   }
 
@@ -91,5 +113,29 @@ double CompactModelBase<ImageType>::getMaxRadiusSqr(std::size_t size_x, std::siz
   return std::min(d1, d2);
 }
 
+template<typename ImageType>
+void CompactModelBase<ImageType>::renormalize(ImageType& image, double flux) const {
+  using Traits = ImageTraits<ImageType>;
+
+  int width = Traits::width(image);
+  int height = Traits::height(image);
+
+  double acc = 0.0;
+
+  for (int y=0; y<height; y++) {
+    for (int x=0; x<width; x++) {
+      acc += Traits::at(image, x, y);
+    }
+  }
+
+  if (acc > 0.0) {
+    double scale = flux / acc;
+    for (int y=0; y<height; y++) {
+      for (int x=0; x<width; x++) {
+        Traits::at(image, x, y) = Traits::at(image, x, y) * scale;
+      }
+    }
+  }
+}
 
 }

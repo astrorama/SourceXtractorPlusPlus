@@ -75,6 +75,7 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
+#include "SEImplementation/Configuration/SamplingConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
@@ -88,7 +89,7 @@ namespace fs = boost::filesystem;
 using namespace SourceXtractor;
 using namespace Euclid::Configuration;
 
-static long config_manager_id = getUniqueManagerId();
+static long config_manager_id = 0L;
 
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};
@@ -167,6 +168,7 @@ public:
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
       config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
+      config_manager.registerConfiguration<SamplingConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 

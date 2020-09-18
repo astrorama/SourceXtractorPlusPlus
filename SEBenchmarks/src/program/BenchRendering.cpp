@@ -282,9 +282,11 @@ public:
     auto k = std::make_shared<ManualParameter>(10);
     auto i0 = std::make_shared<ManualParameter>(1000);
 
+    auto flux = std::make_shared<ManualParameter>(100000); // FIXME use a value that makes sense
+
     extended_models.emplace_back(std::make_shared<ModelFitting::CompactSersicModel<ImageInterfaceTypePtr>>(
         3.0, i0, k, n,
-        xs, ys, rot, 256, 256, x_param, y_param, std::make_tuple(1, 0, 0, 1)));
+        xs, ys, rot, 256, 256, x_param, y_param, flux, std::make_tuple(1, 0, 0, 1)));
 
     double pixel_scale = 1.0f;
     int image_size = 256;
