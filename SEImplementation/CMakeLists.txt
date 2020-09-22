@@ -68,7 +68,7 @@ file(GLOB PLUGIN_SRC src/lib/Plugin/*/*.cpp)
 
 if(NOT OnnxRuntime_FOUND)
   message("ONNX Runtime not found")
-  file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onnx/*.cpp)
+  file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onn*/*.cpp)
   list(REMOVE_ITEM PLUGIN_SRC ${ONNXPLUGIN_SRC})
 else()
   list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
