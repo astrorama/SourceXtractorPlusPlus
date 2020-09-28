@@ -89,7 +89,7 @@ namespace fs = boost::filesystem;
 using namespace SourceXtractor;
 using namespace Euclid::Configuration;
 
-static long config_manager_id = 0L;
+static long config_manager_id = getUniqueManagerId();
 
 static const std::string LIST_OUTPUT_PROPERTIES {"list-output-properties"};
 static const std::string PROPERTY_COLUMN_MAPPING_ALL {"property-column-mapping-all"};

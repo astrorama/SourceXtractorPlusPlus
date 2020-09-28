@@ -17,13 +17,6 @@ class CompactSersicModel : public CompactModelBase<ImageType> {
 
 public:
 
-  enum class SamplingMethod {
-    LEGACY=0,
-    ADAPTIVE=1,
-    GRID=2,
-    STOCHASTIC=3,
-  };
-
   CompactSersicModel(double sharp_radius,
       std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k, std::shared_ptr<BasicParameter> n,
       std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
