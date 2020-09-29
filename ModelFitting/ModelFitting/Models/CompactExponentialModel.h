@@ -21,6 +21,7 @@ public:
                 std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
                 std::shared_ptr<BasicParameter> rotation, double width, double height,
                 std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+                std::shared_ptr<BasicParameter> flux,
                 std::tuple<double, double, double, double> transform);
 
   virtual ~CompactExponentialModel() = default;
@@ -34,6 +35,7 @@ private:
   using CompactModelBase<ImageType>::m_jacobian;
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
+  using CompactModelBase<ImageType>::renormalize;
 
   struct ExponentialModelEvaluator {
     Mat22 transform;
@@ -58,6 +60,8 @@ private:
   // Exponential parameters
   std::shared_ptr<BasicParameter> m_i0;
   std::shared_ptr<BasicParameter> m_k;
+  std::shared_ptr<BasicParameter> m_flux;
+
 };
 
 }
