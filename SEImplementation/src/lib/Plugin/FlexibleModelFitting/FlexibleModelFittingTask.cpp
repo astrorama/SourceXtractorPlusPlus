@@ -108,10 +108,11 @@ FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squa
     unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
-    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
+    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
+    double scale_factor)
   : m_least_squares_engine(least_squares_engine),
     m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
-    m_parameters(parameters), m_frames(frames), m_priors(priors) {}
+    m_parameters(parameters), m_frames(frames), m_priors(priors), m_scale_factor(scale_factor) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
@@ -206,7 +207,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
 
 
 void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
-  double pixel_scale = 1;
+  double pixel_scale = 1 / m_scale_factor;
   FlexibleModelFittingParameterManager parameter_manager;
   ModelFitting::EngineParameterManager engine_parameter_manager{};
   int n_free_parameters = 0;

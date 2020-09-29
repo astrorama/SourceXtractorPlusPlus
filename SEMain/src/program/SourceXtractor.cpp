@@ -75,6 +75,7 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
+#include "SEImplementation/Configuration/SamplingConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
@@ -167,6 +168,7 @@ public:
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
       config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
+      config_manager.registerConfiguration<SamplingConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
