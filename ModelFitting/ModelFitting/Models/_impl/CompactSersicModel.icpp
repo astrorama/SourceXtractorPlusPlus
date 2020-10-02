@@ -39,7 +39,6 @@ double CompactSersicModel<ImageType>::getValue(double x, double y) const {
 
 template<typename ImageType>
 ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
-  //std::cout << "]] " << getX() << " " << getY() << "\n";
   using Traits = ImageTraits<ImageType>;
 
   if (size_x % 2 == 0 || size_y % 2 == 0) {
@@ -66,8 +65,7 @@ ImageType CompactSersicModel<ImageType>::getRasterizedImage(double pixel_scale, 
     for (int y=0; y<(int)size_y; ++y) {
       int dy = y - size_y / 2;
       if (dx*dx + dy*dy < m_sharp_radius_squared) {
-        //std::cout << m_adaptive_target << "<<<\n";
-        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 31, 0.1) * area_correction;
+        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 7, 0.01) * area_correction;
       } else {
         Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
       }
