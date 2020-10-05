@@ -38,9 +38,15 @@ public:
   MeasurementFrame(std::shared_ptr<MeasurementImageFrame> measurement_frame) : m_measurement_frame(measurement_frame) {
   }
 
+protected:
   std::shared_ptr<MeasurementImageFrame> getFrame() const {
     return m_measurement_frame;
   }
+
+  // To enforce multi-threading safety only those tasks are allowed to use the content of the MeasurementFrame property
+  friend class MeasurementFrameCoordinatesTask;
+  friend class MeasurementFrameInfoTask;
+  friend class MeasurementFrameImagesTask;
 
 private:
   std::shared_ptr<MeasurementImageFrame> m_measurement_frame;
@@ -49,6 +55,4 @@ private:
 }
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAME_MEASUREMENTFRAME_H_ */
-
-
 

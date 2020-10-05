@@ -16,12 +16,12 @@
  */
 
 #include "SEFramework/Aperture/CircularAperture.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurve.h"
 #include "SEImplementation/Plugin/GrowthCurve/GrowthCurveTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/KronRadius/KronRadius.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEUtils/Mat22.h"
@@ -34,15 +34,44 @@ using SExtractor::Mat22;
 static const SeFloat GROWTH_NSIG = 6.;
 static const size_t GROWTH_NSAMPLES = 64;
 
+static SeFloat getPixelValue(int x, int y, SeFloat centroid_x, SeFloat centroid_y,
+                             const std::shared_ptr<Image<SeFloat>>& image,
+                             const std::shared_ptr<Image<SeFloat>>& variance_map, SeFloat variance_threshold,
+                             bool use_symmetry) {
+  // Get the pixel value
+  DetectionImage::PixelType pixel_value = 0;
+  // Masked out
+  if (variance_map->getValue(x, y) > variance_threshold) {
+    if (use_symmetry) {
+      auto mirror_x = 2 * centroid_x - x + 0.49999;
+      auto mirror_y = 2 * centroid_y - y + 0.49999;
+      if (mirror_x >= 0 && mirror_y >= 0 && mirror_x < image->getWidth() && mirror_y < image->getHeight()) {
+        if (variance_map->getValue(mirror_x, mirror_y) < variance_threshold) {
+          // mirror pixel is OK: take the value
+          pixel_value = image->getValue(mirror_x, mirror_y);
+        }
+      }
+    }
+  }
+  // Not masked
+  else {
+    pixel_value = image->getValue(x, y);
+  }
+  return pixel_value;
+}
+
 GrowthCurveTask::GrowthCurveTask(unsigned instance, bool use_symmetry)
   : m_instance{instance}, m_use_symmetry{use_symmetry} {}
 
 void GrowthCurveTask::computeProperties(SourceInterface& source) const {
-  // Measurement frame and properties defined on it
-  auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-  auto image = measurement_frame->getSubtractedImage();
-  auto variance_map = measurement_frame->getVarianceMap();
-  auto variance_threshold = measurement_frame->getVarianceThreshold();
+  const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
+
+  auto variance_threshold = measurement_frame_info.getVarianceThreshold();
+
+  const auto image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
+  const auto variance_map = measurement_frame_images.getLockedImage(LayerVarianceMap);
+
   auto centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
   auto centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
   Mat22 jacobian{source.getProperty<JacobianSource>(m_instance).asTuple()};
@@ -79,54 +108,37 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   auto max_coord = apertures.back().getMaxPixel(centroid_x, centroid_y);
 
   // Compute fluxes for each ring
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
   for (auto y = min_coord.m_y; y <= max_coord.m_y; ++y) {
     for (auto x = min_coord.m_x; x <= max_coord.m_x; ++x) {
-      if (x >= 0 && x < image->getWidth() && y >= 0 && y < image->getHeight()) {
-        // Get the pixel value
-        WeightImage::PixelType variance_tmp = variance_map ? variance_map->getValue(x, y) : 1;
-        DetectionImage::PixelType pixel_value = 0;
-        // Masked out
-        if (variance_tmp > variance_threshold) {
-          if (m_use_symmetry) {
-            auto mirror_x = 2 * centroid_x - x + 0.49999;
-            auto mirror_y = 2 * centroid_y - y + 0.49999;
-            if (mirror_x >= 0 && mirror_y >= 0 && mirror_x < image->getWidth() && mirror_y < image->getHeight()) {
-              variance_tmp = variance_map ? variance_map->getValue(mirror_x, mirror_y) : 1;
-              if (variance_tmp < variance_threshold) {
-                // mirror pixel is OK: take the value
-                pixel_value = image->getValue(mirror_x, mirror_y);
-              }
-            }
-          }
-        }
-        // Not masked
-        else {
-          pixel_value = image->getValue(x, y);
-        }
+      if (!image->isInside(x, y)) {
+        continue;
+      }
 
-        // Assign the pixel value according to the affected area
-        auto dx = x - centroid_x;
-        auto dy = y - centroid_y;
-        double r = std::sqrt(dx * dx + dy * dy);
-        // The pixel may be affected by multiple rings, so we look for those
-        // that overlap the start and the end of the pixels (which has size sqrt(2) on the diagonal)
-        size_t idx = 0;
-        if (r > 1.42 / 2.) {
-          idx = static_cast<size_t>((r - 1.42 / 2.) / step_size);
-        }
-        size_t outer_idx = static_cast<size_t>(std::ceil((r + 1.42 / 2.) / step_size));
+      auto pixel_value = getPixelValue(x, y, centroid_x, centroid_y, image,
+                                       variance_map, variance_threshold,
+                                       m_use_symmetry);
 
-        double inner = 0;
-        for (; idx <= outer_idx; ++idx) {
-          if (idx < apertures.size()) {
-            auto& aperture = apertures[idx];
-            auto area = aperture.getArea(centroid_x, centroid_y, x, y);
+      // Assign the pixel value according to the affected area
+      auto dx = x - centroid_x;
+      auto dy = y - centroid_y;
+      double r = std::sqrt(dx * dx + dy * dy);
 
-            fluxes[idx] += area * pixel_value - inner;
-            inner = area * pixel_value;
-          }
-        }
+      // The pixel may be affected by multiple rings, so we look for those
+      // that overlap the start and the end of the pixels (which has size sqrt(2) on the diagonal)
+      size_t idx = 0;
+      if (r > 1.42 / 2.) {
+        idx = static_cast<size_t>((r - 1.42 / 2.) / step_size);
+      }
+      size_t outer_idx = static_cast<size_t>(std::ceil((r + 1.42 / 2.) / step_size));
+
+      double inner = 0;
+      outer_idx = std::min(outer_idx, apertures.size() - 1);
+      for (; idx <= outer_idx; ++idx) {
+        auto& aperture = apertures[idx];
+        auto area = aperture.getArea(centroid_x, centroid_y, x, y);
+
+        fluxes[idx] += area * pixel_value - inner;
+        inner = area * pixel_value;
       }
     }
   }

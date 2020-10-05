@@ -25,9 +25,9 @@
 
 namespace SourceXtractor {
 
-NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordinate &max_pixel,
-                             const std::vector<SourceXtractor::PixelCoordinate> &pixel_list,
-                             const std::shared_ptr<SourceXtractor::Image<SourceXtractor::SeFloat>> &threshold_image)
+NeighbourInfo::NeighbourInfo(const PixelCoordinate& min_pixel, const PixelCoordinate& max_pixel,
+                             const std::vector<SourceXtractor::PixelCoordinate>& pixel_list,
+                             const std::shared_ptr<SourceXtractor::Image<SourceXtractor::SeFloat>>& threshold_image)
   : m_offset{min_pixel} {
   auto width = max_pixel.m_x - min_pixel.m_x + 1;
   auto height = max_pixel.m_y - min_pixel.m_y + 1;
@@ -48,19 +48,10 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordi
       int offset_y = act_y + m_offset.m_y;
 
       // set surrounding pixels that do not belong to the image and are above the threshold to 1, all others to 0
-      if (offset_x >= 0 && offset_y >= 0 && offset_x < threshold_image->getWidth() &&
-          offset_y < threshold_image->getHeight()) {
-        if (threshold_image->getValue(offset_x, offset_y) > 0) {
-          if (m_neighbour_image->getValue(act_x, act_y) != -1) {
-            m_neighbour_image->setValue(act_x, act_y, 1);
-          }
-          else {
-            m_neighbour_image->setValue(act_x, act_y, 0);
-          }
-        }
-        else {
-          m_neighbour_image->setValue(act_x, act_y, 0);
-        }
+      if (threshold_image->isInside(offset_x, offset_y)) {
+        bool is_above_threshold = threshold_image->getValue(offset_x, offset_y) > 0;
+        bool belongs = m_neighbour_image->getValue(act_x, act_y) == -1;
+        m_neighbour_image->setValue(act_x, act_y, is_above_threshold && !belongs);
       }
     }
   }
@@ -69,7 +60,8 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordi
 bool NeighbourInfo::isNeighbourObjectPixel(int x, int y) const {
   int act_x = x - m_offset.m_x;
   int act_y = y - m_offset.m_y;
-  assert(act_x >= 0 && act_y >= 0 && act_x < m_neighbour_image->getWidth() && act_y < m_neighbour_image->getHeight());
+  assert(act_x >= 0 && act_y >= 0 && act_x < m_neighbour_image->getWidth() &&
+         act_y < m_neighbour_image->getHeight());
   return m_neighbour_image->getValue(act_x, act_y);
 }
 

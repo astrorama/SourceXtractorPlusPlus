@@ -32,10 +32,24 @@
 
 namespace SourceXtractor {
 
+enum FrameImageLayer {
+  LayerOriginalImage = 0,
+  LayerInterpolatedImage,
+  LayerSubtractedImage,
+  LayerFilteredImage,
+  LayerThresholdedImage,
+  LayerSignalToNoiseMap,
+  LayerOriginalVarianceMap,
+  LayerUnfilteredVarianceMap,
+  LayerVarianceMap,
+  LayerDetectionThresholdMap
+};
+
 template<typename T>
 class Frame {
 
 public:
+
   class ImageFilter {
   public:
     virtual ~ImageFilter() = default;
@@ -56,6 +70,9 @@ public:
   //
   // Methods to get the image in one form or another
   //
+
+  std::shared_ptr<Image<T>> getImage(FrameImageLayer layer) const;
+
 
   // Just the original image
   std::shared_ptr<Image<T>> getOriginalImage() const {

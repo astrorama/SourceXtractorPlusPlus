@@ -40,12 +40,16 @@
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+
+
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
@@ -104,10 +108,11 @@ FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squa
     unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
-    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors)
+    std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
+    double scale_factor)
   : m_least_squares_engine(least_squares_engine),
     m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
-    m_parameters(parameters), m_frames(frames), m_priors(priors) {}
+    m_parameters(parameters), m_frames(frames), m_priors(priors), m_scale_factor(scale_factor) {}
 
 bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int frame_index) const {
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
@@ -116,38 +121,29 @@ bool FlexibleModelFittingTask::isFrameValid(SourceGroupInterface& group, int fra
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createImageCopy(
   SourceGroupInterface& group, int frame_index) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_image = frame->getSubtractedImage();
-
+  const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-  auto image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-  for (int y = 0; y < rect.getHeight(); y++) {
-    for (int x = 0; x < rect.getWidth(); x++) {
-      image->at(x, y) = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-    }
-  }
+  auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
+      LayerSubtractedImage, rect.getTopLeft().m_x, rect.getTopLeft().m_y, rect.getWidth(), rect.getHeight()));
 
   return image;
 }
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImage(
   SourceGroupInterface& group, int frame_index) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
 
-  auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  auto frame_image = frame->getSubtractedImage();
-  auto frame_image_thresholded = frame->getThresholdedImage();
-  auto variance_map = frame->getVarianceMap();
+  auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
+  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
+  auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+
+  const auto& frame_info = group.begin()->getProperty<MeasurementFrameInfo>(frame_index);
+  SeFloat gain = frame_info.getGain();
+  SeFloat saturation = frame_info.getSaturation();
 
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   std::fill(weight->getData().begin(), weight->getData().end(), 1);
-
-  auto measurement_frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
-  SeFloat gain = measurement_frame->getGain();
-  SeFloat saturation = measurement_frame->getSaturation();
 
   for (int y = 0; y < rect.getHeight(); y++) {
     for (int x = 0; x < rect.getWidth(); x++) {
@@ -176,9 +172,9 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates =
-    group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame()->getCoordinateSystem();
+    group.begin()->getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates =
-    group.begin()->getProperty<DetectionFrame>().getFrame()->getCoordinateSystem();
+    group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto psf_property = group.getProperty<PsfProperty>(frame_index);
@@ -211,7 +207,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
 
 
 void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) const {
-  double pixel_scale = 1;
+  double pixel_scale = 1 / m_scale_factor;
   FlexibleModelFittingParameterManager parameter_manager;
   ModelFitting::EngineParameterManager engine_parameter_manager{};
   int n_free_parameters = 0;
@@ -376,11 +372,9 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
       auto final_stamp = frame_model.getImage();
 
       auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-      auto frame = group.begin()->getProperty<MeasurementFrame>(frame_index).getFrame();
 
-      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame);
+      auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
       if (debug_image) {
-        std::lock_guard<std::mutex> lock(CheckImages::getInstance().m_access_mutex);
         for (int x = 0; x < final_stamp->getWidth(); x++) {
           for (int y = 0; y < final_stamp->getHeight(); y++) {
             auto x_coord = stamp_rect.getTopLeft().m_x + x;

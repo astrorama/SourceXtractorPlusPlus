@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * File:   OutputRegistry.cpp
  * Author: nikoapos
  *
@@ -50,6 +50,9 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
     std::vector<ColumnInfo::info_type> info_list {};
     std::vector<Row::cell_type> cell_values {};
     for (const auto& property : out_prop_list) {
+      if (m_property_to_names_map.count(property) == 0) {
+        throw Elements::Exception() << "Missing column generator for " << property.name();
+      }
       for (const auto& name : m_property_to_names_map.at(property)) {
         auto& col_info = m_name_to_col_info_map.at(name);
         info_list.emplace_back(name, m_name_to_converter_map.at(name).first,

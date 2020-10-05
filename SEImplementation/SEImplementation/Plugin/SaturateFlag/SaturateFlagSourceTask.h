@@ -39,13 +39,15 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_ATURATEFLAGSOURCETASK_H_
 
-#include <SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h>
-#include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
-#include <SEImplementation/Measurement/MultithreadedMeasurement.h>
-#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/DetectionFrame.h"
+
+#include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>
+#include <SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h>
+#include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+
+#include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
 
 namespace SourceXtractor {
 
@@ -56,18 +58,17 @@ public:
   virtual ~SaturateFlagSourceTask() = default;
 
   virtual void computeProperties(SourceInterface &source) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
     bool saturate_flag = false;
 
-    const auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-    const auto saturation = measurement_frame->getSaturation();
+    const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+    const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
+
+    const auto saturation = measurement_frame_info.getSaturation();
     const auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);
 
     if (saturation > 0 && measurement_rectangle.getWidth()) {
       // iterate over all pixel values
-      auto image = measurement_frame->getOriginalImage();
-      auto stamp = image->getChunk(
+      auto stamp = measurement_frame_images.getImageChunk(LayerOriginalImage,
         measurement_rectangle.getTopLeft().m_x, measurement_rectangle.getTopLeft().m_y,
         measurement_rectangle.getWidth(), measurement_rectangle.getHeight());
 

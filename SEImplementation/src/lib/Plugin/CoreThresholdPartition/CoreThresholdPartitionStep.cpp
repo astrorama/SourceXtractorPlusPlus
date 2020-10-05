@@ -20,10 +20,10 @@
  * @author mkuemmel
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
-#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionStep.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionStep.h"
 
 namespace SourceXtractor {
 
@@ -33,11 +33,9 @@ CoreThresholdPartitionStep::CoreThresholdPartitionStep(double snr_level, unsigne
 
 std::vector<std::shared_ptr<SourceInterface>> CoreThresholdPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
   long int n_snr_level(0);
-  // SNR Image accesses the underlying detection image, which may be a buffered image
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   // get the SNR image
-  const auto& snr_image = source->getProperty<DetectionFrame>().getFrame()->getSnrImage();
+  const auto snr_image = source->getProperty<DetectionFrameImages>().getLockedImage(LayerSignalToNoiseMap);
 
   // go over all pixels
   for (auto pixel_coord : source->getProperty<PixelCoordinateList>().getCoordinateList())

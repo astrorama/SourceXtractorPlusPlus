@@ -75,6 +75,7 @@
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
+#include "SEImplementation/Configuration/SamplingConfig.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
@@ -130,7 +131,7 @@ static void setupEnvironment(void) {
 
 
 class SEMain : public Elements::Program {
-  
+
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry = std::make_shared<TaskFactoryRegistry>();
   std::shared_ptr<TaskProvider> task_provider = std::make_shared<TaskProvider>(task_factory_registry);
   std::shared_ptr<OutputRegistry> output_registry = std::make_shared<OutputRegistry>();
@@ -145,14 +146,13 @@ class SEMain : public Elements::Program {
   GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
-  BackgroundAnalyzerFactory background_level_analyzer_factory {};
   ProgressReporterFactory progress_printer_factory {};
 
   bool config_initialized = false;
   po::options_description config_parameters;
 
 public:
-  
+
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
@@ -167,6 +167,8 @@ public:
       config_manager.registerConfiguration<BackgroundConfig>();
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
+      config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
+      config_manager.registerConfiguration<SamplingConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -179,7 +181,6 @@ public:
       deblending_factory.reportConfigDependencies(config_manager);
       measurement_factory.reportConfigDependencies(config_manager);
       output_factory.reportConfigDependencies(config_manager);
-      background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
       config_parameters.add(config_manager.closeRegistration());
       config_initialized = true;
@@ -267,14 +268,14 @@ public:
 
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
-    
+
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
       for (auto& name : output_registry->getOutputPropertyNames()) {
         std::cout << name << std::endl;
       }
       return Elements::ExitCode::OK;
     }
-    
+
     if (args.at(PROPERTY_COLUMN_MAPPING_ALL).as<bool>()) {
       output_registry->printPropertyColumnMap();
       return Elements::ExitCode::OK;
@@ -311,15 +312,14 @@ public:
 
     task_factory_registry->configure(config_manager);
     task_factory_registry->registerPropertyInstances(*output_registry);
-    
+
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
     grouping_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
-    background_level_analyzer_factory.configure(config_manager);
-    
+
     if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
       output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
       return Elements::ExitCode::OK;
@@ -362,19 +362,19 @@ public:
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
-          std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+          std::make_shared<DetectionIdCheckImage>());
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+          std::make_shared<SourceIdCheckImage>());
     }
     if (CheckImages::getInstance().getGroupImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+          std::make_shared<GroupIdCheckImage>());
     }
     if (CheckImages::getInstance().getMoffatImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
+          std::make_shared<MoffatCheckImage>());
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
@@ -383,7 +383,7 @@ public:
         detection_image_saturation, interpolation_gap);
     detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
-    auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    auto background_analyzer = config_manager.getConfiguration<BackgroundAnalyzerFactory>().createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
@@ -462,12 +462,12 @@ public:
 
 
 class PluginOptionsMain : public Elements::Program {
-  
+
 public:
   PluginOptionsMain(std::string& plugin_path, std::vector<std::string>& plugin_list) :
           m_plugin_path(plugin_path), m_plugin_list(plugin_list) {
   }
-  
+
   virtual ~PluginOptionsMain() = default;
 
   boost::program_options::options_description defineSpecificProgramOptions() override {
@@ -478,7 +478,7 @@ public:
     options.add_options()("*", po::value<std::vector<std::string>>());
     return options;
   }
-  
+
   Elements::ExitCode mainMethod(std::map<std::string, boost::program_options::variable_value>& args) override {
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
     config_manager.initialize(args);
@@ -489,13 +489,40 @@ public:
   }
 
 private:
-  
+
   long conf_man_id = getUniqueManagerId();
   std::string& m_plugin_path;
   std::vector<std::string>& m_plugin_list;
-  
+
 };
 
+
+static void forwardOptions(int argc, char *const *argv, std::vector<std::string>& plugin_options_input) {
+  for (int i = 0; i < argc; ++i) {
+    std::string option{argv[i]};
+    if (option == "--config-file") {
+      plugin_options_input.emplace_back("--config-file");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--config-file=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin-directory") {
+      plugin_options_input.emplace_back("--plugin-directory");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--plugin-directory=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin") {
+      plugin_options_input.emplace_back("--plugin");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--plugin=")) {
+      plugin_options_input.emplace_back(option);
+    }
+  }
+}
 
 
 ELEMENTS_API int main(int argc, char* argv[]) {
@@ -526,30 +553,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
     plugin_options_input.emplace_back("DummyProgram");
     plugin_options_input.emplace_back("--log-level");
     plugin_options_input.emplace_back("ERROR");
-    for (int i = 0; i < argc; ++i) {
-      std::string option{argv[i]};
-      if (option == "--config-file") {
-        plugin_options_input.emplace_back("--config-file");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--config-file=")) {
-        plugin_options_input.emplace_back(option);
-      }
-      if (option == "--plugin-directory") {
-        plugin_options_input.emplace_back("--plugin-directory");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--plugin-directory=")) {
-        plugin_options_input.emplace_back(option);
-      }
-      if (option == "--plugin") {
-        plugin_options_input.emplace_back("--plugin");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--plugin=")) {
-        plugin_options_input.emplace_back(option);
-      }
-    }
+    forwardOptions(argc, argv, plugin_options_input);
 
     int argc_tmp = plugin_options_input.size();
     std::vector<const char *> argv_tmp(argc_tmp);
