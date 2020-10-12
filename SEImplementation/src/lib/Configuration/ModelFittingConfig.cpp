@@ -29,6 +29,7 @@
 #include "Pyston/GIL.h"
 #include "Pyston/Exceptions.h"
 #include "Pyston/ExpressionTreeBuilder.h"
+#include "Pyston/Util/GraphvizGenerator.h"
 
 #include <string>
 #include <boost/python/extract.hpp>
@@ -62,12 +63,38 @@ struct FunctionFromPython<double(const SourceInterface&)> {
     }
     else {
       logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
     }
 
     return [wrapped](const SourceInterface& o) -> double {
       ObjectInfo oi{o};
       return wrapped(oi);
     };
+  }
+};
+
+template<>
+struct FunctionFromPython<double(const std::vector<double>&)> {
+  static
+  std::function<double(const std::vector<double>&)> get(const char *readable,
+                                                       Pyston::ExpressionTreeBuilder& builder,
+                                                       py::object py_func,
+                                                       size_t nparams) {
+    auto wrapped = builder.build<double(const std::vector<double>&)>(py_func, nparams);
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
+    }
+
+    return wrapped;
   }
 };
 
@@ -217,15 +244,13 @@ void ModelFittingConfig::initializeInner() {
       params.push_back(m_parameters[id]);
     }
 
-    auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
-      Pyston::GILLocker locker;
-      try {
-        PythonInterpreter::getSingleton().setCoordinateSystem(cs);
-        return py::extract<double>((*py_func)(*py::tuple(params)));
-      }
-      catch (const py::error_already_set&) {
-        throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
-      }
+    auto dependent = FunctionFromPython<double(const std::vector<double>&)>::get(
+      "Dependent parameter", expr_builder, py_func, params.size()
+    );
+
+    auto dependent_func = [dependent](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      // TODO: Coordinate system
+      return dependent(params);
     };
 
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
@@ -234,10 +259,8 @@ void ModelFittingConfig::initializeInner() {
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {
     int value_id = py::extract<int>(p.second.attr("value").attr("id"));
-    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(
-        m_parameters[value_id]);
+    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(m_parameters[value_id]);
   }
-
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
