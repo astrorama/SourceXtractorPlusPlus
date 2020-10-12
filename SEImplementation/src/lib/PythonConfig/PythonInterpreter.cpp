@@ -31,6 +31,7 @@
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
 #include <Pyston/GIL.h>
 #include <Pyston/Exceptions.h>
+#include <Pyston/Module.h>
 
 namespace py = boost::python;
 
@@ -52,6 +53,7 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
   struct sigaction sigint_handler;
   sigaction(SIGINT, nullptr, &sigint_handler);
 
+  PyImport_AppendInittab("pyston", &PyInit_libPyston);
   Py_Initialize();
   PyEval_InitThreads();
   PyEval_SaveThread();
