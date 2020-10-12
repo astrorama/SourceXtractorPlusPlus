@@ -46,7 +46,7 @@ class FitsFile(cpp.FitsFile):
         try:
             it = iter(headers)
             while it:
-                a = it.next()
+                a = next(it)
                 d[a.key()] = headers[a.key()]
         except StopIteration:
             pass
