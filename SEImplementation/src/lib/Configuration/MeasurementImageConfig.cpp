@@ -28,7 +28,7 @@
 
 #include <ElementsKernel/Logging.h>
 
-#include <SEUtils/Python.h>
+#include <Pyston/GIL.h>
 
 #include <SEFramework/Image/BufferedImage.h>
 #include <SEFramework/Image/ProcessedImage.h>
@@ -160,7 +160,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
   // Delegate into Python to log the measurement configuration
   boost::char_separator<char> line_sep{"\n"};
   for (auto &g : groups) {
-    GILStateEnsure ensure;
+    Pyston::GILLocker locker;
     std::string group_str = py::extract<std::string>(g.attr("__str__")());
     boost::tokenizer<decltype(line_sep)> tok(group_str, line_sep);
     for (auto &l : tok) {

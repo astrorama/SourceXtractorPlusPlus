@@ -28,7 +28,7 @@
 #include "ModelFitting/Parameters/NormalizedConverter.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
-#include "SEUtils/Python.h"
+#include "Pyston/GIL.h"
 
 namespace SourceXtractor {
 
@@ -37,7 +37,7 @@ using Euclid::make_unique;
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
@@ -46,7 +46,7 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingExponentialRangeConvert
 
 std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   double minimum_value, maximum_value;
   std::tie(minimum_value, maximum_value) = m_range(initial_value, source);
@@ -55,7 +55,7 @@ std::unique_ptr<CoordinateConverter> FlexibleModelFittingLinearRangeConverterFac
 
 std::unique_ptr<ModelFitting::CoordinateConverter> FlexibleModelFittingUnboundedConverterFactory::getConverter(
     double initial_value, const SourceInterface& source) const {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   double factor = m_normalization_factor(initial_value, source);
   return make_unique<NormalizedConverter>(factor);
