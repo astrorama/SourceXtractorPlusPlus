@@ -29,10 +29,10 @@
 #include <boost/python/import.hpp>
 #include <boost/python/object.hpp>
 #include <Python.h>
-
-#include <SEUtils/Python.h>
 #include <SEImplementation/PythonConfig/PythonModule.h>
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
+#include <Pyston/GIL.h>
+#include <Pyston/Exceptions.h>
 
 namespace py = boost::python;
 
@@ -62,7 +62,7 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
 }
 
 void PythonInterpreter::runCode(const std::string &code) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object main_module = py::import("__main__");
   py::object main_namespace = main_module.attr("__dict__");
@@ -70,12 +70,12 @@ void PythonInterpreter::runCode(const std::string &code) {
     py::exec(code.c_str(), main_namespace);
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 void PythonInterpreter::runFile(const std::string &filename, const std::vector<std::string> &argv) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     // Setup argv
@@ -120,7 +120,7 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
     py::exec(pycode.c_str(), main_namespace);
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
   catch (const std::system_error& e) {
     throw Elements::Exception() << e.what() << ": " << e.code().message();
@@ -128,7 +128,7 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
 }
 
 std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object meas_images_module = py::import("sourcextractor.config.measurement_images");
@@ -143,12 +143,12 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<int, PyAperture> PythonInterpreter::getApertures() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object apertures_module = py::import("sourcextractor.config.aperture");
@@ -163,12 +163,12 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getModelFittingOutputColumns() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object output_module = py::import("sourcextractor.config.output");
@@ -195,12 +195,12 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColumns() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object output_module = py::import("sourcextractor.config.output");
@@ -225,14 +225,14 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 namespace {
 
 std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object model_fitting_module = py::import(module_name);
@@ -247,7 +247,7 @@ std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, 
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -290,7 +290,7 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
 }
 
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     std::map<int, std::vector<int>> result{};
     py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
@@ -307,12 +307,12 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
@@ -327,7 +327,7 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
 }
 
 std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object model_fitting_module = py::import("sourcextractor.config.measurement_images");
@@ -339,12 +339,12 @@ std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");

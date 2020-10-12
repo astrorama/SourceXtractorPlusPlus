@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file ModelFittingConfig.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
@@ -26,7 +26,8 @@
 #include "SEImplementation/PythonConfig/ObjectInfo.h"
 #include "SEImplementation/Configuration/PythonConfig.h"
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
-#include "SEUtils/Python.h"
+#include "Pyston/GIL.h"
+#include "Pyston/Exceptions.h"
 
 #include <string>
 #include <boost/python/extract.hpp>
@@ -58,12 +59,12 @@ namespace SourceXtractor {
  */
 template <typename R, typename ...T>
 R py_call_wrapper(const py::object& func, T... args) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     return py::extract<R>(func(args...));
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -106,7 +107,7 @@ ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_
 }
 
 ModelFittingConfig::~ModelFittingConfig() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   m_parameters.clear();
   m_models.clear();
   m_frames.clear();
@@ -115,12 +116,12 @@ ModelFittingConfig::~ModelFittingConfig() {
 }
 
 void ModelFittingConfig::initialize(const UserValues&) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     initializeInner();
   }
   catch (py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -134,7 +135,7 @@ void ModelFittingConfig::initializeInner() {
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
                                                            p.first, value_func);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
     auto py_init_value_func = PyObjectHolder(p.second.attr("get_init_value")());
     auto init_value_func = [py_init_value_func] (const SourceInterface& o) -> double {
@@ -175,7 +176,7 @@ void ModelFittingConfig::initializeInner() {
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(
                           p.first, init_value_func, converter);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
     auto py_func = PyObjectHolder(p.second.attr("func"));
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
@@ -186,20 +187,20 @@ void ModelFittingConfig::initializeInner() {
     }
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
-      GILStateEnsure ensure;
+      Pyston::GILLocker locker;
       try {
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }
       catch (const py::error_already_set&) {
-        throw pyToElementsException(logger);
+        throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
       }
     };
 
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
                                                       p.first, dependent_func, params);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {
     int value_id = py::extract<int>(p.second.attr("value").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(
@@ -214,7 +215,7 @@ void ModelFittingConfig::initializeInner() {
     m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -228,7 +229,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
         m_parameters[angle_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -240,7 +241,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -252,7 +253,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
     std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};
     for (int x : p.second) {
@@ -260,7 +261,7 @@ void ModelFittingConfig::initializeInner() {
     }
     m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPriors()) {
     auto& prior = p.second;
     int param_id = py::extract<int>(prior.attr("param"));
@@ -277,7 +278,7 @@ void ModelFittingConfig::initializeInner() {
     };
     m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
   }
-  
+
   m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
 
   auto parameters = getDependency<PythonConfig>().getInterpreter().getModelFittingParams();
