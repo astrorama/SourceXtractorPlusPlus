@@ -28,19 +28,48 @@
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
 #include "Pyston/GIL.h"
 #include "Pyston/Exceptions.h"
+#include "Pyston/ExpressionTreeBuilder.h"
 
 #include <string>
 #include <boost/python/extract.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
 
-
 using namespace Euclid::Configuration;
 namespace py = boost::python;
+using Pyston::AttributeSet;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
 namespace SourceXtractor {
+
+template<typename Signature>
+struct FunctionFromPython {
+};
+
+template<>
+struct FunctionFromPython<double(const SourceInterface&)> {
+
+  static
+  std::function<double(const SourceInterface&)> get(const char *readable,
+                                                 Pyston::ExpressionTreeBuilder& builder,
+                                                 py::object py_func) {
+    auto wrapped = builder.build<double(const AttributeSet&)>(py_func, ObjectInfo{});
+
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+    }
+
+    return [wrapped](const SourceInterface& o) -> double {
+      ObjectInfo oi{o};
+      return wrapped(oi);
+    };
+  }
+};
 
 /**
  * Wrap py::extract *and* the call so Python errors can be properly translated and logged
@@ -126,6 +155,8 @@ void ModelFittingConfig::initialize(const UserValues&) {
 }
 
 void ModelFittingConfig::initializeInner() {
+  Pyston::ExpressionTreeBuilder expr_builder;
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
     auto py_value_func = PyObjectHolder(p.second.attr("get_value")());
     auto value_func = [py_value_func] (const SourceInterface& o) -> double {
@@ -266,16 +297,14 @@ void ModelFittingConfig::initializeInner() {
     auto& prior = p.second;
     int param_id = py::extract<int>(prior.attr("param"));
     auto param = m_parameters[param_id];
-    auto py_value_func = PyObjectHolder(prior.attr("value"));
-    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_value_func, oi);
-    };
-    auto py_sigma_func = PyObjectHolder(prior.attr("sigma"));
-    auto sigma_func = [py_sigma_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_sigma_func, oi);
-    };
+
+    auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Prior mean", expr_builder, prior.attr("value")
+    );
+    auto sigma_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Prior sigma", expr_builder, prior.attr("sigma")
+    );
+
     m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
   }
 
