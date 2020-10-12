@@ -25,13 +25,16 @@
 #include <functional>
 #include <SEUtils/Types.h>
 #include <SEFramework/Source/SourceInterface.h>
+#include <Pyston/Graph/Node.h>
 
 namespace SourceXtractor {
 
-class ObjectInfo {
+class ObjectInfo: public Pyston::AttributeSet {
   
 public:
-  
+
+  ObjectInfo();
+
   ObjectInfo(const SourceInterface& source);
   
   virtual ~ObjectInfo() = default;
@@ -48,9 +51,11 @@ public:
 
   SeFloat getAspectRatio() const;
 
+  //Pyston::AttributeSet getDictionary() const;
+
 private:
   
-  std::reference_wrapper<const SourceInterface> m_source;
+  const SourceInterface* m_source;
   
 };
 
