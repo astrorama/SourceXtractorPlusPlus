@@ -15,6 +15,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <boost/algorithm/string.hpp>
+
 #include "SEUtils/VariantCast.h"
 
 #include <SEImplementation/PythonConfig/PyFitsFile.h>
@@ -41,7 +43,11 @@ std::map<std::string, std::string> PyFitsFile::getHeaders(int hdu) const {
   std::map<std::string, std::string> headers_str;
 
   for (auto& i : headers) {
-    headers_str[i.first] = VariantCast<std::string>(i.second.m_value);
+    auto key = i.first;
+    auto value = VariantCast<std::string>(i.second.m_value);
+    boost::trim(key);
+    boost::trim(value);
+    headers_str[key] = value;
   }
 
   return headers_str;
