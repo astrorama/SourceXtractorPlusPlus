@@ -26,7 +26,8 @@
 #include "SEImplementation/PythonConfig/ObjectInfo.h"
 #include "SEImplementation/Configuration/PythonConfig.h"
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
-#include "SEUtils/Python.h"
+#include "Pyston/GIL.h"
+#include "Pyston/Exceptions.h"
 
 #include <string>
 #include <boost/python/extract.hpp>
@@ -58,12 +59,12 @@ namespace SourceXtractor {
  */
 template <typename R, typename ...T>
 R py_call_wrapper(const py::object& func, T... args) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     return py::extract<R>(func(args...));
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -106,7 +107,7 @@ ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_
 }
 
 ModelFittingConfig::~ModelFittingConfig() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   m_parameters.clear();
   m_models.clear();
   m_frames.clear();
@@ -115,12 +116,12 @@ ModelFittingConfig::~ModelFittingConfig() {
 }
 
 void ModelFittingConfig::initialize(const UserValues&) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     initializeInner();
   }
   catch (py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -187,12 +188,12 @@ void ModelFittingConfig::initializeInner() {
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
       try {
-        GILStateEnsure ensure;
+        Pyston::GILLocker locker;
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }
       catch (const py::error_already_set&) {
-        throw pyToElementsException(logger);
+        throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
       }
     };
 
