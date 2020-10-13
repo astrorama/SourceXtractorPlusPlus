@@ -120,40 +120,6 @@ struct FunctionFromPython<double(double, const SourceInterface&)> {
   }
 };
 
-/**
- * @brief Hold a reference to a Python object
- * @details
- *  A boost::python::object contains a pointer to the underlying Python struct, which is
- *  copied as-is (shared) when copied. When the boost::python::object is destroyed, it checks,
- *  and then decrements, the reference count. This destruction is *not* thread safe, as the pointer
- *  is not protected by a mutex or anything.
- *  This class holds a single reference to the Python object, and relies on the mechanism of
- *  std::shared_ptr to destroy the object once there is no one using it. std::shared_ptr *is*
- *  thread safe, unlike boost::python::object.
- */
-class PyObjectHolder {
-  public:
-    PyObjectHolder(py::object&& obj): m_obj_ptr(std::make_shared<py::object>(obj)) {}
-
-    PyObjectHolder(const PyObjectHolder&) = default;
-    PyObjectHolder(PyObjectHolder&&) = default;
-
-    operator const py::object&() const {
-      return *m_obj_ptr;
-    }
-
-    const py::object& operator *() const {
-      return *m_obj_ptr;
-    }
-
-    py::object attr(const char *name) {
-      return m_obj_ptr->attr(name);
-    }
-
-  private:
-    std::shared_ptr<py::object> m_obj_ptr;
-};
-
 ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PythonConfig>();
 }
@@ -212,7 +178,7 @@ void ModelFittingConfig::initializeInner() {
       "Free parameter", expr_builder, p.second.attr("get_init_value")
     );
 
-    auto py_range_obj = PyObjectHolder(p.second.attr("get_range")());
+    auto py_range_obj = p.second.attr("get_range")();
 
     std::shared_ptr<FlexibleModelFittingConverterFactory> converter;
     std::string type_string(py::extract<char const*>(py_range_obj.attr("__class__").attr("__name__")));
@@ -250,7 +216,7 @@ void ModelFittingConfig::initializeInner() {
 
   /* Dependent parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
-    auto py_func = PyObjectHolder(p.second.attr("func"));
+    auto py_func = p.second.attr("func");
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
     py::list param_ids = py::extract<py::list>(p.second.attr("params"));
     for (int i = 0; i < py::len(param_ids); ++i) {
