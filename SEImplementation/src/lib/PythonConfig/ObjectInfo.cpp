@@ -27,42 +27,27 @@
 namespace SourceXtractor {
 
 ObjectInfo::ObjectInfo() {
+  emplace(std::make_pair("centroid_x", 0.));
+  emplace(std::make_pair("centroid_y", 0.));
   emplace(std::make_pair("isophotal_flux", 0.));
+  emplace(std::make_pair("radius", 0.));
+  emplace(std::make_pair("angle", 0.));
+  emplace(std::make_pair("aspect_ratio", 0.));
 }
 
-ObjectInfo::ObjectInfo(const SourceInterface& source) : m_source(&source) {
-  emplace(std::make_pair("isophotal_flux",
-                         std::max(source.getProperty<IsophotalFlux>().getFlux(), 0.0001f)));
-}
+ObjectInfo::ObjectInfo(const SourceInterface& source) {
+  auto centroid = source.getProperty<PixelCentroid>();
+  auto iso_flux = source.getProperty<IsophotalFlux>();
+  auto shape = source.getProperty<ShapeParameters>();
 
-SeFloat ObjectInfo::getCentroidX() const {
-  // On the Python side we use FITS coordinates, starting at 1
-  return m_source->getProperty<PixelCentroid>().getCentroidX() + 1.0;
-}
+  double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
 
-SeFloat ObjectInfo::getCentroidY() const {
-  // On the Python side we use FITS coordinates, starting at 1
-  return m_source->getProperty<PixelCentroid>().getCentroidY() + 1.0;
-}
-
-SeFloat ObjectInfo::getIsoFlux() const {
-  return std::max<double>(m_source->getProperty<IsophotalFlux>().getFlux(), 0.0001);
-}
-
-SeFloat ObjectInfo::getRadius() const {
-  return std::max<double>(m_source->getProperty<ShapeParameters>().getEllipseA() / 2.0, 0.01);
-}
-
-SeFloat ObjectInfo::getAngle() const {
-  return m_source->getProperty<ShapeParameters>().getEllipseTheta();
-}
-
-SeFloat ObjectInfo::getAspectRatio() const {
-  auto& shape_parameters = m_source->getProperty<ShapeParameters>();
-  double aspect_guess = std::max<double>(
-    shape_parameters.getEllipseB() / shape_parameters.getEllipseA(), 0.01);
-
-  return aspect_guess;
+  emplace(std::make_pair("centroid_x", centroid.getCentroidX() + 1.0));
+  emplace(std::make_pair("centroid_y", centroid.getCentroidY() + 1.0));
+  emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
+  emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
+  emplace(std::make_pair("angle", shape.getEllipseTheta()));
+  emplace(std::make_pair("aspect_ratio", aspect_guess));
 }
 
 }

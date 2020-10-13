@@ -34,7 +34,6 @@
 #include <string>
 #include <boost/python/extract.hpp>
 #include <boost/python/object.hpp>
-#include <boost/python/tuple.hpp>
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;
@@ -69,8 +68,7 @@ struct FunctionFromPython<double(const SourceInterface&)> {
     }
 
     return [wrapped](const SourceInterface& o) -> double {
-      ObjectInfo oi{o};
-      return wrapped(oi);
+      return wrapped(ObjectInfo{o});
     };
   }
 };
@@ -98,31 +96,30 @@ struct FunctionFromPython<double(const std::vector<double>&)> {
   }
 };
 
-/**
- * Wrap py::extract *and* the call so Python errors can be properly translated and logged
- * @tparam R
- *  Return type
- * @tparam T
- *  Variadic template for any arbitrary number of arguments
- * @param func
- *  Python function to be called
- * @param args
- *  Arguments for the Python function
- * @return
- *  Whatever the Python function returns
- * @throw
- *  Elements::Exception if either the call or the extract throw a Python exception
- */
-template <typename R, typename ...T>
-R py_call_wrapper(const py::object& func, T... args) {
-  Pyston::GILLocker locker;
-  try {
-    return py::extract<R>(func(args...));
+template<>
+struct FunctionFromPython<double(double, const SourceInterface&)> {
+  static
+  std::function<double(double, const SourceInterface&)> get(const char *readable,
+                                                            Pyston::ExpressionTreeBuilder& builder,
+                                                            py::object py_func) {
+    auto wrapped = builder.build<double(double, const AttributeSet&)>(py_func, ObjectInfo{});
+
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
+    }
+
+    return [wrapped](double a, const SourceInterface& o) -> double {
+      return wrapped(a, ObjectInfo{o});
+    };
   }
-  catch (const py::error_already_set &e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
-  }
-}
+};
 
 /**
  * @brief Hold a reference to a Python object
@@ -184,43 +181,44 @@ void ModelFittingConfig::initialize(const UserValues&) {
 void ModelFittingConfig::initializeInner() {
   Pyston::ExpressionTreeBuilder expr_builder;
 
+  /* Constant parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
-    auto py_value_func = PyObjectHolder(p.second.attr("get_value")());
-    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_value_func, oi);
-    };
+    auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Constant parameter", expr_builder, p.second.attr("get_value")
+    );
+
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
                                                            p.first, value_func);
   }
 
+  /* Free parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
-    auto py_init_value_func = PyObjectHolder(p.second.attr("get_init_value")());
-    auto init_value_func = [py_init_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_init_value_func, oi);
-    };
+    auto init_value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Free parameter", expr_builder, p.second.attr("get_init_value")
+    );
 
     auto py_range_obj = PyObjectHolder(p.second.attr("get_range")());
 
     std::shared_ptr<FlexibleModelFittingConverterFactory> converter;
     std::string type_string(py::extract<char const*>(py_range_obj.attr("__class__").attr("__name__")));
+
     if (type_string == "Unbounded") {
-      auto py_factor_func = PyObjectHolder(py_range_obj.attr("get_normalization_factor")());
-      auto factor_func = [py_factor_func] (double init, const SourceInterface& o) -> double {
-        ObjectInfo oi {o};
-        return py_call_wrapper<double>(py_factor_func, init, oi);
-      };
+      auto factor_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Unbounded", expr_builder, py_range_obj.attr("get_normalization_factor")
+      );
       converter = std::make_shared<FlexibleModelFittingUnboundedConverterFactory>(factor_func);
     } else if (type_string == "Range") {
-      auto py_range_func = PyObjectHolder(py_range_obj.attr("get_limits")());
-      auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
-        ObjectInfo oi {o};
-        py::tuple range = py_call_wrapper<py::tuple>(py_range_func, init, oi);
-        double low = py::extract<double>(range[0]);
-        double high = py::extract<double>(range[1]);
-        return {low, high};
+      auto min_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Range min", expr_builder, py_range_obj.attr("get_min")
+      );
+      auto max_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Range max", expr_builder, py_range_obj.attr("get_max")
+      );
+
+      auto range_func = [min_func, max_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
+        return {min_func(init, o), max_func(init, o)};
       };
+
       bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
 
       if (is_exponential) {
