@@ -17,17 +17,16 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from __future__ import division, print_function
 
+import math
 import sys
 from enum import Enum
 
 import _SourceXtractorPy as cpp
-from .measurement_images import MeasurementGroup
-
+import pyston
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates import Angle
 
-import math
+from .measurement_images import MeasurementGroup
 
 
 class RangeType(Enum):
@@ -883,9 +882,10 @@ def pixel_to_world_coordinate(x, y):
     -------
     WorldCoordinate
     """
-    global coordinate_system
-    wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x-1, y-1)) # -1 as we go FITS -> internal 
-    return WorldCoordinate(wc.alpha, wc.delta)
+    # -1 as we go FITS -> internal
+    wc_alpha = pyston.image_to_world_alpha(x - 1, y - 1)
+    wc_delta = pyston.image_to_world_delta(x - 1, y - 1)
+    return WorldCoordinate(wc_alpha, wc_delta)
 
 
 def get_sky_coord(x, y):
@@ -964,14 +964,6 @@ def get_position_angle(x1, y1, x2, y2):
     
     # return angle normalized to range: -90 <= angle < 90
     return (angle + 90.0) % 180.0 - 90.0
-
-
-def set_coordinate_system(cs):
-    """
-    Set the global coordinate system. This function is used internally by SourceXtractor++.
-    """
-    global coordinate_system
-    coordinate_system = cs
 
 
 def get_world_position_parameters(x, y):

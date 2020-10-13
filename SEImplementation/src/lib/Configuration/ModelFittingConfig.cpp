@@ -74,12 +74,11 @@ struct FunctionFromPython<double(const SourceInterface&)> {
 };
 
 template<>
-struct FunctionFromPython<double(const std::vector<double>&)> {
+struct FunctionFromPython<double(const Pyston::Context&, const std::vector<double>&)> {
   static
-  std::function<double(const std::vector<double>&)> get(const char *readable,
-                                                       Pyston::ExpressionTreeBuilder& builder,
-                                                       py::object py_func,
-                                                       size_t nparams) {
+  std::function<double(const Pyston::Context&, const std::vector<double>&)>
+    get(const char *readable, Pyston::ExpressionTreeBuilder& builder, py::object py_func,
+        size_t nparams) {
     auto wrapped = builder.build<double(const std::vector<double>&)>(py_func, nparams);
     if (!wrapped.isCompiled()) {
       logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
@@ -178,8 +177,24 @@ void ModelFittingConfig::initialize(const UserValues&) {
   }
 }
 
+static double image_to_world_alpha(const Pyston::Context& context, double x, double y) {
+  auto coord_system = boost::any_cast<std::shared_ptr<CoordinateSystem>>(context.at("coordinate_system"));
+  return coord_system->imageToWorld({x, y}).m_alpha;
+}
+
+static double image_to_world_delta(const Pyston::Context& context, double x, double y) {
+  auto coord_system = boost::any_cast<std::shared_ptr<CoordinateSystem>>(context.at("coordinate_system"));
+  return coord_system->imageToWorld({x, y}).m_delta;
+}
+
 void ModelFittingConfig::initializeInner() {
   Pyston::ExpressionTreeBuilder expr_builder;
+  expr_builder.registerFunction<double(const Pyston::Context&, double, double)>(
+    "image_to_world_alpha", image_to_world_alpha
+  );
+  expr_builder.registerFunction<double(const Pyston::Context&, double, double)>(
+    "image_to_world_delta", image_to_world_delta
+  );
 
   /* Constant parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
@@ -233,6 +248,7 @@ void ModelFittingConfig::initializeInner() {
                           p.first, init_value_func, converter);
   }
 
+  /* Dependent parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
     auto py_func = PyObjectHolder(p.second.attr("func"));
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
@@ -242,13 +258,13 @@ void ModelFittingConfig::initializeInner() {
       params.push_back(m_parameters[id]);
     }
 
-    auto dependent = FunctionFromPython<double(const std::vector<double>&)>::get(
-      "Dependent parameter", expr_builder, py_func, params.size()
-    );
+    auto dependent = FunctionFromPython<double(const Pyston::Context&, const std::vector<double>&)>
+      ::get("Dependent parameter", expr_builder, py_func, params.size());
 
     auto dependent_func = [dependent](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
-      // TODO: Coordinate system
-      return dependent(params);
+      Pyston::Context context;
+      context["coordinate_system"] = cs;
+      return dependent(context, params);
     };
 
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
