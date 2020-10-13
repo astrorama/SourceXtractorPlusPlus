@@ -26,7 +26,6 @@
 #include <boost/python/suite/indexing/map_indexing_suite.hpp>
 
 #include <SEFramework/Source/SourceFlags.h>
-#include <SEImplementation/PythonConfig/ObjectInfo.h>
 #include <SEImplementation/PythonConfig/PyMeasurementImage.h>
 #include <SEImplementation/PythonConfig/PyAperture.h>
 #include <SEImplementation/PythonConfig/PythonModule.h>
@@ -57,15 +56,6 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
     .def("writable", &PyOutputWrapper::writable)
     .def("write", &PyOutputWrapper::write)
     .def("writelines", &PyOutputWrapper::writelines);
-
-  bp::class_<ObjectInfo>("ObjectInfo",
-    "A source detected by SourceXtractor++ after the segmentation and deblending", bp::init<SourceInterface&>())
-      .def("get_centroid_x", &ObjectInfo::getCentroidX, "Get the X coordinate of the pixel centroid")
-      .def("get_centroid_y", &ObjectInfo::getCentroidY, "Get the Y coordinate of the pixel centroid")
-      .def("get_iso_flux", &ObjectInfo::getIsoFlux, "Get the isophotal flux")
-      .def("get_radius", &ObjectInfo::getRadius, "Get the source semi-major axis, in pixels")
-      .def("get_angle", &ObjectInfo::getAngle, "Get the source angle, in radians")
-      .def("get_aspect_ratio", &ObjectInfo::getAspectRatio, "Get the aspect ratio");
 
   bp::class_<PyMeasurementImage>("MeasurementImage",
     "C++ part of the MeasurementImage", bp::init<std::string, std::string, std::string>())
