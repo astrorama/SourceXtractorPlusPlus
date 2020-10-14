@@ -23,6 +23,7 @@
 #include <boost/python/enum.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+#include <boost/python/suite/indexing/map_indexing_suite.hpp>
 
 #include <SEFramework/Source/SourceFlags.h>
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
@@ -30,6 +31,7 @@
 #include <SEImplementation/PythonConfig/PyAperture.h>
 #include <SEImplementation/PythonConfig/PythonModule.h>
 #include <SEImplementation/PythonConfig/PyOutputWrapper.h>
+#include <SEImplementation/PythonConfig/PyFitsFile.h>
 
 namespace bp = boost::python;
 
@@ -126,6 +128,20 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
 
   bp::class_<std::vector<float> >("_FloatVector")
     .def(bp::vector_indexing_suite<std::vector<float> >());
+
+  bp::class_<std::vector<int> >("_IntVector")
+    .def(bp::vector_indexing_suite<std::vector<int> >());
+
+  bp::class_<std::vector<unsigned int> >("_UIntVector")
+    .def(bp::vector_indexing_suite<std::vector<unsigned int> >());
+
+  bp::class_<std::map<std::string, std::string>>("_StringStringMap")
+    .def(bp::map_indexing_suite<std::map<std::string, std::string>>());
+
+  bp::class_<PyFitsFile>("FitsFile", "A FITS file opened by SourceXtractor++", bp::init<const std::string&>())
+    .def_readonly("filename", &PyFitsFile::getFilename)
+    .def_readonly("image_hdus", &PyFitsFile::getImageHdus)
+    .def("get_headers", &PyFitsFile::getHeaders, "get headers for hdu");
 }
 
 } // namespace SourceXtractor
