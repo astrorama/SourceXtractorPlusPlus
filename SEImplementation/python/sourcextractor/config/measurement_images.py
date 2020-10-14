@@ -33,7 +33,7 @@ measurement_images = {}
 
 class FitsFile(cpp.FitsFile):
     def __init__(self, filename):
-        super(FitsFile, self).__init__(filename)
+        super(FitsFile, self).__init__(str(filename))
         self.hdu_list = [i for i in self.image_hdus]
 
     def __iter__(self):
