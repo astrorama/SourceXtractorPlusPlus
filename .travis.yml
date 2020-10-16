@@ -1,5 +1,6 @@
 language: minimal
 os: linux
+dist: focal
 
 branches:
   only:
