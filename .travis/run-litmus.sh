@@ -31,6 +31,8 @@ elif [ "$ID" == "centos" ]; then
   else
     PYTHON="python2"
   fi
+  # Prevent conflicts
+  sed "/\[epel\]/a exclude=elements*" /etc/yum.repos.d/epel.repo
 fi
 
 # Always master repository

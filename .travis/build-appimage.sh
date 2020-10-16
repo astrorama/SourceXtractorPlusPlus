@@ -18,6 +18,8 @@ elif [ "$ID" == "centos" ]; then
   PYTHON="python2"
   PYTHON_ENUM="python2-enum34"
   yum install -y epel-release
+  # Prevent conflicts
+  sed "/\[epel\]/a exclude=elements*" /etc/yum.repos.d/epel.repo
 fi
 
 
@@ -29,6 +31,7 @@ baseurl=https://dl.bintray.com/astrorama/travis/master/${ID}/\$releasever/\$base
 gpgcheck=0
 repo_gpgcheck=0
 enabled=1
+priority=1
 EOF
 
 # Install some dependencies for this script and linuxdeploy
