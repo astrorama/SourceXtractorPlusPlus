@@ -113,10 +113,12 @@ sed -i '/\[pytest\]/a filterwarnings=ignore::RuntimeWarning' pytest.ini
 cat pytest.ini
 
 # Run skipping the report generation
-if ! command -v pytest-3 &> /dev/null; then
-  PYTEST=pytest
-else
+if command -v pytest-3 &> /dev/null; then
   PYTEST=pytest-3
+elif command -v py.test &> /dev/null; then
+  PYTEST=py.test
+else
+  PYTEST=pytest
 fi
 
 ${PYTEST} -v -m "not report" -k "not gsl"
