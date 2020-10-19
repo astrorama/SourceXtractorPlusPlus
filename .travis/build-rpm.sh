@@ -10,16 +10,24 @@ source /etc/os-release
 
 CMAKEFLAGS="-DINSTALL_DOC=ON -DRPM_NO_CHECK=OFF"
 
+# Default to python 3
+PYTHON="python3"
+
 if [ "$ID" == "fedora" ]; then
-  if [ "$VERSION_ID" -ge 30 ]; then
-    PYTHON="python3"
-    CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
-  else
-    PYTHON="python2"
+  if [ "$VERSION_ID" -lt 30 ]; then
+    PYTHON="python"
   fi
 elif [ "$ID" == "centos" ]; then
-  yum install -y -q epel-release
-  PYTHON="python2"
+  yum install -y epel-release
+  if [ "$VERSION_ID" -ge 8 ]; then
+    sed -i "s/enabled=0/enabled=1/" /etc/yum.repos.d/CentOS-PowerTools.repo
+  else
+    PYTHON="python"
+  fi
+fi
+
+if [ "$PYTHON" == "python3" ]; then
+  CMAKEFLAGS="$CMAKEFLAGS -DPYTHON_EXPLICIT_VERSION=3"
 fi
 
 # Astrorama repository
@@ -46,15 +54,17 @@ rpm_doc_deps=$(echo ${cmake_deps} | awk '{for(i=1;i<NF;i+=2){print $i "-doc-" $(
 yum install -y -q ${rpm_dev_deps} ${rpm_doc_deps}
 
 # Dependencies
-yum install -y -q cmake make gcc-c++ rpm-build
-yum install -y -q boost-devel $PYTHON-pytest log4cpp-devel doxygen CCfits-devel
-yum install -y -q graphviz $PYTHON-sphinx $PYTHON-sphinxcontrib-apidoc
-yum install -y -q gmock-devel gtest-devel
-yum install -y -q ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel blas-devel
+yum install -y -q cmake make gcc-c++ rpm-build \
+  boost-devel $PYTHON-pytest log4cpp-devel CCfits-devel \
+  ${PYTHON}-devel boost-${PYTHON}-devel fftw-devel levmar-devel wcslib-devel blas-devel \
+  onnxruntime-devel \
+  ncurses-devel readline-devel \
+  gmock-devel gtest-devel \
+  doxygen graphviz $PYTHON-sphinx
+
 if [ "$ID" != "centos" ]; then
   yum install -y -q gsl-devel
 fi
-yum install -y -q ncurses-devel readline-devel
 
 # The build log can become quite big, exceeden the limit of Travis.
 # We need to trim the output a bit
@@ -73,6 +83,6 @@ PRUNE_REGEX=${PRUNE_REGEX:0:$((${#PRUNE_REGEX}-1))}
 # Build
 mkdir -p /build
 cd /build
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DINSTALL_TESTS=OFF -DRPM_NO_CHECK=OFF $CMAKEFLAGS /src
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DINSTALL_TESTS=OFF $CMAKEFLAGS /src
 make $MAKEFLAGS rpm | grep -vE "^${PRUNE_REGEX}"
 

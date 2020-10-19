@@ -1,5 +1,6 @@
 language: minimal
 os: linux
+dist: focal
 
 branches:
   only:
@@ -56,33 +57,37 @@ jobs:
   include:
   - &build
     stage: build
-    env: OS_TYPE=fedora OS_VERSION=30
+    env: OS_TYPE=fedora OS_VERSION=31
     script:
       - docker run --name builder -v "$(pwd):/src" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/build-rpm.sh"
+      - rm -rfv "./packages/"
       - docker cp "builder:/build/Packages/RPM/RPMS/x86_64" "./packages"
+      - ls -l "./packages"
     after_success: |
       if [ ! -z "${BINTRAY_REPO}" ]; then
-        ./jfrog bt u --publish --override "packages/*.rpm" "${BINTRAY_REPO}/${PACKAGE}/${BINTRAY_VERSION}" "/${TARGET_REPO}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/"
+        ./jfrog bt u --publish --override "./packages/*.rpm" "${BINTRAY_REPO}/${PACKAGE}/${BINTRAY_VERSION}" "/${TARGET_REPO}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/"
       fi
 
   - &test
     stage: test
-    env: OS_TYPE=fedora OS_VERSION=30
+    env: OS_TYPE=fedora OS_VERSION=31
     script: |
       travis_wait 30 docker run --rm --name tester -v "$(pwd):/src" -v "$(pwd)/tests:/tests" "${OS_TYPE}:${OS_VERSION}" bash "/src/.travis/run-litmus.sh" "${PACKAGE}" "${VERSION}" "${TARGET_REPO}" "${TRAVIS_BRANCH}" "${TRAVIS_PULL_REQUEST_BRANCH}"
-
-  - <<: *build
-    env: OS_TYPE=fedora OS_VERSION=31
+# Other build platforms
   - <<: *build
     env: OS_TYPE=fedora OS_VERSION=32
+  - <<: *build
+    env: OS_TYPE=fedora OS_VERSION=33
   - <<: *build
     env: OS_TYPE=centos OS_VERSION=7
-# Note that there are no tests for CentOS7 or Fedora 29
-# We do not have full support (model fitting) on CentOS7, nor Python3 support on Fedora 29
-  - <<: *test
-    env: OS_TYPE=fedora OS_VERSION=31
+# Missing levmar
+#  - <<: *build
+#    env: OS_TYPE=centos OS_VERSION=8
+# Other test platforms
   - <<: *test
     env: OS_TYPE=fedora OS_VERSION=32
+  - <<: *test
+    env: OS_TYPE=fedora OS_VERSION=33
   - stage: buildapp
     if: tag IS present
     env: OS_TYPE=centos OS_VERSION=7
