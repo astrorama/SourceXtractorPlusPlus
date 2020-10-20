@@ -36,7 +36,7 @@
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
 
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 namespace SourceXtractor {
 

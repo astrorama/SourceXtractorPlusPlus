@@ -25,7 +25,7 @@
 #include <SEFramework/Image/BufferedImage.h>
 #include "SEFramework/FITS/FitsImageSource.h"
 
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
