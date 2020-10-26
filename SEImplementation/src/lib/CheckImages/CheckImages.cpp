@@ -146,7 +146,7 @@ std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getAutoApertureImage(
     auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_auto_aperture_filename.stem();
     filename += "_" + frame_info.m_label;
-    filename.replace_extension(m_auto_aperture_filename.extension());
+    filename += m_auto_aperture_filename.extension();
     auto frame_filename = m_auto_aperture_filename.parent_path() / filename;
     i = m_measurement_auto_aperture_images.emplace(
       std::make_pair(
@@ -173,7 +173,7 @@ std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getApertureImage(unsi
     auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_aperture_filename.stem();
     filename += "_" + frame_info.m_label;
-    filename.replace_extension(m_aperture_filename.extension());
+    filename += m_aperture_filename.extension();
     auto frame_filename = m_aperture_filename.parent_path() / filename;
     i = m_measurement_aperture_images.emplace(
       std::make_pair(
@@ -209,7 +209,7 @@ CheckImages::getModelFittingImage(unsigned int frame_number) {
     } else {
       auto filename = m_model_fitting_image_filename.stem();
       filename += "_" + frame_info.m_label;
-      filename.replace_extension(m_model_fitting_image_filename.extension());
+      filename += m_model_fitting_image_filename.extension();
       auto frame_filename = m_model_fitting_image_filename.parent_path() / filename;
       writeable_image = FitsWriter::newImage<MeasurementImage::PixelType>(
         frame_filename.native(),
@@ -235,7 +235,7 @@ std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsf
     auto& frame_info = m_measurement_frames.at(frame_number);
     auto filename = m_psf_filename.stem();
     filename += "_" + frame_info.m_label;
-    filename.replace_extension(m_psf_filename.extension());
+    filename += m_psf_filename.extension();
     auto frame_filename = m_psf_filename.parent_path() / filename;
     i = m_check_image_psf.emplace(
       std::make_pair(
@@ -286,7 +286,7 @@ void CheckImages::saveImages() {
       auto residual_image = SubtractImage<SeFloat>::create(frame_info.m_subtracted_image, ci.second);
       auto filename = m_residual_filename.stem();
       filename += "_" + frame_info.m_label;
-      filename.replace_extension(m_residual_filename.extension());
+      filename += m_residual_filename.extension();
       auto frame_filename = m_residual_filename.parent_path() / filename;
       FitsWriter::writeFile(*residual_image, frame_filename.native(), frame_info.m_coordinate_system);
     }
@@ -295,8 +295,9 @@ void CheckImages::saveImages() {
   for (auto const& entry : m_custom_images) {
     if (std::get<1>(entry.second)) {
       auto filename = entry.first;
-      if (!filename.has_extension())
-        filename.replace_extension(".fits");
+      if (!filename.has_extension()) {
+        filename += ".fits";
+      }
       FitsWriter::writeFile(*std::get<0>(entry.second), filename.native());
     }
   }
