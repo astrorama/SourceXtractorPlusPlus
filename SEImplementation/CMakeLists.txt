@@ -30,8 +30,6 @@ elements_depends_on_subdirs(SEUtils)
 #          find_package(CppUnit)
 #===============================================================================
 
-find_package(WCSLIB REQUIRED)
-
 find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
@@ -84,7 +82,6 @@ elements_add_library(SEImplementation
             src/lib/Configuration/*.cpp
             src/lib/Output/*.cpp
            	src/lib/Measurement/*.cpp
-           	src/lib/CoordinateSystem/*.cpp
            	src/lib/CheckImages/*.cpp
             src/lib/Deblending/*.cpp
             src/lib/Image/*.cpp
@@ -93,7 +90,7 @@ elements_add_library(SEImplementation
             LINK_LIBRARIES
               ElementsKernel Configuration Table
               SEUtils SEFramework ModelFitting
-              WCSLIB BoostPython PythonLibs PythonInterp
+              BoostPython PythonLibs PythonInterp
               ${OPT_LIBRARIES}
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
             PUBLIC_HEADERS SEImplementation)
