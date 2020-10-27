@@ -49,7 +49,7 @@
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"

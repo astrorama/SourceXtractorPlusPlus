@@ -14,40 +14,48 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * WCS.h
- *
- *  Created on: Nov 17, 2016
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
-#define _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
+#ifndef _SEIMPLEMENTATION_PYFITSFILE_H
+#define _SEIMPLEMENTATION_PYFITSFILE_H
 
-#include <memory>
-#include <map>
+#include <string>
 
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/FITS/FitsImageSource.h"
+#include <boost/python/list.hpp>
 
-struct wcsprm;
+#include <SEFramework/FITS/FitsFile.h>
+#include <SEFramework/FITS/FitsFileManager.h>
+
+#include <SEImplementation/PythonConfig/PyId.h>
 
 namespace SourceXtractor {
 
-class WCS : public CoordinateSystem {
+class PyFitsFile {
+
 public:
-  explicit WCS(const FitsImageSource<SeFloat>& fits_image_source);
-  virtual ~WCS();
 
-  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
-  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
+  PyFitsFile(const std::string& filename);
 
-  std::map<std::string, std::string> getFitsHeaders() const override;
+  virtual ~PyFitsFile() {
+    if (m_file != nullptr) {
+      m_file->close();
+      m_file.reset();
+    }
+  }
+
+  std::string getFilename() const {
+    return m_filename;
+  }
+
+  std::vector<int> getImageHdus() const;
+
+  std::map<std::string, std::string> getHeaders(int hdu) const;
 
 private:
-  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
+  std::string m_filename;
+  std::shared_ptr<FitsFile> m_file;
 };
 
 }
 
-#endif /* _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_ */
+#endif // _SEIMPLEMENTATION_PYFITSFILE_H
+

@@ -31,6 +31,8 @@ elif [ "$ID" == "centos" ]; then
   else
     PYTHON="python2"
   fi
+  # Prevent conflicts
+  sed -i "/\[epel\]/a exclude=elements*" /etc/yum.repos.d/epel.repo
 fi
 
 # Always master repository
@@ -111,10 +113,12 @@ sed -i '/\[pytest\]/a filterwarnings=ignore::RuntimeWarning' pytest.ini
 cat pytest.ini
 
 # Run skipping the report generation
-if ! [ -x $(command -v pytest-3) ]; then
-  PYTEST=pytest
-else
+if command -v pytest-3 &> /dev/null; then
   PYTEST=pytest-3
+elif command -v py.test &> /dev/null; then
+  PYTEST=py.test
+else
+  PYTEST=pytest
 fi
 
 ${PYTEST} -v -m "not report" -k "not gsl"
