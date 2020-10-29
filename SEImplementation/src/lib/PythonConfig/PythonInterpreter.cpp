@@ -55,7 +55,7 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
   struct sigaction sigint_handler;
   sigaction(SIGINT, nullptr, &sigint_handler);
 
-  PyImport_AppendInittab("pyston", &PyInit_pyston);
+  PyImport_AppendInittab("pyston", PYSTON_MODULE_INIT);
   Py_Initialize();
   PyEval_InitThreads();
   PyEval_SaveThread();
