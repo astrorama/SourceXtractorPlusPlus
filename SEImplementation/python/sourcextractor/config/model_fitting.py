@@ -19,10 +19,14 @@ from __future__ import division, print_function
 
 import math
 import sys
+import warnings
 from enum import Enum
 
 import _SourceXtractorPy as cpp
-import pyston
+try:
+    import pyston
+except ImportError:
+    warnings.warn('Could not import pyston: running outside sourcextractor?', ImportWarning)
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
