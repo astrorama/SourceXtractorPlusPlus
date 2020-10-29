@@ -21,18 +21,17 @@
  *      Author: mschefer
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
-
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFluxTask.h"
 
 namespace SourceXtractor {
 
 void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
-  const auto& detection_frame = source.getProperty<DetectionFrame>();
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getValues();
   const auto& pixel_variances = source.getProperty<DetectionFramePixelValues>().getVariances();
 
@@ -48,9 +47,10 @@ void IsophotalFluxTask::computeProperties(SourceInterface& source) const {
   }
 
   // Add variance from gain
-  SeFloat gain = detection_frame.getFrame()->getGain();
-  if (gain >0.0)
+  SeFloat gain = detection_frame_info.getGain();
+  if (gain > 0.0) {
     total_variance += total_flux / gain;
+  }
 
   auto flux_error = sqrt(total_variance);
 

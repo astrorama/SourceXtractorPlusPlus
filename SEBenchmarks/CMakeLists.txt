@@ -13,6 +13,7 @@ elements_subdir(SEBenchmarks)
 #   For creating a dependency onto an other accessible module
 #         elements_depends_on_subdirs(ElementsKernel)
 #===============================================================================
+elements_depends_on_subdirs(AlexandriaKernel)
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(SEImplementation)
@@ -52,6 +53,8 @@ elements_add_executable(BenchConvolution src/program/BenchConvolution.cpp
 elements_add_executable(BenchBackgroundConvolution src/program/BenchBackgroundConvolution.cpp
         LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
 elements_add_executable(BenchRendering src/program/BenchRendering.cpp
+        LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
+elements_add_executable(BenchBackgroundModel src/program/BenchBackgroundModel.cpp
         LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
 
 #===============================================================================

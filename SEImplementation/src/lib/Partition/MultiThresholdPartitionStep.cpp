@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
 #include "SEFramework/Image/VectorImage.h"
@@ -31,6 +32,7 @@
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 
 #include "SEImplementation/Property/SourceId.h"
 
@@ -128,7 +130,9 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto parent_source_id = original_source->getProperty<SourceId>().getSourceId();
 
   auto& detection_frame = original_source->getProperty<DetectionFrame>();
-  const auto labelling_image = detection_frame.getFrame()->getFilteredImage();
+
+  auto& detection_frame_images = original_source->getProperty<DetectionFrameImages>();
+  const auto labelling_image = detection_frame_images.getLockedImage(LayerFilteredImage);
 
   auto& pixel_boundaries = original_source->getProperty<PixelBoundaries>();
 
@@ -142,9 +146,12 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto min_value = original_source->getProperty<PeakValue>().getMinValue() * .8;
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
-  for (auto pixel_coord : pixel_coords) {
-    auto value = labelling_image->getValue(pixel_coord);
-    thumbnail_image->setValue(pixel_coord - offset, value);
+  {
+    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+    for (auto pixel_coord : pixel_coords) {
+      auto value = labelling_image->getValue(pixel_coord);
+      thumbnail_image->setValue(pixel_coord - offset, value);
+    }
   }
 
   auto root = std::make_shared<MultiThresholdNode>(pixel_coords, 0);
@@ -228,7 +235,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     auto new_source = m_source_factory->createSource();
 
     new_source->setProperty<PixelCoordinateList>(source_node->getPixels());
-    new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
+    new_source->setProperty<DetectionFrame>(detection_frame.getEncapsulatedFrame());
 
     sources.push_back(new_source);
   }
@@ -236,7 +243,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto new_sources = reassignPixels(sources, pixel_coords, thumbnail_image, source_nodes, offset);
 
   for (auto& new_source : new_sources) {
-    new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
+    new_source->setProperty<DetectionFrame>(detection_frame.getEncapsulatedFrame());
     new_source->setProperty<SourceId>(parent_source_id);
   }
 

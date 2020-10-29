@@ -66,6 +66,11 @@ public:
   static std::vector<std::string> getImplementations();
 
   /**
+   * @return The default engine to use
+   */
+  static std::string getDefault();
+
+  /**
    * Create an instance of an engine 'name'
    * @param name
    *    The name of the engine, as passed to registerEngine. Case insensitive.

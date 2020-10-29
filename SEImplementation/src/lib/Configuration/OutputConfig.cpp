@@ -22,6 +22,8 @@
 
 #include <sstream>
 
+#include <boost/algorithm/string.hpp>
+
 #include "ElementsKernel/Exception.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
@@ -39,12 +41,14 @@ static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 static const std::string OUTPUT_FLUSH_SIZE {"output-flush-size"};
 
-static std::map<std::string, OutputConfig::OutputFileFormat> format_map {
-  {"ASCII", OutputConfig::OutputFileFormat::ASCII},
-  {"FITS", OutputConfig::OutputFileFormat::FITS}
+static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
+  {"ASCII",     OutputConfig::OutputFileFormat::ASCII},
+  {"FITS",      OutputConfig::OutputFileFormat::FITS},
+  {"FITS_LDAC", OutputConfig::OutputFileFormat::FITS_LDAC}
 };
 
-OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII) {
+OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII),
+                                              m_flush_size(100) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getProgramOptions() {
@@ -61,9 +65,9 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
 }
 
 void OutputConfig::preInitialize(const UserValues& args) {
-  auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
-  if (format_map.count(format) == 0) {
-    throw Elements::Exception() << "Unknown output file format: " << format;
+  auto format_name = boost::to_upper_copy(args.at(OUTPUT_FILE_FORMAT).as<std::string>());
+  if (format_map.count(format_name) == 0) {
+    throw Elements::Exception() << "Unknown output file format: " << format_name;
   }
 }
 
@@ -76,8 +80,8 @@ void OutputConfig::initialize(const UserValues& args) {
     m_output_properties.emplace_back(name);
   }
   
-  auto& format = args.at(OUTPUT_FILE_FORMAT).as<std::string>();
-  m_format = format_map.at(format);
+  auto format_name = boost::to_upper_copy(args.at(OUTPUT_FILE_FORMAT).as<std::string>());
+  m_format = format_map.at(format_name);
 
   int flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
   m_flush_size = (flush_size >= 0) ? flush_size : 0;

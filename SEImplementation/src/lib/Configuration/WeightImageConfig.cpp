@@ -75,7 +75,33 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
   }}};
 }
 
+static WeightImage::PixelType computeWeightThreshold(WeightImageConfig::WeightType weight_type, double threshold) {
+  using WeightType = WeightImageConfig::WeightType;
+
+  switch (weight_type) {
+    default:
+    case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
+    case WeightType::WEIGHT_TYPE_RMS:
+      return threshold * threshold;
+    case WeightType::WEIGHT_TYPE_VARIANCE:
+      return threshold;
+    case WeightType::WEIGHT_TYPE_WEIGHT:
+      if (threshold > 0)
+        return 1.0 / threshold;
+      else
+        return std::numeric_limits<WeightImage::PixelType>::max();
+  }
+}
+
 void WeightImageConfig::initialize(const UserValues& args) {
+  static const std::map<std::string, WeightType> WEIGHT_MAP{
+    {"NONE",       WeightType::WEIGHT_TYPE_NONE},
+    {"BACKGROUND", WeightType::WEIGHT_TYPE_FROM_BACKGROUND},
+    {"RMS",        WeightType::WEIGHT_TYPE_RMS},
+    {"VARIANCE",   WeightType::WEIGHT_TYPE_VARIANCE},
+    {"WEIGHT",     WeightType::WEIGHT_TYPE_WEIGHT}
+  };
+
   m_absolute_weight = args.find(WEIGHT_ABSOLUTE)->second.as<bool>();
   m_symmetry_usage = args.find(WEIGHT_SYMMETRYUSAGE)->second.as<bool>();
   auto weight_image_filename = args.find(WEIGHT_IMAGE)->second.as<std::string>();
@@ -84,20 +110,11 @@ void WeightImageConfig::initialize(const UserValues& args) {
   }
 
   auto weight_type_name = boost::to_upper_copy(args.at(WEIGHT_TYPE).as<std::string>());
-  if (weight_type_name == "NONE") {
-    m_weight_type = WeightType::WEIGHT_TYPE_NONE;
-  } else if (weight_type_name == "BACKGROUND") {
-    m_weight_type = WeightType::WEIGHT_TYPE_FROM_BACKGROUND;
-  } else if (weight_type_name == "RMS") {
-    m_weight_type = WeightType::WEIGHT_TYPE_RMS;
-  } else if (weight_type_name == "VARIANCE") {
-    m_weight_type = WeightType::WEIGHT_TYPE_VARIANCE;
-  } else if (weight_type_name == "WEIGHT") {
-    m_weight_type = WeightType::WEIGHT_TYPE_WEIGHT;
-  } else {
+  auto weight_iter = WEIGHT_MAP.find(weight_type_name);
+  if (weight_iter == WEIGHT_MAP.end()) {
     throw Elements::Exception() << "Unknown weight map type : " << weight_type_name;
   }
-
+  m_weight_type = weight_iter->second;
   m_weight_scaling = args.find(WEIGHT_SCALING)->second.as<double>();
 
   if (m_weight_image != nullptr) {
@@ -111,22 +128,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
   if (args.count(WEIGHT_THRESHOLD) != 0) {
     auto threshold = args.find(WEIGHT_THRESHOLD)->second.as<double>();
-    switch (m_weight_type) {
-      default:
-      case WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
-      case WeightType::WEIGHT_TYPE_RMS:
-        m_weight_threshold = threshold * threshold;
-        break;
-      case WeightType::WEIGHT_TYPE_VARIANCE:
-        m_weight_threshold = threshold;
-        break;
-      case WeightType::WEIGHT_TYPE_WEIGHT:
-        if (threshold>0)
-          m_weight_threshold = 1.0 / threshold;
-        else
-          m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
-        break;
-    }
+    m_weight_threshold = computeWeightThreshold(m_weight_type, threshold);
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
   }
@@ -152,40 +154,58 @@ protected:
     return "WeightMapImageSource(" + getImageRepr() + ")";
   }
 
-  virtual void generateTile(std::shared_ptr<Image<WeightImage::PixelType>> image, ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const override {
+  void generateTile(const std::shared_ptr<Image<WeightImage::PixelType>>& image,
+                    ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const final {
+    auto image_chunk = image->getChunk(x, y, width, height);
     switch (m_weight_type) {
       case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
-            tile.getImage()->setValue(ix - x, iy - y, value * value);
-          }
-        }
+        generateFromRms(tile, width, height, *image_chunk);
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
-            tile.getImage()->setValue(ix - x, iy - y, value);
-          }
-        }
+        generateFromVariance(tile, width, height, *image_chunk);
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
-        for (int iy = y; iy < y+height; iy++) {
-          for (int ix = x; ix < x+width; ix++) {
-            auto value = image->getValue(ix, iy) * m_scaling;
-            if (value > 0) {
-              tile.getImage()->setValue(ix - x, iy - y, 1.0 / value);
-            } else {
-              tile.getImage()->setValue(ix - x, iy - y, std::numeric_limits<WeightImage::PixelType>::max());
-            }
-          }
-        }
+        generateFromWeight(tile, width, height, *image_chunk);
         break;
       default:
       case WeightImageConfig::WeightType::WEIGHT_TYPE_FROM_BACKGROUND:
         assert(false);
         break;
+    }
+  }
+
+  void generateFromWeight(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+                          const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+    for (int iy = 0; iy < height; iy++) {
+      for (int ix = 0; ix < width; ix++) {
+        auto value = image_chunk.getValue(ix, iy) * m_scaling;
+        if (value > 0) {
+          tile.getImage()->setValue(ix, iy, 1.0 / value);
+        }
+        else {
+          tile.getImage()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::max());
+        }
+      }
+    }
+  }
+
+  void generateFromVariance(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+                            const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+    for (int iy = 0; iy < height; iy++) {
+      for (int ix = 0; ix < width; ix++) {
+        auto value = image_chunk.getValue(ix, iy) * m_scaling;
+        tile.getImage()->setValue(ix, iy, value);
+      }
+    }
+  }
+
+  void generateFromRms(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+                       const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+    for (int iy = 0; iy < height; iy++) {
+      for (int ix = 0; ix < width; ix++) {
+        auto value = image_chunk.getValue(ix, iy) * m_scaling;
+        tile.getImage()->setValue(ix, iy, value * value);
+      }
     }
   }
 
@@ -195,14 +215,19 @@ private:
 };
 
 
-std::shared_ptr<WeightImage> WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type, WeightImage::PixelType scaling) {
+std::shared_ptr<WeightImage>
+WeightImageConfig::convertWeightMap(std::shared_ptr<WeightImage> weight_image, WeightType weight_type,
+                                    WeightImage::PixelType scaling) {
 
   if (weight_type == WeightType::WEIGHT_TYPE_FROM_BACKGROUND) {
     return nullptr;
-  } else if (weight_type == WeightType::WEIGHT_TYPE_NONE) {
+  }
+  else if (weight_type == WeightType::WEIGHT_TYPE_NONE) {
     return nullptr;
-  } else {
-    auto result_image = BufferedImage<WeightImage::PixelType>::create(std::make_shared<WeightMapImageSource>(weight_image, weight_type, scaling));
+  }
+  else {
+    auto result_image = BufferedImage<WeightImage::PixelType>::create(
+      std::make_shared<WeightMapImageSource>(weight_image, weight_type, scaling));
     return result_image;
   }
 }

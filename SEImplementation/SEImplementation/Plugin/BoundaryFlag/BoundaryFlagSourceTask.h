@@ -41,7 +41,7 @@
 
 #include "SEImplementation/Plugin/BoundaryFlag/BoundaryFlag.h"
 #include "SEFramework/Task/SourceTask.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 
 namespace SourceXtractor {
@@ -57,9 +57,9 @@ public:
     bool boundary_flag = false;
 
     // get the image dimensions
-    auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-    auto x_border = measurement_frame->getOriginalImage()->getWidth() - 1;
-    auto y_border = measurement_frame->getOriginalImage()->getHeight() - 1;
+    const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+    auto x_border = measurement_frame_info.getWidth() - 1;
+    auto y_border = measurement_frame_info.getHeight() - 1;
 
     // iterate over all pixel coordinates
     auto measurement_rectangle = source.getProperty<MeasurementFrameRectangle>(m_instance);

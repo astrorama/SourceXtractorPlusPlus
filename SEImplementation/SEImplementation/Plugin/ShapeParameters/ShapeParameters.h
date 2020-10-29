@@ -96,6 +96,14 @@ public:
     return m_area;
   }
 
+  SeFloat getElongation() const {
+    return m_a / m_b;
+  }
+
+  SeFloat getEllipticity() const {
+    return 1 - m_b / m_a;
+  }
+
 private:
   SeFloat m_a, m_b, m_theta; // Ellipse semi-major axis, semi-minor axis, and angle
   SeFloat m_abcor;

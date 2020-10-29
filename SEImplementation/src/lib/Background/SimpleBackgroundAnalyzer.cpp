@@ -21,13 +21,12 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
 
 #include <memory>
 #include <algorithm>
 
-#include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
@@ -55,7 +54,7 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
   auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_variance);
   bck_model_logger.debug() << "bg: " << background_level << " var: " << background_variance;
 
-  return BackgroundModel(background_level_map, background_variance_map, 1.0);
+  return BackgroundModel(background_level_map, background_variance_map, 1.0, std::sqrt(background_variance));
 }
 
 

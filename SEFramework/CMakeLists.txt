@@ -15,6 +15,7 @@ elements_subdir(SEFramework)
 #===============================================================================
 elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
+elements_depends_on_subdirs(MathUtils) # From Alexandria
 elements_depends_on_subdirs(Table)
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(ModelFitting)
@@ -30,6 +31,8 @@ find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
 find_package(FFTW COMPONENTS single double long)
+find_package(WCSLIB REQUIRED)
+
 
 #===============================================================================
 # Declare the library dependencies here
@@ -52,7 +55,9 @@ elements_add_library(SEFramework
                      src/lib/FFT/*.cpp
                      src/lib/FITS/*.cpp
                      src/lib/Frame/*.cpp
-                     LINK_LIBRARIES ElementsKernel SEUtils Table Configuration ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
+                     src/lib/CoordinateSystem/*.cpp
+                     LINK_LIBRARIES ElementsKernel SEUtils Table Configuration MathUtils WCSLIB
+                                    ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
                      INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
                      
@@ -123,6 +128,9 @@ elements_add_unit_test(PaddedImage_test tests/src/Image/PaddedImage_test.cpp
 elements_add_unit_test(RecenterImage_test tests/src/Image/RecenterImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(ScaledImageSource_test tests/src/Image/ScaledImageSource_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(MirrorImage_test tests/src/Image/MirrorImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
@@ -133,6 +141,9 @@ elements_add_unit_test(BufferedImage_test tests/src/Image/BufferedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(InterpolatedImage_test tests/src/Image/InterpolatedImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(MaskedImage_test tests/src/Image/MaskedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(InterpolatedImageSource_test tests/src/Image/InterpolatedImageSource_test.cpp

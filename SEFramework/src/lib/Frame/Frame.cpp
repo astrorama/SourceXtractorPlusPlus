@@ -38,6 +38,7 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
   m_coordinate_system(coordinate_system),
   m_gain(gain),
   m_saturation(saturation),
+  m_background_rms(0),
   m_detection_threshold(0),
   m_variance_threshold(variance_threshold),
   m_interpolation_gap(interpolation_gap) {}
@@ -53,6 +54,7 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
   m_coordinate_system(coordinate_system),
   m_gain(0),
   m_saturation(0),
+  m_background_rms(0),
   m_detection_threshold(0),
   m_variance_threshold(1e6),
   m_interpolation_gap(0) {
@@ -62,6 +64,43 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
   }
 }
 
+template<typename T>
+std::shared_ptr<Image<T>> Frame<T>::getImage(FrameImageLayer layer) const {
+  // FIXME replace switch with a better system
+  switch(layer) {
+  default:
+  case LayerOriginalImage:
+    return getOriginalImage();
+    break;
+  case LayerInterpolatedImage:
+    return getInterpolatedImage();
+    break;
+  case LayerSubtractedImage:
+    return getSubtractedImage();
+    break;
+  case LayerFilteredImage:
+    return getFilteredImage();
+    break;
+  case LayerThresholdedImage:
+    return getThresholdedImage();
+    break;
+  case LayerSignalToNoiseMap:
+    return getSnrImage();
+    break;
+  case LayerOriginalVarianceMap:
+    return getOriginalVarianceMap();
+    break;
+  case LayerUnfilteredVarianceMap:
+    return getUnfilteredVarianceMap();
+    break;
+  case LayerVarianceMap:
+    return getVarianceMap();
+    break;
+  case LayerDetectionThresholdMap:
+    return getDetectionThresholdMap();
+    break;
+  }
+}
 
 template<typename T>
 std::shared_ptr<Image<T>> Frame<T>::getInterpolatedImage() const {
@@ -186,13 +225,14 @@ void Frame<T>::setDetectionThreshold(T detection_threshold) {
 
 template<typename T>
 void Frame<T>::setBackgroundLevel(T background_level) {
-  setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level));
+  setBackgroundLevel(ConstantImage<T>::create(m_image->getWidth(), m_image->getHeight(), background_level), 0.);
 }
 
 
 template<typename T>
-void Frame<T>::setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map) {
+void Frame<T>::setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map, T background_rms) {
   m_background_level_map = background_level_map;
+  m_background_rms = background_rms;
   m_filtered_image = nullptr;
 }
 

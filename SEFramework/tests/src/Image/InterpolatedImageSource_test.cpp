@@ -203,7 +203,7 @@ class InterpolatedImageSourceWrapper: public InterpolatedImageSource<T> {
     using InterpolatedImageSource<T>::InterpolatedImageSource;
 
   protected:
-  void generateTile(std::shared_ptr<Image<T>> image, ImageTile<T>& tile,
+  void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile<T>& tile,
                     int x, int y, int width, int height) const override {
     ++m_tile_count;
     InterpolatedImageSource<T>::generateTile(image, tile, x, y, width, height);

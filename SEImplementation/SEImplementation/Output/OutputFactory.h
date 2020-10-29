@@ -38,7 +38,8 @@ class OutputFactory : public Configurable {
 
 public:
 
-  OutputFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry) {
+  OutputFactory(std::shared_ptr<OutputRegistry> output_registry) : m_output_registry(output_registry),
+                                                                   m_flush_size(100) {
   }
 
 
@@ -55,6 +56,7 @@ private:
   
   std::shared_ptr<OutputRegistry> m_output_registry;
   TableOutput::TableHandler m_table_handler;
+  TableOutput::SourceHandler m_source_handler;
   std::vector<std::string> m_output_properties;
   size_t m_flush_size;
 

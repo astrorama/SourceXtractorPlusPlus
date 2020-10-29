@@ -25,7 +25,8 @@
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
+#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 
 namespace SourceXtractor {
 
@@ -37,25 +38,27 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
     WeightImageConfig::WeightType weight_type) const {
   // make a SE2 background if cell size and smoothing box are given
   if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0) {
-    auto background_level =  std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
-    return background_level;
+    if (m_legacy)
+      return std::make_shared<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
+    else
+      return std::make_shared<SEBackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
   } else {
     // make a simple background
-    auto background_level =  std::make_shared<SimpleBackgroundAnalyzer>();
-    return background_level;
+    return std::make_shared<SimpleBackgroundAnalyzer>();
   }
 }
 
-void BackgroundAnalyzerFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<SE2BackgroundConfig>();
-  manager.registerConfiguration<WeightImageConfig>();
+BackgroundAnalyzerFactory::BackgroundAnalyzerFactory(long manager_id) : Configuration(manager_id),  m_legacy(false) {
+  declareDependency<SE2BackgroundConfig>();
+  declareDependency<WeightImageConfig>();
 }
 
-void BackgroundAnalyzerFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto se2background_config = manager.getConfiguration<SE2BackgroundConfig>();
-  auto weight_image_config = manager.getConfiguration<WeightImageConfig>();
+void BackgroundAnalyzerFactory::initialize(const UserValues&) {
+  auto se2background_config = getDependency<SE2BackgroundConfig>();
+  auto weight_image_config = getDependency<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
+  m_legacy = se2background_config.useLegacy();
   m_weight_type = weight_image_config.getWeightType();
 }
 

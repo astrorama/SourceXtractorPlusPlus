@@ -21,35 +21,40 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Aperture/CircularAperture.h"
 #include "SEFramework/Aperture/FluxMeasurement.h"
 #include "SEFramework/Aperture/TransformedAperture.h"
 #include "SEFramework/Source/SourceFlags.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+
+#include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEImplementation/Plugin/BlendedFlag/BlendedFlag.h"
 #include "SEImplementation/Plugin/SaturateFlag/SaturateFlag.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>
+#include <SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h>
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
-#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
-#include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
-#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
-#include "SEFramework/Aperture/CircularAperture.h"
 
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometry.h"
+#include "SEImplementation/Plugin/AperturePhotometry/ApertureFlag.h"
+
+#include "SEImplementation/Plugin/AperturePhotometry/AperturePhotometryTask.h"
 
 namespace SourceXtractor {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
+  const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
 
-  auto measurement_frame = source.getProperty<MeasurementFrame>(m_instance).getFrame();
-  auto measurement_image = measurement_frame->getSubtractedImage();
-  auto variance_map = measurement_frame->getVarianceMap();
-  auto variance_threshold = measurement_frame->getVarianceThreshold();
-  SeFloat gain = measurement_frame->getGain();
+  auto variance_threshold = measurement_frame_info.getVarianceThreshold();
+  auto gain = measurement_frame_info.getGain();
+
+  const auto measurement_image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
+  const auto variance_map = measurement_frame_images.getLockedImage(LayerVarianceMap);
+
   auto pixel_centroid = source.getProperty<MeasurementFramePixelCentroid>(m_instance);
 
   // get the object center
@@ -101,8 +106,8 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   // Draw the last aperture
   auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(m_apertures[0] / 2.),
                                                         jacobian.asTuple());
-  auto coord_system = measurement_frame->getCoordinateSystem();
-  auto aperture_check_img = CheckImages::getInstance().getApertureImage(measurement_frame);
+
+  auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance);
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
     fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));

@@ -49,13 +49,12 @@ public:
   virtual ~NDetectedPixelsPlugin() = default;
   virtual void registerPlugin(PluginAPI& plugin_api) {
     plugin_api.getTaskFactoryRegistry().registerTaskFactory<NDetectedPixelsTaskFactory, NDetectedPixels>();
-    //plugin_api.getOutputRegistry().registerColumnConverter<NDetectedPixels, int>(
     plugin_api.getOutputRegistry().registerColumnConverter<NDetectedPixels, int64_t>(
             "n_detected_pixels",
             [](const NDetectedPixels& prop){
               return prop.getNDetectedPixels();
             },
-            "[]",
+            "pixel",
             "Total number of detected pixels"
     );
     plugin_api.getOutputRegistry().enableOutput<NDetectedPixels>("NDetectedPixels");

@@ -24,29 +24,31 @@
 #ifndef _SEIMPLEMENTATION_BACKGROUND_BACKGROUNDANALYZERFACTORY_H_
 #define _SEIMPLEMENTATION_BACKGROUND_BACKGROUNDANALYZERFACTORY_H_
 
+#include "Configuration/Configuration.h"
+
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
-#include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Background/BackgroundAnalyzer.h"
 
 namespace SourceXtractor {
 
-class BackgroundAnalyzerFactory  : public Configurable {
+class BackgroundAnalyzerFactory  : public Euclid::Configuration::Configuration {
 public:
+  BackgroundAnalyzerFactory(long manager_id);
+
   /// Destructor
   virtual ~BackgroundAnalyzerFactory() = default;
 
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer() const;
   std::shared_ptr<BackgroundAnalyzer> createBackgroundAnalyzer(WeightImageConfig::WeightType weight_type) const;
 
-  // Implementation of the Configurable interface
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+  void initialize(const UserValues& args) override;
 
 private:
-  std::string m_cell_size;
-  std::string m_smoothing_box;
+  std::vector<int> m_cell_size;
+  std::vector<int> m_smoothing_box;
+  bool m_legacy;
   WeightImageConfig::WeightType m_weight_type;
 };
 

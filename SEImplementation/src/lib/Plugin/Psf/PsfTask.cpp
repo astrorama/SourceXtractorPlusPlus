@@ -22,11 +22,9 @@
  */
 
 #include <numeric>
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
@@ -65,11 +63,8 @@ void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) con
 
   // Check image
   if (group.size()) {
-    auto& frame = group.begin()->getProperty<MeasurementFrame>(m_instance);
-    auto check_image = CheckImages::getInstance().getPsfImage(frame.getFrame());
+    auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
     if (check_image) {
-      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
       auto x = component_value_getters["X_IMAGE"](group, m_instance);
       auto y = component_value_getters["Y_IMAGE"](group, m_instance);
 
