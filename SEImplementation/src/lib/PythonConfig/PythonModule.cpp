@@ -113,12 +113,6 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
       .value("INSUFFICIENT_DATA", Flags::INSUFFICIENT_DATA)
       .value("ERROR", Flags::ERROR);
 
-  bp::class_<std::vector<double> >("_DoubleVector")
-    .def(bp::vector_indexing_suite<std::vector<double> >());
-
-  bp::class_<std::vector<float> >("_FloatVector")
-    .def(bp::vector_indexing_suite<std::vector<float> >());
-
   bp::class_<std::vector<int> >("_IntVector")
     .def(bp::vector_indexing_suite<std::vector<int> >());
 
