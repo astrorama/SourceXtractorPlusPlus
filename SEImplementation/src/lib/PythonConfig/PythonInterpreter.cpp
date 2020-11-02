@@ -63,6 +63,10 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
   sigaction(SIGINT, &sigint_handler, nullptr);
 }
 
+PythonInterpreter::~PythonInterpreter() {
+  logger.info() << "Python GIL acquired " << Pyston::GILLocker::getLockCount() << " times";
+}
+
 void PythonInterpreter::runCode(const std::string &code) {
   Pyston::GILLocker locker;
 
