@@ -22,6 +22,8 @@
  */
 
 #include <iostream>
+#include <algorithm>
+
 #include <assert.h>
 
 #include "ElementsKernel/Exception.h"
