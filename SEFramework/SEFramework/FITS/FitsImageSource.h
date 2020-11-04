@@ -100,8 +100,6 @@ public:
   }
 
 private:
-
-
   void switchHdu(fitsfile* fptr, int hdu_number) const;
 
   int getDataType() const;
