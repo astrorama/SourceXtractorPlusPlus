@@ -24,6 +24,7 @@
 
 #include <assert.h>
 
+#include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
@@ -162,6 +163,7 @@ void FitsFile::reopen() {
 
 void FitsFile::open() {
   if (!m_is_file_opened) {
+    m_manager->reportOpenedFile(m_filename);
     if (m_was_opened_before) {
       reopen();
     } else {
@@ -173,6 +175,7 @@ void FitsFile::open() {
 
 void FitsFile::close() {
   if (m_is_file_opened) {
+    m_manager->reportClosedFile(m_filename);
     int status = 0;
     fits_close_file(m_file_pointer, &status);
     m_file_pointer = nullptr;
