@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE ( automatic_cleanup ) {
   if (env.hasKey(Elements::DEFAULT_TMP_KEEP_VAR))
     env.unSet(Elements::DEFAULT_TMP_KEEP_VAR);
 
-  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10);
+  auto temporary_source = std::make_shared<TemporaryFitsImageSource>(temp_pattern, 10, 10, ImageTile::ImageType::UIntImage);
   auto full_path = temporary_source->getFullPath();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
@@ -53,7 +53,7 @@ BOOST_AUTO_TEST_CASE ( keep_file ) {
   Elements::Environment env;
   env.set(Elements::DEFAULT_TMP_KEEP_VAR, "1");
 
-  auto temporary_source = std::make_shared<TemporaryFitsImageSource<unsigned int>>(temp_pattern, 10, 10);
+  auto temporary_source = std::make_shared<TemporaryFitsImageSource>(temp_pattern, 10, 10, ImageTile::ImageType::UIntImage);
   auto full_path = temporary_source->getFullPath();
 
   BOOST_ASSERT(boost::filesystem::exists(full_path));
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE ( keep_file ) {
   BOOST_ASSERT(boost::filesystem::exists(full_path));
 
   // If we reopen, the modified content should remain
-  auto reopen_source = std::make_shared<FitsImageSource<unsigned int>>(full_path);
+  auto reopen_source = std::make_shared<FitsImageSource>(full_path);
 
   BOOST_CHECK_EQUAL(reopen_source->getHeight(), 10);
   BOOST_CHECK_EQUAL(reopen_source->getWidth(), 10);
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE ( keep_file ) {
   tile = reopen_source->getImageTile(0, 0, 5, 5);
   for (int i = 0; i < 5; ++i) {
     for (int j = 0; j < 5; ++j) {
-      BOOST_CHECK_EQUAL(tile->getValue(i, j), 42);
+      BOOST_CHECK_EQUAL(tile->getValue<unsigned int>(i, j), 42);
     }
   }
 

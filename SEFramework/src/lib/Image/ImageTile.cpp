@@ -14,40 +14,20 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * WCS.h
- *
- *  Created on: Nov 17, 2016
- *      Author: mschefer
- */
 
-#ifndef _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
-#define _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
-
-#include <memory>
-#include <map>
-
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/FITS/FitsImageSource.h"
-
-struct wcsprm;
+#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/ImageTile.h"
 
 namespace SourceXtractor {
 
-class WCS : public CoordinateSystem {
-public:
-  explicit WCS(const FitsImageSource& fits_image_source);
-  virtual ~WCS();
-
-  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
-  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
-
-  std::map<std::string, std::string> getFitsHeaders() const override;
-
-private:
-  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
-};
+void ImageTile::saveIfModified() {
+  if (isModified()) {
+    m_source->saveTile(*this);
+    setModified(false);
+  }
+}
 
 }
 
-#endif /* _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_ */
+

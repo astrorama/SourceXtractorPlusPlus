@@ -31,7 +31,7 @@ namespace SourceXtractor {
  *  Pixel type
  */
 template<typename T>
-class ScaledImageSource : public ImageSource<T> {
+class ScaledImageSource : public ImageSource {
 public:
   /// Interpolation type: bilinear or bicubic
   enum class InterpolationType {
@@ -96,7 +96,7 @@ public:
    * @return Human readable representation of this object
    */
   std::string getRepr() const final {
-    return std::string();
+    return std::string("ScaledImageSource");
   }
 
   /**
@@ -112,8 +112,8 @@ public:
    * @return
    *    An initialized upscaled tile
    */
-  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const final {
-    auto tile = std::make_shared<ImageTile<T>>(x, y, width, height);
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const final {
+    auto tile = std::make_shared<ImageTile>(ImageTile::getTypeValue(T()), x, y, width, height);
 
     for (int off_y = 0; off_y < height; ++off_y) {
       std::vector<double> v(m_x_coords);
@@ -123,7 +123,7 @@ public:
       }
       auto fx = Euclid::MathUtils::interpolate(m_x_coords, v, m_interpolation_type, true);
       for (int off_x = 0; off_x < width; ++off_x) {
-        tile->setValue(x + off_x, y + off_y, (*fx)(x + off_x));
+        tile->setValue(x + off_x, y + off_y, T((*fx)(x + off_x)));
       }
     }
     return tile;
@@ -132,7 +132,7 @@ public:
   /**
    * A tile of this type can not be saved
    */
-  void saveTile(ImageTile<T>&) final {
+  void saveTile(ImageTile&) final {
     assert(false);
   }
 

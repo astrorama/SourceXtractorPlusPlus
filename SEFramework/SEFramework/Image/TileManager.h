@@ -40,7 +40,7 @@ namespace SourceXtractor {
 
 
 struct TileKey {
-  std::shared_ptr<const ImageSourceBase> m_source;
+  std::shared_ptr<const ImageSource> m_source;
   int m_tile_x, m_tile_y;
 
   bool operator==(const TileKey& other) const {
@@ -111,24 +111,23 @@ public:
     m_total_memory_used = 0;
   }
 
-  template <typename T>
-  std::shared_ptr<ImageTile<T>> getTileForPixel(int x, int y, std::shared_ptr<const ImageSource<T>> source) {
+  std::shared_ptr<ImageTile> getTileForPixel(int x, int y, std::shared_ptr<const ImageSource> source) {
     std::lock_guard<std::recursive_mutex> lock(m_mutex);
 
     x = x / m_tile_width * m_tile_width;
     y = y / m_tile_height * m_tile_height;
 
-    TileKey key {std::static_pointer_cast<const ImageSourceBase>(source), x, y};
+    TileKey key {std::static_pointer_cast<const ImageSource>(source), x, y};
     auto it = m_tile_map.find(key);
     if (it != m_tile_map.end()) {
 #ifndef NDEBUG
       m_tile_logger.debug() << "Cache hit " << key;
 #endif
-      return std::dynamic_pointer_cast<ImageTile<T>>(it->second);
+      return std::dynamic_pointer_cast<ImageTile>(it->second);
     } else {
       auto tile = source->getImageTile(x, y,
           std::min(m_tile_width, source->getWidth()-x), std::min(m_tile_height, source->getHeight()-y));
-      addTile(key, std::static_pointer_cast<ImageTileBase>(tile));
+      addTile(key, std::static_pointer_cast<ImageTile>(tile));
       removeExtraTiles();
       return tile;
     }
@@ -181,7 +180,7 @@ private:
     }
   }
 
-  void addTile(TileKey key, std::shared_ptr<ImageTileBase> tile) {
+  void addTile(TileKey key, std::shared_ptr<ImageTile> tile) {
 #ifndef NDEBUG
     m_tile_logger.debug() << "Cache miss " << key;
 #endif
@@ -195,7 +194,7 @@ private:
   long m_max_memory;
   long m_total_memory_used;
 
-  std::unordered_map<TileKey, std::shared_ptr<ImageTileBase>> m_tile_map;
+  std::unordered_map<TileKey, std::shared_ptr<ImageTile>> m_tile_map;
   std::list<TileKey> m_tile_list;
 
   std::recursive_mutex m_mutex;

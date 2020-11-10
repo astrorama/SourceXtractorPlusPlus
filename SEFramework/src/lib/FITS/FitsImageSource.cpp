@@ -41,9 +41,10 @@
 
 namespace SourceXtractor {
 
-template<typename T>
-FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
-                                    std::shared_ptr<FitsFileManager> manager)
+namespace {
+}
+
+FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, ImageTile::ImageType image_type, std::shared_ptr<FitsFileManager> manager)
   : m_filename(filename), m_manager(manager), m_hdu_number(hdu_number) {
   int status = 0;
   int bitpix, naxis;
@@ -68,17 +69,37 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int hdu_number,
 
   m_width = naxes[0];
   m_height = naxes[1];
+
+  if (image_type < 0) {
+    switch (bitpix) {
+    case FLOAT_IMG:
+      m_image_type = ImageTile::FloatImage;
+      break;
+    case DOUBLE_IMG:
+      m_image_type = ImageTile::DoubleImage;
+      break;
+    case LONG_IMG:
+      m_image_type = ImageTile::IntImage;
+      break;
+    case ULONG_IMG:
+      m_image_type = ImageTile::UIntImage;
+      break;
+    case LONGLONG_IMG:
+      m_image_type = ImageTile::LongLongImage;
+      break;
+    default:
+      throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
+    }
+  } else {
+    m_image_type = image_type;
+  }
 }
 
 
-template<typename T>
-FitsImageSource<T>::FitsImageSource(const std::string& filename, int width, int height,
+FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
                                     const std::shared_ptr<CoordinateSystem> coord_system,
                                     std::shared_ptr<FitsFileManager> manager)
-  : m_filename(filename), m_manager(manager), m_hdu_number(1) {
-  m_width = width;
-  m_height = height;
-
+  : m_filename(filename), m_manager(manager), m_hdu_number(1), m_width(width), m_height(height), m_image_type(image_type) {
   {
     // CREATE NEW FITS FILE
     int status = 0;
@@ -110,7 +131,7 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int width, int 
       }
     }
 
-    std::vector<T> buffer(width);
+    std::vector<char> buffer(width * ImageTile::getTypeSize(image_type));
     for (int i = 0; i<height; i++) {
       long first_pixel[2] = {1, i+1};
       fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
@@ -128,21 +149,19 @@ FitsImageSource<T>::FitsImageSource(const std::string& filename, int width, int 
   switchHdu(fptr, m_hdu_number);
 }
 
-
-template<typename T>
-std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int width, int height) const {
+std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
   auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
-  auto tile = std::make_shared<ImageTile<T>>((const_cast<FitsImageSource *>(this))->shared_from_this(), x, y, width,
-                                             height);
+  auto tile = std::make_shared<ImageTile>(m_image_type, x, y, width, height,
+      std::const_pointer_cast<ImageSource>(shared_from_this()));
 
   long first_pixel[2] = {x + 1, y + 1};
   long last_pixel[2] = {x + width, y + height};
   long increment[2] = {1, 1};
   int status = 0;
 
-  auto image = tile->getImage();
+  auto image = tile->getImage<int>(); // FIXME !!!!! ?? not correct we should have a generic get data
   fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
                    nullptr, &image->getData()[0], nullptr, &status);
   if (status != 0) {
@@ -152,32 +171,28 @@ std::shared_ptr<ImageTile<T>> FitsImageSource<T>::getImageTile(int x, int y, int
   return tile;
 }
 
+void FitsImageSource::saveTile(ImageTile& tile) {
+    auto fptr = m_fits_file->getFitsFilePtr();
+    switchHdu(fptr, m_hdu_number);
 
-template<typename T>
-void FitsImageSource<T>::saveTile(ImageTile<T>& tile) {
-  auto fptr = m_fits_file->getFitsFilePtr();
-  switchHdu(fptr, m_hdu_number);
+    auto image = tile.getImage<int>(); // FIXME !!!!!!! need generic data
 
-  auto image = tile.getImage();
+    int x = tile.getPosX();
+    int y = tile.getPosY();
+    int width = image->getWidth();
+    int height = image->getHeight();
 
-  int x = tile.getPosX();
-  int y = tile.getPosY();
-  int width = image->getWidth();
-  int height = image->getHeight();
+    long first_pixel[2] = {x + 1, y + 1};
+    long last_pixel[2] = {x + width, y + height};
+    int status = 0;
 
-  long first_pixel[2] = {x + 1, y + 1};
-  long last_pixel[2] = {x + width, y + height};
-  int status = 0;
-
-  fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
-  if (status != 0) {
-    throw Elements::Exception() << "Error saving image tile to FITS file.";
-  }
+    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
+    if (status != 0) {
+      throw Elements::Exception() << "Error saving image tile to FITS file.";
+    }
 }
 
-
-template<typename T>
-void FitsImageSource<T>::switchHdu(fitsfile *fptr, int hdu_number) const {
+void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
   int status = 0;
   int hdu_type = 0;
 
@@ -193,8 +208,7 @@ void FitsImageSource<T>::switchHdu(fitsfile *fptr, int hdu_number) const {
 
 
 
-template<typename T>
-std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& number_of_records) const {
+std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;
   std::string records;
 
@@ -238,50 +252,38 @@ std::unique_ptr<std::vector<char>> FitsImageSource<T>::getFitsHeaders(int& numbe
   return buffer;
 }
 
-template <>
-int FitsImageSource<double>::getDataType() const { return TDOUBLE; }
+int FitsImageSource::getDataType() const {
+  switch (m_image_type) {
+  default:
+  case ImageTile::FloatImage:
+    return TFLOAT;
+  case ImageTile::DoubleImage:
+    return TDOUBLE;
+  case ImageTile::IntImage:
+    return TINT;
+  case ImageTile::UIntImage:
+    return TUINT;
+  case ImageTile::LongLongImage:
+    return TLONGLONG;
+  }
+}
 
-template <>
-int FitsImageSource<float>::getDataType() const { return TFLOAT; }
-
-template <>
-int FitsImageSource<unsigned int>::getDataType() const { return TUINT; }
-
-template <>
-int FitsImageSource<int>::getDataType() const { return TINT; }
-
-//FIXME what if compiled on 32bit system?
-template <>
-int FitsImageSource<long>::getDataType() const { return TLONGLONG; }
-
-template <>
-int FitsImageSource<long long>::getDataType() const { return TLONGLONG; }
-
-template <>
-int FitsImageSource<double>::getImageType() const { return DOUBLE_IMG; }
-
-template <>
-int FitsImageSource<float>::getImageType() const { return FLOAT_IMG; }
-
-template <>
-int FitsImageSource<unsigned int>::getImageType() const { return LONG_IMG; }
-
-template <>
-int FitsImageSource<int>::getImageType() const { return LONG_IMG; }
-
-//FIXME what if compiled on 32bit system?
-template <>
-int FitsImageSource<long>::getImageType() const { return LONGLONG_IMG; }
-
-template <>
-int FitsImageSource<long long>::getImageType() const { return LONGLONG_IMG; }
+int FitsImageSource::getImageType() const {
+  switch (m_image_type) {
+  default:
+  case ImageTile::FloatImage:
+    return FLOAT_IMG;
+  case ImageTile::DoubleImage:
+    return DOUBLE_IMG;
+  case ImageTile::IntImage:
+    return LONG_IMG;
+  case ImageTile::UIntImage:
+    return ULONG_IMG;
+  case ImageTile::LongLongImage:
+    return LONGLONG_IMG;
+  }
+}
 
 //FIXME add missing types
-
-
-/// Instantiation
-template class FitsImageSource<SeFloat>;
-template class FitsImageSource<int64_t>;
-template class FitsImageSource<unsigned int>;
 
 }

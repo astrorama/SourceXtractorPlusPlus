@@ -44,7 +44,7 @@ public:
   virtual ~FitsReader() = default;
 
   static std::shared_ptr<Image<T>> readFile(const std::string& filename) {
-    auto image_source = std::make_shared<FitsImageSource<T>>(filename);
+    auto image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::getTypeValue(T()));
     return BufferedImage<T>::create(image_source);
   }
 
