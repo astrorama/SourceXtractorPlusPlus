@@ -23,7 +23,20 @@
 
 #include "SEFramework/Property/PropertyId.h"
 
+#if BOOST_VERSION < 105600
+#include <boost/units/detail/utility.hpp>
+using boost::units::detail::demangle;
+#else
+#include <boost/core/demangle.hpp>
+using boost::core::demangle;
+#endif
+
 namespace SourceXtractor {
 
+std::string PropertyId::getString() const {
+  std::stringstream property_name;
+  property_name << demangle(m_type_id.name()) << " [ " << m_index << " ] ";
+  return property_name.str();
+}
 
 }
