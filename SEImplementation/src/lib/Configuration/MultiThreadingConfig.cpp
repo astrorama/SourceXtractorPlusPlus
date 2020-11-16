@@ -42,12 +42,14 @@ auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDe
 }
 
 void MultiThreadingConfig::initialize(const UserValues& args) {
-    m_threads_nb = args.at(THREADS_NB).as<int>();
-    if (m_threads_nb == -1) {
-      m_threads_nb = boost::thread::hardware_concurrency();
-    } else if (m_threads_nb < -1) {
-      throw Elements::Exception("Invalid number of threads.");
-    }
+  m_threads_nb = args.at(THREADS_NB).as<int>();
+  if (m_threads_nb == -1) {
+    m_threads_nb = boost::thread::hardware_concurrency();
+  }
+  else if (m_threads_nb < -1) {
+    throw Elements::Exception("Invalid number of threads.");
+  }
+  m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
 }
 
 } // SourceXtractor namespace
