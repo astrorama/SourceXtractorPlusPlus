@@ -25,6 +25,7 @@
 
 #include "SEUtils/Observable.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Pipeline/Prefetcher.h"
 
 namespace SourceXtractor {
 

@@ -41,4 +41,13 @@ void Deblending::handleMessage(const std::shared_ptr<SourceGroupInterface>& grou
   }
 }
 
+std::set<PropertyId> Deblending::requiredProperties() const {
+  std::set<PropertyId> properties;
+  for (auto& step : m_deblend_steps) {
+    auto step_props = step->requiredProperties();
+    std::copy(step_props.begin(), step_props.end(), std::inserter(properties, properties.end()));
+  }
+  return properties;
+}
+
 } // SEFramework namespace

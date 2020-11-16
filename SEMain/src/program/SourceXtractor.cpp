@@ -44,6 +44,7 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
+#include "SEFramework/Pipeline/Prefetcher.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
 #include "SEFramework/Task/TaskFactoryRegistry.h"
@@ -58,6 +59,7 @@
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
 #include "SEImplementation/CheckImages/MoffatCheckImage.h"
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
+#include "SEImplementation/Configuration/MultiThreadingConfig.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
@@ -336,19 +338,29 @@ public:
     auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
 
     auto segmentation = segmentation_factory.createSegmentation();
+
+    // Prefetcher
+    auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
+    auto prefetcher = std::make_shared<Prefetcher>(multithreading_config.getThreadPool());
+
+    // Rest of the stagees
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
+    prefetcher->requestProperties(source_grouping->requiredProperties());
 
     std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
+
+    prefetcher->requestProperties(deblending->requiredProperties());
 
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
     segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-    partition->addObserver(source_grouping);
+    partition->addObserver(prefetcher);
+    prefetcher->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);

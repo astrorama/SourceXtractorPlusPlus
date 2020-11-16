@@ -91,6 +91,10 @@ void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
   }
 }
 
+std::set<PropertyId> SourceGrouping::requiredProperties() const {
+  return m_grouping_criteria->requiredProperties();
+}
+
 } // SEFramework namespace
 
 
