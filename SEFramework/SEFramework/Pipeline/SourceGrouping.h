@@ -70,9 +70,10 @@ public:
  */
 struct ProcessSourcesEvent {
 
-  const SelectionCriteria& m_selection_criteria;   // Used to identify the Sources to process
+  const std::shared_ptr<SelectionCriteria> m_selection_criteria;   // Used to identify the Sources to process
 
-  ProcessSourcesEvent(const SelectionCriteria& selection_criteria) : m_selection_criteria(selection_criteria) {}
+  ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
+    : m_selection_criteria(selection_criteria) {}
 };
 
 /**

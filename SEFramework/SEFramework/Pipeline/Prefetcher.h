@@ -21,6 +21,7 @@
 #include <condition_variable>
 #include "AlexandriaKernel/ThreadPool.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEUtils/Observable.h"
 
 namespace SourceXtractor {
@@ -31,7 +32,9 @@ namespace SourceXtractor {
  * multi-threaded before it reaches them
  */
 class Prefetcher : public Observer<std::shared_ptr<SourceInterface>>,
-                   public Observable<std::shared_ptr<SourceInterface>> {
+                   public Observable<std::shared_ptr<SourceInterface>>,
+                   public Observer<ProcessSourcesEvent>,
+                   public Observable<ProcessSourcesEvent> {
 public:
 
   Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool);
@@ -53,13 +56,20 @@ public:
     }
   }
 
+  void handleMessage(const ProcessSourcesEvent& message) override;
+
+  void wait();
+
 private:
   std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
   std::set<PropertyId> m_prefetch_set;
   std::unique_ptr<std::thread> m_output_thread;
   std::condition_variable m_new_output;
-  std::deque<std::shared_ptr<SourceInterface>> m_output_queue;
-  std::mutex m_output_queue_mutex;
+  std::list<std::shared_ptr<SourceInterface>> m_output_queue;
+  std::atomic_int64_t m_last_received;
+  std::set<unsigned> m_ongoing;
+  std::deque<std::pair<unsigned, ProcessSourcesEvent>> m_event_queue;
+  std::mutex m_output_queue_mutex, m_ongoing_mutex;
   std::atomic_bool m_stop;
 
   void requestProperty(const PropertyId& property_id);

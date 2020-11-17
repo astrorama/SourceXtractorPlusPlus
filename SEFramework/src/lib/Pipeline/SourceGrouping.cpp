@@ -76,7 +76,7 @@ void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
     // We look at its Sources and if we find at least one that needs to be processed we put it in groups_to_process
     for (auto& source : **group_it) {
-      if (process_event.m_selection_criteria.mustBeProcessed(source)) {
+      if (process_event.m_selection_criteria->mustBeProcessed(source)) {
         groups_to_process.push_back(group_it);
         break;
       }

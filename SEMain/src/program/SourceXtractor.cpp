@@ -358,9 +358,10 @@ public:
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
-    segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+    segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
+    prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
     partition->addObserver(prefetcher);
-    prefetcher->addObserver(source_grouping);
+    prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
@@ -449,6 +450,7 @@ public:
       return Elements::ExitCode::NOT_OK;
     }
 
+    prefetcher->wait();
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
