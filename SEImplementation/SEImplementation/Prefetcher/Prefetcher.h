@@ -96,7 +96,7 @@ private:
   std::unique_ptr<std::thread> m_output_thread;
   std::condition_variable m_new_output;
   std::list<std::shared_ptr<SourceInterface>> m_output_queue;
-  std::atomic_int64_t m_last_received;
+  int64_t m_last_received;
   std::set<int64_t> m_ongoing;
   std::deque<std::pair<int64_t, ProcessSourcesEvent>> m_event_queue;
   std::mutex m_output_queue_mutex, m_ongoing_mutex;
