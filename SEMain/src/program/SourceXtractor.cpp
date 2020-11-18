@@ -44,7 +44,6 @@
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEFramework/Pipeline/Deblending.h"
 #include "SEFramework/Pipeline/Partition.h"
-#include "SEFramework/Pipeline/Prefetcher.h"
 #include "SEFramework/Output/OutputRegistry.h"
 
 #include "SEFramework/Task/TaskFactoryRegistry.h"
@@ -60,17 +59,13 @@
 #include "SEImplementation/CheckImages/MoffatCheckImage.h"
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "SEImplementation/Configuration/MultiThreadingConfig.h"
-
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
 #include "SEImplementation/Grouping/GroupingFactory.h"
-
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
@@ -78,8 +73,8 @@
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
-
 #include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Prefetcher/Prefetcher.h"
 
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"

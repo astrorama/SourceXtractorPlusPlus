@@ -18,7 +18,7 @@
 #include <ElementsKernel/Logging.h>
 #include "SEImplementation/SEImplementation/Property/SourceId.h"
 #include "AlexandriaKernel/memory_tools.h"
-#include "SEFramework/Pipeline/Prefetcher.h"
+#include "SEImplementation/Prefetcher/Prefetcher.h"
 
 static Elements::Logging logger = Elements::Logging::getLogger("Prefetcher");
 
