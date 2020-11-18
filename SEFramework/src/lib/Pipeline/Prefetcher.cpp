@@ -49,10 +49,8 @@ void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) 
     for (auto& prop : m_prefetch_set) {
       message->getProperty(prop);
     }
-    {
-      std::lock_guard<std::mutex> lock(m_output_queue_mutex);
-      m_output_queue.emplace_back(message);
-    }
+    std::lock_guard<std::mutex> lock(m_output_queue_mutex);
+    m_output_queue.emplace_back(message);
     m_new_output.notify_one();
   });
 }
@@ -105,7 +103,7 @@ void Prefetcher::outputLoop() {
 
       // Verify there are no sources prior to the moment the event was received
       auto prior_i = std::find_if(m_ongoing.begin(), m_ongoing.end(),
-                   [event](unsigned id) { return id <= event.first; }
+                                  [event](unsigned id) { return id <= event.first; }
       );
       if (prior_i == m_ongoing.end()) {
         m_event_queue.pop_front();
@@ -126,10 +124,8 @@ void Prefetcher::outputLoop() {
 }
 
 void Prefetcher::handleMessage(const ProcessSourcesEvent& message) {
-  {
-    std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
-    m_event_queue.emplace_back(m_last_received, message);
-  }
+  std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
+  m_event_queue.emplace_back(m_last_received, message);
   m_new_output.notify_one();
   logger.debug() << "ProcessSourceEvent received after " << m_last_received;
 }

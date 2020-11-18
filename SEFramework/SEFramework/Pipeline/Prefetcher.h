@@ -29,7 +29,13 @@ namespace SourceXtractor {
 /**
  * The pre-fetcher allows later stages, as the grouping or the cleaning,
  * to ask in advance for some compute intensive properties, so they can be done
- * multi-threaded before it reaches them
+ * multi-threaded before it reaches them.
+ *
+ * The pre-fetcher *must* handle also ProcessSourcesEvent, as they are synchronization points.
+ * When one is received, only sources detected *before* the event will be passed along. Everyone
+ * else will have to wait until there are no more soures prior to the event being processed.
+ * Then, they will be released and sent along.
+ *
  */
 class Prefetcher : public Observer<std::shared_ptr<SourceInterface>>,
                    public Observable<std::shared_ptr<SourceInterface>>,
@@ -37,18 +43,39 @@ class Prefetcher : public Observer<std::shared_ptr<SourceInterface>>,
                    public Observable<ProcessSourcesEvent> {
 public:
 
+  /**
+   * Constructor
+   * @param thread_pool
+   *    Alexandria thread pool
+   */
   Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool);
 
+  /**
+   * Destructor
+   */
   virtual ~Prefetcher();
 
+  /**
+   * Trigger multi-threaded measurements on the source interface.
+   * Once they are done, the message will be passed along.
+   * @param message
+   */
   void handleMessage(const std::shared_ptr<SourceInterface>& message) override;
 
-  template<typename PropertyType>
-  void requestProperty(unsigned int index = 0) {
-    static_assert(std::is_base_of<Property, PropertyType>::value, "PropertyType must inherit from SourceXtractor::Property");
-    requestProperty(PropertyId::create<PropertyType>(index));
-  }
+  /**
+   * Handle ProcessSourcesEvent. All sources received prior to this message need to
+   * be processed before sources coming after are passed along.
+   * @param message
+   */
+  void handleMessage(const ProcessSourcesEvent& message) override;
 
+  /**
+   * Tell the prefetcher to compute this property
+   * @tparam Container
+   *    Any iterable container with a set/list of properties
+   * @param properties
+   *    PropertyId instances
+   */
   template<typename Container>
   void requestProperties(Container&& properties) {
     for (auto& p : properties) {
@@ -56,8 +83,11 @@ public:
     }
   }
 
-  void handleMessage(const ProcessSourcesEvent& message) override;
-
+  /**
+   * Wait for the multi-threaded computation to finish.
+   * This must be done as the segmentation may be completely finished, and the measurement
+   * queue empty, but some sources may still be here due to some compute-heavy property
+   */
   void wait();
 
 private:
@@ -67,8 +97,8 @@ private:
   std::condition_variable m_new_output;
   std::list<std::shared_ptr<SourceInterface>> m_output_queue;
   std::atomic_int64_t m_last_received;
-  std::set<unsigned> m_ongoing;
-  std::deque<std::pair<unsigned, ProcessSourcesEvent>> m_event_queue;
+  std::set<int64_t> m_ongoing;
+  std::deque<std::pair<int64_t, ProcessSourcesEvent>> m_event_queue;
   std::mutex m_output_queue_mutex, m_ongoing_mutex;
   std::atomic_bool m_stop;
 
