@@ -55,7 +55,7 @@ public:
   }
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
-    auto tile = std::make_shared<ImageTile>(ImageTile::getTypeValue(T()), x, y, width, height);
+    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height);
     for (int iy = y; iy < y + height; ++iy) {
       for (int ix = x; ix < x + width; ++ix) {
         tile->setValue(ix, iy, m_img->getValue(ix, iy));

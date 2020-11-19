@@ -99,7 +99,7 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
           conv_masked->getValue(x + off_x, y + off_y) / conv_mask->getValue(x + off_x, y + off_y)
         );
       } else {
-        tile.setValue<DetectionImage::PixelType>(x + start_x, y + start_y, 0);
+        tile.setValue(x + start_x, y + start_y, 0);
       }
     }
   }

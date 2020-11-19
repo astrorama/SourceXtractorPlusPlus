@@ -113,7 +113,7 @@ public:
    *    An initialized upscaled tile
    */
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const final {
-    auto tile = std::make_shared<ImageTile>(ImageTile::getTypeValue(T()), x, y, width, height);
+    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height);
 
     for (int off_y = 0; off_y < height; ++off_y) {
       std::vector<double> v(m_x_coords);

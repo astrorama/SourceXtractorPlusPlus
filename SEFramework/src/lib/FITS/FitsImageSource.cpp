@@ -153,7 +153,7 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
   auto fptr = m_fits_file->getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
-  auto tile = std::make_shared<ImageTile>(m_image_type, x, y, width, height,
+  auto tile = ImageTile::create(m_image_type, x, y, width, height,
       std::const_pointer_cast<ImageSource>(shared_from_this()));
 
   long first_pixel[2] = {x + 1, y + 1};
