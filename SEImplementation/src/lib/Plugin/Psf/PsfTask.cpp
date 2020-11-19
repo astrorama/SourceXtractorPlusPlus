@@ -43,12 +43,14 @@ static double getCoordY(SourceXtractor::SourceGroupInterface& group, unsigned in
 }
 
 std::map<std::string, ValueGetter> component_value_getters{
-  {"X_IMAGE",     getCoordX},
-  {"Y_IMAGE",     getCoordY},
-  {"XWIN_IMAGE",  getCoordX},
-  {"YWIN_IMAGE",  getCoordY},
-  {"XPEAK_IMAGE", getCoordX},
-  {"YPEAK_IMAGE", getCoordY}
+  {"X_IMAGE",      getCoordX},
+  {"Y_IMAGE",      getCoordY},
+  {"XWIN_IMAGE",   getCoordX},
+  {"YWIN_IMAGE",   getCoordY},
+  {"XPEAK_IMAGE",  getCoordX},
+  {"YPEAK_IMAGE",  getCoordY},
+  {"XMODEL_IMAGE", getCoordX},
+  {"YMODEL_IMAGE", getCoordY}
 };
 
 PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
