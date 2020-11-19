@@ -30,18 +30,25 @@
 
 namespace SourceXtractor {
 
+static double getCoordX(SourceXtractor::SourceGroupInterface& group, unsigned instance) {
+  auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+  double top_x = measurement_frame_group.getTopLeft().m_x;
+  return top_x + measurement_frame_group.getWidth() / 2.;
+}
 
-std::map<std::string, ValueGetter> component_value_getters {
-    {"X_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
-      auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      double top_x = measurement_frame_group.getTopLeft().m_x;
-      return top_x + measurement_frame_group.getWidth() / 2.;
-    }},
-    {"Y_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
-      auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      double top_y = measurement_frame_group.getTopLeft().m_y;
-      return top_y + measurement_frame_group.getHeight() / 2.;
-    }}
+static double getCoordY(SourceXtractor::SourceGroupInterface& group, unsigned instance) {
+  auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+  double top_y = measurement_frame_group.getTopLeft().m_y;
+  return top_y + measurement_frame_group.getHeight() / 2.;
+}
+
+std::map<std::string, ValueGetter> component_value_getters{
+  {"X_IMAGE",     getCoordX},
+  {"Y_IMAGE",     getCoordY},
+  {"XWIN_IMAGE",  getCoordX},
+  {"YWIN_IMAGE",  getCoordY},
+  {"XPEAK_IMAGE", getCoordX},
+  {"YPEAK_IMAGE", getCoordY}
 };
 
 PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
