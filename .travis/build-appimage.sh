@@ -19,7 +19,7 @@ elif [ "$ID" == "centos" ]; then
   PYTHON_ENUM="python2-enum34"
   yum install -y epel-release
   # Prevent conflicts
-  sed "/\[epel\]/a exclude=elements*" /etc/yum.repos.d/epel.repo
+  sed -i "/\[epel\]/a exclude=elements*" /etc/yum.repos.d/epel.repo
 fi
 
 

@@ -80,9 +80,8 @@ jobs:
     env: OS_TYPE=fedora OS_VERSION=33
   - <<: *build
     env: OS_TYPE=centos OS_VERSION=7
-# Missing levmar
-#  - <<: *build
-#    env: OS_TYPE=centos OS_VERSION=8
+  - <<: *build
+    env: OS_TYPE=centos OS_VERSION=8
 # Other test platforms
   - <<: *test
     env: OS_TYPE=fedora OS_VERSION=32
