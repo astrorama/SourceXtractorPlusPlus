@@ -161,9 +161,8 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
   long increment[2] = {1, 1};
   int status = 0;
 
-  auto image = tile->getImage<int>(); // FIXME !!!!! ?? not correct we should have a generic get data
   fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
-                   nullptr, &image->getData()[0], nullptr, &status);
+                   nullptr, tile->getDataPtr(), nullptr, &status);
   if (status != 0) {
     throw Elements::Exception() << "Error reading image tile from FITS file.";
   }
@@ -175,18 +174,16 @@ void FitsImageSource::saveTile(ImageTile& tile) {
     auto fptr = m_fits_file->getFitsFilePtr();
     switchHdu(fptr, m_hdu_number);
 
-    auto image = tile.getImage<int>(); // FIXME !!!!!!! need generic data
-
     int x = tile.getPosX();
     int y = tile.getPosY();
-    int width = image->getWidth();
-    int height = image->getHeight();
+    int width = tile.getWidth();
+    int height = tile.getHeight();
 
     long first_pixel[2] = {x + 1, y + 1};
     long last_pixel[2] = {x + width, y + height};
     int status = 0;
 
-    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, &image->getData()[0], &status);
+    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
     if (status != 0) {
       throw Elements::Exception() << "Error saving image tile to FITS file.";
     }

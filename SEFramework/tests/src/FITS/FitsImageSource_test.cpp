@@ -43,7 +43,6 @@ BOOST_AUTO_TEST_SUITE(FitsImageSource_test)
 
 //-----------------------------------------------------------------------------
 
-// FIXME re-enable tests !!!!!!!!
 BOOST_FIXTURE_TEST_CASE(default_is_primary_test, FitsImageSourceFixture) {
   auto img_src = std::make_shared<FitsImageSource>(primary_path, 0, ImageTile::FloatImage);
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);

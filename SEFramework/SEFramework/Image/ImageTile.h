@@ -65,8 +65,16 @@ public:
   }
 
   // FIXME name unclear
-  int getTileSize() const {
-    return (m_max_x-m_x) * (m_max_y-m_y) * getTypeSize(m_image_type);
+  int getTileMemorySize() const {
+    return getWidth() * getHeight() * getTypeSize(m_image_type);
+  }
+
+  int getWidth() const {
+    return m_max_x - m_x;
+  }
+
+  int getHeight() const {
+    return m_max_y - m_y;
   }
 
   template<typename T>
@@ -86,8 +94,16 @@ public:
 
   template<typename T>
   std::shared_ptr<VectorImage<T>> getImage() const {
-    //FIXME implement type conversion !!!!!!!!!!!!!!!!
-    return std::static_pointer_cast<VectorImage<T>>(m_tile_image);
+    if (m_image_type == getTypeValue(T())) {
+      return std::static_pointer_cast<VectorImage<T>>(m_tile_image);
+    } else {
+      //FIXME implement type conversion !!!!!!!!!!!!!!!!
+      return nullptr;
+    }
+  }
+
+  void* getDataPtr() {
+    return &std::static_pointer_cast<VectorImage<int>>(m_tile_image)->getData()[0];
   }
 
   // save

@@ -135,8 +135,8 @@ public:
 
       for (int r = 0; r < repeat; ++r) {
         timer.start();
-        // FIXME !!!!!!!!! wtf?
-        //result = bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight())->getImage<SeFloat>();
+        std::shared_ptr<ImageTile> tile = bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight());
+        result = tile->getImage<SeFloat>();
         timer.stop();
       }
 

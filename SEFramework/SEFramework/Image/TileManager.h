@@ -166,7 +166,7 @@ private:
     auto& tile = m_tile_map.at(tile_key);
 
     tile->saveIfModified();
-    m_total_memory_used -= tile->getTileSize();
+    m_total_memory_used -= tile->getTileMemorySize();
 
     m_tile_map.erase(tile_key);
   }
@@ -187,7 +187,7 @@ private:
 
     m_tile_map[key] = tile;
     m_tile_list.push_front(key);
-    m_total_memory_used += tile->getTileSize();
+    m_total_memory_used += tile->getTileMemorySize();
   }
 
   int m_tile_width, m_tile_height;
