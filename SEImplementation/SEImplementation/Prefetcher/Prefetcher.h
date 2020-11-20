@@ -91,15 +91,34 @@ public:
   void wait();
 
 private:
+  struct EventType {
+    enum Type {
+      SOURCE, PROCESS_SOURCE
+    } m_event_type;
+    int64_t m_source_id;
+
+    explicit EventType(Type type, int64_t source_id = -1)
+      : m_event_type(type), m_source_id(source_id) {}
+  };
+
+  /// Pointer to the pool of worker threads
   std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
+  /// Properties to prefetch
   std::set<PropertyId> m_prefetch_set;
+  /// Orchestration thread
   std::unique_ptr<std::thread> m_output_thread;
+  /// Notifies there is a new source done processing
   std::condition_variable m_new_output;
-  std::list<std::shared_ptr<SourceInterface>> m_output_queue;
-  int64_t m_last_received;
-  std::set<int64_t> m_ongoing;
-  std::deque<std::pair<int64_t, ProcessSourcesEvent>> m_event_queue;
-  std::mutex m_output_queue_mutex, m_ongoing_mutex;
+  /// Finished sources
+  std::map<int64_t, std::shared_ptr<SourceInterface>> m_finished_sources;
+  /// Queue of received ProcessSourceEvent, order preserved
+  std::deque<ProcessSourcesEvent> m_event_queue;
+  /// Queue of type of received events. Used to pass downstream events respecting the received order
+  std::deque<EventType> m_received;
+
+  std::mutex m_queue_mutex;
+
+  /// Termination condition for the output loop
   std::atomic_bool m_stop;
 
   void requestProperty(const PropertyId& property_id);
