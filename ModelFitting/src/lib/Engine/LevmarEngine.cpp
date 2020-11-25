@@ -25,11 +25,14 @@
 
 #include <levmar.h>
 #include <ElementsKernel/Exception.h>
+#include <ElementsKernel/Logging.h>
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 
 
 namespace ModelFitting {
+
+static Elements::Logging logger = Elements::Logging::getLogger("LevmarEngine");
 
 static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
   return std::make_shared<LevmarEngine>(max_iterations);
@@ -38,8 +41,12 @@ static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterat
 static LeastSquareEngineManager::StaticEngine levmar_engine{"levmar", createLevmarEngine};
 
 LevmarEngine::LevmarEngine(size_t itmax, double tau, double epsilon1,
-               double epsilon2, double epsilon3, double delta)
-      : m_itmax{itmax}, m_opts{tau, epsilon1, epsilon2, epsilon3, delta} { }
+                           double epsilon2, double epsilon3, double delta)
+  : m_itmax{itmax}, m_opts{tau, epsilon1, epsilon2, epsilon3, delta} {
+#ifdef LINSOLVERS_RETAIN_MEMORY
+  logger.warn() << "Using a non thread safe levmar! Parallelism will be reduced.";
+#endif
+}
 
 LevmarEngine::~LevmarEngine() = default;
 
