@@ -183,7 +183,7 @@ protected:
           tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, 1.0 / value);
         }
         else {
-          tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::max());
+          tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::infinity());
         }
       }
     }
