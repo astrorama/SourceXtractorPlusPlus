@@ -67,7 +67,7 @@ public:
    * @param replacement
    *    Replace masked pixels with this value
    * @param mask_flag
-   *    If Operator(mask pixel, mask_flag) is true, this given pixel is replaces
+   *    If Operator(mask pixel, mask_flag) is true, this given pixel is replaced
    * @return
    *    A new masked image
    */
