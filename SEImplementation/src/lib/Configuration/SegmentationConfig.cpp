@@ -73,10 +73,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
   auto algorithm_name = boost::to_upper_copy(args.at(SEGMENTATION_ALGORITHM).as<std::string>());
   if (algorithm_name == "LUTZ") {
     m_selected_algorithm = Algorithm::LUTZ;
-  } else if (algorithm_name == "TILES") {
-    m_selected_algorithm = Algorithm::TILES_LUTZ;
   } else if (algorithm_name == "BFS") {
-    m_selected_algorithm = Algorithm::TILES_BFS;
+    m_selected_algorithm = Algorithm::BFS;
   } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }

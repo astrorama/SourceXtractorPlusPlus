@@ -63,8 +63,7 @@ private:
     std::vector<bool> m_visited;
   };
 
-  struct Tile {
-    PixelCoordinate offset;
+  struct Tile {    PixelCoordinate offset;
     int width, height;
   };
 

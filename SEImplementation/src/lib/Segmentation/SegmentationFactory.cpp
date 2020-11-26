@@ -30,7 +30,6 @@
 
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include "SEImplementation/Segmentation/LutzSegmentation.h"
-#include "SEImplementation/Segmentation/TileBasedSegmentation.h"
 #include "SEImplementation/Segmentation/BFSSegmentation.h"
 
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
@@ -64,11 +63,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
       segmentation->setLabelling<LutzSegmentation>(
           std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_lutz_window_size);
       break;
-    case SegmentationConfig::Algorithm::TILES_LUTZ:
-      segmentation->setLabelling<TileBasedSegmentation>(
-          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
-      break;
-    case SegmentationConfig::Algorithm::TILES_BFS:
+    case SegmentationConfig::Algorithm::BFS:
       segmentation->setLabelling<BFSSegmentation>(
           std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
       break;
