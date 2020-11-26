@@ -25,6 +25,23 @@ static Elements::Logging logger = Elements::Logging::getLogger("Prefetcher");
 
 namespace SourceXtractor {
 
+/**
+ * Unlock/lock an existing lock using RAII
+ */
+template<typename Lock>
+struct ReverseLock {
+  ReverseLock(Lock& lock) : m_lock(lock) {
+    m_lock.unlock();
+  }
+
+  ~ReverseLock() {
+    m_lock.lock();
+  }
+
+private:
+  Lock& m_lock;
+};
+
 Prefetcher::Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
   : m_thread_pool(thread_pool), m_stop(false) {
   m_output_thread = Euclid::make_unique<std::thread>(&Prefetcher::outputLoop, this);
@@ -77,7 +94,10 @@ void Prefetcher::outputLoop() {
         auto event = m_event_queue.front();
         m_event_queue.pop_front();
         logger.debug() << "ProcessSourceEvent released";
-        Observable<ProcessSourcesEvent>::notifyObservers(event);
+        {
+          ReverseLock<decltype(output_lock)> release_lock(output_lock);
+          Observable<ProcessSourcesEvent>::notifyObservers(event);
+        }
         m_received.pop_front();
         continue;
       }
@@ -90,7 +110,10 @@ void Prefetcher::outputLoop() {
       }
       // If it is, send it downstream
       logger.debug() << "Source " << next.m_source_id << " sent downstream";
-      Observable<std::shared_ptr<SourceInterface>>::notifyObservers(processed->second);
+      {
+        ReverseLock<decltype(output_lock)> release_lock(output_lock);
+        Observable<std::shared_ptr<SourceInterface>>::notifyObservers(processed->second);
+      }
       m_finished_sources.erase(processed);
       m_received.pop_front();
     }
