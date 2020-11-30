@@ -17,7 +17,6 @@
 
 #include <ElementsKernel/Logging.h>
 #include "AlexandriaKernel/memory_tools.h"
-#include "SEImplementation/Property/SourceId.h"
 #include "SEImplementation/Prefetcher/Prefetcher.h"
 
 static Elements::Logging logger = Elements::Logging::getLogger("Prefetcher");
@@ -53,19 +52,19 @@ Prefetcher::~Prefetcher() {
 }
 
 void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) {
-  int64_t source_id = message->getProperty<SourceId>().getSourceId();
+  intptr_t source_addr = reinterpret_cast<intptr_t>(message.get());
   {
     std::lock_guard<std::mutex> queue_lock(m_queue_mutex);
-    m_received.emplace_back(EventType::SOURCE, source_id);
+    m_received.emplace_back(EventType::SOURCE, source_addr);
   }
 
   // Pre-fetch in separate threads
-  m_thread_pool->submit([this, source_id, message]() {
+  m_thread_pool->submit([this, source_addr, message]() {
     for (auto& prop : m_prefetch_set) {
       message->getProperty(prop);
     }
     std::lock_guard<std::mutex> lock(m_queue_mutex);
-    m_finished_sources.emplace(source_id, message);
+    m_finished_sources.emplace(source_addr, message);
     m_new_output.notify_one();
   });
 }
@@ -102,14 +101,14 @@ void Prefetcher::outputLoop() {
         continue;
       }
       // Find if the matching source is done
-      auto processed = m_finished_sources.find(next.m_source_id);
+      auto processed = m_finished_sources.find(next.m_source_addr);
       // If not, we can't keep going, so exit here
       if (processed == m_finished_sources.end()) {
-        logger.debug() << "Next source " << next.m_source_id << " not done yet";
+        logger.debug() << "Next source " << next.m_source_addr << " not done yet";
         break;
       }
       // If it is, send it downstream
-      logger.debug() << "Source " << next.m_source_id << " sent downstream";
+      logger.debug() << "Source " << next.m_source_addr << " sent downstream";
       {
         ReverseLock<decltype(output_lock)> release_lock(output_lock);
         Observable<std::shared_ptr<SourceInterface>>::notifyObservers(processed->second);
