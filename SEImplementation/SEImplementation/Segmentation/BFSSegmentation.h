@@ -33,8 +33,8 @@ public:
 
   virtual ~BFSSegmentation() = default;
 
-  BFSSegmentation(std::shared_ptr<SourceFactory> source_factory)
-      : m_source_factory(source_factory) {
+  BFSSegmentation(std::shared_ptr<SourceFactory> source_factory, int max_delta)
+      : m_source_factory(source_factory), m_max_delta(max_delta) {
     assert(source_factory != nullptr);
   }
 
@@ -74,6 +74,7 @@ private:
 
 
   std::shared_ptr<SourceFactory> m_source_factory;
+  int m_max_delta;
 };
 
 }

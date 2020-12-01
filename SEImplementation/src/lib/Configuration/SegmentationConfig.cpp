@@ -51,9 +51,10 @@ static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
 static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
+static const std::string SEGMENTATION_BFS_MAX_DELTA {"segmentation-bfs-max-delta" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0) {
+    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0), m_bfs_max_delta(1000) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
@@ -66,6 +67,8 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
           "Loads a filter"},
       {SEGMENTATION_LUTZ_WINDOW_SIZE.c_str(), po::value<int>()->default_value(0),
           "Lutz sliding window size (0=disable)"},
+      {SEGMENTATION_BFS_MAX_DELTA.c_str(), po::value<int>()->default_value(1000),
+          "BFS algorithm max source x/y size (default=1000)"},
   }}};
 }
 
@@ -94,6 +97,7 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
   }
 
   m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
+  m_bfs_max_delta = args.at(SEGMENTATION_BFS_MAX_DELTA).as<int>();
 }
 
 void SegmentationConfig::initialize(const UserValues&) {

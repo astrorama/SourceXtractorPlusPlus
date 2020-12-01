@@ -52,6 +52,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   m_algorithm = segmentation_config.getAlgorithmOption();
   m_filter = segmentation_config.getFilter();
   m_lutz_window_size = segmentation_config.getLutzWindowSize();
+  m_bfs_max_delta = segmentation_config.getBfsMaxDelta();
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
@@ -65,7 +66,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
       break;
     case SegmentationConfig::Algorithm::BFS:
       segmentation->setLabelling<BFSSegmentation>(
-          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_bfs_max_delta);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

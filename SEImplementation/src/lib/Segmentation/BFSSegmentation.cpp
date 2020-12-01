@@ -69,13 +69,27 @@ void BFSSegmentation::labelSource(PixelCoordinate pc,
   visited_map.markVisited(pc);
   pixels_to_process.emplace_back(pc);
 
+  PixelCoordinate minPixel = pc;
+  PixelCoordinate maxPixel = pc;
+
   while (pixels_to_process.size() > 0) {
     auto pixel = pixels_to_process.back();
     pixels_to_process.pop_back();
     source_pixels.emplace_back(pixel);
 
+    minPixel.m_x = std::min(minPixel.m_x, pixel.m_x);
+    minPixel.m_y = std::min(minPixel.m_y, pixel.m_y);
+    maxPixel.m_x = std::max(maxPixel.m_x, pixel.m_x);
+    maxPixel.m_y = std::max(maxPixel.m_y, pixel.m_y);
+
+    if (maxPixel.m_x - minPixel.m_x > m_max_delta || maxPixel.m_y - minPixel.m_y > m_max_delta) {
+      // The source extends over a too large area, ignore it
+      return;
+    }
+
     for (auto& offset : offsets) {
       auto new_pixel = pixel + offset;
+
       if (!visited_map.wasVisited(new_pixel) && detection_image.getValue(new_pixel) > 0.0) {
         visited_map.markVisited(new_pixel);
         pixels_to_process.emplace_back(new_pixel);

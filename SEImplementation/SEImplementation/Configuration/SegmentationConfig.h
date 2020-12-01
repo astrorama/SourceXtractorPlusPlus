@@ -62,6 +62,10 @@ public:
     return m_lutz_window_size;
   }
 
+  int getBfsMaxDelta() const {
+    return m_bfs_max_delta;
+  }
+
   bool isFilteringEnabled() const {
     return m_filter != nullptr;
   }
@@ -80,6 +84,7 @@ private:
   std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter;
 
   int m_lutz_window_size;
+  int m_bfs_max_delta;
 }; /* End of SegmentationConfig class */
 
 } /* namespace SourceXtractor */
