@@ -60,8 +60,10 @@ MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterfa
       m_source_to_row(source);
     }
     // Pass to the output thread
-    std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
-    m_output_queue.emplace_back(order_number, source_group);
+    {
+      std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+      m_output_queue.emplace_back(order_number, source_group);
+    }
     m_new_output.notify_one();
   });
   ++m_group_counter;

@@ -63,8 +63,10 @@ void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) 
     for (auto& prop : m_prefetch_set) {
       message->getProperty(prop);
     }
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
-    m_finished_sources.emplace(source_addr, message);
+    {
+      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      m_finished_sources.emplace(source_addr, message);
+    }
     m_new_output.notify_one();
   });
 }
@@ -125,9 +127,11 @@ void Prefetcher::outputLoop() {
 }
 
 void Prefetcher::handleMessage(const ProcessSourcesEvent& message) {
-  std::lock_guard<std::mutex> output_lock(m_queue_mutex);
-  m_received.emplace_back(EventType::PROCESS_SOURCE);
-  m_event_queue.emplace_back(message);
+  {
+    std::lock_guard<std::mutex> output_lock(m_queue_mutex);
+    m_received.emplace_back(EventType::PROCESS_SOURCE);
+    m_event_queue.emplace_back(message);
+  }
   m_new_output.notify_one();
   logger.debug() << "ProcessSourceEvent received";
 }
