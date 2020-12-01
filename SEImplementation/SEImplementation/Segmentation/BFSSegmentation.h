@@ -38,8 +38,7 @@ public:
     assert(source_factory != nullptr);
   }
 
-  virtual void labelImage(
-      Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) override;
+  void labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) override;
 
 private:
   class VisitedMap {
