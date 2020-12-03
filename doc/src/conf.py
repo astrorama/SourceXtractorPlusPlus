@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # SourceXtractor++ documentation build configuration file, created by
 # sphinx-quickstart on Thu Jan 31 13:34:56 2019.
 #
@@ -63,10 +61,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SourceXtractor++'
+project = 'SourceXtractor++'
 filename = 'sourcextractor'
-copyright = u'2019, GenevaU/LMU/CNRS/SorbonneU'
-author = u'SourceXtractor++ team'
+copyright = '2019,2020 GenevaU/LMU/CNRS/SorbonneU'
+author = 'SourceXtractor++ team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -87,11 +85,11 @@ language = None
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 #
-today = 'Wed July 31 2019'
+#today = 'Wed July 31 2019'
 #
 # Else, today_fmt is used as the format for a strftime call.
 #
-# today_fmt = '%B %d, %Y'
+today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -157,7 +155,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = u'SourceXtractor++ v1.0.0'
+# html_title = 'SourceXtractor++ v1.0.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
@@ -181,7 +179,7 @@ html_static_path = ['../theme']
 
 # Trick for having ReadTheDocs read custom theme changes
 def setup(app):
-    app.add_stylesheet("css/custom.css")
+    app.add_css_file("css/custom.css")
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -288,7 +286,7 @@ latex_elements = {
 
      # Additional stuff for the LaTeX preamble.
      #
-'preamble': '\usepackage{amssymb}',
+'preamble': '\\usepackage{amssymb}',
 
      # Latex figure (float) alignment
      #
@@ -299,7 +297,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, filename + '.tex', project + u' Documentation',
+    (master_doc, filename + '.tex', project + ' Documentation',
      author, 'manual'),
 ]
 
@@ -341,7 +339,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, filename, project + u' Documentation',
+    (master_doc, filename, project + ' Documentation',
      author, 1)
 ]
 
@@ -356,7 +354,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, filename, project + u' Documentation',
+    (master_doc, filename, project + ' Documentation',
      author, project, 'One line description of project.',
      'Miscellaneous'),
 ]
