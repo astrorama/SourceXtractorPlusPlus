@@ -34,6 +34,9 @@
 .. |GitHub| replace:: GitHub
 .. _GitHub: https://github.com
 
+.. |GSL| replace:: :program:`GSL`
+.. _GSL: https://www.gnu.org/software/gsl
+
 .. |Intel| replace:: Intel\ :sup:`®`\ 
 .. _Intel: http://intel.com
 
@@ -102,9 +105,6 @@
 
 .. |WCS| replace:: WCS
 .. _WCS: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
-
-.. |WCSLIB| replace:: :program:`WCSLIB`
-.. _WCSLIB: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib
 
 .. |WeightWatcher| replace:: :program:`WeightWatcher`
 .. _WeightWatcher: http://astromatic.net/software/weightwatcher

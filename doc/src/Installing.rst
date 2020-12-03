@@ -26,7 +26,7 @@ CPUs
 ----
 
 |SourceXtractor++|'s measurement pipeline is multithreaded and can take advantage of multiple CPU cores.
-As of version 0.7.1, |SourceXtractor++| scales reasonably well up to 8 cores.
+As of version 0.13, |SourceXtractor++| scales reasonably well up to 8 cores.
 
 Obtaining |SourceXtractor++|
 ============================
@@ -106,14 +106,13 @@ The following packages are optional:
 
 * `Readline <https://tiswww.case.edu/php/chet/readline/rltop.html>`_
 * `Ncurses <https://invisible-island.net/ncurses/>`_ (progress bar display)
-* `LevMar <http://users.ics.forth.gr/~lourakis/levmar/>`_ (model fitting engine)
-* `GSL <https://www.gnu.org/software/gsl/>`_ (model fitting engine)
+* |LevMar|_ (model fitting engine)
+* |GSL|_ (model fitting engine)
 
 All or most of these packages are available in the main Linux distributions.
 You will also need the ``-devel`` version of the packages if you compile |SourceXtractor++| from the source.
 
-If you have installed Elements and Alexandria from your distribution repository
-(right now, only in Fedora), you can skip the following section.
+If you have installed Elements and Alexandria from your distribution repository (right now, only in Fedora), you can skip the following section.
 
 .. code-block:: console
 
@@ -134,9 +133,8 @@ any other.
   $ export CMAKE_PREFIX_PATH=$CMAKE_PROJECT_PATH/Elements/cmake
   $ mkdir -p $CMAKE_PROJECT_PATH
 
-Since Python 2 has been deprecated since the 1st of January 2020, it is recommended
-to tell Elements and other projects to use Python 3 instead. You can also
-disable the build of documentation with ``-DUSE_SPHINX=OFF``.
+Since Python 2 has been deprecated since the 1st of January 2020, it is recommended to tell Elements and other projects to use Python 3 instead.
+You can also disable the build of documentation with ``-DUSE_SPHINX=OFF``.
 
 .. code-block:: console
 
@@ -168,8 +166,7 @@ Similarly for Alexandria:
 Installation
 ____________
 
-If you have compiled and installed Elements and Alexandria as described on the
-above section, make sure you are using the proper environment.
+If you have compiled and installed Elements and Alexandria as described on the above section, make sure you are using the proper environment.
 
 .. code-block:: console
 
@@ -185,11 +182,10 @@ Configure the project flags if you have not yet done it:
   $ export CMAKEFLAGS="-DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF"
 
 As a reminder, that tells |SourceXtractor++| to compile with Python 3, and not
-to build the documentation. |SourceXtractor++| can be built with Python 2, but
-this is strongly discouraged.
+to build the documentation.
+|SourceXtractor++| can be built with Python 2, but this is strongly discouraged.
 
-The sources can be obtained either from the `releases <https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest>`_
-as a compressed archive, or cloned with ``git`` the usual way.
+The sources can be obtained either from the `releases <https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest>`_ as a compressed archive, or cloned with ``git`` the usual way.
 
 If you download an archived version, you need to uncompress it:
 
@@ -200,8 +196,7 @@ If you download an archived version, you need to uncompress it:
 A new directory called :file:`SourceXtractorPlusPlus-<version>` should now appear
 at the current location on your disk.
 
-If you opt for cloning the repository, make sure you are pointing to the latest
-commit in the ``master `` branch.
+If you opt for cloning the repository, make sure you are pointing to the latest commit in the ``master`` branch.
 
 .. code-block:: console
 

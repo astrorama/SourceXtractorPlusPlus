@@ -372,15 +372,24 @@ For example, the following code applied to images taken in the :math:`g` and :ma
    :figwidth: 100%
    :align: center
 
+   Effect of a Gaussian prior (centered on 0.5 mag with standard deviation 0.3 mag) on :math:`g - r` source color measurements.
 
 .. _model_minimization_def:
 
 Minimization
 ------------
 
-Minimization of the loss function :math:`\lambda(\boldsymbol{q})` is carried out using the `Levenberg-Marquardt algorithm <http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm>`_, and more specifically the |LevMar|_ implementation :cite:`lourakis04LM`.
-The library approximates the Jacobian matrix of the model from finite differences using Broyden's :cite:`Broyden1965ACo` rank one updates.
+Minimization of the loss function :math:`\lambda(\boldsymbol{q})` is carried out using the `Levenberg-Marquardt algorithm <http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm>`_.
+Two Levenberg-Marquardt engines are supported in the current version of |SourceXtractor++|: the |LevMar|_ library :cite:`lourakis04LM`, and the |GSL|_ implementation.
+|LevMar| approximates the Jacobian matrix of the model from finite differences using Broyden's :cite:`Broyden1965ACo` rank one updates, which results in less evaluations of the model and :math:`\approx` 30% faster processing.
+The default engine is ``levmar``, but can be switched to ``gsl`` if preferred using the :func:`~config.model_fitting.set_engine()` function, e.g.:
+
+.. code-block:: python
+
+  set_engine('gsl')
+
+
 The fit is done inside a disk which diameter is scaled to include the isophotal footprint of the object, plus the FWHM of the PSF, plus a 20 % margin.
 
-:math:`1\,\sigma` error estimates are provided for most measurement parameters; they are obtained from the full covariance matrix of the fit, which is itself computed by inverting the approximate `Hessian matrix <https://en.wikipedia.org/wiki/Hessian_matrix>`_ of :math:`\lambda(\boldsymbol{q})` at the solution.
+:math:`1\,\sigma` uncertainty estimates are provided for most measurement parameters; they are obtained from the full covariance matrix of the fit, which is itself computed by inverting the approximate `Hessian matrix <https://en.wikipedia.org/wiki/Hessian_matrix>`_ of :math:`\lambda(\boldsymbol{q})` at the solution.
 

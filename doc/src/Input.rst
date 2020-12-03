@@ -11,14 +11,12 @@ Input files
 Contrary to the original |SExtractor|, |SourceXtractor++| relies on the `FITSIO library <https://heasarc.gsfc.nasa.gov/fitsio/>`_
 and is therefore compatible with all standard variants of |FITS|, including compressed images.
 Both "Basic FITS" (one single header and one single body) and |MEF|_ files are recognized.
-However there are some limitations with the current version of |SourceXtractor++|:
+Binary |SourceXtractor++| catalogs produced from |MEF| images are |MEF| files themselves.
+If the catalog output format is set to ASCII, all catalogs from the individual extensions are concatenated in one big file.
 
-* there can be only one extension supported per filename (e.g., :param:`image.fits[1]` or :param:`image.fits[foo]`)
-* in multichannel images with :math:`{\rm NAXIS} > 2`, only the first data-plane is loaded
+Currently, only the first data-plane of multichannel images with :math:`{\rm NAXIS} > 2`, is loaded.
 
-..  Binary |SourceXtractor++| catalogs produced from |MEF| images are |MEF| files themselves.
-    If the catalog output format is set to ASCII, all catalogs from the individual extensions are concatenated in one big file.
-    In |SourceXtractor++|, as in all similar programs, |FITS| axis #1 is traditionally referred to as the *x* axis, and |FITS| axis #2 as the *y* axis.
+In |SourceXtractor++|, as in all similar programs, |FITS| axis #1 is traditionally referred to as the *x* axis, and |FITS| axis #2 as the *y* axis.
 
 Detection and measurement images
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
