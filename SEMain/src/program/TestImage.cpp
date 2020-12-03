@@ -38,6 +38,8 @@
 #include <boost/random.hpp>
 
 #include <CCfits/CCfits>
+
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEFramework/Image/ProcessedImage.h"
 
 #include "SEFramework/Image/VectorImage.h"
@@ -49,7 +51,6 @@
 
 #include "SEImplementation/CoordinateSystem/WCS.h"
 
-#include "ModelFitting/utils.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/OldSharp.h"
@@ -59,6 +60,7 @@
 #include "ModelFitting/Models/RotatedModelComponent.h"
 #include "ModelFitting/Models/PointModel.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Image/NullPsf.h"
 
@@ -68,6 +70,7 @@ namespace fs = boost::filesystem;
 
 using namespace SourceXtractor;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 const double pixel_scale = 1.0;
 
@@ -91,15 +94,15 @@ public:
         m_rotation(rotation), m_scale(1.0/scale), m_shift_x(shift_x), m_shift_y(shift_y) {}
   virtual ~DummyWCS() {}
 
-  virtual WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const {
+  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override {
     return WorldCoordinate(image_coordinate.m_x, image_coordinate.m_y);
   }
 
-  virtual ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const {
+  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override {
     return ImageCoordinate(world_coordinate.m_alpha, world_coordinate.m_delta);
   }
 
-  virtual std::map<std::string, std::string> getFitsHeaders() const override {
+  std::map<std::string, std::string> getFitsHeaders() const override {
     auto c = cos(m_rotation);
     auto s = sin(m_rotation);
 
@@ -201,57 +204,61 @@ public:
     return config_options;
   }
 
-  void addSource(std::vector<PointModel>& point_models, std::vector<TransformedModel>& extended_models, double size, const TestImageSource& source, std::tuple<double, double, double, double> jacobian) {
-
-    ManualParameter x_param {source.x};
-    ManualParameter y_param {source.y};
+  void addSource(std::vector<PointModel>& point_models, std::vector<std::shared_ptr<ModelFitting::ExtendedModel<WriteableInterfaceTypePtr>>>& extended_models, double size, const TestImageSource& source, std::tuple<double, double, double, double> jacobian) {
+    auto x_param = std::make_shared<ManualParameter>(source.x);
+    auto y_param = std::make_shared<ManualParameter>(source.y);
 
     if (source.exp_flux > 0.0) {
       // Exponential component
 
       // Parameters
-      ManualParameter xs (1);
-      ManualParameter ys (source.exp_aspect);
-      ManualParameter rot (source.exp_rot);
-      ManualParameter exp_n { 1 };
+      auto xs = std::make_shared<ManualParameter>(1);
+      auto ys = std::make_shared<ManualParameter>(source.exp_aspect);
+      auto rot = std::make_shared<ManualParameter>(source.exp_rot);
+      auto exp_n = std::make_shared<ManualParameter>(1);
 
-      ManualParameter exp_k { 1.7 / source.exp_rad };
-      ManualParameter exp_i0 { source.exp_flux / (M_PI * 2.0 * 0.346 * source.exp_rad * source.exp_rad * source.exp_aspect) };
+      auto exp_k = std::make_shared<ManualParameter>(1.7 / source.exp_rad);
+      auto exp_i0 = std::make_shared<ManualParameter>(
+          source.exp_flux / (M_PI * 2.0 * 0.346 * source.exp_rad * source.exp_rad * source.exp_aspect));
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
       auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
+      extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(
+          std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian));
     }
 
     if (source.dev_flux > 0.0) {
       // Devaucouleurs component
-      ManualParameter xs (1);
-      ManualParameter ys (source.dev_aspect);
-      ManualParameter rot (source.dev_rot);
-      ManualParameter dev_n { 4 };
+      auto xs = std::make_shared<ManualParameter>(1);
+      auto ys = std::make_shared<ManualParameter>(source.dev_aspect);
+      auto rot = std::make_shared<ManualParameter>(source.dev_rot);
+      auto dev_n = std::make_shared<ManualParameter>(4);
 
-      ManualParameter dev_k { pow(3459.0 / source.dev_rad, .25) };
-      ManualParameter dev_i0 { source.dev_flux * pow(10, 3.33) / (7.2 * M_PI * source.dev_rad * source.dev_rad * source.dev_aspect) };
+      auto dev_k = std::make_shared<ManualParameter>(pow(3459.0 / source.dev_rad, .25));
+      auto dev_i0 = std::make_shared<ManualParameter>(
+          source.dev_flux * pow(10, 3.33) / (7.2 * M_PI * source.dev_rad * source.dev_rad * source.dev_aspect));
 
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
       auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
-      extended_models.emplace_back(std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian);
+      extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(
+          std::move(component_list), xs, ys, rot, size, size, x_param, y_param, jacobian));
     }
+
     if (source.point_flux > 0.0) {
-      ManualParameter flux_param (source.point_flux);
+      auto flux_param = std::make_shared<ManualParameter>(source.point_flux);
       point_models.emplace_back(x_param, y_param, flux_param);
     }
   }
 
   void addPointSource(std::vector<PointModel>& point_models, double x, double y, double flux) {
-    ManualParameter x_param (x);
-    ManualParameter y_param (y);
-    ManualParameter flux_param (flux);
+    auto x_param = std::make_shared<ManualParameter>(x);
+    auto y_param = std::make_shared<ManualParameter>(y);
+    auto flux_param = std::make_shared<ManualParameter>(flux);
 
     point_models.emplace_back(x_param, y_param, flux_param);
   }
@@ -494,7 +501,7 @@ public:
     m_exp_time = args["exposure-time"].as<double>();
 
     std::vector<ConstantModel> constant_models;
-    std::vector<TransformedModel> extended_models;
+    std::vector<std::shared_ptr<ModelFitting::ExtendedModel<WriteableInterfaceTypePtr>>> extended_models;
     std::vector<PointModel> point_models;
 
     std::shared_ptr<VariablePsf> vpsf;
@@ -585,7 +592,7 @@ public:
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
     if (args["disable-psf"].as<bool>()) {
-      FrameModel<DummyPsf<std::shared_ptr<WriteableImage<SeFloat>>>, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+      FrameModel<DummyPsf<WriteableInterfaceTypePtr>, WriteableInterfaceTypePtr> frame_model {
         pixel_scale,
         (std::size_t) image_size, (std::size_t) image_size,
         std::move(constant_models),
@@ -594,7 +601,7 @@ public:
       };
       frame_model.rasterToImage(target_image);
     } else {
-      FrameModel<ImagePsf, std::shared_ptr<WriteableImage<SeFloat>>> frame_model {
+      FrameModel<ImagePsf, WriteableInterfaceTypePtr> frame_model {
         pixel_scale,
         (std::size_t) image_size, (std::size_t) image_size,
         std::move(constant_models),

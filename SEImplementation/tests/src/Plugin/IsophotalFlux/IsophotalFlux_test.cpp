@@ -26,6 +26,7 @@
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SimpleSource.h"
+#include "SEFramework/Image/ConstantImage.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"

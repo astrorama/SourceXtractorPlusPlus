@@ -67,10 +67,10 @@ public:
     return m_parent.lock();
   }
 
-  double getTotalIntensity(DetectionImage& image) const {
+  double getTotalIntensity(DetectionImage& image, const PixelCoordinate& offset) const {
     DetectionImage::PixelType total_intensity = 0;
     for (const auto& pixel_coord : m_pixel_list) {
-      total_intensity += (image.getValue(pixel_coord) - m_threshold);
+      total_intensity += (image.getValue(pixel_coord - offset) - m_threshold);
     }
 
     return total_intensity;
@@ -133,17 +133,18 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto& pixel_boundaries = original_source->getProperty<PixelBoundaries>();
 
   auto& pixel_coords = original_source->getProperty<PixelCoordinateList>().getCoordinateList();
-  auto image = VectorImage<DetectionImage::PixelType>::create(
-      pixel_boundaries.getWidth(), pixel_boundaries.getHeight(), pixel_boundaries.getMin());
-  image->fillValue(0);
 
+  auto offset = pixel_boundaries.getMin();
+  auto thumbnail_image = VectorImage<DetectionImage::PixelType>::create(
+      pixel_boundaries.getWidth(), pixel_boundaries.getHeight());
+  thumbnail_image->fillValue(0);
 
   auto min_value = original_source->getProperty<PeakValue>().getMinValue() * .8;
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
   for (auto pixel_coord : pixel_coords) {
     auto value = labelling_image->getValue(pixel_coord);
-    image->setValue(pixel_coord, value);
+    thumbnail_image->setValue(pixel_coord - offset, value);
   }
 
   auto root = std::make_shared<MultiThresholdNode>(pixel_coords, 0);
@@ -155,10 +156,10 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   for (unsigned int i = 1; i < m_thresholds_nb; i++) {
 
     auto threshold = min_value * pow(peak_value / min_value, (double) i / m_thresholds_nb);
-    auto subtracted_image = SubtractImage<DetectionImage::PixelType>::create(image, threshold);
+    auto subtracted_image = SubtractImage<DetectionImage::PixelType>::create(thumbnail_image, threshold);
 
     LutzList lutz;
-    lutz.labelImage(*subtracted_image, image->getOffset());
+    lutz.labelImage(*subtracted_image, offset);
 
     std::list<std::shared_ptr<MultiThresholdNode>> active_nodes_copy(active_nodes);
     for (auto& node : active_nodes_copy) {
@@ -188,7 +189,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   }
 
   // Identify the sources
-  double intensity_threshold = root->getTotalIntensity(*image) * m_contrast;
+  double intensity_threshold = root->getTotalIntensity(*thumbnail_image, offset) * m_contrast;
 
   std::vector<std::shared_ptr<MultiThresholdNode>> source_nodes;
   while (!junction_nodes.empty()) {
@@ -198,7 +199,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     int nb_of_children_above_threshold = 0;
 
     for (auto child : node->getChildren()) {
-      if (child->getTotalIntensity(*image) > intensity_threshold) {
+      if (child->getTotalIntensity(*thumbnail_image, offset) > intensity_threshold) {
         nb_of_children_above_threshold++;
       }
     }
@@ -206,7 +207,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     if (nb_of_children_above_threshold >= 2) {
       node->flagAsSplit();
       for (auto child : node->getChildren()) {
-        if (child->getTotalIntensity(*image) > intensity_threshold && !child->isSplit()) {
+        if (child->getTotalIntensity(*thumbnail_image, offset) > intensity_threshold && !child->isSplit()) {
           source_nodes.push_back(child);
         }
       }
@@ -221,7 +222,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   for (auto source_node : source_nodes) {
     // remove pixels in the new sources from the image
     for (auto& pixel : source_node->getPixels()) {
-      image->setValue(pixel, 0);
+      thumbnail_image->setValue(pixel - offset, 0);
     }
 
     auto new_source = m_source_factory->createSource();
@@ -232,7 +233,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     sources.push_back(new_source);
   }
 
-  auto new_sources = reassignPixels(sources, pixel_coords, image, source_nodes);
+  auto new_sources = reassignPixels(sources, pixel_coords, thumbnail_image, source_nodes, offset);
 
   for (auto& new_source : new_sources) {
     new_source->setProperty<DetectionFrame>(detection_frame.getFrame());
@@ -246,7 +247,8 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
     const std::vector<std::shared_ptr<SourceInterface>>& sources,
     const std::vector<PixelCoordinate>& pixel_coords,
     std::shared_ptr<VectorImage<DetectionImage::PixelType>> image,
-    const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes
+    const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes,
+    const PixelCoordinate& offset
     ) const {
 
   std::vector<SeFloat> amplitudes;
@@ -269,7 +271,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
   }
 
   for (auto pixel : pixel_coords) {
-    if (image->getValue(pixel) > 0) {
+    if (image->getValue(pixel - offset) > 0) {
       SeFloat cumulated_probability = 0;
       std::vector<SeFloat> probabilities;
 
@@ -324,7 +326,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
   for (auto source_node : source_nodes) {
     // remove pixels in the new sources from the image
     for (auto& pixel : source_node->getPixels()) {
-      image->setValue(pixel, 0);
+      image->setValue(pixel - offset, 0);
     }
 
     auto new_source = m_source_factory->createSource();

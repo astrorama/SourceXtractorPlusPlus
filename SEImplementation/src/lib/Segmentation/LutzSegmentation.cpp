@@ -20,25 +20,28 @@
  * @author mschefer
  */
 
-#include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ProcessedImage.h"
-
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
-#include "SEImplementation/Segmentation/Lutz.h"
-
+#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Property/SourceId.h"
+#include "SEImplementation/Grouping/LineSelectionCriteria.h"
+#include "SEImplementation/Segmentation/Lutz.h"
+
+#include "SEImplementation/Segmentation/LutzSegmentation.h"
 
 namespace SourceXtractor {
 
 class LutzLabellingListener : public Lutz::LutzListener {
 public:
-  LutzLabellingListener(Segmentation::LabellingListener& listener, std::shared_ptr<SourceFactory> source_factory) :
+  LutzLabellingListener(Segmentation::LabellingListener& listener, std::shared_ptr<SourceFactory> source_factory,
+      int window_size) :
     m_listener(listener),
-    m_source_factory(source_factory) {}
+    m_source_factory(source_factory),
+    m_window_size(window_size) {}
 
   virtual ~LutzLabellingListener() = default;
 
@@ -51,11 +54,16 @@ public:
 
   void notifyProgress(int line, int total) override {
     m_listener.notifyProgress(line, total);
+
+    if (m_window_size > 0 && line > m_window_size) {
+      m_listener.requestProcessing(ProcessSourcesEvent(LineSelectionCriteria(line - m_window_size)));
+    }
   }
 
 private:
   Segmentation::LabellingListener& m_listener;
   std::shared_ptr<SourceFactory> m_source_factory;
+  int m_window_size;
 };
 
 //
@@ -64,7 +72,7 @@ private:
 
 void LutzSegmentation::labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) {
   Lutz lutz;
-  LutzLabellingListener lutz_listener(listener, m_source_factory);
+  LutzLabellingListener lutz_listener(listener, m_source_factory, m_window_size);
   lutz.labelImage(lutz_listener, *frame->getThresholdedImage());
 }
 

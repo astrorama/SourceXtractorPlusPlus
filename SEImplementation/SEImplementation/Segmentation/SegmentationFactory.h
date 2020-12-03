@@ -58,6 +58,8 @@ private:
   SegmentationConfig::Algorithm m_algorithm;
   std::shared_ptr<TaskProvider> m_task_provider;
 
+  int m_lutz_window_size;
+
 }; /* End of SegmentationFactory class */
 
 } /* namespace SourceXtractor */

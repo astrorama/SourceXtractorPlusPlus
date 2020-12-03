@@ -14,36 +14,45 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * TemporaryFile.h
- *
- *  Created on: May 23, 2018
- *      Author: aalvarez
+/**
+ * @file CoreThresholdPartitionPlugin.h
+ * @date 24.Oct.19
+ * @author mkuemmel
  */
 
-#ifndef _SEFRAMEWORK_FILESYSTEM_TEMPORARYFILE_H
-#define _SEFRAMEWORK_FILESYSTEM_TEMPORARYFILE_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDPARTITIONSTEP_H
+#define _SEIMPLEMENTATION_PLUGIN_CORETHRESHOLDPARTITIONSTEP_H
 
-#include <string>
+#include "SEFramework/Pipeline/Partition.h"
 
 namespace SourceXtractor {
 
-class TemporaryFile {
+/**
+ * @class CoreThresholdPartitionStep
+ * @brief A PartitionStep that rejects Sources if they do not have at least a given number of pixels
+ *
+ */
+class CoreThresholdPartitionStep : public PartitionStep {
+
 public:
-  TemporaryFile(bool autoremove = true);
-  TemporaryFile(const std::string &pattern, bool autoremove = true);
-  TemporaryFile(const std::string &dir, const std::string &pattern, bool autoremove = true);
 
-  ~TemporaryFile();
+  /// Destructor
+  virtual ~CoreThresholdPartitionStep() = default;
 
-  /// Return the full path of the temporary file
-  const std::string& getPath() const;
+  /// Constructor
+  CoreThresholdPartitionStep(double snr_level, unsigned int min_pixel_count);
+
+  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
+
 
 private:
-  std::string m_path;
-  bool m_autoremove;
-};
+  double   m_snr_level;
+  unsigned int m_min_pixel_count;
 
-}
 
-#endif //_SEFRAMEWORK_FILESYSTEM_TEMPORARYFILE_H
+}; /* End of CoreSNRPartitionStep class */
+
+} /* namespace SExtractor */
+
+
+#endif

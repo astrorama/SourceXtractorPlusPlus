@@ -30,10 +30,6 @@
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Source/SourceFactory.h"
 
-namespace ModelFitting {
-  class ExtendedModel;
-}
-
 namespace SourceXtractor {
 
 class MoffatModelFitting;

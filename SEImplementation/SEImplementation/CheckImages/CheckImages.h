@@ -101,6 +101,10 @@ public:
     m_thresholded_image = thresholded_image;
   }
 
+  void setSnrCheckImage(std::shared_ptr<Image<SeFloat>> snr_image) {
+    m_snr_image = snr_image;
+  }
+
   std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
   void setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFloat>> image);
 
@@ -115,13 +119,7 @@ public:
     return *m_instance;
   }
 
-  void lock() {
-    m_access_mutex.lock();
-  }
-
-  void unlock() {
-    m_access_mutex.unlock();
-  }
+  std::mutex m_access_mutex;
 
 private:
   CheckImages();
@@ -143,6 +141,7 @@ private:
   std::shared_ptr<Image<SeFloat>> m_background_image;
   std::shared_ptr<Image<SeFloat>> m_filtered_image;
   std::shared_ptr<Image<SeFloat>> m_thresholded_image;
+  std::shared_ptr<Image<SeFloat>> m_snr_image;
   std::shared_ptr<WeightImage> m_variance_image;
   std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
@@ -155,14 +154,13 @@ private:
   boost::filesystem::path m_group_filename;
   boost::filesystem::path m_filtered_filename;
   boost::filesystem::path m_thresholded_filename;
+  boost::filesystem::path m_snr_filename;
   boost::filesystem::path m_auto_aperture_filename;
   boost::filesystem::path m_aperture_filename;
   boost::filesystem::path m_moffat_filename;
   boost::filesystem::path m_psf_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
-
-  std::mutex m_access_mutex;
 };
 
 }

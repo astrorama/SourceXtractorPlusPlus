@@ -27,7 +27,6 @@
 #include <vector>
 #include <memory>
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 
 namespace ModelFitting {
 
@@ -40,60 +39,50 @@ namespace ModelFitting {
  *    Variadic template implementation of a parameter depending on an arbitrary number
  *    of other parameters. A dependent parameter cannot be copied, but only moved.
  *
- *    DepoendentParameter creation should be achieved using the factory method
+ *    DependentParameter creation should be achieved using the factory method
  *    createDependentParameter(...) provide after the end of this class.
  *
  */
-template<typename ... Parameters>
+
+template<typename... Parameters>
 class DependentParameter: public BasicParameter {
 
 public:
 
   static constexpr int PARAM_NO = sizeof...(Parameters);
 
-  using ValueCalculator = std::function<double(decltype(std::declval<Parameters>().getValue())...)>;
+  using ValueCalculator = std::function<double(decltype(std::declval<Parameters>()->getValue())...)>;
 
   /**
-   *  This constructore take a function which is used to compute the dependent
+   *  This constructor take a function which is used to compute the dependent
    *  parameter value as a function of input parameter values.
    */
-  DependentParameter(ValueCalculator calculator, Parameters&... parameters)
-  : BasicParameter {calculator(parameters.getValue()...)},
+  DependentParameter(ValueCalculator calculator, Parameters... parameters)
+  : BasicParameter {calculator(parameters->getValue()...)},
   m_calculator {new ValueCalculator{std::move(calculator)}},
-  m_param_values {new std::array<double, PARAM_NO>{parameters.getValue()...}} {
+  m_params {new std::array<std::shared_ptr<BasicParameter>, PARAM_NO>{{parameters...}}} {
     inputParameterLoop(parameters...);
-    m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
+    //m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
 
   virtual ~DependentParameter() = default;
 
-protected:
-
-  void setValue(const double new_value) = delete;
-  void getValueHook(void) {
+  double getValue() const override {
     if (!this->isObserved()) {
-      this->update((*m_param_values)[0]);
+      const_cast<DependentParameter*>(this)->update((*m_params)[0]->getValue());
     }
+    return m_value;
   }
-
-  using BasicParameter::m_get_value_hook;
 
 private:
 
   /// function to calculate the dependent parameter value
   std::shared_ptr<ValueCalculator> m_calculator;
-  /*
-   * Array of the input parameter values. The dependent parameter
-   * class does not store the input parameter themselves, but only
-   * there values in a private array.
-   */
-  std::shared_ptr<std::array<double, PARAM_NO>> m_param_values;
-  
-  std::shared_ptr<std::vector<std::unique_ptr<ReferenceUpdater>>> m_updaters {
-    new std::vector<std::unique_ptr<ReferenceUpdater>>{}
-  };
 
-  /* The two following methods represent the mecanism to loop over
+  // Array of the input parameter
+  std::shared_ptr<std::array<std::shared_ptr<BasicParameter>, PARAM_NO>> m_params;
+
+  /* The two following methods represent the mechanism to loop over
    * the arbitrary number of variadic elements, the first one is called
    * as long as there is more than one elements in the list and the
    * second one is called when there is only one left.
@@ -117,10 +106,10 @@ private:
    */
   template <typename... ParamValues>
   void update(ParamValues... values) {
-    update(values..., (*m_param_values)[sizeof...(values)]);
+    update(values..., (*m_params)[sizeof...(values)]->getValue());
   }
 
-  void update(decltype(std::declval<Parameters>().getValue())... values) {
+  void update(decltype(std::declval<Parameters>()->getValue())... values) {
     /* Beware that it is the updated value (m_calculator(values...)) that
      * is passed to the setValue
      */
@@ -129,31 +118,18 @@ private:
 
   template<typename Param>
   void addParameterObserver(int i, Param& param) {
-    m_updaters->emplace_back(new ReferenceUpdater{
-          param, (*m_param_values)[i],
-          ReferenceUpdater::PreAction{},
-          [this](double){
-            // Do not bother updating live if there are no observers
-            if (this->isObserved()) {
-              this->update((*m_param_values)[0]);
-            }
-          }
+    param->addObserver([this](double v){
+      // Do not bother updating live if there are no observers
+      if (this->isObserved()) {
+          this->update((*m_params)[0]->getValue());
+      }
     });
   }
-
 };
 
 template<typename ... Parameters>
-DependentParameter<Parameters...> createDependentParameter(
-    typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
-    Parameters &... parameters) {
-  return DependentParameter<Parameters...> { value_calculator, parameters... };
-}
-
-template<typename ... Parameters>
-std::shared_ptr<DependentParameter<Parameters...>> createDependentParameterPtr(
-    typename DependentParameter<Parameters...>::ValueCalculator value_calculator,
-    Parameters &... parameters) {
+std::shared_ptr<DependentParameter<Parameters...>> createDependentParameter(
+    typename DependentParameter<Parameters...>::ValueCalculator value_calculator, Parameters... parameters) {
   return std::make_shared<DependentParameter<Parameters...>>(value_calculator, parameters...);
 }
 

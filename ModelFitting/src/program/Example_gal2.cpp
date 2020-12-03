@@ -35,6 +35,7 @@
 #include "ModelFitting/Models/CircularlySymmetricModelComponent.h"
 #include "ModelFitting/Models/OnlySmooth.h"
 #include "ModelFitting/Models/ExtendedModel.h"
+#include "ModelFitting/Models/TransformedModel.h"
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "ModelFitting/Engine/OpenCvDataVsModelInputTraits.h"
@@ -42,14 +43,19 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/WorldValueResidual.h"
-#include "ModelFitting/Engine/LevmarEngine.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "utils.h"
 #include "ModelFitting/Parameters/NeutralConverter.h"
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
-int main() {
+int main(int argc, char **argv) {
+  std::string engine_impl("levmar");
+  if (argc > 1) {
+    engine_impl = argv[1];
+  }
   
   // We read the image from the aux dir. Note that we will use a cv:Mat type,
   // so the ModelFitting/Image/OpenCvMatImageTraits.h must be included.
@@ -74,9 +80,9 @@ int main() {
   //                         for a specific world value
   // - SigmoidConverter : Converts the parameter using the sigmoid function
   // - ExpSigmoidConverter : Converts the parameter using the exponential sigmoid function
-  EngineParameter i0 {50000., make_unique<ExpSigmoidConverter>(1, 1000000.)};
-  ManualParameter n {1.};
-  ManualParameter k {1.};
+  auto i0 = std::make_shared<EngineParameter>(50000., make_unique<ExpSigmoidConverter>(1, 1000000.));
+  auto n = std::make_shared<ManualParameter>(1.);
+  auto k = std::make_shared<ManualParameter>(1.);
   
   // We create the component list of the extended model with the single exponential
   auto reg_man = make_unique<OnlySmooth>();
@@ -86,23 +92,23 @@ int main() {
   
   // We create the extended model. All of its parameters will be optimized by
   // the minimization engine.
-  EngineParameter x {120., make_unique<NormalizedConverter>(1500.)};
-  EngineParameter y {140., make_unique<NormalizedConverter>(1500.)};
-  EngineParameter x_scale {1.0, make_unique<SigmoidConverter>(0, 10.)};
-  EngineParameter y_scale {1.0, make_unique<SigmoidConverter>(0, 10.)};
-  EngineParameter rot_angle {20.0 * M_PI/180.0, make_unique<SigmoidConverter>(0, 2*M_PI)};
+  auto x = std::make_shared<EngineParameter>(120, make_unique<NormalizedConverter>(1500.));
+  auto y = std::make_shared<EngineParameter>(140, make_unique<NormalizedConverter>(1500.));
+  auto x_scale = std::make_shared<EngineParameter>(1.0, make_unique<SigmoidConverter>(0, 10.));
+  auto y_scale = std::make_shared<EngineParameter>(1.0, make_unique<SigmoidConverter>(0, 10.));
+  auto rot_angle = std::make_shared<EngineParameter>(20.0 * M_PI/180.0, make_unique<SigmoidConverter>(0, 2*M_PI));
   
   // The size of the extended model (??? from the detection step ???)
   double width = 128;
   double height = 128;
   
   // We create the extended model list with a single model
-  vector<TransformedModel> extended_models {};
-  extended_models.emplace_back(std::move(component_list), x_scale, y_scale,
-                               rot_angle, width, height, x, y);
-  
+  vector<std::shared_ptr<ExtendedModel<cv::Mat>>> extended_models {};
+  extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(std::move(component_list),
+      x_scale, y_scale, rot_angle, width, height, x, y));
+
   // We add a constant background
-  EngineParameter back {100., make_unique<ExpSigmoidConverter>(1, 1000000.)};
+  auto back = std::make_shared<EngineParameter>(100., make_unique<ExpSigmoidConverter>(1, 1000000.));
   vector<ConstantModel> constant_models {};
   constant_models.emplace_back(back);
 
@@ -159,31 +165,31 @@ int main() {
   ));
   
   // We print the parameters before the minimization for comparison
-  cout << "I0 = " << i0.getValue() << '\n';
-  cout << "X = " << x.getValue() << '\n';
-  cout << "Y = " << y.getValue() << '\n';
-  cout << "X_SCALE = " << x_scale.getValue() << '\n';
-  cout << "Y_SCALE = " << y_scale.getValue() << '\n';
-  cout << "angle = " << rot_angle.getValue() << '\n';
-  cout << "Background = " << back.getValue() << '\n';
+  cout << "I0 = " << i0->getValue() << '\n';
+  cout << "X = " << x->getValue() << '\n';
+  cout << "Y = " << y->getValue() << '\n';
+  cout << "X_SCALE = " << x_scale->getValue() << '\n';
+  cout << "Y_SCALE = " << y_scale->getValue() << '\n';
+  cout << "angle = " << rot_angle->getValue() << '\n';
+  cout << "Background = " << back->getValue() << '\n';
   
   // Finally we create a levmar engine and we solve the problem
-  LevmarEngine engine {};
+  auto engine = LeastSquareEngineManager::create(engine_impl);
   auto t1 = chrono::steady_clock::now();
-  auto solution = engine.solveProblem(manager, res_estimator);
+  auto solution = engine->solveProblem(manager, res_estimator);
   auto t2 = chrono::steady_clock::now();
   
   // We print the results
   cout << "\nTime of fitting: " << chrono::duration <double, milli> (t2-t1).count() << " ms" << endl;
   cout << "\n";
   
-  cout << "I0 = " << i0.getValue() << '\n';
-  cout << "X = " << x.getValue() << '\n';
-  cout << "Y = " << y.getValue() << '\n';
-  cout << "X_SCALE = " << x_scale.getValue() << '\n';
-  cout << "Y_SCALE = " << y_scale.getValue() << '\n';
-  cout << "angle = " << rot_angle.getValue() << '\n';
-  cout << "Background = " << back.getValue() << '\n';
+  cout << "I0 = " << i0->getValue() << '\n';
+  cout << "X = " << x->getValue() << '\n';
+  cout << "Y = " << y->getValue() << '\n';
+  cout << "X_SCALE = " << x_scale->getValue() << '\n';
+  cout << "Y_SCALE = " << y_scale->getValue() << '\n';
+  cout << "angle = " << rot_angle->getValue() << '\n';
+  cout << "Background = " << back->getValue() << '\n';
  
   printLevmarInfo(boost::any_cast<array<double,10>>(solution.underlying_framework_info));
 
@@ -193,8 +199,8 @@ int main() {
   component_list.clear();
   component_list.emplace_back(move(exp));
   extended_models.clear();
-  extended_models.emplace_back(move(component_list),x_scale, y_scale,
-                                rot_angle, width, height, x, y);
+  extended_models.emplace_back(std::make_shared<ExtendedModel<cv::Mat>>(move(component_list),x_scale, y_scale,
+                                rot_angle, width, height, x, y));
   constant_models.clear();
   constant_models.emplace_back(back);
   FrameModel<OpenCvPsf, cv::Mat> frame_model_after {

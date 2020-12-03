@@ -36,7 +36,7 @@ namespace bmd = boost::math::tools;
 
 #endif
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
@@ -85,7 +85,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
 
   auto converter = m_converter_factory->getConverter(initial_value, source);
   auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
-  engine_manager.registerParameter(*parameter);
+  engine_manager.registerParameter(parameter);
 
   return parameter;
 }
@@ -117,7 +117,7 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
     std::vector<double> materialized{params...};
     return value_calculator(coordinate_system, materialized);
   };
-  return createDependentParameterPtr(calc, *(parameter_manager.getParameter(source, parameters))...);
+  return createDependentParameter(calc, parameter_manager.getParameter(source, parameters)...);
 }
 
 }

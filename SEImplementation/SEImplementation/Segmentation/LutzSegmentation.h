@@ -23,11 +23,11 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 #define _SEIMPLEMENTATION_SEGMENTATION_LUTZ_SEGMENTATION_H
 
+#include <cassert>
+#include <memory>
+#include "SEFramework/Frame/Frame.h"
 #include "SEFramework/Source/SourceFactory.h"
-#include "SEFramework/Task/TaskProvider.h"
-#include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEFramework/Pipeline/Segmentation.h"
-#include "SEFramework/Image/Image.h"
 
 namespace SourceXtractor {
 
@@ -45,8 +45,9 @@ public:
    */
   virtual ~LutzSegmentation() = default;
 
-  LutzSegmentation(std::shared_ptr<SourceFactory> source_factory)
-      : m_source_factory(source_factory) {
+  LutzSegmentation(std::shared_ptr<SourceFactory> source_factory, int window_size = 0)
+      : m_source_factory(source_factory),
+        m_window_size(window_size) {
     assert(source_factory != nullptr);
   }
 
@@ -54,6 +55,7 @@ public:
 
 private:
   std::shared_ptr<SourceFactory> m_source_factory;
+  int m_window_size;
 }; /* End of Lutz class */
 
 

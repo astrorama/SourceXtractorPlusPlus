@@ -32,7 +32,6 @@
 #include "ElementsKernel/Main.h"
 #include "ElementsKernel/System.h"
 #include "ElementsKernel/Temporary.h"
-#include "ElementsKernel/ProgramHeaders.h"
 
 #include "Configuration/ConfigManager.h"
 #include "Configuration/Utils.h"
@@ -67,8 +66,6 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
 #include "SEImplementation/Partition/PartitionFactory.h"
-#include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
-#include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
 
@@ -76,7 +73,6 @@
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
-#include "SEImplementation/Configuration/SegmentationConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 
@@ -343,7 +339,7 @@ public:
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
 
-    std::shared_ptr<Deblending> deblending = std::move(deblending_factory.createDeblending());
+    std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
@@ -351,6 +347,7 @@ public:
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
+    segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
     partition->addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
@@ -425,10 +422,6 @@ public:
     }
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
 
-    logger.info() << "Using background level: " <<  detection_frame->getBackgroundLevelMap()->getValue(0,0)
-        << " RMS: " << sqrt(detection_frame->getVarianceMap()->getValue(0,0))
-        << " threshold: "  << detection_frame->getDetectionThreshold();
-
     //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
 
     // Perform measurements (multi-threaded part)
@@ -437,10 +430,6 @@ public:
     try {
       // Process the image
       segmentation->processFrame(detection_frame);
-
-      // Flush source grouping buffer
-      SelectAllCriteria select_all_criteria;
-      source_grouping->handleMessage(ProcessSourcesEvent(select_all_criteria));
     }
     catch (const std::exception &e) {
       logger.error() << "Failed to process the frame! " << e.what();
@@ -452,6 +441,7 @@ public:
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
     CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
+    CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     FitsFileManager::getInstance()->closeAllFiles();
@@ -515,9 +505,9 @@ ELEMENTS_API int main(int argc, char* argv[]) {
   // This adds the current directory as a valid location for the default "sourcextractor++.conf" configuration
   Elements::TempEnv local_env;
   if (local_env["ELEMENTS_CONF_PATH"].empty()) {
-    local_env["ELEMENTS_CONF_PATH"] = ".";
+    local_env["ELEMENTS_CONF_PATH"] = ".:/etc";
   } else {
-    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"];
+    local_env["ELEMENTS_CONF_PATH"] = ".:" + local_env["ELEMENTS_CONF_PATH"] + ":/etc";
   }
 
   setupEnvironment();

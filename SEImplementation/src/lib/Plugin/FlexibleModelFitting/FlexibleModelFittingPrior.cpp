@@ -24,7 +24,7 @@
 #include <iostream>
 #include <mutex>
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
@@ -52,7 +52,7 @@ void FlexibleModelFittingPrior::setupPrior(
   double weight = 1. / m_standard_deviation(source);
 
   auto prior_residual = std::unique_ptr<WorldValueResidual>(
-      new WorldValueResidual(*parameter_manager.getParameter(source, m_parameter), expected_value, weight));
+      new WorldValueResidual(parameter_manager.getParameter(source, m_parameter), expected_value, weight));
   residual_estimator.registerBlockProvider(std::move(prior_residual));
 }
 

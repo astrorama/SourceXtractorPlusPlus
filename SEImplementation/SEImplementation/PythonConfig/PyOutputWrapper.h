@@ -24,7 +24,8 @@
 
 #include <strstream>
 #include <ElementsKernel/Logging.h>
-#include <boost/python.hpp>
+#include <boost/python/list.hpp>
+#include <boost/python/object.hpp>
 
 namespace SourceXtractor {
 
@@ -56,7 +57,7 @@ public:
 
   // These do something!
   bool writable() const;
-  int write(const std::string&);
+  int write(const boost::python::object&);
   void writelines(const boost::python::list&);
 
 private:

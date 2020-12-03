@@ -27,32 +27,27 @@
 namespace ModelFitting {
 
 RotatedModelComponent::RotatedModelComponent(std::unique_ptr<ModelComponent> component,
-                                             BasicParameter& rotation_angle)
+      std::shared_ptr<BasicParameter> rotation_angle)
         : m_component {std::move(component)},
-          m_rotation_angle{rotation_angle.getValue()},
-          m_cos{std::cos(m_rotation_angle)},
-          m_sin{std::sin(m_rotation_angle)},
-          m_rotation_angle_updater{rotation_angle, m_rotation_angle,
-                                   ReferenceUpdater::PreAction{},
-                                   [this](double) {
-                                     m_cos = std::cos(m_rotation_angle);
-                                     m_sin = std::sin(m_rotation_angle);
-                                   }} {
+          m_rotation_angle{rotation_angle},
+          m_cos{std::cos(m_rotation_angle->getValue())},
+          m_sin{std::sin(m_rotation_angle->getValue())} {
+  m_observer_id = rotation_angle->addObserver([this](double v){
+    m_cos = std::cos(v);
+    m_sin = std::sin(v);
+  });
 }
 
 RotatedModelComponent::RotatedModelComponent(RotatedModelComponent&& other)
         : m_component {std::move(other.m_component)},
-          m_rotation_angle{other.m_rotation_angle},
+          m_rotation_angle{std::move(other.m_rotation_angle)},
           m_cos{other.m_cos}, m_sin{other.m_sin},
-          m_rotation_angle_updater{other.m_rotation_angle_updater.getParameter(),
-                                   m_rotation_angle, ReferenceUpdater::PreAction{},
-                                   [this](double) {
-                                     m_cos = std::cos(m_rotation_angle);
-                                     m_sin = std::sin(m_rotation_angle);
-                                   }} {
+          m_observer_id (other.m_observer_id) {
 }
 
-RotatedModelComponent::~RotatedModelComponent() = default;
+RotatedModelComponent::~RotatedModelComponent() {
+  m_rotation_angle->removeObserver(m_observer_id);
+}
 
 double RotatedModelComponent::getValue(double x, double y) {
   double new_x = x * m_cos - y * m_sin;

@@ -21,8 +21,6 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include <ctime>
-#include <iomanip>
 #include "SEMain/ProgressMediator.h"
 
 namespace SourceXtractor {

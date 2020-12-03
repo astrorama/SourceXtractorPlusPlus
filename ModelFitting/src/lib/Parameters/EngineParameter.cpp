@@ -28,13 +28,19 @@ namespace ModelFitting {
 using namespace std;
 
 void EngineParameter::setEngineValue(const double engine_value) {
-  *m_engine_value = engine_value;
+  m_engine_value = engine_value;
   BasicParameter::setValue(m_converter->engineToWorld(engine_value));
 }
 
 double EngineParameter::getEngineToWorldDerivative() const {
   return m_converter->getEngineToWorldDerivative(getValue());
 }
+
+void EngineParameter::setValue(const double value) {
+  BasicParameter::setValue(value);
+  m_engine_value = m_converter->worldToEngine(value);
+}
+
 
 
 } // namespace ModelFitting

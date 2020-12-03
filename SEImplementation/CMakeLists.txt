@@ -70,6 +70,7 @@ elements_add_library(SEImplementation
            	src/lib/CheckImages/*.cpp
             src/lib/Plugin/*/*.cpp
             src/lib/Deblending/*.cpp
+            src/lib/Image/*.cpp
 			${SE_PYTHON_SRC}
             LINK_LIBRARIES ElementsKernel Configuration SEUtils SEFramework ModelFitting Table WCSLIB BoostPython PythonLibs PythonInterp Configuration
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
@@ -142,7 +143,7 @@ elements_add_unit_test(JacobianGroup_test tests/src/Plugin/Jacobian/JacobianGrou
 elements_add_unit_test(JacobianSource_test tests/src/Plugin/Jacobian/JacobianSourceTask_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
-if (NOT WITHOUT_LEVMAR)
+if (NOT WITHOUT_MODELFITTING)
 elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

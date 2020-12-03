@@ -25,7 +25,6 @@
 
 #include <memory> // for std::unique_ptr
 #include "ModelFitting/Parameters/BasicParameter.h"
-#include "ModelFitting/Parameters/ReferenceUpdater.h"
 #include "ModelFitting/Models/ModelComponent.h"
 
 namespace ModelFitting {
@@ -48,7 +47,7 @@ public:
    *    Rotation is done anti-clockwise!
    */
   RotatedModelComponent(std::unique_ptr<ModelComponent> component,
-                        BasicParameter& rotation_angle);
+      std::shared_ptr<BasicParameter> rotation_angle);
 
   RotatedModelComponent(RotatedModelComponent&& other);
             
@@ -65,11 +64,12 @@ public:
 private:
   
   std::unique_ptr<ModelComponent> m_component;
-  double m_rotation_angle;
+  std::shared_ptr<BasicParameter> m_rotation_angle;
+
   double m_cos;
   double m_sin;
-  ReferenceUpdater m_rotation_angle_updater;
-  
+  std::size_t m_observer_id;
+
 }; // end of class RotatedModelComponent
 
 } // end of namespace ModelFitting

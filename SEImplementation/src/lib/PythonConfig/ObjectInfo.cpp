@@ -47,7 +47,7 @@ SeFloat ObjectInfo::getRadius() const {
 }
 
 SeFloat ObjectInfo::getAngle() const {
-  return -m_source.get().getProperty<ShapeParameters>().getEllipseTheta();
+  return m_source.get().getProperty<ShapeParameters>().getEllipseTheta();
 }
 
 SeFloat ObjectInfo::getAspectRatio() const {

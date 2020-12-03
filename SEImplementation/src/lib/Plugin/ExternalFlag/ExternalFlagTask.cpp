@@ -32,6 +32,10 @@
 namespace SourceXtractor {
 
 template<typename Combine>
+ExternalFlagTask<Combine>::~ExternalFlagTask() {
+}
+
+template<typename Combine>
 ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance)
   : m_flag_image(flag_image), m_flag_instance(flag_instance) {
 }

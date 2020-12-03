@@ -63,7 +63,7 @@ struct MoffatModelFittingFixture {
   std::shared_ptr<MoffatModelFittingTask> model_fitting_task;
 
   MoffatModelFittingFixture() {
-    model_fitting_task = std::make_shared<MoffatModelFittingTask>(100);
+    model_fitting_task = std::make_shared<MoffatModelFittingTask>("levmar", 100);
   }
 };
 

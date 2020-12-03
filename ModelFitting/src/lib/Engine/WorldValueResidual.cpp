@@ -24,16 +24,18 @@
 
 namespace ModelFitting {
 
-WorldValueResidual::~WorldValueResidual() = default;
+WorldValueResidual::~WorldValueResidual() {
+  m_parameter->removeObserver(m_observer_id);
+}
 
 static double computeResidual(double current, double expected, double weight) {
   return weight * (current - expected);
 }
 
-WorldValueResidual::WorldValueResidual(BasicParameter& parameter,
+WorldValueResidual::WorldValueResidual(std::shared_ptr<BasicParameter> parameter,
                                        double expected_value, double weight)
-        : m_residual{computeResidual(parameter.getValue(), expected_value, weight)} {
-  parameter.addObserver(
+        : m_parameter(parameter), m_residual{computeResidual(parameter->getValue(), expected_value, weight)} {
+    m_observer_id = parameter->addObserver(
       [this, expected_value, weight](double new_value){
         m_residual = computeResidual(new_value, expected_value, weight);
       }

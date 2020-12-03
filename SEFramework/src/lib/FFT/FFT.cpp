@@ -27,6 +27,10 @@
 
 namespace SourceXtractor {
 
+/**
+ * FFTW3 requires a global mutex when creating a plan. Plan executions
+ * are, on the other hand, thread safe.
+ */
 boost::mutex fftw_global_plan_mutex {};
 
 typename FFTTraits<float>::func_plan_fwd_t *FFTTraits<float>::func_plan_fwd{fftwf_plan_many_dft_r2c};
@@ -145,5 +149,110 @@ int fftRoundDimension(int size) {
   }
   return (size / 512 + (size % 512 != 0)) * 512;
 }
+
+
+template <typename T>
+auto FFT<T>::createForwardPlan(int howmany, int width, int height, std::vector<T> &in, std::vector<complex_t> &out) -> plan_ptr_t {
+  // Make sure the buffers are big enough
+  assert(in.size() >= static_cast<size_t>(width * height * howmany));
+  assert(out.size() >= static_cast<size_t>(width * height * howmany));
+
+  // Cache plan, as they can be reused
+  static boost::shared_mutex mutex;
+  static std::map<std::tuple<int, int, int>, plan_ptr_t> plan_cache;
+
+  boost::upgrade_lock<boost::shared_mutex> read_lock{mutex};
+
+  auto pi = plan_cache.find(std::make_tuple(howmany, width, height));
+  if (pi != plan_cache.end()) {
+    return pi->second;
+  }
+
+  // No available plan yet, so get one from FFTW
+  boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
+  boost::lock_guard<boost::mutex> lock_planner{fftw_global_plan_mutex};
+
+  int dims[] = {height, width};
+  int total_size = height * width;
+  int rank = 2; // 2D only
+  int istride = 1, ostride = 1;
+  int idist = total_size;
+  int odist = total_size;
+
+  pi = plan_cache.emplace(
+    std::make_tuple(howmany, width, height),
+    plan_ptr_t{
+      fftw_traits::func_plan_fwd(
+        rank, dims, howmany,
+        in.data(), nullptr, istride, idist,
+        reinterpret_cast<typename fftw_traits::complex_t*>(out.data()), nullptr, ostride, odist,
+        FFTW_MEASURE | FFTW_DESTROY_INPUT
+      ),
+      fftw_traits::func_destroy_plan
+    }
+  ).first;
+
+  return pi->second;
+}
+
+template <typename T>
+auto FFT<T>::createInversePlan(int howmany, int width, int height, std::vector<complex_t> &in, std::vector<T> &out) -> plan_ptr_t {
+  // Make sure the buffers are big enough
+  assert(in.size() >= static_cast<size_t>(width * height * howmany));
+  assert(out.size() >= static_cast<size_t>(width * height * howmany));
+
+  // Cache plan, as they can be reused
+  static boost::shared_mutex mutex;
+  static std::map<std::tuple<int, int, int>, plan_ptr_t> plan_cache;
+
+  boost::upgrade_lock<boost::shared_mutex> read_lock{mutex};
+
+  auto pi = plan_cache.find(std::make_tuple(howmany, width, height));
+  if (pi != plan_cache.end()) {
+    return pi->second;
+  }
+
+  // No available plan yet, so get one from FFTW
+  boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
+  boost::lock_guard<boost::mutex> lock_planner{fftw_global_plan_mutex};
+
+  int dims[] = {height, width};
+  int total_size = height * width;
+  int rank = 2;
+  int istride = 1, ostride = 1;
+  int idist = total_size;
+  int odist = total_size;
+
+  pi = plan_cache.emplace(
+    std::make_tuple(howmany, width, height),
+    plan_ptr_t{
+      fftw_traits::func_plan_inv(
+        rank, dims, howmany,
+        reinterpret_cast<typename fftw_traits::complex_t*>(in.data()), nullptr, istride, idist,
+        out.data(), nullptr, ostride, odist,
+        FFTW_MEASURE | FFTW_DESTROY_INPUT
+      ),
+      fftw_traits::func_destroy_plan
+    }
+  ).first;
+
+  return pi->second;
+}
+
+
+template<typename T>
+void FFT<T>::executeForward(plan_ptr_t& plan, std::vector<T>& in, std::vector<complex_t>& out) {
+  fftw_traits::func_execute_fwd(plan.get(), in.data(), reinterpret_cast<typename fftw_traits::complex_t *>(out.data()));
+}
+
+
+template<typename T>
+void FFT<T>::executeInverse(plan_ptr_t& plan, std::vector<complex_t>& in, std::vector<T>& out) {
+  fftw_traits::func_execute_inv(plan.get(), reinterpret_cast<typename fftw_traits::complex_t *>(in.data()), out.data());
+}
+
+
+template class FFT<float>;
+template class FFT<double>;
 
 } // end SourceXtractor

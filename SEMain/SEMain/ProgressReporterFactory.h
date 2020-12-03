@@ -25,6 +25,8 @@
 #define _SEMAIN_PROGRESSPRINTERFACTORY_H
 
 #include <chrono>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/variables_map.hpp>
 #include "SEMain/ProgressMediator.h"
 
 namespace SourceXtractor {

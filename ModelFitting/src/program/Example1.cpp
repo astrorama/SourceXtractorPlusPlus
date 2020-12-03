@@ -34,6 +34,7 @@
 
 using namespace std;
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 //
 // This example demonstrates the following:
@@ -52,9 +53,9 @@ int main() {
   
   // First we need to create the parameters the profile will use. We need the
   // three parameters of the Sersic profile.
-  ManualParameter exp_i0 {12.6};
-  ManualParameter exp_n {1.};
-  ManualParameter exp_k {1.};
+  auto exp_i0 = std::make_shared<ManualParameter>(12.6);
+  auto exp_n = std::make_shared<ManualParameter>(1.);
+  auto exp_k = std::make_shared<ManualParameter>(1.);
   
   // We want to create a CircularlySymmetricModelComponent. For this reason we
   // need a SharpRegionManager, which describes how the sharp region is computed.
@@ -77,13 +78,13 @@ int main() {
   
   // We use the ScaledModelComponent decorator for applying the axes scaling.
   // For this we need two more parameters describing the scaling factors.
-  ManualParameter x_scale {2.};
-  ManualParameter y_scale {.5};
+  auto x_scale = std::make_shared<ManualParameter>(2.);
+  auto y_scale = std::make_shared<ManualParameter>(.5);
   auto scaled_exp = make_unique<ScaledModelComponent>(move(exp), x_scale, y_scale);
   
   // Similarly we use the RotatedModelComponent decorator to rotate the already
   // scaled component by 30 degrees
-  ManualParameter exp_rot_angle {M_PI / 6.};
+  auto exp_rot_angle = std::make_shared<ManualParameter>(M_PI / 6.);
   auto rotated_exp = make_unique<RotatedModelComponent>(move(scaled_exp), exp_rot_angle);
   
   //
@@ -97,13 +98,13 @@ int main() {
   //   is too sharp
   // - We rotate it by 30 degrees to the opposite direction
   // Note that because we use the same scaling factors we reuse the same parameters.
-  ManualParameter dev_i0 {525.3};
-  ManualParameter dev_n {4.};
-  ManualParameter dev_k {7.66924944};
+  auto dev_i0 = std::make_shared<ManualParameter>(525.3);
+  auto dev_n = std::make_shared<ManualParameter>(4.);
+  auto dev_k = std::make_shared<ManualParameter>(7.66924944);
   auto dev_reg_man = make_unique<AutoSharp>();
   auto dev = make_unique<SersicModelComponent>(move(dev_reg_man), dev_i0, dev_n, dev_k);
   auto scaled_dev = make_unique<ScaledModelComponent>(move(dev), x_scale, y_scale);
-  ManualParameter dev_rot_angle {-M_PI / 6.};
+  auto dev_rot_angle = std::make_shared<ManualParameter>(-M_PI / 6.);
   auto rotated_dev = make_unique<RotatedModelComponent>(move(scaled_dev), dev_rot_angle);
   
   //
@@ -118,10 +119,10 @@ int main() {
   //   We do not apply any scaling at this example.
   // - The rotation of the extended model. It is applied to all the components.
   // - The size (in arcsec) of the model (???from the detection step???)
-  ManualParameter x {0};
-  ManualParameter y {0};
-  ManualParameter model_scale {1.};
-  ManualParameter model_angle {M_PI / 4.};
+  auto x = std::make_shared<ManualParameter>(0);
+  auto y = std::make_shared<ManualParameter>(0);
+  auto model_scale = std::make_shared<ManualParameter>(1.);
+  auto model_angle = std::make_shared<ManualParameter>(M_PI / 4.);
   double width = 10.;
   double height = 10.;
   
@@ -131,8 +132,8 @@ int main() {
   component_list.emplace_back(move(rotated_dev));
   
   // We finally create the extended model
-  ExtendedModel extended_model {move(component_list), model_scale, model_scale,
-                                model_angle, width, height, x, y};
+  auto extended_model = std::make_shared<ExtendedModel<cv::Mat>>(move(component_list), model_scale, model_scale,
+                                model_angle, width, height, x, y);
                                 
   //
   // Model demonstration
@@ -148,7 +149,7 @@ int main() {
   // class is provided. For the cv::Mat this specialization is defined in the
   // ModelFitting/Image/OpenCvMatImageTraits.h file, which is included at the
   // top of this file.
-  auto image = extended_model.getRasterizedImage<cv::Mat>(.1, 201, 301);
+  auto image = extended_model->getRasterizedImage(.1, 201, 301);
   writeToFits(image, "example1.fits");
   
 }

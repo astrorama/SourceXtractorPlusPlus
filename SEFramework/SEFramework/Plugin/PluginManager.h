@@ -30,6 +30,7 @@
 #if USE_BOOST_DLL
 #include <boost/dll/shared_library.hpp>
 #endif
+#include <boost/filesystem/path.hpp>
 
 #include <memory>
 #include <vector>
@@ -88,7 +89,7 @@ public:
   }
 
 private:
-  std::string m_plugin_path;
+  boost::filesystem::path m_plugin_path;
   std::vector<std::string> m_plugin_list;
 
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;

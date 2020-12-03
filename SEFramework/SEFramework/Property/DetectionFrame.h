@@ -25,10 +25,8 @@
 #define _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAME_H_
 
 #include "SEFramework/Frame/Frame.h"
-
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+
 
 namespace SourceXtractor {
 

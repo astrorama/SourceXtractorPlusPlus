@@ -22,10 +22,12 @@
  */
 
 
-#include "ModelFitting/utils.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/ExtendedModel.h"
 #include "ModelFitting/Models/FlattenedMoffatComponent.h"
+
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
@@ -33,20 +35,21 @@
 namespace SourceXtractor {
 
 using namespace ModelFitting;
+using Euclid::make_unique;
 
 MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   m_iterations = model.getIterations();
 
-  ManualParameter x(model.getX());
-  ManualParameter y(model.getY());
-  ManualParameter moffat_i0(model.getMoffatI0());
-  ManualParameter moffat_index(model.getMoffatIndex());
-  ManualParameter minkowski_exponent(model.getMinkowksiExponent());
-  ManualParameter flat_top_offset(model.getTopOffset());
+  auto x = std::make_shared<ManualParameter>(model.getX());
+  auto y = std::make_shared<ManualParameter>(model.getY());
+  auto moffat_i0 = std::make_shared<ManualParameter>(model.getMoffatI0());
+  auto moffat_index = std::make_shared<ManualParameter>(model.getMoffatIndex());
+  auto minkowski_exponent = std::make_shared<ManualParameter>(model.getMinkowksiExponent());
+  auto flat_top_offset = std::make_shared<ManualParameter>(model.getTopOffset());
   double size = model.getSize();
-  ManualParameter x_scale(model.getXScale());
-  ManualParameter y_scale(model.getYScale());
-  ManualParameter moffat_rotation(model.getMoffatRotation());
+  auto x_scale = std::make_shared<ManualParameter>(model.getXScale());
+  auto y_scale= std::make_shared<ManualParameter>(model.getYScale());
+  auto moffat_rotation= std::make_shared<ManualParameter>(model.getMoffatRotation());
 
   // Moffat model
   std::vector<std::unique_ptr<ModelComponent>> component_list {};
@@ -54,7 +57,7 @@ MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   component_list.clear();
   component_list.emplace_back(std::move(moff));
 
-  m_model = std::make_shared<ExtendedModel>(
+  m_model = std::make_shared<ExtendedModel<ImageInterfaceTypePtr>>(
       std::move(component_list), x_scale, y_scale, moffat_rotation, size, size, x, y);
 }
 

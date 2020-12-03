@@ -33,8 +33,6 @@
 #include "SEFramework/Image/ImageBase.h"
 
 
-// FIXME get rid of offset, it was a bad idea
-
 namespace SourceXtractor {
 
 /**
@@ -55,17 +53,12 @@ template <typename T>
 class VectorImage final : public ImageBase<T>, public WriteableImage<T> {
 protected:
 
-  VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height), m_offset(0,0) {
-    assert(width > 0 && height > 0);
-  }
-
-  VectorImage(int width, int height, PixelCoordinate offset) :
-    m_width(width), m_height(height), m_data(width * height), m_offset(offset) {
+  VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height) {
     assert(width > 0 && height > 0);
   }
 
   VectorImage(int width, int height, std::vector<T> data) :
-      m_width(width), m_height(height), m_data(std::move(data)), m_offset(0, 0) {
+      m_width(width), m_height(height), m_data(std::move(data)) {
     assert(width > 0 && height > 0);
     assert(m_data.size() == std::size_t(width * height));
   }
@@ -81,7 +74,7 @@ protected:
   }
   
   VectorImage(const Image<T>& other_image) :
-    m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height), m_offset(0,0) {
+    m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height) {
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
         setValue(x, y, other_image.getValue(x, y));
@@ -123,9 +116,6 @@ public:
   }
 
   T& at(int x, int y) {
-    x = x - m_offset.m_x;
-    y = y - m_offset.m_y;
-
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     return m_data[x + y * m_width];
   }
@@ -142,10 +132,6 @@ public:
     return m_data;
   }
 
-  PixelCoordinate getOffset() const {
-    return m_offset;
-  }
-
   /**
    * @brief Destructor
    */
@@ -157,11 +143,9 @@ public:
 
 
 private:
-
   int m_width;
   int m_height;
   std::vector<T> m_data;
-  PixelCoordinate m_offset;
 
 }; /* End of VectorImage class */
 

@@ -19,12 +19,14 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include <boost/python.hpp>
 #include "SEImplementation/PythonConfig/PyOutputWrapper.h"
+#include <boost/locale/encoding_utf.hpp>
+#include <boost/python/extract.hpp>
 
 namespace SourceXtractor {
 
 namespace bp = boost::python;
+using boost::locale::conv::utf_to_utf;
 
 PyOutputWrapper::PyOutputWrapper(Elements::Logging& logger) : closed(false), m_logger(logger) {}
 
@@ -93,7 +95,27 @@ bool PyOutputWrapper::writable() const {
   return true;
 }
 
-int PyOutputWrapper::write(const std::string& str) {
+int PyOutputWrapper::write(const bp::object& obj) {
+  bp::extract<std::string> string_extractor{obj};
+  bp::extract<std::wstring> unicode_extractor{obj};
+  std::string str;
+
+  if (string_extractor.check()) {
+    str = string_extractor;
+  }
+  else if (unicode_extractor.check()) {
+    std::wstring unicode = unicode_extractor;
+    str = utf_to_utf<char>(unicode.c_str(), unicode.c_str() + unicode.size());
+  }
+  else {
+    std::string obj_type_name = bp::extract<std::string>(obj.attr("__class__").attr("__name__"));
+    PyErr_Format(PyExc_TypeError,
+                 "SourceXtractor output wrapper only accepts classic strings or unicode strings, got %s",
+                 obj_type_name.c_str()
+    );
+    bp::throw_error_already_set();
+  }
+
   for (auto c : str) {
     if (c == '\n') {
       m_logger.info() << m_buffer.str();
@@ -105,10 +127,9 @@ int PyOutputWrapper::write(const std::string& str) {
   return str.size();
 }
 
-void PyOutputWrapper::writelines(const boost::python::list& lines) {
+void PyOutputWrapper::writelines(const bp::list& lines) {
   for (int i = 0; i < bp::len(lines); ++i) {
-    std::string line = bp::extract<std::string>(lines[i]);
-    m_logger.info() << line;
+    write(lines[i]);
   }
 }
 

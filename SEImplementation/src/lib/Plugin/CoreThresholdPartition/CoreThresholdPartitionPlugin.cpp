@@ -14,24 +14,16 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/** 
- * @file utils.h
- * @date September 2, 2015
- * @author Nikolaos Apostolakos
+/**
+ * @file CoreThresholdPartitionPlugin.cpp
+ *
+ * @date May 27, 2019
+ * @author mkuemmel@usm.lmu.de
  */
 
-#ifndef MODELFITTING_UTILS_H
-#define	MODELFITTING_UTILS_H
+#include "SEFramework/Plugin/StaticPlugin.h"
+#include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionPlugin.h"
 
-#include <memory>
-#include <utility>
-
-/// Creates a unique_ptr to an object of type T, which is constructed by using
-/// the given arguments
-template <typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-  return std::unique_ptr<T>{new T(std::forward<Args>(args)...)};
+namespace SourceXtractor {
+  static StaticPlugin<CoreThresholdPartitionPlugin> n_core_pixels;
 }
-
-#endif	/* MODELFITTING_UTILS_H */
-

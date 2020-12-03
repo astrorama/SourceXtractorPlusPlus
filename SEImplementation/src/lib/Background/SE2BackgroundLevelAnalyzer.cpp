@@ -32,6 +32,7 @@
 #include "ElementsKernel/Logging.h"         // for Logging::LogMessageStream, etc
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEImplementation/Background/SE2BackgroundUtils.h"
 #include "SEImplementation/Background/SE2BackgroundModeller.h"
 #include "SEImplementation/Background/SE2BackgroundLevelAnalyzer.h"
@@ -56,7 +57,7 @@ SE2BackgroundLevelAnalyzer::SE2BackgroundLevelAnalyzer(const std::string &cell_s
   else if (m_cell_size.size()<2){
     m_cell_size.push_back(m_cell_size[0]);
   }
-  if (m_cell_size.size()<1){
+  if (m_smoothing_box.size()<1){
     throw Elements::Exception() << "Can not convert to 'int': '" << smoothing_box;
   }
   else if (m_smoothing_box.size()<2){
@@ -68,8 +69,6 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
     std::shared_ptr<DetectionImage> image,
     std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask,
     WeightImage::PixelType variance_threshold) const {
-
-  bck_model_logger.debug() << "Analyzing background for " << image->getRepr();
 
   if (mask!=nullptr)
   {
@@ -93,13 +92,18 @@ BackgroundModel SE2BackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // create the background model
-  auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold);
+  SeFloat bck_median;
+  SeFloat var_median;
+  auto bck_model = fromSE2Modeller(image, variance_map, mask, variance_threshold, bck_median, var_median);
+
+  // give some feedback
+  bck_model_logger.info() << "Background for image: " << image->getRepr() << " median: " << bck_median << " rms: " << sqrt(var_median) << "!";
 
   // return model
   return bck_model;
 }
 
-BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold) const {
+BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map, std::shared_ptr<Image<unsigned char>> mask, WeightImage::PixelType variance_threshold, SeFloat &bck_median, SeFloat &var_median) const {
   std::shared_ptr<SE2BackgroundModeller> bck_modeller(new SE2BackgroundModeller(image, variance_map, mask, 0x0001));
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelBckPtr;
   std::shared_ptr<TypedSplineModelWrapper<SeFloat>> splModelVarPtr;
@@ -112,6 +116,10 @@ BackgroundModel SE2BackgroundLevelAnalyzer::fromSE2Modeller(std::shared_ptr<Dete
 
   // create the background model and the rms model
   bck_modeller->createSE2Models(splModelBckPtr, splModelVarPtr, sigFac, bckCellSize, variance_threshold, filterBoxSize);
+
+  // assign the median and variance value
+  bck_median = splModelBckPtr->getMedian();
+  var_median = splModelVarPtr->getMedian();
 
   bck_model_logger.debug() << "\tMedian background value: "<< splModelBckPtr->getMedian();
   bck_model_logger.debug() << "\tMedian variance value: "<< splModelVarPtr->getMedian();

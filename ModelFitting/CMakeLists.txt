@@ -9,33 +9,46 @@ elements_depends_on_subdirs(SEUtils)
 #    The module is using the Boost C++ library
 find_package(Boost)
 find_package(Levmar)
+find_package(GSL 2.2.1)
 
 # Instruction for creating a C++ library
 #    ModelFitting is the library name
 #    src/lib/*.cpp are the source files
+file (GLOB ENGINE_SRC src/lib/Engine/*.cpp)
+
 if (NOT LEVMAR_FOUND)
-    set(WITHOUT_LEVMAR ON PARENT_SCOPE)
-    add_definitions(-DWITHOUT_LEVMAR)
-    message(WARNING "
-Levmar library not found, compiling without Levmar support!
-This will generate a version of sourcextractor++ without model fitting")
+    file(GLOB LEVMAR_SRC src/lib/Engine/LevmarEngine.cpp)
+    list(REMOVE_ITEM  ENGINE_SRC ${LEVMAR_SRC})
+    message("Levmar library not found, compiling without Levmar support!")
 else ()
     set (LEVMAR Levmar)
+endif ()
+if (NOT GSL_FOUND)
+    file(GLOB GSL_SRC src/lib/Engine/GSLEngine.cpp)
+    list(REMOVE_ITEM ENGINE_SRC ${GSL_SRC})
+    message("GSL >= 2.2.1 library not found, compiling without GSL support!")
+else ()
+    set (GSL GSL)
+endif ()
+
+if (NOT LEVMAR_FOUND AND NOT GSL_FOUND)
+    set(WITHOUT_MODELFITTING ON PARENT_SCOPE)
+    message(WARNING "Levmar and GSL not found. This will generate a version of sourcextractor++ without model fitting")
 endif ()
 
 elements_add_library(ModelFitting
                      src/lib/Parameters/*.cpp
-                     src/lib/Engine/*.cpp
+                     ${ENGINE_SRC}
                      src/lib/Models/*.cpp
-                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR}
-                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS}
+                     LINK_LIBRARIES ElementsKernel Boost ${LEVMAR} ${GSL}
+                     INCLUDE_DIRS ${LEVMAR_INCLUDE_DIRS} ${GSL_INCLUDE_DIRS}
                      PUBLIC_HEADERS ModelFitting)
 
 # Instruction for Python module installation
 #elements_install_python_modules()
 
 # Install the configuration files
-elements_install_conf_files()
+# elements_install_conf_files()
 
 # Instruction for building C++ tests
 elements_add_unit_test(ManualParameter_test                  
@@ -118,4 +131,7 @@ if (OPENCV_FOUND AND CCFITS_FOUND)
     elements_add_executable(Example_gal2 src/program/Example_gal2.cpp
                             LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS}
                             INCLUDE_DIRS ${CCFITS_INCLUDE_DIRS})
+
+    elements_add_executable(Example_SimpleFit src/program/Example_SimpleFit.cpp
+                            LINK_LIBRARIES ModelFitting ${CCFITS_LIBRARIES} ${OpenCV_LIBS})
 endif ()

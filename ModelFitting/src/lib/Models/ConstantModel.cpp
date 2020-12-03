@@ -24,18 +24,18 @@
 
 namespace ModelFitting {
 
-ConstantModel::ConstantModel(BasicParameter& value)
-        : m_value {value.getValue()}, m_value_updater{value, m_value} {
+ConstantModel::ConstantModel(std::shared_ptr<BasicParameter> value)
+        : m_value {value} {
 }
 
 ConstantModel::ConstantModel(ConstantModel&& other)
-    : m_value {other.m_value}, m_value_updater{other.m_value_updater.getParameter(), m_value} {
+    : m_value {other.m_value} {
 }
 
 ConstantModel::~ConstantModel() = default;
     
 double ConstantModel::getValue() const {
-  return m_value;
+  return m_value->getValue();
 }
 
 } // end of namespace ModelFitting
