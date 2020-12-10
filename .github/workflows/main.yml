@@ -108,6 +108,11 @@ jobs:
             os-version: 8
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Get package name and version
+        id: package-version
+        uses: astrorama/actions/elements-project@master
       - name: Download RPM
         uses: actions/download-artifact@v2
         with:
