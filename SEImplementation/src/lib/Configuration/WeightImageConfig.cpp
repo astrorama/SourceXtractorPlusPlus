@@ -155,7 +155,7 @@ protected:
   }
 
   void generateTile(const std::shared_ptr<Image<WeightImage::PixelType>>& image,
-                    ImageTile<DetectionImage::PixelType>& tile, int x, int y, int width, int height) const final {
+                    ImageTile& tile, int x, int y, int width, int height) const final {
     auto image_chunk = image->getChunk(x, y, width, height);
     switch (m_weight_type) {
       case WeightImageConfig::WeightType::WEIGHT_TYPE_RMS:
@@ -174,37 +174,37 @@ protected:
     }
   }
 
-  void generateFromWeight(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+  void generateFromWeight(ImageTile& tile, int width, int height,
                           const ImageChunk<WeightImage::PixelType>& image_chunk) const {
     for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {
         auto value = image_chunk.getValue(ix, iy) * m_scaling;
         if (value > 0) {
-          tile.getImage()->setValue(ix, iy, 1.0 / value);
+          tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, 1.0 / value);
         }
         else {
-          tile.getImage()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::infinity());
+          tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, std::numeric_limits<WeightImage::PixelType>::infinity());
         }
       }
     }
   }
 
-  void generateFromVariance(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+  void generateFromVariance(ImageTile& tile, int width, int height,
                             const ImageChunk<WeightImage::PixelType>& image_chunk) const {
     for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {
         auto value = image_chunk.getValue(ix, iy) * m_scaling;
-        tile.getImage()->setValue(ix, iy, value);
+        tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, value);
       }
     }
   }
 
-  void generateFromRms(ImageTile<DetectionImage::PixelType>& tile, int width, int height,
+  void generateFromRms(ImageTile& tile, int width, int height,
                        const ImageChunk<WeightImage::PixelType>& image_chunk) const {
     for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {
         auto value = image_chunk.getValue(ix, iy) * m_scaling;
-        tile.getImage()->setValue(ix, iy, value * value);
+        tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, value * value);
       }
     }
   }

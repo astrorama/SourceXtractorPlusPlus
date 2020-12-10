@@ -41,8 +41,7 @@ std::string BgDFTConvolutionImageSource::getRepr() const {
 }
 
 void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image,
-                                               ImageTile<DetectionImage::PixelType>& tile,
-                                               int start_x, int start_y, int width, int height) const {
+                                               ImageTile& tile, int start_x, int start_y, int width, int height) const {
   int hx = m_convolution.getWidth() / 2;
   int hy = m_convolution.getHeight() / 2;
   int clip_x = std::max(start_x - hx, 0);

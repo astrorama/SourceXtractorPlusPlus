@@ -45,6 +45,7 @@ struct FitsReaderFixture {
 
 BOOST_AUTO_TEST_SUITE (FitsReader_test)
 
+
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
@@ -57,7 +58,7 @@ BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE ( image_source, FitsReaderFixture ) {
-  auto img = FitsImageSource<SeFloat>(m_tmp_fits.path().native());
+  auto img = FitsImageSource(m_tmp_fits.path().native());
   int naxis;
   img.readFitsKeyword("NAXIS", naxis);
   BOOST_CHECK_EQUAL(naxis, 2);
@@ -70,6 +71,7 @@ BOOST_AUTO_TEST_CASE( missing_file ) {
 }
 
 //-----------------------------------------------------------------------------
+
 
 BOOST_AUTO_TEST_SUITE_END ()
 
