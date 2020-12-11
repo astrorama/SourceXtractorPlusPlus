@@ -39,12 +39,12 @@ template <typename T>
 class BufferedImage : public ImageBase<T> {
 protected:
 
-  BufferedImage(std::shared_ptr<const ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager);
+  BufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager);
 
 public:
   virtual ~BufferedImage() = default;
 
-  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<const ImageSource<T>> source,
+  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<const ImageSource> source,
       std::shared_ptr<TileManager> tile_manager = TileManager::getInstance());
 
   std::string getRepr() const override;
@@ -61,11 +61,11 @@ public:
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override;
 
 protected:
-  std::shared_ptr<const ImageSource<T>> m_source;
+  std::shared_ptr<const ImageSource> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
-  mutable std::shared_ptr<ImageTile<T>> m_current_tile;
+  mutable std::shared_ptr<ImageTile> m_current_tile;
 
-  void copyOverlappingPixels(const ImageTile<T> &tile, std::vector<T> &output,
+  void copyOverlappingPixels(const ImageTile &tile, std::vector<T> &output,
                              int x, int y, int w, int h,
                              int tile_w, int tile_h) const;
 };

@@ -57,7 +57,7 @@ static int wrapped_lincpy(int alloc, const struct linprm *linsrc, struct linprm 
 }
 
 
-WCS::WCS(const FitsImageSource<SeFloat>& fits_image_source) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
   int number_of_records = 0;
   auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
 

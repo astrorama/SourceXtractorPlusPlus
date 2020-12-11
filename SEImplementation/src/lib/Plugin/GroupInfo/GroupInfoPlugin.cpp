@@ -36,7 +36,7 @@ static StaticPlugin<GroupInfoPlugin> group_info_plugin;
 void GroupInfoPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<GroupInfoTaskFactory, GroupInfo>();
 
-  plugin_api.getOutputRegistry().registerColumnConverter<GroupInfo, double>(
+  plugin_api.getOutputRegistry().registerColumnConverter<GroupInfo, int64_t>(
       "group_id",
       [](const GroupInfo& prop){
         return prop.getGroupId();

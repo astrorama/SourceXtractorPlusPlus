@@ -43,8 +43,9 @@ static const std::string CHECK_THRESHOLDED { "check-image-thresholded" };
 static const std::string CHECK_SNR { "check-image-snr" };
 static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
-static const std::string CHECK_MOFFAT { "check-image-moffat" };
 static const std::string CHECK_PSF { "check-image-psf" };
+
+static const std::string CHECK_MOFFAT { "debug-image-moffat" };
 
 CheckImagesConfig::CheckImagesConfig(long manager_id) :
     Configuration(manager_id) {}
@@ -75,10 +76,11 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the auto aperture check image"},
       {CHECK_APERTURE.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the aperture check image"},
-      {CHECK_MOFFAT.c_str(), po::value<std::string>()->default_value(""),
-        "Path to save the moffat check image"},
       {CHECK_PSF.c_str(), po::value<std::string>()->default_value(""),
-        "Path to save the PSF check image"},
+        "Path to save the PSF check image"}
+  }}, {"Debug options (Use with caution!)", {
+      {CHECK_MOFFAT.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the moffat debug image (VERY SLOW)"}
   }}};
 }
 

@@ -32,17 +32,16 @@ namespace SourceXtractor {
 /**
  * @brief FitsTemporaryImageSource wraps FitsImageSource, generating the filename and acquiring its ownership
  */
-template <typename T>
-class TemporaryFitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
+class TemporaryFitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource>  {
 public:
-  TemporaryFitsImageSource(const std::string &pattern, int width, int height)
+  TemporaryFitsImageSource(const std::string &pattern, int width, int height, ImageTile::ImageType image_type)
       : m_temp_file(pattern),
-        m_image_source(new FitsImageSource<T>(m_temp_file.path().native(), width, height)) {
+        m_image_source(new FitsImageSource(m_temp_file.path().native(), width, height, image_type)) {
   }
 
-  TemporaryFitsImageSource(int width, int height)
+  TemporaryFitsImageSource(int width, int height, ImageTile::ImageType image_type)
     : m_temp_file(),
-      m_image_source(new FitsImageSource<T>(m_temp_file.path(), width, height)) {
+      m_image_source(new FitsImageSource(m_temp_file.path().native(), width, height, image_type)) {
   }
 
   virtual ~TemporaryFitsImageSource() = default;
@@ -55,11 +54,11 @@ public:
     return getFullPath();
   }
 
-  virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
+  virtual std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
     return m_image_source->getImageTile(x, y, width, height);
   }
 
-  virtual void saveTile(ImageTile<T>& tile) override {
+  virtual void saveTile(ImageTile& tile) override {
     return m_image_source->saveTile(tile);
   }
 
@@ -73,7 +72,7 @@ public:
 
 private:
   Elements::TempFile m_temp_file;
-  std::shared_ptr<FitsImageSource<T>> m_image_source;
+  std::shared_ptr<FitsImageSource> m_image_source;
 };
 
 }
