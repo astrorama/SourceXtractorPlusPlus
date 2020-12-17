@@ -55,7 +55,7 @@ public:
       std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
 
   FitsImageSource(const std::string &filename, int width, int height, ImageTile::ImageType image_type,
-                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr, bool append=false,
                   std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
 
   virtual ~FitsImageSource() = default;
@@ -99,6 +99,8 @@ public:
     return m_fits_file->getHDUHeaders(m_hdu_number);
   }
 
+  void setMetadata(std::string key, MetadataEntry value) override;
+
 private:
   void switchHdu(fitsfile* fptr, int hdu_number) const;
 
@@ -114,13 +116,6 @@ private:
   int m_width;
   int m_height;
   ImageTile::ImageType m_image_type;
-
-//  template<typename T>
-//  std::shared_ptr<ImageTile> getImageTileImpl(int x, int y, int width, int height) const;
-//
-//  template<typename T>
-//  void saveTileImpl(ImageTile& tile);
-
 };
 
 }
