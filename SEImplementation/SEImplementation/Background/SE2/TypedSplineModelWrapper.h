@@ -98,6 +98,10 @@ public:
     assert(false);
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 private:
   TypedSplineModelWrapper(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData){
     m_spline_model = new SplineModel(naxes, gridCellSize, nGrid, gridData);

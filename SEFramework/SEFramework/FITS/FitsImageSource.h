@@ -93,6 +93,10 @@ public:
     return m_hdu_number;
   }
 
+  ImageTile::ImageType getType() const override {
+    return m_image_type;
+  }
+
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
   const std::map<std::string, MetadataEntry> getMetadata() const override {

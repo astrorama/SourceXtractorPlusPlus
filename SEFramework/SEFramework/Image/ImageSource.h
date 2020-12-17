@@ -69,6 +69,8 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
+  virtual ImageTile::ImageType getType() const = 0;
+
   /**
    * @return A copy of the metadata set
    */

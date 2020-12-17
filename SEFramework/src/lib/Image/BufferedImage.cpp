@@ -134,5 +134,8 @@ void BufferedImage<T>::copyOverlappingPixels(const ImageTile& tile, std::vector<
 template class BufferedImage<MeasurementImage::PixelType>;
 template class BufferedImage<FlagImage::PixelType>;
 template class BufferedImage<unsigned int>;
+template class BufferedImage<int>;
+template class BufferedImage<double>;
+
 
 } // end namespace SourceXtractor

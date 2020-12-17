@@ -150,6 +150,10 @@ public:
     return m_height;
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 private:
   std::shared_ptr<Image<T>> m_image;
   int m_width, m_height;
