@@ -70,9 +70,10 @@ public:
  */
 struct ProcessSourcesEvent {
 
-  const SelectionCriteria& m_selection_criteria;   // Used to identify the Sources to process
+  const std::shared_ptr<SelectionCriteria> m_selection_criteria;   // Used to identify the Sources to process
 
-  ProcessSourcesEvent(const SelectionCriteria& selection_criteria) : m_selection_criteria(selection_criteria) {}
+  ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
+    : m_selection_criteria(selection_criteria) {}
 };
 
 /**
@@ -89,6 +90,9 @@ public:
 
   /// Determines if the two sources should be grouped together
   virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const = 0;
+
+  /// Return a set of used properties so they can be pre-fetched
+  virtual std::set<PropertyId> requiredProperties() const { return {}; }
 };
 
 /**
@@ -113,8 +117,11 @@ public:
   /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
 
-  // Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
+  /// Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
   virtual void handleMessage(const ProcessSourcesEvent& source) override;
+
+  /// Returns the set of required properties to compute the grouping
+  std::set<PropertyId> requiredProperties() const;
 
 private:
 

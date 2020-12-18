@@ -36,7 +36,7 @@ namespace SourceXtractor {
 
 class WCS : public CoordinateSystem {
 public:
-  explicit WCS(const FitsImageSource<SeFloat>& fits_image_source);
+  explicit WCS(const FitsImageSource& fits_image_source);
   virtual ~WCS();
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;

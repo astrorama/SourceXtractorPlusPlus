@@ -76,9 +76,10 @@ struct SourceGroupingFixture {
 
   std::shared_ptr<SourceGroupObserver> source_group_observer {new SourceGroupObserver};
 
-  SelectAllCriteria select_all_criteria;
+  std::shared_ptr<SelectAllCriteria> select_all_criteria;
 
   SourceGroupingFixture() {
+    select_all_criteria = std::make_shared<SelectAllCriteria>();
     source_grouping->addObserver(source_group_observer);
     source_a->setProperty<IdProperty>("A");
     source_b->setProperty<IdProperty>("B");

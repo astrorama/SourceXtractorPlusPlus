@@ -18,7 +18,9 @@
 #ifndef _SEFRAMEWORK_IMAGE_SUBIMAGE_H_
 #define _SEFRAMEWORK_IMAGE_SUBIMAGE_H_
 
+#include <memory>
 
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageBase.h"
 
 namespace SourceXtractor {
@@ -37,14 +39,25 @@ protected:
         offset.m_x + width <= image->getWidth() && offset.m_y + height <= image->getHeight());
   }
 
+  SubImage(std::shared_ptr<const Image<T>> image, int x, int y, int width, int height)
+    : m_image(image), m_offset(x, y), m_width(width), m_height(height) {
+    assert(x >= 0 && y >= 0 && width > 0 && height > 0 &&
+        x + width <= image->getWidth() && y + height <= image->getHeight());
+  }
+
 public:
+  /**
+   * @brief Destructor
+   */
+  virtual ~SubImage() = default;
+
   template<typename... Args>
   static std::shared_ptr<SubImage<T>> create(Args &&... args) {
     return std::shared_ptr<SubImage<T>>(new SubImage{std::forward<Args>(args)...});
   }
 
   std::string getRepr() const override {
-    return "SubImage(" + m_image->getRepr() + ")";
+    return "SubImage(" + m_image->getRepr() + ", " + std::to_string(m_x) + ", " + std::to_string(m_y) + ", " + std::to_string(m_width) + ", " + std::to_string(m_height) + ")";
   }
 
   int getWidth() const override {
@@ -65,8 +78,6 @@ private:
   int m_width, m_height;
 };
 
-} // end SourceXtractor
-
-
+} /* namespace SourceXtractor */
 
 #endif /* _SEFRAMEWORK_IMAGE_SUBIMAGE_H_ */

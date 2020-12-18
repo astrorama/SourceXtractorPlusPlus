@@ -23,80 +23,34 @@
 
 #ifndef _SEFRAMEWORK_IMAGE_IMAGETILE_H_
 #define _SEFRAMEWORK_IMAGE_IMAGETILE_H_
-
+#include <iostream>
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
-template<typename T> class ImageSource;
+class ImageSource;
 
-class ImageTileBase {
+class ImageTile {
 public:
-  ImageTileBase() : m_modified(false) {}
 
-  virtual ~ImageTileBase() = default;
+  enum ImageType {
+    AutoType=-1,
+    FloatImage=0,
+    DoubleImage,
+    IntImage,
+    UIntImage,
+    LongLongImage,
+  };
 
-  virtual int getTileSize() const = 0;
+  static std::shared_ptr<ImageTile> create(ImageType image_type, int x, int y, int width, int height, std::shared_ptr<ImageSource> source=nullptr);
 
-  void setModified(bool modified) {
-    m_modified = modified;
-  }
-
-  bool isModified() const {
-    return m_modified;
-  }
-
-  virtual void saveIfModified() = 0;
-
-private:
-  bool m_modified;
-};
-
-template <typename T>
-class ImageTile : public ImageTileBase {
-public:
-  ImageTile(std::shared_ptr<ImageSource<T>> source, int x, int y, int width, int height) : m_source(source), m_x(x), m_y(y), m_max_x(x+width), m_max_y(y+height) {
-    m_tile_image = VectorImage<T>::create(width, height);
-  }
-
-  ImageTile(int x, int y, int width, int height) : m_source(nullptr), m_x(x), m_y(y), m_max_x(x+width), m_max_y(y+height) {
-    m_tile_image = VectorImage<T>::create(width, height);
-  }
-
-  virtual ~ImageTile() override {
+  virtual ~ImageTile() {
     saveIfModified();
   }
 
   bool isPixelInTile(int x, int y) const {
     return x >= m_x && y >= m_y && x < m_max_x && y < m_max_y;
-  }
-
-  T getValue(int x, int y) const {
-    assert(isPixelInTile(x,y));
-
-    return m_tile_image->getValue(x-m_x, y-m_y);
-  }
-
-  void setValue(int x, int y, T value) {
-    assert(isPixelInTile(x,y));
-
-    return m_tile_image->setValue(x-m_x, y-m_y, value);
-  }
-
-  std::shared_ptr<VectorImage<T>>& getImage() {
-    return m_tile_image;
-  }
-
-  int getTileSize() const override {
-    return (m_max_x-m_x) * (m_max_y-m_y) * sizeof(T);
-  }
-
-  virtual void saveIfModified() override {
-    if (isModified()) {
-      m_source->saveTile(*this);
-      setModified(false);
-    }
   }
 
   int getPosX() const {
@@ -107,11 +61,132 @@ public:
     return m_y;
   }
 
-private:
-  std::shared_ptr<ImageSource<T>> m_source;
+  virtual int getTileMemorySize() const = 0;
+
+  int getWidth() const {
+    return m_max_x - m_x;
+  }
+
+  int getHeight() const {
+    return m_max_y - m_y;
+  }
+
+  template<typename T>
+  T getValue(int x, int y) const {
+    T value;
+    getValue(x, y, value);
+    return value;
+  }
+
+  virtual void setValue(int x, int y, float value) = 0;
+  virtual void setValue(int x, int y, double value) = 0;
+  virtual void setValue(int x, int y, int value) = 0;
+  virtual void setValue(int x, int y, unsigned int value) = 0;
+  virtual void setValue(int x, int y, long int value) = 0;
+
+  template<typename T>
+  std::shared_ptr<VectorImage<T>> getImage() const {
+    if (m_image_type == getTypeValue(T())) {
+      return std::static_pointer_cast<VectorImage<T>>(m_tile_image);
+    } else {
+      //FIXME implement type conversion !!!!!!!!!!!!!!!!
+      return nullptr;
+    }
+  }
+
+  virtual void* getDataPtr()=0;
+
+  void setModified(bool modified) {
+    m_modified = modified;
+  }
+
+  bool isModified() const {
+    return m_modified;
+  }
+
+  virtual void saveIfModified();
+
+  static ImageType getTypeValue(float) {
+    return FloatImage;
+  }
+
+  static ImageType getTypeValue(double) {
+    return DoubleImage;
+  }
+
+  static ImageType getTypeValue(int) {
+    return IntImage;
+  }
+
+  static ImageType getTypeValue(unsigned int) {
+    return UIntImage;
+  }
+
+  static ImageType getTypeValue(long int) {
+    return LongLongImage;
+  }
+
+//  static ImageType getTypeValue(std::int64_t) {
+//    return LongLongImage;
+//  }
+
+  static size_t getTypeSize(ImageType image_type) {
+    switch (image_type) {
+    default:
+    case ImageTile::FloatImage:
+    case ImageTile::IntImage:
+    case ImageTile::UIntImage:
+      return 4;
+    case ImageTile::LongLongImage:
+    case ImageTile::DoubleImage:
+      return 8;
+    }
+  }
+
+protected:
+  virtual void getValue(int x, int y, float& value) const = 0;
+  virtual void getValue(int x, int y, double& value) const = 0;
+  virtual void getValue(int x, int y, int& value) const = 0;
+  virtual void getValue(int x, int y, unsigned int& value) const = 0;
+  virtual void getValue(int x, int y, long int& value) const = 0;
+
+
+  ImageTile(ImageType image_type, int x, int y, int width, int height, std::shared_ptr<ImageSource> source=nullptr)
+      : m_modified(false), m_image_type(image_type), m_source(source), m_x(x), m_y(y), m_max_x(x+width), m_max_y(y+height) {
+    createImage(image_type, width, height);
+  }
+
+  void createImage(ImageType image_type, int width, int height) {
+    //std::cout << "create tile type " << image_type << "\n";
+    switch (image_type) {
+    default:
+    case FloatImage:
+      m_tile_image = VectorImage<float>::create(width, height);
+      break;
+    case DoubleImage:
+      m_tile_image = VectorImage<double>::create(width, height);
+      break;
+    case IntImage:
+      m_tile_image = VectorImage<int>::create(width, height);
+      break;
+    case UIntImage:
+      m_tile_image = VectorImage<unsigned int>::create(width, height);
+      break;
+    case LongLongImage:
+      m_tile_image = VectorImage<long int>::create(width, height);
+      break;
+    }
+  }
+
+  bool m_modified;
+
+  ImageType m_image_type;
+
+  std::shared_ptr<ImageSource> m_source;
   int m_x, m_y;
   int m_max_x, m_max_y;
-  std::shared_ptr<VectorImage<T>> m_tile_image;
+
+  std::shared_ptr<void> m_tile_image;
 };
 
 

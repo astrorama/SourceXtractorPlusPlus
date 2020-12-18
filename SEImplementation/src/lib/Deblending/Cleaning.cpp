@@ -165,5 +165,12 @@ std::shared_ptr<SourceInterface> Cleaning::mergeSources(SourceInterface& parent,
   return new_source;
 }
 
+std::set<PropertyId> Cleaning::requiredProperties() const {
+  return {
+    PropertyId::create<PixelCoordinateList>(),
+    PropertyId::create<MoffatModelEvaluator>()
+  };
+}
+
 }
 

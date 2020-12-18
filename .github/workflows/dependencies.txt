@@ -1,0 +1,16 @@
+$PYTHON-devel
+$PYTHON-numpy
+$PYTHON-pytest
+$PYTHON-sphinx
+CCfits-devel
+blas-devel
+boost-$PYTHON-devel
+boost-devel
+doxygen
+fftw-devel
+gmock-devel
+graphviz
+gtest-devel
+levmar-devel
+log4cpp-devel
+wcslib-devel
