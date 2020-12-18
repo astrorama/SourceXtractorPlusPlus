@@ -35,14 +35,10 @@ using namespace SourceXtractor;
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-    if (source)
-      m_list.push_back(source);
-    else
-      m_done = true;
+    m_list.push_back(source);
   }
 
   std::list<std::shared_ptr<SourceInterface>> m_list;
-  bool m_done;
 };
 
 
@@ -164,7 +160,6 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   // Check that we have the right number of sources
   BOOST_CHECK_EQUAL(source_observer->m_list.size(), group_images.size());
-  BOOST_CHECK(source_observer->m_done);
 
   // For each source that was produced by Lutz, check that it matches one of the groups we had at the start
   // and remove that group
