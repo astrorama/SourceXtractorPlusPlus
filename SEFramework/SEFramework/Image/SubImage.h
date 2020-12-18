@@ -57,7 +57,7 @@ public:
   }
 
   std::string getRepr() const override {
-    return "SubImage(" + m_image->getRepr() + ", " + std::to_string(m_offset.x) + ", " + std::to_string(m_offset.y) + ", " + std::to_string(m_width) + ", " + std::to_string(m_height) + ")";
+    return "SubImage(" + m_image->getRepr() + ", " + std::to_string(m_offset.m_x) + ", " + std::to_string(m_offset.m_y) + ", " + std::to_string(m_width) + ", " + std::to_string(m_height) + ")";
   }
 
   int getWidth() const override {
