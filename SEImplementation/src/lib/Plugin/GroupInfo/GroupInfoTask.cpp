@@ -29,7 +29,7 @@
 namespace SourceXtractor {
 
 void GroupInfoTask::computeProperties(SourceGroupInterface& group) const {
-  static std::atomic_uint32_t group_id(1);
+  static std::atomic<std::uint32_t> group_id(1);
   group.setProperty<GroupInfo>(group_id++);
 }
 
