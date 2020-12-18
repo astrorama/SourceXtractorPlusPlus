@@ -56,7 +56,9 @@ public:
     m_listener.notifyProgress(line, total);
 
     if (m_window_size > 0 && line > m_window_size) {
-      m_listener.requestProcessing(ProcessSourcesEvent(LineSelectionCriteria(line - m_window_size)));
+      m_listener.requestProcessing(
+        ProcessSourcesEvent(std::make_shared<LineSelectionCriteria>(line - m_window_size))
+      );
     }
   }
 

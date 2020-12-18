@@ -121,7 +121,7 @@ public:
     auto it = m_tile_map.find(key);
     if (it != m_tile_map.end()) {
 #ifndef NDEBUG
-      m_tile_logger.debug() << "Cache hit " << key;
+      //m_tile_logger.debug() << "Cache hit " << key;
 #endif
       return std::dynamic_pointer_cast<ImageTile>(it->second);
     } else {
@@ -160,7 +160,7 @@ private:
 
   void removeTile(TileKey tile_key) {
 #ifndef NDEBUG
-    m_tile_logger.debug() << "Cache eviction " << tile_key;
+    //m_tile_logger.debug() << "Cache eviction " << tile_key;
 #endif
 
     auto& tile = m_tile_map.at(tile_key);
@@ -182,7 +182,7 @@ private:
 
   void addTile(TileKey key, std::shared_ptr<ImageTile> tile) {
 #ifndef NDEBUG
-    m_tile_logger.debug() << "Cache miss " << key;
+    //m_tile_logger.debug() << "Cache miss " << key;
 #endif
 
     m_tile_map[key] = tile;

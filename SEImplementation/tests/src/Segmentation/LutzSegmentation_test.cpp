@@ -35,7 +35,7 @@ using namespace SourceXtractor;
 class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
 public:
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-      m_list.push_back(source);
+    m_list.push_back(source);
   }
 
   std::list<std::shared_ptr<SourceInterface>> m_list;

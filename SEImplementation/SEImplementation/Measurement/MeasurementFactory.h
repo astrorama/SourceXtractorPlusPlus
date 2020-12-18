@@ -27,6 +27,7 @@
 #include "SEFramework/Output/Output.h"
 #include "SEFramework/Pipeline/Measurement.h"
 #include "SEFramework/Configuration/Configurable.h"
+#include "AlexandriaKernel/ThreadPool.h"
 
 namespace SourceXtractor {
 
@@ -52,6 +53,7 @@ public:
 private:
   std::vector<std::string> m_output_properties;
   std::shared_ptr<OutputRegistry> m_output_registry;
+  std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
 
   unsigned int m_threads_nb;
 };
