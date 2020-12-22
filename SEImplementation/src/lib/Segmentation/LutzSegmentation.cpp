@@ -35,6 +35,8 @@
 
 namespace SourceXtractor {
 
+namespace {
+
 class LutzLabellingListener : public Lutz::LutzListener {
 public:
   LutzLabellingListener(Segmentation::LabellingListener& listener, std::shared_ptr<SourceFactory> source_factory,
@@ -67,6 +69,8 @@ private:
   std::shared_ptr<SourceFactory> m_source_factory;
   int m_window_size;
 };
+
+}
 
 //
 // class LutzSegmentation

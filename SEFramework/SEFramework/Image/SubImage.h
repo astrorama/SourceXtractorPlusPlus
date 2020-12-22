@@ -27,38 +27,37 @@ namespace SourceXtractor {
 
 /**
  * @class SubImage
- * @brief Extracts part of an image
- *
+ * @brief Part of another image
  */
 
-template <typename T>
+template<typename T>
 class SubImage : public ImageBase<T> {
-
 protected:
+  SubImage(std::shared_ptr<const Image<T>> image, const PixelCoordinate &offset, int width, int height)
+    : m_image(image), m_offset(offset), m_width(width), m_height(height) {
+    assert(offset.m_x >= 0 && offset.m_y >= 0 && width > 0 && height > 0 &&
+        offset.m_x + width <= image->getWidth() && offset.m_y + height <= image->getHeight());
+  }
+
   SubImage(std::shared_ptr<const Image<T>> image, int x, int y, int width, int height)
-      : m_image(image), m_x(x), m_y(y), m_width(width), m_height(height) {
-    //TODO add asserts
-  };
+    : m_image(image), m_offset(x, y), m_width(width), m_height(height) {
+    assert(x >= 0 && y >= 0 && width > 0 && height > 0 &&
+        x + width <= image->getWidth() && y + height <= image->getHeight());
+  }
 
 public:
-
   /**
    * @brief Destructor
    */
   virtual ~SubImage() = default;
 
-  static std::shared_ptr<SubImage<T>> create(
-      std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) {
-    return std::shared_ptr<SubImage<T>>(new SubImage<T>(image, x, y, width, height));
+  template<typename... Args>
+  static std::shared_ptr<SubImage<T>> create(Args &&... args) {
+    return std::shared_ptr<SubImage<T>>(new SubImage{std::forward<Args>(args)...});
   }
 
   std::string getRepr() const override {
-    return "SubImage(" + m_image->getRepr() + ", " + std::to_string(m_x) + ", " + std::to_string(m_y) + ", " + std::to_string(m_width) + ", " + std::to_string(m_height) + ")";
-  }
-
-  using Image<T>::getValue;
-  T getValue(int x, int y) const override {
-    return m_image->getValue(m_x + x, m_y + y);
+    return "SubImage(" + m_image->getRepr() + ", " + std::to_string(m_offset.m_x) + ", " + std::to_string(m_offset.m_y) + ", " + std::to_string(m_width) + ", " + std::to_string(m_height) + ")";
   }
 
   int getWidth() const override {
@@ -69,13 +68,16 @@ public:
     return m_height;
   }
 
+  T getValue(int x, int y) const override {
+    return m_image->getValue(x + m_offset.m_x, y + m_offset.m_y);
+  }
+
 private:
   std::shared_ptr<const Image<T>> m_image;
-  int m_x, m_y;
+  PixelCoordinate m_offset;
   int m_width, m_height;
 };
 
 } /* namespace SourceXtractor */
-
 
 #endif /* _SEFRAMEWORK_IMAGE_SUBIMAGE_H_ */

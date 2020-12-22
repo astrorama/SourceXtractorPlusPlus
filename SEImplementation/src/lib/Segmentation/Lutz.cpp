@@ -37,7 +37,7 @@ namespace SourceXtractor {
 
 // class Lutz
 //
-//
+// Note: this implementation uses an 8-way connection (including corners)
 
 
 enum class LutzStatus {
