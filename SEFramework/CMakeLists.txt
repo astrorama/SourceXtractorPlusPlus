@@ -30,7 +30,7 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
-find_package(FFTW COMPONENTS single double long)
+find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
 
 
@@ -44,9 +44,9 @@ find_package(WCSLIB REQUIRED)
 #===============================================================================
 elements_add_library(SEFramework
                      src/lib/Aperture/*.cpp
-                     src/lib/Pipeline/*.cpp 
+                     src/lib/Pipeline/*.cpp
                      src/lib/Property/*.cpp
-                     src/lib/Source/*.cpp 
+                     src/lib/Source/*.cpp
                      src/lib/Task/*.cpp
                      src/lib/Output/*.cpp
                      src/lib/Plugin/*.cpp
@@ -60,7 +60,7 @@ elements_add_library(SEFramework
                                     ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
                      INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
-                     
+
 #===============================================================================
 # Declare the executables here
 # Example:
@@ -78,42 +78,42 @@ elements_add_library(SEFramework
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
 if(GMOCK_FOUND)
-elements_add_unit_test(PropertyHolder_test tests/src/Property/PropertyHolder_test.cpp 
+elements_add_unit_test(PropertyHolder_test tests/src/Property/PropertyHolder_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(SourceWithOnDemandProperties_test tests/src/Source/SourceWithOnDemandProperties_test.cpp 
+elements_add_unit_test(SourceWithOnDemandProperties_test tests/src/Source/SourceWithOnDemandProperties_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(SourceInterface_test tests/src/Source/SourceInterface_test.cpp 
+elements_add_unit_test(SourceInterface_test tests/src/Source/SourceInterface_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp 
+elements_add_unit_test(Partition_test tests/src/Pipeline/Partition_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      INCLUDE_DIRS GMock
                      TYPE Boost)
-elements_add_unit_test(SourceGroupWithOnDemandProperties_test tests/src/Source/SourceGroupWithOnDemandProperties_test.cpp 
+elements_add_unit_test(SourceGroupWithOnDemandProperties_test tests/src/Source/SourceGroupWithOnDemandProperties_test.cpp
                      LINK_LIBRARIES SEFramework GMock
                      TYPE Boost)
 endif(GMOCK_FOUND)
-elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp 
+elements_add_unit_test(TaskProvider_test tests/src/Task/TaskProvider_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(PropertyId_test tests/src/Property/PropertyId_test.cpp 
+elements_add_unit_test(PropertyId_test tests/src/Property/PropertyId_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(SourceGrouping_test tests/src/Pipeline/SourceGrouping_test.cpp 
+elements_add_unit_test(SourceGrouping_test tests/src/Pipeline/SourceGrouping_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(Deblending_test tests/src/Pipeline/Deblending_test.cpp 
+elements_add_unit_test(Deblending_test tests/src/Pipeline/Deblending_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp 
+elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(ImageChunk_test tests/src/Image/ImageChunk_test.cpp 
+elements_add_unit_test(ImageChunk_test tests/src/Image/ImageChunk_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(SimpleSource_test tests/src/Source/SimpleSource_test.cpp
@@ -167,7 +167,7 @@ elements_add_unit_test(NeighbourInfo_test tests/src/Aperture/NeighbourInfo_test.
 elements_add_unit_test(FitsImageSource_test tests/src/FITS/FitsImageSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(ImageFitsReader_test tests/src/FITS/FitsReader_test.cpp 
+elements_add_unit_test(ImageFitsReader_test tests/src/FITS/FitsReader_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSource_test.cpp
