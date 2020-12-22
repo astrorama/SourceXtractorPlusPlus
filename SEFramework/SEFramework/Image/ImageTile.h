@@ -82,7 +82,7 @@ public:
   virtual void setValue(int x, int y, double value) = 0;
   virtual void setValue(int x, int y, int value) = 0;
   virtual void setValue(int x, int y, unsigned int value) = 0;
-  virtual void setValue(int x, int y, long int value) = 0;
+  virtual void setValue(int x, int y, std::int64_t value) = 0;
 
   template<typename T>
   std::shared_ptr<VectorImage<T>> getImage() const {
@@ -122,13 +122,9 @@ public:
     return UIntImage;
   }
 
-  static ImageType getTypeValue(long int) {
+  static ImageType getTypeValue(std::int64_t) {
     return LongLongImage;
   }
-
-//  static ImageType getTypeValue(std::int64_t) {
-//    return LongLongImage;
-//  }
 
   static size_t getTypeSize(ImageType image_type) {
     switch (image_type) {
@@ -148,7 +144,7 @@ protected:
   virtual void getValue(int x, int y, double& value) const = 0;
   virtual void getValue(int x, int y, int& value) const = 0;
   virtual void getValue(int x, int y, unsigned int& value) const = 0;
-  virtual void getValue(int x, int y, long int& value) const = 0;
+  virtual void getValue(int x, int y, std::int64_t& value) const = 0;
 
 
   ImageTile(ImageType image_type, int x, int y, int width, int height, std::shared_ptr<ImageSource> source=nullptr)
@@ -173,7 +169,7 @@ protected:
       m_tile_image = VectorImage<unsigned int>::create(width, height);
       break;
     case LongLongImage:
-      m_tile_image = VectorImage<long int>::create(width, height);
+      m_tile_image = VectorImage<std::int64_t>::create(width, height);
       break;
     }
   }
