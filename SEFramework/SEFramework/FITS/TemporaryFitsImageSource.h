@@ -70,6 +70,10 @@ public:
     return m_image_source->getHeight();
   }
 
+  ImageTile::ImageType getType() const override {
+    return m_image_source->getType();
+  }
+
 private:
   Elements::TempFile m_temp_file;
   std::shared_ptr<FitsImageSource> m_image_source;

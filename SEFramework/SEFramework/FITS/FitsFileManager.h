@@ -53,6 +53,8 @@ public:
 
   std::shared_ptr<FitsFile> getFitsFile(const std::string& filename, bool writeable=false);
 
+  void closeAndPurgeFile(const std::string& filename);
+
   void reportClosedFile(const std::string& filename);
   void reportOpenedFile(const std::string& filename);
 

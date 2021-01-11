@@ -143,6 +143,10 @@ public:
     }
   }
 
+  ImageType getType() const {
+    return m_image_type;
+  }
+
 protected:
   virtual void getValue(int x, int y, float& value) const = 0;
   virtual void getValue(int x, int y, double& value) const = 0;

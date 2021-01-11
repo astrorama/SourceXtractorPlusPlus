@@ -61,9 +61,31 @@ WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
   int number_of_records = 0;
   auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
 
+  init(&(*fits_headers)[0], number_of_records);
+}
+
+WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
+
+  //FIXME Horrible hack: I couldn't figure out how to properly do a deep copy wcsprm so instead
+  // of making a copy, I use the ascii headers output from the original to recreate a new one
+
+  int number_of_records;
+  char *raw_header;
+
+  if (wcshdo(WCSHDO_none, original.m_wcs.get(), &number_of_records, &raw_header) != 0) {
+    throw Elements::Exception() << "Failed to get the FITS headers for the WCS coordinate system when copying WCS";
+  }
+
+  init(raw_header, number_of_records);
+
+  free(raw_header);
+}
+
+
+void WCS::init(char* headers, int number_of_records) {
   int nreject = 0, nwcs = 0;
   wcsprm* wcs;
-  wcspih(&(*fits_headers)[0], number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+  wcspih(headers, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
   wcsset(wcs);
 
   m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
@@ -81,6 +103,7 @@ WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
     safe_lincpy = &wrapped_lincpy;
   }
 }
+
 
 WCS::~WCS() {
 }
@@ -157,5 +180,11 @@ std::map<std::string, std::string> WCS::getFitsHeaders() const {
   free(raw_header);
   return headers;
 }
+
+void WCS::addOffset(PixelCoordinate pc) {
+  m_wcs->crpix[0] -= pc.m_x;
+  m_wcs->crpix[1] -= pc.m_y;
+}
+
 
 }

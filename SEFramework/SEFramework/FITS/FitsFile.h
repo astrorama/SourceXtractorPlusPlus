@@ -60,7 +60,7 @@ public:
     return m_image_hdus;
   }
 
-  const std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu) const {
+  std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu) {
     return m_headers.at(hdu-1);
   }
 
@@ -69,12 +69,13 @@ public:
   void open();
   void close();
 
+
 private:
   void openFirstTime();
   void reopen();
 
+  void reloadHeaders();
   std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
-  void loadHeaders();
   void loadHeadFile();
 
   std::string m_filename;
