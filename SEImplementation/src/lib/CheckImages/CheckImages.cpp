@@ -86,27 +86,27 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
   if (m_segmentation_filename != "") {
-    m_segmentation_image = FitsWriter::newImage<unsigned int>(m_segmentation_filename.native(),
+    m_segmentation_image = FitsWriter::newImage<int>(m_segmentation_filename.native(),
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
   }
 
   if (m_partition_filename != "") {
-    m_partition_image = FitsWriter::newImage<unsigned int>(m_partition_filename.native(),
+    m_partition_image = FitsWriter::newImage<int>(m_partition_filename.native(),
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
   }
 
   if (m_group_filename != "") {
-    m_group_image = FitsWriter::newImage<unsigned int>(m_group_filename.native(),
+    m_group_image = FitsWriter::newImage<int>(m_group_filename.native(),
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
   }
 
   if (m_auto_aperture_filename != "") {
-    m_auto_aperture_image = FitsWriter::newImage<unsigned int>(m_auto_aperture_filename.native(),
+    m_auto_aperture_image = FitsWriter::newImage<int>(m_auto_aperture_filename.native(),
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
   }
 
   if (m_aperture_filename != "") {
-    m_aperture_image = FitsWriter::newImage<unsigned int>(m_aperture_filename.native(),
+    m_aperture_image = FitsWriter::newImage<int>(m_aperture_filename.native(),
         m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
     );
   }
@@ -134,7 +134,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   }
 }
 
-std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getAutoApertureImage(unsigned int frame_number) {
+std::shared_ptr<WriteableImage<int>> CheckImages::getAutoApertureImage(unsigned int frame_number) {
   if (m_auto_aperture_filename.empty()) {
     return nullptr;
   }
@@ -151,17 +151,17 @@ std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getAutoApertureImage(
     i = m_measurement_auto_aperture_images.emplace(
       std::make_pair(
         frame_number,
-        FitsWriter::newImage<unsigned int>(
+        FitsWriter::newImage<int>(
           frame_filename.native(),
           frame_info.m_width,
           frame_info.m_height,
           frame_info.m_coordinate_system
         ))).first;
   }
-  return LockedWriteableImage<unsigned int>::create(i->second);
+  return LockedWriteableImage<int>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getApertureImage(unsigned int frame_number) {
+std::shared_ptr<WriteableImage<int>> CheckImages::getApertureImage(unsigned int frame_number) {
   if (m_aperture_filename.empty()) {
     return nullptr;
   }
@@ -178,14 +178,14 @@ std::shared_ptr<WriteableImage<unsigned int>> CheckImages::getApertureImage(unsi
     i = m_measurement_aperture_images.emplace(
       std::make_pair(
         frame_number,
-        FitsWriter::newImage<unsigned int>(
+        FitsWriter::newImage<int>(
           frame_filename.native(),
           frame_info.m_width,
           frame_info.m_height,
           frame_info.m_coordinate_system
         ))).first;
   }
-  return LockedWriteableImage<unsigned int>::create(i->second);
+  return LockedWriteableImage<int>::create(i->second);
 }
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>

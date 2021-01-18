@@ -76,7 +76,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
     unsigned int src_id = source.getProperty<SourceID>().getId();
     auto aperture = std::make_shared<CircularAperture>(m_apertures[0] / 2.);
 
-    fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, src_id);
+    fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, src_id);
   }
 }
 
