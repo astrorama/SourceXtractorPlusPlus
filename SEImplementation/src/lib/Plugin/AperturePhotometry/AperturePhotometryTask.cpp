@@ -110,7 +110,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance);
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
-    fillAperture(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+    fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
   }
 }
 
