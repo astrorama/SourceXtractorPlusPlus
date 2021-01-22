@@ -49,7 +49,7 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
-  void init(char* headers, int number_of_records);
+  void init(const char* headers, int number_of_records);
 
   std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };

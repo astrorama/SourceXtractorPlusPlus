@@ -32,6 +32,7 @@
 #include <wcslib/wcsfix.h>
 #include <wcslib/wcsprintf.h>
 #include <wcslib/getwcstab.h>
+#include <wcslib/dis.h>
 
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
@@ -43,6 +44,74 @@ namespace SourceXtractor {
 static auto logger = Elements::Logging::getLogger("WCS");
 
 decltype(&lincpy) safe_lincpy = &lincpy;
+
+/**
+ * Translate the return code from wcspih to an elements exception
+ * @param ret_code
+ */
+static void wcsRaiseOnParseError(int ret_code) {
+  switch (ret_code) {
+    case WCSHDRERR_SUCCESS:
+      break;
+    case WCSHDRERR_MEMORY:
+      throw Elements::Exception() << "wcslib failed to allocate memory";
+    case WCSHDRERR_PARSER:
+      throw Elements::Exception() << "wcslib failed to parse the FITS headers";
+    default:
+      throw Elements::Exception() << "Unexpected error when parsing the FITS WCS header: "
+                                  << ret_code;
+  }
+}
+
+/**
+ * Extract the keywords from the headers
+ */
+static std::set<std::string> wcsExtractKeywords(const char *header, int number_of_records) {
+  std::set<std::string> result;
+  for (const char *p = header; *p != '\0' && number_of_records; --number_of_records, p += 80) {
+    size_t len = strcspn(p, "= ");
+    result.insert(std::string(p, len));
+  }
+  return result;
+}
+
+/**
+ * Look for some known inconsistencies that wcslib will not report
+ */
+static void wcsCheckHeaders(const wcsprm *wcs, const char *headers_str, int number_of_records) {
+  auto headers = wcsExtractKeywords(headers_str, number_of_records);
+
+  // SIP present, but not specified in CTYPE
+  // See https://github.com/astrorama/SourceXtractorPlusPlus/issues/254#issuecomment-765235869
+  if (wcs->lin.dispre) {
+    bool sip_used = false, sip_specified = false;
+    for (int i = 0; i < wcs->naxis; ++i) {
+      sip_used |= (strncmp(wcs->lin.dispre->dtype[i], "SIP", 3) == 0);
+      size_t ctype_len = strlen(wcs->ctype[i]);
+      sip_specified |= (strncmp(wcs->ctype[i] + ctype_len - 4, "-SIP", 4) == 0);
+    }
+    if (sip_used && !sip_specified) {
+      logger.warn() << "SIP coefficients present, but CTYPE has not the '-SIP' suffix";
+      logger.warn() << "SIP distortion will be applied, but this may not be desired";
+      logger.warn() << "To suppress this warning, explicitly add the '-SIP' suffix to the CTYPE,";
+      logger.warn() << "or remove the SIP distortion coefficients";
+    }
+  }
+}
+
+/**
+ * Wrap wcslib error report and display them via logger
+ */
+static void wcsReportWarnings(const char *err_buffer) {
+  if (err_buffer[0]) {
+    const char *eol;
+    do {
+      eol = strchrnul(err_buffer, '\n');
+      logger.warn() << std::string(err_buffer, eol - err_buffer);
+      err_buffer = eol + 1;
+    } while (*eol);
+  }
+}
 
 /**
  * wcslib < 5.18 is not fully safe thread, as some functions (like discpy, called by lincpy)
@@ -82,18 +151,38 @@ WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
 }
 
 
-void WCS::init(char* headers, int number_of_records) {
-  int nreject = 0, nwcs = 0;
+void WCS::init(const char* headers, int number_of_records) {
+  int nreject = 0, nwcs = 0, nreject_strict = 0;
   wcsprm* wcs;
-  wcspih(headers, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+
+  // Use a copy of the headers so wcspih can modify them
+  char *header_strict = strdup(headers);
+  char *header_cpy = strdup(headers);
+
+  // Write warnings to a buffer
+  wcsprintf_set(nullptr);
+
+  // Do a first pass, in strict mode, and ignore the result
+  // Only acceptable headers will be removed from the buffer
+  int ret = wcspih(header_strict, number_of_records, WCSHDR_strict, -2, &nreject_strict, &nwcs, &wcs);
+  wcsRaiseOnParseError(ret);
+  wcsReportWarnings(wcsprintf_buf());
+
+  // Do a second pass, in relaxed mode. We use the result.
+  // Acceptable headers will be removed from the buffer.
+  // We can use the difference between this and the previous call to report potential conflicts
+  ret = wcspih(header_cpy, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+  wcsRaiseOnParseError(ret);
   wcsset(wcs);
+
+  // There are some things worth reporting about which WCS will not necessarily complain
+  wcsCheckHeaders(wcs, headers, number_of_records);
 
   m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
     int nwcs_copy = nwcs;
     wcsfree(wcs);
     wcsvfree(&nwcs_copy, &wcs);
   });
-
 
   int wcsver[3];
   wcslib_version(wcsver);
