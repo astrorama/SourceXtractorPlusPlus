@@ -62,11 +62,23 @@ static void wcsRaiseOnParseError(int ret_code) {
   }
 }
 
+static void wcsLogErr(wcserr *err) {
+  if (err) {
+    logger.error() << err->file << ":" << err->line_no << " " << err->function;
+    logger.error() << err->msg;
+  }
+}
+
 /**
  * Translate the return code from wcss2p and wcsp2s to an elements exception
  */
-static void wcsRaiseOnTransformError(int ret_code) {
+static void wcsRaiseOnTransformError(wcsprm *wcs, int ret_code) {
   if (ret_code != WCSERR_SUCCESS) {
+    wcsLogErr(wcs->err);
+    wcsLogErr(wcs->lin.err);
+    if (wcs->lin.dispre) {
+      wcsLogErr(wcs->lin.dispre->err);
+    }
     throw Elements::Exception() << "WCS exception: " << wcs_errmsg[ret_code];
   }
 }
@@ -112,6 +124,8 @@ static void wcsCheckHeaders(const wcsprm *wcs, const char *headers_str, int numb
  */
 static void wcsReportWarnings(const char *err_buffer) {
   if (err_buffer[0]) {
+    logger.warn() << "WCS generated some errors in strict mode. This may be OK.";
+    logger.warn() << "Will run in relaxed mode.";
     const char *eol;
     do {
       eol = strchrnul(err_buffer, '\n');
@@ -160,6 +174,8 @@ WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
 
 
 void WCS::init(const char* headers, int number_of_records) {
+  wcserr_enable(1);
+
   int nreject = 0, nwcs = 0, nreject_strict = 0;
   wcsprm* wcs;
 
@@ -223,7 +239,7 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   linfree(&wcs_copy.lin);
-  wcsRaiseOnTransformError(ret_val);
+  wcsRaiseOnTransformError(&wcs_copy, ret_val);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
@@ -243,7 +259,7 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   int status = 0;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   linfree(&wcs_copy.lin);
-  wcsRaiseOnTransformError(ret_val);
+  wcsRaiseOnTransformError(&wcs_copy, ret_val);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
