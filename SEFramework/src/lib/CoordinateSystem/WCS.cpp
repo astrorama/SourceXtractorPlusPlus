@@ -47,7 +47,6 @@ decltype(&lincpy) safe_lincpy = &lincpy;
 
 /**
  * Translate the return code from wcspih to an elements exception
- * @param ret_code
  */
 static void wcsRaiseOnParseError(int ret_code) {
   switch (ret_code) {
@@ -60,6 +59,15 @@ static void wcsRaiseOnParseError(int ret_code) {
     default:
       throw Elements::Exception() << "Unexpected error when parsing the FITS WCS header: "
                                   << ret_code;
+  }
+}
+
+/**
+ * Translate the return code from wcss2p and wcsp2s to an elements exception
+ */
+static void wcsRaiseOnTransformError(int ret_code) {
+  if (ret_code != WCSERR_SUCCESS) {
+    throw Elements::Exception() << "WCS exception: " << wcs_errmsg[ret_code];
   }
 }
 
@@ -215,10 +223,7 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   linfree(&wcs_copy.lin);
-  if (ret_val != 0) {
-    logger.error() << "wcslib's wcsp2s returned with error code: " << ret_val;
-    throw Elements::Exception() << "WCS exception";
-  }
+  wcsRaiseOnTransformError(ret_val);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
@@ -238,10 +243,7 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   int status = 0;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   linfree(&wcs_copy.lin);
-  if (ret_val != 0) {
-    logger.error() << "wcslib's wcss2p returned with error code: " << ret_val;
-    throw Elements::Exception() << "WCS exception";
-  }
+  wcsRaiseOnTransformError(ret_val);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
