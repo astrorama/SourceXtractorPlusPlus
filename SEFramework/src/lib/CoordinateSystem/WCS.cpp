@@ -173,29 +173,23 @@ WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
 }
 
 
-void WCS::init(const char* headers, int number_of_records) {
+void WCS::init(char* headers, int number_of_records) {
   wcserr_enable(1);
 
   int nreject = 0, nwcs = 0, nreject_strict = 0;
   wcsprm* wcs;
 
-  // Use a copy of the headers so wcspih can modify them
-  char *header_strict = strdup(headers);
-  char *header_cpy = strdup(headers);
-
   // Write warnings to a buffer
   wcsprintf_set(nullptr);
 
-  // Do a first pass, in strict mode, and ignore the result
-  // Only acceptable headers will be removed from the buffer
-  int ret = wcspih(header_strict, number_of_records, WCSHDR_strict, -2, &nreject_strict, &nwcs, &wcs);
+  // Do a first pass, in strict mode, and ignore the result.
+  // Log the reported errors as warnings
+  int ret = wcspih(headers, number_of_records, WCSHDR_strict, 2, &nreject_strict, &nwcs, &wcs);
   wcsRaiseOnParseError(ret);
   wcsReportWarnings(wcsprintf_buf());
 
   // Do a second pass, in relaxed mode. We use the result.
-  // Acceptable headers will be removed from the buffer.
-  // We can use the difference between this and the previous call to report potential conflicts
-  ret = wcspih(header_cpy, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
+  ret = wcspih(headers, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
   wcsRaiseOnParseError(ret);
   wcsset(wcs);
 
