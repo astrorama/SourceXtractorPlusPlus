@@ -79,15 +79,16 @@ public:
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    auto new_chunk_data = VectorImage<T>::create(width, height);
+    std::vector<T> new_chunk_data(width * height);
     auto a_chunk = m_image_a->getChunk(x, y, width, height);
     auto b_chunk = m_image_b->getChunk(x, y, width, height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        new_chunk_data->at(ix, iy) = P::process(a_chunk->getValue(ix,iy), b_chunk->getValue(ix,iy));
+        new_chunk_data[ix + iy * width] = P::process(a_chunk->getValue(ix, iy),
+                                                     b_chunk->getValue(ix, iy));
       }
     }
-    return UniversalImageChunk<T>::create(std::move(new_chunk_data->getData()), width, height);
+    return UniversalImageChunk<T>::create(std::move(new_chunk_data), width, height);
   }
 
 private:

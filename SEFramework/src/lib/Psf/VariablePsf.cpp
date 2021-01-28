@@ -62,11 +62,6 @@ const std::vector<VariablePsf::Component>& VariablePsf::getComponents() const {
 
 std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &values) const
 {
-  // If we only have the constant, avoid a copy
-  if (m_coefficients.size() == 1) {
-    return m_coefficients[0];
-  }
-
   auto scaled_props = scaleProperties(values);
 
   // Initialize with the constant component

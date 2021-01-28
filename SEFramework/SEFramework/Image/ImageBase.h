@@ -32,13 +32,13 @@
 namespace SourceXtractor {
 
 template <typename T>
-class ImageBase : public virtual Image<T>, public std::enable_shared_from_this<ImageBase<T>> {
+class ImageBase : public virtual Image<T> {
 
 public:
   virtual ~ImageBase() {}
 
   virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    return UniversalImageChunk<T>::create(this->shared_from_this(), x, y, width, height);
+    return UniversalImageChunk<T>::create(this, x, y, width, height);
   }
 
 };

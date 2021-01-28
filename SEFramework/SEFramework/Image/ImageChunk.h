@@ -30,33 +30,32 @@
 
 namespace SourceXtractor {
 
-template <typename T>
-class ImageChunk : public Image<T>, public std::enable_shared_from_this<ImageChunk<T>> {
+template<typename T>
+class ImageChunk : public Image<T> {
 protected:
-  ImageChunk(const T* data, int width, int height, int stride, std::shared_ptr<const Image<T>> image = nullptr) :
-      m_data(data),
-      m_stride(stride),
-      m_width(width),
-      m_height(height),
-      m_image(image) {}
+  ImageChunk(std::shared_ptr<const std::vector<T>> data, int offset, int width, int height,
+             int stride)
+    : m_data(data),
+      m_offset(offset), m_stride(stride),
+      m_width(width), m_height(height) {}
 
 public:
-  static std::shared_ptr<ImageChunk<T>> create(const T* data, int width, int height,
-      int stride, std::shared_ptr<const Image<T>> image = nullptr) {
-    return std::shared_ptr<ImageChunk<T>>(new ImageChunk<T>(data, width, height, stride, image));
+  static std::shared_ptr<ImageChunk<T>>
+  create(std::shared_ptr<const std::vector<T>> data, int offset, int width, int height, int stride) {
+    return std::shared_ptr<ImageChunk<T>>(new ImageChunk<T>(data, offset, width, height, stride));
   }
 
   virtual ~ImageChunk() {
   }
 
   std::string getRepr() const override {
-    return "ImageChunk<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" + m_image->getRepr() + ")";
+    return "ImageChunk<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
   T getValue(int x, int y) const final {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
-    return m_data[x + y * m_stride];
+    return (*m_data)[m_offset + x + y * m_stride];
   }
 
   /// Returns the width of the image chunk in pixels
@@ -70,15 +69,13 @@ public:
   }
 
   virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    return create(&m_data[x + y * m_stride], width, height, m_stride, this->shared_from_this());
+    return create(m_data, m_offset + x + y * m_stride, width, height, m_stride);
   }
 
 protected:
-  const T* m_data;
-  int m_stride;
+  std::shared_ptr<const std::vector<T>> m_data;
+  int m_offset, m_stride;
   int m_width, m_height;
-
-  std::shared_ptr<const Image<T>> m_image;
 };
 
 template <typename T>
@@ -91,40 +88,41 @@ protected:
    * another universal chunk, we can avoid copying data, and we just move-assign the underlying vector
    */
   UniversalImageChunk(ImageChunk<T>&& chunk) :
-    ImageChunk<T>(nullptr, chunk.getWidth(), chunk.getHeight(), chunk.getWidth()) {
+    ImageChunk<T>(nullptr, 0, chunk.getWidth(), chunk.getHeight(), chunk.getWidth()) {
     UniversalImageChunk<T>* universal_ptr = dynamic_cast<UniversalImageChunk<T>*>(&chunk);
     if (universal_ptr) {
       m_chunk_vector = std::move(universal_ptr->m_chunk_vector);
     }
     else {
-      m_chunk_vector.resize(m_width * m_height);
+      m_chunk_vector  = std::make_shared<std::vector<T>>(m_width * m_height);
       for (int cy = 0; cy < m_height; cy++) {
         for (int cx = 0; cx < m_width; cx++) {
-          m_chunk_vector[cx + cy * m_stride] = chunk.getValue(cx, cy);
+          (*m_chunk_vector)[cx + cy * m_stride] = chunk.getValue(cx, cy);
         }
       }
     }
-    m_data = &m_chunk_vector[0];
+    m_data = m_chunk_vector;
   }
 
-  UniversalImageChunk(std::shared_ptr<const Image<T>> image, int x, int y, int width, int height) :
-      ImageChunk<T>(nullptr, width, height, width),
-      m_chunk_vector(width * height) {
+  UniversalImageChunk(const Image <T> *image, int x, int y, int width, int height)
+    : ImageChunk<T>(nullptr, 0, width, height, width),
+      m_chunk_vector(std::make_shared<std::vector<T>>(width * height)) {
 
-    m_data = &m_chunk_vector[0];
+    m_data = m_chunk_vector;
 
-    for (int cy=0; cy < height; cy++) {
-      for (int cx=0; cx < width; cx++) {
-        m_chunk_vector[cx + cy * width] = image->getValue(x + cx, y + cy);
+    for (int cy = 0; cy < height; cy++) {
+      for (int cx = 0; cx < width; cx++) {
+        (*m_chunk_vector)[cx + cy * width] = image->getValue(x + cx, y + cy);
       }
     }
   }
 
   UniversalImageChunk(std::vector<T> &&data, int width, int height):
-    ImageChunk<T>(nullptr, width, height, width), m_chunk_vector(std::move(data))
+    ImageChunk<T>(nullptr, 0, width, height, width),
+    m_chunk_vector(std::make_shared<std::vector<T>>(std::move(data)))
   {
-    assert(static_cast<int>(m_chunk_vector.size()) == width * height);
-    m_data = &m_chunk_vector[0];
+    assert(static_cast<int>(m_chunk_vector->size()) == width * height);
+    m_data = m_chunk_vector;
   }
 
 public:
@@ -137,11 +135,11 @@ public:
   }
 
   void setValue(int x, int y, T value) {
-    m_chunk_vector[x + y * m_stride] = value;
+    (*m_chunk_vector)[x + y * m_stride] = value;
   }
 
 private:
-  std::vector<T> m_chunk_vector;
+  std::shared_ptr<std::vector<T>> m_chunk_vector;
   using ImageChunk<T>::m_width;
   using ImageChunk<T>::m_height;
   using ImageChunk<T>::m_stride;

@@ -82,9 +82,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
     // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
 
     auto image = tile->getImage<T>();
-    const T *data_start = &(image->getData()[tile_offset_x +
-                                                        tile_offset_y * image->getWidth()]);
-    return ImageChunk<T>::create(data_start, width, height, image->getWidth(), image);
+    return image->getChunk(tile_offset_x, tile_offset_y, width, height);
   }
   else {
     // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
