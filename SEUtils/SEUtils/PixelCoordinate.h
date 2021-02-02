@@ -72,6 +72,18 @@ struct PixelCoordinate {
     m_y -= other.m_y;
     return *this;
   }
+
+  /**
+   * Make sure the coordinates are within a box of a given width and height
+   * @return
+   *    true if the coordinates have been modified (clipped)
+   */
+  bool clip(int w, int h) {
+    int ox = m_x, oy = m_y;
+    m_x = std::min(std::max(0, m_x), w - 1);
+    m_y = std::min(std::max(0, m_y), h - 1);
+    return ox != m_x || oy != m_y;
+  }
 };
 
 
