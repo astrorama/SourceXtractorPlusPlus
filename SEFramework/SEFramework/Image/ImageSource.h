@@ -76,7 +76,7 @@ public:
    */
   virtual const std::map<std::string, MetadataEntry> getMetadata() const { return {}; };
 
-  virtual void setMetadata(std::string key, MetadataEntry value) {}
+  virtual void setMetadata(std::string /*key*/, MetadataEntry /*value*/) {}
 
 private:
 
