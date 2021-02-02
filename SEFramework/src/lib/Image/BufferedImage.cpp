@@ -16,8 +16,6 @@
  */
 
 #include "SEFramework/Image/BufferedImage.h"
-
-#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/TileManager.h"

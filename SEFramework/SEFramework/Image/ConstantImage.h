@@ -25,12 +25,12 @@
 #define _SEFRAMEWORK_IMAGE_CONSTANTIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
 template <typename T>
-class ConstantImage : public ImageBase<T> {
+class ConstantImage : public Image<T> {
 protected:
 
   ConstantImage(int width, int height, T constant_value)

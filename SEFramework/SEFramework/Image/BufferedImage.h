@@ -26,7 +26,7 @@
 
 #include <mutex>
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/TileManager.h"
 
 
@@ -36,7 +36,7 @@ namespace SourceXtractor {
  *
  */
 template <typename T>
-class BufferedImage : public ImageBase<T> {
+class BufferedImage : public virtual Image<T> {
 protected:
 
   BufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager);

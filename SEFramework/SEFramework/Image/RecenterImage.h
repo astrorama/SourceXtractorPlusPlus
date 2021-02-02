@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_IMAGE_WARPIMAGE_H
 #define _SEFRAMEWORK_IMAGE_WARPIMAGE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 
 namespace SourceXtractor {
 
@@ -32,7 +32,7 @@ namespace SourceXtractor {
  * @brief Changes the center of an image, wrapping it around the edges
  */
 template<typename T>
-class RecenterImage : public ImageBase<T> {
+class RecenterImage : public Image<T> {
 protected:
   RecenterImage(std::shared_ptr<const Image<T>> img, const PixelCoordinate &new_center) : m_img{img},
                                                                                           m_center{new_center} {
@@ -60,6 +60,10 @@ public:
     x = (x + m_center.m_x) % m_img->getWidth();
     y = (y + m_center.m_y) % m_img->getHeight();
     return m_img->getValue(x, y);
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
+    abort();
   }
 
 private:

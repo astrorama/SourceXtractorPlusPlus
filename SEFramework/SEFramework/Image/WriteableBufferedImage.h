@@ -30,7 +30,7 @@
 namespace SourceXtractor {
 
 template <typename T>
-class WriteableBufferedImage : public BufferedImage<T>, public WriteableImage<T> {
+class WriteableBufferedImage : public BufferedImage<T>, public virtual WriteableImage<T> {
 
 protected:
 
@@ -48,7 +48,7 @@ public:
     return std::shared_ptr<WriteableBufferedImage<T>>(new WriteableBufferedImage<T>(source, tile_manager));
   }
 
-  virtual void setValue(int x, int y, T value) override {
+  void setValue(int x, int y, T value) override {
     assert(x >= 0 && y >=0 && x < BufferedImage<T>::m_source->getWidth() && y < BufferedImage<T>::m_source->getHeight());
 
     if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
@@ -58,6 +58,8 @@ public:
     m_current_tile->setModified(true);
     m_current_tile->setValue(x, y, value);
   }
+
+  using BufferedImage<T>::getRepr;
 
 };
 

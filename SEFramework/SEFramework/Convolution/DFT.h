@@ -24,13 +24,13 @@
 #define _SEFRAMEWORK_CONVOLUTION_DFT_H
 
 #include "AlexandriaKernel/memory_tools.h"
+#include "SEFramework/Image/WriteableImage.h"
 #include "SEFramework/Image/PaddedImage.h"
 #include "SEFramework/Image/MirrorImage.h"
 #include "SEFramework/Image/RecenterImage.h"
 #include "SEFramework/FFT/FFT.h"
 
 #include <fftw3.h>
-#include <boost/thread/shared_mutex.hpp>
 
 
 namespace SourceXtractor {

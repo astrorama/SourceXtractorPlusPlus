@@ -21,7 +21,6 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 
@@ -34,7 +33,7 @@ namespace SourceXtractor {
  */
 
 template <typename T, typename P>
-class ProcessedImage : public ImageBase<T> {
+class ProcessedImage : public Image<T> {
 
 protected:
 

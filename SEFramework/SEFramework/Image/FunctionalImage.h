@@ -23,12 +23,13 @@
 #ifndef _SEFRAMEWORK_IMAGE_FUNCTIONALIMAGE_H
 #define _SEFRAMEWORK_IMAGE_FUNCTIONALIMAGE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
 template<typename T>
-class FunctionalImage : public ImageBase<T> {
+class FunctionalImage : public Image<T> {
 public:
   using FunctorType = std::function<T(int x, int y)>;
 
@@ -41,7 +42,7 @@ public:
   virtual ~FunctionalImage() = default;
 
   template<typename ...Args>
-  static std::shared_ptr<ImageBase<T>> create(Args&& ... args) {
+  static std::shared_ptr<FunctionalImage<T>> create(Args&& ... args) {
     return std::shared_ptr<FunctionalImage<T>>(new FunctionalImage{std::forward<Args>(args)...});
   }
 

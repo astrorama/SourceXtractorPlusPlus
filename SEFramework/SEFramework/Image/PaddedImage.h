@@ -23,7 +23,8 @@
 #ifndef _SEFRAMEWORK_IMAGE_PADDEDIMAGE_H
 #define _SEFRAMEWORK_IMAGE_PADDEDIMAGE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
@@ -71,7 +72,7 @@ inline int WrapCoordinates(int N, int v) {
 }
 
 template<typename T, int CoordinateInterpolation(int, int) = nullptr>
-class PaddedImage : public ImageBase<T> {
+class PaddedImage : public Image<T> {
 protected:
   PaddedImage(std::shared_ptr<const Image<T>> img, int width, int height)
     : m_img{img}, m_width{width}, m_height{height} {
@@ -106,6 +107,10 @@ public:
     return m_height;
   }
 
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
+    abort();
+  }
+
 private:
   std::shared_ptr<const Image<T>> m_img;
   int m_width, m_height;
@@ -114,7 +119,7 @@ private:
 
 
 template<typename T>
-class PaddedImage<T, nullptr> : public ImageBase<T> {
+class PaddedImage<T, nullptr> : public Image<T> {
 protected:
   PaddedImage(std::shared_ptr<const Image<T>> img, int width, int height, T default_value)
     : m_img{img}, m_width{width}, m_height{height}, m_default{default_value} {
@@ -151,6 +156,22 @@ public:
 
   int getHeight() const override {
     return m_height;
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
+    auto img_chunk = m_img->getChunk(x + m_lpad, y + m_tpad, width - m_lpad * 2, height - m_tpad * 2);
+    auto out_chunk = UniversalImageChunk<T>::create(width, height);
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        if (ix < m_lpad || y < m_tpad || x >= img_chunk->getWidth() || y >= img_chunk->getHeight()) {
+          out_chunk->at(ix, iy) = m_default;
+        }
+        else {
+          out_chunk->at(ix, iy) = img_chunk->getValue(ix - m_lpad, iy - m_tpad);
+        }
+      }
+    }
+    return out_chunk;
   }
 
 private:

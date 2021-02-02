@@ -39,10 +39,11 @@ int ReplaceUndefImage<T>::getHeight() const {
   return m_image->getHeight();
 }
 
+
 template<typename T>
-T ReplaceUndefImage<T>::getValue(int x, int y) const {
-  auto v = m_image->getValue(x, y);
-  if (v != m_invalid)
+static T getMaskedValue(int x, int y, const Image<T>& img, T invalid) {
+  auto v = img.getValue(x, y);
+  if (v != invalid)
     return v;
 
   auto min_distance = std::numeric_limits<T>::max();
@@ -50,10 +51,10 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
   T acc = 0;
   size_t count = 0;
 
-  for (int iy = 0; iy < m_image->getHeight(); ++iy) {
-    for (int ix = 0; ix < m_image->getWidth(); ++ix) {
-      v = m_image->getValue(ix, iy);
-      if (v != m_invalid) {
+  for (int iy = 0; iy < img.getHeight(); ++iy) {
+    for (int ix = 0; ix < img.getWidth(); ++ix) {
+      v = img.getValue(ix, iy);
+      if (v != invalid) {
         auto dx = x - ix;
         auto dy = y - iy;
         auto distance = dx * dx + dy * dy;
@@ -63,7 +64,7 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
           count = 1;
           min_distance = distance;
         }
-        // This pixel is as close as the closest one, so take it into account
+          // This pixel is as close as the closest one, so take it into account
         else if (distance - min_distance <= std::numeric_limits<T>::epsilon()) {
           acc += v;
           ++count;
@@ -77,6 +78,23 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
     acc /= count;
 
   return acc;
+}
+
+template<typename T>
+T ReplaceUndefImage<T>::getValue(int x, int y) const {
+  return getMaskedValue<T>(x, y, *m_image, m_invalid);
+}
+
+template<typename T>
+std::shared_ptr<ImageChunk<T>> ReplaceUndefImage<T>::getChunk(
+  int x, int y, int width, int height) const {
+  auto chunk = UniversalImageChunk<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      chunk->at(ix, iy) = getMaskedValue(ix, iy, *chunk, m_invalid);
+    }
+  }
+  return chunk;
 }
 
 template

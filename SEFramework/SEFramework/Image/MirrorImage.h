@@ -23,7 +23,8 @@
 #ifndef _SEFRAMEWORK_IMAGE_MIRRORIMAGE_H
 #define _SEFRAMEWORK_IMAGE_MIRRORIMAGE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
@@ -32,7 +33,7 @@ namespace SourceXtractor {
  * @brief Mirrors an image in both X and Y axes
  */
 template <typename T>
-class MirrorImage: public ImageBase<T> {
+class MirrorImage: public Image<T> {
 protected:
   MirrorImage(std::shared_ptr<const Image<T>> img) : m_img{img} {
   }
@@ -59,6 +60,16 @@ public:
     x = m_img->getWidth() - x - 1;
     y = m_img->getHeight() - y - 1;
     return m_img->getValue(x, y);
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    auto chunk = UniversalImageChunk<T>::create(std::move(*m_img->getChunk(x, y, width, height)));
+    for (int iy = 0; iy <= height / 2; ++iy) {
+      for (int ix = 0; ix <= width / 2; ++ix) {
+        std::swap(chunk->at(ix, iy), chunk->at(width - ix - 1, height - iy - 1));
+      }
+    }
+    return chunk;
   }
 
 private:

@@ -96,5 +96,4 @@ using FlagImage = Image<std::int64_t>;
 
 } /* namespace SourceXtractor */
 
-
 #endif

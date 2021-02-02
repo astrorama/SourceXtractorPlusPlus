@@ -28,7 +28,7 @@ namespace SourceXtractor {
  *  Pixel type
  */
 template <typename T>
-class ReplaceUndefImage: public ImageBase<T> {
+class ReplaceUndefImage: public Image<T> {
 private:
   ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid);
 
@@ -58,6 +58,8 @@ public:
   int getWidth() const final;
 
   int getHeight() const final;
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override;
 
 private:
   std::shared_ptr<VectorImage<T>> m_image;

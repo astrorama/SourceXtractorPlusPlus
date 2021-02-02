@@ -30,7 +30,6 @@
 #include "SEFramework/Image/WriteableImage.h"
 
 #include "SEFramework/Image/ImageChunk.h"
-#include "SEFramework/Image/ImageBase.h"
 
 
 namespace SourceXtractor {
@@ -50,7 +49,7 @@ namespace SourceXtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage final : public ImageBase<T>, public WriteableImage<T> {
+class VectorImage final : public WriteableImage<T> {
 protected:
 
   VectorImage(const VectorImage<T>& other) : m_width(other.m_width), m_height(other.m_height),
@@ -113,7 +112,8 @@ public:
   }
 
   using Image<T>::getValue;
-  T getValue(int x, int y) const final {
+
+  T getValue(int x, int y) const {
     return const_cast<VectorImage<T>*>(this)->at(x, y);
   }
   

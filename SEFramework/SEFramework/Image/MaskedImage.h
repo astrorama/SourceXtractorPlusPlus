@@ -24,8 +24,8 @@
 #ifndef SEFRAMEWORK_SEFRAMEWORK_IMAGE_MASKEDIMAGE_H_
 #define SEFRAMEWORK_SEFRAMEWORK_IMAGE_MASKEDIMAGE_H_
 
-#include "SEFramework/Image/ImageBase.h"
-#include "VectorImage.h"
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
@@ -42,7 +42,7 @@ namespace SourceXtractor {
  *  The image is masked where the operator evaluates to true on the mask image
  */
 template<typename T, typename M, template <typename> class Operator = std::bit_and>
-class MaskedImage : public ImageBase<T> {
+class MaskedImage : public Image<T> {
 private:
   MaskedImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<M>>& mask,
               T replacement, M mask_flag) : m_image{image}, m_mask{mask}, m_replacement{replacement},
@@ -107,6 +107,7 @@ public:
     }
     return chunk;
   }
+
 };
 
 } // end of namespace SourceXtractor

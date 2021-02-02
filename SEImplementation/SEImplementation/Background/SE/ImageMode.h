@@ -18,7 +18,7 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_IMAGEMODE_H
 #define SOURCEXTRACTORPLUSPLUS_IMAGEMODE_H
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {

@@ -18,14 +18,13 @@
 #ifndef _SEIMPLEMENTATION_IMAGE_LOCKEDIMAGE_H_
 #define _SEIMPLEMENTATION_IMAGE_LOCKEDIMAGE_H_
 
-#include "SEFramework/Image/ImageBase.h"
-
+#include "SEFramework/Image/Image.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 namespace SourceXtractor {
 
 template <typename T>
-class LockedImage: public ImageBase<T> {
+class LockedImage: public Image<T> {
 protected:
   LockedImage(std::shared_ptr<const Image<T>> img) : m_img{img}, m_lock(MultithreadedMeasurement::g_global_mutex) {
   }
@@ -50,6 +49,10 @@ public:
 
   T getValue(int x, int y) const override {
     return m_img->getValue(x, y);
+  }
+
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
+    return m_img->getChunk(x, y, width, height);
   }
 
 private:

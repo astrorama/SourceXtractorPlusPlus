@@ -53,7 +53,7 @@ public:
   }
 
   /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const final {
+  T getValue(int x, int y) const {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     return (*m_data)[m_offset + x + y * m_stride];
   }
@@ -125,6 +125,13 @@ protected:
     m_data = m_chunk_vector;
   }
 
+  UniversalImageChunk(int width, int height) :
+    ImageChunk<T>(nullptr, 0, width, height, width),
+    m_chunk_vector(std::make_shared<std::vector<T>>(width * height)) {
+    assert(static_cast<int>(m_chunk_vector->size()) == width * height);
+    m_data = m_chunk_vector;
+  }
+
 public:
   template <typename... Args>
   static std::shared_ptr<UniversalImageChunk<T>> create(Args&&... args) {
@@ -136,6 +143,10 @@ public:
 
   void setValue(int x, int y, T value) {
     (*m_chunk_vector)[x + y * m_stride] = value;
+  }
+
+  T& at(int x, int y) {
+    return (*m_chunk_vector)[x + y * m_stride];
   }
 
 private:
