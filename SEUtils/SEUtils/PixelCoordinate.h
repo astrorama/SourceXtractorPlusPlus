@@ -73,6 +73,14 @@ struct PixelCoordinate {
     return *this;
   }
 
+  bool operator>=(const PixelCoordinate& other) const {
+    return m_x >= other.m_x && m_y >= other.m_y;
+  }
+
+  bool operator<=(const PixelCoordinate& other) const {
+    return m_x <= other.m_x && m_y <= other.m_y;
+  }
+
   /**
    * Make sure the coordinates are within a box of a given width and height
    * @return

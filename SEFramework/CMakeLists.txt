@@ -149,6 +149,9 @@ elements_add_unit_test(MaskedImage_test tests/src/Image/MaskedImage_test.cpp
 elements_add_unit_test(InterpolatedImageSource_test tests/src/Image/InterpolatedImageSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(ImageAccessor_test tests/src/Image/ImageAccessor_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
