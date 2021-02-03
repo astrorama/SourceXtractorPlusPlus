@@ -54,13 +54,6 @@ public:
   /// Get a string identifying this image in a human readable manner
   virtual std::string getRepr() const = 0;
 
-  /// Returns the value of the pixel with the coordinates (x,y)
-  virtual T getValue(int x, int y) const = 0;
-
-  T getValue(PixelCoordinate pc) const {
-    return getValue(pc.m_x, pc.m_y);
-  }
-
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
 

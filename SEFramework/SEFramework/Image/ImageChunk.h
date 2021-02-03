@@ -58,6 +58,11 @@ public:
     return (*m_data)[m_offset + x + y * m_stride];
   }
 
+  T getValue(const PixelCoordinate& coord) const {
+    assert(coord.m_x >= 0 && coord.m_y >=0 && coord.m_x < m_width && coord.m_y < m_height);
+    return (*m_data)[m_offset + coord.m_x + coord.m_y * m_stride];
+  }
+
   /// Returns the width of the image chunk in pixels
   int getWidth() const final {
     return m_width;

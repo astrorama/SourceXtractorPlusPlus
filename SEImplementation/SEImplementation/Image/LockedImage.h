@@ -47,10 +47,6 @@ public:
     return m_img->getHeight();
   }
 
-  T getValue(int x, int y) const override {
-    return m_img->getValue(x, y);
-  }
-
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
     return m_img->getChunk(x, y, width, height);
   }

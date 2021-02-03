@@ -24,6 +24,7 @@
 #include "SEUtils/HilbertCurve.h"
 
 #include "SEFramework/Frame/Frame.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/TileManager.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -45,10 +46,11 @@ void BFSSegmentation::labelImage(Segmentation::LabellingListener& listener,
   std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
 
   for (auto& tile : tiles) {
+    auto chunk = detection_image->getChunk(tile.offset.m_x, tile.offset.m_y, tile.width, tile.height);
     for (int y=0; y<tile.height; y++) {
       for (int x=0; x<tile.width; x++) {
         PixelCoordinate pixel =  tile.offset + PixelCoordinate(x,y);
-        if (!visited.wasVisited(pixel) && detection_image->getValue(pixel) > 0.0) {
+        if (!visited.wasVisited(pixel) && chunk->getValue(x, y) > 0.0) {
           labelSource(pixel, listener, *detection_image, visited);
         }
       }
@@ -60,6 +62,9 @@ void BFSSegmentation::labelSource(PixelCoordinate pc,
                                   Segmentation::LabellingListener& listener,
                                   DetectionImage& detection_image,
                                   VisitedMap& visited_map) const {
+  using DetectionAccessor = ImageAccessor<DetectionImage::PixelType>;
+  DetectionAccessor detectionAccessor(detection_image);
+
   PixelCoordinate offsets[] {PixelCoordinate(1,0), PixelCoordinate(0,-1), PixelCoordinate(-1,0), PixelCoordinate(0,1),
       PixelCoordinate(-1,-1), PixelCoordinate(1,-1), PixelCoordinate(-1,1), PixelCoordinate(1,1)};
 
@@ -90,7 +95,7 @@ void BFSSegmentation::labelSource(PixelCoordinate pc,
     for (auto& offset : offsets) {
       auto new_pixel = pixel + offset;
 
-      if (!visited_map.wasVisited(new_pixel) && detection_image.getValue(new_pixel) > 0.0) {
+      if (!visited_map.wasVisited(new_pixel) && detectionAccessor.getValue(new_pixel) > 0.0) {
         visited_map.markVisited(new_pixel);
         pixels_to_process.emplace_back(new_pixel);
       }

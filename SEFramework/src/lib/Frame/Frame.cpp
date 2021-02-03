@@ -16,6 +16,7 @@
  */
 
 #include "SEFramework/Frame/Frame.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/FunctionalImage.h"
@@ -255,8 +256,10 @@ template<typename T>
 void Frame<T>::applyFilter() {
   if (m_filter != nullptr) {
     m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(), getVarianceThreshold());
-    auto filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(),
-                                                        getVarianceThreshold());
+    auto filtered_variance_map = std::make_shared<ImageAccessor<T>>(
+      m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(),
+                             getVarianceThreshold())
+    );
     m_filtered_variance_map = FunctionalImage<T>::create(
       m_filtered_image->getWidth(), m_filtered_image->getHeight(),
       [filtered_variance_map](int x, int y) -> T {

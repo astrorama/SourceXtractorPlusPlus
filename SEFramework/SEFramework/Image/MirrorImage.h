@@ -24,6 +24,7 @@
 #define _SEFRAMEWORK_IMAGE_MIRRORIMAGE_H
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
@@ -56,17 +57,14 @@ public:
     return m_img->getHeight();
   }
 
-  T getValue(int x, int y) const override {
-    x = m_img->getWidth() - x - 1;
-    y = m_img->getHeight() - y - 1;
-    return m_img->getValue(x, y);
-  }
-
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    auto chunk = UniversalImageChunk<T>::create(std::move(*m_img->getChunk(x, y, width, height)));
-    for (int iy = 0; iy <= height / 2; ++iy) {
-      for (int ix = 0; ix <= width / 2; ++ix) {
-        std::swap(chunk->at(ix, iy), chunk->at(width - ix - 1, height - iy - 1));
+    ImageAccessor<T> accessor(m_img, ImageAccessor<T>::BOTTOM_RIGHT);
+    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto img_w = accessor.getWidth();
+    auto img_h = accessor.getHeight();
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        chunk->at(ix, iy) = accessor.getValue(img_w - (x + ix) - 1, img_h - (y + iy) - 1);
       }
     }
     return chunk;

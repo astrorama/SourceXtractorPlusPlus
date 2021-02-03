@@ -53,8 +53,6 @@ public:
 
   std::string getRepr() const final;
 
-  T getValue(int x, int y) const final;
-
   int getWidth() const final;
 
   int getHeight() const final;

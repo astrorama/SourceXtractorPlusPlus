@@ -47,25 +47,6 @@ public:
     return "InterpolatedImage(" + m_image->getRepr() + "," + m_variance_map->getRepr() + ")";
   }
 
-  /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override {
-    if (isPixelGood(x, y)) {
-      return m_image->getValue(x, y);
-    }
-
-    for (int i=1; i <= m_max_gap; i++) {
-      if (x-i >= 0 && isPixelGood(x-i, y)) {
-        return m_image->getValue(x-i, y);
-      }
-      if (y-i >= 0 && isPixelGood(x, y-i)) {
-        return m_image->getValue(x, y-i);
-      }
-    }
-
-    // Couldn't interpolate, return what we have
-    return m_image->getValue(x, y);
-  }
-
   int getWidth() const override {
     return m_image->getWidth();
   }
@@ -103,16 +84,13 @@ public:
   }
 
 private:
-  bool isPixelGood(int x, int y) const {
-    return m_variance_map->getValue(x, y) < m_variance_threshold;
-  }
 
-  T getAlternative(int x, int y, const ImageChunk<T> &img, const ImageChunk<T>& var) const {
+  T getAlternative(int x, int y, const ImageChunk <T>& img, const ImageChunk <T>& var) const {
     for (int i = 1; i <= m_max_gap; i++) {
-      if (x - i >= 0 && var.getValue(x, y) < m_variance_threshold) {
+      if (x - i >= 0 && var.getValue(x - i, y) < m_variance_threshold) {
         return img.getValue(x - i, y);
       }
-      if (y - i >= 0 && isPixelGood(x, y - i)) {
+      if (y - i >= 0 && var.getValue(x, y - 1) < m_variance_threshold) {
         return img.getValue(x, y - i);
       }
     }

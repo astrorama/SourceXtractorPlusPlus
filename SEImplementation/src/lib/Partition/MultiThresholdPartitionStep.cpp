@@ -69,7 +69,7 @@ public:
     return m_parent.lock();
   }
 
-  double getTotalIntensity(DetectionImage& image, const PixelCoordinate& offset) const {
+  double getTotalIntensity(VectorImage<DetectionImage::PixelType>& image, const PixelCoordinate& offset) const {
     DetectionImage::PixelType total_intensity = 0;
     for (const auto& pixel_coord : m_pixel_list) {
       total_intensity += (image.getValue(pixel_coord - offset) - m_threshold);

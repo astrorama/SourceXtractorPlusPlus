@@ -64,11 +64,6 @@ public:
     return "ProcessedImage(" + m_image_a->getRepr() + "," + m_image_b->getRepr() + ")";
   }
 
-  using Image<T>::getValue;
-  T getValue(int x, int y) const override {
-    return P::process(m_image_a->getValue(x, y), m_image_b->getValue(x, y));
-  }
-
   int getWidth() const override {
     return m_image_a->getWidth();
   }

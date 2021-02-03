@@ -38,10 +38,6 @@ public:
     return m_img->getHeight();
   }
 
-  T getValue(int x, int y) const override {
-    return m_img->getValue(x, y);
-  }
-
   void setValue(int x, int y, T value) override {
     m_img->setValue(x, y, value);
   }

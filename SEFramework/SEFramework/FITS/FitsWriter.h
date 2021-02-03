@@ -27,6 +27,7 @@
 #include "ElementsKernel/Logging.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/FITS/TemporaryFitsImageSource.h"
@@ -55,9 +56,10 @@ public:
     auto target_image = newImage<T>(filename, image.getWidth(), image.getHeight(), coord_system, append);
 
     // FIXME optimize the copy by using tile boundaries, image chunks, etc
+    ImageAccessor<T> accessor(image);
     for (int y = 0; y < image.getHeight(); y++) {
       for (int x = 0; x < image.getWidth(); x++) {
-        target_image->setValue(x, y, image.getValue(x, y));
+        target_image->setValue(x, y, accessor.getValue(x, y));
       }
     }
   }

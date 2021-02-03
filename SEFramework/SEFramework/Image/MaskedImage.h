@@ -82,12 +82,6 @@ public:
     return std::string("Masked(" + m_image->getRepr() + ")");
   }
 
-  T getValue(int x, int y) const final {
-    if (m_operator(m_mask->getValue(x, y), m_mask_flag))
-      return m_replacement;
-    return m_image->getValue(x, y);
-  }
-
   int getWidth() const final {
     return m_image->getWidth();
   }

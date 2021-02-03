@@ -50,10 +50,6 @@ public:
     return "FunctionalImage<" + std::string(m_functor.target_type().name()) + ">";
   }
 
-  T getValue(int x, int y) const final {
-    return m_functor(x, y);
-  }
-
   int getWidth() const final {
     return m_width;
   }

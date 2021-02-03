@@ -49,9 +49,6 @@ public:
 
   std::string getRepr() const override;
 
-  /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override;
-
   /// Returns the width of the image in pixels
   int getWidth() const override;
 

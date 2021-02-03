@@ -229,9 +229,10 @@ protected:
   }
 
   void dumpImage(const std::shared_ptr<const Image<T>> &img, typename std::vector<T>::iterator out) const {
-    for (int y = 0; y < img->getHeight(); ++y) {
-      for (int x = 0; x < img->getWidth(); ++x) {
-        *out++ = img->getValue(x, y);
+    auto chunk = img->getChunk(0, 0, img->getWidth(), img->getHeight());
+    for (int y = 0; y < chunk->getHeight(); ++y) {
+      for (int x = 0; x < chunk->getWidth(); ++x) {
+        *out++ = chunk->getValue(x, y);
       }
     }
   }

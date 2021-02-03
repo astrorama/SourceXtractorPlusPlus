@@ -58,11 +58,6 @@ public:
     return m_width;
   }
 
-  using Image<T>::getValue;
-  T getValue(int, int) const final {
-    return m_constant_value;
-  }
-
   std::shared_ptr<ImageChunk<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
     return UniversalImageChunk<T>::create(std::vector<T>(width * height, m_constant_value), width, height);
   }

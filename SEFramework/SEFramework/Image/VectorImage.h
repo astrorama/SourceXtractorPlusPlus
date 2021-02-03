@@ -83,9 +83,11 @@ protected:
   VectorImage(const Image <T>& other_image)
     : m_width(other_image.getWidth()), m_height(other_image.getHeight()),
       m_data(std::make_shared<std::vector<T>>(m_width * m_height)) {
+    // FIXME: We probably could use a getChunk were we give the buffer to use
+    auto chunk = other_image.getChunk(0, 0, other_image.getWidth(), other_image.getHeight());
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
-        setValue(x, y, other_image.getValue(x, y));
+        setValue(x, y, chunk->getValue(x, y));
       }
     }
   }
@@ -111,10 +113,12 @@ public:
     return m_width;
   }
 
-  using Image<T>::getValue;
-
   T getValue(int x, int y) const {
-    return const_cast<VectorImage<T>*>(this)->at(x, y);
+    return this->at(x, y);
+  }
+
+  T getValue(PixelCoordinate coord) const {
+    return this->at(coord.m_x, coord.m_y);
   }
   
   void setValue(int x, int y, T value) final {
@@ -126,6 +130,11 @@ public:
   }
 
   T& at(int x, int y) {
+    assert(x >= 0 && y >=0 && x < m_width && y < m_height);
+    return (*m_data)[x + y * m_width];
+  }
+
+  const T& at(int x, int y) const {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
     return (*m_data)[x + y * m_width];
   }

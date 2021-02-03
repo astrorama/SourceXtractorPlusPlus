@@ -29,7 +29,7 @@ namespace SourceXtractor {
  * (i.e. BufferedImage)
  * It was dropped, and this accessor is intended to provide an easy alternative.
  * Unlike the images, the accessor is explicitly *not thread safe* and not intended to be
- * passed around threads.
+ * passed around or copied.
  * To reduce performance penalties, it can be hinted about the chunk size and the
  * access pattern. For instance, if you know the access is away from the first coordinate
  * in a circular fashion, the first chunk will be centered on your first read to reduce
@@ -69,8 +69,11 @@ public:
    *    Of course, if you know beforehand the exact chunk that will be needed, better use
    *    getChunk directly!
    */
-  ImageAccessor(std::shared_ptr<Image<T>> img, AccessHint hint = TOP_LEFT, int w = 64, int h = 64)
-    : m_image(std::move(img)), m_hint(hint), m_read_width(w), m_read_height(h) {};
+  ImageAccessor(const std::shared_ptr<const Image<T>>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 1)
+    : m_image(img.get()), m_hint(hint), m_read_width(w), m_read_height(h) {};
+
+  ImageAccessor(const Image<T>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 64)
+    : m_image(&img), m_hint(hint), m_read_width(w), m_read_height(h) {};
 
   /**
    * Can not be copied!
@@ -100,6 +103,11 @@ public:
     return m_chunk->getValue(x, y);
   }
 
+  T getValue(const PixelCoordinate& coord) {
+    selectChunk(coord);
+    return m_chunk->getValue(coord - m_chunk_min);
+  }
+
   /*
    * Forward these methods directly to the wrapped image
    */
@@ -121,7 +129,7 @@ public:
   };
 
 private:
-  std::shared_ptr<const Image<T>> m_image;
+  const Image<T>* m_image;
   std::shared_ptr<const ImageChunk<T>> m_chunk;
   PixelCoordinate m_chunk_min, m_chunk_max;
   AccessHint m_hint;

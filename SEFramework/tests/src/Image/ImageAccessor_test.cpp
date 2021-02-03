@@ -30,7 +30,7 @@ public:
     return "Decorated";
   }
 
-  T getValue(int x, int y) const override {
+  T getValue(int x, int y) const {
     return m_decorated->getValue(x, y);
   }
 

@@ -24,6 +24,7 @@
 #define _SEFRAMEWORK_IMAGE_WARPIMAGE_H
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 
 namespace SourceXtractor {
 
@@ -56,14 +57,20 @@ public:
     return m_img->getHeight();
   }
 
-  T getValue(int x, int y) const override {
-    x = (x + m_center.m_x) % m_img->getWidth();
-    y = (y + m_center.m_y) % m_img->getHeight();
-    return m_img->getValue(x, y);
-  }
-
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
-    abort();
+    ImageAccessor<T> accessor(m_img);
+    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto img_w = accessor.getWidth();
+    auto img_h = accessor.getHeight();
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        chunk->at(ix, iy) = accessor.getValue(
+          (ix + x + m_center.m_x) % img_w,
+          (iy + y + m_center.m_y) % img_h
+        );
+      }
+    }
+    return chunk;
   }
 
 private:

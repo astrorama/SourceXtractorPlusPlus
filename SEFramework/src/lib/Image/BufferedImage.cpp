@@ -40,17 +40,6 @@ std::string BufferedImage<T>::getRepr() const {
   return "BufferedImage(" + m_source->getRepr() + ")";
 }
 
-template<typename T>
-T BufferedImage<T>::getValue(int x, int y) const {
-  assert(x >= 0 && y >= 0 && x < m_source->getWidth() && y < m_source->getHeight());
-
-  if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
-    m_current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
-  }
-
-  return m_current_tile->getValue<T>(x, y);
-}
-
 
 template<typename T>
 int BufferedImage<T>::getWidth() const {

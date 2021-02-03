@@ -28,21 +28,10 @@
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
+#include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;
 
-void checkEqual(const std::shared_ptr<const Image<SeFloat>> &a, const  std::shared_ptr<const Image<SeFloat>> &b) {
-  BOOST_REQUIRE_EQUAL(a->getWidth(), b->getWidth());
-  BOOST_REQUIRE_EQUAL(a->getHeight(), b->getWidth());
-
-  for (auto i = 0; i < a->getWidth(); ++i) {
-    for (auto j = 0; j < a->getHeight(); ++j) {
-      // We assume the PSF summed value will normally be around O(1)
-      // so the error should remain bellow float::epsilon
-      BOOST_CHECK_LE(std::abs(a->getValue(i, j) - b->getValue(i, j)), std::numeric_limits<float>::epsilon());
-    }
-  }
-}
 
 auto constant = VectorImage<SeFloat>::create(3, 3, std::vector<SeFloat>{
     0. , 1., 0.,
@@ -96,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE (variable_psf_simple, VariablePsfFixture) {
 
   varPsfTask.computeProperties(group);
   auto psf_prop = group.getProperty<PsfProperty>();
-  checkEqual(psf_prop.getPsf(), expected_normalized);
+  BOOST_CHECK(compareImages(psf_prop.getPsf(), expected_normalized));
 }
 
 BOOST_AUTO_TEST_SUITE_END ()

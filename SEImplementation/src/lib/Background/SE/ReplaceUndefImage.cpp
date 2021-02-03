@@ -41,7 +41,7 @@ int ReplaceUndefImage<T>::getHeight() const {
 
 
 template<typename T>
-static T getMaskedValue(int x, int y, const Image<T>& img, T invalid) {
+static T getMaskedValue(int x, int y, const ImageChunk<T>& img, T invalid) {
   auto v = img.getValue(x, y);
   if (v != invalid)
     return v;
@@ -78,11 +78,6 @@ static T getMaskedValue(int x, int y, const Image<T>& img, T invalid) {
     acc /= count;
 
   return acc;
-}
-
-template<typename T>
-T ReplaceUndefImage<T>::getValue(int x, int y) const {
-  return getMaskedValue<T>(x, y, *m_image, m_invalid);
 }
 
 template<typename T>

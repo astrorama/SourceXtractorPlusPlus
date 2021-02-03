@@ -25,6 +25,7 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/ImageAccessor.h"
 
 namespace SourceXtractor {
 
@@ -93,12 +94,6 @@ public:
     return "PaddedImage(" + m_img->getRepr() + ")";
   }
 
-  T getValue(int x, int y) const override {
-    int tx = CoordinateInterpolation(m_img->getWidth(), x - m_lpad);
-    int ty = CoordinateInterpolation(m_img->getHeight(), y - m_tpad);
-    return m_img->getValue(tx, ty);
-  }
-
   int getWidth() const override {
     return m_width;
   }
@@ -108,7 +103,18 @@ public:
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
-    abort();
+    ImageAccessor<T> accessor(m_img, ImageAccessor<T>::TOP_LEFT, width, height);
+    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto img_w = accessor.getWidth();
+    auto img_h = accessor.getHeight();
+    for (int iy = 0; iy < height; ++iy) {
+      for (int ix = 0; ix < width; ++ix) {
+        auto img_x = CoordinateInterpolation(img_w, ix + x - m_lpad);
+        auto img_y = CoordinateInterpolation(img_h, iy + y - m_tpad);
+        chunk->at(ix, iy) = accessor.getValue(img_x, img_y);
+      }
+    }
+    return chunk;
   }
 
 private:
@@ -143,13 +149,6 @@ public:
     return "PaddedImage(" + m_img->getRepr() + ")";
   }
 
-  T getValue(int x, int y) const override {
-    if (x < m_lpad || y < m_tpad || x >= m_img->getWidth() + m_lpad || y >= m_img->getHeight() + m_tpad) {
-      return m_default;
-    }
-    return m_img->getValue(x - m_lpad, y - m_tpad);
-  }
-
   int getWidth() const override {
     return m_width;
   }
@@ -159,19 +158,25 @@ public:
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
-    auto img_chunk = m_img->getChunk(x + m_lpad, y + m_tpad, width - m_lpad * 2, height - m_tpad * 2);
-    auto out_chunk = UniversalImageChunk<T>::create(width, height);
+    ImageAccessor<T> accessor(m_img, ImageAccessor<T>::TOP_LEFT, width, height);
+
+    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto img_w = accessor.getWidth();
+    auto img_h = accessor.getHeight();
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        if (ix < m_lpad || y < m_tpad || x >= img_chunk->getWidth() || y >= img_chunk->getHeight()) {
-          out_chunk->at(ix, iy) = m_default;
+        auto img_x = x + ix;
+        auto img_y = y + iy;
+        if (img_x < m_lpad || img_y < m_tpad || img_x >= img_w + m_lpad ||
+            img_y >= img_h + m_tpad) {
+          chunk->at(ix, iy) = m_default;
         }
         else {
-          out_chunk->at(ix, iy) = img_chunk->getValue(ix - m_lpad, iy - m_tpad);
+          chunk->at(ix, iy) = accessor.getValue(img_x - m_lpad, img_y - m_tpad);
         }
       }
     }
-    return out_chunk;
+    return chunk;
   }
 
 private:
