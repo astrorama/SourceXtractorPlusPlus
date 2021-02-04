@@ -17,7 +17,7 @@ namespace SourceXtractor {
 template <typename T>
 class LockedWriteableImage: public WriteableImage<T> {
 protected:
-  LockedWriteableImage(std::shared_ptr<WriteableImage<T>> img) : m_img{img}, m_lock(MultithreadedMeasurement::g_global_mutex) {
+  LockedWriteableImage(std::shared_ptr<WriteableImage<T>> img) : m_img{img}, m_lock(img->m_write_mutex) {
   }
 
 public:
@@ -48,7 +48,7 @@ public:
 
 private:
   std::shared_ptr<WriteableImage<T>> m_img;
-  std::lock_guard<std::recursive_mutex> m_lock;
+  std::lock_guard<std::mutex> m_lock;
 };
 
 }

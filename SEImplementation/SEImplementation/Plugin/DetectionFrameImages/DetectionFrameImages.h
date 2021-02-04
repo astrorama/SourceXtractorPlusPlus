@@ -24,8 +24,6 @@
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Frame/Frame.h"
 
-#include "SEImplementation/Image/LockedImage.h"
-
 
 namespace SourceXtractor {
 

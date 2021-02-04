@@ -43,8 +43,6 @@ void BFSSegmentation::labelImage(Segmentation::LabellingListener& listener,
 
   VisitedMap visited(detection_image->getWidth(), detection_image->getHeight());
 
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
   for (auto& tile : tiles) {
     auto chunk = detection_image->getChunk(tile.offset.m_x, tile.offset.m_y, tile.width, tile.height);
     for (int y=0; y<tile.height; y++) {

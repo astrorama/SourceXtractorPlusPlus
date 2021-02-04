@@ -146,12 +146,9 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   auto min_value = original_source->getProperty<PeakValue>().getMinValue() * .8;
   auto peak_value = original_source->getProperty<PeakValue>().getMaxValue();
 
-  {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-    for (auto pixel_coord : pixel_coords) {
-      auto value = labelling_image->getValue(pixel_coord);
-      thumbnail_image->setValue(pixel_coord - offset, value);
-    }
+  for (auto pixel_coord : pixel_coords) {
+    auto value = labelling_image->getValue(pixel_coord);
+    thumbnail_image->setValue(pixel_coord - offset, value);
   }
 
   auto root = std::make_shared<MultiThresholdNode>(pixel_coords, 0);

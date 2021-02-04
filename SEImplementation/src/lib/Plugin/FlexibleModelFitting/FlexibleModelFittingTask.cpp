@@ -213,18 +213,14 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   ModelFitting::EngineParameterManager engine_parameter_manager{};
   int n_free_parameters = 0;
 
-  {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
-    // Prepare parameters
-    for (auto& source : group) {
-      for (auto parameter : m_parameters) {
-        if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
-          ++n_free_parameters;
-        }
-        parameter_manager.addParameter(source, parameter,
-                                       parameter->create(parameter_manager, engine_parameter_manager, source));
+  // Prepare parameters
+  for (auto& source : group) {
+    for (auto parameter : m_parameters) {
+      if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+        ++n_free_parameters;
       }
+      parameter_manager.addParameter(source, parameter,
+                                     parameter->create(parameter_manager, engine_parameter_manager, source));
     }
   }
 
