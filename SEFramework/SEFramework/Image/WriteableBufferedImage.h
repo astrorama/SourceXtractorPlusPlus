@@ -37,8 +37,6 @@ protected:
   WriteableBufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager)
       : BufferedImage<T>(source, tile_manager) {}
 
-  using BufferedImage<T>::m_current_tile;
-
 public:
 
   virtual ~WriteableBufferedImage() = default;
@@ -61,6 +59,8 @@ public:
 
   using BufferedImage<T>::getRepr;
 
+private:
+  mutable std::shared_ptr<ImageTile> m_current_tile;
 };
 
 }
