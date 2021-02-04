@@ -16,6 +16,7 @@
  */
 
 #include "SEImplementation/Background/SE/ReplaceUndefImage.h"
+#include "SEFramework/Image/ImageAccessor.h"
 
 namespace SourceXtractor {
 
@@ -41,7 +42,7 @@ int ReplaceUndefImage<T>::getHeight() const {
 
 
 template<typename T>
-static T getMaskedValue(int x, int y, const ImageChunk<T>& img, T invalid) {
+static T getMaskedValue(int x, int y, ImageAccessor<T>& img, T invalid) {
   auto v = img.getValue(x, y);
   if (v != invalid)
     return v;
@@ -83,10 +84,12 @@ static T getMaskedValue(int x, int y, const ImageChunk<T>& img, T invalid) {
 template<typename T>
 std::shared_ptr<ImageChunk<T>> ReplaceUndefImage<T>::getChunk(
   int x, int y, int width, int height) const {
-  auto chunk = UniversalImageChunk<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
+  ImageAccessor<T> accessor(m_image, ImageAccessor<T>::TOP_LEFT, width, height);
+  auto chunk = UniversalImageChunk<T>::create(width, height);
+
   for (int iy = 0; iy < height; ++iy) {
     for (int ix = 0; ix < width; ++ix) {
-      chunk->at(ix, iy) = getMaskedValue(ix, iy, *chunk, m_invalid);
+      chunk->at(ix, iy) = getMaskedValue(x + ix, x + iy, accessor, m_invalid);
     }
   }
   return chunk;

@@ -69,8 +69,9 @@ public:
    *    Of course, if you know beforehand the exact chunk that will be needed, better use
    *    getChunk directly!
    */
-  ImageAccessor(const std::shared_ptr<const Image<T>>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 1)
-    : m_image(img.get()), m_hint(hint), m_read_width(w), m_read_height(h) {};
+  ImageAccessor(std::shared_ptr<const Image<T>> img, AccessHint hint = TOP_LEFT, int w = 64, int h = 1)
+    : m_image(img.get()), m_keep_alive(std::move(img)), m_hint(hint), m_read_width(w),
+      m_read_height(h) {};
 
   ImageAccessor(const Image<T>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 64)
     : m_image(&img), m_hint(hint), m_read_width(w), m_read_height(h) {};
@@ -130,6 +131,7 @@ public:
 
 private:
   const Image<T>* m_image;
+  std::shared_ptr<const Image<T>> m_keep_alive;
   std::shared_ptr<const ImageChunk<T>> m_chunk;
   PixelCoordinate m_chunk_min, m_chunk_max;
   AccessHint m_hint;

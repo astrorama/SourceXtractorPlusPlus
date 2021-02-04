@@ -38,13 +38,10 @@ public:
     : m_width(width), m_height(height), m_frame(frame) {}
 
   std::shared_ptr<ImageAccessor<SeFloat>> getLockedImage(FrameImageLayer layer) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-    return std::make_shared<ImageAccessor<SeFloat>>(LockedImage<SeFloat>::create(m_frame->getImage(layer)));
+    return std::make_shared<ImageAccessor<SeFloat>>(m_frame->getImage(layer));
   }
 
   std::shared_ptr<ImageChunk<DetectionImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width, int height) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }
 
