@@ -25,6 +25,7 @@
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/FunctionalImage.h"
+#include "SEFramework/Image/ClippedImage.h"
 #include "SEFramework/Image/MaskedImage.h"
 
 namespace SourceXtractor {
@@ -53,21 +54,13 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
   using DetectionAccessor = ImageAccessor<DetectionImage::PixelType>;
   using VarianceAccessor = ImageAccessor<WeightImage::PixelType>;
 
-  DetectionAccessor detectionAccessor(image);
-  VarianceAccessor varianceAccessor(m_variance);
-
-  // FIXME: We need to find something more performant for these kind of constructs!
 
   // Clip the image and variance map to the given size, accounting for the margins for the convolution
-  auto clipped_img = FunctionalImage<DetectionImage::PixelType>::create(
-    clip_w, clip_h, [&detectionAccessor, clip_x, clip_y](int x, int y) {
-      return detectionAccessor.getValue(clip_x + x, clip_y + y);
-    }
+  auto clipped_img = ClippedImage<DetectionImage::PixelType>::create(
+    image, clip_x, clip_y, clip_w, clip_h
   );
-  auto clipped_variance = FunctionalImage<DetectionImage::PixelType>::create(
-    clip_w, clip_h, [&varianceAccessor, clip_x, clip_y](int x, int y) {
-      return varianceAccessor.getValue(clip_x + x, clip_y + y);
-    }
+  auto clipped_variance = ClippedImage<WeightImage::PixelType>::create(
+    m_variance, clip_x, clip_y, clip_w, clip_h
   );
 
   VarianceAccessor clippedVarAccessor(clipped_variance);
