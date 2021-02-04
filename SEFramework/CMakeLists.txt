@@ -140,9 +140,6 @@ elements_add_unit_test(FunctionalImage_test tests/src/Image/FunctionalImage_test
 elements_add_unit_test(BufferedImage_test tests/src/Image/BufferedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(InterpolatedImage_test tests/src/Image/InterpolatedImage_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(MaskedImage_test tests/src/Image/MaskedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
