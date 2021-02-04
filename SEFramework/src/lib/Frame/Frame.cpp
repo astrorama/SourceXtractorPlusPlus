@@ -42,7 +42,10 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
   m_background_rms(0),
   m_detection_threshold(0),
   m_variance_threshold(variance_threshold),
-  m_interpolation_gap(interpolation_gap) {}
+  m_interpolation_gap(interpolation_gap) {
+  applyInterpolation();
+  applyFilter();
+}
 
 
 template<typename T>
@@ -63,6 +66,8 @@ Frame<T>::Frame(std::shared_ptr<Image<T>> detection_image,
     m_variance_map = ConstantImage<WeightImage::PixelType>::create(detection_image->getWidth(),
                                                                    detection_image->getHeight(), .0001);
   }
+  applyInterpolation();
+  applyFilter();
 }
 
 template<typename T>
@@ -105,17 +110,11 @@ std::shared_ptr<Image<T>> Frame<T>::getImage(FrameImageLayer layer) const {
 
 template<typename T>
 std::shared_ptr<Image<T>> Frame<T>::getInterpolatedImage() const {
-  if (m_interpolation_gap > 0) {
-    if (m_interpolated_image == nullptr) {
-      const_cast<Frame<T> *>(this)->m_interpolated_image = BufferedImage<T>::create(
-        std::make_shared<InterpolatedImageSource<T >>(getOriginalImage(), getOriginalVarianceMap(),
-                                                      getVarianceThreshold(), m_interpolation_gap)
-      );
-    }
+  if (m_interpolated_image > 0) {
     return m_interpolated_image;
   }
   else {
-    return getOriginalImage();
+    return m_image;
   }
 }
 
@@ -128,9 +127,6 @@ std::shared_ptr<Image<T>> Frame<T>::getSubtractedImage() const {
 
 template<typename T>
 std::shared_ptr<Image<T>> Frame<T>::getFilteredImage() const {
-  if (m_filtered_image == nullptr) {
-    const_cast<Frame<T> *>(this)->applyFilter();
-  }
   return m_filtered_image;
 }
 
@@ -149,22 +145,13 @@ std::shared_ptr<Image<T>> Frame<T>::getSnrImage() const {
 
 template<typename T>
 std::shared_ptr<WeightImage> Frame<T>::getVarianceMap() const {
-  if (m_filtered_variance_map == nullptr) {
-    const_cast<Frame<T> *>(this)->applyFilter();
-  }
   return m_filtered_variance_map;
 }
 
 
 template<typename T>
 std::shared_ptr<WeightImage> Frame<T>::getUnfilteredVarianceMap() const {
-  if (m_interpolation_gap > 0) {
-    if (!m_interpolated_variance) {
-      const_cast<Frame *>(this)->m_interpolated_variance = BufferedImage<WeightImage::PixelType>::create(
-        std::make_shared<InterpolatedImageSource<WeightImage::PixelType >>(m_variance_map, m_variance_map,
-                                                                           getVarianceThreshold(), m_interpolation_gap)
-      );
-    }
+  if (m_interpolated_variance) {
     return m_interpolated_variance;
   }
   else {
@@ -190,8 +177,12 @@ void Frame<T>::setVarianceMap(std::shared_ptr<WeightImage> variance_map) {
 
   // resets the interpolated image cache and filtered image
   m_interpolated_image = nullptr;
+  m_interpolated_variance = nullptr;
   m_filtered_image = nullptr;
   m_filtered_variance_map = nullptr;
+
+  applyInterpolation();
+  applyFilter();
 }
 
 
@@ -201,8 +192,12 @@ void Frame<T>::setVarianceThreshold(WeightImage::PixelType threshold) {
 
   // resets the interpolated image cache and filtered image
   m_interpolated_image = nullptr;
+  m_interpolated_variance = nullptr;
   m_filtered_image = nullptr;
   m_filtered_variance_map = nullptr;
+
+  applyInterpolation();
+  applyFilter();
 }
 
 
@@ -235,6 +230,9 @@ void Frame<T>::setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map
   m_background_level_map = background_level_map;
   m_background_rms = background_rms;
   m_filtered_image = nullptr;
+  m_filtered_variance_map = nullptr;
+
+  applyFilter();
 }
 
 
@@ -243,6 +241,7 @@ void Frame<T>::setFilter(std::shared_ptr<ImageFilter> filter) {
   m_filter = filter;
   m_filtered_image = nullptr;
   m_filtered_variance_map = nullptr;
+  applyFilter();
 }
 
 
@@ -256,10 +255,10 @@ template<typename T>
 void Frame<T>::applyFilter() {
   if (m_filter != nullptr) {
     m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(),
-                                              getVarianceThreshold());
+                                              m_variance_threshold);
     auto filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(),
                                                         getUnfilteredVarianceMap(),
-                                                        getVarianceThreshold());
+                                                        m_variance_threshold);
     m_filtered_variance_map = FunctionalImage<T>::create(
       filtered_variance_map, [](int, int, WeightImage::PixelType v) {
         return std::max(v, 0.f);
@@ -272,6 +271,21 @@ void Frame<T>::applyFilter() {
   }
 }
 
+template<typename T>
+void Frame<T>::applyInterpolation() {
+  if (!m_interpolated_variance) {
+    m_interpolated_variance = BufferedImage<WeightImage::PixelType>::create(
+      std::make_shared<InterpolatedImageSource<WeightImage::PixelType>>(
+        m_variance_map, m_variance_map, m_variance_threshold, m_interpolation_gap)
+    );
+  }
+  if (!m_interpolated_image) {
+    m_interpolated_image = BufferedImage<T>::create(
+      std::make_shared<InterpolatedImageSource<T>>(
+        m_image, m_variance_map, m_variance_threshold, m_interpolation_gap)
+    );
+  }
+}
 
 template
 class Frame<SeFloat>;

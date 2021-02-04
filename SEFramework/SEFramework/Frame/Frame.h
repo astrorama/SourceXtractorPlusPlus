@@ -159,6 +159,7 @@ public:
 private:
 
   void applyFilter();
+  void applyInterpolation();
 
   std::shared_ptr<Image<T>> m_image;
   std::shared_ptr<WeightImage> m_variance_map;
