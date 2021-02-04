@@ -255,18 +255,16 @@ void Frame<T>::setLabel(const std::string& label) {
 template<typename T>
 void Frame<T>::applyFilter() {
   if (m_filter != nullptr) {
-    m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(), getVarianceThreshold());
-    auto filtered_variance_map = std::make_shared<ImageAccessor<T>>(
-      m_filter->processImage(getUnfilteredVarianceMap(), getUnfilteredVarianceMap(),
-                             getVarianceThreshold())
-    );
+    m_filtered_image = m_filter->processImage(getSubtractedImage(), getUnfilteredVarianceMap(),
+                                              getVarianceThreshold());
+    auto filtered_variance_map = m_filter->processImage(getUnfilteredVarianceMap(),
+                                                        getUnfilteredVarianceMap(),
+                                                        getVarianceThreshold());
     m_filtered_variance_map = FunctionalImage<T>::create(
-      m_filtered_image->getWidth(), m_filtered_image->getHeight(),
-      [filtered_variance_map](int x, int y) -> T {
-        return std::max(filtered_variance_map->getValue(x, y), 0.f);
+      filtered_variance_map, [](int, int, WeightImage::PixelType v) {
+        return std::max(v, 0.f);
       }
     );
-
   }
   else {
     m_filtered_image = getSubtractedImage();

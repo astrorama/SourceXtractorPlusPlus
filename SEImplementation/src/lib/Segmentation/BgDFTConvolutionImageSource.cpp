@@ -51,9 +51,7 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
   int clip_w = std::min(width + hx * 2, image->getWidth() - clip_x);
   int clip_h = std::min(height + hy * 2, image->getHeight() - clip_y);
 
-  using DetectionAccessor = ImageAccessor<DetectionImage::PixelType>;
   using VarianceAccessor = ImageAccessor<WeightImage::PixelType>;
-
 
   // Clip the image and variance map to the given size, accounting for the margins for the convolution
   auto clipped_img = ClippedImage<DetectionImage::PixelType>::create(
@@ -63,21 +61,18 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
     m_variance, clip_x, clip_y, clip_w, clip_h
   );
 
-  VarianceAccessor clippedVarAccessor(clipped_variance);
-
   // Get the mask
   // For instance, with a threshold of 0.5
   // Variance     Mask       Negative
   // 1  1  1     0  0  0     1  1  1
   // 1  0  1     0  1  0     1  0  1
   // 1  1  1     0  0  0     1  1  1
-  auto mask = FunctionalImage<DetectionImage::PixelType>::create(
-    clipped_variance->getWidth(), clipped_variance->getHeight(),
-    [this, &clippedVarAccessor](int x, int y) -> DetectionImage::PixelType {
-      return clippedVarAccessor.getValue(x, y) < m_threshold;
+  auto mask = FunctionalImage<WeightImage::PixelType>::create(
+    clipped_variance, [this](int, int, WeightImage::PixelType v) {
+      return v < m_threshold;
     }
   );
-  DetectionAccessor maskAccessor(mask);
+  VarianceAccessor maskAccessor(mask);
 
   // Get the image masking out values where the variance is greater than the threshold
   auto masked_img = MaskedImage<DetectionImage::PixelType, DetectionImage::PixelType, std::equal_to>::create(
