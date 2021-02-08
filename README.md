@@ -1,7 +1,7 @@
 # SourceXtractor++
 [![Conda](https://img.shields.io/conda/v/astrorama/sourcextractor)](https://anaconda.org/astrorama/sourcextractor)
 [![Fedora package](https://img.shields.io/fedora/v/sourcextractor++/rawhide)](https://koji.fedoraproject.org/koji/packageinfo?packageID=30842)
-[![Build Status](https://travis-ci.org/astrorama/SourceXtractorPlusPlus.svg?branch=develop)](https://travis-ci.org/astrorama/SourceXtractorPlusPlus)
+[![Build RPM](https://github.com/astrorama/SourceXtractorPlusPlus/workflows/Build%20RPM/badge.svg)](https://github.com/astrorama/SourceXtractorPlusPlus/actions)
 [![Coverity](https://scan.coverity.com/projects/19270/badge.svg?flat=1)](https://scan.coverity.com/projects/astrorama-sextractorxx)
 [![Documentation](https://readthedocs.org/projects/sourcextractorplusplus/badge/?version=latest)](https://sourcextractorplusplus.readthedocs.io/en/latest/Introduction.html)
 [![CodeFactor](https://www.codefactor.io/repository/github/astrorama/sourcextractorplusplus/badge/develop)](https://www.codefactor.io/repository/github/astrorama/sourcextractorplusplus/overview/develop)

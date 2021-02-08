@@ -233,7 +233,7 @@ option(SQUEEZED_INSTALL
 option(SANITIZE_OPTIONS
        "Activate the Sanitizing options"
        OFF)
-       
+
 if(NOT SANITIZE_STYLE)
   set(SANITIZE_STYLE "undefined" CACHE STRING "Style used for the -fsanitize= option" FORCE)
 endif()
@@ -270,7 +270,7 @@ if(NOT ELEMENTS_DEFAULT_LOGLEVEL)
   if(USE_LOCAL_INSTALLAREA)
     set(ELEMENTS_DEFAULT_LOGLEVEL "INFO" CACHE STRING "Set the default loglevel for the framework messages" FORCE)
   else()
-    set(ELEMENTS_DEFAULT_LOGLEVEL "DEBUG" CACHE STRING "Set the default loglevel for the framework messages" FORCE)  
+    set(ELEMENTS_DEFAULT_LOGLEVEL "DEBUG" CACHE STRING "Set the default loglevel for the framework messages" FORCE)
   endif()
 endif()
 
@@ -303,7 +303,7 @@ if(NOT ELEMENTS_FLAGS_SET)
   else()
     set(CMAKE_C_FLAGS)
   endif()
-      
+
   set(CMAKE_C_FLAGS
       "${CMAKE_C_FLAGS} -fmessage-length=0 -pipe -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wno-unused-parameter -fPIC"
       CACHE STRING "Flags used by the compiler during all build types."
@@ -471,7 +471,7 @@ if(NOT ELEMENTS_FLAGS_SET)
     else()
       set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--enable-new-dtags -Wl,--as-needed -pie"
           CACHE STRING "Flags used by the linker during the creation of exe's."
-          FORCE)    
+          FORCE)
     endif()
   endif()
 
@@ -607,8 +607,6 @@ if (SGS_HOST_ARCH AND SGS_ARCH)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
     set(CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -m32")
     set(GCCXML_CXX_FLAGS "${GCCXML_CXX_FLAGS} -m32")
-  elseif(NOT SGS_HOST_ARCH STREQUAL SGS_ARCH)
-    message(FATAL_ERROR "Cannot build for ${SGS_ARCH} on ${SGS_HOST_ARCH}.")
   endif()
 endif()
 

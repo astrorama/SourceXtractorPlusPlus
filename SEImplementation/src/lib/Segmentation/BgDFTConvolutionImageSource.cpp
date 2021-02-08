@@ -23,8 +23,8 @@
  */
 
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
-#include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/FunctionalImage.h"
+#include "SEFramework/Image/MaskedImage.h"
 
 namespace SourceXtractor {
 
@@ -41,8 +41,7 @@ std::string BgDFTConvolutionImageSource::getRepr() const {
 }
 
 void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image,
-                                               ImageTile<DetectionImage::PixelType>& tile,
-                                               int start_x, int start_y, int width, int height) const {
+                                               ImageTile& tile, int start_x, int start_y, int width, int height) const {
   int hx = m_convolution.getWidth() / 2;
   int hy = m_convolution.getHeight() / 2;
   int clip_x = std::max(start_x - hx, 0);
@@ -76,7 +75,8 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
   );
 
   // Get the image masking out values where the variance is greater than the threshold
-  auto masked_img = MultiplyImage<DetectionImage::PixelType>::create(clipped_img, mask);
+  auto masked_img = MaskedImage<DetectionImage::PixelType, DetectionImage::PixelType, std::equal_to>::create(
+    clipped_img, mask, 0., 0.);
 
   // Convolve the masked image, padding with 0
   auto conv_masked = VectorImage<DetectionImage::PixelType>::create(masked_img);

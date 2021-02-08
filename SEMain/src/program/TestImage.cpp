@@ -49,7 +49,7 @@
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
@@ -588,7 +588,8 @@ public:
     logger.info("Rendering...");
 
     auto filename = args["output"].as<std::string>();
-    auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size, coordinate_system);
+    auto target_image_source = std::make_shared<FitsImageSource>(filename, image_size, image_size,
+        ImageTile::ImageType::FloatImage, coordinate_system);
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
     if (args["disable-psf"].as<bool>()) {
@@ -627,7 +628,7 @@ public:
 
     auto weight_filename = args["output-weight"].as<std::string>();
     if (weight_filename != "") {
-      auto weight_map_source = std::make_shared<FitsImageSource<SeFloat>>(weight_filename, image_size, image_size);
+      auto weight_map_source = std::make_shared<FitsImageSource>(weight_filename, image_size, image_size, ImageTile::ImageType::FloatImage);
       auto weight_map = WriteableBufferedImage<SeFloat>::create(weight_map_source);
       for (int y = 0; y < image_size; ++y) {
         for (int x = 0; x < image_size; ++x) {

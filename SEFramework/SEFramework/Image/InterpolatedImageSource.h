@@ -45,10 +45,14 @@ public:
     return "InterpolatedImageSource(" + getImageRepr() + "," + m_variance_map->getRepr() + ")";
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 protected:
   using ProcessingImageSource<T>::getImageRepr;
 
-  void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile<T>& tile,
+  void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile& tile,
                     int x, int y, int width, int height) const override {
     // Get the chunks we are interested in, and its surrounding area so we can convolve
     auto chunk_start_x = x - m_interpolation_gap;
@@ -70,7 +74,7 @@ protected:
     // Fill the tile interpolating from the chunks
     int off_x = x - chunk_pixel_x;
     int off_y = y - chunk_pixel_y;
-    auto& tile_data = *tile.getImage();
+    auto& tile_data = *tile.getImage<T>();
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         tile_data.at(ix, iy) = getInterpolatedValue(*img_chunk, *variance_chunk, ix + off_x, iy + off_y);

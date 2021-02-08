@@ -55,10 +55,15 @@ bool MoffatCriteria::doesImpact(const SourceInterface& impactor, const SourceInt
 }
 
 bool MoffatCriteria::shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
-//  auto& first_moffat_model = first.getProperty<MoffatModelFitting>();
-//  auto& second_moffat_model = second.getProperty<MoffatModelFitting>();
-
   return doesImpact(first, second) || doesImpact(second, first);
+}
+
+std::set<PropertyId> MoffatCriteria::requiredProperties() const {
+  return {
+    PropertyId::create<PixelCentroid>(),
+    PropertyId::create<PeakValue>(),
+    PropertyId::create<MoffatModelEvaluator>(),
+  };
 }
 
 } // SourceXtractor namespace

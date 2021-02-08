@@ -101,7 +101,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 
-    fillAperture(ell_aper, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+    fillAperture<int>(ell_aper, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
   }
 }
 

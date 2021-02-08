@@ -30,22 +30,22 @@
 namespace SourceXtractor {
 
 template <typename T>
-class ProcessingImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
+class ProcessingImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource>  {
 public:
 
   ProcessingImageSource(std::shared_ptr<Image<T>> image) : m_image(image) {}
 
   virtual ~ProcessingImageSource() = default;
 
-  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
-    auto tile = std::make_shared<ImageTile<T>>((const_cast<ProcessingImageSource*>(this))->shared_from_this(), x, y, width, height);
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
+    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height, (const_cast<ProcessingImageSource*>(this))->shared_from_this());
 
     generateTile(m_image, *tile, x, y, width, height);
 
     return tile;
   }
 
-  void saveTile(ImageTile<T>& /*tile*/) override {
+  void saveTile(ImageTile& /*tile*/) override {
     assert(false);
   }
 
@@ -59,8 +59,12 @@ public:
     return m_image->getHeight();
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 protected:
-  virtual void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile<T>& tile, int x, int y, int width, int height) const = 0;
+  virtual void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile& tile, int x, int y, int width, int height) const = 0;
 
   std::string getImageRepr() const {
     return m_image->getRepr();

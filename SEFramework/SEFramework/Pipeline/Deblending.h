@@ -40,8 +40,11 @@ public:
   /// Destructor
   virtual ~DeblendStep() = default;
 
-  // Performs the DeblendStep on the SourceGroup
+  /// Performs the DeblendStep on the SourceGroup
   virtual void deblend(SourceGroupInterface& group) const = 0;
+
+  /// Returns properties used by the deblend step
+  virtual std::set<PropertyId> requiredProperties() const { return {};}
 };
 
 /**
@@ -63,6 +66,9 @@ public:
 
   /// Handles a new SourceGroup, applies the DeblendSteps and then notifies the observers with the result
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
+
+  /// Returns the set of required properties to compute the deblending
+  std::set<PropertyId> requiredProperties() const;
 
 private:
   std::vector<std::shared_ptr<DeblendStep>> m_deblend_steps;

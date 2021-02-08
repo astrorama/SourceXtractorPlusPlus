@@ -29,7 +29,7 @@ using namespace SourceXtractor;
 
 
 template<typename T>
-class ImageSourceMock : public ImageSource<T> {
+class ImageSourceMock : public ImageSource {
 private:
   std::shared_ptr<Image<T>> m_img;
 
@@ -42,7 +42,7 @@ public:
     return "ImageSourceMock(" + m_img->getRepr() + ")";
   }
 
-  void saveTile(ImageTile<T> &) override {
+  void saveTile(ImageTile &) override {
     assert(false);
   }
 
@@ -54,8 +54,8 @@ public:
     return m_img->getHeight();
   }
 
-  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override {
-    auto tile = std::make_shared<ImageTile<T>>(nullptr, x, y, width, height);
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
+    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height);
     for (int iy = y; iy < y + height; ++iy) {
       for (int ix = x; ix < x + width; ++ix) {
         tile->setValue(ix, iy, m_img->getValue(ix, iy));
@@ -63,10 +63,14 @@ public:
     }
     return tile;
   }
+
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
 };
 
 struct BufferedImageFixture {
-  std::shared_ptr<ImageSource<SeFloat>> m_img_source;
+  std::shared_ptr<ImageSource> m_img_source;
 
   BufferedImageFixture() {
     m_img_source = std::make_shared<ImageSourceMock<SeFloat>>(VectorImage<SeFloat>::create(

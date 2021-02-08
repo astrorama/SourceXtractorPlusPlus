@@ -39,9 +39,9 @@
 
 namespace SourceXtractor {
 
-template <typename T>
-class FitsImageSource : public ImageSourceWithMetadata<T>, public std::enable_shared_from_this<ImageSource<T>>  {
+class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource>  {
 public:
+
 
   /**
    * Constructor
@@ -51,11 +51,11 @@ public:
    *    HDU number. If <= 0, the constructor will use the first HDU containing an image
    * @param manager
    */
-  FitsImageSource(const std::string &filename, int hdu_number = 0,
+  FitsImageSource(const std::string &filename, int hdu_number = 0, ImageTile::ImageType image_type = ImageTile::AutoType,
       std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
 
-  FitsImageSource(const std::string &filename, int width, int height,
-                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
+  FitsImageSource(const std::string &filename, int width, int height, ImageTile::ImageType image_type,
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr, bool append=false,
                   std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
 
   virtual ~FitsImageSource() = default;
@@ -63,8 +63,6 @@ public:
   std::string getRepr() const override {
     return m_filename;
   }
-
-  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override;
 
   /// Returns the width of the image in pixels
   int getWidth() const override {
@@ -76,7 +74,9 @@ public:
     return m_height;
   }
 
-  void saveTile(ImageTile<T>& tile) override;
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
+
+  void saveTile(ImageTile& tile) override;
 
   template <typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
@@ -93,15 +93,19 @@ public:
     return m_hdu_number;
   }
 
+  ImageTile::ImageType getType() const override {
+    return m_image_type;
+  }
+
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
-  const std::map<std::string, MetadataEntry>& getMetadata() const override{
+  const std::map<std::string, MetadataEntry> getMetadata() const override {
     return m_fits_file->getHDUHeaders(m_hdu_number);
   }
 
+  void setMetadata(std::string key, MetadataEntry value) override;
+
 private:
-
-
   void switchHdu(fitsfile* fptr, int hdu_number) const;
 
   int getDataType() const;
@@ -111,15 +115,14 @@ private:
   std::shared_ptr<FitsFile> m_fits_file;
   std::shared_ptr<FitsFileManager> m_manager;
 
+  int m_hdu_number;
+
   int m_width;
   int m_height;
-
-  int m_hdu_number;
+  ImageTile::ImageType m_image_type;
 };
 
 }
-
-
 
 
 #endif /* _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_ */

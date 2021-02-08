@@ -58,17 +58,14 @@
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
 #include "SEImplementation/CheckImages/MoffatCheckImage.h"
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
-
+#include "SEImplementation/Configuration/MultiThreadingConfig.h"
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
 #include "SEImplementation/Grouping/GroupingFactory.h"
-
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
@@ -76,8 +73,8 @@
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
-
 #include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Prefetcher/Prefetcher.h"
 
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"
@@ -336,19 +333,30 @@ public:
     auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
 
     auto segmentation = segmentation_factory.createSegmentation();
+
+    // Prefetcher
+    auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
+    auto prefetcher = std::make_shared<Prefetcher>(multithreading_config.getThreadPool());
+
+    // Rest of the stagees
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
+    prefetcher->requestProperties(source_grouping->requiredProperties());
 
     std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
+    prefetcher->requestProperties(deblending->requiredProperties());
+
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
-    segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-    partition->addObserver(source_grouping);
+    segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
+    prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+    partition->addObserver(prefetcher);
+    prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
@@ -437,6 +445,7 @@ public:
       return Elements::ExitCode::NOT_OK;
     }
 
+    prefetcher->wait();
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());

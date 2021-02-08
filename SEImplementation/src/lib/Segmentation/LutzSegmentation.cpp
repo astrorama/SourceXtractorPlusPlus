@@ -35,6 +35,8 @@
 
 namespace SourceXtractor {
 
+namespace {
+
 class LutzLabellingListener : public Lutz::LutzListener {
 public:
   LutzLabellingListener(Segmentation::LabellingListener& listener, std::shared_ptr<SourceFactory> source_factory,
@@ -56,7 +58,9 @@ public:
     m_listener.notifyProgress(line, total);
 
     if (m_window_size > 0 && line > m_window_size) {
-      m_listener.requestProcessing(ProcessSourcesEvent(LineSelectionCriteria(line - m_window_size)));
+      m_listener.requestProcessing(
+        ProcessSourcesEvent(std::make_shared<LineSelectionCriteria>(line - m_window_size))
+      );
     }
   }
 
@@ -65,6 +69,8 @@ private:
   std::shared_ptr<SourceFactory> m_source_factory;
   int m_window_size;
 };
+
+}
 
 //
 // class LutzSegmentation

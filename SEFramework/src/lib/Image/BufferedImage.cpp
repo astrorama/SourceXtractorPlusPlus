@@ -25,13 +25,13 @@
 namespace SourceXtractor {
 
 template<typename T>
-BufferedImage<T>::BufferedImage(std::shared_ptr<const ImageSource<T>> source,
+BufferedImage<T>::BufferedImage(std::shared_ptr<const ImageSource> source,
                                 std::shared_ptr<TileManager> tile_manager)
   : m_source(source), m_tile_manager(tile_manager) {}
 
 
 template<typename T>
-std::shared_ptr<BufferedImage<T>> BufferedImage<T>::create(std::shared_ptr<const ImageSource<T>> source,
+std::shared_ptr<BufferedImage<T>> BufferedImage<T>::create(std::shared_ptr<const ImageSource> source,
                                                            std::shared_ptr<TileManager> tile_manager) {
   return std::shared_ptr<BufferedImage<T>>(new BufferedImage<T>(source, tile_manager));
 }
@@ -50,7 +50,7 @@ T BufferedImage<T>::getValue(int x, int y) const {
     m_current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
   }
 
-  return m_current_tile->getValue(x, y);
+  return m_current_tile->getValue<T>(x, y);
 }
 
 
@@ -80,9 +80,11 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
     // however image chunks are normally short lived so it's probably OK
     auto tile = m_tile_manager->getTileForPixel(x, y, m_source);
     // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
-    const T *data_start = &(tile->getImage()->getData()[tile_offset_x +
-                                                        tile_offset_y * tile->getImage()->getWidth()]);
-    return ImageChunk<T>::create(data_start, width, height, tile->getImage()->getWidth(), tile->getImage());
+
+    auto image = tile->getImage<T>();
+    const T *data_start = &(image->getData()[tile_offset_x +
+                                                        tile_offset_y * image->getWidth()]);
+    return ImageChunk<T>::create(data_start, width, height, image->getWidth(), image);
   }
   else {
     // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
@@ -111,7 +113,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
 
 
 template<typename T>
-void BufferedImage<T>::copyOverlappingPixels(const ImageTile<T>& tile, std::vector<T>& output,
+void BufferedImage<T>::copyOverlappingPixels(const ImageTile& tile, std::vector<T>& output,
                                              int x, int y, int w, int h,
                                              int tile_w, int tile_h) const {
   int start_x = std::max(tile.getPosX(), x);
@@ -123,7 +125,7 @@ void BufferedImage<T>::copyOverlappingPixels(const ImageTile<T>& tile, std::vect
 
   for (int data_y = off_y, img_y = start_y; img_y < end_y; ++data_y, ++img_y) {
     for (int data_x = off_x, img_x = start_x; img_x < end_x; ++data_x, ++img_x) {
-      output[data_x + data_y * w] = tile.getValue(img_x, img_y);
+      output[data_x + data_y * w] = tile.getValue<T>(img_x, img_y);
     }
   }
 }
@@ -132,5 +134,8 @@ void BufferedImage<T>::copyOverlappingPixels(const ImageTile<T>& tile, std::vect
 template class BufferedImage<MeasurementImage::PixelType>;
 template class BufferedImage<FlagImage::PixelType>;
 template class BufferedImage<unsigned int>;
+template class BufferedImage<int>;
+template class BufferedImage<double>;
+
 
 } // end namespace SourceXtractor

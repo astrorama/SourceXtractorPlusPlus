@@ -29,7 +29,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-
+#include <AlexandriaKernel/ThreadPool.h>
 #include "SEFramework/Pipeline/Measurement.h"
 
 namespace SourceXtractor {
@@ -38,10 +38,9 @@ class MultithreadedMeasurement : public Measurement {
 public:
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
-  MultithreadedMeasurement(SourceToRowConverter source_to_row, int worker_threads_nb)
+  MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
       : m_source_to_row(source_to_row),
-        m_worker_threads_nb(worker_threads_nb),
-        m_active_threads(0),
+        m_thread_pool(thread_pool),
         m_group_counter(0),
         m_input_done(false), m_abort_raised(false) {}
 
@@ -54,26 +53,15 @@ public:
   static std::recursive_mutex g_global_mutex;
 
 private:
-  static void workerThreadStatic(MultithreadedMeasurement* measurement, int id);
-  static void outputThreadStatic(MultithreadedMeasurement* measurement, int id);
-  void workerThreadLoop();
+  static void outputThreadStatic(MultithreadedMeasurement* measurement);
   void outputThreadLoop();
 
   SourceToRowConverter m_source_to_row;
-
-  std::shared_ptr<std::thread> m_output_thread;
-
-  int m_worker_threads_nb;
-  std::vector<std::shared_ptr<std::thread>> m_worker_threads;
-
-  int m_active_threads;
-  std::mutex m_active_threads_mutex;
+  std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
+  std::unique_ptr<std::thread> m_output_thread;
 
   int m_group_counter;
   std::atomic_bool m_input_done, m_abort_raised;
-  std::condition_variable m_new_input;
-  std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_input_queue;
-  std::mutex m_input_queue_mutex;
 
   std::condition_variable m_new_output;
   std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_output_queue;

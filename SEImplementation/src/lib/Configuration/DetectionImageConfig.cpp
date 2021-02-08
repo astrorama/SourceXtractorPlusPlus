@@ -25,7 +25,7 @@
 #include <SEFramework/Image/BufferedImage.h>
 #include "SEFramework/FITS/FitsImageSource.h"
 
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -71,7 +71,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   }
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(m_detection_image_path);
+  auto fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, 0, ImageTile::FloatImage);
   m_image_source = fits_image_source;
   m_detection_image = BufferedImage<DetectionImage::PixelType>::create(m_image_source);
   m_coordinate_system = std::make_shared<WCS>(*fits_image_source);

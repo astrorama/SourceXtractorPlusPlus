@@ -31,7 +31,6 @@
 
 namespace SourceXtractor {
 
-
 /**
  * @class Lutz
  * @brief Implements a Segmentation based on the Lutz algorithm
@@ -56,11 +55,8 @@ public:
 private:
   std::shared_ptr<SourceFactory> m_source_factory;
   int m_window_size;
-}; /* End of Lutz class */
-
-
+};
 
 } /* namespace SourceXtractor */
-
 
 #endif

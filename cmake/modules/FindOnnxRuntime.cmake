@@ -11,7 +11,7 @@ if(NOT OnnxRuntime_FOUND)
 
   find_path(OnnxRuntime_INCLUDE_DIR onnxruntime_cxx_api.h
             HINTS ENV ONNXRUNTIME_INSTALL_DIR
-            PATH_SUFFIXES include)
+            PATH_SUFFIXES include onnxruntime)
 
   find_library(OnnxRuntime_LIBRARY onnxruntime
                HINTS ENV ONNXRUNTIME_INSTALL_DIR

@@ -22,6 +22,8 @@
  */
 
 #include <iostream>
+#include <algorithm>
+
 #include <assert.h>
 
 #include "ElementsKernel/Exception.h"
@@ -67,8 +69,29 @@ void FitsFileManager::closeExtraFiles() {
   while (m_open_files.size() > m_max_open_files) {
     auto& file_to_close = m_fits_files[m_open_files.back()];
     file_to_close->close();
-    m_open_files.pop_back();
   }
 }
+
+void FitsFileManager::reportClosedFile(const std::string& filename) {
+  m_open_files.remove(filename);
+}
+
+void FitsFileManager::closeAndPurgeFile(const std::string& filename) {
+  auto it = m_fits_files.find(filename);
+  if (it != m_fits_files.end()) {
+   it->second->close();
+   m_fits_files.erase(filename);
+  }
+}
+
+
+void FitsFileManager::reportOpenedFile(const std::string& filename) {
+  auto iter = std::find(m_open_files.begin(), m_open_files.end(), filename);
+  if (iter == m_open_files.end()) {
+    m_open_files.push_front(filename);
+  }
+  closeExtraFiles();
+}
+
 
 }

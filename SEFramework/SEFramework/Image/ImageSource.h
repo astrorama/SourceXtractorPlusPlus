@@ -24,36 +24,59 @@
 #ifndef _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 
+#include <boost/variant.hpp>
+
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageTile.h"
 
 namespace SourceXtractor {
 
-class ImageSourceBase {
-public:
-  virtual ~ImageSourceBase() = default;
+/**
+ * Accepted values are bool, char, int64_t, double and string
+ * Other types must be promoted (i.e. int32_t => int64_t, float => double)
+ */
 
-  /// Human readable representation of this source
-  virtual std::string getRepr() const = 0;
+struct MetadataEntry {
+  typedef boost::variant<bool, char, int64_t, double, std::string> value_t;
+
+  value_t m_value;
+
+  /// Additional metadata about the entry: i.e. comments
+  std::map<std::string, std::string> m_extra;
 };
 
-template <typename T>
-class ImageSource : public ImageSourceBase {
+/**
+ * Metadata is modeled as a set of key/value pairs. Keys are unique.
+ */
+
+class ImageSource {
 public:
 
   ImageSource() {}
 
   virtual ~ImageSource() = default;
 
-  virtual std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const = 0;
+  /// Human readable representation of this source
+  virtual std::string getRepr() const = 0;
 
-  virtual void saveTile(ImageTile<T>& tile) = 0;
+  virtual void saveTile(ImageTile& tile) = 0;
+  virtual std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const = 0;
+
 
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
 
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
+
+  virtual ImageTile::ImageType getType() const = 0;
+
+  /**
+   * @return A copy of the metadata set
+   */
+  virtual const std::map<std::string, MetadataEntry> getMetadata() const { return {}; };
+
+  virtual void setMetadata(std::string key, MetadataEntry value) {}
 
 private:
 

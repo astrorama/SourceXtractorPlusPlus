@@ -53,6 +53,11 @@ public:
 
   std::shared_ptr<FitsFile> getFitsFile(const std::string& filename, bool writeable=false);
 
+  void closeAndPurgeFile(const std::string& filename);
+
+  void reportClosedFile(const std::string& filename);
+  void reportOpenedFile(const std::string& filename);
+
 private:
   std::unordered_map<std::string, std::shared_ptr<FitsFile>> m_fits_files;
 

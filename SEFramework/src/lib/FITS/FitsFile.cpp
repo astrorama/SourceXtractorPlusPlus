@@ -24,6 +24,7 @@
 
 #include <assert.h>
 
+#include <iostream>
 #include <iomanip>
 #include <fstream>
 #include <string>
@@ -142,7 +143,7 @@ void FitsFile::openFirstTime() {
   fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
 
   // load all FITS headers
-  loadHeaders();
+  reloadHeaders();
 
   // load optional .head file to override headers
   loadHeadFile();
@@ -162,6 +163,7 @@ void FitsFile::reopen() {
 
 void FitsFile::open() {
   if (!m_is_file_opened) {
+    m_manager->reportOpenedFile(m_filename);
     if (m_was_opened_before) {
       reopen();
     } else {
@@ -173,6 +175,7 @@ void FitsFile::open() {
 
 void FitsFile::close() {
   if (m_is_file_opened) {
+    m_manager->reportClosedFile(m_filename);
     int status = 0;
     fits_close_file(m_file_pointer, &status);
     m_file_pointer = nullptr;
@@ -188,7 +191,7 @@ void FitsFile::setWriteMode() {
   }
 }
 
-void FitsFile::loadHeaders() {
+void FitsFile::reloadHeaders() {
   int status = 0;
 
   // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already)

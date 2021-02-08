@@ -21,8 +21,8 @@
  *      Author: mschefer
  */
 
-#ifndef _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
-#define _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_
+#ifndef _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
+#define _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
 
 #include <memory>
 #include <map>
@@ -36,7 +36,9 @@ namespace SourceXtractor {
 
 class WCS : public CoordinateSystem {
 public:
-  explicit WCS(const FitsImageSource<SeFloat>& fits_image_source);
+  explicit WCS(const FitsImageSource& fits_image_source);
+  explicit WCS(const WCS& original);
+
   virtual ~WCS();
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
@@ -44,10 +46,14 @@ public:
 
   std::map<std::string, std::string> getFitsHeaders() const override;
 
+  void addOffset(PixelCoordinate pc);
+
 private:
+  void init(char* headers, int number_of_records);
+
   std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };
 
 }
 
-#endif /* _SEIMPLEMENTATION_COORDINATESYSTEM_WCS_H_ */
+#endif /* _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_ */
