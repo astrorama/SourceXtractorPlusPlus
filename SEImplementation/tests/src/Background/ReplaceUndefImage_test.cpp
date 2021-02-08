@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(replaceInvOne) {
     }
   );
 
-  auto replaced = ReplaceUndefImage<SeFloat>::create(one_missing, INV);
+  auto replaced = ReplaceUndef<SeFloat>(*one_missing, INV);
   BOOST_CHECK(compareImages(expected, replaced));
 }
 
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(replaceInvTwo) {
     }
   );
 
-  auto replaced = ReplaceUndefImage<SeFloat>::create(two_missing, INV);
+  auto replaced = ReplaceUndef<SeFloat>(*two_missing, INV);
   BOOST_CHECK(compareImages(expected, replaced, 1e-3));
 }
 

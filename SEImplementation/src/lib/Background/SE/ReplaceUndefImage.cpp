@@ -16,33 +16,11 @@
  */
 
 #include "SEImplementation/Background/SE/ReplaceUndefImage.h"
-#include "SEFramework/Image/ImageAccessor.h"
 
 namespace SourceXtractor {
 
 template<typename T>
-ReplaceUndefImage<T>::ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid)
-  : m_image{image}, m_invalid{invalid} {
-}
-
-template<typename T>
-std::string ReplaceUndefImage<T>::getRepr() const {
-  return std::string("ReplaceUndef(" + m_image->getRepr() + ")");
-}
-
-template<typename T>
-int ReplaceUndefImage<T>::getWidth() const {
-  return m_image->getWidth();
-}
-
-template<typename T>
-int ReplaceUndefImage<T>::getHeight() const {
-  return m_image->getHeight();
-}
-
-
-template<typename T>
-static T getMaskedValue(int x, int y, ImageAccessor<T>& img, T invalid) {
+static T getMaskedValue(int x, int y, const VectorImage<T>& img, T invalid) {
   auto v = img.getValue(x, y);
   if (v != invalid)
     return v;
@@ -82,20 +60,19 @@ static T getMaskedValue(int x, int y, ImageAccessor<T>& img, T invalid) {
 }
 
 template<typename T>
-std::shared_ptr<ImageChunk<T>> ReplaceUndefImage<T>::getChunk(
-  int x, int y, int width, int height) const {
-  ImageAccessor<T> accessor(m_image, ImageAccessor<T>::TOP_LEFT, width, height);
-  auto chunk = UniversalImageChunk<T>::create(width, height);
-
-  for (int iy = 0; iy < height; ++iy) {
-    for (int ix = 0; ix < width; ++ix) {
-      chunk->at(ix, iy) = getMaskedValue(x + ix, x + iy, accessor, m_invalid);
+std::shared_ptr<VectorImage<T>> ReplaceUndef(const VectorImage<T>& original, T mask) {
+  auto output = VectorImage<T>::create(original.getWidth(), original.getHeight());
+  for (int y = 0; y < original.getHeight(); ++y) {
+    for (int x = 0; x < original.getWidth(); ++x) {
+      output->at(x, y) = getMaskedValue(x, y, original, mask);
     }
   }
-  return chunk;
+  return output;
 }
 
-template
-class ReplaceUndefImage<SeFloat>;
+// Instantiation
+template std::shared_ptr<VectorImage<SeFloat>> ReplaceUndef(const VectorImage<SeFloat>&, SeFloat);
 
 } // end of namespace SourceXtractor
+
+#include "SEFramework/Image/ImageAccessor.h"
