@@ -128,10 +128,15 @@ static void wcsReportWarnings(const char *err_buffer) {
     logger.warn() << "Will run in relaxed mode.";
     const char *eol;
     do {
-      eol = strchrnul(err_buffer, '\n');
-      logger.warn() << std::string(err_buffer, eol - err_buffer);
-      err_buffer = eol + 1;
-    } while (*eol);
+      eol = strchr(err_buffer, '\n');
+      if (eol) {
+        logger.warn() << std::string(err_buffer, eol - err_buffer);
+        err_buffer = eol + 1;
+      }
+      else {
+        logger.warn() << std::string(err_buffer);
+      }
+    } while (eol);
   }
 }
 
