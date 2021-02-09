@@ -78,6 +78,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     m_selected_algorithm = Algorithm::LUTZ;
   } else if (algorithm_name == "BFS") {
     m_selected_algorithm = Algorithm::BFS;
+  } else if (algorithm_name == "ML") {
+    m_selected_algorithm = Algorithm::ML;
   } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
