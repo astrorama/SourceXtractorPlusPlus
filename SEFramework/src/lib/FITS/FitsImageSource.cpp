@@ -97,21 +97,43 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, Im
 
 
 FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
-                                    const std::shared_ptr<CoordinateSystem> coord_system,
+                                    const std::shared_ptr<CoordinateSystem> coord_system, bool append,
                                     std::shared_ptr<FitsFileManager> manager)
-  : m_filename(filename), m_manager(manager), m_hdu_number(1), m_width(width), m_height(height), m_image_type(image_type) {
+  : m_filename(filename), m_manager(manager), m_width(width), m_height(height), m_image_type(image_type) {
   {
-    // CREATE NEW FITS FILE
+
+    m_manager->closeAndPurgeFile(filename);
+
     int status = 0;
     fitsfile* fptr = nullptr;
-    fits_create_file(&fptr, ("!"+filename).c_str(), &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
+
+    if (append) {
+      fits_open_image(&fptr, filename.c_str(), READWRITE, &status);
+      if (status != 0) {
+        status = 0;
+        fits_create_file(&fptr, filename.c_str(), &status);
+        if (status != 0) {
+          throw Elements::Exception() << "Can't open or create FITS file to add HDU: " << filename;
+        }
+      }
+    } else {
+      // Overwrite file
+      fits_create_file(&fptr, ("!"+filename).c_str(), &status);
+      if (status != 0) {
+        throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
+      }
     }
     assert(fptr != nullptr);
 
     long naxes[2] = {width, height};
     fits_create_img(fptr, getImageType(), 2, naxes, &status);
+
+    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
+    }
+
+    int hdutype = 0;
+    fits_movabs_hdu(fptr, m_hdu_number, &hdutype, &status);
 
     if (coord_system) {
       auto headers = coord_system->getFitsHeaders();
@@ -247,6 +269,29 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   std::unique_ptr<std::vector<char>> buffer(new std::vector<char>(records.begin(), records.end()));
   buffer->emplace_back(0);
   return buffer;
+}
+
+void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
+  auto fptr = m_fits_file->getFitsFilePtr();
+  switchHdu(fptr, m_hdu_number);
+
+  std::ostringstream padded_key, serializer;
+  padded_key << std::setw(8) << std::left << key;
+
+  serializer << padded_key.str() << "= " << std::left << std::setw(70) << VariantCast<std::string>(value.m_value);
+  auto str = serializer.str();
+
+  int status = 0;
+  fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
+
+  if (status != 0) {
+    char err_txt[31];
+    fits_get_errstatus(status, err_txt);
+    throw Elements::Exception() << "Couldn't write the metadata (" << err_txt << "): " << str;
+  }
+
+  // update the metadata
+  m_fits_file->getHDUHeaders(m_hdu_number)[key] = value;
 }
 
 int FitsImageSource::getDataType() const {

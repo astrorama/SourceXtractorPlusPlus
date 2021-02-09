@@ -85,6 +85,7 @@ elements_add_library(SEImplementation
            	src/lib/CheckImages/*.cpp
             src/lib/Deblending/*.cpp
             src/lib/Image/*.cpp
+			src/lib/Prefetcher/*.cpp
             ${PLUGIN_SRC}
 			${SE_PYTHON_SRC}
             LINK_LIBRARIES

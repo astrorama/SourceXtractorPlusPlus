@@ -143,7 +143,7 @@ void FitsFile::openFirstTime() {
   fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
 
   // load all FITS headers
-  loadHeaders();
+  reloadHeaders();
 
   // load optional .head file to override headers
   loadHeadFile();
@@ -191,7 +191,7 @@ void FitsFile::setWriteMode() {
   }
 }
 
-void FitsFile::loadHeaders() {
+void FitsFile::reloadHeaders() {
   int status = 0;
 
   // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already)

@@ -42,7 +42,9 @@ public:
   MoffatCriteria(double threshold, double max_distance) : m_threshold(threshold), m_max_distance(max_distance) {}
   virtual ~MoffatCriteria() {}
 
-  virtual bool shouldGroup(const SourceInterface&, const SourceInterface&) const override;
+  bool shouldGroup(const SourceInterface&, const SourceInterface&) const override;
+
+  std::set<PropertyId> requiredProperties() const override;
 
 private:
   bool doesImpact(const SourceInterface& impactor, const SourceInterface& impactee) const;

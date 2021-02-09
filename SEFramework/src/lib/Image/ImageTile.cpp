@@ -68,7 +68,7 @@ public:
     getValueImpl(x, y, value);
   }
 
-  virtual void getValue(int x, int y, long int& value) const {
+  virtual void getValue(int x, int y, std::int64_t& value) const {
     getValueImpl(x, y, value);
   }
 
@@ -88,7 +88,7 @@ public:
     setValueImpl(x, y, value);
   }
 
-  virtual void setValue(int x, int y, long int value) {
+  virtual void setValue(int x, int y, std::int64_t value) {
     setValueImpl(x, y, value);
   }
 };
@@ -105,7 +105,7 @@ std::shared_ptr<ImageTile> ImageTile::create(ImageType image_type, int x, int y,
   case UIntImage:
     return std::make_shared<ImageTileImpl<unsigned int>>(image_type, x, y, width, height, source);
   case LongLongImage:
-    return std::make_shared<ImageTileImpl<long long>>(image_type, x, y, width, height, source);
+    return std::make_shared<ImageTileImpl<std::int64_t>>(image_type, x, y, width, height, source);
   }
 }
 

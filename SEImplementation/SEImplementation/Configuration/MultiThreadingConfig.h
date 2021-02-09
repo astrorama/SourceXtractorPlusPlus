@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_CONFIGURATION_MULTITHREADINGCONFIG_H_
 
 #include "Configuration/Configuration.h"
+#include "AlexandriaKernel/ThreadPool.h"
 
 namespace SourceXtractor {
 
@@ -42,8 +43,13 @@ public:
     return m_threads_nb;
   }
 
+  const std::shared_ptr<Euclid::ThreadPool>& getThreadPool() const {
+    return m_thread_pool;
+  }
+
 private:
   int m_threads_nb;
+  std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
 };
 
 

@@ -14,25 +14,25 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * GroupInfoTask.cpp
- *
- *  Created on: 2019 M01 29
- *      Author: mschefer
- */
 
+#ifndef _SEUTILS_MISC_H_
+#define _SEUTILS_MISC_H_
 
-#include <atomic>
-#include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
-#include "SEImplementation/Plugin/GroupInfo/GroupInfoTask.h"
+#include <type_traits>
 
 namespace SourceXtractor {
 
-void GroupInfoTask::computeProperties(SourceGroupInterface& group) const {
-  static std::atomic<std::uint32_t> group_id(1);
-  group.setProperty<GroupInfo>(group_id++);
+template <typename T>
+T nextPowerOfTwo(T v) {
+  static_assert(std::is_unsigned<T>::value, "Type T must be unsigned");
+  v--;
+  for (size_t i = 1; i < sizeof(v) * 8U; i *= 2) {
+    v |= v >> i;
+  }
+  v++;
+  return v;
 }
 
 }
 
-
+#endif /* _SEUTILS_MISC_H_ */

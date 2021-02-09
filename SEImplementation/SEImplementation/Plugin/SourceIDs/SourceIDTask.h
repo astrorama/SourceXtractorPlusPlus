@@ -24,6 +24,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDTASK_H_
 
+#include <atomic>
 #include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Property/SourceId.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
@@ -44,7 +45,7 @@ public:
 
 private:
   static unsigned int getNewId() {
-    static unsigned int s_id  = 1;
+    static std::atomic<std::uint32_t> s_id(1);
     return s_id++;
   }
 

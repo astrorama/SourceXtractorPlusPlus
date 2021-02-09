@@ -51,41 +51,41 @@ public:
 
   void saveImages();
 
-  std::shared_ptr<WriteableImage<unsigned int>> getSegmentationImage() const {
+  std::shared_ptr<WriteableImage<int>> getSegmentationImage() const {
     if (m_segmentation_image != nullptr) {
-      return LockedWriteableImage<unsigned int>::create(m_segmentation_image);
+      return LockedWriteableImage<int>::create(m_segmentation_image);
     } else {
       return nullptr;
     }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>> getPartitionImage() const {
+  std::shared_ptr<WriteableImage<int>> getPartitionImage() const {
     if (m_partition_image != nullptr) {
-      return LockedWriteableImage<unsigned int>::create(m_partition_image);
+      return LockedWriteableImage<int>::create(m_partition_image);
     } else {
       return nullptr;
     }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>> getGroupImage() const {
+  std::shared_ptr<WriteableImage<int>> getGroupImage() const {
     if (m_group_image != nullptr) {
-      return LockedWriteableImage<unsigned int>::create(m_group_image);
+      return LockedWriteableImage<int>::create(m_group_image);
     } else {
       return nullptr;
     }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage() const {
+  std::shared_ptr<WriteableImage<int>> getAutoApertureImage() const {
     if (m_auto_aperture_image != nullptr) {
-      return LockedWriteableImage<unsigned int>::create(m_auto_aperture_image);
+      return LockedWriteableImage<int>::create(m_auto_aperture_image);
     } else {
       return nullptr;
     }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>> getApertureImage() const {
+  std::shared_ptr<WriteableImage<int>> getApertureImage() const {
     if (m_aperture_image != nullptr) {
-      return LockedWriteableImage<unsigned int>::create(m_aperture_image);
+      return LockedWriteableImage<int>::create(m_aperture_image);
     } else {
       return nullptr;
     }
@@ -99,9 +99,9 @@ public:
     }
   }
 
-  std::shared_ptr<WriteableImage<unsigned int>> getAutoApertureImage(unsigned int frame_number);
+  std::shared_ptr<WriteableImage<int>> getAutoApertureImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<unsigned int>> getApertureImage(unsigned int frame_number);
+  std::shared_ptr<WriteableImage<int>> getApertureImage(unsigned int frame_number);
 
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getModelFittingImage(unsigned int frame_number);
 
@@ -154,11 +154,11 @@ private:
   };
 
   // check image
-  std::shared_ptr<WriteableImage<unsigned int>> m_segmentation_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_partition_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_group_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_auto_aperture_image;
-  std::shared_ptr<WriteableImage<unsigned int>> m_aperture_image;
+  std::shared_ptr<WriteableImage<int>> m_segmentation_image;
+  std::shared_ptr<WriteableImage<int>> m_partition_image;
+  std::shared_ptr<WriteableImage<int>> m_group_image;
+  std::shared_ptr<WriteableImage<int>> m_auto_aperture_image;
+  std::shared_ptr<WriteableImage<int>> m_aperture_image;
   std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
   std::map<unsigned int, decltype(m_aperture_image)> m_measurement_aperture_images;
   std::map<unsigned int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;

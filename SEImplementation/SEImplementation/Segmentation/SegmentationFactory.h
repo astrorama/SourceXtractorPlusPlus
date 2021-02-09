@@ -59,6 +59,7 @@ private:
   std::shared_ptr<TaskProvider> m_task_provider;
 
   int m_lutz_window_size;
+  int m_bfs_max_delta;
 
 }; /* End of SegmentationFactory class */
 

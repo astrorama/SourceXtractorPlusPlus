@@ -63,6 +63,10 @@ public:
     }
     return tile;
   }
+
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
 };
 
 struct BufferedImageFixture {

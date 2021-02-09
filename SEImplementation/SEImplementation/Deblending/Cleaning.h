@@ -43,6 +43,8 @@ public:
 
   void deblend(SourceGroupInterface& group) const override;
 
+  std::set<PropertyId> requiredProperties() const override;
+
 private:
   bool shouldClean(SourceInterface& source, SourceGroupInterface& group) const;
   SourceGroupInterface::iterator findMostInfluentialSource(

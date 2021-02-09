@@ -37,6 +37,8 @@ namespace SourceXtractor {
 class WCS : public CoordinateSystem {
 public:
   explicit WCS(const FitsImageSource& fits_image_source);
+  explicit WCS(const WCS& original);
+
   virtual ~WCS();
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
@@ -44,7 +46,11 @@ public:
 
   std::map<std::string, std::string> getFitsHeaders() const override;
 
+  void addOffset(PixelCoordinate pc);
+
 private:
+  void init(char* headers, int number_of_records);
+
   std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };
 

@@ -59,6 +59,10 @@ public:
     return m_image->getHeight();
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 protected:
   virtual void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile& tile, int x, int y, int width, int height) const = 0;
 

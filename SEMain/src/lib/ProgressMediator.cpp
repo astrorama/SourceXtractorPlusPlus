@@ -27,18 +27,24 @@ namespace SourceXtractor {
 
 class ProgressMediator::ProgressCounter : public Observer<SegmentationProgress> {
 public:
-  ProgressCounter(ProgressMediator& progress_listener, SegmentationProgress& segmentation_progress) :
-    m_progress_listener(progress_listener), m_segmentation_progress(segmentation_progress) {
+  ProgressCounter(ProgressMediator& progress_listener, SegmentationProgress& segmentation_progress,
+                  std::mutex& mutex) :
+    m_progress_listener(progress_listener), m_segmentation_progress(segmentation_progress),
+    m_mutex(mutex) {
   }
 
   void handleMessage(const SegmentationProgress& progress) override {
-    m_segmentation_progress = progress;
+    {
+      std::lock_guard<std::mutex> lock(m_mutex);
+      m_segmentation_progress = progress;
+    }
     m_progress_listener.update();
   }
 
 private:
   ProgressMediator& m_progress_listener;
   SegmentationProgress& m_segmentation_progress;
+  std::mutex& m_mutex;
 };
 
 class ProgressMediator::SourceCounter : public Observer<std::shared_ptr<SourceInterface>> {
@@ -73,7 +79,7 @@ private:
 
 ProgressMediator::ProgressMediator() :
   m_segmentation_progress{0, 0}, m_detected{0}, m_deblended{0}, m_measured{0},
-  m_segmentation_listener{std::make_shared<ProgressCounter>(*this, m_segmentation_progress)},
+  m_segmentation_listener{std::make_shared<ProgressCounter>(*this, m_segmentation_progress, m_mutex)},
   m_detection_listener{std::make_shared<SourceCounter>(*this, m_detected)},
   m_deblending_listener{std::make_shared<GroupCounter>(*this, m_deblended)},
   m_measurement_listener{std::make_shared<GroupCounter>(*this, m_measured)} {

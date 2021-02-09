@@ -45,6 +45,10 @@ public:
     return "InterpolatedImageSource(" + getImageRepr() + "," + m_variance_map->getRepr() + ")";
   }
 
+  ImageTile::ImageType getType() const override {
+    return ImageTile::getTypeValue(T());
+  }
+
 protected:
   using ProcessingImageSource<T>::getImageRepr;
 
