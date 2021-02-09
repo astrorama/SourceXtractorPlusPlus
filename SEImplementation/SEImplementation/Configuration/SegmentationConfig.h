@@ -39,7 +39,8 @@ public:
   enum class Algorithm {
     UNKNOWN,
     LUTZ,
-    BFS
+    BFS,
+    ML
   };
 
   /**

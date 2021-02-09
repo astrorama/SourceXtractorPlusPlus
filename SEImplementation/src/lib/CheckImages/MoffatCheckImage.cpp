@@ -38,21 +38,21 @@ using namespace ModelFitting;
 
 void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
   auto check_image = CheckImages::getInstance().getMoffatImage();
-  if (check_image != nullptr) {
-    for (auto& source : *group) {
-      auto& model = source.getProperty<MoffatModelEvaluator>();
-
-      if (model.getIterations() == 0) {
-        continue;
-      }
-
-      for (int y=0; y<check_image->getHeight(); y++) {
-        for (int x=0; x<check_image->getWidth(); x++) {
-          check_image->setValue(x, y, check_image->getValue(x, y) + model.getValue(x - 0.5, y - 0.5));
-        }
-      }
-    }
-  }
+//  if (check_image != nullptr) {
+//    for (auto& source : *group) {
+//      auto& model = source.getProperty<MoffatModelEvaluator>();
+//
+//      if (model.getIterations() == 0) {
+//        continue;
+//      }
+//
+//      for (int y=0; y<check_image->getHeight(); y++) {
+//        for (int x=0; x<check_image->getWidth(); x++) {
+//          check_image->setValue(x, y, check_image->getValue(x, y) + model.getValue(x - 0.5, y - 0.5));
+//        }
+//      }
+//    }
+//  }
 }
 
 }

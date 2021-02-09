@@ -15,19 +15,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <onnxruntime_cxx_api.h>
+
+#include <AlexandriaKernel/memory_tools.h>
+#include <NdArray/NdArray.h>
+
+#include "SEImplementation/Common/OnnxCommon.h"
+
 #include "SEImplementation/Plugin/Onnx/OnnxPlugin.h"
-#include "SEImplementation/Plugin/Onnx/OnnxTaskFactory.h"
 #include "SEImplementation/Plugin/Onnx/OnnxSourceTask.h"
 #include "SEImplementation/Plugin/Onnx/OnnxProperty.h"
 #include "SEImplementation/Plugin/Onnx/OnnxConfig.h"
-#include <NdArray/NdArray.h>
-#include <AlexandriaKernel/memory_tools.h>
-#include <onnxruntime_cxx_api.h>
+
+#include "SEImplementation/Plugin/Onnx/OnnxTaskFactory.h"
 
 namespace SourceXtractor {
-
-// There can be only one!
-static Ort::Env ORT_ENV;
 
 /**
  * Generate a property name based on domain, graph name and output name
