@@ -97,8 +97,8 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, Im
 
 
 FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
-                                    const std::shared_ptr<CoordinateSystem> coord_system, bool append,
-                                    std::shared_ptr<FitsFileManager> manager)
+                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append, bool empty_primary,
+                                 std::shared_ptr<FitsFileManager> manager)
   : m_filename(filename), m_manager(manager), m_width(width), m_height(height), m_image_type(image_type) {
   {
 
@@ -112,6 +112,9 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
       if (status != 0) {
         status = 0;
         fits_create_file(&fptr, filename.c_str(), &status);
+        if (empty_primary) {
+          fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
+        }
         if (status != 0) {
           throw Elements::Exception() << "Can't open or create FITS file to add HDU: " << filename;
         }
@@ -119,6 +122,9 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     } else {
       // Overwrite file
       fits_create_file(&fptr, ("!"+filename).c_str(), &status);
+      if (empty_primary) {
+        fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
+      }
       if (status != 0) {
         throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
       }
