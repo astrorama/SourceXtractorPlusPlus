@@ -26,10 +26,10 @@
 
 #include <iostream>
 #include <thread>
-#include <mutex>
-
 #include <list>
 #include <unordered_map>
+
+#include <boost/thread/shared_mutex.hpp>
 
 #include <ElementsKernel/Logging.h>
 
@@ -97,6 +97,10 @@ public:
 
 private:
 
+  std::shared_ptr<ImageTile> tryTileFromCache(const TileKey& key);
+
+  std::shared_ptr<boost::mutex>& getMutexForImageSource(const ImageSource*);
+
   void removeTile(TileKey tile_key);
 
   void removeExtraTiles();
@@ -108,10 +112,10 @@ private:
   long m_total_memory_used;
 
   std::unordered_map<TileKey, std::shared_ptr<ImageTile>> m_tile_map;
+  std::unordered_map<const ImageSource*, std::shared_ptr<boost::mutex>> m_mutex_map;
   std::list<TileKey> m_tile_list;
 
-  std::recursive_mutex m_mutex;
-
+  boost::shared_mutex m_mutex;
 };
 
 }

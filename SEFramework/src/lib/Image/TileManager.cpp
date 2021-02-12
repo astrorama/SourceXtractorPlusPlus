@@ -48,33 +48,32 @@ TileManager::~TileManager() {
 }
 
 void TileManager::setOptions(int tile_width, int tile_height, int max_memory) {
-  std::lock_guard<std::recursive_mutex> lock(m_mutex);
-
   flush();
 
+  boost::lock_guard<boost::shared_mutex> wr_lock(m_mutex);
   m_tile_width = tile_width;
   m_tile_height = tile_height;
   m_max_memory = max_memory * 1024L * 1024L;
 }
 
 void TileManager::flush() {
-  std::lock_guard<std::recursive_mutex> lock(m_mutex);
-
   // empty anything still stored in cache
   saveAllTiles();
+
+  boost::lock_guard<boost::shared_mutex> wr_lock(m_mutex);
   m_tile_list.clear();
   m_tile_map.clear();
   m_total_memory_used = 0;
 }
 
-std::shared_ptr<ImageTile> TileManager::getTileForPixel(int x, int y,
-                                                        std::shared_ptr<const ImageSource> source) {
-  std::lock_guard<std::recursive_mutex> lock(m_mutex);
+/*
+ * boost::upgrade_lock can only be acquired by a single thread, even if none of them
+ * ends needing an exclusive lock. Cache lookup must be done with a shared_lock instead
+ * so multiples can retrieve from the cache at the same time.
+ */
+std::shared_ptr<ImageTile> TileManager::tryTileFromCache(const TileKey& key) {
+  boost::shared_lock<boost::shared_mutex> shared_rd_lock(m_mutex);
 
-  x = x / m_tile_width * m_tile_width;
-  y = y / m_tile_height * m_tile_height;
-
-  TileKey key{std::static_pointer_cast<const ImageSource>(source), x, y};
   auto it = m_tile_map.find(key);
   if (it != m_tile_map.end()) {
 #ifndef NDEBUG
@@ -82,14 +81,56 @@ std::shared_ptr<ImageTile> TileManager::getTileForPixel(int x, int y,
 #endif
     return std::dynamic_pointer_cast<ImageTile>(it->second);
   }
-  else {
-    auto tile = source->getImageTile(x, y,
-                                     std::min(m_tile_width, source->getWidth() - x),
-                                     std::min(m_tile_height, source->getHeight() - y));
-    addTile(key, std::static_pointer_cast<ImageTile>(tile));
-    removeExtraTiles();
+  return nullptr;
+}
+
+/*
+ * If the mutex does not exist, we need an upgradable lock
+ */
+std::shared_ptr<boost::mutex>& TileManager::getMutexForImageSource(const ImageSource *src_ptr) {
+  boost::upgrade_lock<boost::shared_mutex> upgrade_lock(m_mutex);
+  auto mit = m_mutex_map.find(src_ptr);
+  if (mit == m_mutex_map.end()) {
+    boost::upgrade_to_unique_lock<boost::shared_mutex> unique_lock(upgrade_lock);
+    mit = m_mutex_map.emplace(src_ptr, std::make_shared<boost::mutex>()).first;
+  }
+  return mit->second;
+}
+
+std::shared_ptr<ImageTile> TileManager::getTileForPixel(int x, int y,
+                                                        std::shared_ptr<const ImageSource> source) {
+  x = x / m_tile_width * m_tile_width;
+  y = y / m_tile_height * m_tile_height;
+  TileKey key{std::static_pointer_cast<const ImageSource>(source), x, y};
+
+  // Try from the cache, this can be done by multiple threads in parallel
+  auto tile = tryTileFromCache(key);
+  if (tile) {
     return tile;
   }
+
+  // Cache miss, we need to ask the underlying source.
+  // First, we need a mutex only for that source, and that needs writing to the tile manager.
+  auto img_mutex = getMutexForImageSource(source.get());
+
+  // Here we block access only to this specific image source
+  boost::lock_guard<boost::mutex> img_lock(*img_mutex);
+
+  // Try again from the cache, maybe someone put it there while we waited for the image lock
+  tile = tryTileFromCache(key);
+  if (tile) {
+    return tile;
+  }
+
+  tile = source->getImageTile(x, y,
+                              std::min(m_tile_width, source->getWidth() - x),
+                              std::min(m_tile_height, source->getHeight() - y));
+
+  // Here we need to acquire the mutex in write mode!
+  boost::lock_guard<boost::shared_mutex> wr_lock(m_mutex);
+  addTile(key, std::static_pointer_cast<ImageTile>(tile));
+  removeExtraTiles();
+  return tile;
 }
 
 std::shared_ptr<TileManager> TileManager::getInstance() {
@@ -100,7 +141,7 @@ std::shared_ptr<TileManager> TileManager::getInstance() {
 }
 
 void TileManager::saveAllTiles() {
-  std::lock_guard<std::recursive_mutex> lock(m_mutex);
+  boost::lock_guard<boost::shared_mutex> wr_lock(m_mutex);
 
   for (auto tile_key : m_tile_list) {
     m_tile_map.at(tile_key)->saveIfModified();
