@@ -28,7 +28,9 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <deque>
 #include <unordered_map>
+#include <mutex>
 
 #include <fitsio.h>
 
@@ -55,14 +57,13 @@ public:
 
   void closeAndPurgeFile(const std::string& filename);
 
-  void reportClosedFile(const std::string& filename);
-  void reportOpenedFile(const std::string& filename);
+  unsigned count() const;
 
 private:
-  std::unordered_map<std::string, std::shared_ptr<FitsFile>> m_fits_files;
+  mutable std::mutex m_mutex;
+  std::unordered_map<std::string, std::deque<std::unique_ptr<FitsFile>>> m_fits_files;
 
   unsigned int m_max_open_files;
-  std::list<std::string> m_open_files;
 
   static std::shared_ptr<FitsFileManager> s_instance;
 

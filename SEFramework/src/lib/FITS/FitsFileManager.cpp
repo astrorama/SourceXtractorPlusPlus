@@ -24,12 +24,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include <assert.h>
-
-#include "ElementsKernel/Exception.h"
-
 #include "SEFramework/FITS/FitsFile.h"
-
 #include "SEFramework/FITS/FitsFileManager.h"
 
 namespace SourceXtractor {
@@ -44,54 +39,84 @@ FitsFileManager::~FitsFileManager() {
 }
 
 void FitsFileManager::closeAllFiles() {
+  std::lock_guard<std::mutex> lock(m_mutex);
+
   for (auto& file : m_fits_files) {
-    file.second->close();
+    for (auto& fd : file.second) {
+      fd->close();
+    }
   }
 }
 
 std::shared_ptr<FitsFile> FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
-  if (m_fits_files.find(filename) != m_fits_files.end()) {
-    auto fits_file = m_fits_files.at(filename);
-    if (writeable) {
-      fits_file->setWriteMode();
-    }
+  std::lock_guard<std::mutex> lock(m_mutex);
 
-    return fits_file;
-  } else {
-    auto new_fits_file = std::shared_ptr<FitsFile>(new FitsFile(filename, writeable, shared_from_this()));
-    m_fits_files[filename] = new_fits_file;
-    return new_fits_file;
+  auto it = m_fits_files.find(filename);
+  if (it == m_fits_files.end()) {
+    it = m_fits_files.emplace(filename, std::deque<std::unique_ptr<FitsFile>>{}).first;
   }
+
+  auto& pool = it->second;
+  if (pool.empty()) {
+    pool.push_back(std::unique_ptr<FitsFile>(new FitsFile(filename, writeable)));
+  }
+
+  auto fits_ptr = pool.front().release();
+  pool.pop_front();
+  std::shared_ptr<FitsFile> fits_file(fits_ptr, [this](FitsFile *fits_ptr) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (fits_ptr->isOpen()) {
+      this->m_fits_files[fits_ptr->getFilename()].push_back(std::unique_ptr<FitsFile>(fits_ptr));
+      closeExtraFiles();
+    }
+    else {
+      delete fits_ptr;
+    }
+  });
+  if (writeable) {
+    fits_file->setWriteMode();
+  }
+  return fits_file;
 }
 
 
 void FitsFileManager::closeExtraFiles() {
-  while (m_open_files.size() > m_max_open_files) {
-    auto& file_to_close = m_fits_files[m_open_files.back()];
-    file_to_close->close();
+  unsigned opened = 0;
+  for (auto& pool : m_fits_files) {
+    opened += pool.second.size();
+  }
+
+  auto i = m_fits_files.begin();
+  while (opened > m_max_open_files) {
+    i->second.pop_front();
+    --opened;
+    ++i;
+    if (i == m_fits_files.end()) {
+      i = m_fits_files.begin();
+    }
   }
 }
 
-void FitsFileManager::reportClosedFile(const std::string& filename) {
-  m_open_files.remove(filename);
+unsigned FitsFileManager::count() const {
+  std::lock_guard<std::mutex> lock(m_mutex);
+
+  unsigned opened = 0;
+  for (auto& pool : m_fits_files) {
+    opened += pool.second.size();
+  }
+  return opened;
 }
 
 void FitsFileManager::closeAndPurgeFile(const std::string& filename) {
+  std::lock_guard<std::mutex> lock(m_mutex);
+
   auto it = m_fits_files.find(filename);
   if (it != m_fits_files.end()) {
-   it->second->close();
-   m_fits_files.erase(filename);
+    for (auto& fd : it->second) {
+      fd->close();
+    }
+    m_fits_files.erase(filename);
   }
 }
-
-
-void FitsFileManager::reportOpenedFile(const std::string& filename) {
-  auto iter = std::find(m_open_files.begin(), m_open_files.end(), filename);
-  if (iter == m_open_files.end()) {
-    m_open_files.push_front(filename);
-  }
-  closeExtraFiles();
-}
-
 
 }

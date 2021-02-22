@@ -87,13 +87,12 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   return unquoted;
 }
 
-FitsFile::FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager) :
-      m_filename(filename),
-      m_file_pointer(nullptr),
-      m_is_file_opened(false),
-      m_is_writeable(writeable),
-      m_was_opened_before(false),
-      m_manager(manager) {
+FitsFile::FitsFile(const std::string& filename, bool writeable) :
+  m_filename(filename),
+  m_file_pointer(nullptr),
+  m_is_file_opened(false),
+  m_is_writeable(writeable),
+  m_was_opened_before(false) {
 }
 
 FitsFile::~FitsFile() {
@@ -163,7 +162,6 @@ void FitsFile::reopen() {
 
 void FitsFile::open() {
   if (!m_is_file_opened) {
-    m_manager->reportOpenedFile(m_filename);
     if (m_was_opened_before) {
       reopen();
     } else {
@@ -175,7 +173,6 @@ void FitsFile::open() {
 
 void FitsFile::close() {
   if (m_is_file_opened) {
-    m_manager->reportClosedFile(m_filename);
     int status = 0;
     fits_close_file(m_file_pointer, &status);
     m_file_pointer = nullptr;

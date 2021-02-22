@@ -43,7 +43,7 @@ namespace SourceXtractor {
  */
 class FitsFile {
 protected:
-  FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager);
+  FitsFile(const std::string& filename, bool writeable);
 
 public:
 
@@ -64,11 +64,18 @@ public:
     return m_headers.at(hdu-1);
   }
 
+  const std::string& getFilename() const {
+    return m_filename;
+  }
+
+  bool isOpen() const {
+    return m_is_file_opened;
+  }
+
   void setWriteMode();
 
   void open();
   void close();
-
 
 private:
   void openFirstTime();
@@ -87,8 +94,6 @@ private:
   std::vector<int> m_image_hdus;
 
   std::vector<std::map<std::string, MetadataEntry>> m_headers;
-
-  std::shared_ptr<FitsFileManager> m_manager;
 
   friend class FitsFileManager;
 };
