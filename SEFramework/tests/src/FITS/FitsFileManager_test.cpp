@@ -54,6 +54,7 @@ BOOST_FIXTURE_TEST_CASE(OpenReturn_test, FitsImageSourceFixture) {
     auto fits = manager->getFitsFile(mhdu_path);
     ptr = fits->getFitsFilePtr();
   }
+  BOOST_CHECK_EQUAL(manager->count(), 1);
   auto fits2 = manager->getFitsFile(mhdu_path);
   // Since it was returned, it should be the same
   BOOST_CHECK_EQUAL(fits2->getFitsFilePtr(), ptr);
@@ -73,15 +74,12 @@ BOOST_FIXTURE_TEST_CASE(OpenTwice_test, FitsImageSourceFixture) {
 
 BOOST_FIXTURE_TEST_CASE(OpenAndClosed_test, FitsImageSourceFixture) {
   auto manager = std::make_shared<FitsFileManager>();
-  fitsfile *ptr;
   {
     auto fits = manager->getFitsFile(mhdu_path);
-    ptr = fits->getFitsFilePtr();
     fits->close();
   }
-  auto fits2 = manager->getFitsFile(mhdu_path);
-  // Since it was closed before being returned to the pool, it should *not* be the same
-  BOOST_CHECK_NE(fits2->getFitsFilePtr(), ptr);
+
+  BOOST_CHECK_EQUAL(manager->count(), 0);
 }
 
 //-----------------------------------------------------------------------------
