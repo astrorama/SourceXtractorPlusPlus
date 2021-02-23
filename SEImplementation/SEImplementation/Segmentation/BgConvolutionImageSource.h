@@ -45,7 +45,8 @@ protected:
 
   std::string getRepr() const override;
 
-  void generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image, ImageTile& tile,
+  void generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image,
+                    ImageTileWithType<DetectionImage::PixelType>& tile,
                     int start_x, int start_y, int width, int height) const override;
 
 private:
