@@ -28,13 +28,17 @@ namespace SourceXtractor {
  */
 class OnnxSourceTask: public SourceTask {
 public:
+  struct OnnxModelInfo {
+    std::shared_ptr<OnnxModel> model;
+    std::string prop_name;
+  };
 
   /**
    * Constructor
    * @param models
    *    Reference to the loaded ONNX models
    */
-  OnnxSourceTask(const std::vector<OnnxModel>& models);
+  OnnxSourceTask(const std::vector<OnnxModelInfo>& model_infos);
 
   /**
    * Destructor
@@ -45,7 +49,8 @@ public:
   void computeProperties(SourceInterface& source) const override;
 
 private:
-  const std::vector<OnnxModel>& m_models;
+
+  const std::vector<OnnxModelInfo>& m_model_infos;
 };
 
 } // end of namespace SourceXtractor
