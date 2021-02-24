@@ -11,15 +11,14 @@ The next generation SExtractor.
 Documentation: https://sourcextractorplusplus.readthedocs.io/en/latest/Introduction.html
 
 
-[RPMs for Fedora and CentOS are available](https://dl.bintray.com/astrorama/travis/master/) You can add a `.repo` file under `/etc/yum.repos.d` with the following content:
+[RPMs for Fedora and CentOS are available](https://astrorama.jfrog.io/artifactory/rpm/stable/) You can add a `.repo` file under `/etc/yum.repos.d` with the following content:
 
 ```ini
-[bintray--astrorama-fedora]
-name=bintray--astrorama-fedora
-baseurl=https://dl.bintray.com/astrorama/travis/master/fedora/$releasever/$basearch
-gpgcheck=0
-repo_gpgcheck=0
+[Artifactory-Astrorama]
+name=Artifactory-Astrorama
+baseurl=https://astrorama.jfrog.io/artifactory/rpm/stable/fedora/$releasever/$basearch
 enabled=1
+gpgcheck=0
 ```
 
 And install normally with
@@ -30,5 +29,5 @@ dnf install SourceXtractorPlusPlus
 
 SourceXtractor++ is also available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
 ```bash
-conda install -c conda-forge -c astrorama sourcextractor 
+conda install -c conda-forge -c astrorama sourcextractor
  ```

@@ -18,11 +18,11 @@ jobs:
       matrix:
         include:
           - os-type: fedora
-            os-version: 31
-          - os-type: fedora
             os-version: 32
           - os-type: fedora
             os-version: 33
+          - os-type: fedora
+            os-version: 34
           - os-type: centos
             os-version: 7
           - os-type: centos
@@ -58,11 +58,11 @@ jobs:
       matrix:
         include:
           - os-type: fedora
-            os-version: 31
-          - os-type: fedora
             os-version: 32
           - os-type: fedora
             os-version: 33
+          - os-type: fedora
+            os-version: 34
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout
@@ -86,10 +86,10 @@ jobs:
           path: /tmp/sourcex/
           retention-days: 15
 
-#####################
-# Upload to bintray #
-#####################
-  bintray:
+#########################
+# Upload to artifactory #
+#########################
+  artifactory:
     if: ${{ github.event_name != 'pull_request' }}
     needs: [ build, litmus-test ]
     runs-on: ubuntu-latest
@@ -97,11 +97,11 @@ jobs:
       matrix:
         include:
           - os-type: fedora
-            os-version: 31
-          - os-type: fedora
             os-version: 32
           - os-type: fedora
             os-version: 33
+          - os-type: fedora
+            os-version: 34
           - os-type: centos
             os-version: 7
           - os-type: centos
@@ -119,15 +119,12 @@ jobs:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}
       - name: Setup jfrog cli
         uses: jfrog/setup-jfrog-cli@v1
-      - name: Upload RPM to Bintray
         env:
-          BINTRAY_TOKEN: ${{ secrets.bintray_token }}
-          BINTRAY_USER: ${{ secrets.bintray_user }}
-          OS_TYPE: ${{ matrix.os-type }}
-          OS_VERSION: ${{ matrix.os-version }}
-          OS_ARCH: 'x86_64'
-          PROJECT: ${{ steps.package-version.outputs.project }}
-          VERSION: ${{ steps.package-version.outputs.version }}
-        run: |
-          jfrog bt config --user "${BINTRAY_USER}" --key "${BINTRAY_TOKEN}" --licenses LGPL3
-          jfrog bt u --publish --override "*.rpm" "astrorama/travis/${PROJECT}/${VERSION}" "/${GITHUB_REF#refs/heads/}/${OS_TYPE}/${OS_VERSION}/${OS_ARCH}/rpms/"
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+      - name: Upload RPM to Artifactory
+        uses: astrorama/actions/upload-rpm@master
+        with:
+          os_type: ${{ matrix.os-type }}
+          os_version: ${{ matrix.os-version }}
+          path: ${{ steps.build.outputs.rpm-dir }}
+
