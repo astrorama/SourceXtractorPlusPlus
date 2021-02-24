@@ -47,6 +47,9 @@ OnnxModel::OnnxModel(const std::string& model_path) {
 
   m_input_name = m_session->GetInputName(0, allocator);
   m_output_name = m_session->GetOutputName(0, allocator);
+  m_domain_name = m_session->GetModelMetadata().GetDomain(allocator);
+  m_graph_name = m_session->GetModelMetadata().GetGraphName(allocator);
+
 
   auto input_type = m_session->GetInputTypeInfo(0);
   auto output_type = m_session->GetOutputTypeInfo(0);

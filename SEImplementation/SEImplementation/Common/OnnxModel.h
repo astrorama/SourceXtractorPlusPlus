@@ -68,7 +68,25 @@ public:
     return m_output_shape;
   }
 
+  std::string getDomain() const {
+    return m_domain_name;
+  }
+
+  std::string getGraphName() const {
+    return m_graph_name;
+  }
+
+  std::string getOutputName() const {
+    return m_output_name;
+  }
+
+  std::string getModelPath() const {
+    return m_model_path;
+  }
+
 private:
+  std::string m_domain_name;  ///< domain name
+  std::string m_graph_name;  ///< graph name
   std::string m_input_name;  ///< Input tensor name
   std::string m_output_name; ///< Output tensor name
   ONNXTensorElementDataType m_input_type;  ///< Input type

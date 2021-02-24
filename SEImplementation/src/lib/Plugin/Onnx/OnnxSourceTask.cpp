@@ -45,7 +45,7 @@ static void fillCutout(const Image<T>& image, int center_x, int center_y, int wi
   }
 }
 
-OnnxSourceTask::OnnxSourceTask(const std::vector<OnnxModel>& models) : m_models(models) {}
+OnnxSourceTask::OnnxSourceTask(const std::vector<OnnxModelInfo>& model_infos) : m_model_infos(model_infos) {}
 
 /**
  * Templated implementation of computeProperties
@@ -94,21 +94,21 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
 
   std::map<std::string, std::unique_ptr<OnnxProperty::NdWrapperBase>> output_dict;
 
-  for (const auto& model : m_models) {
+  for (const auto& model_info : m_model_infos) {
     std::unique_ptr<OnnxProperty::NdWrapperBase> result;
 
-    switch (model.getOutputType()) {
+    switch (model_info.model->getOutputType()) {
       case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
-        result = computePropertiesSpecialized<float>(model, detection_frame_images, centroid);
+        result = computePropertiesSpecialized<float>(*model_info.model, detection_frame_images, centroid);
         break;
       case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32:
-        result = computePropertiesSpecialized<int32_t>(model, detection_frame_images, centroid);
+        result = computePropertiesSpecialized<int32_t>(*model_info.model, detection_frame_images, centroid);
         break;
       default:
-        throw Elements::Exception() << "This should have not happened!" << model.getOutputType();
+        throw Elements::Exception() << "This should have not happened!" << model_info.model->getOutputType();
     }
 
-    output_dict.emplace(model.m_prop_name, std::move(result));
+    output_dict.emplace(model_info.prop_name, std::move(result));
   }
 
   source.setProperty<OnnxProperty>(std::move(output_dict));

@@ -34,20 +34,20 @@ namespace SourceXtractor {
 /**
  * Generate a property name based on domain, graph name and output name
  */
-static std::string generatePropertyName(const OnnxModel& model_info, OrtAllocator* allocator) {
+static std::string generatePropertyName(const OnnxModel& model) {
   std::stringstream prop_name;
 
-  std::string domain = model_info.m_session->GetModelMetadata().GetDomain(allocator);
+  std::string domain = model.getDomain();
   if (!domain.empty()) {
     prop_name << domain << '.';
   }
 
-  std::string graph_name = model_info.m_session->GetModelMetadata().GetGraphName(allocator);
+  std::string graph_name = model.getGraphName();
   if (!graph_name.empty()) {
     prop_name << graph_name << '.';
   }
 
-  prop_name << model_info.m_output_name;
+  prop_name << model.getOutputName();
 
   return prop_name.str();
 }
@@ -68,7 +68,7 @@ OnnxTaskFactory::OnnxTaskFactory() {}
 
 std::shared_ptr<Task> OnnxTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<OnnxProperty>()) {
-    return std::make_shared<OnnxSourceTask>(m_models);
+    return std::make_shared<OnnxSourceTask>(m_model_infos);
   }
   return nullptr;
 }
@@ -78,76 +78,50 @@ void OnnxTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigMana
 }
 
 void OnnxTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto allocator = Ort::AllocatorWithDefaultOptions();
-
   const auto& onnx_config = manager.getConfiguration<OnnxConfig>();
   const auto& models = onnx_config.getModels();
 
   for (auto model_path : models) {
-    OnnxModel model_info;
-    model_info.m_model_path = model_path;
+    auto model = std::make_shared<OnnxModel>(model_path);
 
-    onnx_logger.info() << "Loading ONNX model " << model_path;
-    model_info.m_session = Euclid::make_unique<Ort::Session>(ORT_ENV, model_path.c_str(), Ort::SessionOptions{nullptr});
-
-    if (model_info.m_session->GetInputCount() != 1) {
-      throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
-    }
-    if (model_info.m_session->GetOutputCount() != 1) {
-      throw Elements::Exception() << "Only ONNX models with a single output tensor are supported";
-    }
-
-    model_info.m_input_name = model_info.m_session->GetInputName(0, allocator);
-    model_info.m_output_name = model_info.m_session->GetOutputName(0, allocator);
-
-    model_info.m_prop_name = generatePropertyName(model_info, allocator);
-
-    onnx_logger.info() << "Output name will be " << model_info.m_prop_name;
-
-    auto input_type = model_info.m_session->GetInputTypeInfo(0);
-    auto output_type = model_info.m_session->GetOutputTypeInfo(0);
-
-    model_info.m_input_shape = input_type.GetTensorTypeAndShapeInfo().GetShape();
-    model_info.m_input_type = input_type.GetTensorTypeAndShapeInfo().GetElementType();
-    model_info.m_output_shape = output_type.GetTensorTypeAndShapeInfo().GetShape();
-    model_info.m_output_type = output_type.GetTensorTypeAndShapeInfo().GetElementType();
-
-    if (model_info.m_input_type != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
+    if (model->getInputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
       throw Elements::Exception() << "Only ONNX models with float input are supported";
     }
-    if (model_info.m_input_shape.size() != 4) {
-      throw Elements::Exception() << "Expected 4 axes for the input layer, got " << model_info.m_input_shape.size();
+
+    if (model->getInputShape().size() != 4) {
+      throw Elements::Exception() << "Expected 4 axes for the input layer, got " << model->getInputShape().size();
     }
 
-    onnx_logger.info() << "ONNX model with input of " << formatShape(model_info.m_input_shape);
-    onnx_logger.info() << "ONNX model with output of " << formatShape(model_info.m_output_shape);
+    auto prop_name = generatePropertyName(*model);
+    onnx_logger.info() << "Output name will be " << prop_name;
 
-    m_models.emplace_back(std::move(model_info));
+    m_model_infos.emplace_back(OnnxSourceTask::OnnxModelInfo {model, prop_name});
+
   }
 }
 
 template<typename T>
-static void registerColumnConverter(OutputRegistry& registry, const OnnxModel& model) {
-  auto key = model.m_prop_name;
+static void registerColumnConverter(OutputRegistry& registry, const OnnxSourceTask::OnnxModelInfo& model_info) {
+  auto key = model_info.prop_name;
 
   registry.registerColumnConverter<OnnxProperty, Euclid::NdArray::NdArray<T>>(
-    model.m_prop_name, [key](const OnnxProperty& prop) {
+      model_info.prop_name, [key](const OnnxProperty& prop) {
       return prop.getData<T>(key);
-    }, "", model.m_model_path
+    }, "", model_info.model->getModelPath()
   );
 }
 
 void OnnxTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
-  for (const auto& model : m_models) {
-    switch (model.m_output_type) {
+  for (const auto& model_info : m_model_infos) {
+    switch (model_info.model->getOutputType()) {
       case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
-        registerColumnConverter<float>(registry, model);
+        registerColumnConverter<float>(registry, model_info);
         break;
       case ONNX_TENSOR_ELEMENT_DATA_TYPE_INT32:
-        registerColumnConverter<int32_t>(registry, model);
+        registerColumnConverter<int32_t>(registry, model_info);
         break;
       default:
-        throw Elements::Exception() << "Unsupported output type: " << model.m_output_type;
+        throw Elements::Exception() << "Unsupported output type: " << model_info.model->getOutputType();
     }
   }
 }
