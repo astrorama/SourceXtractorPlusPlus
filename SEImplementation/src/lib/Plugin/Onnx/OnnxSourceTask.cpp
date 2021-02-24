@@ -65,12 +65,12 @@ computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages&
   const int center_y = static_cast<int>(centroid.getCentroidY() + 0.5);
 
   // Allocate memory
-  std::vector<int64_t> input_shape(model.m_input_shape.begin(), model.m_input_shape.end());
+  std::vector<int64_t> input_shape(model.getInputShape().begin(), model.getInputShape().end());
   input_shape[0] = 1;
   size_t input_size = std::accumulate(input_shape.begin(), input_shape.end(), 1u, std::multiplies<size_t>());
   std::vector<float> input_data(input_size);
 
-  std::vector<int64_t> output_shape(model.m_output_shape.begin(), model.m_output_shape.end());
+  std::vector<int64_t> output_shape(model.getOutputShape().begin(), model.getOutputShape().end());
   output_shape[0] = 1;
   size_t output_size = std::accumulate(output_shape.begin(), output_shape.end(), 1u, std::multiplies<size_t>());
   std::vector<O> output_data(output_size);
@@ -81,21 +81,10 @@ computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages&
     fillCutout(*image, center_x, center_y, input_shape[2], input_shape[3], input_data);
   }
 
-  // Setup input/output tensors
-  auto input_tensor = Ort::Value::CreateTensor<float>(
-    mem_info, input_data.data(), input_data.size(), input_shape.data(), input_shape.size());
-  auto output_tensor = Ort::Value::CreateTensor<O>(
-    mem_info, output_data.data(), output_data.size(), output_shape.data(), output_shape.size());
-
-  // Run the model
-  const char *input_name = model.m_input_name.c_str();
-  const char *output_name = model.m_output_name.c_str();
-  model.m_session->Run(run_options,
-                       &input_name, &input_tensor, 1,
-                       &output_name, &output_tensor, 1);
+  model.run<float, O>(input_data, output_data);
 
   // Set the output
-  std::vector<size_t> catalog_shape{model.m_output_shape.begin() + 1, model.m_output_shape.end()};
+  std::vector<size_t> catalog_shape{model.getOutputShape().begin() + 1, model.getOutputShape().end()};
   return Euclid::make_unique<OnnxProperty::NdWrapper<O>>(catalog_shape, output_data);
 }
 
@@ -108,7 +97,7 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
   for (const auto& model : m_models) {
     std::unique_ptr<OnnxProperty::NdWrapperBase> result;
 
-    switch (model.m_output_type) {
+    switch (model.getOutputType()) {
       case ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT:
         result = computePropertiesSpecialized<float>(model, detection_frame_images, centroid);
         break;
@@ -116,7 +105,7 @@ void OnnxSourceTask::computeProperties(SourceXtractor::SourceInterface& source) 
         result = computePropertiesSpecialized<int32_t>(model, detection_frame_images, centroid);
         break;
       default:
-        throw Elements::Exception() << "This should have not happened!" << model.m_output_type;
+        throw Elements::Exception() << "This should have not happened!" << model.getOutputType();
     }
 
     output_dict.emplace(model.m_prop_name, std::move(result));

@@ -24,7 +24,7 @@ public:
   OnnxModel(const std::string& model_path);
 
   template<typename T, typename U>
-  void run(std::vector<T>& input_data, std::vector<T>& output_data) const {
+  void run(std::vector<T>& input_data, std::vector<U>& output_data) const {
     Ort::RunOptions run_options;
     auto mem_info = Ort::MemoryInfo::CreateCpu(OrtDeviceAllocator, OrtMemTypeCPU);
 
@@ -36,6 +36,8 @@ public:
     std::vector<int64_t> output_shape(m_output_shape.begin(), m_output_shape.end());
     output_shape[0] = 1;
     size_t output_size = std::accumulate(output_shape.begin(), output_shape.end(), 1u, std::multiplies<size_t>());
+
+    // FIXME check input and output size are OK
 
     // Setup input/output tensors
     auto input_tensor = Ort::Value::CreateTensor<T>(
@@ -56,6 +58,14 @@ public:
 
   ONNXTensorElementDataType getOutputType() const {
     return m_output_type;
+  }
+
+  const std::vector<std::int64_t>& getInputShape() const {
+    return m_input_shape;
+  }
+
+  const std::vector<std::int64_t>& getOutputShape() const {
+    return m_output_shape;
   }
 
 private:
