@@ -94,7 +94,7 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
 
   auto allocator = Ort::AllocatorWithDefaultOptions();
 
-  size_t tile_size = 400;
+  int tile_size = 400;
   //m_model_path = "maxidetect-1.0.onnx";
   m_model_path = "model_tf2_opset11_onnx160.onnx";
   Elements::Logging onnx_logger = Elements::Logging::getLogger("Onnx");
@@ -123,11 +123,11 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
   Lutz lutz;
   LutzLabellingListener lutz_listener(listener, m_source_factory, 0);
 
-  for (int ox=0; ox<image->getWidth(); ox += tile_size) {
-    for (int oy=0; oy<image->getHeight(); oy += tile_size) {
+  for (int ox = 0; ox + tile_size * 3 / 4 < image->getWidth(); ox += tile_size / 2) {
+    for (int oy = 0; oy + tile_size * 3 / 4 < image->getHeight(); oy += tile_size / 2) {
 
-      for (int x=0; x<tile_size; x++) {
-        for (int y=0; y<tile_size; y++) {
+      for (int x = 0; x < tile_size; x++) {
+        for (int y = 0; y < tile_size; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
             input_data[x+y*tile_size] = image->getValue(ox+x, oy+y) / 20.1686; // FIXME get average RMS
           } else {
@@ -138,8 +138,14 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
 
       model.run<float, float>(input_data, output_data);
 
-      for (int x=0; x<tile_size; x++) {
-        for (int y=0; y<tile_size; y++) {
+      int start_x = (ox == 0) ? 0 : tile_size / 4;
+      int start_y = (oy == 0) ? 0 : tile_size / 4;
+
+      int end_x = (ox + tile_size * 5 / 4 < image->getWidth()) ? tile_size * 3 / 4 : tile_size ;
+      int end_y = (oy + tile_size * 5 / 4 < image->getHeight()) ? tile_size * 3 / 4 : tile_size;
+
+      for (int x = start_x; x < end_x; x++) {
+        for (int y = start_y; y < end_y; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
 //            float a = output_data[(x+y*tile_size) * 3 + 0];
             float b = output_data[(x+y*tile_size) * 3 + 1];

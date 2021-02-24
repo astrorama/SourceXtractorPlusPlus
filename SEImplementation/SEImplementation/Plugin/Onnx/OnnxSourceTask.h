@@ -19,7 +19,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_ONNXSOURCETASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
-#include "SEImplementation/Plugin/Onnx/OnnxModel.h"
+#include "SEImplementation/Common/OnnxModel.h"
 
 namespace SourceXtractor {
 
