@@ -126,5 +126,5 @@ jobs:
         with:
           os_type: ${{ matrix.os-type }}
           os_version: ${{ matrix.os-version }}
-          path: ${{ github.workspace }}
+          path: .
 
