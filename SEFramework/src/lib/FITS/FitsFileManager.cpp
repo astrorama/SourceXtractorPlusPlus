@@ -39,40 +39,56 @@ FitsFileManager::~FitsFileManager() {
 }
 
 void FitsFileManager::closeAllFiles() {
-  std::lock_guard<std::mutex> lock(m_mutex);
-
-  for (auto& file : m_fits_files) {
-    for (auto& fd : file.second) {
-      fd->close();
+  // There will be callbacks! So operate over a separate container
+  std::list<FitsFile *> to_close;
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    for (auto& pool : m_available_files) {
+      for (auto& fd : pool.second) {
+        to_close.emplace_back(fd.get());
+      }
+    }
+    for (auto& open : m_opened_files) {
+      to_close.emplace_back(open);
     }
   }
+
+  for (auto& fd : to_close) {
+    fd->close();
+  }
+
+  std::lock_guard<std::mutex> lock(m_mutex);
+  m_available_files.clear();
 }
 
-std::shared_ptr<FitsFile> FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
+std::shared_ptr<FitsFile>
+FitsFileManager::getFitsFile(const std::string& filename, bool writeable) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  auto it = m_fits_files.find(filename);
-  if (it == m_fits_files.end()) {
-    it = m_fits_files.emplace(filename, std::deque<std::unique_ptr<FitsFile>>{}).first;
+  auto it = m_available_files.find(filename);
+  if (it == m_available_files.end()) {
+    it = m_available_files.emplace(filename, std::deque<std::unique_ptr<FitsFile>>{}).first;
   }
 
   auto& pool = it->second;
   if (pool.empty()) {
-    pool.push_back(std::unique_ptr<FitsFile>(new FitsFile(filename, writeable)));
+    pool.push_back(std::unique_ptr<FitsFile>(new FitsFile(filename, writeable, this)));
   }
 
   auto fits_ptr = pool.front().release();
   pool.pop_front();
+  // Return a shared_ptr with a custom destructor that returns the file to the pool
   std::shared_ptr<FitsFile> fits_file(fits_ptr, [this](FitsFile *fits_ptr) {
     std::lock_guard<std::mutex> lock(m_mutex);
     if (fits_ptr->isOpen()) {
-      this->m_fits_files[fits_ptr->getFilename()].push_back(std::unique_ptr<FitsFile>(fits_ptr));
-      closeExtraFiles();
+      this->m_available_files[fits_ptr->getFilename()].push_back(
+        std::unique_ptr<FitsFile>(fits_ptr));
     }
     else {
       delete fits_ptr;
     }
   });
+
   if (writeable) {
     fits_file->setWriteMode();
   }
@@ -81,42 +97,74 @@ std::shared_ptr<FitsFile> FitsFileManager::getFitsFile(const std::string& filena
 
 
 void FitsFileManager::closeExtraFiles() {
-  unsigned opened = 0;
-  for (auto& pool : m_fits_files) {
-    opened += pool.second.size();
+  std::unique_lock<std::mutex> lock(m_mutex);
+
+  unsigned owned_count = 0;
+  for (auto& pool : m_available_files) {
+    owned_count += pool.second.size();
+  }
+  unsigned tracked_count = m_opened_files.size();
+
+  // Start by purging unused files
+  auto oi = m_available_files.begin();
+  while ((owned_count + tracked_count) > m_max_open_files && owned_count) {
+    oi->second.pop_front();
+    --owned_count;
+    ++oi;
+    if (oi == m_available_files.end()) {
+      oi = m_available_files.begin();
+    }
   }
 
-  auto i = m_fits_files.begin();
-  while (opened > m_max_open_files) {
-    i->second.pop_front();
-    --opened;
-    ++i;
-    if (i == m_fits_files.end()) {
-      i = m_fits_files.begin();
-    }
+  // Close used files if we need
+  std::list<FitsFile *> to_close;
+  for (auto ti = m_opened_files.begin(); ti != m_opened_files.end() && tracked_count > m_max_open_files; ++ti) {
+    to_close.emplace_back(*ti);
+    --tracked_count;
+  }
+
+  // Beware! FitsFile will report back, so release the lock for this part
+  lock.unlock();
+  for (auto& ptr : to_close) {
+    ptr->close();
   }
 }
 
-unsigned FitsFileManager::count() const {
+void FitsFileManager::reportClosedFile(FitsFile *fits_file) {
   std::lock_guard<std::mutex> lock(m_mutex);
-
-  unsigned opened = 0;
-  for (auto& pool : m_fits_files) {
-    opened += pool.second.size();
-  }
-  return opened;
+  m_opened_files.erase(fits_file);
 }
 
 void FitsFileManager::closeAndPurgeFile(const std::string& filename) {
   std::lock_guard<std::mutex> lock(m_mutex);
 
-  auto it = m_fits_files.find(filename);
-  if (it != m_fits_files.end()) {
+  // Owned
+  auto it = m_available_files.find(filename);
+  if (it != m_available_files.end()) {
     for (auto& fd : it->second) {
       fd->close();
     }
-    m_fits_files.erase(filename);
+    m_available_files.erase(filename);
   }
+
+  // Tracked
+  for (auto ti = m_opened_files.begin(); ti != m_opened_files.end();) {
+    if ((*ti)->getFilename() == filename) {
+      (*ti)->close();
+      ti = m_opened_files.erase(ti);
+    }
+    else {
+      ++ti;
+    }
+  }
+}
+
+void FitsFileManager::reportOpenedFile(FitsFile *fits_file) {
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_opened_files.emplace(fits_file);
+  }
+  closeExtraFiles();
 }
 
 }

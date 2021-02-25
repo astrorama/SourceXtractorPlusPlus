@@ -24,21 +24,19 @@
 #ifndef _SEFRAMEWORK_FITS_FITSFILEMANAGER_H_
 #define _SEFRAMEWORK_FITS_FITSFILEMANAGER_H_
 
-#include <memory>
-#include <string>
 #include <list>
-#include <vector>
-#include <deque>
-#include <unordered_map>
+#include <memory>
 #include <mutex>
-
+#include <string>
+#include <unordered_map>
+#include <vector>
 #include <fitsio.h>
 
 namespace SourceXtractor {
 
 class FitsFile;
 
-class FitsFileManager : public std::enable_shared_from_this<FitsFileManager> {
+class FitsFileManager {
 public:
 
   FitsFileManager(unsigned int max_open_files = 500);
@@ -57,17 +55,23 @@ public:
 
   void closeAndPurgeFile(const std::string& filename);
 
-  unsigned count() const;
-
 private:
-  mutable std::mutex m_mutex;
-  std::unordered_map<std::string, std::deque<std::unique_ptr<FitsFile>>> m_fits_files;
-
-  unsigned int m_max_open_files;
-
+  friend class FitsFile;
   static std::shared_ptr<FitsFileManager> s_instance;
 
+  mutable std::mutex m_mutex;
+  unsigned int m_max_open_files;
+
+  // These are not hold by anyone, so the manager fully owns them
+  std::unordered_map<std::string, std::deque<std::unique_ptr<FitsFile>>> m_available_files;
+  // These are owned by someone else, but we need to keep track so we can limit the number
+  // of opened files
+  std::set<FitsFile*> m_opened_files;
+
   void closeExtraFiles();
+
+  void reportClosedFile(FitsFile* fits_file);
+  void reportOpenedFile(FitsFile* fits_file);
 };
 
 }
