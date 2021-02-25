@@ -29,7 +29,7 @@ namespace bp = boost::process;
 ///     This seems to be unreliable when running through valgrind
 static int countOpenFiles() {
   bp::ipstream is;
-  bp::child lsof(bp::search_path("lsof"), "-p", std::to_string(getpid()), bp::std_out > is);
+  bp::child lsof(bp::search_path("lsof"), "-a", "-p", std::to_string(getpid()), "-d", "0-999", bp::std_out > is);
   int count = 0;
   std::string line;
   while (lsof.running() && std::getline(is, line) && !line.empty()) {
