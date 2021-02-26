@@ -27,30 +27,27 @@ using namespace SourceXtractor;
 /// Helper to get the count of open files
 /// @warning
 ///     This seems to be unreliable when running through valgrind
-static int countOpenFiles() {
+static int countOpenFiles(const std::string& path) {
   namespace bp = boost::process;
 
   bp::ipstream is;
-  bp::child lsof(bp::search_path("lsof"), "-a", "-p", std::to_string(getpid()), "-d", "0-999", bp::std_out > is);
+  bp::child lsof(bp::search_path("lsof"), "-a", "-p", std::to_string(getpid()),
+                 path, bp::std_out > is);
   int count = 0;
   std::string line;
   while (lsof.running() && std::getline(is, line) && !line.empty()) {
     ++count;
   }
   // Ignore the header
-  return count - 1;
+  return std::max(0, count - 1);
 }
 #endif
 
 struct FitsImageSourceFixture {
   std::string fits_path;
-  int opened_before;
 
   FitsImageSourceFixture() {
     fits_path = Elements::getAuxiliaryPath("with_primary.fits").native();
-#if BOOST_VERSION >= 106400
-    opened_before = countOpenFiles();
-#endif
   }
 };
 
@@ -68,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE(OpenOnce_test, FitsImageSourceFixture) {
   auto metadata = fits->getHDUHeaders(1);
   BOOST_CHECK_EQUAL(boost::get<double>(metadata["GAIN"].m_value), 42);
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 1);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 1);
 #endif
 }
 
@@ -89,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(OpenReturn_test, FitsImageSourceFixture) {
   auto metadata = fits2->getHDUHeaders(1);
   BOOST_CHECK_EQUAL(boost::get<double>(metadata["GAIN"].m_value), 42);
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 1);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 1);
 #endif
 }
 
@@ -104,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE(OpenTwice_test, FitsImageSourceFixture) {
   // Since it is still open, they should be two different file descriptors
   BOOST_CHECK_NE(fits2->getFitsFilePtr(), fits->getFitsFilePtr());
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 2);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 2);
 #endif
 }
 
@@ -115,12 +112,12 @@ BOOST_FIXTURE_TEST_CASE(OpenAndClosed_test, FitsImageSourceFixture) {
   {
     auto fits = manager->getFitsFile(fits_path);
     fits->open();
-    BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 1);
+    BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 1);
   }
 
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 1);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 1);
   manager->closeAllFiles();
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 0);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 0);
 }
 #endif
 //-----------------------------------------------------------------------------
@@ -136,13 +133,13 @@ BOOST_FIXTURE_TEST_CASE(FileLimit_test, FitsImageSourceFixture) {
   // Even if we are keeping pointers, only 5 must be open
   BOOST_CHECK_EQUAL(hold.size(), 10);
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 5);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 5);
 #endif
 
   // Release all
   manager->closeAllFiles();
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 0);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 0);
 #endif
 
   // But! If now we access one of them, it should work fine
@@ -160,7 +157,7 @@ BOOST_FIXTURE_TEST_CASE(FileLimit_test, FitsImageSourceFixture) {
   BOOST_CHECK_EQUAL(status, 0);
 
 #if BOOST_VERSION >= 106400
-  BOOST_CHECK_EQUAL(countOpenFiles() - opened_before, 1);
+  BOOST_CHECK_EQUAL(countOpenFiles(fits_path), 1);
 #endif
 }
 
