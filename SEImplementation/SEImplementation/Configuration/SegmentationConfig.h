@@ -75,6 +75,10 @@ public:
     return m_filter;
   }
 
+  std::string getOnnxModelPath() const {
+    return m_onnx_model_path;
+  }
+
 private:
   std::shared_ptr<DetectionImageFrame::ImageFilter> getDefaultFilter() const;
   std::shared_ptr<DetectionImageFrame::ImageFilter> loadFilter(const std::string& filename) const;
@@ -86,6 +90,7 @@ private:
 
   int m_lutz_window_size;
   int m_bfs_max_delta;
+  std::string m_onnx_model_path;
 }; /* End of SegmentationConfig class */
 
 } /* namespace SourceXtractor */

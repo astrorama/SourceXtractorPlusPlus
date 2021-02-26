@@ -52,6 +52,7 @@ static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-f
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
 static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
 static const std::string SEGMENTATION_BFS_MAX_DELTA {"segmentation-bfs-max-delta" };
+static const std::string SEGMENTATION_ONNX_MODEL {"segmentation-onnx-model" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
     m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0), m_bfs_max_delta(1000) {
@@ -69,6 +70,8 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
           "Lutz sliding window size (0=disable)"},
       {SEGMENTATION_BFS_MAX_DELTA.c_str(), po::value<int>()->default_value(1000),
           "BFS algorithm max source x/y size (default=1000)"},
+      {SEGMENTATION_ONNX_MODEL.c_str(), po::value<std::string>()->default_value(""),
+          "ONNX model to use with machine learning segmentation"},
   }}};
 }
 
@@ -83,7 +86,6 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
   } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
-
 
   if (args.at(SEGMENTATION_DISABLE_FILTERING).as<bool>()) {
     m_filter = nullptr;
@@ -100,6 +102,11 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
 
   m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
   m_bfs_max_delta = args.at(SEGMENTATION_BFS_MAX_DELTA).as<int>();
+  m_onnx_model_path = args.at(SEGMENTATION_ONNX_MODEL).as<std::string>();
+
+  if (m_selected_algorithm == Algorithm::ML && m_onnx_model_path == "") {
+    throw Elements::Exception() << "Machine learning segmentation requested but no ONNX model was provided";
+  }
 }
 
 void SegmentationConfig::initialize(const UserValues&) {

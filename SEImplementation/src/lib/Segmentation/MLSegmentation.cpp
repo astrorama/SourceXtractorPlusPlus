@@ -91,14 +91,11 @@ private:
 }
 
 void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) {
+  Elements::Logging onnx_logger = Elements::Logging::getLogger("Onnx");
 
   auto allocator = Ort::AllocatorWithDefaultOptions();
 
-  int tile_size = 400;
-  //m_model_path = "maxidetect-1.0.onnx";
-  m_model_path = "model_tf2_opset11_onnx160.onnx";
-  Elements::Logging onnx_logger = Elements::Logging::getLogger("Onnx");
-
+  int tile_size = 400; // FIXME
   OnnxModel model(m_model_path);
 
   if (model.getInputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {

@@ -61,6 +61,8 @@ private:
   int m_lutz_window_size;
   int m_bfs_max_delta;
 
+  std::string m_model_path;
+
 }; /* End of SegmentationFactory class */
 
 } /* namespace SourceXtractor */

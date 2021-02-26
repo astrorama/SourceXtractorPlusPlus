@@ -34,8 +34,8 @@ public:
 
   virtual ~MLSegmentation() = default;
 
-  MLSegmentation(std::shared_ptr<SourceFactory> source_factory)
-      : m_source_factory(source_factory) {
+  MLSegmentation(std::shared_ptr<SourceFactory> source_factory, std::string model_path)
+      : m_source_factory(source_factory), m_model_path(model_path) {
     assert(source_factory != nullptr);
   }
 
