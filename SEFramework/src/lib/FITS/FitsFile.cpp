@@ -87,30 +87,41 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   return unquoted;
 }
 
-FitsFile::FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager) :
-      m_filename(filename),
-      m_file_pointer(nullptr),
-      m_is_file_opened(false),
-      m_is_writeable(writeable),
-      m_was_opened_before(false),
-      m_manager(manager) {
+FitsFile::FitsFile(const std::string& filename, bool writeable, FitsFileManager* manager) :
+  m_filename(filename),
+  m_is_writeable(writeable),
+  m_was_opened_before(false),
+  m_manager(manager) {
 }
 
 FitsFile::~FitsFile() {
-  close();
 }
 
-void FitsFile::openFirstTime() {
+std::shared_ptr<fitsfile> FitsFile::getFitsFilePtr() {
+  if (!m_file_pointer) {
+    return doOpen();
+  }
+  return m_file_pointer;
+}
+
+void FitsFile::open() {
+  doOpen();
+}
+
+fitsfile* FitsFile::openFirstTime() {
+  assert(!m_file_pointer && !m_was_opened_before);
+
   int status = 0;
 
-  fits_open_image(&m_file_pointer, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
+  fitsfile* fptr;
+  fits_open_image(&fptr, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
     throw Elements::Exception() << "Can't open FITS file: " << m_filename;
   }
 
   m_image_hdus.clear() ;
   int number_of_hdus = 0;
-  if (fits_get_num_hdus(m_file_pointer, &number_of_hdus, &status) < 0) {
+  if (fits_get_num_hdus(fptr, &number_of_hdus, &status) < 0) {
     throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_filename;
   }
 
@@ -118,12 +129,12 @@ void FitsFile::openFirstTime() {
 
   // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already
   int original_hdu = 0;
-  fits_get_hdu_num(m_file_pointer, &original_hdu);
+  fits_get_hdu_num(fptr, &original_hdu);
 
   // loop over HDUs to determine which ones are images
   int hdu_type = 0;
   for (int hdu_number=1; hdu_number <= number_of_hdus; hdu_number++) {
-    fits_movabs_hdu(m_file_pointer, hdu_number, &hdu_type, &status);
+    fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
     if (status != 0) {
       throw Elements::Exception() << "Can't switch HDUs while opening: " << m_filename;
     }
@@ -132,7 +143,7 @@ void FitsFile::openFirstTime() {
       int bitpix, naxis;
       long naxes[2] = {1,1};
 
-      fits_get_img_param(m_file_pointer, 2, &bitpix, &naxis, naxes, &status);
+      fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
       if (status == 0 && naxis == 2) {
         m_image_hdus.emplace_back(hdu_number);
       }
@@ -140,47 +151,61 @@ void FitsFile::openFirstTime() {
   }
 
   // go back to saved HDU
-  fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
+  fits_movabs_hdu(fptr, original_hdu, &hdu_type, &status);
 
   // load all FITS headers
-  reloadHeaders();
+  reloadHeaders(fptr);
 
   // load optional .head file to override headers
   loadHeadFile();
 
-  m_is_file_opened = true;
   m_was_opened_before = true;
+  return fptr;
 }
 
-void FitsFile::reopen() {
+fitsfile* FitsFile::reopen() {
+  assert(!m_file_pointer && m_was_opened_before);
+
   int status = 0;
-  fits_open_image(&m_file_pointer, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
+  fitsfile *fptr;
+  fits_open_image(&fptr, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
     throw Elements::Exception() << "Can't open FITS file: " << m_filename;
   }
-  m_is_file_opened = true;
+  return fptr;
 }
 
-void FitsFile::open() {
-  if (!m_is_file_opened) {
-    m_manager->reportOpenedFile(m_filename);
-    if (m_was_opened_before) {
-      reopen();
-    } else {
-      openFirstTime();
-    }
+std::shared_ptr<fitsfile> FitsFile::doOpen() {
+  assert (!m_file_pointer);
+
+  fitsfile *fptr;
+  if (m_was_opened_before) {
+    fptr = reopen();
   }
-  assert(m_file_pointer != nullptr);
+  else {
+    fptr = openFirstTime();
+  }
+  assert(fptr != nullptr);
+
+  auto shared_ptr = std::shared_ptr<fitsfile>(fptr, [](fitsfile *file_ptr) {
+    int status = 0;
+    fits_close_file(file_ptr, &status);
+  });
+  m_file_pointer = shared_ptr;
+  m_manager->reportOpenedFile(this);
+
+  return shared_ptr;
 }
 
 void FitsFile::close() {
-  if (m_is_file_opened) {
-    m_manager->reportClosedFile(m_filename);
-    int status = 0;
-    fits_close_file(m_file_pointer, &status);
+  if (m_file_pointer) {
+    m_manager->reportClosedFile(this);
     m_file_pointer = nullptr;
-    m_is_file_opened = false;
   }
+}
+
+bool FitsFile::isOpen() const {
+  return m_file_pointer != nullptr;
 }
 
 void FitsFile::setWriteMode() {
@@ -191,22 +216,22 @@ void FitsFile::setWriteMode() {
   }
 }
 
-void FitsFile::reloadHeaders() {
+void FitsFile::reloadHeaders(fitsfile* fptr) {
   int status = 0;
 
   // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already)
   int original_hdu = 0;
-  fits_get_hdu_num(m_file_pointer, &original_hdu);
+  fits_get_hdu_num(fptr, &original_hdu);
 
   int hdu_type = 0;
   for (unsigned int i = 0; i < m_headers.size(); i++) {
-    fits_movabs_hdu(m_file_pointer, i+1, &hdu_type, &status); // +1 hdus start at 1
+    fits_movabs_hdu(fptr, i + 1, &hdu_type, &status); // +1 hdus start at 1
 
-    m_headers[i] = loadFitsHeader(m_file_pointer);
+    m_headers[i] = loadFitsHeader(fptr);
   }
 
   // go back to saved HDU
-  fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
+  fits_movabs_hdu(fptr, original_hdu, &hdu_type, &status);
 }
 
 std::map<std::string, MetadataEntry> FitsFile::loadFitsHeader(fitsfile *fptr) {

@@ -14,3 +14,4 @@ gtest-devel
 levmar-devel
 log4cpp-devel
 wcslib-devel
+lsof

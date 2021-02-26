@@ -39,22 +39,36 @@ namespace SourceXtractor {
 /**
  * @class FitsFile
  * @brief represents access to a whole FITS file and handles loading and caching FITS headers
- *
+ * @details
+ *  The implementation probably needs some explanation:
+ *  In principle, the FitsFileManager may decide to close a file descriptor anytime
+ *  it sees fit. It could be while someone is using the pointer this class holds (that's why
+ *  getFitsFilePtr returns a std::shared_ptr, so it is kept alive while needed). It could be
+ *  just between opening a file and returning it. The former has a non negligible chance,
+ *  the later would be extremely unlikely (and unlucky), but is a race condition nevertheless.
+ *  That's why doOpen returns a shared_ptr apart of setting the m_file_pointer member. This should
+ *  (I think) solve the issue, as there will be a shared_ptr keeping the file descriptor alive
+ *  all the way to the caller of getFitsFilePtr(), even if close() is called in the middle.
+ * @warning
+ *  The FitsFileManager must outlive any instance of FitsFile it created.
+ *  We do not store a shared pointer because otherwise there is a reference cycle between the
+ *  FitsManager and the FitsFile
  */
 class FitsFile {
 protected:
-  FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager);
+  FitsFile(const std::string& filename, bool writeable, FitsFileManager *manager);
 
 public:
 
   virtual ~FitsFile();
 
-  fitsfile* getFitsFilePtr() {
-    if (!m_is_file_opened) {
-      open();
-    }
-    return m_file_pointer;
-  }
+  /**
+   * @return A shared pointer to a low-level fitsfile handler
+   * This point should *not* be stored anywhere. It is return as a std::shared_ptr
+   * so it is guaranteed to stay alive as long as it is needed, even if the FitsFileManager
+   * decides to close it on a separate thread
+   */
+  std::shared_ptr<fitsfile> getFitsFilePtr();
 
   const std::vector<int>& getImageHdus() const {
     return m_image_hdus;
@@ -64,33 +78,37 @@ public:
     return m_headers.at(hdu-1);
   }
 
+  const std::string& getFilename() const {
+    return m_filename;
+  }
+
+  bool isOpen() const;
+
   void setWriteMode();
 
   void open();
+
   void close();
 
-
 private:
-  void openFirstTime();
-  void reopen();
-
-  void reloadHeaders();
-  std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
-  void loadHeadFile();
+  friend class FitsFileManager;
 
   std::string m_filename;
-  fitsfile* m_file_pointer;
-  bool m_is_file_opened;
+  std::shared_ptr<fitsfile> m_file_pointer;
   bool m_is_writeable;
   bool m_was_opened_before;
 
   std::vector<int> m_image_hdus;
-
   std::vector<std::map<std::string, MetadataEntry>> m_headers;
+  FitsFileManager* m_manager;
 
-  std::shared_ptr<FitsFileManager> m_manager;
+  std::shared_ptr<fitsfile> doOpen();
+  fitsfile* openFirstTime();
+  fitsfile* reopen();
 
-  friend class FitsFileManager;
+  void reloadHeaders(fitsfile* fptr);
+  std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
+  void loadHeadFile();
 };
 
 }

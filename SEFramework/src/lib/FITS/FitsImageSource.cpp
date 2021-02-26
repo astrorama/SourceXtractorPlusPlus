@@ -54,15 +54,15 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, Im
   auto fptr = m_fits_file->getFitsFilePtr();
 
   if (m_hdu_number <= 0) {
-    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+    if (fits_get_hdu_num(fptr.get(), &m_hdu_number) < 0) {
       throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
     }
   }
   else {
-    switchHdu(fptr, m_hdu_number);
+    switchHdu(fptr.get(), m_hdu_number);
   }
 
-  fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
+  fits_get_img_param(fptr.get(), 2, &bitpix, &naxis, naxes, &status);
   if (status != 0 || naxis != 2) {
     throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename << "[" << m_hdu_number << "]";
   }
@@ -174,12 +174,12 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
   // Reopens the newly created file through theFitsFileManager
   m_fits_file = m_manager->getFitsFile(filename, true);
   auto fptr = m_fits_file->getFitsFilePtr();
-  switchHdu(fptr, m_hdu_number);
+  switchHdu(fptr.get(), m_hdu_number);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
   auto fptr = m_fits_file->getFitsFilePtr();
-  switchHdu(fptr, m_hdu_number);
+  switchHdu(fptr.get(), m_hdu_number);
 
   auto tile = ImageTile::create(m_image_type, x, y, width, height,
       std::const_pointer_cast<ImageSource>(shared_from_this()));
@@ -189,7 +189,7 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
   long increment[2] = {1, 1};
   int status = 0;
 
-  fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
+  fits_read_subset(fptr.get(), getDataType(), first_pixel, last_pixel, increment,
                    nullptr, tile->getDataPtr(), nullptr, &status);
   if (status != 0) {
     throw Elements::Exception() << "Error reading image tile from FITS file.";
@@ -200,7 +200,7 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
 
 void FitsImageSource::saveTile(ImageTile& tile) {
     auto fptr = m_fits_file->getFitsFilePtr();
-    switchHdu(fptr, m_hdu_number);
+    switchHdu(fptr.get(), m_hdu_number);
 
     int x = tile.getPosX();
     int y = tile.getPosY();
@@ -211,7 +211,7 @@ void FitsImageSource::saveTile(ImageTile& tile) {
     long last_pixel[2] = {x + width, y + height};
     int status = 0;
 
-    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
+    fits_write_subset(fptr.get(), getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
     if (status != 0) {
       throw Elements::Exception() << "Error saving image tile to FITS file.";
     }
@@ -279,7 +279,7 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
 
 void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
   auto fptr = m_fits_file->getFitsFilePtr();
-  switchHdu(fptr, m_hdu_number);
+  switchHdu(fptr.get(), m_hdu_number);
 
   std::ostringstream padded_key, serializer;
   padded_key << std::setw(8) << std::left << key;
@@ -288,7 +288,7 @@ void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
   auto str = serializer.str();
 
   int status = 0;
-  fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
+  fits_update_card(fptr.get(), padded_key.str().c_str(), str.c_str(), &status);
 
   if (status != 0) {
     char err_txt[31];

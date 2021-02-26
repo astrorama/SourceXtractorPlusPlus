@@ -29,10 +29,10 @@
 using namespace SourceXtractor;
 
 struct FitsImageSourceFixture {
-  std::string mhdu_path, primary_path;
+  std::string fits_path, primary_path;
 
   FitsImageSourceFixture() {
-    mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
+    fits_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.fits").native();
   }
 };
@@ -67,7 +67,7 @@ BOOST_FIXTURE_TEST_CASE(explicit_primary_test, FitsImageSourceFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(compressed_image_test, FitsImageSourceFixture) {
-  auto img_src = std::make_shared<FitsImageSource>(mhdu_path, 0, ImageTile::FloatImage);
+  auto img_src = std::make_shared<FitsImageSource>(fits_path, 0, ImageTile::FloatImage);
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue<SeFloat>(0, 0), 256.2f, 1e-8);
@@ -76,7 +76,7 @@ BOOST_FIXTURE_TEST_CASE(compressed_image_test, FitsImageSourceFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(explicit_compressed_image_test, FitsImageSourceFixture) {
-  auto img_src = std::make_shared<FitsImageSource>(mhdu_path + "[1]", 0, ImageTile::FloatImage);
+  auto img_src = std::make_shared<FitsImageSource>(fits_path + "[1]", 0, ImageTile::FloatImage);
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue<SeFloat>(0, 0), 256.2f, 1e-8);
@@ -85,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE(explicit_compressed_image_test, FitsImageSourceFixture) 
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(second_image_test, FitsImageSourceFixture) {
-  auto img_src = std::make_shared<FitsImageSource>(mhdu_path + "[3]", 0, ImageTile::FloatImage);
+  auto img_src = std::make_shared<FitsImageSource>(fits_path + "[3]", 0, ImageTile::FloatImage);
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue<SeFloat>(0, 0), 1024.44f, 1e-8);
@@ -94,7 +94,7 @@ BOOST_FIXTURE_TEST_CASE(second_image_test, FitsImageSourceFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(second_image_by_name_test, FitsImageSourceFixture) {
-  auto img_src = std::make_shared<FitsImageSource>(mhdu_path + "[IMAGE2]", 0, ImageTile::FloatImage);
+  auto img_src = std::make_shared<FitsImageSource>(fits_path + "[IMAGE2]", 0, ImageTile::FloatImage);
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue<SeFloat>(0, 0), 1024.44f, 1e-8);
@@ -103,21 +103,21 @@ BOOST_FIXTURE_TEST_CASE(second_image_by_name_test, FitsImageSourceFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(hdu_is_table_test, FitsImageSourceFixture) {
-  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[2]"), Elements::Exception);
-  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[TABLE]"), Elements::Exception);
+  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(fits_path + "[2]"), Elements::Exception);
+  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(fits_path + "[TABLE]"), Elements::Exception);
 }
 
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(bad_hdu_test, FitsImageSourceFixture) {
-  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[5]"), Elements::Exception);
+  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(fits_path + "[5]"), Elements::Exception);
 }
 
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(empty_primary_hdu_test, FitsImageSourceFixture) {
-  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[0]"), Elements::Exception);
-  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[PRIMARY]"), Elements::Exception);
+  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(fits_path + "[0]"), Elements::Exception);
+  BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(fits_path + "[PRIMARY]"), Elements::Exception);
 }
 
 //-----------------------------------------------------------------------------

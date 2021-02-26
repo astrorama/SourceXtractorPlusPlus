@@ -164,6 +164,9 @@ elements_add_unit_test(TransformedAperture_test tests/src/Aperture/TransformedAp
 elements_add_unit_test(NeighbourInfo_test tests/src/Aperture/NeighbourInfo_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(FitsFileManager_test tests/src/FITS/FitsFileManager_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(FitsImageSource_test tests/src/FITS/FitsImageSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
