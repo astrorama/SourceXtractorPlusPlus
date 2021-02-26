@@ -32,7 +32,6 @@ using namespace SourceXtractor;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Multithreading");
 
-std::recursive_mutex MultithreadedMeasurement::g_global_mutex;
 
 void MultithreadedMeasurement::startThreads() {
   m_output_thread = Euclid::make_unique<std::thread>(outputThreadStatic, this);

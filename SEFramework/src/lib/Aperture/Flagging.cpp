@@ -31,14 +31,24 @@ Flags computeFlags(const std::shared_ptr<Aperture>& aperture,
                    const std::shared_ptr<Image<SeFloat>>& detection_variance,
                    const std::shared_ptr<Image<SeFloat>>& threshold_image,
                    SeFloat variance_threshold) {
+
+  Flags flag = Flags::NONE;
   // get the aperture borders on the image
   auto min_pixel = aperture->getMinPixel(centroid_x, centroid_y);
   auto max_pixel = aperture->getMaxPixel(centroid_x, centroid_y);
 
+  // clip to the actual image
+  if (min_pixel.clip(detection_img->getWidth(), detection_img->getHeight()))
+    flag |= Flags::BOUNDARY;
+  if (max_pixel.clip(detection_img->getWidth(), detection_img->getHeight()))
+    flag |= Flags::BOUNDARY;
+
+  // cut the bit of image we need
+  auto var_cutout = detection_variance->getChunk(min_pixel, max_pixel);
+
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);
 
-  Flags flag = Flags::NONE;
   SeFloat total_area = 0.0;
   SeFloat bad_area = 0;
   SeFloat full_area = 0;
@@ -53,18 +63,11 @@ Flags computeFlags(const std::shared_ptr<Aperture>& aperture,
         continue;
       }
 
-      // make sure the pixel is inside the image
-      if (detection_img->isInside(pixel_x, pixel_y)) {
+      total_area += area;
 
-        // enhance the area
-        total_area += area;
-
-        full_area += neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y);
-        bad_area += (detection_variance->getValue(pixel_x, pixel_y) > variance_threshold);
-      }
-      else {
-        flag |= Flags::BOUNDARY;
-      }
+      full_area += neighbour_info.isNeighbourObjectPixel(pixel_x, pixel_y);
+      bad_area += (var_cutout->getValue(pixel_x - min_pixel.m_x, pixel_y - min_pixel.m_y) >
+                   variance_threshold);
     }
   }
 

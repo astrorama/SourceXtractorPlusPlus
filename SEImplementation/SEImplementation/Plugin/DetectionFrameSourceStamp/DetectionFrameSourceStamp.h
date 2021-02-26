@@ -24,7 +24,7 @@
 #define _SEIMPLEMENTATION_PROPERTY_DETECTIONFRAMESOURCESTAMP_H
 
 #include "SEFramework/Property/Property.h"
-#include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -37,40 +37,46 @@ class DetectionFrameSourceStamp : public Property {
 
 public:
 
+  using DetectionVectorImage = VectorImage<DetectionImage::PixelType>;
+  using WeightVectorImage = VectorImage<WeightImage::PixelType>;
+
   /**
    * @brief Destructor
    */
   virtual ~DetectionFrameSourceStamp() = default;
 
-  DetectionFrameSourceStamp(std::shared_ptr<DetectionImage> stamp, std::shared_ptr<DetectionImage> filtered_stamp,
-      std::shared_ptr<DetectionImage> thresholded_stamp, PixelCoordinate top_left,
-      std::shared_ptr<WeightImage> variance_stamp, std::shared_ptr<DetectionImage> threshold_map_stamp) :
-        m_stamp(stamp), m_filtered_stamp(filtered_stamp), m_thresholded_stamp(thresholded_stamp),
-        m_threshold_map_stamp(threshold_map_stamp), m_variance_stamp(variance_stamp),
-        m_top_left(top_left) {}
+  DetectionFrameSourceStamp(std::shared_ptr<DetectionVectorImage> stamp,
+                            std::shared_ptr<DetectionVectorImage> filtered_stamp,
+                            std::shared_ptr<DetectionVectorImage> thresholded_stamp,
+                            PixelCoordinate top_left,
+                            std::shared_ptr<WeightVectorImage> variance_stamp,
+                            std::shared_ptr<DetectionVectorImage> threshold_map_stamp) :
+    m_stamp(stamp), m_filtered_stamp(filtered_stamp), m_thresholded_stamp(thresholded_stamp),
+    m_threshold_map_stamp(threshold_map_stamp), m_variance_stamp(variance_stamp),
+    m_top_left(top_left) {}
 
   // Returns the stamp image
-  const DetectionImage& getStamp() const {
+  const DetectionVectorImage& getStamp() const {
     return *m_stamp;
   }
 
   // Returns the filtered stamp image
-  const DetectionImage& getFilteredStamp() const {
+  const DetectionVectorImage& getFilteredStamp() const {
     return *m_filtered_stamp;
   }
 
   // Returns the filtered and thresholded stamp image
-  const DetectionImage& getThresholdedStamp() const {
+  const DetectionVectorImage& getThresholdedStamp() const {
     return *m_thresholded_stamp;
   }
 
   // Returns the threshold map stamp
-  const DetectionImage& getThresholdMapStamp() const {
+  const DetectionVectorImage& getThresholdMapStamp() const {
     return *m_threshold_map_stamp;
   }
 
   // Returns the stamp's associated weight image
-  const DetectionImage& getVarianceStamp() const {
+  const WeightVectorImage& getVarianceStamp() const {
     return *m_variance_stamp;
   }
 
@@ -79,9 +85,9 @@ public:
   }
 
 private:
-  std::shared_ptr<DetectionImage> m_stamp, m_filtered_stamp, m_thresholded_stamp;
-  std::shared_ptr<DetectionImage> m_threshold_map_stamp;
-  std::shared_ptr<WeightImage> m_variance_stamp;
+  std::shared_ptr<DetectionVectorImage> m_stamp, m_filtered_stamp;
+  std::shared_ptr<DetectionVectorImage> m_thresholded_stamp, m_threshold_map_stamp;
+  std::shared_ptr<WeightVectorImage> m_variance_stamp;
   PixelCoordinate m_top_left;
 
 }; /* End of DetectionFrameSourceStamp class */

@@ -45,7 +45,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace po = boost::program_options;

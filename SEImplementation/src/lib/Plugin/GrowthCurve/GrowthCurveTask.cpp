@@ -35,8 +35,8 @@ static const SeFloat GROWTH_NSIG = 6.;
 static const size_t GROWTH_NSAMPLES = 64;
 
 static SeFloat getPixelValue(int x, int y, SeFloat centroid_x, SeFloat centroid_y,
-                             const std::shared_ptr<Image<SeFloat>>& image,
-                             const std::shared_ptr<Image<SeFloat>>& variance_map, SeFloat variance_threshold,
+                             const std::shared_ptr<ImageAccessor<SeFloat>>& image,
+                             const std::shared_ptr<ImageAccessor<SeFloat>>& variance_map, SeFloat variance_threshold,
                              bool use_symmetry) {
   // Get the pixel value
   DetectionImage::PixelType pixel_value = 0;

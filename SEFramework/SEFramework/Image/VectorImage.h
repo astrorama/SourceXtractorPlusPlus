@@ -30,7 +30,6 @@
 #include "SEFramework/Image/WriteableImage.h"
 
 #include "SEFramework/Image/ImageChunk.h"
-#include "SEFramework/Image/ImageBase.h"
 
 
 namespace SourceXtractor {
@@ -50,39 +49,51 @@ namespace SourceXtractor {
  * @tparam T the type of the pixel values
  */
 template <typename T>
-class VectorImage final : public ImageBase<T>, public WriteableImage<T> {
+class VectorImage final : public WriteableImage<T> {
 protected:
 
-  VectorImage(int width, int height) : m_width(width), m_height(height), m_data(width * height) {
+  VectorImage(const VectorImage<T>& other) : m_width(other.m_width), m_height(other.m_height),
+                                             m_data(std::make_shared<std::vector<T>>(*other.m_data)) {
+  }
+
+  VectorImage(VectorImage<T>&& other) = default;
+
+  VectorImage(int width, int height) : m_width(width), m_height(height),
+                                       m_data(std::make_shared<std::vector<T>>(width * height)) {
     assert(width > 0 && height > 0);
   }
 
   VectorImage(int width, int height, std::vector<T> data) :
-      m_width(width), m_height(height), m_data(std::move(data)) {
+      m_width(width), m_height(height), m_data(std::make_shared<std::vector<T>>(std::move(data))) {
     assert(width > 0 && height > 0);
-    assert(m_data.size() == std::size_t(width * height));
+    assert(m_data->size() == std::size_t(width * height));
   }
 
-  template <typename Iter>
+  template<typename Iter>
   VectorImage(int width, int height, Iter data_begin, Iter data_end,
-        typename std::enable_if<
-            std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value
-            and std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value
-        >::type* =0) :
-      m_width(width), m_height(height), m_data(data_begin, data_end) {
-    assert(m_data.size() == std::size_t(width * height));
+              typename std::enable_if<
+                std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value
+                and std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value
+              >::type * = 0)
+    :m_width(width), m_height(height),
+     m_data(std::make_shared<std::vector<T>>(data_begin, data_end)) {
+    assert(m_data->size() == std::size_t(width * height));
   }
-  
-  VectorImage(const Image<T>& other_image) :
-    m_width(other_image.getWidth()), m_height(other_image.getHeight()), m_data(m_width * m_height) {
+
+  VectorImage(const Image <T>& other_image)
+    : m_width(other_image.getWidth()), m_height(other_image.getHeight()),
+      m_data(std::make_shared<std::vector<T>>(m_width * m_height)) {
+    // FIXME: We probably could use a getChunk were we give the buffer to use
+    auto chunk = other_image.getChunk(0, 0, other_image.getWidth(), other_image.getHeight());
     for (int y = 0; y < m_height; y++) {
       for (int x = 0; x < m_width; x++) {
-        setValue(x, y, other_image.getValue(x, y));
+        setValue(x, y, chunk->getValue(x, y));
       }
     }
   }
 
-  VectorImage(const std::shared_ptr<const Image<T>>& other_image): VectorImage(static_cast<const Image<T>&>(*other_image)) {}
+  VectorImage(const std::shared_ptr<const Image <T>>& other_image) : VectorImage(
+    static_cast<const Image <T>&>(*other_image)) {}
 
 public:
   template<typename... Args>
@@ -102,9 +113,12 @@ public:
     return m_width;
   }
 
-  using Image<T>::getValue;
-  T getValue(int x, int y) const final {
-    return const_cast<VectorImage<T>*>(this)->at(x, y);
+  T getValue(int x, int y) const {
+    return this->at(x, y);
+  }
+
+  T getValue(PixelCoordinate coord) const {
+    return this->at(coord.m_x, coord.m_y);
   }
   
   void setValue(int x, int y, T value) final {
@@ -117,19 +131,24 @@ public:
 
   T& at(int x, int y) {
     assert(x >= 0 && y >=0 && x < m_width && y < m_height);
-    return m_data[x + y * m_width];
+    return (*m_data)[x + y * m_width];
+  }
+
+  const T& at(int x, int y) const {
+    assert(x >= 0 && y >=0 && x < m_width && y < m_height);
+    return (*m_data)[x + y * m_width];
   }
 
   void fillValue(T value) {
-    std::fill(m_data.begin(), m_data.end(), value);
+    std::fill(m_data->begin(), m_data->end(), value);
   }
 
   const std::vector<T>& getData() const {
-    return m_data;
+    return *m_data;
   }
 
   std::vector<T>& getData() {
-    return m_data;
+    return *m_data;
   }
 
   /**
@@ -138,14 +157,14 @@ public:
   virtual ~VectorImage() = default;
 
   virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    return ImageChunk<T>::create(&m_data[x + y * m_width], width, height, m_width, this->shared_from_this());
+    return ImageChunk<T>::create(m_data, x + y * m_width, width, height, m_width);
   }
 
 
 private:
   int m_width;
   int m_height;
-  std::vector<T> m_data;
+  std::shared_ptr<std::vector<T>> m_data;
 
 }; /* End of VectorImage class */
 

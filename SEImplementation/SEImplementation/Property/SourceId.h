@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_PROPERTY_SOURCEID_H_
 
 #include "SEFramework/Property/Property.h"
+#include <atomic>
 
 namespace SourceXtractor {
 
@@ -54,7 +55,7 @@ private:
   unsigned int m_source_id, m_detection_id;
 
   static unsigned int getNewId() {
-    static unsigned int s_id  = 1;
+    static std::atomic_uint32_t s_id(1);
     return s_id++;
   }
 

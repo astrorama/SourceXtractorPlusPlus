@@ -24,6 +24,7 @@
 #ifndef _SEIMPLEMENTATION_IMAGE_WRITEABLEIMAGEINTERFACETRAITS_H_
 #define _SEIMPLEMENTATION_IMAGE_WRITEABLEIMAGEINTERFACETRAITS_H_
 
+#include "SEFramework/Image/ImageAccessor.h"
 #include "ImageInterfaceTraits.h"
 
 namespace ModelFitting {
@@ -45,12 +46,14 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
   class WriteableSetter {
   private:
     WriteableInterfaceTypePtr m_image;
+    SourceXtractor::ImageAccessor<WriteableInterfaceType::PixelType> m_accessor;
     int m_x, m_y;
 
     friend class WriteableIterator;
 
   public:
-    WriteableSetter(WriteableInterfaceTypePtr &image, int x, int y) : m_image{image}, m_x{x}, m_y{y} {}
+    WriteableSetter(WriteableInterfaceTypePtr &image, int x, int y)
+    : m_image{image}, m_accessor{image}, m_x{x}, m_y{y} {}
 
     WriteableInterfaceType::PixelType operator=(WriteableInterfaceType::PixelType v) {
       m_image->setValue(m_x, m_y, v);
@@ -58,29 +61,31 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
     }
 
     WriteableInterfaceType::PixelType operator+=(WriteableInterfaceType::PixelType v) {
-      v += m_image->getValue(m_x, m_y);
+      v += m_accessor.getValue(m_x, m_y);
       m_image->setValue(m_x, m_y, v);
       return v;
     }
 
-    operator WriteableInterfaceType::PixelType () const {
-      return m_image->getValue(m_x, m_y);
+    operator WriteableInterfaceType::PixelType () {
+      return m_accessor.getValue(m_x, m_y);
     }
   };
 
   class WriteableIterator : std::iterator<std::forward_iterator_tag, WriteableInterfaceType::PixelType> {
   private:
     WriteableInterfaceTypePtr m_image;
+    SourceXtractor::ImageAccessor<WriteableInterfaceType::PixelType> m_accessor;
     int m_x, m_y;
     const int m_width, m_height;
     WriteableSetter m_setter;
 
   public:
 
-    WriteableIterator(WriteableInterfaceTypePtr image) : m_image{image}, m_x{0}, m_y{0},
-                                                         m_width{image->getWidth()},
-                                                         m_height{image->getHeight()},
-                                                         m_setter{image, 0, 0} {
+    WriteableIterator(WriteableInterfaceTypePtr image)
+      : m_image{image}, m_accessor{image}, m_x{0}, m_y{0},
+        m_width{image->getWidth()},
+        m_height{image->getHeight()},
+        m_setter{image, 0, 0} {
     }
 
     WriteableIterator(WriteableInterfaceTypePtr image, int) : WriteableIterator(image) {
@@ -104,11 +109,11 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
       }
       return *this;
     }
-
-    WriteableInterfaceType::PixelType operator*() const {
-      return m_image->getValue(m_x, m_y);
+/*
+    WriteableInterfaceType::PixelType operator*() {
+      return m_accessor.getValue(m_x, m_y);
     }
-
+*/
     WriteableSetter& operator*() {
       m_setter.m_x = m_x;
       m_setter.m_y = m_y;
@@ -135,7 +140,8 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
   }
 
   static ImageInterfaceType::PixelType at(const WriteableInterfaceTypePtr &image, std::size_t x, std::size_t y) {
-    return image->getValue(x, y);
+    //return image->getValue(x, y);
+    abort();
   }
 
   static iterator begin(const WriteableInterfaceTypePtr &image) {
@@ -185,6 +191,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
   static void
   shiftResizeLancszos(const WriteableInterfaceTypePtr &source, WriteableInterfaceTypePtr &window, double scale_factor,
                       double x_shift, double y_shift) {
+    SourceXtractor::ImageAccessor<WriteableInterfaceType::PixelType> accessor(source);
     int window_width = width(window);
     int window_height = height(window);
     for (int x_win = 0; x_win < window_width; x_win++) {
@@ -203,14 +210,15 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
             int src_y = iy + j - INTERP_MAXKERNELWIDTH / 2;
 
             if (source->isInside(src_x, src_y)) {
-              buffer[j * INTERP_MAXKERNELWIDTH + i] = source->getValue(src_x, src_y);
+              buffer[j * INTERP_MAXKERNELWIDTH + i] = accessor.getValue(src_x, src_y);
             }
           }
         }
 
         window->setValue(x_win, y_win,
-                         SourceXtractor::interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix, INTERP_MAXKERNELWIDTH / 2 + y - iy,
-                                         8, 8, SourceXtractor::INTERP_LANCZOS4));
+                         SourceXtractor::interpolate_pix(buffer, INTERP_MAXKERNELWIDTH / 2 + x - ix,
+                                                         INTERP_MAXKERNELWIDTH / 2 + y - iy,
+                                                         8, 8, SourceXtractor::INTERP_LANCZOS4));
       }
     }
 
@@ -218,7 +226,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
 
 
 }; // end of class ImageTraits<WriteableInterfaceTypePtr>
-
+/*
 template<typename T>
 auto operator*(T v, const ImageTraits<WriteableInterfaceTypePtr>::WriteableSetter &setter) -> decltype(v *
                                                                                                        WriteableInterfaceType::PixelType(
@@ -231,7 +239,7 @@ auto operator*(const ImageTraits<WriteableInterfaceTypePtr>::WriteableSetter &se
 WriteableInterfaceType::PixelType(0) * v) {
   return static_cast<WriteableInterfaceType::PixelType>(setter) * v;
 }
-
+*/
 inline void ImageTraits<WriteableInterfaceTypePtr>::addImageToImage(WriteableInterfaceTypePtr &image1,
                                                                     const WriteableInterfaceTypePtr &image2,
                                                                     double scale_factor, double x, double y) {

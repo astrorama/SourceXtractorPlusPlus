@@ -265,21 +265,23 @@ public:
 
   void addBackgroundNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double background_level, double background_sigma) {
     // Add noise
+    ImageAccessor<SeFloat> accessor(image);
     boost::random::normal_distribution<> bg_noise_dist(background_level, background_sigma);
     for (int y=0; y < image->getHeight(); y++) {
       for (int x=0; x < image->getWidth(); x++) {
         // background (gaussian) noise
-        image->setValue(x, y, image->getValue(x, y) + bg_noise_dist(m_rng));
+        image->setValue(x, y, accessor.getValue(x, y) + bg_noise_dist(m_rng));
       }
     }
   }
 
   void addPoissonNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double gain) {
     // Add noise
+    ImageAccessor<SeFloat> accessor(image);
     if (gain > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          auto pixel_value = image->getValue(x, y);
+          auto pixel_value = accessor.getValue(x, y);
           if (pixel_value > 0.) {
             image->setValue(x, y, boost::random::poisson_distribution<>(pixel_value * gain)(m_rng) / gain);
           }
@@ -289,10 +291,11 @@ public:
   }
 
   void saturate(std::shared_ptr<WriteableImage<SeFloat>> image, double saturation_level) {
+    ImageAccessor<SeFloat> accessor(image);
     if (saturation_level > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          image->setValue(x, y, std::min(image->getValue(x, y), (float) saturation_level));
+          image->setValue(x, y, std::min(accessor.getValue(x, y), (float) saturation_level));
         }
       }
     }
@@ -641,9 +644,10 @@ public:
       addBadPixels(weight_map, args["bad-pixels"].as<double>());
       addBadColumns(weight_map, args["bad-columns"].as<double>());
 
+      ImageAccessor<WeightImage::PixelType> weightAccessor(weight_map);
       for (int y = 0; y < target_image->getHeight(); y++) {
         for (int x = 0; x < target_image->getWidth(); x++) {
-          if (weight_map->getValue(x, y) == 0) {
+          if (weightAccessor.getValue(x, y) == 0) {
             target_image->setValue(x, y, saturation_level);
           }
         }

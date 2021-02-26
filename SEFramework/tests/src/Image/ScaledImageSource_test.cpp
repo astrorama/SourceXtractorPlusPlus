@@ -86,7 +86,7 @@ BOOST_FIXTURE_TEST_CASE(scaled3xBicubic, ScaledImageSourceFixture) {
   auto scaled_src = std::make_shared<ScaledImageSource<SeFloat>>(
     image3x3, 9, 9, ScaledImageSource<SeFloat>::InterpolationType::BICUBIC
   );
-  auto scaled = BufferedImage<SeFloat>::create(scaled_src);
+  auto scaled = VectorImage<SeFloat>::create(*BufferedImage<SeFloat>::create(scaled_src));
 
   // The values at the center of each 3x3 cell must match what we had
   for (int y = 0; y < 3; ++y) {

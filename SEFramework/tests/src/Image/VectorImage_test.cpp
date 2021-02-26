@@ -39,10 +39,12 @@ BOOST_AUTO_TEST_CASE( example_test ) {
 
   image->setValue(7, 10, 99);
   image->setValue(2, 15, 33);
+  image->at(5, 6) = 42;
 
   BOOST_CHECK(image->getValue(6, 10) == 0);
   BOOST_CHECK(image->getValue(7, 10) == 99);
   BOOST_CHECK(image->getValue(2, 15) == 33);
+  BOOST_CHECK(image->getValue(5, 6) == 42);
 
   BOOST_CHECK(image->getData()[207] == 99);
   BOOST_CHECK(image->getData()[302] == 33);

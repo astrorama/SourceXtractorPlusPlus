@@ -22,6 +22,7 @@
 #include <limits>
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -32,7 +33,8 @@
 namespace SourceXtractor {
 
 std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
-  auto& stamp = source->getProperty<DetectionFrameSourceStamp>().getStamp();
+  using Accessor = ImageAccessor<DetectionImage::PixelType>;
+  Accessor stamp(source->getProperty<DetectionFrameSourceStamp>().getStamp());
   auto& detection_frame = source->getProperty<DetectionFrame>();
   auto& bounds = source->getProperty<PixelBoundaries>();
 
