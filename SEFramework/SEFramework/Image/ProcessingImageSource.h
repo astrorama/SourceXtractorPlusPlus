@@ -38,7 +38,8 @@ public:
   virtual ~ProcessingImageSource() = default;
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
-    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height, (const_cast<ProcessingImageSource*>(this))->shared_from_this());
+    auto tile = std::make_shared<ImageTileWithType<T>>(
+        x, y, width, height, (const_cast<ProcessingImageSource*>(this))->shared_from_this());
 
     generateTile(m_image, *tile, x, y, width, height);
 
@@ -64,7 +65,7 @@ public:
   }
 
 protected:
-  virtual void generateTile(const std::shared_ptr<Image<T>>& image, ImageTile& tile, int x, int y, int width, int height) const = 0;
+  virtual void generateTile(const std::shared_ptr<Image<T>>& image, ImageTileWithType<T>& tile, int x, int y, int width, int height) const = 0;
 
   std::string getImageRepr() const {
     return m_image->getRepr();

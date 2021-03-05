@@ -135,8 +135,9 @@ public:
 
       for (int r = 0; r < repeat; ++r) {
         timer.start();
-        std::shared_ptr<ImageTile> tile = bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight());
-        result = tile->getImage<SeFloat>();
+        auto tile = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(
+            bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight()));
+        auto result = tile->getImage();
         timer.stop();
       }
 
