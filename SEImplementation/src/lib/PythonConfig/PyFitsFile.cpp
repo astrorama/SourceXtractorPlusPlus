@@ -15,17 +15,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include <boost/algorithm/string.hpp>
-
 #include "SEUtils/VariantCast.h"
-
 #include <SEImplementation/PythonConfig/PyFitsFile.h>
+#include <boost/algorithm/string.hpp>
 
 namespace SourceXtractor {
 
 PyFitsFile::PyFitsFile(const std::string& filename) : m_filename(filename) {
-  m_file = FitsFileManager::getInstance()->getFitsFile(filename);
-  m_file->open();
+  m_file = std::make_shared<FitsFile>(filename, false);
 }
 
 std::vector<int> PyFitsFile::getImageHdus() const {
