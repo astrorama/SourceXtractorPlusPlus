@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics,
+ * IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -50,8 +51,7 @@ struct MetadataEntry {
  */
 
 class ImageSource {
-public:
-
+ public:
   ImageSource() {}
 
   virtual ~ImageSource() = default;
@@ -60,8 +60,8 @@ public:
   virtual std::string getRepr() const = 0;
 
   virtual void saveTile(ImageTile& tile) = 0;
-  virtual std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const = 0;
-
+  virtual std::shared_ptr<ImageTile> getImageTile(int x, int y, int width,
+                                                  int height) const = 0;
 
   /// Returns the width of the image in pixels
   virtual int getWidth() const = 0;
@@ -74,14 +74,15 @@ public:
   /**
    * @return A copy of the metadata set
    */
-  virtual const std::map<std::string, MetadataEntry> getMetadata() const { return {}; };
+  virtual const std::map<std::string, MetadataEntry> getMetadata() const {
+    return {};
+  };
 
-  virtual void setMetadata(std::string key, MetadataEntry value) {}
+  virtual void setMetadata(std::string /* key */, MetadataEntry /* value */) {}
 
-private:
-
+ private:
 };
 
-}
+}  // namespace SourceXtractor
 
 #endif /* _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_ */

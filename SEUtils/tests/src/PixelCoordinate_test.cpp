@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics,
+ *                   IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,19 +21,19 @@
  * @author mschefer
  */
 
-#include <boost/test/unit_test.hpp>
-
 #include "SEUtils/PixelCoordinate.h"
+
+#include <boost/test/unit_test.hpp>
 
 using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (PixelCoordinate_test)
+BOOST_AUTO_TEST_SUITE(PixelCoordinate_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( example_test ) {
+BOOST_AUTO_TEST_CASE(example_test) {
   PixelCoordinate pc(1, 3);
 
   BOOST_CHECK_EQUAL(1, pc.m_x);
@@ -47,6 +48,19 @@ BOOST_AUTO_TEST_CASE( example_test ) {
   BOOST_CHECK(pc - PixelCoordinate(5, 2) == PixelCoordinate(-4, 1));
 }
 
+BOOST_AUTO_TEST_CASE(scalar_mult_test) {
+  PixelCoordinate pc(1, 3);
+
+  auto pc2 = pc * 3.6;
+
+  // Test double to int conversion by casting
+
+  BOOST_CHECK_EQUAL(3, pc2.m_x);
+  BOOST_CHECK_EQUAL(10, pc2.m_y);
+
+  BOOST_CHECK(pc2 == PixelCoordinate(3, 10));
+}
+
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE_END ()
+BOOST_AUTO_TEST_SUITE_END()

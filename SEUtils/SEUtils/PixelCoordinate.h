@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics,
+ * IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,8 +24,8 @@
 #ifndef _SEUTILS_PIXELCOORDINATE_H
 #define _SEUTILS_PIXELCOORDINATE_H
 
-#include <functional>
 #include <boost/functional/hash.hpp>
+#include <functional>
 
 namespace SourceXtractor {
 
@@ -50,7 +51,8 @@ struct PixelCoordinate {
   }
 
   PixelCoordinate operator*(double scalar) const {
-    return PixelCoordinate(m_x * scalar, m_y  * scalar);
+    return PixelCoordinate(static_cast<int>(m_x * scalar),
+                           static_cast<int>(m_y * scalar));
   }
 
   PixelCoordinate operator+(const PixelCoordinate& other) const {
@@ -74,24 +76,20 @@ struct PixelCoordinate {
   }
 };
 
-
 } /* namespace SourceXtractor */
-
 
 namespace std {
 
 template <>
-struct hash<SourceXtractor::PixelCoordinate>
-{
+struct hash<SourceXtractor::PixelCoordinate> {
   std::size_t operator()(const SourceXtractor::PixelCoordinate& coord) const {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, coord.m_x);
-    boost::hash_combine(hash, coord.m_y);
-    return hash;
+    std::size_t local_hash = 0;
+    boost::hash_combine(local_hash, coord.m_x);
+    boost::hash_combine(local_hash, coord.m_y);
+    return local_hash;
   }
 };
 
-} // namespace std
-
+}  // namespace std
 
 #endif
