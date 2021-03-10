@@ -1,5 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics,
- * IAP-CNRS/Sorbonne Université
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,8 +23,8 @@
 #ifndef _SEUTILS_PIXELCOORDINATE_H
 #define _SEUTILS_PIXELCOORDINATE_H
 
-#include <boost/functional/hash.hpp>
 #include <functional>
+#include <boost/functional/hash.hpp>
 
 namespace SourceXtractor {
 
@@ -76,12 +75,15 @@ struct PixelCoordinate {
   }
 };
 
+
 } /* namespace SourceXtractor */
+
 
 namespace std {
 
 template <>
-struct hash<SourceXtractor::PixelCoordinate> {
+struct hash<SourceXtractor::PixelCoordinate>
+{
   std::size_t operator()(const SourceXtractor::PixelCoordinate& coord) const {
     std::size_t local_hash = 0;
     boost::hash_combine(local_hash, coord.m_x);
@@ -90,6 +92,7 @@ struct hash<SourceXtractor::PixelCoordinate> {
   }
 };
 
-}  // namespace std
+} // namespace std
+
 
 #endif
