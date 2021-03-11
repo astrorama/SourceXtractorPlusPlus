@@ -47,6 +47,19 @@ BOOST_AUTO_TEST_CASE( example_test ) {
   BOOST_CHECK(pc - PixelCoordinate(5, 2) == PixelCoordinate(-4, 1));
 }
 
+BOOST_AUTO_TEST_CASE( scalar_mult_test ) {
+  PixelCoordinate pc(1, 3);
+
+  auto pc2 = pc * 3.6;
+
+  // Test double to int conversion by casting
+
+  BOOST_CHECK_EQUAL(3, pc2.m_x);
+  BOOST_CHECK_EQUAL(10, pc2.m_y);
+
+  BOOST_CHECK(pc2 == PixelCoordinate(3, 10));
+}
+
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE_END ()

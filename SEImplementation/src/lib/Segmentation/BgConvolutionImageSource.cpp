@@ -64,7 +64,8 @@ applyKernel(const VectorImage<SeFloat>& kernel, ImageChunk<SeFloat>& image_chunk
 }
 
 void BgConvolutionImageSource::generateTile(const std::shared_ptr<Image<DetectionImage::PixelType>>& image,
-                                            ImageTile& tile, int start_x, int start_y, int width, int height) const {
+                                            ImageTileWithType<DetectionImage::PixelType>& tile, int start_x,
+                                            int start_y, int width, int height) const {
   const int hx = m_kernel->getWidth() / 2;
   const int hy = m_kernel->getHeight() / 2;
   const int clip_x = std::max(start_x - hx, 0);
@@ -79,7 +80,7 @@ void BgConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detectio
   // Convolve both and copy out to the tile
   const int off_x = start_x - clip_x;
   const int off_y = start_y - clip_y;
-
+  auto& tile_image = *tile.getImage();
   for (int iy = 0; iy < height; ++iy) {
     for (int ix = 0; ix < width; ++ix) {
       if (variance_chunk->getValue(ix + off_x, iy + off_y) < m_threshold) {
@@ -92,10 +93,10 @@ void BgConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detectio
 
         // Note that because of the conditional, at least the center pixel is below the threshold,
         // so checking for conv_weight > 0 is redundant
-        tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, total / conv_weight);
+        tile_image.setValue(ix, iy, total / conv_weight);
       }
       else {
-        tile.getImage<DetectionImage::PixelType>()->setValue(ix, iy, 0.);
+        tile_image.setValue(ix, iy, 0.);
       }
     }
   }

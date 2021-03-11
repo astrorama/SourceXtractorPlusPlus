@@ -78,7 +78,10 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
     auto measurement = measureFlux(aperture, centroid_x, centroid_y, measurement_image, variance_map,
                                    variance_threshold, m_use_symmetry);
     // compute the derived quantities
-    auto flux_error = sqrt(measurement.m_variance + measurement.m_flux / gain);
+    if (gain > 0) {
+      measurement.m_variance += measurement.m_flux / gain;
+    }
+    auto flux_error = sqrt(measurement.m_variance);
     auto mag = measurement.m_flux > 0.0 ? -2.5 * log10(measurement.m_flux) + m_magnitude_zero_point : std::numeric_limits<SeFloat>::quiet_NaN();
     auto mag_error = 1.0857 * flux_error / measurement.m_flux;
 

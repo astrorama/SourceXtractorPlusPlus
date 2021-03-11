@@ -82,6 +82,6 @@ private:
 
 };
 
-}
+}  // namespace SourceXtractor
 
 #endif /* _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_ */

@@ -65,10 +65,11 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
     // the tile image is going to be kept in memory as long as the chunk exists, but it could be unloaded
     // from TileManager and even reloaded again, wasting memory,
     // however image chunks are normally short lived so it's probably OK
-    auto tile = m_tile_manager->getTileForPixel(x, y, m_source);
-    // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
+    auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(x, y, m_source));
+    assert(tile != nullptr);
 
-    auto image = tile->getImage<T>();
+    // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
+    auto image = tile->getImage();
     return image->getChunk(tile_offset_x, tile_offset_y, width, height);
   }
   else {
@@ -87,7 +88,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
 
     for (int iy = tile_start_y; iy <= tile_end_y; iy += tile_h) {
       for (int ix = tile_start_x; ix <= tile_end_x; ix += tile_w) {
-        auto tile = m_tile_manager->getTileForPixel(ix, iy, m_source);
+        auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
         copyOverlappingPixels(*tile, data, x, y, width, height, tile_w, tile_h);
       }
     }
@@ -98,7 +99,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
 
 
 template<typename T>
-void BufferedImage<T>::copyOverlappingPixels(const ImageTile& tile, std::vector<T>& output,
+void BufferedImage<T>::copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T>& output,
                                              int x, int y, int w, int h,
                                              int tile_w, int tile_h) const {
   int start_x = std::max(tile.getPosX(), x);
@@ -110,7 +111,7 @@ void BufferedImage<T>::copyOverlappingPixels(const ImageTile& tile, std::vector<
 
   for (int data_y = off_y, img_y = start_y; img_y < end_y; ++data_y, ++img_y) {
     for (int data_x = off_x, img_x = start_x; img_x < end_x; ++data_x, ++img_x) {
-      output[data_x + data_y * w] = tile.getValue<T>(img_x, img_y);
+      tile.getValue(img_x, img_y, output[data_x + data_y * w]);
     }
   }
 }

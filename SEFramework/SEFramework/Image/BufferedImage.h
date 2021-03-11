@@ -61,7 +61,7 @@ protected:
   std::shared_ptr<const ImageSource> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
 
-  void copyOverlappingPixels(const ImageTile &tile, std::vector<T> &output,
+  void copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T> &output,
                              int x, int y, int w, int h,
                              int tile_w, int tile_h) const;
 };

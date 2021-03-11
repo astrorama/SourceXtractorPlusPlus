@@ -50,7 +50,8 @@ struct PixelCoordinate {
   }
 
   PixelCoordinate operator*(double scalar) const {
-    return PixelCoordinate(m_x * scalar, m_y  * scalar);
+    return PixelCoordinate(static_cast<int>(m_x * scalar),
+                           static_cast<int>(m_y * scalar));
   }
 
   PixelCoordinate operator+(const PixelCoordinate& other) const {
@@ -104,10 +105,10 @@ template <>
 struct hash<SourceXtractor::PixelCoordinate>
 {
   std::size_t operator()(const SourceXtractor::PixelCoordinate& coord) const {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, coord.m_x);
-    boost::hash_combine(hash, coord.m_y);
-    return hash;
+    std::size_t local_hash = 0;
+    boost::hash_combine(local_hash, coord.m_x);
+    boost::hash_combine(local_hash, coord.m_y);
+    return local_hash;
   }
 };
 
