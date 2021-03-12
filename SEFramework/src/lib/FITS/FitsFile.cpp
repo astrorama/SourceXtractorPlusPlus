@@ -48,7 +48,7 @@ namespace SourceXtractor {
  * - anything else will be casted to std::string, removing simple quotes if necessary
  */
 static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
-  boost::regex float_regex("^[-+]?\\d*\\.?\\d+([eE][-+]?\\d+)?$");
+  boost::regex float_regex("^[-+]?(\\d*\\.?\\d+|\\d+\\.?\\d*)([eE][-+]?\\d+)?$");
   boost::regex int_regex("^[-+]?\\d+$");
 
   try {
