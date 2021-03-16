@@ -84,16 +84,6 @@ public:
   virtual void setValue(int x, int y, unsigned int value) = 0;
   virtual void setValue(int x, int y, std::int64_t value) = 0;
 
-  template<typename T>
-  std::shared_ptr<VectorImage<T>> getImage() const {
-    if (m_image_type == getTypeValue(T())) {
-      return std::static_pointer_cast<VectorImage<T>>(m_tile_image);
-    } else {
-      //FIXME implement type conversion !!!!!!!!!!!!!!!!
-      return nullptr;
-    }
-  }
-
   virtual void* getDataPtr()=0;
 
   void setModified(bool modified) {
@@ -150,45 +140,98 @@ protected:
   virtual void getValue(int x, int y, unsigned int& value) const = 0;
   virtual void getValue(int x, int y, std::int64_t& value) const = 0;
 
-
   ImageTile(ImageType image_type, int x, int y, int width, int height, std::shared_ptr<ImageSource> source=nullptr)
       : m_modified(false), m_image_type(image_type), m_source(source), m_x(x), m_y(y), m_max_x(x+width), m_max_y(y+height) {
-    createImage(image_type, width, height);
   }
 
-  void createImage(ImageType image_type, int width, int height) {
-    //std::cout << "create tile type " << image_type << "\n";
-    switch (image_type) {
-    default:
-    case FloatImage:
-      m_tile_image = VectorImage<float>::create(width, height);
-      break;
-    case DoubleImage:
-      m_tile_image = VectorImage<double>::create(width, height);
-      break;
-    case IntImage:
-      m_tile_image = VectorImage<int>::create(width, height);
-      break;
-    case UIntImage:
-      m_tile_image = VectorImage<unsigned int>::create(width, height);
-      break;
-    case LongLongImage:
-      m_tile_image = VectorImage<std::int64_t>::create(width, height);
-      break;
-    }
-  }
+  ImageTile(const ImageTile&) = delete;
+  ImageTile(ImageTile&&) = delete;
+  ImageTile& operator=(const ImageTile&) = delete;
+  ImageTile& operator=(ImageTile&&) = delete;
 
   bool m_modified;
-
   ImageType m_image_type;
-
   std::shared_ptr<ImageSource> m_source;
   int m_x, m_y;
   int m_max_x, m_max_y;
-
-  std::shared_ptr<void> m_tile_image;
 };
 
+template<typename T>
+class ImageTileWithType final : public ImageTile {
+public:
+
+  ImageTileWithType(int x, int y, int width, int height, std::shared_ptr<ImageSource> source)
+      : ImageTile(getTypeValue(T()), x, y, width, height, source) {
+    m_tile_image = VectorImage<T>::create(width, height);
+  }
+
+  int getTileMemorySize() const override {
+    return getWidth() * getHeight() * sizeof(T);
+  }
+
+  void* getDataPtr() override {
+    return &m_tile_image->getData()[0];
+  }
+
+  const std::shared_ptr<VectorImage<T>>& getImage() const {
+      return m_tile_image;
+  }
+
+  template<typename U>
+  void getValueImpl(int x, int y, U& value) const {
+    assert(isPixelInTile(x,y));
+    value = m_tile_image->getValue(x-m_x, y-m_y);
+  }
+
+  template<typename U>
+  void setValueImpl(int x, int y, U value) {
+    assert(isPixelInTile(x,y));
+    m_tile_image->setValue(x-m_x, y-m_y, value);
+  }
+
+  void getValue(int x, int y, float& value) const override {
+    getValueImpl(x, y, value);
+  }
+
+  void getValue(int x, int y, double& value) const override {
+    getValueImpl(x, y, value);
+  }
+
+  void getValue(int x, int y, int& value) const override {
+    getValueImpl(x, y, value);
+  }
+
+  void getValue(int x, int y, unsigned int& value) const override {
+    getValueImpl(x, y, value);
+  }
+
+  void getValue(int x, int y, std::int64_t& value) const override {
+    getValueImpl(x, y, value);
+  }
+
+  void setValue(int x, int y, float value) override {
+    setValueImpl(x, y, value);
+  }
+
+  void setValue(int x, int y, double value) override {
+    setValueImpl(x, y, value);
+  }
+
+  void setValue(int x, int y, int value) override {
+    setValueImpl(x, y, value);
+  }
+
+  void setValue(int x, int y, unsigned int value) override {
+    setValueImpl(x, y, value);
+  }
+
+  void setValue(int x, int y, std::int64_t value) override {
+    setValueImpl(x, y, value);
+  }
+
+private:
+  std::shared_ptr<VectorImage<T>> m_tile_image;
+};
 
 }
 

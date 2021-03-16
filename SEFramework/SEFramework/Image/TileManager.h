@@ -67,11 +67,11 @@ template <>
 struct hash<SourceXtractor::TileKey>
 {
   std::size_t operator()(const SourceXtractor::TileKey& key) const {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, key.m_source);
-    boost::hash_combine(hash, key.m_tile_x);
-    boost::hash_combine(hash, key.m_tile_y);
-    return hash;
+    std::size_t local_hash = 0;
+    boost::hash_combine(local_hash, key.m_source);
+    boost::hash_combine(local_hash, key.m_tile_x);
+    boost::hash_combine(local_hash, key.m_tile_y);
+    return local_hash;
   }
 };
 

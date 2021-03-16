@@ -63,7 +63,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background, T, convolution_types) {
 
   auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
   std::shared_ptr<ImageTile> tile = image_source->getImageTile(0, 0, 5, 5);
-  auto result = tile->getImage<SeFloat>();
+  auto result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(tile)->getImage();
 
   // When applying the kernel for getting the value of a cell, the convolution is done only for pixels
   // with a variance below the threshold: basically, on a masked image.
@@ -113,7 +113,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background_with_offset, T, convolution_ty
 
   auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
   std::shared_ptr<ImageTile> tile = image_source->getImageTile(1, 1, 3, 4);
-  auto result = tile->getImage<SeFloat>();
+  auto result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(tile)->getImage();
 
   auto expected = VectorImage<SeFloat>::create(
     3, 4, std::vector<SeFloat>{
@@ -162,10 +162,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kerneln_background, T, kernel_sizes) {
   auto dft_source = std::make_shared<BgDFTConvolutionImageSource>(image, variance, 0.5, kernel);
 
   std::shared_ptr<ImageTile> direct_tile = direct_source->getImageTile(0, 0, 128, 128);
-  auto direct_result = direct_tile->getImage<SeFloat>();
+  auto direct_result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(direct_tile)->getImage();
+
 
   std::shared_ptr<ImageTile> dft_tile = dft_source->getImageTile(0, 0, 128, 128);
-  auto dft_result = dft_tile->getImage<SeFloat>();
+  auto dft_result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(dft_tile)->getImage();
 
   BOOST_CHECK(compareImages(direct_result, dft_result, 1e-8, 1e-4));
 }

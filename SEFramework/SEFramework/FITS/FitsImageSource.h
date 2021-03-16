@@ -56,7 +56,7 @@ public:
 
   FitsImageSource(const std::string &filename, int width, int height, ImageTile::ImageType image_type,
                   const std::shared_ptr<CoordinateSystem> coord_system = nullptr, bool append=false,
-                  std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
+                  bool empty_primary=false, std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
 
   virtual ~FitsImageSource() = default;
 
