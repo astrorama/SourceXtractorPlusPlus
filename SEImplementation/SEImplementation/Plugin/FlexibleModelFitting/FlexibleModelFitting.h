@@ -41,9 +41,12 @@ class FlexibleModelFitting : public Property {
 public:
   virtual ~FlexibleModelFitting() = default;
 
-  FlexibleModelFitting(unsigned int iterations, SeFloat chi_squared, Flags flags,
-      std::unordered_map<int, double> parameter_values, std::unordered_map<int, double> parameter_sigmas) :
+  FlexibleModelFitting(unsigned int iterations, unsigned int stop_reason,
+                       SeFloat chi_squared, Flags flags,
+                       std::unordered_map<int, double> parameter_values,
+                       std::unordered_map<int, double> parameter_sigmas) :
     m_iterations(iterations),
+    m_stop_reason(stop_reason),
     m_chi_squared(chi_squared),
     m_flags(flags),
     m_parameter_values(parameter_values),
@@ -51,6 +54,10 @@ public:
 
   unsigned int getIterations() const {
     return m_iterations;
+  }
+
+  unsigned int getStopReason() const {
+    return m_stop_reason;
   }
 
   SeFloat getReducedChiSquared() const {
@@ -70,7 +77,7 @@ public:
   }
 
 private:
-  unsigned int m_iterations;
+  unsigned int m_iterations, m_stop_reason;
   SeFloat m_chi_squared;
   Flags m_flags;
   std::unordered_map<int, double> m_parameter_values;

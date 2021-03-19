@@ -104,6 +104,14 @@ void printLevmarInfo(std::array<double, 10> info) {
 
 }
 
+static void updateFlags(Flags& flags, unsigned stop_reason) {
+  switch (stop_reason) {
+    case 4:
+    case 7:
+      flags |= Flags::ERROR;
+  }
+}
+
 FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squares_engine,
     unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
@@ -289,7 +297,10 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     //  LevmarEngine engine{m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
     auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
     auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
-    size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
+    auto engine_info = boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info);
+    unsigned iterations = static_cast<unsigned>(engine_info[5]);
+    unsigned stop_reason = static_cast<unsigned>(engine_info[6]);
+    updateFlags(group_flags, stop_reason);
 
     int total_data_points = 0;
     SeFloat avg_reduced_chi_squared = computeChiSquared(group, pixel_scale, parameter_manager, total_data_points);
@@ -309,7 +320,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Collect parameters for output
     for (auto& source : group) {
       std::unordered_map<int, double> parameter_values, parameter_sigmas;
-      auto source_flags = Flags::NONE;
+      auto source_flags = group_flags;
 
       for (auto parameter : m_parameters) {
         bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
@@ -331,8 +342,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
           source_flags |= Flags::PARTIAL_FIT;
         }
       }
-      source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
-                                               parameter_sigmas);
+      source.setProperty<FlexibleModelFitting>(iterations, stop_reason,
+                                               avg_reduced_chi_squared, source_flags,
+                                               parameter_values, parameter_sigmas);
     }
     updateCheckImages(group, pixel_scale, parameter_manager);
 
@@ -344,7 +356,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 }
 
 // Used to set a dummy property in case of error that contains no result but just an error flag
-void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group, FlexibleModelFittingParameterManager& parameter_manager, Flags flags) const {
+void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group,
+                                                FlexibleModelFittingParameterManager& parameter_manager,
+                                                Flags flags) const {
   for (auto& source : group) {
     std::unordered_map<int, double> dummy_values;
     for (auto parameter : m_parameters) {
@@ -355,7 +369,7 @@ void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group, Fle
       }
       dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
     }
-    source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), flags,
+    source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
                                              dummy_values, dummy_values);
   }
 }
