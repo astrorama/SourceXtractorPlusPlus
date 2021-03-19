@@ -151,20 +151,19 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
 
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-  std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
   for (int y = 0; y < rect.getHeight(); y++) {
     for (int x = 0; x < rect.getWidth(); x++) {
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) > saturation) {
+      auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      if (saturation > 0 && pixel_val > saturation) {
         weight->at(x, y) = 0;
-      } else if (weight->at(x, y) > 0) {
-        if (gain > 0.0) {
-          weight->at(x, y) = sqrt(
-            1.0 / (back_var + frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) / gain));
-        } else {
-          weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
-        }
+      }
+      else if (gain > 0.0 && pixel_val > 0.0) {
+        weight->at(x, y) = sqrt(1.0 / (back_var + pixel_val / gain));
+      }
+      else {
+        weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
       }
     }
   }
