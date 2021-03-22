@@ -63,55 +63,6 @@ using namespace ModelFitting;
 
 static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
 
-namespace {
-
-__attribute__((unused))
-void printLevmarInfo(std::array<double, 10> info) {
-  std::cerr << "\nMinimization info:\n";
-  std::cerr << "  ||e||_2 at initial p: " << info[0] << '\n';
-  std::cerr << "  ||e||_2: " << info[1] << '\n';
-  std::cerr << "  ||J^T e||_inf: " << info[2] << '\n';
-  std::cerr << "  ||Dp||_2: " << info[3] << '\n';
-  std::cerr << "  mu/max[J^T J]_ii: " << info[4] << '\n';
-  std::cerr << "  # iterations: " << info[5] << '\n';
-  switch ((int) info[6]) {
-    case 1:
-      std::cerr << "  stopped by small gradient J^T e\n";
-      break;
-    case 2:
-      std::cerr << "  stopped by small Dp\n";
-      break;
-    case 3:
-      std::cerr << "  stopped by itmax\n";
-      break;
-    case 4:
-      std::cerr << "  singular matrix. Restart from current p with increased mu\n";
-      break;
-    case 5:
-      std::cerr << "  no further error reduction is possible. Restart with increased mu\n";
-      break;
-    case 6:
-      std::cerr << "  stopped by small ||e||_2\n";
-      break;
-    case 7:
-      std::cerr << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
-      break;
-  }
-  std::cerr << "  # function evaluations: " << info[7] << '\n';
-  std::cerr << "  # Jacobian evaluations: " << info[8] << '\n';
-  std::cerr << "  # linear systems solved: " << info[9] << "\n\n";
-}
-
-}
-
-static void updateFlags(Flags& flags, unsigned stop_reason) {
-  switch (stop_reason) {
-    case 4:
-    case 7:
-      flags |= Flags::ERROR;
-  }
-}
-
 FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squares_engine,
     unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
@@ -296,10 +247,11 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     //  LevmarEngine engine{m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
     auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
     auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
-    auto engine_info = boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info);
-    unsigned iterations = static_cast<unsigned>(engine_info[5]);
-    unsigned stop_reason = static_cast<unsigned>(engine_info[6]);
-    updateFlags(group_flags, stop_reason);
+    auto iterations = solution.iteration_no;
+    auto stop_reason = solution.engine_stop_reason;
+    if (solution.status_flag == LeastSquareSummary::ERROR) {
+      group_flags |= Flags::ERROR;
+    }
 
     int total_data_points = 0;
     SeFloat avg_reduced_chi_squared = computeChiSquared(group, pixel_scale, parameter_manager, total_data_points);
