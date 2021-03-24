@@ -103,6 +103,16 @@ public:
   }
 };
 
+static LeastSquareSummary::StatusFlag getStatusFlag(int ret) {
+  switch (ret) {
+    case GSL_SUCCESS:
+      return LeastSquareSummary::SUCCESS;
+    case GSL_EMAXITER:
+      return LeastSquareSummary::MAX_ITER;
+    default:
+      return LeastSquareSummary::ERROR;
+  }
+}
 
 LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager& parameter_manager,
                                            ModelFitting::ResidualEstimator& residual_estimator) {
@@ -192,7 +202,8 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
     parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
 
   LeastSquareSummary summary;
-  summary.success_flag = (ret == GSL_SUCCESS);
+  summary.status_flag = getStatusFlag(ret);
+  summary.engine_stop_reason = ret;
   summary.iteration_no = gsl_multifit_nlinear_niter(workspace);
   summary.parameter_sigmas = {};
 

@@ -70,7 +70,6 @@ private:
   
   size_t m_itmax;
   std::vector<double> m_opts;
-  
 };
 
 } // end of namespace ModelFitting
