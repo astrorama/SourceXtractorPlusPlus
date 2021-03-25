@@ -26,6 +26,7 @@
 
 #include <Configuration/Configuration.h>
 #include <SEFramework/Psf/VariablePsf.h>
+#include <SEFramework/Psf/VariablePsfStack.h>
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace SourceXtractor {

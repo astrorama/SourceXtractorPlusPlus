@@ -39,6 +39,60 @@ static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
 
+/*
+ * Reading in a stacked PSF as it is being developed for co-added images in Euclid
+ *
+ * Some dummy code that tests the basic operations. Not yet operational, since
+ * the VariablePsf class is not abstract and so on
+ */
+static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
+
+  srand (static_cast <unsigned> (time(0)));
+
+  // read in the stacked file;
+  // extract one PSF;
+  // write to a FITS file;
+  std::shared_ptr<VectorImage<SeFloat>> act_psf;
+  std::vector<double> pos_vector;
+  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+
+  for (int counter=0; counter < 10; counter++){
+    double rand_x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10000.));
+    double rand_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10000.));
+    pos_vector = {rand_x, rand_y};
+    logger.info() << pos_vector[0] << " " << pos_vector[1];
+    act_psf = act_stack->getPsf(pos_vector);
+    double sum=0.;
+    for (int ixx=0; ixx < act_psf->getWidth(); ixx++){
+      for (int iyy=0; iyy < act_psf->getHeight(); iyy++){
+        sum += act_psf->getValue(ixx, iyy);
+      }
+    }
+    logger.info() << "Sum: " << sum;
+    //FitsWriter::writeFile(*act_psf, "mypsf_1.fits"); // somehow when storing all images in the identical file it is empty with 0.0 all
+  }
+
+  /*
+  pos_vector = {15000.0, 4500.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_2.fits");
+  pos_vector = {10000.0, 12345.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_3.fits");
+  pos_vector = {16789.0, 70.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_4.fits");
+  pos_vector = {9876.0, 7654.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_5.fits");
+  pos_vector = {11843.0, 1528.0};
+  act_psf = act_stack->getPsf(pos_vector);
+  FitsWriter::writeFile(*act_psf, "mypsf_6.fits");
+  */
+
+  // thats kind of the emergency functionality
+  return PsfPluginConfig::generateGaussianPsf(1.0, 0.1);
+}
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits, int hdu_number = 1) {
   try {
@@ -169,7 +223,13 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
     }
     // PSFEx format
     else {
-      return readPsfEx(pFits, hdu_number);
+      try {
+        CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
+        return readPsfEx(pFits);
+      } catch (CCfits::FITS::NoSuchHDU &e) {
+        logger.info() << "Error: " << e.message();
+        return readStackedPsf(pFits);
+      }
     }
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSF file: " << e.message();
