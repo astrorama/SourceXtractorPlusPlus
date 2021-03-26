@@ -54,8 +54,13 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
   // write to a FITS file;
   std::shared_ptr<VectorImage<SeFloat>> act_psf;
   std::vector<double> pos_vector;
-  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  //std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  std::shared_ptr<VariablePsf> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  //std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(pFits);
+  logger.info() << "width: " << act_stack->getWidth();
+  logger.info() << "height: " << act_stack->getHeight();
 
+  /*
   for (int counter=0; counter < 10; counter++){
     double rand_x = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10000.));
     double rand_y = static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10000.));
@@ -71,7 +76,7 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
     logger.info() << "Sum: " << sum;
     //FitsWriter::writeFile(*act_psf, "mypsf_1.fits"); // somehow when storing all images in the identical file it is empty with 0.0 all
   }
-
+   */
   /*
   pos_vector = {15000.0, 4500.0};
   act_psf = act_stack->getPsf(pos_vector);
@@ -91,7 +96,8 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
   */
 
   // thats kind of the emergency functionality
-  return PsfPluginConfig::generateGaussianPsf(1.0, 0.1);
+  //return PsfPluginConfig::generateGaussianPsf(1.0, 0.1);
+  return act_stack;
 }
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits, int hdu_number = 1) {

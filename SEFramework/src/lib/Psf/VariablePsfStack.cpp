@@ -94,6 +94,7 @@ void VariablePsfStack::setup(std::shared_ptr<CCfits::FITS> pFits){
 std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector<double> &values) const {
   long index_min_distance=0;
   double min_distance=1.0e+32;
+  stack_logger.info() << "In std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf";
 
   // make sure there are only two positions
   if (values.size()>2)
@@ -108,7 +109,7 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector
     }
   }
   // give some feedback
-  stack_logger.info() << "The minimum distance is: "<< sqrt(min_distance) << " at position index: " << index_min_distance;
+  //stack_logger.info() << "The minimum distance is: "<< sqrt(min_distance) << " at position index: " << index_min_distance;
 
   // get the first and last pixels for the PSF to be extracted
   // NOTE: CCfits has 1-based indices, also the last index is *included* in the reading
