@@ -51,6 +51,23 @@ const std::map<std::string, AssocModeConfig::AssocFilter> assoc_filter_table {
   std::make_pair("UNMATCHED", AssocModeConfig::AssocFilter::UNMATCHED)
 };
 
+std::vector<int> parseColumnList(const std::string& arg) {
+  try {
+    std::vector<std::string> parts;
+    boost::split(parts, arg, boost::is_any_of(","));
+
+    std::vector<int> column_list;
+    for (auto& part : parts) {
+      column_list.emplace_back(boost::lexical_cast<int>(part));
+    }
+
+    return column_list;
+  } catch(...) {
+    throw Elements::Exception() << "Can't parse column list";
+    return {};
+  }
+}
+
 }
 
 AssocModeConfig::AssocModeConfig(long manager_id) :
@@ -71,7 +88,7 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
           "Assoc radius"},
       {ASSOC_FILTER.c_str(), po::value<std::string>()->default_value("ALL"),
           "Assoc catalog filter setting: ALL, MATCHED, UNMATCHED"},
-      {ASSOC_COPY.c_str(), po::value<std::string>(),
+      {ASSOC_COPY.c_str(), po::value<std::string>()->default_value(""),
           "List of assoc catalog columns to copy on match"},
   }}};
 }
@@ -100,8 +117,15 @@ void AssocModeConfig::initialize(const UserValues& args) {
 
   m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
 
-  int columns[3] = {4, 5, -1}; // FIXME tmp
-  std::vector<int> copy_columns {2, 3}; // FIXME tmp
+  auto columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
+  if (columns.size() < 2) {
+    throw Elements::Exception() << "At least 2 columns must be specified for x,y coordinates in the assoc catalog";
+  }
+  if (columns.size() > 3) {
+    throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
+  }
+
+  auto copy_columns = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
 
   if (args.find(ASSOC_MODE) != args.end()) {
     auto assoc_mode = boost::to_upper_copy(args.at(ASSOC_MODE).as<std::string>());
@@ -120,10 +144,10 @@ void AssocModeConfig::initialize(const UserValues& args) {
       //auto& column_info = reader.getInfo();
 
       for (auto& row : table) {
-        auto coord = ImageCoordinate { boost::get<double>(row[columns[0]]), boost::get<double>(row[columns[1]]) };
+        auto coord = ImageCoordinate { boost::get<double>(row[columns.at(0)]), boost::get<double>(row[columns.at(1)]) };
         m_catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
-        if (columns[2] >= 0) {
-          m_catalog.back().weight = boost::get<double>(row[columns[2]]);
+        if (columns.size() == 3 && columns.at(2) >= 0) {
+          m_catalog.back().weight = boost::get<double>(row[columns.at(2)]);
         }
         for (auto column : copy_columns) {
           if (row[column].type() == typeid(int)) {

@@ -8,7 +8,10 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODECONFIG_H_
 #define _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODECONFIG_H_
 
+#include <boost/algorithm/string/split.hpp>
+
 #include "Configuration/Configuration.h"
+
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {

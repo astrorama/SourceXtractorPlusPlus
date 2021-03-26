@@ -32,7 +32,6 @@ public:
 
 private:
   std::vector<AssocModeConfig::CatalogEntry> findSourcesWithinRadius(double x, double y, double radius) const;
-  AssocModeConfig::CatalogEntry& findBestMatch(std::vector<AssocModeConfig::CatalogEntry> selection, CatalogCompare compare) const;
 
   std::vector<AssocModeConfig::CatalogEntry> m_catalog;
   AssocModeConfig::AssocMode m_assoc_mode;
