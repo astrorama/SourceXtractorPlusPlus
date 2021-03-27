@@ -94,22 +94,31 @@ void VariablePsfStack::setup(std::shared_ptr<CCfits::FITS> pFits){
 std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector<double> &values) const {
   long index_min_distance=0;
   double min_distance=1.0e+32;
-  stack_logger.info() << "In std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf";
+  std::vector<double> m_values = {100.,100.};
+  stack_logger.info() << "In VariablePsfStack::stack!";
+  stack_logger.info() << "size: " << values.size();
+  for (int index=0; index<values.size(); index++)
+    stack_logger.info() << "value: " << values[index];
 
   // make sure there are only two positions
-  if (values.size()>2)
-    throw Elements::Exception() << "There can be only two positional value for the stacked PSF!";
+  //if (values.size()!=2)
+  //  throw Elements::Exception() << "There can be only two positional value for the stacked PSF!";
+  if (values.size()==2){
+      m_values[0] = values[0];
+      m_values[1] = values[1];
+  }
 
   // find the position of minimal distance
   for (int act_index=0; act_index < m_nrows; act_index++){
-    double act_distance = (values[0]-m_x_values[act_index])*(values[0]-m_x_values[act_index]) + (values[1]-m_y_values[act_index])*(values[1]-m_y_values[act_index]);
+      //double act_distance = (values[0]-m_x_values[act_index])*(values[0]-m_x_values[act_index]) + (values[1]-m_y_values[act_index])*(values[1]-m_y_values[act_index]);
+      double act_distance = (m_values[0]-m_x_values[act_index])*(m_values[0]-m_x_values[act_index]) + (m_values[1]-m_y_values[act_index])*(m_values[1]-m_y_values[act_index]);
     if (act_distance < min_distance){
       index_min_distance = act_index;
       min_distance = act_distance;
     }
   }
   // give some feedback
-  //stack_logger.info() << "The minimum distance is: "<< sqrt(min_distance) << " at position index: " << index_min_distance;
+  stack_logger.info() << "The minimum distance is: "<< sqrt(min_distance) << " at position index: " << index_min_distance;
 
   // get the first and last pixels for the PSF to be extracted
   // NOTE: CCfits has 1-based indices, also the last index is *included* in the reading
@@ -121,6 +130,7 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector
   std::valarray<SeFloat> stamp_data;
   m_pFits->extension(1).read (stamp_data, first_vertex, last_vertex, stride);
   //stack_logger.info() << "first vertex: "<< first_vertex[0] << " " << first_vertex[1];
+  stack_logger.info() << "Out VariablePsfStack::stack!";
 
   // create and return the psf image
   return VectorImage<SeFloat>::create(m_psf_size, m_psf_size, std::begin(stamp_data), std::end(stamp_data));

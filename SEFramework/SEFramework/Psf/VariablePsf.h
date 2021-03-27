@@ -117,7 +117,7 @@ public:
    * @throws
    *    If the number of values does not match the number of components
    */
-  std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
+  virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
 
 private:
   double m_pixel_sampling;

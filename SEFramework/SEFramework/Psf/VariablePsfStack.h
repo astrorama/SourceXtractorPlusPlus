@@ -88,7 +88,7 @@ public:
   /**
    *
    */
-  std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
+  virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
 
 private:
   std::shared_ptr<CCfits::FITS> m_pFits;

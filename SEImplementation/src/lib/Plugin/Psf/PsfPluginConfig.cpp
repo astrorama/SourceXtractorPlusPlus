@@ -45,7 +45,7 @@ static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
  * Some dummy code that tests the basic operations. Not yet operational, since
  * the VariablePsf class is not abstract and so on
  */
-static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
+static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
 
   srand (static_cast <unsigned> (time(0)));
 
@@ -54,9 +54,9 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
   // write to a FITS file;
   std::shared_ptr<VectorImage<SeFloat>> act_psf;
   std::vector<double> pos_vector;
-  //std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
-  std::shared_ptr<VariablePsf> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
-  //std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(pFits);
+  //std::shared_ptr<VariablePsf> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  //std::shared_ptr<VariablePsf> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
   logger.info() << "width: " << act_stack->getWidth();
   logger.info() << "height: " << act_stack->getHeight();
 
@@ -76,7 +76,7 @@ static std::shared_ptr<VariablePsf> readStackedPsf(std::unique_ptr<CCfits::FITS>
     logger.info() << "Sum: " << sum;
     //FitsWriter::writeFile(*act_psf, "mypsf_1.fits"); // somehow when storing all images in the identical file it is empty with 0.0 all
   }
-   */
+  */
   /*
   pos_vector = {15000.0, 4500.0};
   act_psf = act_stack->getPsf(pos_vector);
@@ -215,6 +215,7 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
+    //std::shared_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
     auto& image_hdu = pFits->pHDU();
 
     auto axes = image_hdu.axes();
@@ -234,7 +235,10 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
         return readPsfEx(pFits);
       } catch (CCfits::FITS::NoSuchHDU &e) {
         logger.info() << "Error: " << e.message();
+        //auto stack_psf = readStackedPsf(pFits);
+        //stack_psf->getPsf(std::vector<double>({100.0,100.0}));
         return readStackedPsf(pFits);
+        //return stack_psf;
       }
     }
   } catch (CCfits::FitsException &e) {
