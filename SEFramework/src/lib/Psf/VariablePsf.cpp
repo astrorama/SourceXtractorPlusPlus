@@ -21,12 +21,10 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
-#include <ElementsKernel/Logging.h>
 #include <ElementsKernel/Exception.h>
 #include <algorithm>
 #include "SEFramework/Psf/VariablePsf.h"
 
-static auto stack_logger = Elements::Logging::getLogger("VarPsf");
 
 namespace SourceXtractor {
 
@@ -64,11 +62,6 @@ const std::vector<VariablePsf::Component>& VariablePsf::getComponents() const {
 
 std::shared_ptr<VectorImage<SeFloat>> VariablePsf::getPsf(const std::vector<double> &values) const
 {
-  stack_logger.info() << "VariablePsf::getPsf";
-  stack_logger.info() << "size: " << values.size();
-  for (int index=0; index<values.size(); index++)
-    stack_logger.info() << "value: " << values[index];
-
   // If we only have the constant, avoid a copy
   if (m_coefficients.size() == 1) {
     return m_coefficients[0];

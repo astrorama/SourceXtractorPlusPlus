@@ -90,22 +90,22 @@ public:
   /**
    * @return The width of the PSF
    */
-  int getWidth() const;
+  virtual int getWidth() const;
 
   /**
    * @return The height of the PSF
    */
-  int getHeight() const;
+  virtual int getHeight() const;
 
   /**
    * @return The pixel sampling
    */
-  double getPixelSampling() const;
+  virtual double getPixelSampling() const;
 
   /**
    * @return A reference to the list of components
    */
-  const std::vector<Component>& getComponents() const;
+  virtual const std::vector<Component>& getComponents() const;
 
   /**
    * Reconstructs a PSF based on the given values for each of the component.

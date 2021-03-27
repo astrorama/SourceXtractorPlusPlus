@@ -47,9 +47,10 @@ public:
   /**
    * Constructor
    */
-  VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits):
-    VariablePsf(0.1, VectorImage<SeFloat>::create(11, 11)), m_pFits(pFits), m_psf_size(0), m_pixel_sampling(0.0){
-    setup(pFits);
+  VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits, std::vector<Component> components):
+	  VariablePsf(1., VectorImage<SeFloat>::create(11, 11)), m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0), mm_components(components){
+	  //m_pFits(pFits), m_psf_size(0), m_pixel_sampling(0.0), m_components(components){
+	  setup(pFits);
   };
 
   /**
@@ -75,14 +76,14 @@ public:
    * @return The pixel scale, as passed to the constructor
    */
   double getPixelSampling() const{
-    return m_pixel_sampling;
+    return mm_pixel_sampling;
   };
 
   /**
    * @return A reference to the list of components
    */
   const std::vector<VariablePsf::Component>& getComponents() const{
-    return m_components;
+	  return mm_components;
   };
 
   /**
@@ -96,7 +97,7 @@ private:
   int m_psf_size;
   int m_grid_offset;
 
-  double m_pixel_sampling;
+  double mm_pixel_sampling;
 
   long m_nrows;
 
@@ -107,7 +108,7 @@ private:
   std::vector<int> m_gridx_values;
   std::vector<int> m_gridy_values;
 
-  std::vector<Component> m_components;
+  std::vector<Component> mm_components;
 
   /*
    * Check the file, load the positions and so on
