@@ -51,6 +51,7 @@ public:
 	  VariablePsf(1., VectorImage<SeFloat>::create(11, 11)), m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0), mm_components(components){
 	  //m_pFits(pFits), m_psf_size(0), m_pixel_sampling(0.0), m_components(components){
 	  setup(pFits);
+	  selfTest();
   };
 
   /**
@@ -114,6 +115,11 @@ private:
    * Check the file, load the positions and so on
    */
   void setup(std::shared_ptr<CCfits::FITS> pFits);
+
+  /*
+   * consistency of the stackedPSF
+   */
+  void selfTest();
 };
 
 }

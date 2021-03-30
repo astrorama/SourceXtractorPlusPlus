@@ -46,11 +46,10 @@ static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
  * the VariablePsf class is not abstract and so on
  */
 static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
-  std::vector<VariablePsf::Component> components = {{"X_IMAGE", 0, 0.0, 1.0}, {"Y_IMAGE", 0, 0.0, 1.0}};
-  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits), components);
-  //logger.info() << "width: " << act_stack->getWidth();
-  //logger.info() << "height: " << act_stack->getHeight();
-  return act_stack;
+	logger.debug() << "Loading a PSF stack file.";
+	std::vector<VariablePsf::Component> components = {{"X_IMAGE", 0, 0.0, 1.0}, {"Y_IMAGE", 0, 0.0, 1.0}};
+	std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits), components);
+	return act_stack;
 }
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits, int hdu_number = 1) {
@@ -168,7 +167,6 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
-    //std::shared_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
     auto& image_hdu = pFits->pHDU();
 
     auto axes = image_hdu.axes();
@@ -181,21 +179,18 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
         return readImage(extension);
       }
     }
-    // PSFEx format
     else {
-      try {
-        CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
-        return readPsfEx(pFits);
-      } catch (CCfits::FITS::NoSuchHDU &e) {
-        logger.info() << "Error: " << e.message();
-        //auto stack_psf = readStackedPsf(pFits);
-        //stack_psf->getPsf(std::vector<double>({100.0,100.0}));
-        return readStackedPsf(pFits);
-        //return stack_psf;
-      }
+    	try {
+    		// PSFEx format
+    		CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
+    		return readPsfEx(pFits);
+    	} catch (CCfits::FITS::NoSuchHDU &e) {
+    		logger.debug() << "Failed Reading a PsfEx file!";
+    		return readStackedPsf(pFits);
+    	}
     }
   } catch (CCfits::FitsException &e) {
-    throw Elements::Exception() << "Error loading PSF file: " << e.message();
+	  throw Elements::Exception() << "Error loading PSF file: " << e.message();
   }
 }
 

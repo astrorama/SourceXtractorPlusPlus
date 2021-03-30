@@ -127,7 +127,7 @@ private:
   std::vector<std::vector<int>> m_exponents;
 
   /// Verify that the preconditions of getPsf are met at construction time
-  void selfTest();
+  virtual void selfTest();
 
   /// Normalizes the values
   std::vector<double> scaleProperties(const std::vector<double> &values) const;
