@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <functional>
 
+#include "SEUtils/KdTree.h"
+
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 
 #include "SEImplementation/Plugin/AssocMode/AssocMode.h"
@@ -29,6 +31,16 @@ namespace SourceXtractor {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+template <>
+struct KdTreeTraits<AssocModeConfig::CatalogEntry> {
+  static double getCoord(const AssocModeConfig::CatalogEntry& t, size_t index) {
+    if (index == 0) {
+      return t.coord.m_x;
+    } else {
+      return t.coord.m_y;
+    }
+  }
+};
 
 namespace {
 
@@ -138,12 +150,13 @@ AssocModeTask::AssocModeTask(const std::vector<AssocModeConfig::CatalogEntry>& c
 
 void AssocModeTask::computeProperties(SourceInterface &source) const {
   using namespace std::placeholders;  // for _1, _2, _3...
+  using Tree = KdTree<AssocModeConfig::CatalogEntry>;
 
   // get the object center
   const auto& x = source.getProperty<PixelCentroid>().getCentroidX();
   const auto& y = source.getProperty<PixelCentroid>().getCentroidY();
 
-  auto nearby_catalog_entries = findSourcesWithinRadius(x, y, m_radius);
+  auto nearby_catalog_entries = m_catalog.findPointsWithinRadius(Tree::Coord { x, y }, m_radius);
 
   if (nearby_catalog_entries.size() == 0) {
     // No match
@@ -164,18 +177,6 @@ void AssocModeTask::computeProperties(SourceInterface &source) const {
     auto assoc_data = assoc_mode_implementation_table.at(m_assoc_mode)(nearby_catalog_entries);
     source.setProperty<AssocMode>(true, assoc_data.assoc_columns);
   }
-}
-
-std::vector<AssocModeConfig::CatalogEntry> AssocModeTask::findSourcesWithinRadius(double x, double y, double radius) const {
-  std::vector<AssocModeConfig::CatalogEntry> selection;
-  for (auto& entry : m_catalog) {
-    auto dx = entry.coord.m_x - x;
-    auto dy = entry.coord.m_y - y;
-    if (dx*dx + dy*dy < radius*radius) {
-      selection.emplace_back(entry);
-    }
-  }
-  return selection;
 }
 
 }

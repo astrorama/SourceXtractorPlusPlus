@@ -22,6 +22,8 @@
 
 #include "AssocModeConfig.h"
 #include "SEUtils/Types.h"
+#include "SEUtils/KdTree.h"
+
 #include "SEFramework/Task/SourceTask.h"
 
 
@@ -40,9 +42,7 @@ public:
   virtual void computeProperties(SourceInterface& source) const override;
 
 private:
-  std::vector<AssocModeConfig::CatalogEntry> findSourcesWithinRadius(double x, double y, double radius) const;
-
-  std::vector<AssocModeConfig::CatalogEntry> m_catalog;
+  KdTree<AssocModeConfig::CatalogEntry> m_catalog;
   AssocModeConfig::AssocMode m_assoc_mode;
   double m_radius;
 };

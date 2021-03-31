@@ -17,6 +17,7 @@
 
 #include <string>
 #include <boost/test/unit_test.hpp>
+#include <boost/random.hpp>
 
 #include "SEFramework/Source/SimpleSource.h"
 
@@ -154,6 +155,52 @@ BOOST_FIXTURE_TEST_CASE(CheckAssocMax, AssocModeFixture) {
   BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 6.0, 0.001);
   BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(1), 7.0, 0.001);
 }
+
+BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
+  boost::random::mt19937 rng { (unsigned int) time(NULL) } ;
+  std::vector<AssocModeConfig::CatalogEntry> large_catalog;
+
+  for (int i=0; i<10000; i++) {
+    large_catalog.emplace_back(AssocModeConfig::CatalogEntry { {boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng),
+      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng)}, 1.0, {1.0}});
+  }
+  BOOST_CHECK_EQUAL(large_catalog.size(), 10000);
+
+  for (int i=0; i<15000; i++) {
+    large_catalog.emplace_back(AssocModeConfig::CatalogEntry { {boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng),
+      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng) + 1000}, 1.0, {1.0}});
+  }
+  BOOST_CHECK_EQUAL(large_catalog.size(), 25000);
+
+  {
+    source.setProperty<PixelCentroid>(0, 0);
+    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 150.0);
+    assoc_mode_task.computeProperties(source);
+
+    auto assoc_mode_property = source.getProperty<AssocMode>();
+    BOOST_CHECK(assoc_mode_property.getMatch());
+    BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 10000.0, 0.001);
+  }
+  {
+    source.setProperty<PixelCentroid>(0, 1000);
+    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 150.0);
+    assoc_mode_task.computeProperties(source);
+
+    auto assoc_mode_property = source.getProperty<AssocMode>();
+    BOOST_CHECK(assoc_mode_property.getMatch());
+    BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 15000.0, 0.001);
+  }
+  {
+    source.setProperty<PixelCentroid>(0, 0);
+    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 5000.0);
+    assoc_mode_task.computeProperties(source);
+
+    auto assoc_mode_property = source.getProperty<AssocMode>();
+    BOOST_CHECK(assoc_mode_property.getMatch());
+    BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 25000.0, 0.001);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 
