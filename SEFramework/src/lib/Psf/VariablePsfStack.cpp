@@ -94,22 +94,22 @@ void VariablePsfStack::selfTest(){
 	int naxis1, naxis2;
 
 	// read in the min/max grid values in x/y
-	const auto [x_grid_min, x_grid_max] = std::minmax_element(begin(m_gridx_values), end(m_gridx_values));
-	const auto [y_grid_min, y_grid_max] = std::minmax_element(begin(m_gridy_values), end(m_gridy_values));
+	const auto x_grid_minmax = std::minmax_element(begin(m_gridx_values), end(m_gridx_values));
+	const auto y_grid_minmax = std::minmax_element(begin(m_gridy_values), end(m_gridy_values));
 
 	// read the image size
 	m_pFits->extension(1).readKey("NAXIS1", naxis1);
 	m_pFits->extension(1).readKey("NAXIS2", naxis2);
 
 	// make sure all PSF in the grid are there
-	if (*x_grid_min-m_grid_offset<1)
-		throw Elements::Exception() << "The PSF at the smallest x-grid starts at: " << *x_grid_min-m_grid_offset;
-	if (*y_grid_min-m_grid_offset<1)
-		throw Elements::Exception() << "The PSF at the smallest y-grid starts at: " << *y_grid_min-m_grid_offset;
-	if (*x_grid_max+m_grid_offset>naxis1)
-		throw Elements::Exception() << "The PSF at the largest x-grid is too large: " << *x_grid_max+m_grid_offset << " NAXIS1: " << naxis1;
-	if (*y_grid_max+m_grid_offset>naxis2)
-		throw Elements::Exception() << "The PSF at the largest y-grid is too large: " << *y_grid_max+m_grid_offset << " NAXIS2: " << naxis1;
+	if (*x_grid_minmax.first-m_grid_offset<1)
+		throw Elements::Exception() << "The PSF at the smallest x-grid starts at: " << *x_grid_minmax.first-m_grid_offset;
+	if (*y_grid_minmax.first-m_grid_offset<1)
+		throw Elements::Exception() << "The PSF at the smallest y-grid starts at: " << *y_grid_minmax.first-m_grid_offset;
+	if (*x_grid_minmax.second+m_grid_offset>naxis1)
+		throw Elements::Exception() << "The PSF at the largest x-grid is too large: " << *x_grid_minmax.second+m_grid_offset << " NAXIS1: " << naxis1;
+	if (*y_grid_minmax.second+m_grid_offset>naxis2)
+		throw Elements::Exception() << "The PSF at the largest y-grid is too large: " << *y_grid_minmax.second+m_grid_offset << " NAXIS2: " << naxis1;
 }
 
 std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector<double> &values) const {
