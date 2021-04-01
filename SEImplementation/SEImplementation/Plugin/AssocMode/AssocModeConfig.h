@@ -22,6 +22,7 @@
 #include <boost/algorithm/string/split.hpp>
 
 #include "Configuration/Configuration.h"
+#include "Table/TableReader.h"
 
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
@@ -75,6 +76,10 @@ public:
   }
 
 private:
+
+  void readTable(const Euclid::Table::Table& table,
+      const std::vector<int>& columns, const std::vector<int>& copy_columns);
+
   AssocMode m_assoc_mode;
   double m_assoc_radius;
 

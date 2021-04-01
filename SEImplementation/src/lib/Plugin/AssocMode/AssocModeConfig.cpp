@@ -22,6 +22,7 @@
 
 #include <CCfits/CCfits>
 
+#include "Table/AsciiReader.h"
 #include "Table/FitsReader.h"
 
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
@@ -152,31 +153,45 @@ void AssocModeConfig::initialize(const UserValues& args) {
   if (args.find(ASSOC_CATALOG) != args.end()) {
     try {
       auto filename = args.at(ASSOC_CATALOG).as<std::string>();
-      Euclid::Table::FitsReader reader(filename);
-      auto table = reader.read();
-      //auto& column_info = reader.getInfo();
 
-      for (auto& row : table) {
-        auto coord = ImageCoordinate { boost::get<double>(row[columns.at(0)]), boost::get<double>(row[columns.at(1)]) };
-        m_catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
-        if (columns.size() == 3 && columns.at(2) >= 0) {
-          m_catalog.back().weight = boost::get<double>(row[columns.at(2)]);
-        }
-        for (auto column : copy_columns) {
-          if (row[column].type() == typeid(int)) {
-            m_catalog.back().assoc_columns.emplace_back(boost::get<int>(row[column]));
-          } else if (row[column].type() == typeid(double)) {
-            m_catalog.back().assoc_columns.emplace_back(boost::get<double>(row[column]));
-          } else {
-            throw Elements::Exception() << "Wrong type in assoc column";
-          }
-        }
+      std::shared_ptr<Euclid::Table::TableReader> reader;
+      try {
+        reader = std::make_shared<Euclid::Table::FitsReader>(filename);
+      } catch(...) {
+        // If FITS not successful try reading as ascii
+        reader = std::make_shared<Euclid::Table::AsciiReader>(filename);
       }
+      auto table = reader->read();
+      readTable(table, columns, copy_columns);
+
     } catch(...) {
-      throw Elements::Exception() << "Can't open assoc catalog mode";
+      throw Elements::Exception() << "Can't open/read assoc catalog";
     }
   }
 }
+
+void AssocModeConfig::readTable(
+    const Euclid::Table::Table& table, const std::vector<int>& columns, const std::vector<int>& copy_columns) {
+  for (auto& row : table) {
+    // our internal pixel coordinates are zero-based
+    auto coord =
+        ImageCoordinate { boost::get<double>(row[columns.at(0)]) - 1.0, boost::get<double>(row[columns.at(1)]) - 1.0 };
+    m_catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
+    if (columns.size() == 3 && columns.at(2) >= 0) {
+      m_catalog.back().weight = boost::get<double>(row[columns.at(2)]);
+    }
+    for (auto column : copy_columns) {
+      if (row[column].type() == typeid(int)) {
+        m_catalog.back().assoc_columns.emplace_back(boost::get<int>(row[column]));
+      } else if (row[column].type() == typeid(double)) {
+        m_catalog.back().assoc_columns.emplace_back(boost::get<double>(row[column]));
+      } else {
+        throw Elements::Exception() << "Wrong type in assoc column";
+      }
+    }
+  }
+}
+
 
 }
 
