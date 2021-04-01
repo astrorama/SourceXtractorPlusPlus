@@ -39,7 +39,7 @@ public:
 
   AssocModeTask(const std::vector<AssocModeConfig::CatalogEntry>& catalog, AssocModeConfig::AssocMode assoc_type, double radius);
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   KdTree<AssocModeConfig::CatalogEntry> m_catalog;

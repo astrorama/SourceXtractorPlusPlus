@@ -37,7 +37,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
   std::vector<std::pair<std::string, unsigned int>> m_auto_names;
