@@ -51,7 +51,7 @@ static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::
 
 static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
   try {
-    CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
+    CCfits::ExtHDU& psf_data = pFits->extension("PSF_DATA");
 
     int n_components;
     psf_data.readKey("POLNAXIS", n_components);
@@ -105,23 +105,24 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     std::vector<std::shared_ptr<VectorImage<SeFloat>>> coefficients(n_coeffs);
 
     for (int i = 0; i < n_coeffs; ++i) {
-      auto offset = std::begin(raw_coeff_data) + i * n_pixels;
+      auto offset     = std::begin(raw_coeff_data) + i * n_pixels;
       coefficients[i] = VectorImage<SeFloat>::create(width, height, offset, offset + n_pixels);
     }
 
-    logger.debug() << "Loaded variable PSF " << pFits->name() << " (" << width << ", " << height << ") with "
-                   <<  n_coeffs << " coefficients";
+    logger.debug() << "Loaded variable PSF " << pFits->name() << " (" << width << ", " << height << ") with " << n_coeffs
+                   << " coefficients";
     auto ll = logger.debug();
     ll << "Components: ";
     for (auto c : components) {
-       ll << c.name << " ";
-       if (component_value_getters.find(c.name) == component_value_getters.end()) {
-         throw Elements::Exception() << "Can not find a getter for the component " << c.name;
-       }
+      ll << c.name << " ";
+      if (component_value_getters.find(c.name) == component_value_getters.end()) {
+        throw Elements::Exception() << "Can not find a getter for the component " << c.name;
+      }
     }
 
     return std::make_shared<VariablePsf>(pixel_sampling, components, group_degrees, coefficients);
-
+  } catch (CCfits::FITS::NoSuchHDU&) {
+    throw;
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSFEx file: " << e.message();
   }
