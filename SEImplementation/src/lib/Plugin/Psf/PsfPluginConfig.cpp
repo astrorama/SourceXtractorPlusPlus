@@ -41,9 +41,6 @@ static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
 
 /*
  * Reading in a stacked PSF as it is being developed for co-added images in Euclid
- *
- * Some dummy code that tests the basic operations. Not yet operational, since
- * the VariablePsf class is not abstract and so on
  */
 static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
 	logger.debug() << "Loading a PSF stack file.";
