@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2012 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,11 +24,10 @@
 #ifndef _SEIMPLEMENTATION_PSF_VARIABLEPSF_H_
 #define _SEIMPLEMENTATION_PSF_VARIABLEPSF_H_
 
-#include <SEFramework/Image/VectorImage.h>
-#include "SEFramework/Property/PropertyHolder.h"
+#include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Psf/Psf.h"
 
 namespace SourceXtractor {
-
 
 /**
  * @class VariablePsf
@@ -37,7 +36,7 @@ namespace SourceXtractor {
  * Implements a variable PSF using an arbitrary number of components (i.e. X, Y), and degrees.
  *
  * @details
- * It is based on SExtractor logic, so based on a polynomial where the variables are some attributes
+ * It is based on PsfEx/SExtractor logic, so based on a polynomial where the variables are some attributes
  * of a source. For instance, if the components were X and Y, both in the same group, and the degree 2,
  * the polynomial would be
  *
@@ -46,9 +45,8 @@ namespace SourceXtractor {
  * The coefficients must be given on that order (note that the constant would be the first element)
  *
  */
-class VariablePsf {
+class VariablePsf final : public Psf {
 public:
-
   /**
    * A component belongs to one single group, and is scaled before
    * being used:
@@ -57,8 +55,8 @@ public:
    */
   struct Component {
     std::string name;
-    int group_id;
-    double offset, scale;
+    int         group_id;
+    double      offset, scale;
   };
 
   /**
@@ -73,14 +71,14 @@ public:
    *    Polynomial degree. Each group has its own degree, so there has to be as many as different group_id
    *    there are on the components
    */
-  VariablePsf(double pixel_sampling, const std::vector<Component> &components, const std::vector<int> &group_degrees,
-    const std::vector<std::shared_ptr<VectorImage<SeFloat>>> &coefficients);
+  VariablePsf(double pixel_sampling, const std::vector<Component>& components, const std::vector<int>& group_degrees,
+              const std::vector<std::shared_ptr<VectorImage<SeFloat>>>& coefficients);
 
   /**
    * Convenience constructor that initializes the variable PSF with just a constant value
    * (So it is not variable anymore)
    */
-  VariablePsf(double pixel_sampling, const std::shared_ptr<VectorImage<SeFloat>> &constant);
+  VariablePsf(double pixel_sampling, const std::shared_ptr<VectorImage<SeFloat>>& constant);
 
   /**
    * Destructor
@@ -90,22 +88,22 @@ public:
   /**
    * @return The width of the PSF
    */
-  virtual int getWidth() const;
+  int getWidth() const override;
 
   /**
    * @return The height of the PSF
    */
-  virtual int getHeight() const;
+  int getHeight() const override;
 
   /**
    * @return The pixel sampling
    */
-  virtual double getPixelSampling() const;
+  double getPixelSampling() const override;
 
   /**
    * @return A reference to the list of components
    */
-  virtual const std::vector<Component>& getComponents() const;
+  const std::vector<std::string>& getComponents() const override;
 
   /**
    * Reconstructs a PSF based on the given values for each of the component.
@@ -117,20 +115,21 @@ public:
    * @throws
    *    If the number of values does not match the number of components
    */
-  virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double> &values) const;
+  std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double>& values) const override;
 
 private:
-  double m_pixel_sampling;
-  std::vector<Component> m_components;
-  std::vector<int> m_group_degrees;
+  double                                             m_pixel_sampling;
+  std::vector<Component>                             m_components;
+  std::vector<std::string>                           m_component_names;
+  std::vector<int>                                   m_group_degrees;
   std::vector<std::shared_ptr<VectorImage<SeFloat>>> m_coefficients;
-  std::vector<std::vector<int>> m_exponents;
+  std::vector<std::vector<int>>                      m_exponents;
 
   /// Verify that the preconditions of getPsf are met at construction time
-  virtual void selfTest();
+  void selfTest();
 
   /// Normalizes the values
-  std::vector<double> scaleProperties(const std::vector<double> &values) const;
+  std::vector<double> scaleProperties(const std::vector<double>& values) const;
 
   /**
    * Calculates the exponents for each component per term of the polynomial.
@@ -148,6 +147,6 @@ private:
   void calculateExponents();
 };
 
-}
+}  // namespace SourceXtractor
 
-#endif //_SEIMPLEMENTATION_PSF_VARIABLEPSF_H_
+#endif  //_SEIMPLEMENTATION_PSF_VARIABLEPSF_H_

@@ -43,7 +43,7 @@ public:
   virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  std::map<int, std::shared_ptr<VariablePsf>> m_vpsf;
+  std::map<int, std::shared_ptr<Psf>> m_vpsf;
 };
 
 } // end SourceXtractor

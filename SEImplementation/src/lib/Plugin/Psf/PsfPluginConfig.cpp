@@ -21,12 +21,13 @@
  *      Author: Alejandro Álvarez Ayllón (greatly adapted from mschefer's code)
  */
 
-#include <Configuration/ProgramOptionsHelper.h>
-#include <SEImplementation/Image/ImagePsf.h>
-#include <CCfits/CCfits>
-#include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEFramework/Psf/VariablePsf.h"
+#include "SEFramework/Psf/VariablePsfStack.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
+#include <CCfits/CCfits>
+#include <Configuration/ProgramOptionsHelper.h>
+#include <ElementsKernel/Logging.h>
 
 namespace po = boost::program_options;
 using Euclid::Configuration::Configuration;
@@ -42,19 +43,15 @@ static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
 /*
  * Reading in a stacked PSF as it is being developed for co-added images in Euclid
  */
-static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::FITS> &pFits) {
-	logger.debug() << "Loading a PSF stack file.";
-	std::vector<VariablePsf::Component> components = {{"X_IMAGE", 0, 0.0, 1.0}, {"Y_IMAGE", 0, 0.0, 1.0}};
-	std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits), components);
-	return act_stack;
+static std::shared_ptr<VariablePsfStack> readStackedPsf(std::unique_ptr<CCfits::FITS>& pFits) {
+  logger.debug() << "Loading a PSF stack file.";
+  std::shared_ptr<VariablePsfStack> act_stack = std::make_shared<VariablePsfStack>(std::move(pFits));
+  return act_stack;
 }
 
-static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits, int hdu_number = 1) {
+static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFits) {
   try {
-    CCfits::ExtHDU &psf_data = pFits->extension(hdu_number);
-    if (psf_data.name() != "PSF_DATA") {
-      throw Elements::Exception() << "No PSFEX data in file " << pFits->name() << " HDU " << hdu_number;
-    }
+    CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
 
     int n_components;
     psf_data.readKey("POLNAXIS", n_components);
@@ -160,11 +157,11 @@ static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
 
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels.
-std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filename, int hdu_number) {
+std::shared_ptr<Psf> PsfPluginConfig::readPsf(const std::string& filename, int hdu_number) {
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
-    auto& image_hdu = pFits->pHDU();
+    auto&                         image_hdu = pFits->pHDU();
 
     auto axes = image_hdu.axes();
     // PSF as image
@@ -175,23 +172,21 @@ std::shared_ptr<VariablePsf> PsfPluginConfig::readPsf(const std::string &filenam
         auto& extension = pFits->extension(hdu_number - 1);
         return readImage(extension);
       }
+    } else {
+      try {
+        // PSFEx format
+        return readPsfEx(pFits);
+      } catch (CCfits::FITS::NoSuchHDU& e) {
+        logger.debug() << "Failed Reading a PsfEx file!";
+        return readStackedPsf(pFits);
+      }
     }
-    else {
-    	try {
-    		// PSFEx format
-    		CCfits::ExtHDU &psf_data = pFits->extension("PSF_DATA");
-    		return readPsfEx(pFits);
-    	} catch (CCfits::FITS::NoSuchHDU &e) {
-    		logger.debug() << "Failed Reading a PsfEx file!";
-    		return readStackedPsf(pFits);
-    	}
-    }
-  } catch (CCfits::FitsException &e) {
-	  throw Elements::Exception() << "Error loading PSF file: " << e.message();
+  } catch (CCfits::FitsException& e) {
+    throw Elements::Exception() << "Error loading PSF file: " << e.message();
   }
 }
 
-std::shared_ptr<VariablePsf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling) {
+std::shared_ptr<Psf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling) {
   int size = int(fwhm / pixel_sampling + 1) * 6 + 1;
   auto kernel = VectorImage<SeFloat>::create(size, size);
 
@@ -247,7 +242,7 @@ void PsfPluginConfig::initialize(const UserValues &args) {
   }
 }
 
-const std::shared_ptr<VariablePsf>& PsfPluginConfig::getPsf() const {
+const std::shared_ptr<Psf>& PsfPluginConfig::getPsf() const {
   return m_vpsf;
 }
 

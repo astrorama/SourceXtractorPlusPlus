@@ -25,7 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
 
 #include "SEFramework/Task/GroupTask.h"
-#include "SEFramework/Psf/VariablePsf.h"
+#include "SEFramework/Psf/Psf.h"
 
 namespace SourceXtractor {
 
@@ -36,13 +36,13 @@ class PsfTask: public GroupTask {
 public:
   virtual ~PsfTask() = default;
 
-  PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf);
+  PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
 
   virtual void computeProperties(SourceGroupInterface& source) const override;
 
 private:
   unsigned m_instance;
-  std::shared_ptr<VariablePsf> m_vpsf;
+  std::shared_ptr<Psf> m_vpsf;
 };
 
 } // end SourceXtractor

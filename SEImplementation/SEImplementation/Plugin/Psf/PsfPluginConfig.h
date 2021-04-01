@@ -25,9 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_PSF_PSFCONFIG_H_
 
 #include <Configuration/Configuration.h>
-#include <SEFramework/Psf/VariablePsf.h>
-#include <SEFramework/Psf/VariablePsfStack.h>
-#include "SEImplementation/Image/ImagePsf.h"
+#include <SEFramework/Psf/Psf.h>
 
 namespace SourceXtractor {
 
@@ -42,13 +40,13 @@ public:
   void preInitialize(const UserValues& args) override;
   void initialize(const UserValues& args) override;
 
-  const std::shared_ptr<VariablePsf>& getPsf() const;
+  const std::shared_ptr<Psf>& getPsf() const;
 
-  static std::shared_ptr<VariablePsf> readPsf(const std::string &filename, int hdu_number = 1);
-  static std::shared_ptr<VariablePsf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling);
+  static std::shared_ptr<Psf> readPsf(const std::string &filename, int hdu_number = 1);
+  static std::shared_ptr<Psf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling);
 
 private:
-  std::shared_ptr<VariablePsf> m_vpsf;
+  std::shared_ptr<Psf> m_vpsf;
 };
 
 } // end SourceXtractor
