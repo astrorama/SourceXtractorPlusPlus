@@ -172,6 +172,10 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
   }
   BOOST_CHECK_EQUAL(large_catalog.size(), 25000);
 
+  large_catalog.emplace_back(AssocModeConfig::CatalogEntry { { 55.0, 55.0 }, 1.0, {0.0}});
+  BOOST_CHECK_EQUAL(large_catalog.size(), 25001);
+
+
   {
     source.setProperty<PixelCentroid>(0, 0);
     AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 150.0);
@@ -198,6 +202,15 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
     auto assoc_mode_property = source.getProperty<AssocMode>();
     BOOST_CHECK(assoc_mode_property.getMatch());
     BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 25000.0, 0.001);
+  }
+  {
+    source.setProperty<PixelCentroid>(55.0, 55.0);
+    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::NEAREST, 20.0);
+    assoc_mode_task.computeProperties(source);
+
+    auto assoc_mode_property = source.getProperty<AssocMode>();
+    BOOST_CHECK(assoc_mode_property.getMatch());
+    BOOST_CHECK_CLOSE(assoc_mode_property.getAssocValues().at(0), 0.0, 0.001);
   }
 }
 
