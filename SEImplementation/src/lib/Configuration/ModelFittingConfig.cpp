@@ -186,8 +186,8 @@ void ModelFittingConfig::initializeInner() {
     }
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      GILStateEnsure ensure;
       try {
-        GILStateEnsure ensure;
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }
