@@ -34,6 +34,12 @@ static Elements::Logging logger = Elements::Logging::getLogger("Multithreading")
 
 std::recursive_mutex MultithreadedMeasurement::g_global_mutex;
 
+MultithreadedMeasurement::~MultithreadedMeasurement() {
+  if (m_output_thread->joinable()) {
+    m_output_thread->join();
+  }
+}
+
 void MultithreadedMeasurement::startThreads() {
   m_output_thread = Euclid::make_unique<std::thread>(outputThreadStatic, this);
 }
@@ -86,7 +92,7 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *meas
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (true) {
+  while (m_thread_pool->activeThreads() > 0) {
     std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
     // Wait for something in the output queue
