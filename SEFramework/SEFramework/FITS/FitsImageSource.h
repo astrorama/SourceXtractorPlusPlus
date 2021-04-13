@@ -30,16 +30,19 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include "FilePool/FileManager.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSourceWithMetadata.h"
-#include "SEFramework/FITS/FitsFileManager.h"
 #include "SEFramework/FITS/FitsFile.h"
 #include "SEUtils/VariantCast.h"
 
 
 namespace SourceXtractor {
 
-class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource>  {
+using Euclid::FilePool::FileManager;
+using Euclid::FilePool::FileHandler;
+
+class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
 
 
@@ -51,12 +54,16 @@ public:
    *    HDU number. If <= 0, the constructor will use the first HDU containing an image
    * @param manager
    */
-  FitsImageSource(const std::string &filename, int hdu_number = 0, ImageTile::ImageType image_type = ImageTile::AutoType,
-      std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
+  FitsImageSource(const std::string& filename, int hdu_number = 0,
+                  ImageTile::ImageType image_type = ImageTile::AutoType,
+                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
 
-  FitsImageSource(const std::string &filename, int width, int height, ImageTile::ImageType image_type,
-                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr, bool append=false,
-                  bool empty_primary=false, std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
+  FitsImageSource(const std::string& filename, int width, int height,
+                  ImageTile::ImageType image_type,
+                  const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
+                  bool append = false,
+                  bool empty_primary = false,
+                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
 
   virtual ~FitsImageSource() = default;
 
@@ -70,7 +77,7 @@ public:
   }
 
   /// Returns the height of the image in pixels
-  int getHeight() const  override {
+  int getHeight() const override {
     return m_height;
   }
 
@@ -78,7 +85,7 @@ public:
 
   void saveTile(ImageTile& tile) override;
 
-  template <typename TT>
+  template<typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
     auto& headers = getMetadata();
     auto i = headers.find(header_keyword);
@@ -99,21 +106,19 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
-  const std::map<std::string, MetadataEntry> getMetadata() const override {
-    return m_fits_file->getHDUHeaders(m_hdu_number);
-  }
+  const std::map<std::string, MetadataEntry> getMetadata() const override;
 
   void setMetadata(std::string key, MetadataEntry value) override;
 
 private:
-  void switchHdu(fitsfile* fptr, int hdu_number) const;
+  void switchHdu(fitsfile *fptr, int hdu_number) const;
 
   int getDataType() const;
+
   int getImageType() const;
 
   std::string m_filename;
-  std::shared_ptr<FitsFile> m_fits_file;
-  std::shared_ptr<FitsFileManager> m_manager;
+  std::shared_ptr<FileHandler> m_handler;
 
   int m_hdu_number;
 
