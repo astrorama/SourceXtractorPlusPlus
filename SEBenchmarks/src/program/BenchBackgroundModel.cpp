@@ -195,7 +195,6 @@ public:
     std::cout << "Elapsed: " << timer.elapsed().wall << std::endl;
 
     TileManager::getInstance()->saveAllTiles();
-    FitsFileManager::getInstance()->closeAllFiles();
 
     return Elements::ExitCode::OK;
   }

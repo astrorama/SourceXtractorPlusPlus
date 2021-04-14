@@ -40,16 +40,15 @@
 #include <CCfits/CCfits>
 
 #include "AlexandriaKernel/memory_tools.h"
-#include "SEFramework/Image/ProcessedImage.h"
-
-#include "SEFramework/Image/VectorImage.h"
-#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
-#include "SEFramework/FITS/FitsImageSource.h"
-#include "SEFramework/Image/WriteableBufferedImage.h"
-#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
-#include "SEImplementation/Image/ImagePsf.h"
 
 #include "SEFramework/CoordinateSystem/WCS.h"
+#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/Image/VectorImage.h"
+#include "SEFramework/Image/WriteableBufferedImage.h"
+#include "SEImplementation/Image/ImagePsf.h"
+#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
@@ -504,7 +503,7 @@ public:
     std::vector<std::shared_ptr<ModelFitting::ExtendedModel<WriteableInterfaceTypePtr>>> extended_models;
     std::vector<PointModel> point_models;
 
-    std::shared_ptr<VariablePsf> vpsf;
+    std::shared_ptr<Psf> vpsf;
 
     auto psf_filename = args["psf-file"].as<std::string>();
     if (psf_filename != "") {
@@ -534,11 +533,11 @@ public:
     const auto& vpsf_components = vpsf->getComponents();
     std::vector<double> psf_vals(vpsf_components.size());
     for (auto i = 0u; i < psf_vals.size(); ++i) {
-      if (vpsf_components[i].name == "X_IMAGE" || vpsf_components[i].name == "Y_IMAGE") {
+      if (vpsf_components[i] == "X_IMAGE" || vpsf_components[i] == "Y_IMAGE") {
         psf_vals[i] = image_size / 2 - 1;
       }
       else {
-        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i].name;
+        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i];
       }
     }
 

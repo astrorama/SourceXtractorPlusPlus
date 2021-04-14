@@ -24,16 +24,16 @@
 
 #include <assert.h>
 
-#include <iostream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 #include <string>
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/regex.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/regex.hpp>
 
 #include "ElementsKernel/Exception.h"
 #include "SEFramework/FITS/FitsFile.h"
@@ -54,14 +54,11 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   try {
     if (value.empty()) {
       return value;
-    }
-    else if (boost::regex_match(value, int_regex)) {
+    } else if (boost::regex_match(value, int_regex)) {
       return static_cast<int64_t>(std::stoll(value));
-    }
-    else if (boost::regex_match(value, float_regex)) {
+    } else if (boost::regex_match(value, float_regex)) {
       return std::stod(value);
-    }
-    else if (value.size() == 1) {
+    } else if (value.size() == 1) {
       return value.at(0);
     }
   } catch (...) {
@@ -72,14 +69,13 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   // We used to use boost::io::quoted here, but it seems that starting with 1.73 it
   // does not work well when the escape code and the delimiter are the same
   std::string unquoted;
-  bool escape = false;
+  bool        escape = false;
   unquoted.reserve(value.size());
   for (auto i = value.begin(); i != value.end(); ++i) {
     if (*i == '\'' && !escape) {
       escape = true;
       // skip this char
-    }
-    else {
+    } else {
       escape = false;
       unquoted.push_back(*i);
     }
@@ -87,52 +83,71 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   return unquoted;
 }
 
-FitsFile::FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager) :
-      m_filename(filename),
-      m_file_pointer(nullptr),
-      m_is_file_opened(false),
-      m_is_writeable(writeable),
-      m_was_opened_before(false),
-      m_manager(manager) {
-}
-
-FitsFile::~FitsFile() {
-  close();
-}
-
-void FitsFile::openFirstTime() {
+static void close_fits(fitsfile* ptr) {
   int status = 0;
+  fits_close_file(ptr, &status);
+}
 
-  fits_open_image(&m_file_pointer, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
+FitsFile::FitsFile(const boost::filesystem::path& path, bool writeable)
+    : m_path(path), m_is_writeable(writeable), m_fits_ptr(nullptr, close_fits) {
+  open();
+}
+
+FitsFile::~FitsFile() {}
+
+fitsfile* FitsFile::getFitsFilePtr() {
+  return m_fits_ptr.get();
+}
+
+const std::vector<int>& FitsFile::getImageHdus() const {
+  return m_image_hdus;
+}
+
+std::map<std::string, MetadataEntry>& FitsFile::getHDUHeaders(int hdu) {
+  return m_headers.at(hdu - 1);
+}
+
+void FitsFile::open() {
+  int       status = 0;
+  fitsfile* ptr    = nullptr;
+
+  // Open
+  fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
-    throw Elements::Exception() << "Can't open FITS file: " << m_filename;
+    throw Elements::Exception() << "Can't open FITS file: " << m_path;
   }
 
-  m_image_hdus.clear() ;
+  m_fits_ptr = std::move(std::unique_ptr<fitsfile, void (*)(fitsfile*)>(ptr, [](fitsfile* ptr) {
+    int status = 0;
+    fits_close_file(ptr, &status);
+  }));
+
+  // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already
+  int original_hdu = 0;
+  fits_get_hdu_num(ptr, &original_hdu);
+
+  // Number of HDU
+  m_image_hdus.clear();
   int number_of_hdus = 0;
-  if (fits_get_num_hdus(m_file_pointer, &number_of_hdus, &status) < 0) {
-    throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_filename;
+  if (fits_get_num_hdus(ptr, &number_of_hdus, &status) < 0) {
+    throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_path;
   }
 
   m_headers.resize(number_of_hdus);
 
-  // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already
-  int original_hdu = 0;
-  fits_get_hdu_num(m_file_pointer, &original_hdu);
-
   // loop over HDUs to determine which ones are images
   int hdu_type = 0;
-  for (int hdu_number=1; hdu_number <= number_of_hdus; hdu_number++) {
-    fits_movabs_hdu(m_file_pointer, hdu_number, &hdu_type, &status);
+  for (int hdu_number = 1; hdu_number <= number_of_hdus; ++hdu_number) {
+    fits_movabs_hdu(ptr, hdu_number, &hdu_type, &status);
     if (status != 0) {
-      throw Elements::Exception() << "Can't switch HDUs while opening: " << m_filename;
+      throw Elements::Exception() << "Can't switch HDUs while opening: " << m_path;
     }
 
     if (hdu_type == IMAGE_HDU) {
-      int bitpix, naxis;
-      long naxes[2] = {1,1};
+      int  bitpix, naxis;
+      long naxes[2] = {1, 1};
 
-      fits_get_img_param(m_file_pointer, 2, &bitpix, &naxis, naxes, &status);
+      fits_get_img_param(ptr, 2, &bitpix, &naxis, naxes, &status);
       if (status == 0 && naxis == 2) {
         m_image_hdus.emplace_back(hdu_number);
       }
@@ -140,89 +155,29 @@ void FitsFile::openFirstTime() {
   }
 
   // go back to saved HDU
-  fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
+  fits_movabs_hdu(ptr, original_hdu, &hdu_type, &status);
 
   // load all FITS headers
-  reloadHeaders();
+  loadFitsHeader();
 
   // load optional .head file to override headers
   loadHeadFile();
-
-  m_is_file_opened = true;
-  m_was_opened_before = true;
 }
 
-void FitsFile::reopen() {
-  int status = 0;
-  fits_open_image(&m_file_pointer, m_filename.c_str(), m_is_writeable ? READWRITE : READONLY, &status);
-  if (status != 0) {
-    throw Elements::Exception() << "Can't open FITS file: " << m_filename;
-  }
-  m_is_file_opened = true;
-}
-
-void FitsFile::open() {
-  if (!m_is_file_opened) {
-    m_manager->reportOpenedFile(m_filename);
-    if (m_was_opened_before) {
-      reopen();
-    } else {
-      openFirstTime();
-    }
-  }
-  assert(m_file_pointer != nullptr);
-}
-
-void FitsFile::close() {
-  if (m_is_file_opened) {
-    m_manager->reportClosedFile(m_filename);
-    int status = 0;
-    fits_close_file(m_file_pointer, &status);
-    m_file_pointer = nullptr;
-    m_is_file_opened = false;
-  }
-}
-
-void FitsFile::setWriteMode() {
-  if (!m_is_writeable) {
-    close();
-    m_is_writeable = true;
-    open();
-  }
-}
-
-void FitsFile::reloadHeaders() {
-  int status = 0;
-
-  // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already)
-  int original_hdu = 0;
-  fits_get_hdu_num(m_file_pointer, &original_hdu);
-
-  int hdu_type = 0;
-  for (unsigned int i = 0; i < m_headers.size(); i++) {
-    fits_movabs_hdu(m_file_pointer, i+1, &hdu_type, &status); // +1 hdus start at 1
-
-    m_headers[i] = loadFitsHeader(m_file_pointer);
-  }
-
-  // go back to saved HDU
-  fits_movabs_hdu(m_file_pointer, original_hdu, &hdu_type, &status);
-}
-
-std::map<std::string, MetadataEntry> FitsFile::loadFitsHeader(fitsfile *fptr) {
+static std::map<std::string, MetadataEntry> loadHeadersFromFits(fitsfile* fptr) {
   std::map<std::string, MetadataEntry> headers;
-  char record[81];
-  int keynum = 1, status = 0;
+  char                                 record[81];
+  int                                  keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
     static boost::regex regex("([^=]{8})=([^\\/]*)(\\/(.*))?");
-    std::string record_str(record);
+    std::string         record_str(record);
 
     boost::smatch sub_matches;
     if (boost::regex_match(record_str, sub_matches, regex)) {
       auto keyword = boost::to_upper_copy(sub_matches[1].str());
-      auto value = sub_matches[2].str();
+      auto value   = sub_matches[2].str();
       auto comment = sub_matches[4].str();
       boost::trim(keyword);
       boost::trim(value);
@@ -235,17 +190,34 @@ std::map<std::string, MetadataEntry> FitsFile::loadFitsHeader(fitsfile *fptr) {
   return headers;
 }
 
+void FitsFile::loadFitsHeader() {
+  int status = 0;
+
+  // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already)
+  int original_hdu = 0;
+  fits_get_hdu_num(m_fits_ptr.get(), &original_hdu);
+
+  int hdu_type = 0;
+  for (unsigned int i = 0; i < m_headers.size(); i++) {
+    fits_movabs_hdu(m_fits_ptr.get(), i + 1, &hdu_type, &status);  // +1 hdus start at 1
+
+    m_headers[i] = loadHeadersFromFits(m_fits_ptr.get());
+  }
+
+  // go back to saved HDU
+  fits_movabs_hdu(m_fits_ptr.get(), original_hdu, &hdu_type, &status);
+}
+
 void FitsFile::loadHeadFile() {
-  auto filename = boost::filesystem::path(m_filename);
-  auto base_name = filename.stem();
+  auto base_name = m_path.stem();
   base_name.replace_extension(".head");
-  auto head_filename = filename.parent_path() / base_name;
+  auto head_filename = m_path.parent_path() / base_name;
 
   if (!boost::filesystem::exists(head_filename)) {
     return;
   }
 
-  auto hdu_iter = m_image_hdus.begin();
+  auto          hdu_iter = m_image_hdus.begin();
   std::ifstream file;
 
   // open the file and check
@@ -268,22 +240,21 @@ void FitsFile::loadHeadFile() {
 
     if (boost::to_upper_copy(line) == "END") {
       current_hdu = *(++hdu_iter);
-    }
-    else {
+    } else {
       static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
-      boost::smatch sub_matches;
+      boost::smatch       sub_matches;
       if (boost::regex_match(line, sub_matches, regex) && sub_matches.size() >= 3) {
         auto keyword = boost::to_upper_copy(sub_matches[1].str());
-        auto value = sub_matches[2].str();
+        auto value   = sub_matches[2].str();
         auto comment = sub_matches[4].str();
         boost::trim(keyword);
         boost::trim(value);
         boost::trim(comment);
-        m_headers.at(current_hdu-1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};;
+        m_headers.at(current_hdu - 1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};
+        ;
       }
     }
   }
 }
 
-
-}
+}  // namespace SourceXtractor

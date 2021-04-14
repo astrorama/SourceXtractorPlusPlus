@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2021 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,38 +15,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef _SEIMPLEMENTATION_PYFITSFILE_H
-#define _SEIMPLEMENTATION_PYFITSFILE_H
-
-#include <string>
-#include <boost/python/list.hpp>
-#include "SEFramework/FITS/FitsFile.h"
-#include "SEImplementation/PythonConfig/PyId.h"
+#include "SEImplementation/Plugin/AssocMode/AssocMode.h"
+#include "SEImplementation/Plugin/AssocMode/AssocModePartitionStep.h"
 
 namespace SourceXtractor {
 
-class PyFitsFile {
-
-public:
-
-  PyFitsFile(const std::string& filename);
-
-  virtual ~PyFitsFile() = default;
-
-  std::string getFilename() const {
-    return m_filename;
-  }
-
-  std::vector<int> getImageHdus() const;
-
-  std::map<std::string, std::string> getHeaders(int hdu) const;
-
-private:
-  std::string m_filename;
-  std::shared_ptr<FitsFile> m_file;
-};
-
+AssocModePartitionStep::AssocModePartitionStep(bool match_required) : m_match_required(match_required) {
 }
 
-#endif // _SEIMPLEMENTATION_PYFITSFILE_H
+std::vector<std::shared_ptr<SourceInterface>> AssocModePartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
+  if (source->getProperty<AssocMode>().getMatch() ^ !m_match_required) {
+    return { source };
+  } else {
+    return {};
+  }
+}
+
+} // SourceXtractor namespace
 
