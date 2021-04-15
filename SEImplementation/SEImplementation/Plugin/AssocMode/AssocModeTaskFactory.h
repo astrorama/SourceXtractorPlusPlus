@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2021 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,38 +14,42 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfTaskFactory.h
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_
 
-#include <map>
+#ifndef _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODETASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODETASKFACTORY_H_
 
+#include "AssocModeConfig.h"
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/Psf/PsfTask.h"
-#include "PsfPluginConfig.h"
+
 
 namespace SourceXtractor {
 
-class PsfTaskFactory: public TaskFactory {
+class AssocModeTaskFactory : public TaskFactory {
 public:
-  virtual ~PsfTaskFactory() = default;
+  AssocModeTaskFactory();
+
+  /// Destructor
+  virtual ~AssocModeTaskFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  // TaskFactory implementation
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  std::map<int, std::shared_ptr<Psf>> m_vpsf;
+  std::vector<std::pair<std::string, unsigned int>> m_auto_names;
+
+  AssocModeConfig::AssocMode m_assoc_mode;
+  double m_assoc_radius;
+  std::vector<AssocModeConfig::CatalogEntry> m_catalog;
 };
 
-} // end SourceXtractor
+}
 
-#endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASKFACTORY_H_
+
+
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODETASKFACTORY_H_ */

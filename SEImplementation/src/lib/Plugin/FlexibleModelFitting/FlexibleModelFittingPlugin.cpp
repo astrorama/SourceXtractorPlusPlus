@@ -55,6 +55,15 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           "Number of iterations in the model fitting"
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int>(
+    "fmf_stop_reason",
+    [](const FlexibleModelFitting& prop) {
+      return prop.getStopReason();
+    },
+    "",
+    "Stop reason (engine dependent)"
+  );
+
   plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int64_t>(
           "fmf_flags",
           [](const FlexibleModelFitting& prop) {

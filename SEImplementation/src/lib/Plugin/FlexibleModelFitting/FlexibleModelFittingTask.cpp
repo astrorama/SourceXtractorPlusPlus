@@ -64,47 +64,6 @@ using namespace ModelFitting;
 
 static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
 
-namespace {
-
-__attribute__((unused))
-void printLevmarInfo(std::array<double, 10> info) {
-  std::cerr << "\nMinimization info:\n";
-  std::cerr << "  ||e||_2 at initial p: " << info[0] << '\n';
-  std::cerr << "  ||e||_2: " << info[1] << '\n';
-  std::cerr << "  ||J^T e||_inf: " << info[2] << '\n';
-  std::cerr << "  ||Dp||_2: " << info[3] << '\n';
-  std::cerr << "  mu/max[J^T J]_ii: " << info[4] << '\n';
-  std::cerr << "  # iterations: " << info[5] << '\n';
-  switch ((int) info[6]) {
-    case 1:
-      std::cerr << "  stopped by small gradient J^T e\n";
-      break;
-    case 2:
-      std::cerr << "  stopped by small Dp\n";
-      break;
-    case 3:
-      std::cerr << "  stopped by itmax\n";
-      break;
-    case 4:
-      std::cerr << "  singular matrix. Restart from current p with increased mu\n";
-      break;
-    case 5:
-      std::cerr << "  no further error reduction is possible. Restart with increased mu\n";
-      break;
-    case 6:
-      std::cerr << "  stopped by small ||e||_2\n";
-      break;
-    case 7:
-      std::cerr << "  stopped by invalid (i.e. NaN or Inf) func values; a user error\n";
-      break;
-  }
-  std::cerr << "  # function evaluations: " << info[7] << '\n';
-  std::cerr << "  # Jacobian evaluations: " << info[8] << '\n';
-  std::cerr << "  # linear systems solved: " << info[9] << "\n\n";
-}
-
-}
-
 FlexibleModelFittingTask::FlexibleModelFittingTask(const std::string &least_squares_engine,
     unsigned int max_iterations, double modified_chi_squared_scale,
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
@@ -144,20 +103,19 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
 
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-  std::fill(weight->getData().begin(), weight->getData().end(), 1);
 
   for (int y = 0; y < rect.getHeight(); y++) {
     for (int x = 0; x < rect.getWidth(); x++) {
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      if (saturation > 0 && frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) > saturation) {
+      auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      if (saturation > 0 && pixel_val > saturation) {
         weight->at(x, y) = 0;
-      } else if (weight->at(x, y) > 0) {
-        if (gain > 0.0) {
-          weight->at(x, y) = sqrt(
-            1.0 / (back_var + frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) / gain));
-        } else {
-          weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
-        }
+      }
+      else if (gain > 0.0 && pixel_val > 0.0) {
+        weight->at(x, y) = sqrt(1.0 / (back_var + pixel_val / gain));
+      }
+      else {
+        weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
       }
     }
   }
@@ -286,7 +244,11 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     //  LevmarEngine engine{m_max_iterations, 1E-3, 1E-6, 1E-6, 1E-6, 1E-4};
     auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
     auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
-    size_t iterations = (size_t) boost::any_cast<std::array<double, 10>>(solution.underlying_framework_info)[5];
+    auto iterations = solution.iteration_no;
+    auto stop_reason = solution.engine_stop_reason;
+    if (solution.status_flag == LeastSquareSummary::ERROR) {
+      group_flags |= Flags::ERROR;
+    }
 
     int total_data_points = 0;
     SeFloat avg_reduced_chi_squared = computeChiSquared(group, pixel_scale, parameter_manager, total_data_points);
@@ -306,7 +268,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     // Collect parameters for output
     for (auto& source : group) {
       std::unordered_map<int, double> parameter_values, parameter_sigmas;
-      auto source_flags = Flags::NONE;
+      auto source_flags = group_flags;
 
       for (auto parameter : m_parameters) {
         bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
@@ -328,8 +290,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
           source_flags |= Flags::PARTIAL_FIT;
         }
       }
-      source.setProperty<FlexibleModelFitting>(iterations, avg_reduced_chi_squared, source_flags, parameter_values,
-                                               parameter_sigmas);
+      source.setProperty<FlexibleModelFitting>(iterations, stop_reason,
+                                               avg_reduced_chi_squared, source_flags,
+                                               parameter_values, parameter_sigmas);
     }
     updateCheckImages(group, pixel_scale, parameter_manager);
 
@@ -341,7 +304,9 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 }
 
 // Used to set a dummy property in case of error that contains no result but just an error flag
-void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group, FlexibleModelFittingParameterManager& parameter_manager, Flags flags) const {
+void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group,
+                                                FlexibleModelFittingParameterManager& parameter_manager,
+                                                Flags flags) const {
   for (auto& source : group) {
     std::unordered_map<int, double> dummy_values;
     for (auto parameter : m_parameters) {
@@ -352,7 +317,7 @@ void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group, Fle
       }
       dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
     }
-    source.setProperty<FlexibleModelFitting>(0, std::numeric_limits<double>::quiet_NaN(), flags,
+    source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
                                              dummy_values, dummy_values);
   }
 }

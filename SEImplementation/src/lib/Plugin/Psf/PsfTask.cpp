@@ -53,15 +53,15 @@ std::map<std::string, ValueGetter> component_value_getters{
   {"YMODEL_IMAGE", getCoordY}
 };
 
-PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
+PsfTask::PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf)
     : m_instance(instance), m_vpsf(vpsf) {
 }
 
 void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) const {
   std::vector<double> component_values;
 
-  for (auto c : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[c.name](group, m_instance));
+  for (auto component : m_vpsf->getComponents()) {
+    component_values.push_back(component_value_getters[component](group, m_instance));
   }
 
   auto psf = m_vpsf->getPsf(component_values);

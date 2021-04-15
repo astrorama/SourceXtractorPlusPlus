@@ -201,6 +201,9 @@ elements_add_unit_test(ImageInterfaceTraits_test tests/src/Image/ImageInterfaceT
 elements_add_unit_test(BackgroundConvolution_test tests/src/Segmentation/BackgroundConvolution_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(AssocMode_test tests/src/Plugin/AssocMode/AssocMode_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 
 #===============================================================================
 # Declare the Python programs here

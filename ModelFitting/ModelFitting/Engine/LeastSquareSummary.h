@@ -36,15 +36,22 @@ namespace ModelFitting {
  * minimization problem
  */
 struct LeastSquareSummary {
-  
+
+  enum StatusFlag {
+    SUCCESS, MAX_ITER, ERROR
+  };
+
   /// Flag indicating if the minimization was successful
-  bool success_flag = true;
+  StatusFlag status_flag = SUCCESS;
   
   /// The number of iterations
   size_t iteration_no {0};
   
-  // 1-sigma margin of error for all the parameters
+  /// 1-sigma margin of error for all the parameters
   std::vector<double> parameter_sigmas {};
+
+  /// Engine-specific reason for stopping the fitting
+  int engine_stop_reason {0};
 
   /// Info of the minimization process, as provided by the underlying framework.
   ///

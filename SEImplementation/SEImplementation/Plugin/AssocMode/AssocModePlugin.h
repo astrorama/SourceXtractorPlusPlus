@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2021 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,38 +15,30 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef _SEIMPLEMENTATION_PYFITSFILE_H
-#define _SEIMPLEMENTATION_PYFITSFILE_H
 
-#include <string>
-#include <boost/python/list.hpp>
-#include "SEFramework/FITS/FitsFile.h"
-#include "SEImplementation/PythonConfig/PyId.h"
+#ifndef _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_
+
+#include "SEFramework/Plugin/Plugin.h"
 
 namespace SourceXtractor {
 
-class PyFitsFile {
+class AssocModePlugin : public Plugin {
 
 public:
 
-  PyFitsFile(const std::string& filename);
+  /**
+   * @brief Destructor
+   */
+  virtual ~AssocModePlugin() = default;
 
-  virtual ~PyFitsFile() = default;
-
-  std::string getFilename() const {
-    return m_filename;
-  }
-
-  std::vector<int> getImageHdus() const;
-
-  std::map<std::string, std::string> getHeaders(int hdu) const;
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
 
 private:
-  std::string m_filename;
-  std::shared_ptr<FitsFile> m_file;
+
 };
 
 }
 
-#endif // _SEIMPLEMENTATION_PYFITSFILE_H
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_ */

@@ -23,10 +23,12 @@
 
 #include <boost/test/unit_test.hpp>
 #include <numeric>
-#include "SEImplementation/Plugin/Psf/PsfProperty.h"
-#include "SEFramework/Source/SimpleSourceGroup.h"
+
 #include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/Psf/VariablePsf.h"
+#include "SEFramework/Source/SimpleSourceGroup.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
+#include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 #include "SEUtils/TestUtils.h"
 
