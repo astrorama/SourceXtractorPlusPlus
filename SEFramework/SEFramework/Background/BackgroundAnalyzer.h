@@ -32,15 +32,13 @@ namespace SourceXtractor {
 
 class BackgroundModel {
 public:
-
   BackgroundModel(std::shared_ptr<Image<SeFloat>> background_level, std::shared_ptr<Image<SeFloat>> background_variance,
-                  SeFloat scaling_factor, SeFloat median_rms) :
-    m_background_level(background_level),
-    m_background_variance(background_variance),
-    m_scaling_factor(scaling_factor),
-    m_median_rms(median_rms) {
-    // FIXME: Make sure that the caller ensures the variance is >= 0
-  }
+                  SeFloat scaling_factor, SeFloat median_rms)
+      : m_background_level(background_level)
+      , m_background_variance(
+            FunctionalImage<SeFloat>::create(background_variance, [](int, int, SeFloat v) -> SeFloat { return ::fabs(v); }))
+      , m_scaling_factor(scaling_factor)
+      , m_median_rms(median_rms) {}
 
   std::shared_ptr<Image<SeFloat>> getLevelMap() const {
     return m_background_level;
