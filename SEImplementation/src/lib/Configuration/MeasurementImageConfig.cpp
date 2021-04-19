@@ -117,7 +117,7 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
   }
 
   auto weight_image_source =
-      std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu, ImageTile::FloatImage);
+      std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu+1, ImageTile::FloatImage);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
 
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
@@ -189,7 +189,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
 
       auto fits_image_source =
-          std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu, ImageTile::FloatImage);
+          std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu+1, ImageTile::FloatImage);
       info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
       info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
@@ -214,9 +214,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       info.m_weight_type = getWeightType(py_image.weight_type, py_image.weight_file);
 
-      info.m_image_hdu = py_image.image_hdu;
-      info.m_psf_hdu = py_image.psf_hdu;
-      info.m_weight_hdu = py_image.weight_hdu;
+      info.m_image_hdu = py_image.image_hdu + 1;
+      info.m_psf_hdu = py_image.psf_hdu + 1;
+      info.m_weight_hdu = py_image.weight_hdu + 1;
 
       m_image_infos.emplace_back(std::move(info));
     }
