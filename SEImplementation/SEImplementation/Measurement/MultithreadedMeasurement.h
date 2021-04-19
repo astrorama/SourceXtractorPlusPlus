@@ -44,6 +44,8 @@ public:
         m_group_counter(0),
         m_input_done(false), m_abort_raised(false) {}
 
+  virtual ~MultithreadedMeasurement();
+
   void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
 
   void startThreads() override;

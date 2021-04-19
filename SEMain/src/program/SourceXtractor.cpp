@@ -332,29 +332,45 @@ public:
 
     auto segmentation = segmentation_factory.createSegmentation();
 
-    // Prefetcher
+    // Multithreading
     auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
-    auto prefetcher = std::make_shared<Prefetcher>(multithreading_config.getThreadPool());
+    auto thread_pool = multithreading_config.getThreadPool();
+
+    // Prefetcher
+    std::shared_ptr<Prefetcher> prefetcher;
+    if (thread_pool) {
+      prefetcher = std::make_shared<Prefetcher>(thread_pool);
+    }
 
     // Rest of the stagees
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
-    prefetcher->requestProperties(source_grouping->requiredProperties());
 
     std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
-    prefetcher->requestProperties(deblending->requiredProperties());
+    if (prefetcher) {
+      prefetcher->requestProperties(source_grouping->requiredProperties());
+      prefetcher->requestProperties(deblending->requiredProperties());
+    }
 
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
-    segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
-    prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-    partition->addObserver(prefetcher);
-    prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+
+    if (prefetcher) {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
+      prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(prefetcher);
+      prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+    }
+    else {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(source_grouping);
+    }
+
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
@@ -443,7 +459,9 @@ public:
       return Elements::ExitCode::NOT_OK;
     }
 
-    prefetcher->wait();
+    if (prefetcher) {
+      prefetcher->wait();
+    }
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
