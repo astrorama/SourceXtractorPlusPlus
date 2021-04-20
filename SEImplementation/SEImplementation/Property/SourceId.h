@@ -55,7 +55,7 @@ private:
   unsigned int m_source_id, m_detection_id;
 
   static unsigned int getNewId() {
-    static std::atomic_uint32_t s_id(1);
+    static std::atomic<uint32_t> s_id(1);
     return s_id++;
   }
 
