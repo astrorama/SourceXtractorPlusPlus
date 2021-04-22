@@ -55,6 +55,7 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   m_lutz_window_size = segmentation_config.getLutzWindowSize();
   m_bfs_max_delta = segmentation_config.getBfsMaxDelta();
   m_model_path = segmentation_config.getOnnxModelPath();
+  m_ml_threshold = segmentation_config.getMLThreashold();
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
@@ -72,7 +73,7 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
       break;
     case SegmentationConfig::Algorithm::ML:
       segmentation->setLabelling<MLSegmentation>(
-          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_model_path);
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_model_path, m_ml_threshold);
       break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:

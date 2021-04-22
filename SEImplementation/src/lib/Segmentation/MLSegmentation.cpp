@@ -93,10 +93,20 @@ private:
 void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) {
   Elements::Logging onnx_logger = Elements::Logging::getLogger("Onnx");
 
-  auto allocator = Ort::AllocatorWithDefaultOptions();
-
-  int tile_size = 400; // FIXME
   OnnxModel model(m_model_path);
+
+  auto input_shape = model.getInputShape();
+  auto output_shape = model.getOutputShape();
+
+  // TODO add sanity check
+
+  int tile_size = output_shape[1];
+  int data_planes = output_shape[3];
+  float average_rms = frame->getBackgroundMedianRms();
+  float detection_threshold = m_ml_threshold;
+
+  onnx_logger.info() << "Onnx tile size: " << tile_size << " Data planes: " << data_planes << "RMS: " << average_rms;
+
 
   if (model.getInputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
     throw Elements::Exception() << "Only ONNX models with float input are supported";
@@ -108,14 +118,16 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
 
   // allocate memory
   std::vector<float> input_data(tile_size * tile_size);
-  std::vector<float> output_data(tile_size * tile_size * 3);
-
-  //auto var_image = frame->getVarianceMap();
-  //auto processed_image = VectorImage<float>::create(tile_size, tile_size);
+  std::vector<float> output_data(tile_size * tile_size * data_planes);
 
   auto image = frame->getSubtractedImage();
-  auto check = CheckImages::getInstance().getMoffatImage();
-  auto tmp_image = FitsWriter::newTemporaryImage<float>("_tmp_ml_seg%%%%%%.fits", image->getWidth(), image->getHeight());
+
+  std::vector<std::shared_ptr<WriteableImage<float>>> tmp_images;
+  std::vector<std::shared_ptr<WriteableImage<float>>> check_images;
+  for (int i=0; i < data_planes; i++) {
+    tmp_images.emplace_back(FitsWriter::newTemporaryImage<float>("_tmp_ml_seg%%%%%%.fits", image->getWidth(), image->getHeight()));
+    check_images.emplace_back(CheckImages::getInstance().getMLDetectionImage(i));
+  }
 
   Lutz lutz;
   LutzLabellingListener lutz_listener(listener, m_source_factory, 0);
@@ -126,7 +138,7 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
       for (int x = 0; x < tile_size; x++) {
         for (int y = 0; y < tile_size; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
-            input_data[x+y*tile_size] = image->getValue(ox+x, oy+y) / 20.1686; // FIXME get average RMS
+            input_data[x+y*tile_size] = image->getValue(ox+x, oy+y) / average_rms;
           } else {
             input_data[x+y*tile_size] = 0;
           }
@@ -144,23 +156,20 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
       for (int x = start_x; x < end_x; x++) {
         for (int y = start_y; y < end_y; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
-//            float a = output_data[(x+y*tile_size) * 3 + 0];
-            float b = output_data[(x+y*tile_size) * 3 + 1];
-////            float c = output_data[(x+y*tile_size) * 3 + 2];
-//            //std::cout << a << ": " << b << " " << c <<"\n";
-            tmp_image->setValue(ox + x, oy + y,  b - 0.7f);
-
-//            float a = output_data[(x+y*tile_size)];
-//            processed_image->setValue(x, y,  b);
-            if (check != nullptr) {
-              check->setValue(ox+x, oy+y, b);
+            for (int i=0; i<data_planes; i++) {
+              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * 3 + i] - detection_threshold);
+              if (check_images[i] != nullptr) {
+                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * 3 + i]);
+              }
             }
           }
         }
       }
     }
   }
-  lutz.labelImage(lutz_listener, *tmp_image);
+  for (int i=0; i<data_planes; i++) {
+    lutz.labelImage(lutz_listener, *tmp_images[i]);
+  }
 }
 
 }

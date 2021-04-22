@@ -27,15 +27,15 @@ namespace SourceXtractor {
 
 /**
  * @class MLSegmentation
- * @brief Implements a Segmentation based on the BFS algorithm
+ * @brief Implements a Segmentation based on CNN
  */
 class MLSegmentation : public Segmentation::Labelling {
 public:
 
   virtual ~MLSegmentation() = default;
 
-  MLSegmentation(std::shared_ptr<SourceFactory> source_factory, std::string model_path)
-      : m_source_factory(source_factory), m_model_path(model_path) {
+  MLSegmentation(std::shared_ptr<SourceFactory> source_factory, std::string model_path, double ml_threshold)
+      : m_source_factory(source_factory), m_model_path(model_path), m_ml_threshold(ml_threshold) {
     assert(source_factory != nullptr);
   }
 
@@ -53,6 +53,8 @@ private:
   std::shared_ptr<SourceFactory> m_source_factory;
 
   std::string m_model_path;
+  double m_ml_threshold;
+
 };
 
 }

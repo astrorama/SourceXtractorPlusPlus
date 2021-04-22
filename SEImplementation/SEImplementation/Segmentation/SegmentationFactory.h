@@ -62,6 +62,7 @@ private:
   int m_bfs_max_delta;
 
   std::string m_model_path;
+  double m_ml_threshold;
 
 }; /* End of SegmentationFactory class */
 
