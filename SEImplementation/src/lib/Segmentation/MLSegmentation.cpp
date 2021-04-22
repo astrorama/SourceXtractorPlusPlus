@@ -107,7 +107,6 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
 
   onnx_logger.info() << "Onnx tile size: " << tile_size << " Data planes: " << data_planes << "RMS: " << average_rms;
 
-
   if (model.getInputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
     throw Elements::Exception() << "Only ONNX models with float input are supported";
   }
