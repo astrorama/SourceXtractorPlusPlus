@@ -62,7 +62,7 @@ SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
   return { {"Detection image", {
       {SEGMENTATION_ALGORITHM.c_str(), po::value<std::string>()->default_value("LUTZ"),
-          "Segmentation algorithm to be used (LUTZ or TILES)"},
+          "Segmentation algorithm to be used (LUTZ, TILES or ML (a ONNX-format model must be provided))"},
       {SEGMENTATION_DISABLE_FILTERING.c_str(), po::bool_switch(),
           "Disables filtering"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
