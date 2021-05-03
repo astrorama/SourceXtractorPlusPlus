@@ -110,39 +110,31 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     , m_height(height)
     , m_image_type(image_type) {
 
-  int       status = 0;
-  fitsfile* fptr   = nullptr;
+  int status = 0;
+  fitsfile* fptr = nullptr;
 
-  if (append) {
-    fits_open_image(&fptr, filename.c_str(), READWRITE, &status);
-    if (status != 0) {
-      status = 0;
-      fits_create_file(&fptr, filename.c_str(), &status);
-      if (empty_primary) {
-        fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-      }
-      if (status != 0) {
-        throw Elements::Exception() << "Can't open or create FITS file to add HDU: " << filename;
-      }
-    }
+  if (!append) {
+    // delete file if it exists already
+    boost::filesystem::remove(m_filename);
   }
-  else {
-    // Overwrite file
-    fits_create_file(&fptr, ("!" + filename).c_str(), &status);
-    if (empty_primary) {
-      fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-    }
-    if (status != 0) {
-      throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
-    }
-  }
+
+  auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
+  fptr = acc->m_fd.getFitsFilePtr();
+
   assert(fptr != nullptr);
+
+  if (empty_primary &&  acc->m_fd.getImageHdus().size() == 0) {
+    fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
+    if (status != 0) {
+      throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
+    }
+  }
 
   long naxes[2] = {width, height};
   fits_create_img(fptr, getImageType(), 2, naxes, &status);
 
   if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
-    throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
+    throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename << " status: " << status;
   }
 
   int hdutype = 0;
@@ -161,7 +153,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
       if (status != 0) {
         char err_txt[31];
         fits_get_errstatus(status, err_txt);
-        throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+        throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str << " status: " << status;
       }
     }
   }
@@ -174,8 +166,10 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
   fits_close_file(fptr, &status);
 
   if (status != 0) {
-    throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename;
+    throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename << " status: " << status;
   }
+
+  acc->m_fd.refresh(); // make sure changes to the file structure are taken into account
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {

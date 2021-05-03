@@ -54,14 +54,17 @@ public:
 
   std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu);
 
+  void refresh();
+
 private:
-  boost::filesystem::path                           m_path;
-  bool                                              m_is_writeable;
-  std::unique_ptr<fitsfile, void (*)(fitsfile*)>    m_fits_ptr;
-  std::vector<int>                                  m_image_hdus;
+  boost::filesystem::path m_path;
+  bool m_is_writeable;
+  std::unique_ptr<fitsfile, void (*)(fitsfile*)> m_fits_ptr;
+  std::vector<int> m_image_hdus;
   std::vector<std::map<std::string, MetadataEntry>> m_headers;
 
   void open();
+  void loadInfo();
   void loadFitsHeader();
   void loadHeadFile();
 };

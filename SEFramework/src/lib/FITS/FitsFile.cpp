@@ -91,6 +91,7 @@ static void close_fits(fitsfile* ptr) {
 FitsFile::FitsFile(const boost::filesystem::path& path, bool writeable)
     : m_path(path), m_is_writeable(writeable), m_fits_ptr(nullptr, close_fits) {
   open();
+  loadInfo();
 }
 
 FitsFile::~FitsFile() {}
@@ -108,19 +109,48 @@ std::map<std::string, MetadataEntry>& FitsFile::getHDUHeaders(int hdu) {
 }
 
 void FitsFile::open() {
-  int       status = 0;
-  fitsfile* ptr    = nullptr;
+  int status = 0;
+  fitsfile* ptr = nullptr;
 
   // Open
   fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
-    throw Elements::Exception() << "Can't open FITS file: " << m_path;
+    // Create file if it does not exists
+    status = 0;
+    fits_create_file(&ptr, m_path.native().c_str(), &status);
+    if (status != 0) {
+      throw Elements::Exception() << "Can't open FITS file: " << m_path << " status: " << status;
+    }
   }
 
   m_fits_ptr = std::move(std::unique_ptr<fitsfile, void (*)(fitsfile*)>(ptr, [](fitsfile* ptr) {
     int status = 0;
     fits_close_file(ptr, &status);
   }));
+}
+
+void FitsFile::refresh() {
+
+  // After modifying the FITS file, We need to close and reopen the file before we can query
+  // infos about it again without cfitsio crashing
+
+  int status = 0;
+  fitsfile* ptr = nullptr;
+
+  m_fits_ptr.reset(nullptr);
+  fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
+  if (status != 0) {
+    throw Elements::Exception() << "Can't close and reopen FITS file: " << m_path << " status: " << status;
+  }
+  m_fits_ptr.reset(ptr);
+
+  loadInfo();
+}
+
+void FitsFile::loadInfo() {
+  int status = 0;
+
+  fitsfile* ptr = m_fits_ptr.get();
 
   // save current HDU (if the file is opened with advanced cfitsio syntax it might be set already
   int original_hdu = 0;
@@ -132,7 +162,7 @@ void FitsFile::open() {
   if (fits_get_num_hdus(ptr, &number_of_hdus, &status) < 0) {
     throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_path;
   }
-
+  m_headers.clear();
   m_headers.resize(number_of_hdus);
 
   // loop over HDUs to determine which ones are images
@@ -166,8 +196,8 @@ void FitsFile::open() {
 
 static std::map<std::string, MetadataEntry> loadHeadersFromFits(fitsfile* fptr) {
   std::map<std::string, MetadataEntry> headers;
-  char                                 record[81];
-  int                                  keynum = 1, status = 0;
+  char record[81];
+  int keynum = 1, status = 0;
 
   fits_read_record(fptr, keynum, record, &status);
   while (status == 0 && strncmp(record, "END", 3) != 0) {
