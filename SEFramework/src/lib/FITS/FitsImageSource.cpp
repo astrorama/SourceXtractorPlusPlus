@@ -117,7 +117,6 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     // delete file if it exists already
     boost::filesystem::remove(m_filename);
   }
-
   auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
   fptr = acc->m_fd.getFitsFilePtr();
 
@@ -170,6 +169,13 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
   }
 
   acc->m_fd.refresh(); // make sure changes to the file structure are taken into account
+
+  // work around for canonical name bug:
+  // our file's canonical name might be wrong if it didn't exist, so we need to make sure we get the correct handler
+  // after we created the file
+
+  m_handler = nullptr;
+  m_handler = manager->getFileHandler(filename);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
