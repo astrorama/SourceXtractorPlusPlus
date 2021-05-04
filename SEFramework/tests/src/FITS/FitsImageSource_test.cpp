@@ -128,7 +128,7 @@ BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
   // Test creating a FITS file then reopening it to append to it
   {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(),
-        100, 100, ImageTile::FloatImage, nullptr, false);
+        100, 100, ImageTile::FloatImage, nullptr, false, true);
     auto image = WriteableBufferedImage<float>::create(image_source);
     image->setValue(10, 10, 123.f);
   }
@@ -145,12 +145,12 @@ BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
   TileManager::getInstance()->flush();
 
   {
-    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 1);
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 2);
     auto image = BufferedImage<float>::create(image_source);
     BOOST_CHECK_EQUAL(image->getValue(10, 10), 123.f);
   }
   {
-    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 2);
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 3);
     auto image = BufferedImage<float>::create(image_source);
     BOOST_CHECK_EQUAL(image->getValue(10, 10), 42.f);
   }
