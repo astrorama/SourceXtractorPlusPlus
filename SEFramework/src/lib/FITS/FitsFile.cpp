@@ -84,12 +84,15 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
 }
 
 static void close_fits(fitsfile* ptr) {
-  int status = 0;
-  fits_close_file(ptr, &status);
+  if (ptr != nullptr) {
+    int status = 0;
+    fits_close_file(ptr, &status);
+  }
 }
 
 FitsFile::FitsFile(const boost::filesystem::path& path, bool writeable)
     : m_path(path), m_is_writeable(writeable), m_fits_ptr(nullptr, close_fits) {
+
   open();
   loadInfo();
 }
@@ -115,18 +118,17 @@ void FitsFile::open() {
   // Open
   fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
-    // Create file if it does not exists
-    status = 0;
-    fits_create_file(&ptr, m_path.native().c_str(), &status);
+    if (m_is_writeable) {
+      // Create file if it does not exists
+      status = 0;
+      fits_create_file(&ptr, m_path.native().c_str(), &status);
+    }
     if (status != 0) {
       throw Elements::Exception() << "Can't open FITS file: " << m_path << " status: " << status;
     }
   }
 
-  m_fits_ptr = std::move(std::unique_ptr<fitsfile, void (*)(fitsfile*)>(ptr, [](fitsfile* ptr) {
-    int status = 0;
-    fits_close_file(ptr, &status);
-  }));
+  m_fits_ptr.reset(ptr);
 }
 
 void FitsFile::refresh() {
@@ -138,6 +140,7 @@ void FitsFile::refresh() {
   fitsfile* ptr = nullptr;
 
   m_fits_ptr.reset(nullptr);
+
   fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
     throw Elements::Exception() << "Can't close and reopen FITS file: " << m_path << " status: " << status;
