@@ -110,72 +110,76 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     , m_height(height)
     , m_image_type(image_type) {
 
-  int       status = 0;
-  fitsfile* fptr   = nullptr;
+  int status = 0;
+  fitsfile* fptr = nullptr;
 
-  if (append) {
-    fits_open_image(&fptr, filename.c_str(), READWRITE, &status);
-    if (status != 0) {
-      status = 0;
-      fits_create_file(&fptr, filename.c_str(), &status);
-      if (empty_primary) {
-        fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-      }
-      if (status != 0) {
-        throw Elements::Exception() << "Can't open or create FITS file to add HDU: " << filename;
-      }
-    }
+  if (!append) {
+    // delete file if it exists already
+    boost::filesystem::remove(m_filename);
   }
-  else {
-    // Overwrite file
-    fits_create_file(&fptr, ("!" + filename).c_str(), &status);
-    if (empty_primary) {
+
+  {
+    auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
+    fptr = acc->m_fd.getFitsFilePtr();
+
+    assert(fptr != nullptr);
+
+    if (empty_primary &&  acc->m_fd.getImageHdus().size() == 0) {
       fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-    }
-    if (status != 0) {
-      throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
-    }
-  }
-  assert(fptr != nullptr);
-
-  long naxes[2] = {width, height};
-  fits_create_img(fptr, getImageType(), 2, naxes, &status);
-
-  if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
-    throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
-  }
-
-  int hdutype = 0;
-  fits_movabs_hdu(fptr, m_hdu_number, &hdutype, &status);
-
-  if (coord_system) {
-    auto headers = coord_system->getFitsHeaders();
-    for (auto& h : headers) {
-      std::ostringstream padded_key, serializer;
-      padded_key << std::setw(8) << std::left << h.first;
-
-      serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
-      auto str = serializer.str();
-
-      fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
       if (status != 0) {
-        char err_txt[31];
-        fits_get_errstatus(status, err_txt);
-        throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+        throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
       }
     }
+
+    long naxes[2] = {width, height};
+    fits_create_img(fptr, getImageType(), 2, naxes, &status);
+
+    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename << " status: " << status;
+    }
+
+    int hdutype = 0;
+    fits_movabs_hdu(fptr, m_hdu_number, &hdutype, &status);
+
+    if (coord_system) {
+      auto headers = coord_system->getFitsHeaders();
+      for (auto& h : headers) {
+        std::ostringstream padded_key, serializer;
+        padded_key << std::setw(8) << std::left << h.first;
+
+        serializer << padded_key.str() << "= " << std::left << std::setw(70) << h.second;
+        auto str = serializer.str();
+
+        fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
+        if (status != 0) {
+          char err_txt[31];
+          fits_get_errstatus(status, err_txt);
+          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str << " status: " << status;
+        }
+      }
+    }
+
+    std::vector<char> buffer(width * ImageTile::getTypeSize(image_type));
+    for (int i = 0; i < height; i++) {
+      long first_pixel[2] = {1, i + 1};
+      fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
+    }
+    fits_close_file(fptr, &status);
+
+    if (status != 0) {
+      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename << " status: " << status;
+    }
+
+    acc->m_fd.refresh(); // make sure changes to the file structure are taken into account
+
   }
 
-  std::vector<char> buffer(width * ImageTile::getTypeSize(image_type));
-  for (int i = 0; i < height; i++) {
-    long first_pixel[2] = {1, i + 1};
-    fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
-  }
-  fits_close_file(fptr, &status);
+  // work around for canonical name bug:
+  // our file's canonical name might be wrong if it didn't exist, so we need to make sure we get the correct handler
+  // after we created the file
 
-  if (status != 0) {
-    throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename;
-  }
+  m_handler = nullptr;
+  m_handler = manager->getFileHandler(filename);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
