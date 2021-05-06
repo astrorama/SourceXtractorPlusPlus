@@ -27,6 +27,7 @@
 #include <ElementsKernel/Real.h>
 
 #include "SEFramework/Image/WriteableBufferedImage.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 using namespace SourceXtractor;
@@ -136,7 +137,8 @@ BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(),
         100, 100, ImageTile::FloatImage, nullptr, true);
     auto image = WriteableBufferedImage<float>::create(image_source);
-    BOOST_CHECK_EQUAL(image->getValue(10, 10), 0);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 0);
     image->setValue(10, 10, 42.f);
   }
 
@@ -147,12 +149,14 @@ BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
   {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 2);
     auto image = BufferedImage<float>::create(image_source);
-    BOOST_CHECK_EQUAL(image->getValue(10, 10), 123.f);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 123.f);
   }
   {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 3);
     auto image = BufferedImage<float>::create(image_source);
-    BOOST_CHECK_EQUAL(image->getValue(10, 10), 42.f);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 42.f);
   }
 }
 
