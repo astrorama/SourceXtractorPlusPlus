@@ -24,9 +24,12 @@
 #ifndef _SEFRAMEWORK_SOURCE_SOURCEFLAGS_H_
 #define _SEFRAMEWORK_SOURCE_SOURCEFLAGS_H_
 
-#include <type_traits>
-#include <vector>
 #include <stdint.h>
+#include <iostream>
+#include <map>
+#include <string>
+#include <vector>
+#include <type_traits>
 
 namespace SourceXtractor {
 
@@ -42,6 +45,20 @@ enum class Flags : int64_t {
   PARTIAL_FIT       = 1ll << 6,  ///< Some/all of the model parameters could not be fitted
   INSUFFICIENT_DATA = 1ll << 7,  ///< There are not enough good pixels to fit the parameters
   ERROR             = 1ll << 10, ///< Error flag: something bad happened during the measurement, model fitting, etc.
+  SENTINEL          = 1ll << 11, ///< Used to find the boundary of possible values
+};
+
+/// String representation of the flags
+const std::map<Flags, std::string> FlagsStr = {
+  {Flags::NONE, "NONE"},
+  {Flags::BIASED, "BIASED"},
+  {Flags::BLENDED, "BLENDED"},
+  {Flags::BOUNDARY, "BOUNDARY"},
+  {Flags::NEIGHBORS, "NEIGHBORS"},
+  {Flags::OUTSIDE, "OUTSIDE"},
+  {Flags::PARTIAL_FIT, "PARTIAL_FIT"},
+  {Flags::INSUFFICIENT_DATA, "INSUFFICIENT_DATA"},
+  {Flags::ERROR, "ERROR"}
 };
 
 
@@ -74,6 +91,27 @@ inline std::vector<int64_t> flags2long(const std::vector<Flags> &v) {
     vl.emplace_back(flags2long(a));
   }
   return vl;
+}
+
+inline std::ostream& operator<<(std::ostream& out, Flags flags) {
+  std::underlying_type<Flags>::type i;
+  bool some_printed = false;
+  for (i = static_cast<decltype(i)>(Flags::BIASED);
+       i < static_cast<decltype(i)>(Flags::SENTINEL); i <<= 1) {
+    if ((flags & static_cast<Flags>(i)) != Flags::NONE) {
+      if (some_printed)
+        out << " | ";
+      else
+        out << "(";
+      out << FlagsStr.at(static_cast<Flags>(i));
+      some_printed = true;
+    }
+  }
+  if (some_printed)
+    out << ")";
+  else
+    out << "NONE";
+  return out;
 }
 
 } // end SourceXtractor

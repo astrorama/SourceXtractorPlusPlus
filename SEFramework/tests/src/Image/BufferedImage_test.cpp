@@ -31,10 +31,10 @@ using namespace SourceXtractor;
 template<typename T>
 class ImageSourceMock : public ImageSource {
 private:
-  std::shared_ptr<Image<T>> m_img;
+  std::shared_ptr<VectorImage<T>> m_img;
 
 public:
-  ImageSourceMock(const std::shared_ptr<Image<T>> &img) : m_img(img) {}
+  ImageSourceMock(const std::shared_ptr<VectorImage<T>> &img) : m_img(img) {}
 
   virtual ~ImageSourceMock() = default;
 

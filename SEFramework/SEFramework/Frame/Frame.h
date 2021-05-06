@@ -130,11 +130,6 @@ public:
     return m_background_rms;
   }
 
-  T getDetectionThreshold() const {
-    // FIXME using the 0,0 pixel makes no sense
-    return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
-  }
-
   std::shared_ptr<Image<T>> getDetectionThresholdMap() const;
 
   std::string getLabel() const {
@@ -164,6 +159,7 @@ public:
 private:
 
   void applyFilter();
+  void applyInterpolation();
 
   std::shared_ptr<Image<T>> m_image;
   std::shared_ptr<WeightImage> m_variance_map;

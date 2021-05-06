@@ -93,8 +93,8 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto aperture_photometry = source.getProperty<AperturePhotometry>();
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 3.14159 * .25, 10);
 
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BOUNDARY) == Flags::BOUNDARY);
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::SATURATED) == Flags::NONE);
+  auto flags = aperture_photometry.getFlags()[0];
+  BOOST_CHECK_EQUAL(flags, Flags::BOUNDARY);
 }
 
 //-----------------------------------------------------------------------------

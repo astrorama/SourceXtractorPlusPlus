@@ -33,7 +33,7 @@ void checkEqual(const std::shared_ptr<VectorImage<SeFloat>> &a, const  std::shar
   for (auto i = 0; i < a->getWidth(); ++i) {
     for (auto j = 0; j < a->getHeight(); ++j) {
       // We assume the PSF summed value will normally be around O(1)
-      // so the error should remain bellow float::epsilon
+      // so the error should remain below float::epsilon
       BOOST_CHECK_LE(std::abs(a->at(i, j) - b->at(i, j)), std::numeric_limits<float>::epsilon());
     }
   }

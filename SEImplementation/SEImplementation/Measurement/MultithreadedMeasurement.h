@@ -51,9 +51,6 @@ public:
   void startThreads() override;
   void waitForThreads() override;
 
-public:
-  static std::recursive_mutex g_global_mutex;
-
 private:
   static void outputThreadStatic(MultithreadedMeasurement* measurement);
   void outputThreadLoop();

@@ -52,7 +52,7 @@ BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
   auto img = FitsReader<SeFloat>::readFile(m_tmp_fits.path().native());
   BOOST_CHECK_EQUAL(img->getWidth(), 1);
   BOOST_CHECK_EQUAL(img->getHeight(), 1);
-  BOOST_CHECK_EQUAL(img->getValue(0, 0), 42);
+  BOOST_CHECK_EQUAL(img->getChunk(0, 0, 1, 1)->getValue(0, 0), 42);
 }
 
 //-----------------------------------------------------------------------------

@@ -26,7 +26,7 @@
 
 #include <mutex>
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/TileManager.h"
 
 
@@ -36,7 +36,7 @@ namespace SourceXtractor {
  *
  */
 template <typename T>
-class BufferedImage : public ImageBase<T> {
+class BufferedImage : public virtual Image<T> {
 protected:
 
   BufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager);
@@ -49,9 +49,6 @@ public:
 
   std::string getRepr() const override;
 
-  /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override;
-
   /// Returns the width of the image in pixels
   int getWidth() const override;
 
@@ -63,7 +60,6 @@ public:
 protected:
   std::shared_ptr<const ImageSource> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
-  mutable std::shared_ptr<ImageTile> m_current_tile;
 
   void copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T> &output,
                              int x, int y, int w, int h,

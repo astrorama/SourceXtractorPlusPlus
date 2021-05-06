@@ -25,7 +25,7 @@
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
-#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+//#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 namespace SourceXtractor {
@@ -71,6 +71,7 @@ void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) con
   group.setIndexedProperty<PsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
 
   // Check image
+  /*
   if (group.size()) {
     auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
     if (check_image) {
@@ -81,6 +82,7 @@ void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) con
         check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
     }
   }
+   */
 }
 
 }

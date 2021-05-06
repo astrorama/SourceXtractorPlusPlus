@@ -41,9 +41,9 @@ BOOST_AUTO_TEST_CASE (image_to_mask) {
       21, 22, 23, 24, 25
     });
 
-  auto transformed = FunctionalImage<int>::create(
-    5, 5, [image](int x, int y) -> int {
-      return image->getValue(x, y) >= 12 && image->getValue(x, y) <= 14;
+  auto transformed = FunctionalImage<int, SeFloat>::create(
+    image, [](int, int, int v) -> int {
+      return v >= 12 && v <= 14;
     }
   );
 
