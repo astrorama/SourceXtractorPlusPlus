@@ -109,11 +109,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
       }
       return *this;
     }
-/*
-    WriteableInterfaceType::PixelType operator*() {
-      return m_accessor.getValue(m_x, m_y);
-    }
-*/
+
     WriteableSetter& operator*() {
       m_setter.m_x = m_x;
       m_setter.m_y = m_y;
@@ -140,8 +136,8 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
   }
 
   static ImageInterfaceType::PixelType at(const WriteableInterfaceTypePtr &image, std::size_t x, std::size_t y) {
-    //return image->getValue(x, y);
-    abort();
+    SourceXtractor::ImageAccessor<WriteableInterfaceType::PixelType> accessor(image);
+    return accessor.getValue(x, y);
   }
 
   static iterator begin(const WriteableInterfaceTypePtr &image) {
@@ -226,20 +222,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
 
 
 }; // end of class ImageTraits<WriteableInterfaceTypePtr>
-/*
-template<typename T>
-auto operator*(T v, const ImageTraits<WriteableInterfaceTypePtr>::WriteableSetter &setter) -> decltype(v *
-                                                                                                       WriteableInterfaceType::PixelType(
-                                                                                                         0)) {
-  return v * static_cast<WriteableInterfaceType::PixelType>(setter);
-}
 
-template<typename T>
-auto operator*(const ImageTraits<WriteableInterfaceTypePtr>::WriteableSetter &setter, T v) -> decltype(
-WriteableInterfaceType::PixelType(0) * v) {
-  return static_cast<WriteableInterfaceType::PixelType>(setter) * v;
-}
-*/
 inline void ImageTraits<WriteableInterfaceTypePtr>::addImageToImage(WriteableInterfaceTypePtr &image1,
                                                                     const WriteableInterfaceTypePtr &image2,
                                                                     double scale_factor, double x, double y) {
