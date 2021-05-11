@@ -24,6 +24,7 @@
 #include <ElementsKernel/Logging.h>
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
 
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
@@ -35,7 +36,9 @@ static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
 
 std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
-    return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
+//    return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
+//                                                      m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
+    return std::make_shared<FlexibleModelFittingIterativeTask>(m_least_squares_engine, m_max_iterations,
                                                       m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
   } else {
     return nullptr;
