@@ -20,10 +20,11 @@
  * @author mschefer
  */
 
-#include <typeinfo>
+#include <dlfcn.h>
+#include <iomanip>
 #include <map>
 #include <string>
-#include <iomanip>
+#include <typeinfo>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -124,6 +125,29 @@ static void setupEnvironment(void) {
   }
 }
 
+/**
+ * MKL blas implementation use multithreading by default, which
+ * tends to play badly with sourcextractor++ own multithreading.
+ * We disable multithreading here *unless* explicitly enabled by the user via
+ * environment variables
+ */
+static void disableBlasMultithreading() {
+  bool omp_env_present = getenv("OMP_NUM_THREADS") || getenv("OMP_DYNAMIC");
+  bool mkl_env_present = getenv("MKL_NUM_THREADS") || getenv("MKL_DYNAMIC");
+  if (!omp_env_present && !mkl_env_present) {
+    // Despite the documentation, the methods following C ABI are capitalized
+    void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
+    void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
+    if (set_num_threads) {
+      logger.debug() << "Disabling multithreading";
+      set_num_threads(1);
+    }
+    if (set_dynamic) {
+      logger.debug() << "Disabling dynamic multithreading";
+      set_dynamic(0);
+    }
+  }
+}
 
 class SEMain : public Elements::Program {
 
@@ -280,6 +304,9 @@ public:
       printDefaults();
       return Elements::ExitCode::OK;
     }
+
+    // Make sure the BLAS multithreading does not interfere
+    disableBlasMultithreading();
 
     // Elements does not verify that the config-file exists. It will just not read it.
     // We verify that it does exist here.
