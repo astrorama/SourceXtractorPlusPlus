@@ -20,10 +20,11 @@
  * @author mschefer
  */
 
-#include <typeinfo>
+#include <dlfcn.h>
+#include <iomanip>
 #include <map>
 #include <string>
-#include <iomanip>
+#include <typeinfo>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
