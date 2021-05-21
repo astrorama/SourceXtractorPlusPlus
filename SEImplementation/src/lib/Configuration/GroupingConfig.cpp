@@ -34,6 +34,7 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string GROUPING_ALGORITHM {"grouping-algorithm" };
+static const std::string GROUPING_HARD_LIMIT {"grouping-hard-limit" };
 static const std::string GROUPING_MOFFAT_THRESHOLD {"grouping-moffat-threshold" };
 static const std::string GROUPING_MOFFAT_MAX_DISTANCE {"grouping-moffat-max-distance" };
 
@@ -43,13 +44,16 @@ static const std::string GROUPING_ALGORITHM_SPLIT {"SPLIT" };
 static const std::string GROUPING_ALGORITHM_MOFFAT {"MOFFAT" };
 
 GroupingConfig::GroupingConfig(long manager_id)
-    : Configuration(manager_id), m_selected_algorithm(Algorithm::SPLIT_SOURCES), m_moffat_threshold(0.02), m_moffat_max_distance(300) {
+    : Configuration(manager_id),
+      m_selected_algorithm(Algorithm::SPLIT_SOURCES), m_moffat_threshold(0.02), m_moffat_max_distance(300), m_hard_limit(0) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getProgramOptions() {
   return { {"Grouping", {
       {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_NONE),
           "Grouping algorithm to be used [none|overlap|split|moffat]."},
+      {GROUPING_HARD_LIMIT.c_str(), po::value<unsigned int>()->default_value(0),
+          "Maximum number of sources in a single group (0 = unlimited)"},
       {GROUPING_MOFFAT_THRESHOLD.c_str(), po::value<double>()->default_value(0.02),
           "Threshold used for Moffat grouping."},
       {GROUPING_MOFFAT_MAX_DISTANCE.c_str(), po::value<double>()->default_value(300),
@@ -76,6 +80,9 @@ void GroupingConfig::initialize(const UserValues& args) {
   }
   if (args.find(GROUPING_MOFFAT_MAX_DISTANCE) != args.end()) {
     m_moffat_max_distance = args.find(GROUPING_MOFFAT_MAX_DISTANCE)->second.as<double>();
+  }
+  if (args.find(GROUPING_HARD_LIMIT) != args.end()) {
+    m_hard_limit = args.find(GROUPING_HARD_LIMIT)->second.as<unsigned int>();
   }
 }
 
