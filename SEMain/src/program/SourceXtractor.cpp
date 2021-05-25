@@ -239,7 +239,7 @@ public:
   static void writeDefaultMultiple(std::ostream& out, const po::option_description& opt, const boost::any& default_value) {
     auto values = boost::any_cast<std::vector<T>>(default_value);
     if (values.empty()) {
-      out << opt.long_name() << '=' << std::endl;
+      out << "# " << opt.long_name() << '=' << std::endl;
     }
     else {
       for (const auto& v : values)
