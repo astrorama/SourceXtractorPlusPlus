@@ -49,14 +49,14 @@ jobs:
         uses: actions/checkout@v2
       - name: Get package name and version
         id: package-version
-        uses: astrorama/actions/elements-project@master
+        uses: astrorama/actions/elements-project@v2
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@master
+        uses: astrorama/actions/setup-dependencies@v2
         with:
           dependency-list: .github/workflows/dependencies.txt
       - name: Build
         id: build
-        uses: astrorama/actions/elements-build-rpm@master
+        uses: astrorama/actions/elements-build-rpm@v2
       - name: Upload RPM to GitHub
         uses: actions/upload-artifact@v2
         with:
@@ -70,7 +70,7 @@ jobs:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
       - name: Upload RPM to Artifactory
         if: ${{ github.event_name != 'pull_request' }}
-        uses: astrorama/actions/upload-rpm@master
+        uses: astrorama/actions/upload-rpm@v2
         with:
           path: ${{ steps.build.outputs.rpm-dir }}
 
@@ -90,7 +90,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@master
+        uses: astrorama/actions/setup-dependencies@v2
         with:
           dependency-list: .github/workflows/test-dependencies.txt
       - name: Download RPM
@@ -131,7 +131,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Get package name and version
         id: package-version
-        uses: astrorama/actions/elements-project@master
+        uses: astrorama/actions/elements-project@v2
       - name: Download RPM
         uses: actions/download-artifact@v2
         with:
@@ -141,7 +141,7 @@ jobs:
         env:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
       - name: Upload RPM to Artifactory
-        uses: astrorama/actions/upload-rpm@master
+        uses: astrorama/actions/upload-rpm@v2
         with:
           os_type: ${{ matrix.os-type }}
           os_version: ${{ matrix.os-version }}
