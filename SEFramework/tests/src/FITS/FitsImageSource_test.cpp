@@ -22,16 +22,21 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "ElementsKernel/Temporary.h"
 #include <ElementsKernel/Auxiliary.h>
 #include <ElementsKernel/Real.h>
+
+#include "SEFramework/Image/WriteableBufferedImage.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 using namespace SourceXtractor;
 
 struct FitsImageSourceFixture {
   std::string mhdu_path, primary_path;
+  Elements::TempFile temp_path;
 
-  FitsImageSourceFixture() {
+  FitsImageSourceFixture() : temp_path("FitsImageSource_test_%%%%%%.fits") {
     mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.fits").native();
   }
@@ -118,6 +123,41 @@ BOOST_FIXTURE_TEST_CASE(bad_hdu_test, FitsImageSourceFixture) {
 BOOST_FIXTURE_TEST_CASE(empty_primary_hdu_test, FitsImageSourceFixture) {
   BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[0]"), Elements::Exception);
   BOOST_CHECK_THROW(std::make_shared<FitsImageSource>(mhdu_path + "[PRIMARY]"), Elements::Exception);
+}
+
+BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
+  // Test creating a FITS file then reopening it to append to it
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(),
+        100, 100, ImageTile::FloatImage, nullptr, false, true);
+    auto image = WriteableBufferedImage<float>::create(image_source);
+    image->setValue(10, 10, 123.f);
+  }
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(),
+        100, 100, ImageTile::FloatImage, nullptr, true);
+    auto image = WriteableBufferedImage<float>::create(image_source);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 0);
+    image->setValue(10, 10, 42.f);
+  }
+
+  // We need to flush as we don't recognize reopening the same file as being the same ImageSource
+  // (we also need a flush at some point to prevent error due to elements deleting the tmp file before destructor)
+  TileManager::getInstance()->flush();
+
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 2);
+    auto image = BufferedImage<float>::create(image_source);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 123.f);
+  }
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(), 3);
+    auto image = BufferedImage<float>::create(image_source);
+    ImageAccessor<float> accessor(image);
+    BOOST_CHECK_EQUAL(accessor.getValue(10, 10), 42.f);
+  }
 }
 
 //-----------------------------------------------------------------------------

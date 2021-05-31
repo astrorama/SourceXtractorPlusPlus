@@ -103,7 +103,7 @@ class MeasurementImage(cpp.MeasurementImage):
     constant_background : float
         If set a constant background of that value is assumed for the image instead of using automatic detection
     image_hdu : int
-        For multi-extension FITS file specifies the HDU number for the image. Default 1 (primary HDU)
+        For multi-extension FITS file specifies the HDU number for the image. Default 0 (primary HDU)
     psf_hdu : int
         For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu
     weight_hdu : int
@@ -115,7 +115,7 @@ class MeasurementImage(cpp.MeasurementImage):
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='none', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None, constant_background=None,
-                 image_hdu=1, psf_hdu=None, weight_hdu=None 
+                 image_hdu=0, psf_hdu=None, weight_hdu=None 
                  ):
         """
         Constructor.
@@ -134,8 +134,8 @@ class MeasurementImage(cpp.MeasurementImage):
                                                os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
-        if image_hdu <= 0 or (weight_hdu is not None and weight_hdu <= 0) or (psf_hdu is not None and psf_hdu <= 0):
-            raise ValueError('HDU indexes start at 1')
+        if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (psf_hdu is not None and psf_hdu < 0):
+            raise ValueError('HDU indices start at 0')
 
         self.meta = {
             'IMAGE_FILENAME': self.file,
@@ -143,7 +143,7 @@ class MeasurementImage(cpp.MeasurementImage):
             'WEIGHT_FILENAME': self.weight_file
         }
 
-        self.meta.update(hdu_list.get_headers(image_hdu-1))
+        self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
             self.gain = gain
@@ -482,7 +482,7 @@ def load_fits_image(image, psf=None, weight=None, **kwargs):
     for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
             image_hdu_idx, psf_list, psf_hdu_idx, weight_list, weight_hdu_idx):
         image_list.append(MeasurementImage(image_hdu_list, psf_file, weight_file,
-                                           image_hdu=hdu+1, psf_hdu=psf_hdu+1, weight_hdu=weight_hdu+1, **kwargs))
+                                           image_hdu=hdu, psf_hdu=psf_hdu, weight_hdu=weight_hdu, **kwargs))
  
     return ImageGroup(images=image_list)
 

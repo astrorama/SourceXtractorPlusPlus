@@ -25,6 +25,7 @@
 #define _SEFRAMEWORK_IMAGE_WRITEABLEIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
+#include <mutex>
 
 namespace SourceXtractor {
 
@@ -33,7 +34,9 @@ class WriteableImage : public virtual Image<T> {
 public:
 
   virtual void setValue(int x, int y, T value) = 0;
-  //virtual void setValues(int x, int y, int width, int height, T* values) = 0;
+
+  // This mutex can be used to lock the writeable image if used multithreaded
+  std::mutex m_write_mutex;
 };
 
 }

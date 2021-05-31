@@ -19,12 +19,12 @@
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEIMAGES_MEASUREMENTFRAMEIMAGES_H_
 
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/ImageChunk.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Frame/Frame.h"
 
-#include "SEImplementation/Image/LockedImage.h"
 
 namespace SourceXtractor {
 
@@ -36,14 +36,11 @@ public:
   MeasurementFrameImages( std::shared_ptr<MeasurementImageFrame> frame, int width, int height)
     : m_width(width), m_height(height), m_frame(frame) {}
 
-  std::shared_ptr<Image<SeFloat>> getLockedImage(FrameImageLayer layer) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-    return LockedImage<SeFloat>::create(m_frame->getImage(layer));
+  std::shared_ptr<ImageAccessor<SeFloat>> getLockedImage(FrameImageLayer layer) const {
+    return std::make_shared<ImageAccessor<SeFloat>>(m_frame->getImage(layer));
   }
 
   std::shared_ptr<ImageChunk<MeasurementImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width, int height) const {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }
 

@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
 

@@ -49,7 +49,9 @@ void MultiThreadingConfig::initialize(const UserValues& args) {
   else if (m_threads_nb < -1) {
     throw Elements::Exception("Invalid number of threads.");
   }
-  m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
+  if (m_threads_nb > 0) {
+    m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
+  }
 }
 
 } // SourceXtractor namespace

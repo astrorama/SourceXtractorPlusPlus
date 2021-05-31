@@ -13,4 +13,5 @@ graphviz
 gtest-devel
 levmar-devel
 log4cpp-devel
+onnxruntime-devel
 wcslib-devel

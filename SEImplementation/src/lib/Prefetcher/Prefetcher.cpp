@@ -79,7 +79,7 @@ void Prefetcher::requestProperty(const PropertyId& property_id) {
 void Prefetcher::outputLoop() {
   logger.debug() << "Starting prefetcher output loop";
 
-  while (true) {
+  while (m_thread_pool->activeThreads() > 0) {
     std::unique_lock<std::mutex> output_lock(m_queue_mutex);
 
     // Wait for something new

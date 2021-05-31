@@ -23,7 +23,6 @@
 #include <mutex>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagTask.h"
@@ -35,16 +34,16 @@ ExternalFlagTask<Combine>::~ExternalFlagTask() {
 }
 
 template<typename Combine>
-ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance)
-  : m_flag_image(flag_image), m_flag_instance(flag_instance) {
+ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image,
+                                            unsigned int flag_instance)
+  : m_flag_image(new ImageAccessor<FlagImage::PixelType>(flag_image)),
+    m_flag_instance(flag_instance) {
 }
 
 
 template<typename Combine>
 void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const {
   // FIXME: for flag_image access, the external flags image not part of detection frame?!
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
   const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
 
   if (m_flag_image->getWidth() != detection_frame_info.getWidth() ||
