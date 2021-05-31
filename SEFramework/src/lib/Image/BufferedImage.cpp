@@ -16,8 +16,6 @@
  */
 
 #include "SEFramework/Image/BufferedImage.h"
-
-#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/Image/TileManager.h"
@@ -40,17 +38,6 @@ std::shared_ptr<BufferedImage<T>> BufferedImage<T>::create(std::shared_ptr<const
 template<typename T>
 std::string BufferedImage<T>::getRepr() const {
   return "BufferedImage(" + m_source->getRepr() + ")";
-}
-
-template<typename T>
-T BufferedImage<T>::getValue(int x, int y) const {
-  assert(x >= 0 && y >= 0 && x < m_source->getWidth() && y < m_source->getHeight());
-
-  if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
-    m_current_tile = m_tile_manager->getTileForPixel(x, y, m_source);
-  }
-
-  return m_current_tile->getValue<T>(x, y);
 }
 
 
@@ -83,8 +70,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
 
     // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
     auto image = tile->getImage();
-    const T *data_start = &(image->getData()[tile_offset_x + tile_offset_y * image->getWidth()]);
-    return ImageChunk<T>::create(data_start, width, height, image->getWidth(), image);
+    return image->getChunk(tile_offset_x, tile_offset_y, width, height);
   }
   else {
     // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
@@ -102,7 +88,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
 
     for (int iy = tile_start_y; iy <= tile_end_y; iy += tile_h) {
       for (int ix = tile_start_x; ix <= tile_end_x; ix += tile_w) {
-        auto tile =std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
+        auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
         copyOverlappingPixels(*tile, data, x, y, width, height, tile_w, tile_h);
       }
     }

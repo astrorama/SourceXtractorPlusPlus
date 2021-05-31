@@ -66,7 +66,7 @@ PixelCoordinate CircularAperture::getMinPixel(SeFloat centroid_x, SeFloat centro
 }
 
 PixelCoordinate CircularAperture::getMaxPixel(SeFloat centroid_x, SeFloat centroid_y) const {
-  return PixelCoordinate(centroid_x + m_radius + 1, centroid_y + m_radius + 1);
+  return PixelCoordinate(std::ceil(centroid_x + m_radius), std::ceil(centroid_y + m_radius));
 }
 
 } // end SourceXtractor

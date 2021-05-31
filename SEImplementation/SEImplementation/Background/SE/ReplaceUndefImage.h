@@ -26,45 +26,16 @@ namespace SourceXtractor {
  * Replace undefined (i.e. masked) values with the average of the closest defined pixel values
  * @tparam T
  *  Pixel type
+ * @param original
+ *  Original image
+ * @param mask
+ *  Value that masks invalid pixels
  */
 template <typename T>
-class ReplaceUndefImage: public ImageBase<T> {
-private:
-  ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid);
+std::shared_ptr<VectorImage<T>> ReplaceUndef(const VectorImage<T>& original, T mask);
 
-public:
-  /**
-   * Dstructor
-   */
-  ~ReplaceUndefImage() = default;
-
-  /**
-   * Create an image where filtered values are replaced with the average of the closest neighbors
-   * @param image
-   *    Image to "fix"
-   * @param undefined
-   *    Value used as mask
-   * @return
-   *    A new image
-   */
-  static std::shared_ptr<ReplaceUndefImage<T>> create(const std::shared_ptr<VectorImage<T>>& image, T undefined) {
-    return std::shared_ptr<ReplaceUndefImage<T>>(new ReplaceUndefImage(image, undefined));
-  };
-
-  std::string getRepr() const final;
-
-  T getValue(int x, int y) const final;
-
-  int getWidth() const final;
-
-  int getHeight() const final;
-
-private:
-  std::shared_ptr<VectorImage<T>> m_image;
-  T m_invalid;
-};
-
-extern template class ReplaceUndefImage<SeFloat>;
+// Instantiations
+extern std::shared_ptr<VectorImage<SeFloat>> ReplaceUndef(const VectorImage<SeFloat>&, SeFloat);
 
 } // end of namespace SourceXtractor
 

@@ -20,10 +20,11 @@
  * @author mschefer
  */
 
-#include <typeinfo>
+#include <dlfcn.h>
+#include <iomanip>
 #include <map>
 #include <string>
-#include <iomanip>
+#include <typeinfo>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -50,8 +51,6 @@
 
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
-
-#include "SEFramework/FITS/FitsFileManager.h"
 
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
@@ -126,6 +125,29 @@ static void setupEnvironment(void) {
   }
 }
 
+/**
+ * MKL blas implementation use multithreading by default, which
+ * tends to play badly with sourcextractor++ own multithreading.
+ * We disable multithreading here *unless* explicitly enabled by the user via
+ * environment variables
+ */
+static void disableBlasMultithreading() {
+  bool omp_env_present = getenv("OMP_NUM_THREADS") || getenv("OMP_DYNAMIC");
+  bool mkl_env_present = getenv("MKL_NUM_THREADS") || getenv("MKL_DYNAMIC");
+  if (!omp_env_present && !mkl_env_present) {
+    // Despite the documentation, the methods following C ABI are capitalized
+    void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
+    void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
+    if (set_num_threads) {
+      logger.debug() << "Disabling multithreading";
+      set_num_threads(1);
+    }
+    if (set_dynamic) {
+      logger.debug() << "Disabling dynamic multithreading";
+      set_dynamic(0);
+    }
+  }
+}
 
 class SEMain : public Elements::Program {
 
@@ -217,7 +239,7 @@ public:
   static void writeDefaultMultiple(std::ostream& out, const po::option_description& opt, const boost::any& default_value) {
     auto values = boost::any_cast<std::vector<T>>(default_value);
     if (values.empty()) {
-      out << opt.long_name() << '=' << std::endl;
+      out << "# " << opt.long_name() << '=' << std::endl;
     }
     else {
       for (const auto& v : values)
@@ -283,6 +305,9 @@ public:
       return Elements::ExitCode::OK;
     }
 
+    // Make sure the BLAS multithreading does not interfere
+    disableBlasMultithreading();
+
     // Elements does not verify that the config-file exists. It will just not read it.
     // We verify that it does exist here.
     if (args.find("config-file") != args.end()) {
@@ -334,29 +359,45 @@ public:
 
     auto segmentation = segmentation_factory.createSegmentation();
 
-    // Prefetcher
+    // Multithreading
     auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
-    auto prefetcher = std::make_shared<Prefetcher>(multithreading_config.getThreadPool());
+    auto thread_pool = multithreading_config.getThreadPool();
+
+    // Prefetcher
+    std::shared_ptr<Prefetcher> prefetcher;
+    if (thread_pool) {
+      prefetcher = std::make_shared<Prefetcher>(thread_pool);
+    }
 
     // Rest of the stagees
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
-    prefetcher->requestProperties(source_grouping->requiredProperties());
 
     std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
-    prefetcher->requestProperties(deblending->requiredProperties());
+    if (prefetcher) {
+      prefetcher->requestProperties(source_grouping->requiredProperties());
+      prefetcher->requestProperties(deblending->requiredProperties());
+    }
 
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
-    segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
-    prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-    partition->addObserver(prefetcher);
-    prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+
+    if (prefetcher) {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
+      prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(prefetcher);
+      prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+    }
+    else {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(source_grouping);
+    }
+
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
@@ -445,7 +486,9 @@ public:
       return Elements::ExitCode::NOT_OK;
     }
 
-    prefetcher->wait();
+    if (prefetcher) {
+      prefetcher->wait();
+    }
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
@@ -453,7 +496,6 @@ public:
     CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
-    FitsFileManager::getInstance()->closeAllFiles();
 
     size_t n_writen_rows = output->flush();
 

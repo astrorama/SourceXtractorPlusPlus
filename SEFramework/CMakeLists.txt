@@ -16,6 +16,7 @@ elements_subdir(SEFramework)
 elements_depends_on_subdirs(ElementsKernel)
 elements_depends_on_subdirs(Configuration) # From Alexandria
 elements_depends_on_subdirs(MathUtils) # From Alexandria
+elements_depends_on_subdirs(FilePool) # From Alexandria
 elements_depends_on_subdirs(Table)
 elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(ModelFitting)
@@ -56,8 +57,9 @@ elements_add_library(SEFramework
                      src/lib/FITS/*.cpp
                      src/lib/Frame/*.cpp
                      src/lib/CoordinateSystem/*.cpp
-                     LINK_LIBRARIES ElementsKernel SEUtils Table Configuration MathUtils WCSLIB
-                                    ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
+                     LINK_LIBRARIES
+                        ElementsKernel SEUtils Table Configuration MathUtils FilePool
+                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
                      INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
 
@@ -140,13 +142,16 @@ elements_add_unit_test(FunctionalImage_test tests/src/Image/FunctionalImage_test
 elements_add_unit_test(BufferedImage_test tests/src/Image/BufferedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(InterpolatedImage_test tests/src/Image/InterpolatedImage_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(MaskedImage_test tests/src/Image/MaskedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(SubImage_test tests/src/Image/SubImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(InterpolatedImageSource_test tests/src/Image/InterpolatedImageSource_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(ImageAccessor_test tests/src/Image/ImageAccessor_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
@@ -159,6 +164,12 @@ elements_add_unit_test(DFT_test tests/src/Convolution/DFT_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(TransformedAperture_test tests/src/Aperture/TransformedAperture_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(Flagging_test tests/src/Aperture/Flagging_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(FluxMeasurement_test tests/src/Aperture/FluxMeasurement_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(NeighbourInfo_test tests/src/Aperture/NeighbourInfo_test.cpp

@@ -16,16 +16,12 @@
  */
 
 #include "SEFramework/Property/DetectionFrame.h"
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
-
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImagesTask.h"
 
 namespace SourceXtractor {
 
 void DetectionFrameImagesTask::computeProperties(SourceInterface& source) const {
-  std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
   auto frame = source.getProperty<DetectionFrame>().getFrame();
   auto width = frame->getOriginalImage()->getWidth();
   auto height = frame->getOriginalImage()->getHeight();

@@ -19,13 +19,9 @@
 #define _SEIMPLEMENTATION_PYFITSFILE_H
 
 #include <string>
-
 #include <boost/python/list.hpp>
-
-#include <SEFramework/FITS/FitsFile.h>
-#include <SEFramework/FITS/FitsFileManager.h>
-
-#include <SEImplementation/PythonConfig/PyId.h>
+#include "SEFramework/FITS/FitsFile.h"
+#include "SEImplementation/PythonConfig/PyId.h"
 
 namespace SourceXtractor {
 
@@ -35,12 +31,7 @@ public:
 
   PyFitsFile(const std::string& filename);
 
-  virtual ~PyFitsFile() {
-    if (m_file != nullptr) {
-      m_file->close();
-      m_file.reset();
-    }
-  }
+  virtual ~PyFitsFile() = default;
 
   std::string getFilename() const {
     return m_filename;

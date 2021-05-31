@@ -120,10 +120,8 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
 
   // Interpolate missing values
   // The result is "materialized" into a VectorImage to avoid redundant computations on the next steps
-  mode = VectorImage<DetectionImage::PixelType>::create(
-    ReplaceUndefImage<DetectionImage::PixelType>::create(mode, mask_value));
-  var = VectorImage<DetectionImage::PixelType>::create(
-    ReplaceUndefImage<DetectionImage::PixelType>::create(var, mask_value));
+  mode = ReplaceUndef<DetectionImage::PixelType>(*mode, mask_value);
+  var = ReplaceUndef<WeightImage::PixelType>(*var, mask_value);
 
   // Smooth with the smooth_box (median filtering)
   std::tie(mode, var) = MedianFilter<DetectionImage::PixelType>(m_smoothing_box)(*mode, *var);
@@ -139,8 +137,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
     auto weight = histo.getVarianceModeImage();
     auto weight_var = histo.getVarianceSigmaImage();
     // Interpolate missing values
-    weight = VectorImage<WeightImage::PixelType>::create(
-      ReplaceUndefImage<DetectionImage::PixelType>::create(weight, mask_value));
+    weight = ReplaceUndef<DetectionImage::PixelType>(*weight, mask_value);
     // Smooth with the smooth_box (median filtering)
     std::tie(weight, weight_var) = MedianFilter<WeightImage::PixelType>(m_smoothing_box)(*weight, *weight_var);
     // Compute scaling

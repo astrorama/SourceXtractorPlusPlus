@@ -10,8 +10,40 @@ The next generation SExtractor.
 
 Documentation: https://sourcextractorplusplus.readthedocs.io/en/latest/Introduction.html
 
+# Installation
 
-[RPMs for Fedora and CentOS are available](https://astrorama.jfrog.io/artifactory/rpm/stable/) You can add a `.repo` file under `/etc/yum.repos.d` with the following content:
+## Conda
+
+SourceXtractor++ is available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
+
+```bash
+conda install -c conda-forge -c astrorama sourcextractor
+ ```
+ 
+We would recommend, however, to install it into its own environment.
+
+```bash
+conda create -n sourcex -c astrorama -c conda-forge sourcextractor
+conda activate sourcex
+ ```
+ 
+**Note:** If you want the development version to test a future functionality or bugfix, it can also be done with conda:
+
+```bash
+conda create -n sourcex-dev -c astrorama/label/develop -c astrorama -c conda-forge sourcextractor
+conda activate sourcex-dev
+```
+
+## Fedora / CentOS
+
+SourceXtractor++ is shipped directly in Fedora and CentOS. It can be installed simply as follows:
+
+```bash
+sudo dnf install sourcextractor++
+```
+
+[We also build our own RPMs as part of our CI setup](https://astrorama.jfrog.io/artifactory/rpm/stable/)
+They can be installed adding a `.repo` file under `/etc/yum.repos.d` with the following content:
 
 ```ini
 [Artifactory-Astrorama]
@@ -21,13 +53,9 @@ enabled=1
 gpgcheck=0
 ```
 
-And install normally with
+And install with
 
 ```bash
 dnf install SourceXtractorPlusPlus
 ```
 
-SourceXtractor++ is also available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
-```bash
-conda install -c conda-forge -c astrorama sourcextractor
- ```

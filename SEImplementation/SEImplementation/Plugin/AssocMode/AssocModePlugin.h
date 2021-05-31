@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2021 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,37 +14,31 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * ImageBase.h
- *
- *  Created on: Aug 31, 2017
- *      Author: mschefer
- */
-
-#ifndef _SEFRAMEWORK_IMAGE_IMAGEBASE_H_
-#define _SEFRAMEWORK_IMAGE_IMAGEBASE_H_
 
 
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/WriteableImage.h"
-#include "SEFramework/Image/ImageChunk.h"
+#ifndef _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_
+
+#include "SEFramework/Plugin/Plugin.h"
 
 namespace SourceXtractor {
 
-template <typename T>
-class ImageBase : public virtual Image<T>, public std::enable_shared_from_this<ImageBase<T>> {
+class AssocModePlugin : public Plugin {
 
 public:
-  virtual ~ImageBase() {}
 
-  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    return UniversalImageChunk<T>::create(this->shared_from_this(), x, y, width, height);
-  }
+  /**
+   * @brief Destructor
+   */
+  virtual ~AssocModePlugin() = default;
+
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
+
+private:
 
 };
 
 }
 
-
-
-#endif /* _SEFRAMEWORK_IMAGE_IMAGEBASE_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEPLUGIN_H_ */

@@ -25,14 +25,13 @@
 #ifndef _SEFRAMEWORK_FITS_FITSFILE_H_
 #define _SEFRAMEWORK_FITS_FITSFILE_H_
 
+#include <boost/filesystem/path.hpp>
+#include <fitsio.h>
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
-
-#include <fitsio.h>
 
 #include "SEFramework/Image/ImageSourceWithMetadata.h"
-#include "SEFramework/FITS/FitsFileManager.h"
 
 namespace SourceXtractor {
 
@@ -42,57 +41,34 @@ namespace SourceXtractor {
  *
  */
 class FitsFile {
-protected:
-  FitsFile(const std::string& filename, bool writeable, std::shared_ptr<FitsFileManager> manager);
-
 public:
+  FitsFile(const boost::filesystem::path& path, bool writeable);
+
+  FitsFile(FitsFile&&) = default;
 
   virtual ~FitsFile();
 
-  fitsfile* getFitsFilePtr() {
-    if (!m_is_file_opened) {
-      open();
-    }
-    return m_file_pointer;
-  }
+  fitsfile* getFitsFilePtr();
 
-  const std::vector<int>& getImageHdus() const {
-    return m_image_hdus;
-  }
+  const std::vector<int>& getImageHdus() const;
 
-  std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu) {
-    return m_headers.at(hdu-1);
-  }
+  std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu);
 
-  void setWriteMode();
-
-  void open();
-  void close();
-
+  void refresh();
 
 private:
-  void openFirstTime();
-  void reopen();
-
-  void reloadHeaders();
-  std::map<std::string, MetadataEntry> loadFitsHeader(fitsfile *fptr);
-  void loadHeadFile();
-
-  std::string m_filename;
-  fitsfile* m_file_pointer;
-  bool m_is_file_opened;
+  boost::filesystem::path m_path;
   bool m_is_writeable;
-  bool m_was_opened_before;
-
+  std::unique_ptr<fitsfile, void (*)(fitsfile*)> m_fits_ptr;
   std::vector<int> m_image_hdus;
-
   std::vector<std::map<std::string, MetadataEntry>> m_headers;
 
-  std::shared_ptr<FitsFileManager> m_manager;
-
-  friend class FitsFileManager;
+  void open();
+  void loadInfo();
+  void loadFitsHeader();
+  void loadHeadFile();
 };
 
-}
+}  // namespace SourceXtractor
 
 #endif /* _SEFRAMEWORK_FITS_FITSFILE_H_ */

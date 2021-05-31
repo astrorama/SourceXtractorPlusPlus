@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
 
@@ -61,12 +62,14 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
 SeFloat SimpleBackgroundAnalyzer::getVariance(std::shared_ptr<DetectionImage> image) {
   // Note: We compute the RMS by only taking into consideration pixels
   // below the background value.
+  using Accessor = ImageAccessor<DetectionImage::PixelType>;
+  Accessor accessor(image, Accessor::TOP_LEFT, 256, 1);
 
   double variance = 0;
   int pixels = 0;
-  for (int y=0; y < image->getHeight(); y++) {
-    for (int x=0; x < image->getWidth(); x++) {
-      auto value = image->getValue(x, y);
+  for (int y = 0; y < accessor.getHeight(); y++) {
+    for (int x = 0; x < accessor.getWidth(); x++) {
+      auto value = accessor.getValue(x, y);
       if (value < 0) {
         variance += value * value;
         pixels++;

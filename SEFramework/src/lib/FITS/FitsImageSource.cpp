@@ -44,14 +44,16 @@ namespace SourceXtractor {
 namespace {
 }
 
-FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, ImageTile::ImageType image_type, std::shared_ptr<FitsFileManager> manager)
-  : m_filename(filename), m_manager(manager), m_hdu_number(hdu_number) {
+FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
+                                 ImageTile::ImageType image_type,
+                                 std::shared_ptr<FileManager> manager)
+    : m_filename(filename), m_handler(manager->getFileHandler(filename)), m_hdu_number(hdu_number) {
   int status = 0;
   int bitpix, naxis;
-  long naxes[2] = {1,1};
+  long naxes[2] = {1, 1};
 
-  m_fits_file = m_manager->getFitsFile(filename);
-  auto fptr = m_fits_file->getFitsFilePtr();
+  auto acc = m_handler->getAccessor<FitsFile>();
+  auto fptr = acc->m_fd.getFitsFilePtr();
 
   if (m_hdu_number <= 0) {
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
@@ -90,52 +92,50 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number, Im
     default:
       throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
     }
-  } else {
+  }
+  else {
     m_image_type = image_type;
   }
 }
 
 
-FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
-                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append, bool empty_primary,
-                                 std::shared_ptr<FitsFileManager> manager)
-  : m_filename(filename), m_manager(manager), m_width(width), m_height(height), m_image_type(image_type) {
+FitsImageSource::FitsImageSource(const std::string& filename, int width, int height,
+                                 ImageTile::ImageType image_type,
+                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append,
+                                 bool empty_primary,
+                                 std::shared_ptr<FileManager> manager)
+    : m_filename(filename)
+    , m_handler(manager->getFileHandler(filename))
+    , m_width(width)
+    , m_height(height)
+    , m_image_type(image_type) {
+
+  int status = 0;
+  fitsfile* fptr = nullptr;
+
+  if (!append) {
+    // delete file if it exists already
+    boost::filesystem::remove(m_filename);
+  }
+
   {
+    auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
+    fptr = acc->m_fd.getFitsFilePtr();
 
-    m_manager->closeAndPurgeFile(filename);
+    assert(fptr != nullptr);
 
-    int status = 0;
-    fitsfile* fptr = nullptr;
-
-    if (append) {
-      fits_open_image(&fptr, filename.c_str(), READWRITE, &status);
+    if (empty_primary &&  acc->m_fd.getImageHdus().size() == 0) {
+      fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
       if (status != 0) {
-        status = 0;
-        fits_create_file(&fptr, filename.c_str(), &status);
-        if (empty_primary) {
-          fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-        }
-        if (status != 0) {
-          throw Elements::Exception() << "Can't open or create FITS file to add HDU: " << filename;
-        }
-      }
-    } else {
-      // Overwrite file
-      fits_create_file(&fptr, ("!"+filename).c_str(), &status);
-      if (empty_primary) {
-        fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
-      }
-      if (status != 0) {
-        throw Elements::Exception() << "Can't create or overwrite FITS file: " << filename;
+        throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
       }
     }
-    assert(fptr != nullptr);
 
     long naxes[2] = {width, height};
     fits_create_img(fptr, getImageType(), 2, naxes, &status);
 
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
-      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename << " status: " << status;
     }
 
     int hdutype = 0;
@@ -154,35 +154,41 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
         if (status != 0) {
           char err_txt[31];
           fits_get_errstatus(status, err_txt);
-          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str;
+          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str << " status: " << status;
         }
       }
     }
 
     std::vector<char> buffer(width * ImageTile::getTypeSize(image_type));
-    for (int i = 0; i<height; i++) {
-      long first_pixel[2] = {1, i+1};
+    for (int i = 0; i < height; i++) {
+      long first_pixel[2] = {1, i + 1};
       fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
     }
     fits_close_file(fptr, &status);
 
     if (status != 0) {
-      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename;
+      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename << " status: " << status;
     }
+
+    acc->m_fd.refresh(); // make sure changes to the file structure are taken into account
+
   }
 
-  // Reopens the newly created file through theFitsFileManager
-  m_fits_file = m_manager->getFitsFile(filename, true);
-  auto fptr = m_fits_file->getFitsFilePtr();
-  switchHdu(fptr, m_hdu_number);
+  // work around for canonical name bug:
+  // our file's canonical name might be wrong if it didn't exist, so we need to make sure we get the correct handler
+  // after we created the file
+
+  m_handler = nullptr;
+  m_handler = manager->getFileHandler(filename);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
-  auto fptr = m_fits_file->getFitsFilePtr();
+  auto acc  = m_handler->getAccessor<FitsFile>();
+  auto fptr = acc->m_fd.getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   auto tile = ImageTile::create(m_image_type, x, y, width, height,
-      std::const_pointer_cast<ImageSource>(shared_from_this()));
+                                std::const_pointer_cast<ImageSource>(shared_from_this()));
 
   long first_pixel[2] = {x + 1, y + 1};
   long last_pixel[2] = {x + width, y + height};
@@ -199,22 +205,24 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
 }
 
 void FitsImageSource::saveTile(ImageTile& tile) {
-    auto fptr = m_fits_file->getFitsFilePtr();
-    switchHdu(fptr, m_hdu_number);
+  auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
+  auto fptr = acc->m_fd.getFitsFilePtr();
+  switchHdu(fptr, m_hdu_number);
 
-    int x = tile.getPosX();
-    int y = tile.getPosY();
-    int width = tile.getWidth();
-    int height = tile.getHeight();
+  int x = tile.getPosX();
+  int y = tile.getPosY();
+  int width = tile.getWidth();
+  int height = tile.getHeight();
 
-    long first_pixel[2] = {x + 1, y + 1};
-    long last_pixel[2] = {x + width, y + height};
-    int status = 0;
+  long first_pixel[2] = {x + 1, y + 1};
+  long last_pixel[2] = {x + width, y + height};
+  int status = 0;
 
-    fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
-    if (status != 0) {
-      throw Elements::Exception() << "Error saving image tile to FITS file.";
-    }
+  fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
+  if (status != 0) {
+    throw Elements::Exception() << "Error saving image tile to FITS file.";
+  }
+  fits_flush_buffer(fptr, 0, &status);
 }
 
 void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
@@ -224,13 +232,13 @@ void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
   fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
 
   if (status != 0) {
-    throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file " << m_filename;
+    throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file "
+                                << m_filename;
   }
   if (hdu_type != IMAGE_HDU) {
     throw Elements::Exception() << "Trying to access non-image HDU in file " << m_filename;
   }
 }
-
 
 
 std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_of_records) const {
@@ -244,7 +252,8 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
     std::string record_string(key);
     if (record_string.size() > 8) {
       throw Elements::Exception() << "FITS keyword longer than 8 characters";
-    } else if (record_string.size() < 8) {
+    }
+    else if (record_string.size() < 8) {
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
@@ -277,14 +286,21 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   return buffer;
 }
 
+const std::map<std::string, MetadataEntry> FitsImageSource::getMetadata() const {
+  auto acc = m_handler->getAccessor<FitsFile>();
+  return acc->m_fd.getHDUHeaders(m_hdu_number);
+}
+
 void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
-  auto fptr = m_fits_file->getFitsFilePtr();
+  auto acc  = m_handler->getAccessor<FitsFile>();
+  auto fptr = acc->m_fd.getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 
   std::ostringstream padded_key, serializer;
   padded_key << std::setw(8) << std::left << key;
 
-  serializer << padded_key.str() << "= " << std::left << std::setw(70) << VariantCast<std::string>(value.m_value);
+  serializer << padded_key.str() << "= " << std::left << std::setw(70)
+             << VariantCast<std::string>(value.m_value);
   auto str = serializer.str();
 
   int status = 0;
@@ -297,38 +313,38 @@ void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
   }
 
   // update the metadata
-  m_fits_file->getHDUHeaders(m_hdu_number)[key] = value;
+  acc->m_fd.getHDUHeaders(m_hdu_number)[key] = value;
 }
 
 int FitsImageSource::getDataType() const {
   switch (m_image_type) {
-  default:
-  case ImageTile::FloatImage:
-    return TFLOAT;
-  case ImageTile::DoubleImage:
-    return TDOUBLE;
-  case ImageTile::IntImage:
-    return TINT;
-  case ImageTile::UIntImage:
-    return TUINT;
-  case ImageTile::LongLongImage:
-    return TLONGLONG;
+    default:
+    case ImageTile::FloatImage:
+      return TFLOAT;
+    case ImageTile::DoubleImage:
+      return TDOUBLE;
+    case ImageTile::IntImage:
+      return TINT;
+    case ImageTile::UIntImage:
+      return TUINT;
+    case ImageTile::LongLongImage:
+      return TLONGLONG;
   }
 }
 
 int FitsImageSource::getImageType() const {
   switch (m_image_type) {
-  default:
-  case ImageTile::FloatImage:
-    return FLOAT_IMG;
-  case ImageTile::DoubleImage:
-    return DOUBLE_IMG;
-  case ImageTile::IntImage:
-    return LONG_IMG;
-  case ImageTile::UIntImage:
-    return ULONG_IMG;
-  case ImageTile::LongLongImage:
-    return LONGLONG_IMG;
+    default:
+    case ImageTile::FloatImage:
+      return FLOAT_IMG;
+    case ImageTile::DoubleImage:
+      return DOUBLE_IMG;
+    case ImageTile::IntImage:
+      return LONG_IMG;
+    case ImageTile::UIntImage:
+      return ULONG_IMG;
+    case ImageTile::LongLongImage:
+      return LONGLONG_IMG;
   }
 }
 

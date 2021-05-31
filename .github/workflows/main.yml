@@ -1,4 +1,4 @@
-name: Build RPM
+name: RPM - Artifactory
 
 on:
   push:
@@ -9,20 +9,36 @@ on:
 
 jobs:
 
+#######################
+# Get Fedora Releases #
+#######################
+  get_fedora_releases:
+    name: Get Fedora Releases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Fedora
+        id: releases
+        uses: sgallagher/get-fedora-releases-action@v1
+    outputs:
+      stable: ${{ steps.releases.outputs.stable }}
+      development: ${{ steps.releases.outputs.development }}
+      active: ${{ steps.releases.outputs.active }}
+
 #############
 # Build RPM #
 #############
   build:
+    name: Build (Active)
+    needs: get_fedora_releases
+    continue-on-error: false
     runs-on: ubuntu-latest
+
     strategy:
+      fail-fast: false
       matrix:
+        os-type: [fedora]
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
         include:
-          - os-type: fedora
-            os-version: 32
-          - os-type: fedora
-            os-version: 33
-          - os-type: fedora
-            os-version: 34
           - os-type: centos
             os-version: 7
           - os-type: centos
@@ -33,42 +49,48 @@ jobs:
         uses: actions/checkout@v2
       - name: Get package name and version
         id: package-version
-        uses: astrorama/actions/elements-project@master
+        uses: astrorama/actions/elements-project@v2
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@master
+        uses: astrorama/actions/setup-dependencies@v2
         with:
           dependency-list: .github/workflows/dependencies.txt
       - name: Build
         id: build
-        uses: astrorama/actions/elements-build-rpm@master
+        uses: astrorama/actions/elements-build-rpm@v2
       - name: Upload RPM to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}
           path: ${{ steps.build.outputs.rpm-dir }}/*.rpm
           retention-days: 15
+      - name: Setup jfrog cli
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: jfrog/setup-jfrog-cli@v1
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+      - name: Upload RPM to Artifactory
+        if: ${{ github.event_name != 'pull_request' }}
+        uses: astrorama/actions/upload-rpm@v2
+        with:
+          path: ${{ steps.build.outputs.rpm-dir }}
 
 #############
 # Run tests #
 #############
   litmus-test:
-    needs: [ build ]
+    needs: [ build, get_fedora_releases ]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        include:
-          - os-type: fedora
-            os-version: 32
-          - os-type: fedora
-            os-version: 33
-          - os-type: fedora
-            os-version: 34
+        os-type: [fedora]
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@master
+        uses: astrorama/actions/setup-dependencies@v2
         with:
           dependency-list: .github/workflows/test-dependencies.txt
       - name: Download RPM
@@ -94,14 +116,11 @@ jobs:
     needs: [ build, litmus-test ]
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
+        os-type: [fedora]
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
         include:
-          - os-type: fedora
-            os-version: 32
-          - os-type: fedora
-            os-version: 33
-          - os-type: fedora
-            os-version: 34
           - os-type: centos
             os-version: 7
           - os-type: centos
@@ -112,7 +131,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Get package name and version
         id: package-version
-        uses: astrorama/actions/elements-project@master
+        uses: astrorama/actions/elements-project@v2
       - name: Download RPM
         uses: actions/download-artifact@v2
         with:
@@ -122,9 +141,8 @@ jobs:
         env:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
       - name: Upload RPM to Artifactory
-        uses: astrorama/actions/upload-rpm@master
+        uses: astrorama/actions/upload-rpm@v2
         with:
           os_type: ${{ matrix.os-type }}
           os_version: ${{ matrix.os-version }}
           path: .
-
