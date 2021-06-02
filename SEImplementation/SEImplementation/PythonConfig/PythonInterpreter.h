@@ -42,7 +42,7 @@ public:
   
   void runFile(const std::string& filename, const std::vector<std::string>& argv);
 
-  virtual ~PythonInterpreter() = default;
+  virtual ~PythonInterpreter();
   
   std::map<int, PyMeasurementImage> getMeasurementImages();
 

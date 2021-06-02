@@ -22,6 +22,7 @@ elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEUtils)
+elements_depends_on_subdirs(Pyston)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -92,6 +93,7 @@ elements_add_library(SEImplementation
               ElementsKernel Configuration Table
               SEUtils SEFramework ModelFitting
               BoostPython PythonLibs PythonInterp
+              Pyston
               ${OPT_LIBRARIES}
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
             PUBLIC_HEADERS SEImplementation)

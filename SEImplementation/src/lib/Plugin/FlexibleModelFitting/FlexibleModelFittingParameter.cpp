@@ -37,18 +37,15 @@ namespace bmd = boost::math::tools;
 #endif
 
 #include "AlexandriaKernel/memory_tools.h"
+#include "ElementsKernel/Logging.h"
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Parameters/EngineParameter.h"
 #include "ModelFitting/Parameters/DependentParameter.h"
 #include "ModelFitting/Engine/EngineParameterManager.h"
 
-#include "SEUtils/Python.h"
 #include "SEUtils/NumericalDerivative.h"
-
 #include "SEFramework/Source/SourceInterface.h"
-
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"

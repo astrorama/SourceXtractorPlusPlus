@@ -25,33 +25,18 @@
 #include <functional>
 #include <SEUtils/Types.h>
 #include <SEFramework/Source/SourceInterface.h>
+#include <Pyston/Graph/Node.h>
 
 namespace SourceXtractor {
 
-class ObjectInfo {
-  
+class ObjectInfo : public Pyston::AttributeSet {
+
 public:
-  
+  ObjectInfo();
+
   ObjectInfo(const SourceInterface& source);
-  
+
   virtual ~ObjectInfo() = default;
-  
-  SeFloat getCentroidX() const;
-  
-  SeFloat getCentroidY() const;
-  
-  SeFloat getIsoFlux() const;
-  
-  SeFloat getRadius() const;
-  
-  SeFloat getAngle() const;
-
-  SeFloat getAspectRatio() const;
-
-private:
-  
-  std::reference_wrapper<const SourceInterface> m_source;
-  
 };
 
 } // end of namespace SourceXtractor

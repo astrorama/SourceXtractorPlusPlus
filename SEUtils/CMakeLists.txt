@@ -38,7 +38,8 @@ endif ()
 #                     INCLUDE_DIRS Boost ElementsKernel
 #                     PUBLIC_HEADERS ElementsExamples)
 #===============================================================================
-elements_add_library(SEUtils src/lib/*.cpp
+elements_add_library(SEUtils
+                     LINKER_LANGUAGE CXX
                      LINK_LIBRARIES ElementsKernel BoostPython PythonLibs
                      INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEUtils)
