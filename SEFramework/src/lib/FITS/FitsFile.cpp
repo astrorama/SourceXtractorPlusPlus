@@ -127,7 +127,7 @@ void FitsFile::open() {
       throw Elements::Exception() << "Can't open FITS file: " << m_path << " status: " << status;
     }
   }
-
+  assert(ptr->Fptr->open_count == 1);
   m_fits_ptr.reset(ptr);
 }
 
@@ -145,6 +145,7 @@ void FitsFile::refresh() {
   if (status != 0) {
     throw Elements::Exception() << "Can't close and reopen FITS file: " << m_path << " status: " << status;
   }
+  assert(ptr->Fptr->open_count == 1);
   m_fits_ptr.reset(ptr);
 
   loadInfo();
