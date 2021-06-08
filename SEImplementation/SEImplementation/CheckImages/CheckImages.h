@@ -107,6 +107,8 @@ public:
 
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getPsfImage(unsigned int frame_number);
 
+  std::shared_ptr<WriteableImage<float>> getMLDetectionImage(unsigned int plane_number);
+
   void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
     m_background_image = background_image;
   }
@@ -163,6 +165,7 @@ private:
   std::map<unsigned int, decltype(m_aperture_image)> m_measurement_aperture_images;
   std::map<unsigned int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
   std::map<unsigned int, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<float>>> m_check_image_ml_detection;
 
   std::shared_ptr<DetectionImage> m_detection_image;
   std::shared_ptr<Image<SeFloat>> m_background_image;
@@ -186,6 +189,7 @@ private:
   boost::filesystem::path m_aperture_filename;
   boost::filesystem::path m_moffat_filename;
   boost::filesystem::path m_psf_filename;
+  boost::filesystem::path m_ml_detection_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 

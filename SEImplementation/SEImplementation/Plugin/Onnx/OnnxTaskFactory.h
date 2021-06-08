@@ -19,7 +19,8 @@
 #define _SEIMPLEMENTATION_PLUGIN_ONNXTASKFACTORY_H_
 
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/Onnx/OnnxModel.h"
+#include "SEImplementation/Common/OnnxModel.h"
+#include "SEImplementation/Plugin/Onnx/OnnxSourceTask.h"
 
 namespace SourceXtractor {
 
@@ -45,7 +46,7 @@ public:
   void registerPropertyInstances(OutputRegistry& registry) override;
 
 private:
-  std::vector<OnnxModel> m_models;
+  std::vector<OnnxSourceTask::OnnxModelInfo> m_model_infos;
 };
 
 } // end of namespace SourceXtractor

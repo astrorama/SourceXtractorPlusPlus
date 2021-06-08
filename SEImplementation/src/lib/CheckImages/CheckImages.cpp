@@ -82,6 +82,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_aperture_filename = config.getApertureFilename();
   m_moffat_filename = config.getMoffatFilename();
   m_psf_filename = config.getPsfFilename();
+  m_ml_detection_filename = config.getMLDetectionFilename();
 
   m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
@@ -245,6 +246,32 @@ std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsf
           frame_info.m_width,
           frame_info.m_height,
           frame_info.m_coordinate_system
+        ))).first;
+  }
+  return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
+}
+
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getMLDetectionImage(unsigned int plane_number) {
+  if (m_ml_detection_filename.empty()) {
+    return nullptr;
+  }
+
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  auto i = m_check_image_ml_detection.find(plane_number);
+  if (i == m_check_image_ml_detection.end()) {
+    auto filename = m_ml_detection_filename.stem();
+    filename += "_" + std::to_string(plane_number);
+    filename += m_ml_detection_filename.extension();
+    auto frame_filename = m_ml_detection_filename.parent_path() / filename;
+    i = m_check_image_ml_detection.emplace(
+      std::make_pair(
+        plane_number,
+        FitsWriter::newImage<MeasurementImage::PixelType>(
+          frame_filename.native(),
+          m_detection_image->getWidth(),
+          m_detection_image->getHeight(),
+          m_coordinate_system
         ))).first;
   }
   return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
