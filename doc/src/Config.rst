@@ -38,6 +38,12 @@ Configuration parameter list
 Here is a complete list of all the configuration parameters known to |SourceXtractor++|.
 Please refer to the next sections for a detailed description of their meaning.
 
+.. raw:: latex
+
+  {\footnotesize
+
+
+.. tabularcolumns:: |p{0.4\textwidth}|p{0.15\textwidth}|p{0.45\textwidth}|
 
 ===================================== ================= =======================================
 Option                                Default           Use
@@ -233,4 +239,8 @@ Option                                Default           Use
                                                         above the weight threshold for 
                                                         photometry
 ===================================== ================= =======================================
+
+.. raw:: latex
+
+  }
 

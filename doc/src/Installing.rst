@@ -34,9 +34,10 @@ Obtaining |SourceXtractor++|
 From Fedora or EPEL repositories |rawhide|
 ------------------------------------------
 
-.. |rawhide|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide
-  :alt: Fedora package
-  :target: https://src.fedoraproject.org/rpms/sourcextractor++
+.. only:: html
+  .. |rawhide|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide
+    :alt: Fedora package
+    :target: https://src.fedoraproject.org/rpms/sourcextractor++
 
 |SourceXtractor++| is available in `Fedora <https://src.fedoraproject.org/rpms/sourcextractor++>`_
 30 and greater, and in EPEL 7 as well. On those platforms, you can use your
@@ -49,9 +50,10 @@ package manager to install in the usual way:
 From Anaconda Cloud |anaconda_cloud|
 ------------------------------------
 
-.. |anaconda_cloud| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor
-  :alt: Conda
-  :target: https://anaconda.org/astrorama/sourcextractor
+.. only:: html
+  .. |anaconda_cloud| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor
+    :alt: Conda
+    :target: https://anaconda.org/astrorama/sourcextractor
 
 |SourceXtractor++| is also available for Linux and MacOS via Anaconda cloud.
 You can install it as follows:
@@ -77,9 +79,10 @@ to avoid dependency conflicts.
 From Sources |github|
 ---------------------
 
-.. |github| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus
-  :alt: GitHub tag (latest SemVer)
-  :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
+.. only:: html
+  .. |github| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus
+    :alt: GitHub tag (latest SemVer)
+    :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
 
 The source package may be downloaded from the official `GitHub repository <https://github.com/astrorama/SourceXtractorPlusPlus>`_.
 Links to binary packages for a selection of operating systems are also available at the URL above.
