@@ -37,7 +37,7 @@ namespace SourceXtractor {
 
 // class Lutz
 //
-//
+// Note: this implementation uses an 8-way connection (including corners)
 
 
 enum class LutzStatus {
@@ -77,7 +77,6 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
     LutzStatus cs = LutzStatus::NONOBJECT;
 
     if (y % chunk_height == 0) {
-      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
       chunk = image.getChunk(0, y, image.getWidth(), std::min(chunk_height, lines - y));
     }
 

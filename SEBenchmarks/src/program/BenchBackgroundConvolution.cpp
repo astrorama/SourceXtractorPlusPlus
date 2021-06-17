@@ -135,7 +135,9 @@ public:
 
       for (int r = 0; r < repeat; ++r) {
         timer.start();
-        result = bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight())->getImage();
+        auto tile = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(
+            bg_convolution->getImageTile(0, 0, image->getWidth(), image->getHeight()));
+        auto result = tile->getImage();
         timer.stop();
       }
 

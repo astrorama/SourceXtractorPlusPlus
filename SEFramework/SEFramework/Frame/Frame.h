@@ -32,10 +32,24 @@
 
 namespace SourceXtractor {
 
+enum FrameImageLayer {
+  LayerOriginalImage = 0,
+  LayerInterpolatedImage,
+  LayerSubtractedImage,
+  LayerFilteredImage,
+  LayerThresholdedImage,
+  LayerSignalToNoiseMap,
+  LayerOriginalVarianceMap,
+  LayerUnfilteredVarianceMap,
+  LayerVarianceMap,
+  LayerDetectionThresholdMap
+};
+
 template<typename T>
 class Frame {
 
 public:
+
   class ImageFilter {
   public:
     virtual ~ImageFilter() = default;
@@ -56,6 +70,9 @@ public:
   //
   // Methods to get the image in one form or another
   //
+
+  std::shared_ptr<Image<T>> getImage(FrameImageLayer layer) const;
+
 
   // Just the original image
   std::shared_ptr<Image<T>> getOriginalImage() const {
@@ -109,9 +126,8 @@ public:
     return m_saturation;
   }
 
-  T getDetectionThreshold() const {
-    // FIXME using the 0,0 pixel makes no sense
-    return sqrt(m_variance_map->getValue(0,0)) * m_detection_threshold;
+  SeFloat getBackgroundMedianRms() const {
+    return m_background_rms;
   }
 
   std::shared_ptr<Image<T>> getDetectionThresholdMap() const;
@@ -134,7 +150,7 @@ public:
 
   void setBackgroundLevel(T background_level);
 
-  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map);
+  void setBackgroundLevel(std::shared_ptr<Image<T>> background_level_map, T background_rms);
 
   void setFilter(std::shared_ptr<ImageFilter> filter);
 
@@ -143,6 +159,7 @@ public:
 private:
 
   void applyFilter();
+  void applyInterpolation();
 
   std::shared_ptr<Image<T>> m_image;
   std::shared_ptr<WeightImage> m_variance_map;
@@ -152,6 +169,7 @@ private:
 
   SeFloat m_gain;
   SeFloat m_saturation;
+  SeFloat m_background_rms;
 
   T m_detection_threshold;
   typename WeightImage::PixelType m_variance_threshold;

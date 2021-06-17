@@ -45,7 +45,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 
-#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 #include "SEImplementation/Image/ImagePsf.h"
 
 namespace po = boost::program_options;
@@ -244,7 +244,7 @@ public:
     auto dev_i0 = std::make_shared<ManualParameter>(1000);
 
     std::vector<std::unique_ptr<ModelComponent>> component_list {};
-    auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
+    auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
     component_list.clear();
     component_list.emplace_back(std::move(exp));
     extended_models.emplace_back(std::make_shared<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>(
@@ -282,9 +282,11 @@ public:
     auto k = std::make_shared<ManualParameter>(10);
     auto i0 = std::make_shared<ManualParameter>(1000);
 
+    auto flux = std::make_shared<ManualParameter>(100000); // FIXME use a value that makes sense
+
     extended_models.emplace_back(std::make_shared<ModelFitting::CompactSersicModel<ImageInterfaceTypePtr>>(
         3.0, i0, k, n,
-        xs, ys, rot, 256, 256, x_param, y_param, std::make_tuple(1, 0, 0, 1)));
+        xs, ys, rot, 256, 256, x_param, y_param, flux, std::make_tuple(1, 0, 0, 1)));
 
     double pixel_scale = 1.0f;
     int image_size = 256;

@@ -40,7 +40,7 @@ void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelCentroid& prop){
             return prop.getCentroidX() + 1.0; // add one to use FITS standard coordinates
           },
-          "[pixel]",
+          "pixel",
           "X-position of the object in the detection image"
   );
 
@@ -49,7 +49,7 @@ void PixelCentroidPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const PixelCentroid& prop){
             return prop.getCentroidY() + 1.0; // add one to use FITS standard coordinates
           },
-          "[pixel]",
+          "pixel",
           "Y-position of the object in the detection image"
   );
 

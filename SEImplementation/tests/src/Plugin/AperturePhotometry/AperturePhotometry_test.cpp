@@ -38,7 +38,11 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
+#include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
+#include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 
@@ -68,8 +72,12 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto variance_map = ConstantImage<WeightImage::PixelType>::create(image->getWidth(), image->getHeight(), .0001);
 
   auto frame = std::make_shared<MeasurementImageFrame>(image, variance_map, 1e6, nullptr, 0., 9., 0);
-  source.setIndexedProperty<DetectionFrame>(0, frame);
+  source.setProperty<DetectionFrame>(frame);
+  source.setProperty<DetectionFrameInfo>(1, 1, 1, 9, 1e6, 0);
+  source.setProperty<DetectionFrameImages>(frame, 1, 1);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
+  source.setIndexedProperty<MeasurementFrameImages>(0, frame, 1, 1);
+  source.setIndexedProperty<MeasurementFrameInfo>(0, 1, 1, 1, 9, 1e6, 0);
   source.setIndexedProperty<PixelBoundaries>(0, 0, 0, 0, 0);
   source.setIndexedProperty<MeasurementFramePixelCentroid>(0, 0, 0);
   source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{{0, 0}}});
@@ -85,8 +93,8 @@ BOOST_FIXTURE_TEST_CASE( one_pixel_test, AperturePhotometryFixture ) {
   auto aperture_photometry = source.getProperty<AperturePhotometry>();
   BOOST_CHECK_CLOSE(aperture_photometry.getFluxes()[0], 3.14159 * .25, 10);
 
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::BOUNDARY) == Flags::BOUNDARY);
-  BOOST_CHECK((aperture_photometry.getFlags()[0] & Flags::SATURATED) == Flags::NONE);
+  auto flags = aperture_photometry.getFlags()[0];
+  BOOST_CHECK_EQUAL(flags, Flags::BOUNDARY);
 }
 
 //-----------------------------------------------------------------------------
@@ -99,8 +107,12 @@ BOOST_FIXTURE_TEST_CASE( neighbour_test, AperturePhotometryFixture ) {
   });
 
   auto frame = std::make_shared<MeasurementImageFrame>(image);
-  source.setIndexedProperty<DetectionFrame>(0, frame);
+  source.setProperty<DetectionFrame>(frame);
+  source.setProperty<DetectionFrameInfo>(1, 1, 1, 9, 1e6, 0);
+  source.setProperty<DetectionFrameImages>(frame, 1, 1);
   source.setIndexedProperty<MeasurementFrame>(0, frame);
+  source.setIndexedProperty<MeasurementFrameImages>(0, frame, 3, 3);
+  source.setIndexedProperty<MeasurementFrameInfo>(0, 3, 3, 1, 9, 1e6, 0);
   source.setIndexedProperty<PixelBoundaries>(0, 0, 0, 2, 2);
   source.setIndexedProperty<PixelCoordinateList>(0, PixelCoordinateList{{
     {0, 0}, {1, 0},

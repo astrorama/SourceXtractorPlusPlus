@@ -20,6 +20,7 @@
  */
 
 #include "ElementsKernel/Logging.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 #include "SEImplementation/PythonConfig/ObjectInfo.h"
@@ -185,8 +186,8 @@ void ModelFittingConfig::initializeInner() {
     }
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      GILStateEnsure ensure;
       try {
-        GILStateEnsure ensure;
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }
@@ -282,7 +283,7 @@ void ModelFittingConfig::initializeInner() {
   auto parameters = getDependency<PythonConfig>().getInterpreter().getModelFittingParams();
   m_least_squares_engine = py::extract<std::string>(parameters["engine"]);
   if (m_least_squares_engine.empty()) {
-    m_least_squares_engine = "levmar";
+    m_least_squares_engine = ModelFitting::LeastSquareEngineManager::getDefault();
   }
   m_max_iterations = py::extract<int>(parameters["max_iterations"]);
   m_modified_chi_squared_scale = py::extract<double>(parameters["modified_chi_squared_scale"]);

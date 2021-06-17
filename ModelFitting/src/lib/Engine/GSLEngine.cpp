@@ -103,6 +103,16 @@ public:
   }
 };
 
+static LeastSquareSummary::StatusFlag getStatusFlag(int ret) {
+  switch (ret) {
+    case GSL_SUCCESS:
+      return LeastSquareSummary::SUCCESS;
+    case GSL_EMAXITER:
+      return LeastSquareSummary::MAX_ITER;
+    default:
+      return LeastSquareSummary::ERROR;
+  }
+}
 
 LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager& parameter_manager,
                                            ModelFitting::ResidualEstimator& residual_estimator) {
@@ -141,12 +151,12 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   }
 
   // Allocate space for the parameters and initialize with the guesses
-  std::vector<double> param_values (parameter_manager.numberOfParameters());
+  std::vector<double> param_values(parameter_manager.numberOfParameters());
   parameter_manager.getEngineValues(param_values.begin());
   gsl_vector_view gsl_param_view = gsl_vector_view_array(param_values.data(), param_values.size());
 
   // Function to be minimized
-  auto function = [](const gsl_vector* x, void *extra, gsl_vector *f) -> int {
+  auto function = [](const gsl_vector *x, void *extra, gsl_vector *f) -> int {
     auto *extra_ptr = (decltype(adata) *) extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(GslVectorConstIterator{x});
@@ -188,10 +198,12 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   gsl_blas_ddot(residual, residual, &chisq);
 
   // Build run summary
-  std::vector<double> covariance_matrix (parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
+  std::vector<double> covariance_matrix(
+    parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
 
   LeastSquareSummary summary;
-  summary.success_flag = (ret == GSL_SUCCESS);
+  summary.status_flag = getStatusFlag(ret);
+  summary.engine_stop_reason = ret;
   summary.iteration_no = gsl_multifit_nlinear_niter(workspace);
   summary.parameter_sigmas = {};
 
@@ -200,6 +212,20 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   gsl_matrix_view covar = gsl_matrix_view_array(covariance_matrix.data(), parameter_manager.numberOfParameters(),
                                                 parameter_manager.numberOfParameters());
   gsl_multifit_nlinear_covar(J, 0.0, &covar.matrix);
+
+  // We have done an unweighted minimization, so, from the documentation, we need
+  // to multiply the covariance matrix by the variance of the residuals
+  // See: https://www.gnu.org/software/gsl/doc/html/nls.html#covariance-matrix-of-best-fit-parameters
+  double sigma2 = 0;
+  for (size_t i = 0; i < residual->size; ++i) {
+    auto v = gsl_vector_get(residual, i);
+    sigma2 += v * v;
+  }
+  sigma2 /= (fdf.n - fdf.p);
+
+  for (auto ci = covariance_matrix.begin(); ci != covariance_matrix.end(); ++ci) {
+    *ci *= sigma2;
+  }
 
   auto converted_covariance_matrix = parameter_manager.convertCovarianceMatrixToWorldSpace(covariance_matrix);
   for (unsigned int i=0; i<parameter_manager.numberOfParameters(); i++) {

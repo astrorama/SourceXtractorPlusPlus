@@ -25,13 +25,21 @@
 
 namespace SourceXtractor {
 
-NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordinate &max_pixel,
-                             const std::vector<SourceXtractor::PixelCoordinate> &pixel_list,
-                             const std::shared_ptr<SourceXtractor::Image<SourceXtractor::SeFloat>> &threshold_image)
+NeighbourInfo::NeighbourInfo(const PixelCoordinate& min_pixel, const PixelCoordinate& max_pixel,
+                             const std::vector<SourceXtractor::PixelCoordinate>& pixel_list,
+                             const std::shared_ptr<SourceXtractor::Image<SourceXtractor::SeFloat>>& threshold_image)
   : m_offset{min_pixel} {
-  auto width = max_pixel.m_x - min_pixel.m_x + 1;
-  auto height = max_pixel.m_y - min_pixel.m_y + 1;
+  m_offset.clip(threshold_image->getWidth(), threshold_image->getHeight());
+
+  auto max_pixel_copy = max_pixel;
+  max_pixel_copy.clip(threshold_image->getWidth(), threshold_image->getHeight());
+
+  auto width = max_pixel_copy.m_x - m_offset.m_x + 1;
+  auto height = max_pixel_copy.m_y - m_offset.m_y + 1;
+
   m_neighbour_image = VectorImage<int>::create(width, height);
+
+  auto threshold_cutout = threshold_image->getChunk(m_offset, max_pixel_copy);
 
   for (auto& pixel_coord : pixel_list) {
     auto act_x = pixel_coord.m_x - m_offset.m_x;
@@ -44,24 +52,11 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordi
 
   for (int act_y = 0; act_y < height; ++act_y) {
     for (int act_x = 0; act_x < width; ++act_x) {
-      int offset_x = act_x + m_offset.m_x;
-      int offset_y = act_y + m_offset.m_y;
-
-      // set surrounding pixels that do not belong to the image and are above the threshold to 1, all others to 0
-      if (offset_x >= 0 && offset_y >= 0 && offset_x < threshold_image->getWidth() &&
-          offset_y < threshold_image->getHeight()) {
-        if (threshold_image->getValue(offset_x, offset_y) > 0) {
-          if (m_neighbour_image->getValue(act_x, act_y) != -1) {
-            m_neighbour_image->setValue(act_x, act_y, 1);
-          }
-          else {
-            m_neighbour_image->setValue(act_x, act_y, 0);
-          }
-        }
-        else {
-          m_neighbour_image->setValue(act_x, act_y, 0);
-        }
-      }
+      // set surrounding pixels that do not belong to the image and are above the threshold to 1,
+      // all others to 0
+      bool is_above_threshold = threshold_cutout->getValue(act_x, act_y) > 0;
+      bool belongs = m_neighbour_image->getValue(act_x, act_y) == -1;
+      m_neighbour_image->setValue(act_x, act_y, is_above_threshold && !belongs);
     }
   }
 }
@@ -69,7 +64,7 @@ NeighbourInfo::NeighbourInfo(const PixelCoordinate &min_pixel, const PixelCoordi
 bool NeighbourInfo::isNeighbourObjectPixel(int x, int y) const {
   int act_x = x - m_offset.m_x;
   int act_y = y - m_offset.m_y;
-  assert(act_x >= 0 && act_y >= 0 && act_x < m_neighbour_image->getWidth() && act_y < m_neighbour_image->getHeight());
+  assert(m_neighbour_image->isInside(act_x, act_y));
   return m_neighbour_image->getValue(act_x, act_y);
 }
 

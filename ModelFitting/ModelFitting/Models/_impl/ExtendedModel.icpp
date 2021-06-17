@@ -38,11 +38,11 @@ namespace _impl {
   template <typename ImageType>
   void addSharp(ImageType& image, double pixel_scale, ModelComponent& component) {
     using Traits = ImageTraits<ImageType>;
-    auto size_x = Traits::width(image);
-    auto size_y = Traits::height(image);
+    ssize_t size_x = Traits::width(image);
+    ssize_t size_y = Traits::height(image);
     for (auto& sample : component.getSharpSampling()) {
-      std::size_t image_x = std::get<0>(sample) / pixel_scale + size_x/2.;
-      std::size_t image_y = std::get<1>(sample) / pixel_scale + size_y/2.;
+      ssize_t image_x = std::get<0>(sample) / pixel_scale + size_x/2.;
+      ssize_t image_y = std::get<1>(sample) / pixel_scale + size_y/2.;
       if (image_x>=0 && image_x<size_x && image_y>=0 && image_y<size_y) {
         Traits::at(image, image_x, image_y) += std::get<2>(sample);
       }
@@ -102,8 +102,8 @@ ExtendedModel<ImageType>::ExtendedModel(std::vector<std::unique_ptr<ModelCompone
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y)
         : PositionedModel(x, y), m_width(width), m_height(height) {
   for (auto& component : component_list) {
-    auto scaled = make_unique<ScaledModelComponent>(std::move(component), x_scale, y_scale);
-    auto rotated = make_unique<RotatedModelComponent>(std::move(scaled), rotation_angle);
+    auto scaled = Euclid::make_unique<ScaledModelComponent>(std::move(component), x_scale, y_scale);
+    auto rotated = Euclid::make_unique<RotatedModelComponent>(std::move(scaled), rotation_angle);
     m_component_list.emplace_back(std::move(rotated));
   }
 }

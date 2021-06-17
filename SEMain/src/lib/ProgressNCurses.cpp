@@ -685,7 +685,7 @@ private:
   // Used to recover log into the standard output
   std::vector<std::string> m_log_text;
 
-  std::atomic_bool m_trigger_resize;
+  std::atomic_bool m_trigger_resize, m_exit_loop;
 
   /**
    * Main UI thread. All (almost) ncurses handling should be done here, as it is not thread safe
@@ -711,6 +711,42 @@ private:
       std::cerr << line << std::endl;
     }
     sem_post(&ncurses_done.m_semaphore);
+  }
+
+  void handleSignal(const struct pollfd& poll_fd, LogWidget& logWidget) {
+    if (poll_fd.revents & POLLIN) {
+      int signal_no;
+      if (read(signal_fds[0], &signal_no, sizeof(signal_no)) > 0 && signal_no == SIGWINCH) {
+        m_trigger_resize = true;
+        endwin();
+        refresh();
+        clear();
+      }
+      else {
+        char buf[64];
+        logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %s\n", strsignal(signal_no)));
+        m_exit_loop = true;
+      }
+    }
+  }
+
+  void pipeToLog(const struct pollfd& poll_fd, int pipe, LogWidget& out) {
+    if (poll_fd.revents & POLLIN) {
+      ssize_t nbytes;
+      char buf[64];
+      while ((nbytes = read(pipe, &buf, sizeof(buf))) > 0) {
+        out.write(buf, nbytes);
+      }
+    }
+  }
+
+  void handleKeyPress(const struct pollfd& poll_fd, LogWidget& logWidget) const {
+    if (poll_fd.revents & POLLIN) {
+      int key = wgetch(stdscr);
+      if (key != KEY_RESIZE) {
+        logWidget.handleKeyPress(key);
+      }
+    }
   }
 
   /**
@@ -740,25 +776,11 @@ private:
     };
 
     // Event loop
-    char buf[64];
-    ssize_t nbytes;
-    bool exit_loop = false;
+    m_exit_loop = false;
 
     do {
       // There has been a signal
-      if (poll_fds[3].revents & POLLIN) {
-        int signal_no;
-        if (read(signal_fds[0], &signal_no, sizeof(signal_no)) > 0 && signal_no == SIGWINCH) {
-          m_trigger_resize = true;
-          endwin();
-          refresh();
-          clear();
-        }
-        else {
-          logWidget.write(buf, snprintf(buf, sizeof(buf), "Caught signal %s\n", strsignal(signal_no)));
-          exit_loop = true;
-        }
-      }
+      handleSignal(poll_fds[3], logWidget);
 
       // Resize widgets if needed
       if (m_trigger_resize) {
@@ -770,24 +792,11 @@ private:
       }
 
       // There is output/error to redirect
-      if (poll_fds[0].revents & POLLIN) {
-        while ((nbytes = read(m_stderr_pipe, &buf, sizeof(buf))) > 0) {
-          logWidget.write(buf, nbytes);
-        }
-      }
-      if (poll_fds[1].revents & POLLIN) {
-        while ((nbytes = read(m_stdout_pipe, &buf, sizeof(buf))) > 0) {
-          logWidget.write(buf, nbytes);
-        }
-      }
+      pipeToLog(poll_fds[0], m_stderr_pipe, logWidget);
+      pipeToLog(poll_fds[1], m_stdout_pipe, logWidget);
 
       // There is a key to read
-      if (poll_fds[2].revents & POLLIN) {
-        int key = wgetch(stdscr);
-        if (key != KEY_RESIZE) {
-          logWidget.handleKeyPress(key);
-        }
-      }
+      handleKeyPress(poll_fds[2], logWidget);
 
       {
         std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
@@ -800,9 +809,9 @@ private:
       // Wait for events
       if (poll(poll_fds, 4, 1000) < 0) {
         // poll may return with EINTR if a signal happened halfway
-        exit_loop = (errno != EINTR);
+        m_exit_loop = (errno != EINTR);
       }
-    } while (!exit_loop && !boost::this_thread::interruption_requested());
+    } while (!m_exit_loop && !boost::this_thread::interruption_requested());
     m_log_text = logWidget.getText();
   }
 
@@ -820,7 +829,7 @@ public:
       throw std::system_error(errno, std::generic_category());
     }
     m_stderr = fdopen(new_stderr_fd, "w");
-    m_ui_thread = make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
+    m_ui_thread = Euclid::make_unique<boost::thread>(std::bind(&Dashboard::uiThread, this));
   }
 
   /**

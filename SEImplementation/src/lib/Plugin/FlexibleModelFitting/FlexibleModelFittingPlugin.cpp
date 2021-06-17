@@ -42,7 +42,7 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const FlexibleModelFitting& prop) {
             return prop.getReducedChiSquared();
           },
-          "[]",
+          "",
           "Reduced chi-square of the model fitting"
   );
 
@@ -51,8 +51,17 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const FlexibleModelFitting& prop) {
             return prop.getIterations();
           },
-          "[]",
+          "",
           "Number of iterations in the model fitting"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int>(
+    "fmf_stop_reason",
+    [](const FlexibleModelFitting& prop) {
+      return prop.getStopReason();
+    },
+    "",
+    "Stop reason (engine dependent)"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int64_t>(
@@ -60,7 +69,7 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           [](const FlexibleModelFitting& prop) {
             return flags2long(prop.getFlags());
           },
-          "[]",
+          "",
           "Model fitting flags"
   );
 

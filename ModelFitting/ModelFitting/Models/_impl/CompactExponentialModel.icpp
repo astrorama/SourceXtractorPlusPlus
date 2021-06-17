@@ -14,26 +14,27 @@ CompactExponentialModel<ImageType>::CompactExponentialModel(
     std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
     std::shared_ptr<BasicParameter> rotation, double width, double height,
     std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
+    std::shared_ptr<BasicParameter> flux,
     std::tuple<double, double, double, double> transform)
       : CompactModelBase<ImageType>(x_scale, y_scale, rotation, width, height, x, y, transform),
         m_sharp_radius_squared(float(sharp_radius * sharp_radius)),
-        m_i0(i0), m_k(k)
+        m_i0(i0), m_k(k), m_flux(flux)
 {}
 
 template<typename ImageType>
 double CompactExponentialModel<ImageType>::getValue(double x, double y) const {
-  ExponentialModelEvaluator model_info;
-  model_info.transform = getCombinedTransform(1.0);
-  model_info.i0 = m_i0->getValue();
-  model_info.k = m_k->getValue();
+  ExponentialModelEvaluator model_eval;
+  model_eval.transform = getCombinedTransform(1.0);
+  model_eval.i0 = m_i0->getValue();
+  model_eval.k = m_k->getValue();
+  model_eval.max_r_sqr = 1e30;
 
   auto area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2]));
-  return model_info.evaluateModel(x, y) * area_correction;
+  return model_eval.evaluateModel(x, y) * area_correction;
 }
 
 template<typename ImageType>
 ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const {
-  //std::cout << "]] " << getX() << " " << getY() << "\n";
   using Traits = ImageTraits<ImageType>;
 
   if (size_x % 2 == 0 || size_y % 2 == 0) {
@@ -43,10 +44,13 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
 
   ImageType image = Traits::factory(size_x, size_y);
 
+  auto combined_tranform = getCombinedTransform(pixel_scale);
+
   ExponentialModelEvaluator model_eval;
   model_eval.transform = getCombinedTransform(pixel_scale);
   model_eval.i0 = m_i0->getValue();
   model_eval.k = m_k->getValue();
+  model_eval.max_r_sqr = getMaxRadiusSqr(size_x, size_y, combined_tranform);
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
@@ -55,12 +59,14 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
     for (int y=0; y<(int)size_y; ++y) {
       int dy = y - size_y / 2;
       if (dx*dx + dy*dy < m_sharp_radius_squared) {
-        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 8, 1.01) * area_correction;
+        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 7, 0.01) * area_correction;
       } else {
         Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
       }
     }
   }
+
+  renormalize(image, m_flux->getValue());
 
   return image;
 }

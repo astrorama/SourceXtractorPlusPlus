@@ -34,7 +34,7 @@
 #include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/FITS/FitsImageSource.h>
 
-#include <SEImplementation/CoordinateSystem/WCS.h>
+#include <SEFramework/CoordinateSystem/WCS.h>
 #include <SEImplementation/Configuration/WeightImageConfig.h>
 #include <SEImplementation/Configuration/PythonConfig.h>
 #include <SEImplementation/Configuration/DetectionImageConfig.h>
@@ -79,11 +79,11 @@ void validateImagePaths(const PyMeasurementImage& image) {
   }
 }
 
-std::shared_ptr<MeasurementImage> createMeasurementImage(const PyMeasurementImage& py_image) {
-  auto fits_image_source = std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.file, py_image.image_hdu);
+std::shared_ptr<MeasurementImage> createMeasurementImage(
+    std::shared_ptr<FitsImageSource> fits_image_source, double flux_scale) {
   std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-  if (py_image.flux_scale != 1.) {
-    image = MultiplyImage<MeasurementImage::PixelType>::create(image, py_image.flux_scale);
+  if (flux_scale != 1.) {
+    image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
   }
   return image;
 }
@@ -117,7 +117,7 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
   }
 
   auto weight_image_source =
-      std::make_shared<FitsImageSource<DetectionImage::PixelType>>(py_image.weight_file, py_image.weight_hdu);
+      std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu+1, ImageTile::FloatImage);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
 
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
@@ -187,8 +187,11 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_path = py_image.file;
       info.m_psf_path = py_image.psf_file;
 
-      info.m_measurement_image = createMeasurementImage(py_image);
-      info.m_coordinate_system = std::make_shared<WCS>(py_image.file, py_image.image_hdu);
+
+      auto fits_image_source =
+          std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu+1, ImageTile::FloatImage);
+      info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
+      info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;
@@ -211,9 +214,9 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       info.m_weight_type = getWeightType(py_image.weight_type, py_image.weight_file);
 
-      info.m_image_hdu = py_image.image_hdu;
-      info.m_psf_hdu = py_image.psf_hdu;
-      info.m_weight_hdu = py_image.weight_hdu;
+      info.m_image_hdu = py_image.image_hdu + 1;
+      info.m_psf_hdu = py_image.psf_hdu + 1;
+      info.m_weight_hdu = py_image.weight_hdu + 1;
 
       m_image_infos.emplace_back(std::move(info));
     }

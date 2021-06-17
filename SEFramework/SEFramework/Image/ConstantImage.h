@@ -25,12 +25,12 @@
 #define _SEFRAMEWORK_IMAGE_CONSTANTIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageChunk.h"
 
 namespace SourceXtractor {
 
 template <typename T>
-class ConstantImage : public ImageBase<T> {
+class ConstantImage : public Image<T> {
 protected:
 
   ConstantImage(int width, int height, T constant_value)
@@ -45,22 +45,21 @@ public:
 
   virtual ~ConstantImage() = default;
 
-  std::string getRepr() const override {
+  std::string getRepr() const final {
     return "ConstantImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">(" +
            std::to_string(m_constant_value) + ")";
   }
 
-  int getHeight() const override {
+  int getHeight() const final {
     return m_height;
   }
 
-  int getWidth() const override {
+  int getWidth() const final {
     return m_width;
   }
 
-  using Image<T>::getValue;
-  T getValue(int, int) const override {
-    return m_constant_value;
+  std::shared_ptr<ImageChunk<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
+    return UniversalImageChunk<T>::create(std::vector<T>(width * height, m_constant_value), width, height);
   }
 
 private:

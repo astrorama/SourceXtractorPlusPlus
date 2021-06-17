@@ -16,12 +16,15 @@ template <typename ImageType>
 class CompactSersicModel : public CompactModelBase<ImageType> {
 
 public:
+
   CompactSersicModel(double sharp_radius,
       std::shared_ptr<BasicParameter> i0, std::shared_ptr<BasicParameter> k, std::shared_ptr<BasicParameter> n,
       std::shared_ptr<BasicParameter> x_scale, std::shared_ptr<BasicParameter> y_scale,
       std::shared_ptr<BasicParameter> rotation, double width, double height,
       std::shared_ptr<BasicParameter> x, std::shared_ptr<BasicParameter> y,
-      std::tuple<double, double, double, double> transform);
+      std::shared_ptr<BasicParameter> flux,
+      std::tuple<double, double, double, double> transform
+  );
 
   virtual ~CompactSersicModel() = default;
 
@@ -33,20 +36,28 @@ public:
   struct SersicModelEvaluator {
     Mat22 transform;
     double i0, k, n;
+    double max_r_sqr;
 
     inline float evaluateModel(float x, float y) const {
       float x2 = x * transform[0] + y * transform[1];
       float y2 = x * transform[2] + y * transform[3];
-      float r = std::sqrt(x2*x2 + y2*y2);
-
-      return i0 * std::exp(float(-k * powf(r, 1. / n)));
+      float r_sqr = x2*x2 + y2*y2;
+      if (r_sqr < max_r_sqr) {
+        float r = std::sqrt(r_sqr);
+        return i0 * std::exp(float(-k * powf(r, 1. / n)));
+      } else {
+        return 0;
+      }
     }
   };
 
 private:
+  using CompactModelBase<ImageType>::getMaxRadiusSqr;
   using CompactModelBase<ImageType>::getCombinedTransform;
   using CompactModelBase<ImageType>::samplePixel;
   using CompactModelBase<ImageType>::adaptiveSamplePixel;
+  using CompactModelBase<ImageType>::sampleStochastic;
+  using CompactModelBase<ImageType>::renormalize;
 
   using CompactModelBase<ImageType>::m_jacobian;
 
@@ -56,6 +67,7 @@ private:
   std::shared_ptr<BasicParameter> m_i0;
   std::shared_ptr<BasicParameter> m_k;
   std::shared_ptr<BasicParameter> m_n;
+  std::shared_ptr<BasicParameter> m_flux;
 };
 
 }

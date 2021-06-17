@@ -186,7 +186,7 @@ auto FFT<T>::createForwardPlan(int howmany, int width, int height, std::vector<T
         rank, dims, howmany,
         in.data(), nullptr, istride, idist,
         reinterpret_cast<typename fftw_traits::complex_t*>(out.data()), nullptr, ostride, odist,
-        FFTW_MEASURE | FFTW_DESTROY_INPUT
+        FFTW_ESTIMATE | FFTW_DESTROY_INPUT
       ),
       fftw_traits::func_destroy_plan
     }
@@ -230,7 +230,7 @@ auto FFT<T>::createInversePlan(int howmany, int width, int height, std::vector<c
         rank, dims, howmany,
         reinterpret_cast<typename fftw_traits::complex_t*>(in.data()), nullptr, istride, idist,
         out.data(), nullptr, ostride, odist,
-        FFTW_MEASURE | FFTW_DESTROY_INPUT
+        FFTW_ESTIMATE | FFTW_DESTROY_INPUT
       ),
       fftw_traits::func_destroy_plan
     }

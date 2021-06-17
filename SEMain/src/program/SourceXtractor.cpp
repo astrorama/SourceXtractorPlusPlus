@@ -20,10 +20,11 @@
  * @author mschefer
  */
 
-#include <typeinfo>
+#include <dlfcn.h>
+#include <iomanip>
 #include <map>
 #include <string>
-#include <iomanip>
+#include <typeinfo>
 
 #include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -51,32 +52,28 @@
 #include "SEFramework/Source/SourceWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 
-#include "SEFramework/FITS/FitsFileManager.h"
-
 #include "SEImplementation/CheckImages/SourceIdCheckImage.h"
 #include "SEImplementation/CheckImages/DetectionIdCheckImage.h"
 #include "SEImplementation/CheckImages/GroupIdCheckImage.h"
 #include "SEImplementation/CheckImages/MoffatCheckImage.h"
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
-
+#include "SEImplementation/Configuration/MultiThreadingConfig.h"
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
 #include "SEImplementation/Output/OutputFactory.h"
 #include "SEImplementation/Grouping/GroupingFactory.h"
-
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-
 #include "SEImplementation/Partition/PartitionFactory.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
-
+#include "SEImplementation/Configuration/SamplingConfig.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
+#include "SEImplementation/Prefetcher/Prefetcher.h"
 
 #include "SEMain/ProgressReporterFactory.h"
 #include "SEMain/PluginConfig.h"
@@ -128,9 +125,32 @@ static void setupEnvironment(void) {
   }
 }
 
+/**
+ * MKL blas implementation use multithreading by default, which
+ * tends to play badly with sourcextractor++ own multithreading.
+ * We disable multithreading here *unless* explicitly enabled by the user via
+ * environment variables
+ */
+static void disableBlasMultithreading() {
+  bool omp_env_present = getenv("OMP_NUM_THREADS") || getenv("OMP_DYNAMIC");
+  bool mkl_env_present = getenv("MKL_NUM_THREADS") || getenv("MKL_DYNAMIC");
+  if (!omp_env_present && !mkl_env_present) {
+    // Despite the documentation, the methods following C ABI are capitalized
+    void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
+    void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
+    if (set_num_threads) {
+      logger.debug() << "Disabling multithreading";
+      set_num_threads(1);
+    }
+    if (set_dynamic) {
+      logger.debug() << "Disabling dynamic multithreading";
+      set_dynamic(0);
+    }
+  }
+}
 
 class SEMain : public Elements::Program {
-  
+
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry = std::make_shared<TaskFactoryRegistry>();
   std::shared_ptr<TaskProvider> task_provider = std::make_shared<TaskProvider>(task_factory_registry);
   std::shared_ptr<OutputRegistry> output_registry = std::make_shared<OutputRegistry>();
@@ -145,14 +165,13 @@ class SEMain : public Elements::Program {
   GroupingFactory grouping_factory {group_factory};
   DeblendingFactory deblending_factory {source_factory};
   MeasurementFactory measurement_factory { output_registry };
-  BackgroundAnalyzerFactory background_level_analyzer_factory {};
   ProgressReporterFactory progress_printer_factory {};
 
   bool config_initialized = false;
   po::options_description config_parameters;
 
 public:
-  
+
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
           : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
   }
@@ -167,6 +186,8 @@ public:
       config_manager.registerConfiguration<BackgroundConfig>();
       config_manager.registerConfiguration<SE2BackgroundConfig>();
       config_manager.registerConfiguration<MemoryConfig>();
+      config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
+      config_manager.registerConfiguration<SamplingConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -179,7 +200,6 @@ public:
       deblending_factory.reportConfigDependencies(config_manager);
       measurement_factory.reportConfigDependencies(config_manager);
       output_factory.reportConfigDependencies(config_manager);
-      background_level_analyzer_factory.reportConfigDependencies(config_manager);
 
       config_parameters.add(config_manager.closeRegistration());
       config_initialized = true;
@@ -219,7 +239,7 @@ public:
   static void writeDefaultMultiple(std::ostream& out, const po::option_description& opt, const boost::any& default_value) {
     auto values = boost::any_cast<std::vector<T>>(default_value);
     if (values.empty()) {
-      out << opt.long_name() << '=' << std::endl;
+      out << "# " << opt.long_name() << '=' << std::endl;
     }
     else {
       for (const auto& v : values)
@@ -267,14 +287,14 @@ public:
 
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else
-    
+
     if (args.at(LIST_OUTPUT_PROPERTIES).as<bool>()) {
       for (auto& name : output_registry->getOutputPropertyNames()) {
         std::cout << name << std::endl;
       }
       return Elements::ExitCode::OK;
     }
-    
+
     if (args.at(PROPERTY_COLUMN_MAPPING_ALL).as<bool>()) {
       output_registry->printPropertyColumnMap();
       return Elements::ExitCode::OK;
@@ -284,6 +304,9 @@ public:
       printDefaults();
       return Elements::ExitCode::OK;
     }
+
+    // Make sure the BLAS multithreading does not interfere
+    disableBlasMultithreading();
 
     // Elements does not verify that the config-file exists. It will just not read it.
     // We verify that it does exist here.
@@ -311,15 +334,14 @@ public:
 
     task_factory_registry->configure(config_manager);
     task_factory_registry->registerPropertyInstances(*output_registry);
-    
+
     segmentation_factory.configure(config_manager);
     partition_factory.configure(config_manager);
     grouping_factory.configure(config_manager);
     deblending_factory.configure(config_manager);
     measurement_factory.configure(config_manager);
     output_factory.configure(config_manager);
-    background_level_analyzer_factory.configure(config_manager);
-    
+
     if (args.at(PROPERTY_COLUMN_MAPPING).as<bool>()) {
       output_registry->printPropertyColumnMap(config_manager.getConfiguration<OutputConfig>().getOutputProperties());
       return Elements::ExitCode::OK;
@@ -336,6 +358,18 @@ public:
     auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
 
     auto segmentation = segmentation_factory.createSegmentation();
+
+    // Multithreading
+    auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
+    auto thread_pool = multithreading_config.getThreadPool();
+
+    // Prefetcher
+    std::shared_ptr<Prefetcher> prefetcher;
+    if (thread_pool) {
+      prefetcher = std::make_shared<Prefetcher>(thread_pool);
+    }
+
+    // Rest of the stagees
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
 
@@ -343,12 +377,27 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.getOutput();
 
+    if (prefetcher) {
+      prefetcher->requestProperties(source_grouping->requiredProperties());
+      prefetcher->requestProperties(deblending->requiredProperties());
+    }
+
     auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
-    segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-    partition->addObserver(source_grouping);
+
+    if (prefetcher) {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
+      prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(prefetcher);
+      prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+    }
+    else {
+      segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
+      partition->addObserver(source_grouping);
+    }
+
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
     measurement->addObserver(sorter);
@@ -362,19 +411,19 @@ public:
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
-          std::make_shared<DetectionIdCheckImage>(CheckImages::getInstance().getSegmentationImage()));
+          std::make_shared<DetectionIdCheckImage>());
     }
     if (CheckImages::getInstance().getPartitionImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<SourceIdCheckImage>(CheckImages::getInstance().getPartitionImage()));
+          std::make_shared<SourceIdCheckImage>());
     }
     if (CheckImages::getInstance().getGroupImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<GroupIdCheckImage>(CheckImages::getInstance().getGroupImage()));
+          std::make_shared<GroupIdCheckImage>());
     }
     if (CheckImages::getInstance().getMoffatImage() != nullptr) {
       measurement->addObserver(
-          std::make_shared<MoffatCheckImage>(CheckImages::getInstance().getMoffatImage()));
+          std::make_shared<MoffatCheckImage>());
     }
 
     auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
@@ -383,7 +432,7 @@ public:
         detection_image_saturation, interpolation_gap);
     detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
 
-    auto background_analyzer = background_level_analyzer_factory.createBackgroundAnalyzer();
+    auto background_analyzer = config_manager.getConfiguration<BackgroundAnalyzerFactory>().createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
         ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
 
@@ -391,7 +440,7 @@ public:
     CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
     CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
 
-    detection_frame->setBackgroundLevel(background_model.getLevelMap());
+    detection_frame->setBackgroundLevel(background_model.getLevelMap(), background_model.getMedianRms());
 
     if (weight_image != nullptr) {
       if (is_weight_absolute) {
@@ -413,7 +462,7 @@ public:
       auto background = ConstantImage<DetectionImage::PixelType>::create(
           detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-      detection_frame->setBackgroundLevel(background);
+      detection_frame->setBackgroundLevel(background, 0.);
       CheckImages::getInstance().setBackgroundCheckImage(background);
     }
 
@@ -437,6 +486,9 @@ public:
       return Elements::ExitCode::NOT_OK;
     }
 
+    if (prefetcher) {
+      prefetcher->wait();
+    }
     measurement->waitForThreads();
 
     CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
@@ -444,7 +496,6 @@ public:
     CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
-    FitsFileManager::getInstance()->closeAllFiles();
 
     size_t n_writen_rows = output->flush();
 
@@ -462,12 +513,12 @@ public:
 
 
 class PluginOptionsMain : public Elements::Program {
-  
+
 public:
   PluginOptionsMain(std::string& plugin_path, std::vector<std::string>& plugin_list) :
           m_plugin_path(plugin_path), m_plugin_list(plugin_list) {
   }
-  
+
   virtual ~PluginOptionsMain() = default;
 
   boost::program_options::options_description defineSpecificProgramOptions() override {
@@ -478,7 +529,7 @@ public:
     options.add_options()("*", po::value<std::vector<std::string>>());
     return options;
   }
-  
+
   Elements::ExitCode mainMethod(std::map<std::string, boost::program_options::variable_value>& args) override {
     auto& config_manager = ConfigManager::getInstance(conf_man_id);
     config_manager.initialize(args);
@@ -489,13 +540,40 @@ public:
   }
 
 private:
-  
+
   long conf_man_id = getUniqueManagerId();
   std::string& m_plugin_path;
   std::vector<std::string>& m_plugin_list;
-  
+
 };
 
+
+static void forwardOptions(int argc, char *const *argv, std::vector<std::string>& plugin_options_input) {
+  for (int i = 0; i < argc; ++i) {
+    std::string option{argv[i]};
+    if (option == "--config-file") {
+      plugin_options_input.emplace_back("--config-file");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--config-file=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin-directory") {
+      plugin_options_input.emplace_back("--plugin-directory");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--plugin-directory=")) {
+      plugin_options_input.emplace_back(option);
+    }
+    if (option == "--plugin") {
+      plugin_options_input.emplace_back("--plugin");
+      plugin_options_input.emplace_back(std::string{argv[i + 1]});
+    }
+    if (boost::starts_with(option, "--plugin=")) {
+      plugin_options_input.emplace_back(option);
+    }
+  }
+}
 
 
 ELEMENTS_API int main(int argc, char* argv[]) {
@@ -526,30 +604,7 @@ ELEMENTS_API int main(int argc, char* argv[]) {
     plugin_options_input.emplace_back("DummyProgram");
     plugin_options_input.emplace_back("--log-level");
     plugin_options_input.emplace_back("ERROR");
-    for (int i = 0; i < argc; ++i) {
-      std::string option{argv[i]};
-      if (option == "--config-file") {
-        plugin_options_input.emplace_back("--config-file");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--config-file=")) {
-        plugin_options_input.emplace_back(option);
-      }
-      if (option == "--plugin-directory") {
-        plugin_options_input.emplace_back("--plugin-directory");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--plugin-directory=")) {
-        plugin_options_input.emplace_back(option);
-      }
-      if (option == "--plugin") {
-        plugin_options_input.emplace_back("--plugin");
-        plugin_options_input.emplace_back(std::string{argv[i + 1]});
-      }
-      if (boost::starts_with(option, "--plugin=")) {
-        plugin_options_input.emplace_back(option);
-      }
-    }
+    forwardOptions(argc, argv, plugin_options_input);
 
     int argc_tmp = plugin_options_input.size();
     std::vector<const char *> argv_tmp(argc_tmp);

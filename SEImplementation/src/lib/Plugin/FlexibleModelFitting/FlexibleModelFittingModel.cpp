@@ -49,12 +49,16 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 
+#include "Configuration/ConfigManager.h"
+#include "SEImplementation/Configuration/SamplingConfig.h"
+
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h"
 
 namespace SourceXtractor {
 
 using namespace ModelFitting;
 using Euclid::make_unique;
+using namespace Euclid::Configuration;
 
 static const double MODEL_MIN_SIZE = 4.0;
 static const double MODEL_SIZE_FACTOR = 1.2;
@@ -140,7 +144,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
 
   extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
       2.0, i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
-      size, size, pixel_x, pixel_y, jacobian));
+      size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
 }
 
 void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingParameterManager& manager,
@@ -180,7 +184,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
-      size, size, pixel_x, pixel_y, jacobian));
+      size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
 }
 
 static double computeBn(double n) {
@@ -224,7 +228,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
-      manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, jacobian));
+      manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
 }
 
 void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParameterManager& manager,

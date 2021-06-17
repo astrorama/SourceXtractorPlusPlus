@@ -1,0 +1,8 @@
+$PYTHON-astropy
+$PYTHON-matplotlib
+$PYTHON-numpy
+$PYTHON-pip
+$PYTHON-psutil
+$PYTHON-pytest
+git
+git-lfs

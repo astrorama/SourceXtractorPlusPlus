@@ -33,7 +33,7 @@ template <typename T = SeFloat, class TPadding = PaddedImage<T, Reflect101Coordi
 class DirectConvolution {
 public:
   DirectConvolution(std::shared_ptr<const Image<T>> img)
-    : m_kernel{MirrorImage<T>::create(img)} {
+    : m_kernel{VectorImage<T>::create(*MirrorImage<T>::create(img))} {
   }
 
   virtual ~DirectConvolution() = default;
@@ -75,7 +75,7 @@ public:
   }
 
 private:
-  std::shared_ptr<const Image<T>> m_kernel;
+  std::shared_ptr<const VectorImage<T>> m_kernel;
 };
 
 } // end SourceXtractor

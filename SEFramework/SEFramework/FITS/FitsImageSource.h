@@ -24,19 +24,27 @@
 #ifndef _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_
 
-#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/Image/ImageSource.h"
-#include "SEFramework/FITS/FitsFileManager.h"
+#include <memory>
+#include <vector>
+#include <map>
 
-#include <iostream>
 #include <boost/lexical_cast.hpp>
+
+#include "FilePool/FileManager.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/Image/ImageSourceWithMetadata.h"
+#include "SEFramework/FITS/FitsFile.h"
+#include "SEUtils/VariantCast.h"
 
 
 namespace SourceXtractor {
 
-template <typename T>
-class FitsImageSource : public ImageSource<T>, public std::enable_shared_from_this<ImageSource<T>>  {
+using Euclid::FilePool::FileManager;
+using Euclid::FilePool::FileHandler;
+
+class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
+
 
   /**
    * Constructor
@@ -46,12 +54,16 @@ public:
    *    HDU number. If <= 0, the constructor will use the first HDU containing an image
    * @param manager
    */
-  FitsImageSource(const std::string &filename, int hdu_number = 0,
-      std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
+  FitsImageSource(const std::string& filename, int hdu_number = 0,
+                  ImageTile::ImageType image_type = ImageTile::AutoType,
+                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
 
-  FitsImageSource(const std::string &filename, int width, int height,
+  FitsImageSource(const std::string& filename, int width, int height,
+                  ImageTile::ImageType image_type,
                   const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
-                  std::shared_ptr<FitsFileManager> manager = FitsFileManager::getInstance());
+                  bool append = false,
+                  bool empty_primary = false,
+                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
 
   virtual ~FitsImageSource() = default;
 
@@ -59,25 +71,26 @@ public:
     return m_filename;
   }
 
-  std::shared_ptr<ImageTile<T>> getImageTile(int x, int y, int width, int height) const override;
-
   /// Returns the width of the image in pixels
   int getWidth() const override {
     return m_width;
   }
 
   /// Returns the height of the image in pixels
-  int getHeight() const  override {
+  int getHeight() const override {
     return m_height;
   }
 
-  void saveTile(ImageTile<T>& tile) override;
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
-  template <typename TT>
-  bool readFitsKeyword(const std::string& header_keyword, TT& out_value) {
-    auto i = m_header.find(header_keyword);
-    if (i != m_header.end()) {
-      out_value = boost::lexical_cast<TT>(i->second);
+  void saveTile(ImageTile& tile) override;
+
+  template<typename TT>
+  bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
+    auto& headers = getMetadata();
+    auto i = headers.find(header_keyword);
+    if (i != headers.end()) {
+      out_value = VariantCast<TT>(i->second.m_value);
       return true;
     }
     return false;
@@ -87,29 +100,34 @@ public:
     return m_hdu_number;
   }
 
+  ImageTile::ImageType getType() const override {
+    return m_image_type;
+  }
+
+  std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
+
+  const std::map<std::string, MetadataEntry> getMetadata() const override;
+
+  void setMetadata(std::string key, MetadataEntry value) override;
+
 private:
-
-  void switchHdu(fitsfile* fptr, int hdu_number) const;
-
-  void loadHeadFile();
+  void switchHdu(fitsfile *fptr, int hdu_number) const;
 
   int getDataType() const;
+
   int getImageType() const;
 
   std::string m_filename;
-  std::shared_ptr<FitsFileManager> m_manager;
-
-  int m_width;
-  int m_height;
+  std::shared_ptr<FileHandler> m_handler;
 
   int m_hdu_number;
 
-  std::map<std::string, std::string> m_header;
+  int m_width;
+  int m_height;
+  ImageTile::ImageType m_image_type;
 };
 
 }
-
-
 
 
 #endif /* _SEFRAMEWORK_IMAGE_FITSIMAGESOURCE_H_ */

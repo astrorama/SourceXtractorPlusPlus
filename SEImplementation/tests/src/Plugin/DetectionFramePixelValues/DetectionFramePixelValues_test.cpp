@@ -27,6 +27,7 @@
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 
 #include "SEFramework/Property/DetectionFrame.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValuesTask.h"
@@ -50,10 +51,7 @@ BOOST_FIXTURE_TEST_CASE(detection_frame_pixel_values_test, DetectionFramePixelVa
       std::vector<WeightImage::PixelType>{0.00, 0.01, 0.02, 0.03, 0.04, 0.05});
 
   source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{2,0}, {1,1}});
-  source.setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(
-      image,
-      nullptr, // no WCS
-      variance_map));
+  source.setProperty<DetectionFrameSourceStamp>(image, image, image, PixelCoordinate(0,0), variance_map, image);
 
   DetectionFramePixelValuesTask task;
   task.computeProperties(source);

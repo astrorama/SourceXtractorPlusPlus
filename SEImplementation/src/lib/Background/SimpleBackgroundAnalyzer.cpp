@@ -21,13 +21,13 @@
  *      Author: mschefer
  */
 
+#include "SEFramework/Image/ImageAccessor.h"
+#include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2BackgroundUtils.h"
 
 #include <memory>
 #include <algorithm>
 
-#include "ElementsKernel/Logging.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ProcessedImage.h"
@@ -55,19 +55,21 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
   auto background_variance_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_variance);
   bck_model_logger.debug() << "bg: " << background_level << " var: " << background_variance;
 
-  return BackgroundModel(background_level_map, background_variance_map, 1.0);
+  return BackgroundModel(background_level_map, background_variance_map, 1.0, std::sqrt(background_variance));
 }
 
 
 SeFloat SimpleBackgroundAnalyzer::getVariance(std::shared_ptr<DetectionImage> image) {
   // Note: We compute the RMS by only taking into consideration pixels
   // below the background value.
+  using Accessor = ImageAccessor<DetectionImage::PixelType>;
+  Accessor accessor(image, Accessor::TOP_LEFT, 256, 1);
 
   double variance = 0;
   int pixels = 0;
-  for (int y=0; y < image->getHeight(); y++) {
-    for (int x=0; x < image->getWidth(); x++) {
-      auto value = image->getValue(x, y);
+  for (int y = 0; y < accessor.getHeight(); y++) {
+    for (int x = 0; x < accessor.getWidth(); x++) {
+      auto value = accessor.getValue(x, y);
       if (value < 0) {
         variance += value * value;
         pixels++;

@@ -20,6 +20,8 @@
 #include <boost/mpl/list.hpp>
 #include <random>
 
+#include "SEFramework/Image/ImageTile.h"
+
 #include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;
@@ -28,6 +30,8 @@ BOOST_AUTO_TEST_SUITE (BackgroundConvolution_test)
 
 //-----------------------------------------------------------------------------
 
+
+//typedef boost::mpl::list<BgDFTConvolutionImageSource> convolution_types;
 typedef boost::mpl::list<BgConvolutionImageSource, BgDFTConvolutionImageSource> convolution_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background, T, convolution_types) {
@@ -58,7 +62,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background, T, convolution_types) {
   );
 
   auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
-  auto result = image_source->getImageTile(0, 0, 5, 5)->getImage();
+  std::shared_ptr<ImageTile> tile = image_source->getImageTile(0, 0, 5, 5);
+  auto result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(tile)->getImage();
 
   // When applying the kernel for getting the value of a cell, the convolution is done only for pixels
   // with a variance below the threshold: basically, on a masked image.
@@ -107,7 +112,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kernel3_background_with_offset, T, convolution_ty
   );
 
   auto image_source = std::make_shared<T>(image, variance, 0.5, kernel);
-  auto result = image_source->getImageTile(1, 1, 3, 4)->getImage();
+  std::shared_ptr<ImageTile> tile = image_source->getImageTile(1, 1, 3, 4);
+  auto result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(tile)->getImage();
 
   auto expected = VectorImage<SeFloat>::create(
     3, 4, std::vector<SeFloat>{
@@ -155,8 +161,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE (kerneln_background, T, kernel_sizes) {
   auto direct_source = std::make_shared<BgConvolutionImageSource>(image, variance, 0.5, kernel);
   auto dft_source = std::make_shared<BgDFTConvolutionImageSource>(image, variance, 0.5, kernel);
 
-  auto direct_result = direct_source->getImageTile(0, 0, 128, 128)->getImage();
-  auto dft_result = dft_source->getImageTile(0, 0, 128, 128)->getImage();
+  std::shared_ptr<ImageTile> direct_tile = direct_source->getImageTile(0, 0, 128, 128);
+  auto direct_result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(direct_tile)->getImage();
+
+
+  std::shared_ptr<ImageTile> dft_tile = dft_source->getImageTile(0, 0, 128, 128);
+  auto dft_result = std::dynamic_pointer_cast<ImageTileWithType<SeFloat>>(dft_tile)->getImage();
 
   BOOST_CHECK(compareImages(direct_result, dft_result, 1e-8, 1e-4));
 }

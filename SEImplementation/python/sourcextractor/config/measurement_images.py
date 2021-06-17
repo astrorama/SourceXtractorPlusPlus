@@ -21,8 +21,6 @@ import os
 import re
 import sys
 
-from astropy.io import fits
-
 import _SourceXtractorPy as cpp
 
 if sys.version_info.major < 3:
@@ -33,6 +31,27 @@ else:
 
 measurement_images = {}
 
+class FitsFile(cpp.FitsFile):
+    def __init__(self, filename):
+        super(FitsFile, self).__init__(str(filename))
+        self.hdu_list = [i for i in self.image_hdus]
+
+    def __iter__(self):
+        return iter(self.hdu_list)
+
+    def get_headers(self, hdu):
+        d = {}
+        headers = super(FitsFile, self).get_headers(hdu)
+
+        try:
+            it = iter(headers)
+            while it:
+                a = next(it)
+                d[a.key()] = headers[a.key()]
+        except StopIteration:
+            pass
+
+        return d
 
 class MeasurementImage(cpp.MeasurementImage):
     """
@@ -41,12 +60,12 @@ class MeasurementImage(cpp.MeasurementImage):
 
     Parameters
     ----------
-    fits_file : str
-        The path to a FITS image. Only primary HDU images are supported.
+    fits_file : str or FitsFile object
+        The path to a FITS image, or an instance of FitsFile
     psf_file : str
         The path to a PSF. It can be either a FITS image, or a PSFEx model.
-    weight_file : str
-        The path to a FITS image with the pixel weights.
+    weight_file : str or FitsFile
+        The path to a FITS image with the pixel weights, or an instance of FitsFile
     gain : float
         Image gain. If None, `gain_keyword` will be used instead.
     gain_keyword : str
@@ -84,7 +103,7 @@ class MeasurementImage(cpp.MeasurementImage):
     constant_background : float
         If set a constant background of that value is assumed for the image instead of using automatic detection
     image_hdu : int
-        For multi-extension FITS file specifies the HDU number for the image. Default 1 (primary HDU)
+        For multi-extension FITS file specifies the HDU number for the image. Default 0 (primary HDU)
     psf_hdu : int
         For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu
     weight_hdu : int
@@ -96,29 +115,35 @@ class MeasurementImage(cpp.MeasurementImage):
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='none', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None, constant_background=None,
-                 image_hdu=1, psf_hdu=None, weight_hdu=None 
+                 image_hdu=0, psf_hdu=None, weight_hdu=None 
                  ):
         """
         Constructor.
         """
-        super(MeasurementImage, self).__init__(os.path.abspath(fits_file),
+        if isinstance(fits_file, FitsFile):
+            hdu_list = fits_file
+            file_path = fits_file.filename
+        else:
+            hdu_list = FitsFile(fits_file)
+            file_path = fits_file
+
+        if isinstance(weight_file, FitsFile):
+            weight_file = weight_file.filename
+
+        super(MeasurementImage, self).__init__(os.path.abspath(file_path),
                                                os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
-        if image_hdu <= 0 or (weight_hdu is not None and weight_hdu <= 0) or (psf_hdu is not None and psf_hdu <= 0):
-            raise ValueError('HDU indexes start at 1')
+        if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (psf_hdu is not None and psf_hdu < 0):
+            raise ValueError('HDU indices start at 0')
 
         self.meta = {
             'IMAGE_FILENAME': self.file,
             'PSF_FILENAME': self.psf_file,
             'WEIGHT_FILENAME': self.weight_file
         }
-        hdu_list = fits.open(fits_file)
-        hdu_meta = hdu_list[image_hdu-1].header
-        for key in hdu_meta:
-            self.meta[key] = hdu_meta[key]
-            
-        self._load_header_file(fits_file, image_hdu)
+
+        self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
             self.gain = gain
@@ -140,7 +165,7 @@ class MeasurementImage(cpp.MeasurementImage):
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 1.
-
+        
         self.weight_type = weight_type
         self.weight_absolute = weight_absolute
         self.weight_scaling = weight_scaling
@@ -157,7 +182,6 @@ class MeasurementImage(cpp.MeasurementImage):
             self.is_background_constant = False
             self.constant_background_value = -1
             
-            
         self.image_hdu = image_hdu
 
         if psf_hdu is None:
@@ -172,30 +196,6 @@ class MeasurementImage(cpp.MeasurementImage):
 
         global measurement_images
         measurement_images[self.id] = self
-        
-    # overrides the FITS headers using an ascii .head file if it can be found
-    def _load_header_file(self, filename, hdu):
-        pre, ext = os.path.splitext(filename)
-        header_file = pre + ".head"
-        current_hdu = 1
-        
-        if os.path.exists(header_file):
-            print("processing ascii header file: " + header_file)
-            
-            with open(header_file) as f:
-                for line in f:
-                    line = re.sub("\\s*#.*", "", line)
-                    line = re.sub("\\s*$", "", line)
-                    
-                    if line == "":
-                        continue
-                    
-                    if line.upper() == "END":
-                        current_hdu += 1
-                    elif current_hdu == hdu:
-                        m = re.match("(.+)=(.+)", line)
-                        if m:
-                            self.meta[m.group(1)] = m.group(2)
 
     def __str__(self):
         """
@@ -437,23 +437,6 @@ class ImageGroup(object):
         self.print(show_images=True, file=string)
         return string.getvalue()
 
-
-class ImageCacheEntry(object):
-    def __init__(self, image, kwargs):
-        self.image = image
-        self.kwargs = kwargs
-
-    def match_kwargs(self, kwargs):
-        mismatch = []
-        for key, value in kwargs.items():
-            if key not in self.kwargs:
-                mismatch.append('{} {} != undefined'.format(key, value))
-            elif self.kwargs[key] != value:
-                mismatch.append('{} {} != {}'.format(key, value, self.kwargs[key]))
-        return mismatch
-
-_image_cache = {}
-
 def load_fits_image(image, psf=None, weight=None, **kwargs):
     """Creates an image group with the images of a (possibly multi-HDU) single FITS file.
     
@@ -461,44 +444,45 @@ def load_fits_image(image, psf=None, weight=None, **kwargs):
  
     In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.
  
-    :param image: The FITS file containing the image(s)
+    :param image: The filename of the FITS file containing the image(s)
     :param psf: psf file or list of psf files
     :param weight: FITS file for the weight image or a list of such files
 
     :return: A ImageGroup representing the images
     """
 
-    hdu_list = [i for i, hdu in enumerate(fits.open(image)) if hdu.is_image and hdu.header['NAXIS'] == 2]
+    image_hdu_list = FitsFile(image)
+    image_hdu_idx = image_hdu_list.hdu_list
      
     # handles the PSFs
     if isinstance(psf, list):
-        if len(psf) != len(hdu_list):
+        if len(psf) != len(image_hdu_idx):
             raise ValueError("The number of psf files must match the number of images!")
         psf_list = psf
-        psf_hdu_list = [0] * len(psf_list)
+        psf_hdu_idx = [0] * len(psf_list)
     else:
-        psf_list = [psf] * len(hdu_list)
-        psf_hdu_list = range(len(hdu_list))
+        psf_list = [psf] * len(image_hdu_idx)
+        psf_hdu_idx = range(len(image_hdu_idx))
          
     # handles the weight maps
     if isinstance(weight, list):
-        if len(weight) != len(hdu_list):
+        if len(weight) != len(image_hdu_idx):
             raise ValueError("The number of weight files must match the number of images!")
         weight_list = weight
-        weight_hdu_list = [0] * len(weight_list)
+        weight_hdu_idx = [0] * len(weight_list)
+    elif weight is None:
+        weight_list = [None] * len(image_hdu_idx)
+        weight_hdu_idx = [0] * len(weight_list)
     else:
-        if weight is None:
-            weight_list = [None] * len(hdu_list)
-            weight_hdu_list = [0] * len(weight_list)
-        else:
-            weight_hdu_list = [i for i, hdu in enumerate(fits.open(weight)) if hdu.is_image and hdu.header['NAXIS'] == 2]
-            weight_list = [weight] * len(hdu_list)
+        weight_hdu_list = FitsFile(weight)
+        weight_hdu_idx = weight_hdu_list.hdu_list
+        weight_list = [weight_hdu_list] * len(image_hdu_idx)
  
     image_list = []
     for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
-            hdu_list, psf_list, psf_hdu_list, weight_list, weight_hdu_list):
-        image_list.append(MeasurementImage(image, psf_file, weight_file,
-                                           image_hdu=hdu+1, psf_hdu=psf_hdu+1, weight_hdu=weight_hdu+1, **kwargs))
+            image_hdu_idx, psf_list, psf_hdu_idx, weight_list, weight_hdu_idx):
+        image_list.append(MeasurementImage(image_hdu_list, psf_file, weight_file,
+                                           image_hdu=hdu, psf_hdu=psf_hdu, weight_hdu=weight_hdu, **kwargs))
  
     return ImageGroup(images=image_list)
 

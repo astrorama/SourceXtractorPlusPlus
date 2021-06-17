@@ -45,7 +45,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
     [](const AperturePhotometryArray &prop) {
       return prop.getFluxes();
     },
-    "[count]",
+    "count",
     "Aperture flux"
   );
 
@@ -54,7 +54,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
     [](const AperturePhotometryArray &prop) {
       return prop.getFluxErrors();
     },
-    "[count]",
+    "count",
     "Aperture flux error"
   );
 
@@ -63,7 +63,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
     [](const AperturePhotometryArray &prop) {
       return prop.getMags();
     },
-    "[mag]",
+    "mag",
     "Aperture magnitude"
   );
 
@@ -72,7 +72,7 @@ void AperturePhotometryPlugin::registerPlugin(PluginAPI &plugin_api) {
     [](const AperturePhotometryArray &prop) {
       return prop.getMagErrors();
     },
-    "[mag]",
+    "mag",
     "Aperture magnitude error"
   );
 

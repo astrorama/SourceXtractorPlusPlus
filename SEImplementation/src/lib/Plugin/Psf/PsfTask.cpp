@@ -22,39 +22,46 @@
  */
 
 #include <numeric>
-#include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MeasurementFrameGroupRectangle/MeasurementFrameGroupRectangle.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
-#include "SEImplementation/Plugin/MeasurementFrame/MeasurementFrame.h"
 #include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
 #include "SEImplementation/Plugin/Psf/PsfTask.h"
 
 namespace SourceXtractor {
 
+static double getCoordX(SourceXtractor::SourceGroupInterface& group, unsigned instance) {
+  auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+  double top_x = measurement_frame_group.getTopLeft().m_x;
+  return top_x + measurement_frame_group.getWidth() / 2.;
+}
 
-std::map<std::string, ValueGetter> component_value_getters {
-    {"X_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
-      auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      double top_x = measurement_frame_group.getTopLeft().m_x;
-      return top_x + measurement_frame_group.getWidth() / 2.;
-    }},
-    {"Y_IMAGE", [](SourceXtractor::SourceGroupInterface &group, unsigned instance){
-      auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
-      double top_y = measurement_frame_group.getTopLeft().m_y;
-      return top_y + measurement_frame_group.getHeight() / 2.;
-    }}
+static double getCoordY(SourceXtractor::SourceGroupInterface& group, unsigned instance) {
+  auto& measurement_frame_group = group.getProperty<MeasurementFrameGroupRectangle>(instance);
+  double top_y = measurement_frame_group.getTopLeft().m_y;
+  return top_y + measurement_frame_group.getHeight() / 2.;
+}
+
+std::map<std::string, ValueGetter> component_value_getters{
+  {"X_IMAGE",      getCoordX},
+  {"Y_IMAGE",      getCoordY},
+  {"XWIN_IMAGE",   getCoordX},
+  {"YWIN_IMAGE",   getCoordY},
+  {"XPEAK_IMAGE",  getCoordX},
+  {"YPEAK_IMAGE",  getCoordY},
+  {"XMODEL_IMAGE", getCoordX},
+  {"YMODEL_IMAGE", getCoordY}
 };
 
-PsfTask::PsfTask(unsigned instance, const std::shared_ptr<VariablePsf> &vpsf)
+PsfTask::PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf)
     : m_instance(instance), m_vpsf(vpsf) {
 }
 
 void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) const {
   std::vector<double> component_values;
 
-  for (auto c : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[c.name](group, m_instance));
+  for (auto component : m_vpsf->getComponents()) {
+    component_values.push_back(component_value_getters[component](group, m_instance));
   }
 
   auto psf = m_vpsf->getPsf(component_values);
@@ -65,11 +72,8 @@ void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) con
 
   // Check image
   if (group.size()) {
-    auto& frame = group.begin()->getProperty<MeasurementFrame>(m_instance);
-    auto check_image = CheckImages::getInstance().getPsfImage(frame.getFrame());
+    auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
     if (check_image) {
-      std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
       auto x = component_value_getters["X_IMAGE"](group, m_instance);
       auto y = component_value_getters["Y_IMAGE"](group, m_instance);
 

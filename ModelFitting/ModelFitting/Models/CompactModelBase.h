@@ -35,7 +35,14 @@ protected:
   float samplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int subsampling) const;
 
   template<typename ModelEvaluator>
+  float sampleStochastic(const ModelEvaluator& model_eval, int x, int y, unsigned int samples=100) const;
+
+  template<typename ModelEvaluator>
   float adaptiveSamplePixel(const ModelEvaluator& model_eval, int x, int y, unsigned int max_subsampling, float threshold=1.1) const;
+
+  double getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const;
+
+  void renormalize(ImageType& image, double flux) const;
 
   // Jacobian transform
   Mat22 m_jacobian;

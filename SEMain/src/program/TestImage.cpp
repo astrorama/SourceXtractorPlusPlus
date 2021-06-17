@@ -40,16 +40,15 @@
 #include <CCfits/CCfits>
 
 #include "AlexandriaKernel/memory_tools.h"
-#include "SEFramework/Image/ProcessedImage.h"
 
-#include "SEFramework/Image/VectorImage.h"
-#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 #include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/WriteableBufferedImage.h"
-#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Image/ImagePsf.h"
-
-#include "SEImplementation/CoordinateSystem/WCS.h"
+#include "SEImplementation/Image/WriteableImageInterfaceTraits.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 
 #include "ModelFitting/Parameters/ManualParameter.h"
 #include "ModelFitting/Models/OnlySmooth.h"
@@ -223,7 +222,7 @@ public:
 
       // Model
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
+      auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), exp_i0, exp_n, exp_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(
@@ -242,7 +241,7 @@ public:
           source.dev_flux * pow(10, 3.33) / (7.2 * M_PI * source.dev_rad * source.dev_rad * source.dev_aspect));
 
       std::vector<std::unique_ptr<ModelComponent>> component_list {};
-      auto exp = make_unique<SersicModelComponent>(make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
+      auto exp = Euclid::make_unique<SersicModelComponent>(Euclid::make_unique<OldSharp>(), dev_i0, dev_n, dev_k);
       component_list.clear();
       component_list.emplace_back(std::move(exp));
       extended_models.emplace_back(std::make_shared<ModelFitting::TransformedModel<WriteableInterfaceTypePtr>>(
@@ -265,21 +264,23 @@ public:
 
   void addBackgroundNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double background_level, double background_sigma) {
     // Add noise
+    ImageAccessor<SeFloat> accessor(image);
     boost::random::normal_distribution<> bg_noise_dist(background_level, background_sigma);
     for (int y=0; y < image->getHeight(); y++) {
       for (int x=0; x < image->getWidth(); x++) {
         // background (gaussian) noise
-        image->setValue(x, y, image->getValue(x, y) + bg_noise_dist(m_rng));
+        image->setValue(x, y, accessor.getValue(x, y) + bg_noise_dist(m_rng));
       }
     }
   }
 
   void addPoissonNoise(std::shared_ptr<WriteableImage<SeFloat>> image, double gain) {
     // Add noise
+    ImageAccessor<SeFloat> accessor(image);
     if (gain > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          auto pixel_value = image->getValue(x, y);
+          auto pixel_value = accessor.getValue(x, y);
           if (pixel_value > 0.) {
             image->setValue(x, y, boost::random::poisson_distribution<>(pixel_value * gain)(m_rng) / gain);
           }
@@ -289,10 +290,11 @@ public:
   }
 
   void saturate(std::shared_ptr<WriteableImage<SeFloat>> image, double saturation_level) {
+    ImageAccessor<SeFloat> accessor(image);
     if (saturation_level > 0.0) {
       for (int y=0; y < image->getHeight(); y++) {
         for (int x=0; x < image->getWidth(); x++) {
-          image->setValue(x, y, std::min(image->getValue(x, y), (float) saturation_level));
+          image->setValue(x, y, std::min(accessor.getValue(x, y), (float) saturation_level));
         }
       }
     }
@@ -504,7 +506,7 @@ public:
     std::vector<std::shared_ptr<ModelFitting::ExtendedModel<WriteableInterfaceTypePtr>>> extended_models;
     std::vector<PointModel> point_models;
 
-    std::shared_ptr<VariablePsf> vpsf;
+    std::shared_ptr<Psf> vpsf;
 
     auto psf_filename = args["psf-file"].as<std::string>();
     if (psf_filename != "") {
@@ -534,11 +536,11 @@ public:
     const auto& vpsf_components = vpsf->getComponents();
     std::vector<double> psf_vals(vpsf_components.size());
     for (auto i = 0u; i < psf_vals.size(); ++i) {
-      if (vpsf_components[i].name == "X_IMAGE" || vpsf_components[i].name == "Y_IMAGE") {
+      if (vpsf_components[i] == "X_IMAGE" || vpsf_components[i] == "Y_IMAGE") {
         psf_vals[i] = image_size / 2 - 1;
       }
       else {
-        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i].name;
+        throw Elements::Exception() << "Unknown PSF component " << vpsf_components[i];
       }
     }
 
@@ -588,7 +590,8 @@ public:
     logger.info("Rendering...");
 
     auto filename = args["output"].as<std::string>();
-    auto target_image_source = std::make_shared<FitsImageSource<SeFloat>>(filename, image_size, image_size, coordinate_system);
+    auto target_image_source = std::make_shared<FitsImageSource>(filename, image_size, image_size,
+        ImageTile::ImageType::FloatImage, coordinate_system);
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
     if (args["disable-psf"].as<bool>()) {
@@ -627,7 +630,7 @@ public:
 
     auto weight_filename = args["output-weight"].as<std::string>();
     if (weight_filename != "") {
-      auto weight_map_source = std::make_shared<FitsImageSource<SeFloat>>(weight_filename, image_size, image_size);
+      auto weight_map_source = std::make_shared<FitsImageSource>(weight_filename, image_size, image_size, ImageTile::ImageType::FloatImage);
       auto weight_map = WriteableBufferedImage<SeFloat>::create(weight_map_source);
       for (int y = 0; y < image_size; ++y) {
         for (int x = 0; x < image_size; ++x) {
@@ -640,9 +643,10 @@ public:
       addBadPixels(weight_map, args["bad-pixels"].as<double>());
       addBadColumns(weight_map, args["bad-columns"].as<double>());
 
+      ImageAccessor<WeightImage::PixelType> weightAccessor(weight_map);
       for (int y = 0; y < target_image->getHeight(); y++) {
         for (int x = 0; x < target_image->getWidth(); x++) {
-          if (weight_map->getValue(x, y) == 0) {
+          if (weightAccessor.getValue(x, y) == 0) {
             target_image->setValue(x, y, saturation_level);
           }
         }

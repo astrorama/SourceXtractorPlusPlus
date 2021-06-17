@@ -50,7 +50,8 @@ struct PixelCoordinate {
   }
 
   PixelCoordinate operator*(double scalar) const {
-    return PixelCoordinate(m_x * scalar, m_y  * scalar);
+    return PixelCoordinate(static_cast<int>(m_x * scalar),
+                           static_cast<int>(m_y * scalar));
   }
 
   PixelCoordinate operator+(const PixelCoordinate& other) const {
@@ -72,6 +73,26 @@ struct PixelCoordinate {
     m_y -= other.m_y;
     return *this;
   }
+
+  bool operator>=(const PixelCoordinate& other) const {
+    return m_x >= other.m_x && m_y >= other.m_y;
+  }
+
+  bool operator<=(const PixelCoordinate& other) const {
+    return m_x <= other.m_x && m_y <= other.m_y;
+  }
+
+  /**
+   * Make sure the coordinates are within a box of a given width and height
+   * @return
+   *    true if the coordinates have been modified (clipped)
+   */
+  bool clip(int w, int h) {
+    int ox = m_x, oy = m_y;
+    m_x = std::min(std::max(0, m_x), w - 1);
+    m_y = std::min(std::max(0, m_y), h - 1);
+    return ox != m_x || oy != m_y;
+  }
 };
 
 
@@ -84,10 +105,10 @@ template <>
 struct hash<SourceXtractor::PixelCoordinate>
 {
   std::size_t operator()(const SourceXtractor::PixelCoordinate& coord) const {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, coord.m_x);
-    boost::hash_combine(hash, coord.m_y);
-    return hash;
+    std::size_t local_hash = 0;
+    boost::hash_combine(local_hash, coord.m_x);
+    boost::hash_combine(local_hash, coord.m_y);
+    return local_hash;
   }
 };
 

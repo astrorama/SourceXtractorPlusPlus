@@ -26,7 +26,7 @@
 
 #include <mutex>
 
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/TileManager.h"
 
 
@@ -36,21 +36,18 @@ namespace SourceXtractor {
  *
  */
 template <typename T>
-class BufferedImage : public ImageBase<T> {
+class BufferedImage : public virtual Image<T> {
 protected:
 
-  BufferedImage(std::shared_ptr<const ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager);
+  BufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager);
 
 public:
   virtual ~BufferedImage() = default;
 
-  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<const ImageSource<T>> source,
+  static std::shared_ptr<BufferedImage<T>> create(std::shared_ptr<const ImageSource> source,
       std::shared_ptr<TileManager> tile_manager = TileManager::getInstance());
 
   std::string getRepr() const override;
-
-  /// Returns the value of the pixel with the coordinates (x,y)
-  T getValue(int x, int y) const override;
 
   /// Returns the width of the image in pixels
   int getWidth() const override;
@@ -61,11 +58,10 @@ public:
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override;
 
 protected:
-  std::shared_ptr<const ImageSource<T>> m_source;
+  std::shared_ptr<const ImageSource> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
-  mutable std::shared_ptr<ImageTile<T>> m_current_tile;
 
-  void copyOverlappingPixels(const ImageTile<T> &tile, std::vector<T> &output,
+  void copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T> &output,
                              int x, int y, int w, int h,
                              int tile_w, int tile_h) const;
 };

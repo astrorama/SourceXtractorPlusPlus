@@ -51,29 +51,38 @@ static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
 static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
 static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
+static const std::string SEGMENTATION_BFS_MAX_DELTA {"segmentation-bfs-max-delta" };
 
 SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0) {
+    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0), m_bfs_max_delta(1000) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
   return { {"Detection image", {
       {SEGMENTATION_ALGORITHM.c_str(), po::value<std::string>()->default_value("LUTZ"),
-          "Segmentation algorithm to be used. Currently LUTZ is the only choice"},
+          "Segmentation algorithm to be used (LUTZ or TILES)"},
       {SEGMENTATION_DISABLE_FILTERING.c_str(), po::bool_switch(),
           "Disables filtering"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
           "Loads a filter"},
       {SEGMENTATION_LUTZ_WINDOW_SIZE.c_str(), po::value<int>()->default_value(0),
           "Lutz sliding window size (0=disable)"},
+      {SEGMENTATION_BFS_MAX_DELTA.c_str(), po::value<int>()->default_value(1000),
+          "BFS algorithm max source x/y size (default=1000)"},
   }}};
 }
 
 void SegmentationConfig::preInitialize(const UserValues& args) {
   auto algorithm_name = boost::to_upper_copy(args.at(SEGMENTATION_ALGORITHM).as<std::string>());
-  if (algorithm_name != "LUTZ") {
+  if (algorithm_name == "LUTZ") {
+    m_selected_algorithm = Algorithm::LUTZ;
+  } else if (algorithm_name == "BFS") {
+    m_selected_algorithm = Algorithm::BFS;
+  } else {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
+
+
   if (args.at(SEGMENTATION_DISABLE_FILTERING).as<bool>()) {
     m_filter = nullptr;
   } else {
@@ -85,14 +94,13 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     } else {
       m_filter = getDefaultFilter();
     }
-
   }
 
   m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();
+  m_bfs_max_delta = args.at(SEGMENTATION_BFS_MAX_DELTA).as<int>();
 }
 
 void SegmentationConfig::initialize(const UserValues&) {
-  m_selected_algorithm = Algorithm::LUTZ;
 }
 
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::getDefaultFilter() const {
@@ -139,6 +147,31 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFITSFi
   return std::make_shared<BackgroundConvolution>(convolution_kernel, true);
 }
 
+static bool getNormalization(std::istream& line_stream) {
+  std::string conv, norm_type;
+  line_stream >> conv >> norm_type;
+  if (conv != "CONV") {
+    throw Elements::Exception() << "Unexpected start for ASCII filter: " << conv;
+  }
+  if (norm_type == "NORM") {
+    return true;
+  }
+  else if (norm_type == "NONORM") {
+    return false;
+  }
+
+  throw Elements::Exception() << "Unexpected normalization type: " << norm_type;
+}
+
+template <typename T>
+static void extractValues(std::istream& line_stream, std::vector<T>& data) {
+  T value;
+  while (line_stream.good()) {
+    line_stream >> value;
+    data.push_back(value);
+  }
+}
+
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIFilter(const std::string& filename) const {
   std::ifstream file;
 
@@ -171,37 +204,17 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
     std::stringstream line_stream(line);
 
     switch (state) {
-      SeFloat value;
       case LoadState::STATE_START:
-        {
-          std::string conv, norm_type;
-          line_stream >> conv >> norm_type;
-          if (conv != "CONV") {
-            return nullptr;
-          }
-          if (norm_type == "NORM") {
-            normalize = true;
-          } else if (norm_type == "NONORM") {
-            normalize = false;
-          } else {
-            return nullptr;
-          }
-          state = LoadState::STATE_FIRST_LINE;
-        }
+        normalize = getNormalization(line_stream);
+        state = LoadState::STATE_FIRST_LINE;
         break;
       case LoadState::STATE_FIRST_LINE:
-        while (line_stream.good()) {
-          line_stream >> value;
-          kernel_data.push_back(value);
-        }
+        extractValues(line_stream, kernel_data);
         kernel_width = kernel_data.size();
         state = LoadState::STATE_OTHER_LINES;
         break;
       case LoadState::STATE_OTHER_LINES:
-        while (line_stream.good()) {
-          line_stream >> value;
-          kernel_data.push_back(value);
-        }
+        extractValues(line_stream, kernel_data);
         break;
       }
   }

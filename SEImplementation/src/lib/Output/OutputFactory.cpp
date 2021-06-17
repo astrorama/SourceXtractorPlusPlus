@@ -32,10 +32,9 @@
 #include "SEFramework/Output/OutputRegistry.h"
 
 #include "SEImplementation/Output/OutputFactory.h"
-#include "SEImplementation/Output/TableOutput.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
-
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Output/LdacWriter.h"
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 using Euclid::make_unique;
 
@@ -43,7 +42,7 @@ namespace SourceXtractor {
 
 std::unique_ptr<Output> OutputFactory::getOutput() const {
   auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
-  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler, m_flush_size));
+  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler, m_source_handler, m_flush_size));
 }
 
 void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -71,12 +70,20 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
     }
 
     std::unique_ptr<Euclid::Table::FitsWriter> fits_table_writer;
+    std::shared_ptr<LdacWriter> ldac_writer;
 
     switch (output_config.getOutputFileFormat()) {
       case OutputConfig::OutputFileFormat::FITS:
-        fits_table_writer = make_unique<Euclid::Table::FitsWriter>(out_file, true);
+        fits_table_writer = Euclid::make_unique<Euclid::Table::FitsWriter>(out_file, true);
         fits_table_writer->setHduName("CATALOG");
         table_writer = std::move(fits_table_writer);
+        break;
+      case OutputConfig::OutputFileFormat::FITS_LDAC:
+        ldac_writer = std::make_shared<LdacWriter>(out_file, manager);
+        m_source_handler = [ldac_writer](const SourceInterface &source) {
+          ldac_writer->notifySource(source);
+        };
+        table_writer = ldac_writer;
         break;
       case OutputConfig::OutputFileFormat::ASCII:
         table_writer = std::make_shared<Euclid::Table::AsciiWriter>(out_file);

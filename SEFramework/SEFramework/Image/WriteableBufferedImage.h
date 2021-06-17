@@ -30,25 +30,23 @@
 namespace SourceXtractor {
 
 template <typename T>
-class WriteableBufferedImage : public BufferedImage<T>, public WriteableImage<T> {
+class WriteableBufferedImage : public BufferedImage<T>, public virtual WriteableImage<T> {
 
 protected:
 
-  WriteableBufferedImage(std::shared_ptr<const ImageSource<T>> source, std::shared_ptr<TileManager> tile_manager)
+  WriteableBufferedImage(std::shared_ptr<const ImageSource> source, std::shared_ptr<TileManager> tile_manager)
       : BufferedImage<T>(source, tile_manager) {}
-
-  using BufferedImage<T>::m_current_tile;
 
 public:
 
   virtual ~WriteableBufferedImage() = default;
 
-  static std::shared_ptr<WriteableBufferedImage<T>> create(std::shared_ptr<const ImageSource<T>> source,
+  static std::shared_ptr<WriteableBufferedImage<T>> create(std::shared_ptr<const ImageSource> source,
       std::shared_ptr<TileManager> tile_manager = TileManager::getInstance()) {
     return std::shared_ptr<WriteableBufferedImage<T>>(new WriteableBufferedImage<T>(source, tile_manager));
   }
 
-  virtual void setValue(int x, int y, T value) override {
+  void setValue(int x, int y, T value) override {
     assert(x >= 0 && y >=0 && x < BufferedImage<T>::m_source->getWidth() && y < BufferedImage<T>::m_source->getHeight());
 
     if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
@@ -59,6 +57,10 @@ public:
     m_current_tile->setValue(x, y, value);
   }
 
+  using BufferedImage<T>::getRepr;
+
+private:
+  mutable std::shared_ptr<ImageTile> m_current_tile;
 };
 
 }
