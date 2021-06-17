@@ -465,6 +465,8 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- Options for pybtex ----------------------------------------------
+bibtex_bibfiles = ["references.bib"]
+    
 from packaging import version as vers
 from pybtex import __version__ as pybtex_version
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle, date, pages, toplevel
