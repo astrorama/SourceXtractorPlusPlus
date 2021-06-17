@@ -31,13 +31,15 @@ As of version 0.13, |SourceXtractor++| scales reasonably well up to 8 cores.
 Obtaining |SourceXtractor++|
 ============================
 
-From Fedora or EPEL repositories |rawhide|
-------------------------------------------
+.. only:: latex
 
-.. only:: html
-  .. |rawhide|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide
-    :alt: Fedora package
-    :target: https://src.fedoraproject.org/rpms/sourcextractor++
+  From Fedora or EPEL repositories |rawhide_release_png|
+  ------------------------------------------------------
+
+.. only:: not latex
+
+  From Fedora or EPEL repositories |rawhide_release_svg|
+  ------------------------------------------------------
 
 |SourceXtractor++| is available in `Fedora <https://src.fedoraproject.org/rpms/sourcextractor++>`_
 30 and greater, and in EPEL 7 as well. On those platforms, you can use your
@@ -45,15 +47,17 @@ package manager to install in the usual way:
 
 .. code-block:: console
 
-  $ dnf install sourcextractor++
+  # dnf install sourcextractor++
 
-From Anaconda Cloud |anaconda_cloud|
-------------------------------------
+.. only:: latex
 
-.. only:: html
-  .. |anaconda_cloud| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor
-    :alt: Conda
-    :target: https://anaconda.org/astrorama/sourcextractor
+  From Anaconda Cloud |anaconda_release_png|
+  ------------------------------------------
+
+.. only:: not latex
+
+  From Anaconda Cloud |anaconda_release_svg|
+  ------------------------------------------
 
 |SourceXtractor++| is also available for Linux and MacOS via Anaconda cloud.
 You can install it as follows:
@@ -76,13 +80,16 @@ It is recommended to install |SourceXtractor++| into its own
 `environment <https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html>`_
 to avoid dependency conflicts.
 
-From Sources |github|
----------------------
+.. only:: latex
 
-.. only:: html
-  .. |github| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus
-    :alt: GitHub tag (latest SemVer)
-    :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
+  From Sources |github_release_png|
+  ---------------------------------
+
+.. only:: not latex
+
+  From Sources |github_release_svg|
+  ---------------------------------
+
 
 The source package may be downloaded from the official `GitHub repository <https://github.com/astrorama/SourceXtractorPlusPlus>`_.
 Links to binary packages for a selection of operating systems are also available at the URL above.
@@ -119,7 +126,7 @@ If you have installed Elements and Alexandria from your distribution repository 
 
 .. code-block:: console
 
-  $ dnf install elements-devel elements-alexandria-devel
+  # dnf install elements-devel elements-alexandria-devel
 
 
 Installation of Elements and Alexandria

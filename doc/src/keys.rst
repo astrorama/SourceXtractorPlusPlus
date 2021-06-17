@@ -4,6 +4,15 @@
 .. |Alexandria| replace:: :program:`Alexandria`
 .. _Alexandria: http://github.com/astrorama/Alexandria
 
+.. |anaconda_release_png| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor.png
+  :height: 1em
+  :alt: Conda
+  :target: https://anaconda.org/astrorama/sourcextractor
+
+.. |anaconda_release_svg| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor
+  :alt: Conda
+  :target: https://anaconda.org/astrorama/sourcextractor
+
 .. |ATLAS| replace:: :program:`ATLAS`
 .. _ATLAS: http://math-atlas.sourceforge.net
 
@@ -30,6 +39,15 @@
 
 .. |fv| replace:: :program:`fv`
 .. _fv: http://heasarc.gsfc.nasa.gov/ftools/fv/
+
+.. |github_release_png| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus.png
+  :height: 1em
+  :alt: GitHub tag (latest SemVer)
+  :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
+
+.. |github_release_svg| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus
+  :alt: GitHub tag (latest SemVer)
+  :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
 
 .. |GitHub| replace:: GitHub
 .. _GitHub: https://github.com
@@ -66,6 +84,15 @@
 
 .. |QSO| replace:: :abbr:`QSO (Quasi-Stellar Object)`
 .. _QSO: https://en.wikipedia.org/wiki/Quasar
+
+.. |rawhide_release_png|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide.png
+  :height: 1em
+  :alt: Fedora package
+  :target: https://src.fedoraproject.org/rpms/sourcextractor++
+
+.. |rawhide_release_svg|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide
+  :alt: Fedora package
+  :target: https://src.fedoraproject.org/rpms/sourcextractor++
 
 .. |RPM| replace:: :program:`RPM`
 .. _RPM: http://www.rpm.org
