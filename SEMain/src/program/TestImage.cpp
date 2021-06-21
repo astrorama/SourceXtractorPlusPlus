@@ -654,6 +654,7 @@ public:
     }
 
     logger.info("All done ^__^");
+    TileManager::getInstance()->saveAllTiles();
     return Elements::ExitCode::OK;
   }
 
