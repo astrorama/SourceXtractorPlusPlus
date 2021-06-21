@@ -25,6 +25,7 @@
 #define _COMPAREIMAGES_H
 
 #include "SEUtils/IsClose.h"
+#include <boost/test/predicate_result.hpp>
 
 namespace SourceXtractor {
 
