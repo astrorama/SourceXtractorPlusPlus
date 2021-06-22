@@ -164,7 +164,6 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
       long first_pixel[2] = {1, i + 1};
       fits_write_pix(fptr, getDataType(), first_pixel, width, &buffer[0], &status);
     }
-    fits_close_file(fptr, &status);
 
     if (status != 0) {
       throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename << " status: " << status;

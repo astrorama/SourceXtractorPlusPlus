@@ -68,19 +68,23 @@ public:
 struct SourceGroupingFixture {
   std::shared_ptr<SourceGroupFactory> group_factory {new SimpleSourceGroupFactory()};
   std::shared_ptr<SourceGrouping> source_grouping {
-    new SourceGrouping(std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory)};
+    new SourceGrouping(std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory, 0)};
+  std::shared_ptr<SourceGrouping> source_grouping_limit {
+    new SourceGrouping(std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory, 2)};
 
   std::shared_ptr<SourceInterface> source_a {new SimpleSource};
   std::shared_ptr<SourceInterface> source_b {new SimpleSource};
   std::shared_ptr<SourceInterface> source_c {new SimpleSource};
 
   std::shared_ptr<SourceGroupObserver> source_group_observer {new SourceGroupObserver};
+  std::shared_ptr<SourceGroupObserver> source_group_observer_limit {new SourceGroupObserver};
 
   std::shared_ptr<SelectAllCriteria> select_all_criteria;
 
   SourceGroupingFixture() {
     select_all_criteria = std::make_shared<SelectAllCriteria>();
     source_grouping->addObserver(source_group_observer);
+    source_grouping_limit->addObserver(source_group_observer_limit);
     source_a->setProperty<IdProperty>("A");
     source_b->setProperty<IdProperty>("B");
     source_c->setProperty<IdProperty>("C");
@@ -156,6 +160,32 @@ BOOST_FIXTURE_TEST_CASE( process_sources_test, SourceGroupingFixture ) {
   ++iter;
   BOOST_CHECK(iter == group->end());
   
+}
+
+BOOST_FIXTURE_TEST_CASE( grouping_limit, SourceGroupingFixture ) {
+  source_a->setProperty<SimpleIntProperty>(1);
+  source_b->setProperty<SimpleIntProperty>(1);
+  source_c->setProperty<SimpleIntProperty>(1);
+
+  source_grouping_limit->handleMessage(source_a);
+  source_grouping_limit->handleMessage(source_b);
+  source_grouping_limit->handleMessage(source_c);
+
+  source_grouping_limit->handleMessage(ProcessSourcesEvent { select_all_criteria } );
+
+  BOOST_CHECK(source_group_observer_limit->m_list.size() == 2);
+  auto group = source_group_observer_limit->m_list[0];
+  auto iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "A");
+  ++iter;
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "B");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
+  group = source_group_observer_limit->m_list[1];
+  iter = group->begin();
+  BOOST_CHECK_EQUAL(iter->getProperty<IdProperty>().id, "C");
+  ++iter;
+  BOOST_CHECK(iter == group->end());
 }
 
 //-----------------------------------------------------------------------------
