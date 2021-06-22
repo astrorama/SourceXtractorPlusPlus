@@ -109,7 +109,6 @@ int fftRoundDimension(int size) {
 
 template <typename T>
 auto FFT<T>::createForwardPlan(int width, int height, std::vector<T>& inout) -> plan_ptr_t {
-  // See FFTW3 manual: 4.3.5  Real-to-Real Transforms
   int phy_height = height;
   int phy_width  = 2 * (width / 2 + 1);
   int mem_size = phy_height * phy_width;
@@ -150,7 +149,6 @@ auto FFT<T>::createForwardPlan(int width, int height, std::vector<T>& inout) -> 
 
 template <typename T>
 auto FFT<T>::createInversePlan(int width, int height, std::vector<T>& inout) -> plan_ptr_t {
-  // See FFTW3 manual: 4.3.5  Real-to-Real Transforms
   int phy_height = height;
   int phy_width  = 2 * (width / 2 + 1);
   int mem_size = phy_height * phy_width;
