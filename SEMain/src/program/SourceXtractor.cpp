@@ -382,8 +382,6 @@ public:
       prefetcher->requestProperties(deblending->requiredProperties());
     }
 
-    auto sorter = std::make_shared<Sorter>();
-
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
 
@@ -400,8 +398,16 @@ public:
 
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
-    measurement->addObserver(sorter);
-    sorter->addObserver(output);
+
+    if (config_manager.getConfiguration<OutputConfig>().getOutputUnsorted()) {
+      logger.info() << "Writing output following measure order";
+      measurement->addObserver(output);
+    } else {
+      logger.info() << "Writing output following segmentation order";
+      auto sorter = std::make_shared<Sorter>();
+      measurement->addObserver(sorter);
+      sorter->addObserver(output);
+    }
 
     segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
