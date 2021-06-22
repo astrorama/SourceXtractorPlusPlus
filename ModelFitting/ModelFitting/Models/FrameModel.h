@@ -112,8 +112,9 @@ public:
     auto& context = m_psf_contexts[i];
     if (!context) {
       context = PsfType::prepare(image);
+      m_psf_contexts[i] = std::move(context);
     }
-    PsfType::convolve(image, context);
+    PsfType::convolve(image, m_psf_contexts[i]);
   }
 
 private:
