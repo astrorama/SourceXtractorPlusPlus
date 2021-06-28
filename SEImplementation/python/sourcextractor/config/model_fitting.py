@@ -486,7 +486,7 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": ""}
+params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": False}
 
 
 def set_max_iterations(iterations):
@@ -520,6 +520,16 @@ def set_engine(engine):
         Minimization engine for the model fitting : levmar or gsl
     """
     params_dict["engine"] = engine
+    
+def use_iterative_fitting(use_iterative_fitting):
+    """
+    Parameters
+    ----------
+    engine : str
+        Minimization engine for the model fitting : levmar or gsl
+    """
+    params_dict["use_iterative_fitting"] = use_iterative_fitting
+
 
 
 class ModelBase(cpp.Id):

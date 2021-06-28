@@ -48,6 +48,7 @@ private:
   std::string m_least_squares_engine;
   unsigned int m_max_iterations {0};
   double m_modified_chi_squared_scale {10};
+  bool m_use_iterative_fitting { true };
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;

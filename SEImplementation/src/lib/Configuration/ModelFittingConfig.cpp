@@ -287,6 +287,7 @@ void ModelFittingConfig::initializeInner() {
   }
   m_max_iterations = py::extract<int>(parameters["max_iterations"]);
   m_modified_chi_squared_scale = py::extract<double>(parameters["modified_chi_squared_scale"]);
+  m_use_iterative_fitting = py::extract<bool>(parameters["use_iterative_fitting"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

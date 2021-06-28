@@ -20,6 +20,8 @@
 
 #include "ModelFitting/Models/FrameModel.h"
 
+#include "SEUtils/PixelRectangle.h"
+
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
 
@@ -47,10 +49,30 @@ public:
   virtual void computeProperties(SourceGroupInterface& group) const override;
 
 private:
-  void fitSource(SourceInterface& source) const;
+  struct SourceState {
+    std::unordered_map<int, double> parameters_values;
+    std::unordered_map<int, double> parameters_sigmas;
+    double reduced_chi_squared;
+    unsigned int iterations;
+    unsigned int stop_reason;
+  };
+
+  struct FittingState {
+    std::vector<SourceState> source_states;
+  };
+
+  std::shared_ptr<VectorImage<SeFloat>> createDeblendImage(
+      SourceGroupInterface& group, SourceInterface& source, int source_index,
+      std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const;
+
+  void fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void setDummyProperty(SourceInterface& source, Flags flags) const;
   void updateCheckImages(
       SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
+  SeFloat computeChiSquared(SourceInterface& source,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const;
+  SeFloat computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+      std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
 
   // Task configuration
   std::string m_least_squares_engine;

@@ -59,14 +59,18 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 
 namespace {
 
+PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
+  return source.getProperty<MeasurementFrameRectangle>(frame_index).getRect(); //FIXME add border
+}
+
 bool isFrameValid(SourceInterface& source, int frame_index) {
-  auto stamp_rect = source.getProperty<MeasurementFrameRectangle>(frame_index); //FIXME
+  auto stamp_rect = getFittingRect(source, frame_index);
   return stamp_rect.getWidth() > 0 && stamp_rect.getHeight() > 0;
 }
 
 std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, int frame_index) {
   const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
-  auto rect = source.getProperty<MeasurementFrameRectangle>(frame_index); //FIXME
+  auto rect = getFittingRect(source, frame_index);
 
   auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
       LayerSubtractedImage, rect.getTopLeft().m_x, rect.getTopLeft().m_y, rect.getWidth(), rect.getHeight()));
@@ -84,7 +88,7 @@ std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source,
   SeFloat gain = frame_info.getGain();
   SeFloat saturation = frame_info.getSaturation();
 
-  auto rect = source.getProperty<MeasurementFrameRectangle>(frame_index); //FIXME
+  auto rect = getFittingRect(source, frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
 
   for (int y = 0; y < rect.getHeight(); y++) {
@@ -107,16 +111,14 @@ std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source,
 }
 FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
-    std::shared_ptr<FlexibleModelFittingFrame> frame) {
-
-  // FIXME: for now still use the group's PSF property, replace by a PSF for the source
+    std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect) {
 
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
-  auto stamp_rect = source.getProperty<MeasurementFrameRectangle>(frame_index);
+  // FIXME: for now still use the group's PSF property, replace by a PSF for the source
   auto psf_property = source.getProperty<PsfProperty>(frame_index);
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
 
@@ -147,28 +149,108 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> crea
 
 
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
+  FittingState fitting_state;
 
-
-
-  // FIXME: for now just output dummy properties
   for (auto& source : group) {
-    fitSource(source);
-    //setDummyProperty(source, Flags::ERROR);
+    SourceState initial_state;
+    initial_state.iterations = 0;
+    initial_state.stop_reason = 0;
+    initial_state.reduced_chi_squared = 0.0;
+
+    for (auto parameter : m_parameters) {
+      auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
+      if (free_parameter != nullptr) {
+        initial_state.parameters_values[free_parameter->getId()] = free_parameter->getInitialValue(source);
+      } else {
+        initial_state.parameters_values[parameter->getId()] = 0.0;
+      }
+    }
+    fitting_state.source_states.emplace_back(std::move(initial_state));
+  }
+
+  for (int iteration = 0; iteration<3; iteration++) {
+    int index = 0;
+    for (auto& source : group) {
+      fitSource(group, source, index, fitting_state);
+      index++;
+    }
+  }
+
+  int index = 0;
+  for (auto& source : group) {
+    auto& source_state = fitting_state.source_states.at(index);
+    // FIXME not complete
+    source.setProperty<FlexibleModelFitting>(source_state.iterations, source_state.stop_reason,
+        source_state.reduced_chi_squared, Flags::NONE,
+        source_state.parameters_values, source_state.parameters_sigmas);
+
+    index++;
   }
 }
 
 
 // Used to set a dummy property in case of error that contains no result but just an error flag
 void FlexibleModelFittingIterativeTask::setDummyProperty(SourceInterface& source, Flags flags) const {
-    std::unordered_map<int, double> dummy_values;
-    for (auto parameter : m_parameters) {
-      dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-    }
-    source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
-                                             dummy_values, dummy_values);
+  std::unordered_map<int, double> dummy_values;
+  for (auto parameter : m_parameters) {
+    dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+  }
+  source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
+                                           dummy_values, dummy_values);
 }
 
-void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const {
+std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createDeblendImage(
+    SourceGroupInterface& group, SourceInterface& source, int source_index,
+    std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const {
+  int frame_index = frame->getFrameNb();
+  auto rect = getFittingRect(source, frame_index);
+
+  double pixel_scale = 1 / m_scale_factor;
+  FlexibleModelFittingParameterManager parameter_manager;
+  ModelFitting::EngineParameterManager engine_parameter_manager {};
+  int n_free_parameters = 0;
+
+  int index = 0;
+  for (auto& src : group) {
+//    if (index != source_index) {
+     for (auto parameter : m_parameters) {
+        auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
+
+        if (free_parameter != nullptr) {
+          ++n_free_parameters;
+
+          // Initial with the values from the current iteration run
+          parameter_manager.addParameter(src, parameter,
+              free_parameter->create(parameter_manager, engine_parameter_manager, src,
+                  state.source_states[index].parameters_values.at(free_parameter->getId())));
+
+        } else {
+          parameter_manager.addParameter(src, parameter,
+              parameter->create(parameter_manager, engine_parameter_manager, src));
+        }
+      }
+//    }
+    index++;
+  }
+
+  auto deblend_image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
+  for (auto& src : group) {
+    if (index != source_index) {
+        auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, rect);
+        auto final_stamp = frame_model.getImage();
+
+        for (int y = 0; y < final_stamp->getHeight(); ++y) {
+          for (int x = 0; x < final_stamp->getWidth(); ++x) {
+            deblend_image->at(x, y) += final_stamp->at(x, y);
+          }
+        }
+    }
+  }
+
+  return deblend_image;
+}
+
+void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
   double pixel_scale = 1 / m_scale_factor;
 
   //////////////////////////////////////////////
@@ -179,11 +261,21 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
   int n_free_parameters = 0;
 
   for (auto parameter : m_parameters) {
-    if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+    auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
+
+    if (free_parameter != nullptr) {
       ++n_free_parameters;
+
+      // Initial with the values from the current iteration run
+      parameter_manager.addParameter(source, parameter,
+          free_parameter->create(parameter_manager, engine_parameter_manager, source,
+              state.source_states[index].parameters_values.at(free_parameter->getId())));
+
+    } else {
+      parameter_manager.addParameter(source, parameter,
+          parameter->create(parameter_manager, engine_parameter_manager, source));
     }
-    parameter_manager.addParameter(source, parameter,
-                                   parameter->create(parameter_manager, engine_parameter_manager, source));
+
   }
 
   // Reset access checks, as a dependent parameter could have triggered it
@@ -202,9 +294,18 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
     if (isFrameValid(source, frame_index)) {
       valid_frames++;
 
-      auto frame_model = createFrameModel(source, pixel_scale, parameter_manager, frame);
+      auto stamp_rect = getFittingRect(source, frame_index);
+      auto frame_model = createFrameModel(source, pixel_scale, parameter_manager, frame, stamp_rect);
 
       auto image = createImageCopy(source, frame_index);
+
+      auto deblend_image = createDeblendImage(group, source, index, frame, state);
+      for (int y = 0; y < image->getHeight(); ++y) {
+        for (int x = 0; x < image->getWidth(); ++x) {
+          image->at(x, y) -= deblend_image->at(x, y);
+        }
+      }
+
       auto weight = createWeightImage(source, frame_index);
 
       // count number of pixels that can be used for fitting
@@ -238,14 +339,11 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
     return;
   }
 
-  // FIXME re-enable
   ////////////////////////////////////////////////////////////////////////////////
-//  // Add priors
-//  for (auto& source : group) {
-//    for (auto prior : m_priors) {
-//      prior->setupPrior(parameter_manager, source, res_estimator);
-//    }
-//  }
+  // Add priors
+  for (auto prior : m_priors) {
+    prior->setupPrior(parameter_manager, source, res_estimator);
+  }
 
   /////////////////////////////////////////////////////////////////////////////////
   // Model fitting
@@ -263,26 +361,22 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
   ////////////////////////////////////////////////////////////////////////////////////
   // compute chi squared
 
-  //FIXME reenable
-//  int total_data_points = 0;
-//  SeFloat avg_reduced_chi_squared = computeChiSquared(group, pixel_scale, parameter_manager, total_data_points);
-//
-//  int nb_of_free_parameters = 0;
-//  for (auto& source : group) {
-//    for (auto parameter : m_parameters) {
-//      bool is_free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter).get();
-//      bool accessed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
-//      if (is_free_parameter && accessed_by_modelfitting) {
-//        nb_of_free_parameters++;
-//      }
-//    }
-//  }
-//  avg_reduced_chi_squared /= (total_data_points - nb_of_free_parameters);
-  SeFloat avg_reduced_chi_squared = 1.f;
+  int total_data_points = 0;
+  SeFloat avg_reduced_chi_squared = computeChiSquared(source, pixel_scale, parameter_manager, total_data_points);
+
+  int nb_of_free_parameters = 0;
+  for (auto parameter : m_parameters) {
+    bool is_free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter).get();
+    bool accessed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
+    if (is_free_parameter && accessed_by_modelfitting) {
+      nb_of_free_parameters++;
+    }
+  }
+  avg_reduced_chi_squared /= (total_data_points - nb_of_free_parameters);
 
   ////////////////////////////////////////////////////////////////////////////////////
   // Collect parameters for output
-    std::unordered_map<int, double> parameter_values, parameter_sigmas;
+  std::unordered_map<int, double> parameter_values, parameter_sigmas;
   auto source_flags = group_flags;
 
   for (auto parameter : m_parameters) {
@@ -293,22 +387,26 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
     if (is_dependent_parameter || accessed_by_modelfitting) {
       parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
       parameter_sigmas[parameter->getId()] = parameter->getSigma(parameter_manager, source, solution.parameter_sigmas);
-    }
-    else {
-      // Need to cascade the NaN to any potential dependent parameter
-      auto engine_parameter = std::dynamic_pointer_cast<EngineParameter>(modelfitting_parameter);
-      if (engine_parameter) {
-        engine_parameter->setEngineValue(std::numeric_limits<double>::quiet_NaN());
-      }
-      parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-      parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-      source_flags |= Flags::PARTIAL_FIT;
+    } else {
+      parameter_values[parameter->getId()] = state.source_states[index].parameters_values[parameter->getId()];
+      parameter_sigmas[parameter->getId()] = state.source_states[index].parameters_sigmas[parameter->getId()];
+
+//      // Need to cascade the NaN to any potential dependent parameter
+//      auto engine_parameter = std::dynamic_pointer_cast<EngineParameter>(modelfitting_parameter);
+//      if (engine_parameter) {
+//        engine_parameter->setEngineValue(std::numeric_limits<double>::quiet_NaN());
+//      }
+//      parameter_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+//      parameter_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
+//      source_flags |= Flags::PARTIAL_FIT;
     }
   }
 
-  source.setProperty<FlexibleModelFitting>(iterations, stop_reason,
-                                           avg_reduced_chi_squared, source_flags,
-                                           parameter_values, parameter_sigmas);
+  state.source_states[index].parameters_values = parameter_values;
+  state.source_states[index].parameters_sigmas = parameter_sigmas;
+  state.source_states[index].reduced_chi_squared = avg_reduced_chi_squared;
+  state.source_states[index].iterations = iterations;
+  state.source_states[index].stop_reason = stop_reason;
 
   ////////////////////////////////////////////////////////////////////
   // Check images
@@ -316,7 +414,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceInterface& source) const
   updateCheckImages(source, pixel_scale, parameter_manager);
 }
 
-void FlexibleModelFittingIterativeTask::updateCheckImages(SourceInterface& source,
+  void FlexibleModelFittingIterativeTask::updateCheckImages(SourceInterface& source,
     double pixel_scale, FlexibleModelFittingParameterManager& manager) const {
 
   int frame_id = 0;
@@ -324,10 +422,9 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceInterface& sourc
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(source, frame_index)) {
-      auto frame_model = createFrameModel(source, pixel_scale, manager, frame);
+      auto stamp_rect = getFittingRect(source, frame_index);
+      auto frame_model = createFrameModel(source, pixel_scale, manager, frame, stamp_rect);
       auto final_stamp = frame_model.getImage();
-
-      auto stamp_rect = source.getProperty<MeasurementFrameRectangle>(frame_index); // FIXME
 
       auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
       if (debug_image) {
@@ -344,6 +441,57 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceInterface& sourc
     }
     frame_id++;
   }
+}
+
+
+SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
+    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const {
+  double reduced_chi_squared = 0.0;
+  data_points = 0;
+
+  ImageAccessor<SeFloat> imageAccessor(image), modelAccessor(model);
+  ImageAccessor<SeFloat> weightAccessor(weights);
+
+  for (int y=0; y < image->getHeight(); y++) {
+    for (int x=0; x < image->getWidth(); x++) {
+      double tmp = imageAccessor.getValue(x, y) - modelAccessor.getValue(x, y);
+      reduced_chi_squared += tmp * tmp * weightAccessor.getValue(x, y) * weightAccessor.getValue(x, y);
+      if (weightAccessor.getValue(x, y) > 0) {
+        data_points++;
+      }
+    }
+  }
+  return reduced_chi_squared;
+}
+
+
+SeFloat FlexibleModelFittingIterativeTask::computeChiSquared(SourceInterface& source,
+    double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const {
+  SeFloat total_chi_squared = 0;
+  total_data_points = 0;
+  int valid_frames = 0;
+  for (auto frame : m_frames) {
+    int frame_index = frame->getFrameNb();
+    // Validate that each frame covers the model fitting region
+    if (isFrameValid(source, frame_index)) {
+      valid_frames++;
+      auto stamp_rect = getFittingRect(source, frame_index);
+      auto frame_model = createFrameModel(source, pixel_scale, manager, frame, stamp_rect);
+      auto final_stamp = frame_model.getImage();
+
+      auto image = createImageCopy(source, frame_index);
+      auto weight = createWeightImage(source, frame_index);
+
+      int data_points = 0;
+      SeFloat chi_squared = computeChiSquaredForFrame(
+          image, final_stamp, weight, data_points);
+
+      total_data_points += data_points;
+      total_chi_squared += chi_squared;
+    }
+  }
+
+  return total_chi_squared;
 }
 
 }

@@ -56,11 +56,13 @@ public:
 
   unsigned int getMaxIterations() const { return m_max_iterations; }
   double getModifiedChiSquaredScale() const { return m_modified_chi_squared_scale; }
+  bool getUseIterativeFitting() const { return m_use_iterative_fitting; }
 
 private:
   std::string m_least_squares_engine;
   unsigned int m_max_iterations {0};
   double m_modified_chi_squared_scale {10.};
+  bool m_use_iterative_fitting { true };
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;

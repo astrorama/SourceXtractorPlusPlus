@@ -36,10 +36,13 @@ static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
 
 std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
-//    return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
-//                                                      m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
+//    if (m_use_iterative_fitting) {
     return std::make_shared<FlexibleModelFittingIterativeTask>(m_least_squares_engine, m_max_iterations,
-                                                      m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
+        m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
+//    } else {
+//      return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
+//        m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
+//    }
   } else {
     return nullptr;
   }
@@ -66,6 +69,7 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   m_least_squares_engine = model_fitting_config.getLeastSquaresEngine();
   m_max_iterations = model_fitting_config.getMaxIterations();
   m_modified_chi_squared_scale = model_fitting_config.getModifiedChiSquaredScale();
+  m_use_iterative_fitting = model_fitting_config.getUseIterativeFitting();
 
   logger.info() << "Using engine " << m_least_squares_engine << " with "
                 << m_max_iterations << " maximum number of iterations";
