@@ -21,14 +21,24 @@ Global configuration settings may be changed using command-line options (prefixe
 The configuration file
 ----------------------
 
-|SourceXtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository.
+|SourceXtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository. Each time it is run, |SourceXtractor++|_ looks for a configuration file. The name of a dedicated configuration files is given with: ::
+
+    $sourcextractor++ --config-file sepp.config
+
+Creating a configuration file
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|SE++|_ dumps all parameters with their default values into a configuration files with: ::
+
+    $sourcextractor++ --dump-default-config > my_sepp.config
+
 
 Format of the configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Configuration instructions follow the ``<option> = <value>`` format.
 There must be no more than one ``<option> = <value>`` instance per line.
-Comments must be preceded with a ``#``.
+Comments must be preceded with a ``#``. Boolean parameters are set/unset with 1/0 such as: ``output-flush-unsorted=1``, and the individual parameters of a parameter list are separted with a "," such as ``output-properties=SourceIDs,PixelCentroid,WorldCentroid``
 
 .. _param_list:
 
@@ -243,4 +253,3 @@ Option                                Default           Use
 .. raw:: latex
 
   }
-
