@@ -7,13 +7,14 @@
 Using SourceXtractor++
 ======================
 
-|SExtractor++| is run from the shell with the following syntax:
+|SourceXtractor++| is run from the shell with the following syntax:
 
 .. code-block:: console
 
-  $ sourcextractor++ ...
+  $ sourcextractor++  [--<option> [<arg>]]
 
 The parts enclosed within brackets are optional.
+Any ``--<option> <arg>`` or ``--<option>=<arg>`` statement in the command-line overrides the corresponding definition in the :ref:`configuration file <chap_config_file>` or any default value (see :ref:`configuration section <chap_config>`).
 
 .. toctree::
 
