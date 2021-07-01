@@ -31,11 +31,11 @@
 namespace ModelFitting {
 
 
-static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
+static std::shared_ptr<LeastSquareEngine> createGslEngine(unsigned max_iterations) {
   return std::make_shared<GSLEngine>(max_iterations);
 }
 
-static LeastSquareEngineManager::StaticEngine levmar_engine{"gsl", createLevmarEngine};
+static LeastSquareEngineManager::StaticEngine gsl_engine{"gsl", createGslEngine};
 
 GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol, double delta):
   m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol}, m_delta{delta} {

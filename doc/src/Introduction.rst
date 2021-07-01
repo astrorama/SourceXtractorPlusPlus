@@ -5,8 +5,8 @@
 Introduction
 ============
 
-|SourceXtractor++|_ (Source-Extractor ++) is a program that extracts a catalog of sources from astronomical images. It is
-the successor to the `original SExtractor <https://github.com/astromatic/sextractor>`_ package :cite:`1996AAS_117_393B`. |SourceXtractor++| has been completely rewritten  in C++ and improves over its predecessor in many ways:
+|SExtractor++|_ (Source-Extractor ++) is a program that extracts a catalog of sources from astronomical images. It is
+the successor to the original `SExtractor <https://github.com/astromatic/sextractor>`_ package :cite:`1996AAS_117_393B`. |SExtractor++|_ has been completely rewritten  in C++ and improves over its predecessor in many ways:
 
 * Support for multiple "measurement" images
 * Optimized multi-object, multi-frame model-fitting engine

@@ -89,6 +89,7 @@ public:
   virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double>& values) const;
 
 private:
+  mutable std::mutex m_mutex;
   std::shared_ptr<CCfits::FITS> m_pFits;
 
   int m_psf_size;
