@@ -106,8 +106,8 @@
 .. |SExtractor| replace:: :program:`SExtractor`
 .. _SExtractor: http://astromatic.net/software/sextractor
 
-.. |SExtractor++| replace:: :program:`SourceXtractor++`
-.. _SExtractor++: https://github.com/astrorama/SourceXtractorPlusPlus
+.. |SourceXtractor++| replace:: :program:`SourceXtractor++`
+.. _SourceXtractor++: https://github.com/astrorama/SourceXtractorPlusPlus
 
 .. |SkyMaker| replace:: :program:`SkyMaker`
 .. _SkyMaker: http://astromatic.net/software/skymaker
