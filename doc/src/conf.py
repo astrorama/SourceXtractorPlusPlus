@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # SourceXtractor++ documentation build configuration file, created by
 # sphinx-quickstart on Thu Jan 31 13:34:56 2019.
 #
@@ -16,9 +14,9 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../../SEImplementation/python/sourcextractor'))
 
 import sphinx_rtd_theme
 
@@ -37,7 +35,11 @@ extensions = [
 #   'sphinx.ext.todo',
     'sphinx.ext.mathjax',
 #    'sphinx.ext.ifconfig',
-#    'sphinx.ext.viewcode',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary',
+    'sphinx.ext.doctest',
+    'sphinx.ext.inheritance_diagram',
     'sphinxcontrib.bibtex',
     'sphinx.ext.githubpages'
 ]
@@ -59,10 +61,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SourceXtractor++'
+project = 'SourceXtractor++'
 filename = 'sourcextractor'
-copyright = u'2019, GenevaU/LMU/CNRS/SorbonneU'
-author = u'SourceXtractor++ team'
+copyright = '2019,2020 GenevaU/LMU/CNRS/SorbonneU'
+author = 'SourceXtractor++ team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -83,11 +85,11 @@ language = None
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
 #
-today = 'Thu Jan 31 2019'
+#today = 'Wed July 31 2019'
 #
 # Else, today_fmt is used as the format for a strftime call.
 #
-# today_fmt = '%B %d, %Y'
+today_fmt = '%B %d, %Y'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -127,6 +129,13 @@ todo_include_todos = True
 
 numfig = True
 
+# -- Autodoc options ------------------------------------------------------
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+autodoc_mock_imports = ['.measurement_images', '_SourceXtractorPy']
+
 # -- Options for HTML output ----------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
@@ -146,7 +155,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
 #
-# html_title = u'SourceXtractor++ v1.0.0'
+# html_title = 'SourceXtractor++ v1.0.0'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #
@@ -170,7 +179,7 @@ html_static_path = ['../theme']
 
 # Trick for having ReadTheDocs read custom theme changes
 def setup(app):
-    app.add_stylesheet("css/custom.css")
+    app.add_css_file("css/custom.css")
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
@@ -277,7 +286,7 @@ latex_elements = {
 
      # Additional stuff for the LaTeX preamble.
      #
-'preamble': '\usepackage{amssymb}',
+'preamble': '\\usepackage{amssymb}',
 
      # Latex figure (float) alignment
      #
@@ -288,7 +297,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, filename + '.tex', project + u' Documentation',
+    (master_doc, filename + '.tex', project + ' Documentation',
      author, 'manual'),
 ]
 
@@ -308,7 +317,7 @@ latex_documents = [
 
 # If true, show URL addresses after external links.
 #
-latex_show_urls = 'footnote'
+# latex_show_urls = 'footnote'
 
 # Documents to append as an appendix to all manuals.
 #
@@ -330,7 +339,7 @@ latex_show_urls = 'footnote'
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, filename, project + u' Documentation',
+    (master_doc, filename, project + ' Documentation',
      author, 1)
 ]
 
@@ -345,7 +354,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, filename, project + u' Documentation',
+    (master_doc, filename, project + ' Documentation',
      author, project, 'One line description of project.',
      'Miscellaneous'),
 ]
@@ -456,69 +465,173 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- Options for pybtex ----------------------------------------------
+bibtex_bibfiles = ["references.bib"]
+    
+from packaging import version as vers
+from pybtex import __version__ as pybtex_version
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle, date, pages, toplevel
 from pybtex.style.template import * # ... and anything else needed
 from pybtex.plugin import register_plugin
+import inspect
+
+new_version = vers.parse(pybtex_version) >= vers.parse("0.22")
+
+if new_version:
+    def _format_data(node, data):
+        try:
+            f = node.format_data
+        except AttributeError:
+            return node
+        else:
+            return f(data)
+
+
+    def _format_list(list_, data):
+        return (_format_data(part, data) for part in list_)
+
+    @node
+    def href2(children, data):
+        parts = _format_list(children, data)
+        if "http" in list(parts)[0]:
+            parts = _format_list(children, data)
+            return richtext.HRef(*parts)
+        else:
+            return richtext.Tag('strong', *parts)
 
 class ADSArxivStyle(UnsrtStyle):
 
-    def format_article(self, e):
-        volume_and_pages = first_of [
-            # volume and pages, with optional issue number
-            optional [
-                join [
-                    field('volume'),
-                    optional['(', field('number'),')'],
-                    ':', pages
-                ],
-            ],
-            # pages only
-            words ['pages', pages],
-        ]
-        myurl = first_of [
-                optional_field('adsurl'),
-                join ['http://arxiv.org/abs/', optional_field('eprint')],
-                optional_field('url'),
-                optional [join ['http://dx.doi.org/', field('doi')]]
-        ]
-        template = toplevel [
-            self.format_names('author'),
-            href [myurl, self.format_title(e, 'title')] \
-                if len(myurl.format_data(e)) > 0 \
-                else tag('strong') [self.format_title(e, 'title')],
-            sentence(capfirst=False) [
-                tag('emph') [field('journal')],
-                optional[ volume_and_pages ],
-                field('year')],
-            sentence(capfirst=False) [ optional_field('note') ],
-        ]
-        return template.format_data(e)
+    if new_version:
+        def format_names(self, role, as_sentence=True):
+            formatted_names = names(role, sep=', ', sep2 = ' and ', last_sep=', and ')
+            if as_sentence:
+                return sentence[ formatted_names ]
+            else:
+               return formatted_names
 
-    def format_inproceedings(self, e):
-        myurl = first_of [
+        def get_article_template(self, e):
+            volume_and_pages = first_of[
+            # volume and pages, with optional issue number
+                optional[
+                    join[
+                        field('volume'),
+                        optional[ '(', field('number'),')' ],
+                        ':', pages
+                    ],
+                ],
+                # pages only
+                words[ 'pages', pages ],
+            ]
+            myurl = first_of[
+                    optional_field('adsurl'),
+                    optional[ join[ 'http://arxiv.org/abs/', field('eprint') ]],
+                    optional_field('url'),
+                    optional[ join ['http://dx.doi.org/', field('doi') ]]
+            ]
+            template = toplevel[
+                sentence[ self.format_names('author', as_sentence=False), field('year') ],
+                href2[ myurl, self.format_title(e, 'title') ],
+                sentence(capfirst=False) [
+                    tag('emph')[ field('journal') ],
+                    optional[ volume_and_pages ]],
+                sentence(capfirst=False) [ optional_field('note') ],
+            ]
+            return template
+
+        def get_inproceedings_template(self, e):
+            myurl = first_of[
+                optional_field('adsurl'),
+                optional[ join ['http://arxiv.org/abs/', field('eprint') ]],
+                optional_field('url'),
+                optional[ join ['http://dx.doi.org/', field('doi') ]]
+            ]
+            template = toplevel[
+                sentence[ self.format_names('author', as_sentence=False), field('year') ],
+                href2[ myurl, self.format_title(e, 'title') ],
+                words[
+                    'In',
+                    sentence(capfirst=False)[
+                        optional[ self.format_editor(e, as_sentence=False) ],
+                        self.format_btitle(e, 'booktitle', as_sentence=False),
+                        self.format_volume_and_series(e, as_sentence=False),
+                        optional[ pages ],
+                    ],
+                    self.format_address_organization_publisher_date(e),
+                ],
+                sentence(capfirst=False)[ optional_field('note') ],
+            ]
+            return template
+
+        def get_misc_template(self, e):
+            myurl = first_of[
+                    optional_field('adsurl'),
+                    optional[ join ['http://arxiv.org/abs/', field('eprint') ]],
+                    optional_field('url'),
+                    optional[ join ['http://dx.doi.org/', field('doi') ]]
+            ]
+            template = toplevel[
+                optional[ sentence[ self.format_names('author', as_sentence=False), optional [ field('year') ]]],
+                optional[ href2[ myurl, self.format_title(e, 'title') ]],
+                sentence[ optional[ field('howpublished') ]],
+                sentence[ optional_field('note') ],
+            ]
+            return template
+    else:
+
+        def format_article(self, e):
+            volume_and_pages = first_of [
+            # volume and pages, with optional issue number
+                optional [
+                    join [
+                        field('volume'),
+                        optional['(', field('number'),')'],
+                        ':', pages
+                    ],
+                ],
+                # pages only
+                words ['pages', pages],
+            ]
+            myurl = first_of [
+                    optional_field('adsurl'),
+                    optional [join ['http://arxiv.org/abs/'], field('eprint')],
+                    optional_field('url'),
+                    optional [join ['http://dx.doi.org/', field('doi')]]
+            ]
+            template = toplevel [
+                self.format_names('author'),
+                href [myurl, self.format_title(e, 'title')],
+                sentence(capfirst=False) [
+                    tag('emph') [field('journal')],
+                    optional[ volume_and_pages ],
+                    field('year')],
+                sentence(capfirst=False) [ optional_field('note') ],
+            ]
+            return template.format_data(e)
+
+        def format_inproceedings(self, e):
+            myurl = first_of [
                 optional_field('adsurl'),
                 optional [join ['http://arxiv.org/abs/', field('eprint')]],
                 optional_field('url'),
                 optional [join ['http://dx.doi.org/', field('doi')]]
-        ]
-        template = toplevel [
-            sentence [self.format_names('author')],
-            href [myurl, self.format_title(e, 'title')] \
-                if len(myurl.format_data(e)) > 0 \
-                else tag('strong') [self.format_title(e, 'title')],
-            words [
-                'In',
-                sentence(capfirst=False) [
-                    optional[ self.format_editor(e, as_sentence=False) ],
-                    self.format_btitle(e, 'booktitle', as_sentence=False),
-                    self.format_volume_and_series(e, as_sentence=False),
-                    optional[ pages ],
+            ]
+            template = toplevel [
+                sentence [self.format_names('author')],
+                href [myurl, self.format_title(e, 'title')] \
+                    if len(myurl.format_data(e)) > 0 \
+                    else tag('strong') [self.format_title(e, 'title')],
+                words [
+                    'In',
+                    sentence(capfirst=False) [
+                        optional[ self.format_editor(e, as_sentence=False) ],
+                        self.format_btitle(e, 'booktitle', as_sentence=False),
+                        self.format_volume_and_series(e, as_sentence=False),
+                        optional[ pages ],
+                    ],
+                    self.format_address_organization_publisher_date(e),
                 ],
-                self.format_address_organization_publisher_date(e),
-            ],
-            sentence(capfirst=False) [ optional_field('note') ],
-        ]
-        return template.format_data(e)
+                sentence(capfirst=False) [ optional_field('note') ],
+            ]
+            return template.format_data(e)
 
 register_plugin('pybtex.style.formatting', 'adsarxiv', ADSArxivStyle)
 

@@ -7,7 +7,7 @@
 Aperture photometry
 ===================
 
-Besides :ref:`isophotal <flux_iso_def>`, |PSF| and :ref:`model-fitting <models_def>` flux estimates, |SExtractor++| can currently perform two types of aperture flux measurements: :ref:`fixed-aperture <flux_aper_def>` and :ref:`adaptive-aperture <flux_auto_def>`.
+Besides :ref:`isophotal <flux_iso_def>`, |PSF| and :ref:`model-fitting <models_def>` flux estimates, |SourceXtractor++| can currently perform two types of aperture flux measurements: :ref:`fixed-aperture <flux_aper_def>` and :ref:`adaptive-aperture <flux_auto_def>`.
 
 Both types are applied to the measurement image(s). In |SE++| runs with only a detection image it is necessary to define the detection image as measurement in a python configuration files such as: ::
 
@@ -30,6 +30,7 @@ Both types are applied to the measurement image(s). In |SE++| runs with only a d
       all_apertures.extend(add_aperture_photometry(img, 10 ) )
    add_output_column('aperture', all_apertures)
 
+
 .. _flux_aper_def:
 
 Fixed-aperture flux
@@ -46,7 +47,7 @@ The fixed aperture checkimage is specified with ``check-image-aperture=<name.fit
 Automatic aperture flux
 -----------------------
 
-|SExtractor++|’s automatic aperture photometry routine derives from Kron’s “first moment” algorithm :cite:`1980ApJS_43_305K`:
+|SourceXtractor++|’s automatic aperture photometry routine derives from Kron’s “first moment” algorithm :cite:`1980ApJS_43_305K`:
 
 
 :cite:`1980ApJS_43_305K` and :cite:`1987AA_183_177I` have shown that for stars and galaxy profiles convolved with Gaussian seeing, :math:`\ge 90\%` of the flux is expected to lie inside a circular aperture of radius :math:`k r_{\rm Kron}` with :math:`k = 2`, almost independently of the magnitude.
