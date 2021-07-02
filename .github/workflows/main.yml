@@ -3,8 +3,16 @@ name: RPM - Artifactory
 on:
   push:
     branches: [ master, develop ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'LICENSE'
   pull_request:
     branches: [ master, develop ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'LICENSE'
   workflow_dispatch:
 
 jobs:
