@@ -9,7 +9,6 @@ on:
     branches: [ docCI ]
     paths:
       - 'doc/**'
-  workflow_dispatch:
 
 jobs:
 
