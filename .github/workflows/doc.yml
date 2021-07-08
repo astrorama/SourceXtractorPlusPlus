@@ -1,4 +1,4 @@
-name: RPM - Artifactory
+name: doc
 
 on:
   push:
