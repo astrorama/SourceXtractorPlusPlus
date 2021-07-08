@@ -29,4 +29,6 @@ jobs:
         run: pip3 install -r doc/requirements.txt
 
       - name: Build
-        run: cd doc && make html
+        run: |
+          cd doc
+          make html
