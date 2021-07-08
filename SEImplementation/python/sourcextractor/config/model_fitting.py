@@ -486,7 +486,8 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": False}
+params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": False, "meta_iterations": 3,
+               "deblend_factor": 1, "meta_iteration_stop": 0.0001}
 
 
 def set_max_iterations(iterations):
@@ -525,10 +526,36 @@ def use_iterative_fitting(use_iterative_fitting):
     """
     Parameters
     ----------
-    engine : str
-        Minimization engine for the model fitting : levmar or gsl
+    use_iterative_fitting : boolean
+        use iterative model fitting or legacy 
     """
     params_dict["use_iterative_fitting"] = use_iterative_fitting
+    
+def set_meta_iterations(meta_iterations):
+    """
+    Parameters
+    ----------
+    meta_iterations : int
+        number of meta iterations on the whole group (when using iterative model fitting) 
+    """
+    params_dict["meta_iterations"] = meta_iterations
+
+def set_deblend_factor(deblend_factor):
+    """
+    Parameters
+    ----------
+    
+    """
+    params_dict["deblend_factor"] = deblend_factor
+
+def set_meta_iteration_stop(meta_iteration_stop):
+    """
+    Parameters
+    ----------
+    
+    """
+    params_dict["meta_iteration_stop"] = meta_iteration_stop
+
 
 
 

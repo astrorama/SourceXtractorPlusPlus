@@ -41,7 +41,10 @@ public:
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
       std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
       std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
-      double scale_factor=1.0
+      double scale_factor=1.0,
+      int meta_iterations=3,
+      double deblend_factor=1.0,
+      double meta_iteration_stop=0.0001
       );
 
   virtual ~FlexibleModelFittingIterativeTask();
@@ -52,6 +55,8 @@ private:
   struct SourceState {
     std::unordered_map<int, double> parameters_values;
     std::unordered_map<int, double> parameters_sigmas;
+    std::unordered_map<int, bool> parameters_fitted;
+    Flags flags;
     double reduced_chi_squared;
     unsigned int iterations;
     unsigned int stop_reason;
@@ -67,10 +72,9 @@ private:
 
   void fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void setDummyProperty(SourceInterface& source, Flags flags) const;
-  void updateCheckImages(
-      SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager) const;
-  SeFloat computeChiSquared(SourceInterface& source,
-      double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points) const;
+  void updateCheckImages(SourceGroupInterface& group, double pixel_scale, FittingState& state) const;
+  SeFloat computeChiSquared(SourceGroupInterface& group, SourceInterface& source, int index,
+      double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const;
   SeFloat computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
       std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
 
@@ -78,6 +82,9 @@ private:
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;
   double m_modified_chi_squared_scale;
+  int m_meta_iterations;
+  double m_deblend_factor;
+  double m_meta_iteration_stop;
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;

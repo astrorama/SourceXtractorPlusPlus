@@ -57,12 +57,18 @@ public:
   unsigned int getMaxIterations() const { return m_max_iterations; }
   double getModifiedChiSquaredScale() const { return m_modified_chi_squared_scale; }
   bool getUseIterativeFitting() const { return m_use_iterative_fitting; }
+  int getMetaIterations() const { return m_meta_iterations; }
+  double getDeblendFactor() const { return m_deblend_factor; }
+  double getMetaIterationStop() const { return m_meta_iteration_stop; }
 
 private:
   std::string m_least_squares_engine;
   unsigned int m_max_iterations {0};
   double m_modified_chi_squared_scale {10.};
   bool m_use_iterative_fitting { true };
+  int m_meta_iterations { 3 };
+  double m_deblend_factor { 1.0 };
+  double m_meta_iteration_stop { 0.0001 };
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
