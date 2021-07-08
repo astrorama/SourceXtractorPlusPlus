@@ -30,4 +30,3 @@ jobs:
 
       - name: Build
         run: cd doc && make html
-
