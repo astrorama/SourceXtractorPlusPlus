@@ -25,7 +25,7 @@
 #include "SEImplementation/Segmentation/BgDFTConvolutionImageSource.h"
 #include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/FunctionalImage.h"
-#include "SEFramework/Image/ClippedImage.h"
+#include "SEFramework/Image/SubImage.h"
 #include "SEFramework/Image/MaskedImage.h"
 
 namespace SourceXtractor {
@@ -55,10 +55,10 @@ void BgDFTConvolutionImageSource::generateTile(const std::shared_ptr<Image<Detec
   using VarianceAccessor = ImageAccessor<WeightImage::PixelType>;
 
   // Clip the image and variance map to the given size, accounting for the margins for the convolution
-  auto clipped_img = ClippedImage<DetectionImage::PixelType>::create(
+  auto clipped_img = SubImage<DetectionImage::PixelType>::create(
     image, clip_x, clip_y, clip_w, clip_h
   );
-  auto clipped_variance = ClippedImage<WeightImage::PixelType>::create(
+  auto clipped_variance = SubImage<WeightImage::PixelType>::create(
     m_variance, clip_x, clip_y, clip_w, clip_h
   );
 
