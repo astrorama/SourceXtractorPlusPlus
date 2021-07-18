@@ -31,17 +31,25 @@ EllipticalAperture::EllipticalAperture(SeFloat cxx, SeFloat cyy, SeFloat cxy,
   : m_cxx{cxx}, m_cyy{cyy}, m_cxy{cxy}, m_rad_max{rad_max} {
 }
 
-SeFloat EllipticalAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
-	//std::cout << min_radius << " " << m_rad_max * m_rad_max << std::endl;
-	//if ((m_rad_max * m_rad_max)-2.0 < getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
-	//auto min_radius = (m_rad_max-1.0) * (m_rad_max-1.0);
-	//if (min_radius < getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
-	if (getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
+  SeFloat EllipticalAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+  	if (getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
 
-		return 1.0;
-	}
-	return 0.;
-}
+  		return 1.0;
+  	}
+  	return 0.;
+  }
+
+  SeFloat EllipticalAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+  	//std::cout << min_radius << " " << m_rad_max * m_rad_max << std::endl;
+  	//if ((m_rad_max * m_rad_max)-2.0 < getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
+  	//auto min_radius = (m_rad_max-1.0) * (m_rad_max-1.0);
+  	//if (min_radius < getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
+  	if (getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
+
+  		return 1.0;
+  	}
+  	return 0.;
+  }
 
 SeFloat EllipticalAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x,
                                              SeFloat pixel_y) const {

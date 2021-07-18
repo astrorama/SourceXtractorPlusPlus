@@ -20,7 +20,7 @@
  *  Created on: Oct 08, 2018
  *      Author: Alejandro Alvarez
  */
-
+#include <iostream>
 #include "SEFramework/Aperture/CircularAperture.h"
 
 namespace SourceXtractor {
@@ -31,18 +31,15 @@ const int SUPERSAMPLE_NB = 10;
 SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
   auto dx = pixel_x - center_x;
   auto dy = pixel_y - center_y;
-  //SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
-  //SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
-  SeFloat min_supersampled_radius_squared = m_radius > .1 ? (m_radius - 1) * (m_radius - 1) : 0;
+  SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
   SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
 
   auto distance_squared = dx * dx + dy * dy;
   SeFloat area = 0.0;
-  //if (distance_squared < min_supersampled_radius_squared) {
-  //  area = 1.0;
-  //}
-  //else if (distance_squared <= max_supersampled_radius_squared) {
-  if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
+  if (distance_squared < min_supersampled_radius_squared) {
+    area = 1.0;
+  }
+  else if (distance_squared <= max_supersampled_radius_squared) {
     for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
       for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
         auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;
@@ -55,6 +52,21 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pi
     }
   }
   return area;
+}
+
+SeFloat CircularAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+	SeFloat rim = 0;
+	SeFloat thickness = 1.0;
+
+	SeFloat min_supersampled_radius_squared = m_radius > thickness ? (m_radius - thickness) * (m_radius - thickness) : 0;
+	SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
+
+	auto distance_squared = getRadiusSquared(center_x, center_y, pixel_x, pixel_y);
+
+	if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
+		rim = 1;
+	}
+	return rim;
 }
 
 SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
