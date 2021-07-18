@@ -106,14 +106,16 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   // set the source properties
   source.setIndexedProperty<AperturePhotometry>(m_instance, fluxes, fluxes_error, mags, mags_error, flags);
 
-  // Draw the last aperture
-  auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(m_apertures[0] / 2.),
-                                                        jacobian.asTuple());
-
+  // draw the apertures onto the checkimage
   auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance);
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
-    fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+    for (auto aperture_diameter : m_apertures) {
+    	auto aperture = std::make_shared<TransformedAperture>(std::make_shared<CircularAperture>(aperture_diameter / 2.),
+    			jacobian.asTuple());
+    		fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+    }
+
   }
 }
 

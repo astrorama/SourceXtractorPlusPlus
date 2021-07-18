@@ -31,15 +31,18 @@ const int SUPERSAMPLE_NB = 10;
 SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
   auto dx = pixel_x - center_x;
   auto dy = pixel_y - center_y;
-  SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
+  //SeFloat min_supersampled_radius_squared = m_radius > .75 ? (m_radius - .75) * (m_radius - .75) : 0;
+  //SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
+  SeFloat min_supersampled_radius_squared = m_radius > .1 ? (m_radius - 1) * (m_radius - 1) : 0;
   SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
 
   auto distance_squared = dx * dx + dy * dy;
   SeFloat area = 0.0;
-  if (distance_squared < min_supersampled_radius_squared) {
-    area = 1.0;
-  }
-  else if (distance_squared <= max_supersampled_radius_squared) {
+  //if (distance_squared < min_supersampled_radius_squared) {
+  //  area = 1.0;
+  //}
+  //else if (distance_squared <= max_supersampled_radius_squared) {
+  if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
     for (int sub_y = 0; sub_y < SUPERSAMPLE_NB; sub_y++) {
       for (int sub_x = 0; sub_x < SUPERSAMPLE_NB; sub_x++) {
         auto dx2 = dx + SeFloat(sub_x - SUPERSAMPLE_NB / 2) / SUPERSAMPLE_NB;

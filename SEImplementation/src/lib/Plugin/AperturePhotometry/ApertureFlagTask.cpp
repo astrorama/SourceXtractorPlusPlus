@@ -70,13 +70,14 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // set the source properties
   source.setProperty<ApertureFlag>(all_flags);
 
-  // draw check image
+  // draw check image for all apertures
   auto aperture_check_img = CheckImages::getInstance().getApertureImage();
   if (aperture_check_img) {
-    unsigned int src_id = source.getProperty<SourceID>().getId();
-    auto aperture = std::make_shared<CircularAperture>(m_apertures[0] / 2.);
-
-    fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, src_id);
+	  for (auto aperture_diameter : m_apertures) {
+		  unsigned int src_id = source.getProperty<SourceID>().getId();
+		  auto aperture = std::make_shared<CircularAperture>(aperture_diameter / 2.);
+		  fillAperture<int>(aperture, centroid_x, centroid_y, aperture_check_img, static_cast<unsigned>(src_id));
+	  }
   }
 }
 
