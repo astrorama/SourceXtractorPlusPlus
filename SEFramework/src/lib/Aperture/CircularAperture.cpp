@@ -63,8 +63,9 @@ SeFloat CircularAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat p
 
 	auto distance_squared = getRadiusSquared(center_x, center_y, pixel_x, pixel_y);
 
-	if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
-		rim = 1;
+	//if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
+	if (min_supersampled_radius_squared < distance_squared && distance_squared <= max_supersampled_radius_squared) {
+		rim = 1.0;
 	}
 	return rim;
 }
