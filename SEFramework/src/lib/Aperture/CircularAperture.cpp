@@ -55,19 +55,18 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pi
 }
 
 SeFloat CircularAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
-	SeFloat rim = 0;
-	SeFloat thickness = 1.0;
+	SeFloat thickness = 0.5;
 
-	SeFloat min_supersampled_radius_squared = m_radius > thickness ? (m_radius - thickness) * (m_radius - thickness) : 0;
-	SeFloat max_supersampled_radius_squared = (m_radius + .75) * (m_radius + .75);
+	// define an inner and an outer radius
+	SeFloat min_radius_squared = m_radius > thickness ? (m_radius - thickness) * (m_radius - thickness) : 0;
+	SeFloat max_radius_squared = (m_radius + thickness) * (m_radius + thickness);
 
+	// compare the actual radius against the inner and outer radius
 	auto distance_squared = getRadiusSquared(center_x, center_y, pixel_x, pixel_y);
-
-	//if (distance_squared >= min_supersampled_radius_squared && distance_squared <= max_supersampled_radius_squared) {
-	if (min_supersampled_radius_squared < distance_squared && distance_squared <= max_supersampled_radius_squared) {
-		rim = 1.0;
+	if (min_radius_squared < distance_squared && distance_squared <= max_radius_squared) {
+		return 1.0;
 	}
-	return rim;
+	return 0.0;
 }
 
 SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
