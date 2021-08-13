@@ -83,7 +83,7 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
 #  define py_argv_assign(d, s, l) d = strndup(s, l)
 #else
     using py_argv_char_t = wchar_t;
-#  define py_argv_assign(d, s, l) d = Py_DecodeLocale(s, &l)
+#  define py_argv_assign(d, s, l) d = Py_DecodeLocale(s, &(l))
 #endif
 
     py_argv_char_t **py_argv = static_cast<py_argv_char_t**>(PyMem_MALLOC((argv.size() + 1) * sizeof(py_argv_char_t*)));
@@ -106,10 +106,22 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
     py::object main_module = py::import("__main__");
     py::setattr(main_module, "__file__", py::object(filename));
     py::object main_namespace = main_module.attr("__dict__");
-    py::exec_file(filename.c_str(), main_namespace);
+
+    // boost 1.75 up to 1.77 has a bug that trashes the heap
+    // See https://github.com/boostorg/python/issues/371
+    // So we read the file ourselves as a workaround
+    std::ifstream fs(filename);
+    if (fs.fail()) {
+      throw std::system_error(errno, std::system_category(), filename);
+    }
+    std::string pycode((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
+    py::exec(pycode.c_str(), main_namespace);
   }
   catch (const py::error_already_set &e) {
     throw pyToElementsException(logger);
+  }
+  catch (const std::system_error& e) {
+    throw Elements::Exception() << e.what() << ": " << e.code().message();
   }
 }
 
