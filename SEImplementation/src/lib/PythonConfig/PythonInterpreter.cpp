@@ -20,6 +20,8 @@
  */
 
 #include <signal.h>
+#include <fstream>
+#include <system_error>
 #include <utility>
 #include <boost/python/dict.hpp>
 #include <boost/python/exec.hpp>
