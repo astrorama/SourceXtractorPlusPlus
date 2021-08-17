@@ -20,69 +20,71 @@
  * @author Alejandro Alvarez Ayllon
  */
 
+#include "SEFramework/FFT/FFT.h"
+#include "SEFramework/FFT/FFTHelper.h"
+#include "SEFramework/Image/VectorImage.h"
+#include "SEUtils/TestUtils.h"
 #include <boost/test/unit_test.hpp>
 #include <numeric>
-#include "SEFramework/FFT/FFT.h"
 
 using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (FFT_test)
+BOOST_AUTO_TEST_SUITE(FFT_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE (FFT_float_symmetric_float_test) {
-  std::vector<float> scratch(16);
-  std::vector<std::complex<float>> complex_data(16);
+BOOST_AUTO_TEST_CASE(FFT_float_symmetric_float_test) {
+  std::vector<float> scratch;
+  auto               fwd_plan = FFT<float>::createForwardPlan(4, 4, scratch);
+  auto               inv_plan = FFT<float>::createInversePlan(4, 4, scratch);
 
-  auto fwd_plan = FFT<float>::createForwardPlan(1, 4, 4, scratch, complex_data);
-  auto inv_plan = FFT<float>::createInversePlan(1, 4, 4, complex_data, scratch);
+  auto original = VectorImage<float>::create(4, 4,
+                                             std::vector<float>{
+                                                 0.25, 0.00, 0.00, 0.00,  //
+                                                 0.00, 0.25, 0.00, 0.00,  //
+                                                 0.00, 0.00, 0.25, 0.00,  //
+                                                 0.00, 0.00, 0.00, 0.25,  //
+                                             });
+  copyImageToFFTWorkArea(*original, scratch);
 
-  std::vector<float> in{
-    0.25, 0.00, 0.00, 0.00,
-    0.00, 0.25, 0.00, 0.00,
-    0.00, 0.00, 0.25, 0.00,
-    0.00, 0.00, 0.00, 0.25,
-  };
-  std::vector<float> out(16);
+  // In place!
+  FFT<float>::executeForward(fwd_plan, scratch);
+  FFT<float>::executeInverse(inv_plan, scratch);
 
-  FFT<float>::executeForward(fwd_plan, in, complex_data);
-  FFT<float>::executeInverse(inv_plan, complex_data, out);
-  // Need to normalize!
-  float sum = std::accumulate(out.begin(), out.end(), 0.);
-  std::for_each(out.begin(), out.end(), [sum](float &v) { v /= sum; });
+  auto recovered = VectorImage<float>::create(4, 4);
+  copyFFTWorkAreaToImage(scratch, *recovered);
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), out.begin(), out.end());
+  BOOST_CHECK(compareImages(original, recovered));
 }
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE (FFT_float_symmetric_double_test) {
-  std::vector<double> scratch(16);
-  std::vector<std::complex<double>> complex_data(16);
+BOOST_AUTO_TEST_CASE(FFT_float_symmetric_double_test) {
+  std::vector<double> scratch;
+  auto               fwd_plan = FFT<double>::createForwardPlan(4, 4, scratch);
+  auto               inv_plan = FFT<double>::createInversePlan(4, 4, scratch);
 
-  auto fwd_plan = FFT<double>::createForwardPlan(1, 4, 4, scratch, complex_data);
-  auto inv_plan = FFT<double>::createInversePlan(1, 4, 4, complex_data, scratch);
+  auto original = VectorImage<double>::create(4, 4,
+                                             std::vector<double>{
+                                                 0.25, 0.00, 0.00, 0.00,  //
+                                                 0.00, 0.25, 0.00, 0.00,  //
+                                                 0.00, 0.00, 0.25, 0.00,  //
+                                                 0.00, 0.00, 0.00, 0.25,  //
+                                             });
+  copyImageToFFTWorkArea(*original, scratch);
 
-  std::vector<double> in{
-    0.25, 0.00, 0.00, 0.00,
-    0.00, 0.25, 0.00, 0.00,
-    0.00, 0.00, 0.25, 0.00,
-    0.00, 0.00, 0.00, 0.25,
-  };
-  std::vector<double> out(16);
+  // In place!
+  FFT<double>::executeForward(fwd_plan, scratch);
+  FFT<double>::executeInverse(inv_plan, scratch);
 
-  FFT<double>::executeForward(fwd_plan, in, complex_data);
-  FFT<double>::executeInverse(inv_plan, complex_data, out);
-  // Need to normalize!
-  double sum = std::accumulate(out.begin(), out.end(), 0.);
-  std::for_each(out.begin(), out.end(), [sum](double &v) { v /= sum; });
+  auto recovered = VectorImage<double>::create(4, 4);
+  copyFFTWorkAreaToImage(scratch, *recovered);
 
-  BOOST_CHECK_EQUAL_COLLECTIONS(in.begin(), in.end(), out.begin(), out.end());
+  BOOST_CHECK(compareImages(original, recovered));
 }
 
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE_END()
-

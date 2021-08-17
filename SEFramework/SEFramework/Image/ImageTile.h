@@ -45,9 +45,7 @@ public:
 
   static std::shared_ptr<ImageTile> create(ImageType image_type, int x, int y, int width, int height, std::shared_ptr<ImageSource> source=nullptr);
 
-  virtual ~ImageTile() {
-    saveIfModified();
-  }
+  virtual ~ImageTile() = default;
 
   bool isPixelInTile(int x, int y) const {
     return x >= m_x && y >= m_y && x < m_max_x && y < m_max_y;
@@ -94,7 +92,7 @@ public:
     return m_modified;
   }
 
-  virtual void saveIfModified();
+  void saveIfModified();
 
   static ImageType getTypeValue(float) {
     return FloatImage;
@@ -163,6 +161,10 @@ public:
   ImageTileWithType(int x, int y, int width, int height, std::shared_ptr<ImageSource> source)
       : ImageTile(getTypeValue(T()), x, y, width, height, source) {
     m_tile_image = VectorImage<T>::create(width, height);
+  }
+
+  virtual ~ImageTileWithType() {
+    saveIfModified();
   }
 
   int getTileMemorySize() const override {

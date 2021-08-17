@@ -117,18 +117,19 @@ void FitsFile::open() {
 
   // Open
   fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
+  m_fits_ptr.reset(ptr);
   if (status != 0) {
     if (m_is_writeable) {
       // Create file if it does not exists
       status = 0;
       fits_create_file(&ptr, m_path.native().c_str(), &status);
+      m_fits_ptr.reset(ptr);
     }
     if (status != 0) {
       throw Elements::Exception() << "Can't open FITS file: " << m_path << " status: " << status;
     }
   }
   assert(ptr->Fptr->open_count == 1);
-  m_fits_ptr.reset(ptr);
 }
 
 void FitsFile::refresh() {

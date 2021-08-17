@@ -61,12 +61,15 @@ public:
 
   size_t getFlushSize() const;
 
+  bool getOutputUnsorted() const;
+
 private:
  
   std::string m_out_file;
   OutputFileFormat m_format;
   std::vector<std::string> m_output_properties;
   size_t m_flush_size;
+  bool m_unsorted;
 
 }; /* End of OutputConfig class */
 

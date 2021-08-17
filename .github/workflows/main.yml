@@ -3,8 +3,16 @@ name: RPM - Artifactory
 on:
   push:
     branches: [ master, develop ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'LICENSE'
   pull_request:
     branches: [ master, develop ]
+    paths-ignore:
+      - 'doc/**'
+      - 'README.md'
+      - 'LICENSE'
   workflow_dispatch:
 
 jobs:
@@ -84,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         os-type: [fedora]
-        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.stable) }}
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout
