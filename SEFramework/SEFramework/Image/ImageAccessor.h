@@ -37,18 +37,17 @@ namespace SourceXtractor {
  * @tparam T
  *      Pixel type
  */
-template<typename T>
-class ImageAccessor: public Image<T> {
+template <typename T>
+class ImageAccessor : public Image<T> {
 public:
-
   /** Hints about the access pattern
    * @details
    *    Even if you don't honor the hint, it will still work!
    */
   enum AccessHint {
-    TOP_LEFT,     //< The first coordinate is likely the top left corner of what is going to be needed
-    CENTERED,     //< The first coordinate is likely the center of a region
-    BOTTOM_RIGHT, //< The first coordinate is likely the bottom right corner
+    TOP_LEFT,      //< The first coordinate is likely the top left corner of what is going to be needed
+    CENTERED,      //< The first coordinate is likely the center of a region
+    BOTTOM_RIGHT,  //< The first coordinate is likely the bottom right corner
   };
 
   /** Destructor */
@@ -69,12 +68,11 @@ public:
    *    Of course, if you know beforehand the exact chunk that will be needed, better use
    *    getChunk directly!
    */
-  ImageAccessor(std::shared_ptr<const Image<T>> img, AccessHint hint = TOP_LEFT, int w = 64, int h = 1)
-    : m_image(img.get()), m_keep_alive(std::move(img)), m_hint(hint), m_read_width(w),
-      m_read_height(h) {};
+  explicit ImageAccessor(std::shared_ptr<const Image<T>> img, AccessHint hint = TOP_LEFT, int w = 64, int h = 1)
+      : m_image(img.get()), m_keep_alive(std::move(img)), m_hint(hint), m_read_width(w), m_read_height(h){};
 
-  ImageAccessor(const Image<T>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 64)
-    : m_image(&img), m_hint(hint), m_read_width(w), m_read_height(h) {};
+  explicit ImageAccessor(const Image<T>& img, AccessHint hint = TOP_LEFT, int w = 64, int h = 64)
+      : m_image(&img), m_hint(hint), m_read_width(w), m_read_height(h){};
 
   /**
    * Can not be copied!
@@ -130,12 +128,12 @@ public:
   };
 
 private:
-  const Image<T>* m_image;
-  std::shared_ptr<const Image<T>> m_keep_alive;
+  const Image<T>*                      m_image;
+  std::shared_ptr<const Image<T>>      m_keep_alive;
   std::shared_ptr<const ImageChunk<T>> m_chunk;
-  PixelCoordinate m_chunk_min, m_chunk_max;
-  AccessHint m_hint;
-  int m_read_width, m_read_height;
+  PixelCoordinate                      m_chunk_min, m_chunk_max;
+  AccessHint                           m_hint;
+  int                                  m_read_width, m_read_height;
 
   /**
    * Verify if the requested coordinates can be satisfied, and asks
@@ -155,18 +153,17 @@ private:
   void nextCoordinates(const PixelCoordinate& coord) {
     if (!m_chunk) {
       m_chunk_min = firstCoordinates(coord);
-    }
-    else {
+    } else {
       switch (m_hint) {
-        case TOP_LEFT:
-        case CENTERED:
-          m_chunk_min.m_x = coord.m_x;
-          m_chunk_min.m_y = coord.m_y;
-          break;
-        case BOTTOM_RIGHT:
-          m_chunk_min.m_x = coord.m_x - m_read_width + 1;
-          m_chunk_min.m_y = coord.m_y - m_read_height + 1;
-          break;
+      case TOP_LEFT:
+      case CENTERED:
+        m_chunk_min.m_x = coord.m_x;
+        m_chunk_min.m_y = coord.m_y;
+        break;
+      case BOTTOM_RIGHT:
+        m_chunk_min.m_x = coord.m_x - m_read_width + 1;
+        m_chunk_min.m_y = coord.m_y - m_read_height + 1;
+        break;
       }
     }
     // Make sure we don't leave the image
@@ -179,17 +176,17 @@ private:
 
   PixelCoordinate firstCoordinates(const PixelCoordinate& coord) {
     switch (m_hint) {
-      case CENTERED:
-        return PixelCoordinate(coord.m_x - m_read_width / 2, coord.m_y - m_read_height / 2);
-      case TOP_LEFT:
-        return coord;
-      case BOTTOM_RIGHT:
-        return PixelCoordinate(coord.m_x - m_read_width, coord.m_y - m_read_height);
+    case CENTERED:
+      return PixelCoordinate(coord.m_x - m_read_width / 2, coord.m_y - m_read_height / 2);
+    case TOP_LEFT:
+      return coord;
+    case BOTTOM_RIGHT:
+      return PixelCoordinate(coord.m_x - m_read_width, coord.m_y - m_read_height);
     }
     return coord;
   }
 };
 
-} // end of namespace SourceXtractor
+}  // end of namespace SourceXtractor
 
-#endif // _SEFRAMEWORK_IMAGE_IMAGEACCESSOR_H
+#endif  // _SEFRAMEWORK_IMAGE_IMAGEACCESSOR_H

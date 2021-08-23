@@ -152,10 +152,10 @@ struct SourceModel {
 
 
 void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
-  auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
-  auto& variance_stamp = source.getProperty<DetectionFrameSourceStamp>().getVarianceStamp();
-  auto& thresholded_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdedStamp();
-  auto& threshold_map_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdMapStamp();
+  auto source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
+  auto variance_stamp = source.getProperty<DetectionFrameSourceStamp>().getVarianceStamp();
+  auto thresholded_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdedStamp();
+  auto threshold_map_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdMapStamp();
   PixelCoordinate stamp_top_left = source.getProperty<DetectionFrameSourceStamp>().getTopLeft();
 
   // Computes the minimum flux that a detection should have (min. detection threshold for every pixel)

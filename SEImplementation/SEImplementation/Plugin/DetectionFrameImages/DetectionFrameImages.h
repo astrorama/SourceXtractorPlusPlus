@@ -43,6 +43,10 @@ public:
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }
 
+  std::shared_ptr<Image<DetectionImage::PixelType>> getImage(FrameImageLayer layer) const {
+    return m_frame->getImage(layer);
+  }
+
   int getWidth() const {
     return m_width;
   }

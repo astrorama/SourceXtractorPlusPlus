@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(example_test, DetectionFrameSourceStampFixture) {
   DetectionFrameSourceStampTask task;
   task.computeProperties(source);
 
-  auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
+  auto source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
   auto top_left = source.getProperty<DetectionFrameSourceStamp>().getTopLeft();
 
   // Size must be at least the size of the source itself (+ some area around it)

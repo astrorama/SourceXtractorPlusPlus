@@ -20,27 +20,28 @@
  * @author mschefer
  */
 
+#include <SEFramework/Property/DetectionFrame.h>
 #include <mutex>
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/VectorImage.h"
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
-#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
-
-#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
+#include "SEFramework/Image/SubImage.h"
 
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStampTask.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 namespace SourceXtractor {
 
 void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) const {
-
-  auto detection_frame_images = source.getProperty<DetectionFrameImages>();
+  using SubDetection = SubImage<DetectionImage::PixelType>;
+  using SubWeight    = SubImage<WeightImage::PixelType>;
+  auto det_frame     = source.getProperty<DetectionFrameImages>();
 
   const auto& boundaries = source.getProperty<PixelBoundaries>();
-  auto min = boundaries.getMin();
-  auto max = boundaries.getMax();
+  auto        min        = boundaries.getMin();
+  auto        max        = boundaries.getMax();
 
   // FIXME temporary, for now just enlarge the area by a fixed amount of pixels
   PixelCoordinate border = (max - min) * .8 + PixelCoordinate(2, 2);
@@ -51,24 +52,19 @@ void DetectionFrameSourceStampTask::computeProperties(SourceInterface& source) c
   // clip to image size
   min.m_x = std::max(min.m_x, 0);
   min.m_y = std::max(min.m_y, 0);
-  max.m_x = std::min(max.m_x, detection_frame_images.getWidth() - 1);
-  max.m_y = std::min(max.m_y, detection_frame_images.getHeight() - 1);
+  max.m_x = std::min(max.m_x, det_frame.getWidth() - 1);
+  max.m_y = std::min(max.m_y, det_frame.getHeight() - 1);
 
-  auto width = max.m_x - min.m_x +1;
+  auto width  = max.m_x - min.m_x + 1;
   auto height = max.m_y - min.m_y + 1;
 
-  auto stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerSubtractedImage, min.m_x, min.m_y, width, height));
-  auto filtered_stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerFilteredImage, min.m_x, min.m_y, width, height));
-  auto thresholded_stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerThresholdedImage, min.m_x, min.m_y, width, height));
-  auto variance_stamp = VectorImage<WeightImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerVarianceMap, min.m_x, min.m_y, width, height));
-  auto threshold_map_stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerDetectionThresholdMap, min.m_x, min.m_y, width, height));
+  auto stamp               = SubDetection::create(det_frame.getImage(LayerSubtractedImage), min, width, height);
+  auto filtered_stamp      = SubDetection::create(det_frame.getImage(LayerFilteredImage), min, width, height);
+  auto thresholded_stamp   = SubDetection::create(det_frame.getImage(LayerThresholdedImage), min, width, height);
+  auto threshold_map_stamp = SubDetection::create(det_frame.getImage(LayerDetectionThresholdMap), min, width, height);
+  auto variance_stamp      = SubWeight::create(det_frame.getImage(LayerVarianceMap), min, width, height);
 
   source.setProperty<DetectionFrameSourceStamp>(stamp, filtered_stamp, thresholded_stamp, min, variance_stamp, threshold_map_stamp);
 }
 
-} // SEImplementation namespace
+}  // namespace SourceXtractor
