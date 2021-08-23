@@ -22,18 +22,19 @@
  */
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/VectorImage.h"
-
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
-#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+#include "SEFramework/Image/SubImage.h"
 
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStampTask.h"
-
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 
 namespace SourceXtractor {
 
 void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group) const {
+  using SubDetection = SubImage<DetectionImage::PixelType>;
+  using SubWeight    = SubImage<WeightImage::PixelType>;
+
   // we are obviously assuming the same DetectionFrameImages for all sources
   auto detection_frame_images = group.cbegin()->getProperty<DetectionFrameImages>();
 
@@ -45,8 +46,8 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
 
   for (auto& source : group) {
     const auto& boundaries = source.getProperty<PixelBoundaries>();
-    const auto& min = boundaries.getMin();
-    const auto& max = boundaries.getMax();
+    const auto& min        = boundaries.getMin();
+    const auto& max        = boundaries.getMax();
 
     min_x = std::min(min_x, min.m_x);
     min_y = std::min(min_y, min.m_y);
@@ -56,7 +57,6 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   PixelCoordinate max(max_x, max_y);
   PixelCoordinate min(min_x, min_y);
   ///////////////////////////////////////
-
 
   // FIXME temporary, for now just enlarge the area by a fixed amount of pixels
   PixelCoordinate border = (max - min) * .8 + PixelCoordinate(2, 2);
@@ -71,19 +71,14 @@ void DetectionFrameGroupStampTask::computeProperties(SourceGroupInterface& group
   max.m_y = std::min(max.m_y, detection_frame_images.getHeight() - 1);
 
   // create the image stamp
-  auto width = max.m_x - min.m_x +1;
+  auto width  = max.m_x - min.m_x + 1;
   auto height = max.m_y - min.m_y + 1;
 
-  std::shared_ptr<DetectionImage> stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerSubtractedImage, min.m_x, min.m_y, width, height));
-  std::shared_ptr<DetectionImage> thresholded_stamp = VectorImage<DetectionImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerThresholdedImage, min.m_x, min.m_y, width, height));
-  std::shared_ptr<WeightImage> variance_stamp = VectorImage<WeightImage::PixelType>::create(
-      *detection_frame_images.getImageChunk(LayerVarianceMap, min.m_x, min.m_y, width, height));
-
+  auto stamp             = SubDetection::create(detection_frame_images.getImage(LayerSubtractedImage), min, width, height);
+  auto thresholded_stamp = SubDetection::create(detection_frame_images.getImage(LayerThresholdedImage), min, width, height);
+  auto variance_stamp    = SubWeight::create(detection_frame_images.getImage(LayerVarianceMap), min, width, height);
 
   group.setProperty<DetectionFrameGroupStamp>(stamp, thresholded_stamp, min, variance_stamp);
 }
 
-} // SEImplementation namespace
-
+}  // namespace SourceXtractor

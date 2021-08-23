@@ -24,36 +24,33 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_DETECTIONFRAMEGROUPSTAMP_DETECTIONFRAMEGROUPSTAMP_H_
 #define _SEIMPLEMENTATION_PLUGIN_DETECTIONFRAMEGROUPSTAMP_DETECTIONFRAMEGROUPSTAMP_H_
 
-
-#include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
+#include "SEFramework/Property/Property.h"
 
 namespace SourceXtractor {
 
 class DetectionFrameGroupStamp : public Property {
 
 public:
-
   virtual ~DetectionFrameGroupStamp() = default;
 
-  DetectionFrameGroupStamp(std::shared_ptr<DetectionImage> stamp,
-      std::shared_ptr<DetectionImage> thresholded_stamp, PixelCoordinate top_left,
-      std::shared_ptr<WeightImage> variance_stamp) :
-        m_stamp(stamp), m_thresholded_stamp(thresholded_stamp),
-        m_variance_stamp(variance_stamp), m_top_left(top_left) {}
+  DetectionFrameGroupStamp(std::shared_ptr<DetectionImage> stamp, std::shared_ptr<DetectionImage> thresholded_stamp,
+                           PixelCoordinate top_left, std::shared_ptr<WeightImage> variance_stamp)
+      : m_stamp(stamp), m_thresholded_stamp(thresholded_stamp), m_variance_stamp(variance_stamp), m_top_left(top_left) {}
 
   // Returns the stamp image
-  const DetectionImage& getStamp() const {
-    return *m_stamp;
+  ImageAccessor<DetectionImage::PixelType> getStamp() const {
+    return ImageAccessor<DetectionImage::PixelType>(*m_stamp);
   }
 
-  const DetectionImage& getThresholdedStamp() const {
-    return *m_thresholded_stamp;
+  ImageAccessor<DetectionImage::PixelType> getThresholdedStamp() const {
+    return ImageAccessor<DetectionImage::PixelType>(*m_thresholded_stamp);
   }
 
   // Returns the stamp's associated weight image
-  const DetectionImage& getVarianceStamp() const {
-    return *m_variance_stamp;
+  ImageAccessor<WeightImage::PixelType> getVarianceStamp() const {
+    return ImageAccessor<WeightImage::PixelType>(*m_variance_stamp);
   }
 
   PixelCoordinate getTopLeft() const {
@@ -62,15 +59,10 @@ public:
 
 private:
   std::shared_ptr<DetectionImage> m_stamp, m_thresholded_stamp;
-  std::shared_ptr<WeightImage> m_variance_stamp;
-  PixelCoordinate m_top_left;
-
+  std::shared_ptr<WeightImage>    m_variance_stamp;
+  PixelCoordinate                 m_top_left;
 };
 
-
 } /* namespace SourceXtractor */
-
-
-
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_DETECTIONFRAMEGROUPSTAMP_DETECTIONFRAMEGROUPSTAMP_H_ */
