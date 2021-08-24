@@ -41,16 +41,19 @@ public:
 
   // Returns the stamp image
   ImageAccessor<DetectionImage::PixelType> getStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_stamp, ImageAccessor<float>::TOP_LEFT, m_stamp->getWidth(),
+                                                    m_stamp->getHeight());
   }
 
   ImageAccessor<DetectionImage::PixelType> getThresholdedStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_thresholded_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_thresholded_stamp, ImageAccessor<float>::TOP_LEFT,
+                                                    m_thresholded_stamp->getWidth(), m_thresholded_stamp->getHeight());
   }
 
   // Returns the stamp's associated weight image
   ImageAccessor<WeightImage::PixelType> getVarianceStamp() const {
-    return ImageAccessor<WeightImage::PixelType>(*m_variance_stamp);
+    return ImageAccessor<WeightImage::PixelType>(*m_variance_stamp, ImageAccessor<float>::TOP_LEFT, m_variance_stamp->getWidth(),
+                                                 m_variance_stamp->getHeight());
   }
 
   PixelCoordinate getTopLeft() const {

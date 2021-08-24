@@ -54,27 +54,32 @@ public:
 
   // Returns the stamp image
   ImageAccessor<DetectionImage::PixelType> getStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_stamp, ImageAccessor<float>::TOP_LEFT, m_stamp->getWidth(),
+                                                    m_stamp->getHeight());
   }
 
   // Returns the filtered stamp image
   ImageAccessor<DetectionImage::PixelType> getFilteredStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_filtered_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_filtered_stamp, ImageAccessor<float>::TOP_LEFT, m_filtered_stamp->getWidth(),
+                                                    m_filtered_stamp->getHeight());
   }
 
   // Returns the filtered and thresholded stamp image
   ImageAccessor<DetectionImage::PixelType> getThresholdedStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_thresholded_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_thresholded_stamp, ImageAccessor<float>::TOP_LEFT,
+                                                    m_thresholded_stamp->getWidth(), m_thresholded_stamp->getHeight());
   }
 
   // Returns the threshold map stamp
   ImageAccessor<DetectionImage::PixelType> getThresholdMapStamp() const {
-    return ImageAccessor<DetectionImage::PixelType>(*m_threshold_map_stamp);
+    return ImageAccessor<DetectionImage::PixelType>(*m_threshold_map_stamp, ImageAccessor<float>::TOP_LEFT,
+                                                    m_threshold_map_stamp->getWidth(), m_threshold_map_stamp->getHeight());
   }
 
   // Returns the stamp's associated weight image
   ImageAccessor<WeightImage::PixelType> getVarianceStamp() const {
-    return ImageAccessor<WeightImage::PixelType>(*m_variance_stamp);
+    return ImageAccessor<WeightImage::PixelType>(*m_variance_stamp, ImageAccessor<float>::TOP_LEFT, m_variance_stamp->getWidth(),
+                                                 m_variance_stamp->getHeight());
   }
 
   PixelCoordinate getTopLeft() const {
