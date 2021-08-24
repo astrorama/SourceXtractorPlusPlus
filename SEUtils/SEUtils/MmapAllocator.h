@@ -18,6 +18,7 @@
 #ifndef _SEUTILS_MMAPALLOCATOR_H
 #define _SEUTILS_MMAPALLOCATOR_H
 
+#include <new>
 #include <sys/mman.h>
 
 namespace SourceXtractor {
@@ -38,7 +39,11 @@ struct MmapAllocator {
 
   T* allocate(std::size_t n) {
     if (n > std::numeric_limits<std::size_t>::max() / sizeof(T)) {
+#if __cplusplus < 201103L || (!defined(__llvm__) && !defined(__INTEL_COMPILER) && defined(__GNUC__) && __GNUC__ == 4 && __GNUC_MINOR__ <= 8)
+      throw std::bad_alloc();
+#else
       throw std::bad_array_new_length();
+#endif
     }
     T* ptr = static_cast<T*>(mmap(nullptr, n * sizeof(T), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0));
     if (ptr == MAP_FAILED) {
