@@ -31,7 +31,7 @@
 #include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
 #include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
-#include "SEImplementation/Plugin/Psf/PsfProperty.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
@@ -145,15 +145,14 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> crea
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
-  // FIXME: for now still use the group's PSF property, replace by a PSF for the source
-  auto psf_property = source.getProperty<PsfProperty>(frame_index);
+  auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
 
   // The model fitting module expects to get a PSF with a pixel scale, but we have the pixel sampling step size
   // It will be used to compute the rastering grid size, and after convolving with the PSF the result will be
   // downscaled before copied into the frame image.
   // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
-  auto group_psf = ImagePsf(pixel_scale * psf_property.getPixelSampling(), psf_property.getPsf());
+  auto source_psf = ImagePsf(pixel_scale * psf_property.getPixelSampling(), psf_property.getPsf());
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
@@ -167,7 +166,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> crea
   // Full frame model with all sources
   FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-    std::move(constant_models), std::move(point_models), std::move(extended_models), group_psf);
+    std::move(constant_models), std::move(point_models), std::move(extended_models), source_psf);
 
   return frame_model;
 }

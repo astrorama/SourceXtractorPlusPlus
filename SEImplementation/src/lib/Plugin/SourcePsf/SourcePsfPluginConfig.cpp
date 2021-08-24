@@ -14,17 +14,11 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfPluginConfig.cpp
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón (greatly adapted from mschefer's code)
- */
 
-#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfPluginConfig.h"
 #include "SEFramework/Psf/VariablePsf.h"
 #include "SEFramework/Psf/VariablePsfStack.h"
-#include "SEImplementation/Plugin/Psf/PsfTask.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfTask.h"
 #include <CCfits/CCfits>
 #include <Configuration/ProgramOptionsHelper.h>
 #include <ElementsKernel/Logging.h>
@@ -32,7 +26,7 @@
 namespace po = boost::program_options;
 using Euclid::Configuration::Configuration;
 
-static auto logger = Elements::Logging::getLogger("PsfPlugin");
+static auto logger = Elements::Logging::getLogger("SourcePsfPlugin");
 
 namespace SourceXtractor {
 
@@ -115,7 +109,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     ll << "Components: ";
     for (auto c : components) {
       ll << c.name << " ";
-      if (PsfTask::component_value_getters.find(c.name) == PsfTask::component_value_getters.end()) {
+      if (SourcePsfTask::component_value_getters.find(c.name) == SourcePsfTask::component_value_getters.end()) {
         throw Elements::Exception() << "Can not find a getter for the component " << c.name;
       }
     }
@@ -158,7 +152,7 @@ static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
 
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels.
-std::shared_ptr<Psf> PsfPluginConfig::readPsf(const std::string& filename, int hdu_number) {
+std::shared_ptr<Psf> SourcePsfPluginConfig::readPsf(const std::string& filename, int hdu_number) {
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
@@ -187,7 +181,7 @@ std::shared_ptr<Psf> PsfPluginConfig::readPsf(const std::string& filename, int h
   }
 }
 
-std::shared_ptr<Psf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling) {
+std::shared_ptr<Psf> SourcePsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling) {
   int size = int(fwhm / pixel_sampling + 1) * 6 + 1;
   auto kernel = VectorImage<SeFloat>::create(size, size);
 
@@ -215,7 +209,7 @@ std::shared_ptr<Psf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat 
   return std::make_shared<VariablePsf>(pixel_sampling, kernel);
 }
 
-std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::getProgramOptions() {
+std::map<std::string, Configuration::OptionDescriptionList> SourcePsfPluginConfig::getProgramOptions() {
   return {{"Variable PSF", {
     {PSF_FILE.c_str(), po::value<std::string>(),
         "Psf image file (FITS format)."},
@@ -226,7 +220,7 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
   }}};
 }
 
-void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::UserValues &args) {
+void SourcePsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::UserValues &args) {
   // Fail if there is no PSF file, but PSF_FWHM is set and PSF_PIXEL_SAMPLING is not
   if (args.find(PSF_FILE) == args.end() && args.find(PSF_FWHM) != args.end() &&
       args.find(PSF_PIXEL_SAMPLING) == args.end()) {
@@ -234,7 +228,7 @@ void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::
   }
 }
 
-void PsfPluginConfig::initialize(const UserValues &args) {
+void SourcePsfPluginConfig::initialize(const UserValues &args) {
   if (args.find(PSF_FILE) != args.end()) {
     m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
   } else if (args.find(PSF_FWHM) != args.end()) {
@@ -243,7 +237,7 @@ void PsfPluginConfig::initialize(const UserValues &args) {
   }
 }
 
-const std::shared_ptr<Psf>& PsfPluginConfig::getPsf() const {
+const std::shared_ptr<Psf>& SourcePsfPluginConfig::getPsf() const {
   return m_vpsf;
 }
 

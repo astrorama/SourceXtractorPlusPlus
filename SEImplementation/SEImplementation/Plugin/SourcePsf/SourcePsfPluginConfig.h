@@ -14,37 +14,35 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfTask.h
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFCONFIG_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFCONFIG_H_
 
-#include "SEFramework/Task/GroupTask.h"
-#include "SEFramework/Psf/Psf.h"
+#include <Configuration/Configuration.h>
+#include <SEFramework/Psf/Psf.h>
 
 namespace SourceXtractor {
 
-class PsfTask: public GroupTask {
+class SourcePsfPluginConfig: public Euclid::Configuration::Configuration {
 public:
-  virtual ~PsfTask() = default;
+  virtual ~SourcePsfPluginConfig() = default;
 
-  PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
+  SourcePsfPluginConfig(long manager_id): Configuration(manager_id) {}
 
-  virtual void computeProperties(SourceGroupInterface& source) const override;
+  std::map<std::string, OptionDescriptionList> getProgramOptions() override;
 
-  typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
-  static std::map<std::string, ValueGetter> component_value_getters;
+  void preInitialize(const UserValues& args) override;
+  void initialize(const UserValues& args) override;
+
+  const std::shared_ptr<Psf>& getPsf() const;
+
+  static std::shared_ptr<Psf> readPsf(const std::string &filename, int hdu_number = 1);
+  static std::shared_ptr<Psf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling);
 
 private:
-  unsigned m_instance;
   std::shared_ptr<Psf> m_vpsf;
 };
 
 } // end SourceXtractor
 
-#endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFCONFIG_H_
