@@ -61,8 +61,7 @@ struct ImageAccessor_Fixture {
 
   ImageAccessor_Fixture() {
     auto vimg = VectorImage<float>::create(512, 512);
-    auto& data = vimg->getData();
-    std::generate(data.begin(), data.end(), std::rand);
+    std::generate(vimg->begin(), vimg->end(), std::rand);
 
     m_image = std::make_shared<MockImage<float>>(vimg);
   }

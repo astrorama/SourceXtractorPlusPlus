@@ -170,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
       check_image->setValue(pixel, 1.0);
     }
     for (auto iter = group_images.begin(); iter != group_images.end(); iter++) {
-      if (*iter == check_image->getData()) {
+      if (std::equal(iter->begin(), iter->end(), check_image->begin(), check_image->end())) {
         group_images.erase(iter);
         break;
       }

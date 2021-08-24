@@ -29,11 +29,55 @@ using namespace SourceXtractor;
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE (VectorImage_test)
+BOOST_AUTO_TEST_SUITE(VectorImage_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( example_test ) {
+/**
+ * Custom allocator
+ * @tparam T
+ */
+template <typename T>
+struct MyAlloc {
+  static int allocated_items, deallocated_items;
+
+  typedef T value_type;
+
+  MyAlloc() = default;
+
+  template <typename U>
+  MyAlloc(const MyAlloc<U>&) noexcept {}
+
+  T* allocate(std::size_t n) {
+    allocated_items += n;
+    return new T[n];
+  }
+
+  void deallocate(T* ptr, std::size_t n) noexcept {
+    delete[] ptr;
+    deallocated_items += n;
+  }
+};
+
+template <typename T>
+int MyAlloc<T>::allocated_items = 0;
+
+template <typename T>
+int MyAlloc<T>::deallocated_items = 0;
+
+template <typename T, typename U>
+bool operator==(const MyAlloc<T>&, const MyAlloc<U>&) {
+  return sizeof(T) == sizeof(U);
+}
+
+template <typename T, typename U>
+bool operator!=(const MyAlloc<T>&, const MyAlloc<U>&) {
+  return sizeof(T) != sizeof(U);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(example_test) {
 
   auto image = VectorImage<int>::create(20, 30);
 
@@ -46,15 +90,15 @@ BOOST_AUTO_TEST_CASE( example_test ) {
   BOOST_CHECK(image->getValue(2, 15) == 33);
   BOOST_CHECK(image->getValue(5, 6) == 42);
 
-  BOOST_CHECK(image->getData()[207] == 99);
-  BOOST_CHECK(image->getData()[302] == 33);
+  BOOST_CHECK(*(image->begin() + 207) == 99);
+  BOOST_CHECK(*(image->begin() + 302) == 33);
 }
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( from_iterators ) {
+BOOST_AUTO_TEST_CASE(from_iterators) {
   std::valarray<int> base{0, 1, 2, 3, 4, 5, 6, 7, 8};
-  auto image = VectorImage<int>::create(5, 1, std::begin(base) + 2, std::begin(base) + 7);
+  auto               image = VectorImage<int>::create(5, 1, std::begin(base) + 2, std::begin(base) + 7);
 
   BOOST_CHECK_EQUAL(image->at(0, 0), 2);
   BOOST_CHECK_EQUAL(image->at(1, 0), 3);
@@ -65,6 +109,38 @@ BOOST_AUTO_TEST_CASE( from_iterators ) {
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_SUITE_END ()
+BOOST_AUTO_TEST_CASE(custom_allocator) {
+  auto image = VectorImage<int, MyAlloc<int>>::create(20, 30);
+  BOOST_CHECK_EQUAL(MyAlloc<int>::allocated_items, 20 * 30);
+  BOOST_CHECK_EQUAL(MyAlloc<int>::deallocated_items, 0);
 
+  image->setValue(7, 10, 99);
+  image->setValue(2, 15, 33);
+  image->at(5, 6) = 42;
 
+  BOOST_CHECK(image->getValue(6, 10) == 0);
+  BOOST_CHECK(image->getValue(7, 10) == 99);
+  BOOST_CHECK(image->getValue(2, 15) == 33);
+  BOOST_CHECK(image->getValue(5, 6) == 42);
+
+  BOOST_CHECK(*(image->begin() + 207) == 99);
+  BOOST_CHECK(*(image->begin() + 302) == 33);
+
+  auto chunk = image->getChunk(2, 9, 6, 7);
+  BOOST_CHECK_EQUAL(MyAlloc<int>::allocated_items, 20 * 30);
+  BOOST_CHECK_EQUAL(MyAlloc<int>::deallocated_items, 0);
+
+  BOOST_CHECK(chunk->getValue(4, 1) == 0);
+  BOOST_CHECK(chunk->getValue(5, 1) == 99);
+  BOOST_CHECK(chunk->getValue(0, 6) == 33);
+
+  image.reset();
+  BOOST_CHECK_EQUAL(MyAlloc<int>::deallocated_items, 0);
+
+  chunk.reset();
+  BOOST_CHECK_EQUAL(MyAlloc<int>::deallocated_items, 20 * 30);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_SUITE_END()

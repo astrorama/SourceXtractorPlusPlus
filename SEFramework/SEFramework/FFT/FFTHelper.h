@@ -40,7 +40,7 @@ namespace SourceXtractor {
  * @warning
  *  The size of the buffer *must* fit the padded data used by FFTW3: height * (width / 2 + 1) * 2
  */
-template <typename T, template <typename> class Img>
+template <typename T, template <typename...> class Img>
 static void copyImageToFFTWorkArea(Img<T>& origin, std::vector<T>& buffer) {
   int width  = origin.getWidth();
   int height = origin.getHeight();
@@ -83,7 +83,7 @@ static void copyImageToFFTWorkArea(Img<T>& origin, std::vector<T>& buffer) {
  *  (Optional, defaults to true) After a convolution, the output values are scaled by N (number of *logical* pixels on the input)
  *  If true, scale-back dividing by N
  */
-template <typename T, template <typename> class Img>
+template <typename T, template <typename...> class Img>
 static void copyFFTWorkAreaToImage(std::vector<T>& buffer, Img<T>& dest, int rpad = 0, int lpad = 0, int tpad = 0, int bpad = 0,
                                    bool normalize = true) {
   const int width         = dest.getWidth();

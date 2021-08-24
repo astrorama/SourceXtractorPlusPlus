@@ -67,7 +67,7 @@ static float computeScaling(const std::shared_ptr<VectorImage<DetectionImage::Pi
 }
 
 static float getMedian(const VectorImage<DetectionImage::PixelType>& img) {
-  auto v = img.getData();
+  std::vector<DetectionImage::PixelType> v(img.begin(), img.end());
   std::sort(v.begin(), v.end());
   auto nitems = v.size();
   if (nitems % 2 == 1) {

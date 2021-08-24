@@ -546,7 +546,7 @@ public:
 
     // Generate and normalize the PSF
     auto p = vpsf->getPsf(psf_vals);
-    auto psf_sum = std::accumulate(p->getData().begin(), p->getData().end(), 0.);
+    auto psf_sum = std::accumulate(p->begin(), p->end(), 0.);
     p = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(p, 1. / psf_sum));
     auto psf = std::make_shared<ImagePsf>(vpsf->getPixelSampling(), p);
 

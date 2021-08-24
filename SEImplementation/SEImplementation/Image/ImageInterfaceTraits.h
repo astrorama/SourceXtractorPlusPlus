@@ -55,7 +55,7 @@ using WriteableInterfaceTypePtr = std::shared_ptr<WriteableInterfaceType>;
 template <>
 struct ImageTraits<ImageInterfaceTypePtr> {
 
-  using iterator = std::vector<ImageInterfaceType::PixelType>::iterator;
+  using iterator = SourceXtractor::VectorImage<SourceXtractor::SeFloat>::iterator;
 
   static ImageInterfaceTypePtr factory(std::size_t width, std::size_t height) {
     return SourceXtractor::VectorImage<ImageInterfaceType::PixelType>::create(width, height);
@@ -78,11 +78,11 @@ struct ImageTraits<ImageInterfaceTypePtr> {
   }
 
   static iterator begin(const ImageInterfaceTypePtr& image) {
-    return image->getData().begin();
+    return image->begin();
   }
 
   static iterator end(const ImageInterfaceTypePtr& image) {
-    return image->getData().end();
+    return image->end();
   }
 
   static void addImageToImage(ImageInterfaceTypePtr& target_image, const ImageInterfaceTypePtr& source_image,

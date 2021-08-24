@@ -149,7 +149,7 @@ static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
   std::valarray<double> data{};
   image_hdu.read(data);
   auto kernel = VectorImage<SeFloat>::create(size, size);
-  std::copy(begin(data), end(data), kernel->getData().begin());
+  std::copy(begin(data), end(data), kernel->begin());
 
   logger.debug() << "Loaded image PSF(" << size << ", " << size << ") with sampling step " << pixel_sampling;
 

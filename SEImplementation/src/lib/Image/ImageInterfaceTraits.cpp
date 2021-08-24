@@ -239,7 +239,7 @@ void shiftResizeLancszos(const ImageInterfaceTypePtr& source, ImageInterfaceType
   int window_width = Traits::width(window);
   int window_height = Traits::height(window);
 
-  auto data = &source->getData()[0];
+  auto data = source->begin();
   auto source_width = source->getWidth();
   auto source_height = source->getHeight();
 
