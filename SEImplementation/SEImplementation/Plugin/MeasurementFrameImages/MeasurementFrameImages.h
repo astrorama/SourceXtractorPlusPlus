@@ -40,6 +40,10 @@ public:
     return std::make_shared<ImageAccessor<SeFloat>>(m_frame->getImage(layer));
   }
 
+  std::shared_ptr<Image<SeFloat>> getImage(FrameImageLayer layer) const {
+    return m_frame->getImage(layer);
+  }
+
   std::shared_ptr<ImageChunk<MeasurementImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width, int height) const {
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }

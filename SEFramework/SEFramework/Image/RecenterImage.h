@@ -42,7 +42,7 @@ protected:
 public:
   template<typename... Args>
   static std::shared_ptr<RecenterImage<T>> create(Args &&... args) {
-    return std::shared_ptr<RecenterImage<T>>(new RecenterImage{std::forward<Args>(args)...});
+    return std::shared_ptr<RecenterImage<T>>(new RecenterImage(std::forward<Args>(args)...));
   }
 
   std::string getRepr() const override {
