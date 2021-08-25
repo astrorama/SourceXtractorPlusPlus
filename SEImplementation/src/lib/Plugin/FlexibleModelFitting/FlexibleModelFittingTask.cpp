@@ -246,8 +246,15 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
     auto iterations = solution.iteration_no;
     auto stop_reason = solution.engine_stop_reason;
-    if (solution.status_flag == LeastSquareSummary::ERROR) {
-      group_flags |= Flags::ERROR;
+    switch (solution.status_flag) {
+      case LeastSquareSummary::MEMORY:
+        group_flags |= Flags::MEMORY;
+        // fall through
+      case LeastSquareSummary::ERROR:
+        group_flags |= Flags::ERROR;
+        break;
+      default:
+        break;
     }
 
     int total_data_points = 0;
