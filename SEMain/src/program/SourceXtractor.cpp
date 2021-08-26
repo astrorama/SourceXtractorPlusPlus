@@ -468,7 +468,7 @@ public:
       auto background = ConstantImage<DetectionImage::PixelType>::create(
           detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-      detection_frame->setBackgroundLevel(background, 0.);
+      detection_frame->setBackgroundLevel(background, background_model.getMedianRms());
       CheckImages::getInstance().setBackgroundCheckImage(background);
     }
 
