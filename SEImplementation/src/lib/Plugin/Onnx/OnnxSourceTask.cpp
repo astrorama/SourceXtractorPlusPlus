@@ -16,35 +16,25 @@
  */
 
 #include "SEImplementation/Plugin/Onnx/OnnxSourceTask.h"
-#include "SEImplementation/Plugin/Onnx/OnnxProperty.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
+#include "SEImplementation/Plugin/Onnx/OnnxProperty.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
-#include <NdArray/NdArray.h>
 #include <AlexandriaKernel/memory_tools.h>
+#include <NdArray/NdArray.h>
 #include <onnxruntime_cxx_api.h>
 
 namespace NdArray = Euclid::NdArray;
 
 namespace SourceXtractor {
 
-
-template<typename T>
-static void fillCutout(const Image<T>& image, int center_x, int center_y, int width, int height, std::vector<T>& out) {
+template <typename T>
+static std::vector<T> getInputCutout(const Image<T>& image, int center_x, int center_y, int width, int height) {
   int x_start = center_x - width / 2;
   int y_start = center_y - height / 2;
-  int x_end = x_start + width;
-  int y_end = y_start + height;
 
-  ImageAccessor<T> accessor(image);
-
-  int index = 0;
-  for (int iy = y_start; iy < y_end; iy++) {
-    for (int ix = x_start; ix < x_end; ix++, index++) {
-      if (ix >= 0 && iy >= 0 && ix < image.getWidth() && iy < image.getHeight()) {
-        out[index] = accessor.getValue(ix, iy);
-      }
-    }
-  }
+  auto cutout = VectorImage<T>::create(std::move(image.getChunk(x_start, y_start, width, height)));
+  return std::move(cutout->getData());
 }
 
 OnnxSourceTask::OnnxSourceTask(const std::vector<OnnxModel>& models) : m_models(models) {}
@@ -70,7 +60,6 @@ computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages&
   std::vector<int64_t> input_shape(model.m_input_shape.begin(), model.m_input_shape.end());
   input_shape[0] = 1;
   size_t input_size = std::accumulate(input_shape.begin(), input_shape.end(), 1u, std::multiplies<size_t>());
-  std::vector<float> input_data(input_size);
 
   std::vector<int64_t> output_shape(model.m_output_shape.begin(), model.m_output_shape.end());
   output_shape[0] = 1;
@@ -78,10 +67,9 @@ computePropertiesSpecialized(const OnnxModel& model, const DetectionFrameImages&
   std::vector<O> output_data(output_size);
 
   // Cut the needed area
-  {
-    const auto& image = detection_frame_images.getLockedImage(LayerSubtractedImage);
-    fillCutout(*image, center_x, center_y, input_shape[2], input_shape[3], input_data);
-  }
+  auto input_data =
+      getInputCutout(*detection_frame_images.getImage(LayerSubtractedImage), center_x, center_y, input_shape[2], input_shape[3]);
+  assert(input_data.size() == input_size);
 
   // Setup input/output tensors
   auto input_tensor = Ort::Value::CreateTensor<float>(

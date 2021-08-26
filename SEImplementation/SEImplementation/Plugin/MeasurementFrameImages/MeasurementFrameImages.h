@@ -48,6 +48,11 @@ public:
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }
 
+  std::shared_ptr<ImageChunk<MeasurementImage::PixelType>> getImageChunk(FrameImageLayer layer, PixelCoordinate min,
+                                                                         PixelCoordinate max) const {
+    return m_frame->getImage(layer)->getChunk(min, max);
+  }
+
   int getWidth() const {
     return m_width;
   }

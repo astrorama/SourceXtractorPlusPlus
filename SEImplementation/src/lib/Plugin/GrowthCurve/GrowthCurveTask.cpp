@@ -35,8 +35,8 @@ static const SeFloat GROWTH_NSIG = 6.;
 static const size_t GROWTH_NSAMPLES = 64;
 
 static SeFloat getPixelValue(int x, int y, SeFloat centroid_x, SeFloat centroid_y,
-                             const std::shared_ptr<ImageAccessor<SeFloat>>& image,
-                             const std::shared_ptr<ImageAccessor<SeFloat>>& variance_map, SeFloat variance_threshold,
+                             const std::shared_ptr<ImageChunk<SeFloat>>& image,
+                             const std::shared_ptr<ImageChunk<SeFloat>>& variance_map, SeFloat variance_threshold,
                              bool use_symmetry) {
   // Get the pixel value
   DetectionImage::PixelType pixel_value = 0;
@@ -68,9 +68,6 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   const auto& measurement_frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
 
   auto variance_threshold = measurement_frame_info.getVarianceThreshold();
-
-  const auto image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
-  const auto variance_map = measurement_frame_images.getLockedImage(LayerVarianceMap);
 
   auto centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();
   auto centroid_y = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidY();
@@ -107,13 +104,18 @@ void GrowthCurveTask::computeProperties(SourceInterface& source) const {
   auto min_coord = apertures.back().getMinPixel(centroid_x, centroid_y);
   auto max_coord = apertures.back().getMaxPixel(centroid_x, centroid_y);
 
+  min_coord.m_x = std::max(min_coord.m_x, 0);
+  min_coord.m_y = std::max(min_coord.m_y, 0);
+  max_coord.m_x = std::max(std::min(max_coord.m_x, measurement_frame_info.getWidth() - 1), min_coord.m_x);
+  max_coord.m_y = std::max(std::min(max_coord.m_y, measurement_frame_info.getHeight() - 1), min_coord.m_y);
+
+  // cutouts
+  const auto image        = measurement_frame_images.getImageChunk(LayerSubtractedImage, min_coord, max_coord);
+  const auto variance_map = measurement_frame_images.getImageChunk(LayerVarianceMap, min_coord, max_coord);
+
   // Compute fluxes for each ring
   for (auto y = min_coord.m_y; y <= max_coord.m_y; ++y) {
     for (auto x = min_coord.m_x; x <= max_coord.m_x; ++x) {
-      if (!image->isInside(x, y)) {
-        continue;
-      }
-
       auto pixel_value = getPixelValue(x, y, centroid_x, centroid_y, image,
                                        variance_map, variance_threshold,
                                        m_use_symmetry);

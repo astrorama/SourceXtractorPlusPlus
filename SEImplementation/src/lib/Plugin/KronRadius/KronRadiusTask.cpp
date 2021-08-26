@@ -56,10 +56,6 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
   // get detection frame images
   const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
 
-  const auto detection_image = detection_frame_images.getLockedImage(LayerSubtractedImage);
-  const auto detection_variance = detection_frame_images.getLockedImage(LayerVarianceMap);
-  const auto threshold_image = detection_frame_images.getLockedImage(LayerThresholdedImage);
-
 
   // get the object center
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
@@ -79,6 +75,11 @@ void KronRadiusTask::computeProperties(SourceInterface& source) const {
 
   // get the pixel list
   const auto& pix_list = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
+  // get cutouts
+  const auto detection_image = detection_frame_images.getImageChunk(LayerSubtractedImage, min_pixel, max_pixel);
+  const auto detection_variance = detection_frame_images.getImageChunk(LayerVarianceMap, min_pixel, max_pixel);
+  const auto threshold_image = detection_frame_images.getImageChunk(LayerThresholdedImage, min_pixel, max_pixel);
 
   // get the neighbourhood information
   NeighbourInfo neighbour_info(min_pixel, max_pixel, pix_list, threshold_image);

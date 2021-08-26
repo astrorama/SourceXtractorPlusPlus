@@ -111,7 +111,7 @@ BOOST_FIXTURE_TEST_CASE (Scaled_test, GrowthCurveFixture) {
 //-----------------------------------------------------------------------------
 
 // Frame0 is rotated 90, and scaled 2x
-// Frame1 is flipped on the X axis, so so no effect is expected
+// Frame1 is flipped on the X axis, so no effect is expected
 BOOST_FIXTURE_TEST_CASE (RotatedFlip_test, GrowthCurveFixture) {
   GrowthCurveTask task0(0, true);
   GrowthCurveTask task1(1, true);

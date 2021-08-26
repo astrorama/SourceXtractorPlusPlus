@@ -47,9 +47,9 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   // get detection frame images
   const auto& detection_frame_images = source.getProperty<DetectionFrameImages>();
 
-  const auto detection_image = detection_frame_images.getLockedImage(LayerSubtractedImage);
-  const auto detection_variance = detection_frame_images.getLockedImage(LayerVarianceMap);
-  const auto threshold_image = detection_frame_images.getLockedImage(LayerThresholdedImage);
+  const auto detection_image = detection_frame_images.getImage(LayerSubtractedImage);
+  const auto detection_variance = detection_frame_images.getImage(LayerVarianceMap);
+  const auto threshold_image = detection_frame_images.getImage(LayerThresholdedImage);
 
   // get the object center
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();

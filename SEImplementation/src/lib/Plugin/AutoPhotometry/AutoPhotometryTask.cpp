@@ -52,8 +52,8 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   auto variance_threshold = measurement_frame_info.getVarianceThreshold();
   auto gain = measurement_frame_info.getGain();
 
-  const auto measurement_image = measurement_frame_images.getLockedImage(LayerSubtractedImage);
-  const auto variance_map = measurement_frame_images.getLockedImage(LayerVarianceMap);
+  const auto measurement_image = measurement_frame_images.getImage(LayerSubtractedImage);
+  const auto variance_map = measurement_frame_images.getImage(LayerVarianceMap);
 
   // get the object center
   const auto& centroid_x = source.getProperty<MeasurementFramePixelCentroid>(m_instance).getCentroidX();

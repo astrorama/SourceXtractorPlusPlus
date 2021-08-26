@@ -93,21 +93,20 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   SourceGroupInterface& group, int frame_index) const {
   const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
 
-  auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
-  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
-  auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+  ImageAccessor<SeFloat> frame_acc(frame_images.getImage(LayerSubtractedImage), ImageAccessor<float>::TOP_LEFT, 64, 64);
+  auto variance_map = frame_images.getImage(LayerVarianceMap);
 
   const auto& frame_info = group.begin()->getProperty<MeasurementFrameInfo>(frame_index);
   SeFloat gain = frame_info.getGain();
   SeFloat saturation = frame_info.getSaturation();
 
   auto rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
-  auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
+  auto weight = VectorImage<SeFloat>::create(std::move(variance_map->getChunk(rect.getTopLeft(), rect.getBottomRight())));
 
   for (int y = 0; y < rect.getHeight(); y++) {
     for (int x = 0; x < rect.getWidth(); x++) {
-      auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      auto back_var = weight->getValue(x, y);
+      auto pixel_val = frame_acc.getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
       if (saturation > 0 && pixel_val > saturation) {
         weight->at(x, y) = 0;
       }
