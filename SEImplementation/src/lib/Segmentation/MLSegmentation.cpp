@@ -120,6 +120,8 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
   std::vector<float> output_data(tile_size * tile_size * data_planes);
 
   auto image = frame->getSubtractedImage();
+  ImageAccessor<SeFloat> image_acc(image);
+
 
   std::vector<std::shared_ptr<WriteableImage<float>>> tmp_images;
   std::vector<std::shared_ptr<WriteableImage<float>>> check_images;
@@ -137,7 +139,7 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
       for (int x = 0; x < tile_size; x++) {
         for (int y = 0; y < tile_size; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
-            input_data[x+y*tile_size] = image->getValue(ox+x, oy+y) / average_rms;
+            input_data[x+y*tile_size] = image_acc.getValue(ox+x, oy+y) / average_rms;
           } else {
             input_data[x+y*tile_size] = 0;
           }
