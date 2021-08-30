@@ -90,6 +90,16 @@ SeFloat TransformedAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat
   return m_decorated->getArea(0, 0, new_diff_x, new_diff_y);
 }
 
+SeFloat TransformedAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+  auto diff_x = pixel_x - center_x;
+  auto diff_y = pixel_y - center_y;
+
+  SeFloat new_diff_x = diff_x * m_inv_transform[0] + diff_y * m_inv_transform[2];
+  SeFloat new_diff_y = diff_x * m_inv_transform[1] + diff_y * m_inv_transform[3];
+
+  return m_decorated->drawArea(0, 0, new_diff_x, new_diff_y);
+}
+
 SeFloat TransformedAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
   auto diff_x = pixel_x - center_x;
   auto diff_y = pixel_y - center_y;
