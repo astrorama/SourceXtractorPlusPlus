@@ -19,8 +19,8 @@
 #include "AlexandriaKernel/memory_tools.h"
 #include "SEImplementation/Prefetcher/Prefetcher.h"
 
-static Elements::Logging logger = Elements::Logging::getLogger("Prefetcher");
-
+static Elements::Logging logger              = Elements::Logging::getLogger("Prefetcher");
+constexpr unsigned int   PREFETCHER_PRIORITY = 2;
 
 namespace SourceXtractor {
 
@@ -68,7 +68,7 @@ void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) 
       m_finished_sources.emplace(source_addr, message);
     }
     m_new_output.notify_one();
-  });
+  }, PREFETCHER_PRIORITY);
 }
 
 void Prefetcher::requestProperty(const PropertyId& property_id) {

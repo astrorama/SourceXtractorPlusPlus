@@ -31,6 +31,7 @@
 using namespace SourceXtractor;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Multithreading");
+constexpr unsigned int MULTITHREAD_PRIORITY = 4;
 
 
 MultithreadedMeasurement::~MultithreadedMeasurement() {
@@ -70,7 +71,7 @@ MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterfa
       m_output_queue.emplace_back(order_number, source_group);
     }
     m_new_output.notify_one();
-  });
+  }, MULTITHREAD_PRIORITY);
   ++m_group_counter;
 }
 
