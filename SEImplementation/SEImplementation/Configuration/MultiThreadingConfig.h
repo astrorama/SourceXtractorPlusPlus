@@ -48,7 +48,7 @@ public:
   }
 
 private:
-  int m_threads_nb;
+  int m_threads_nb, m_queue_limit;
   std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
 };
 

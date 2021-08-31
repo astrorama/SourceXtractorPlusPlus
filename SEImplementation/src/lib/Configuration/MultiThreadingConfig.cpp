@@ -31,26 +31,34 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string THREADS_NB {"thread-count"};
+static const std::string QUEUE_LIMIT{"thread-queue-limit"};
 
 MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id), m_threads_nb(-1) {
 }
 
 auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-threading", {
-      {THREADS_NB.c_str(), po::value<int>()->default_value(-1), "Number of worker threads (-1=automatic, 0=disable all multithreading)"}
+      {THREADS_NB.c_str(), po::value<int>()->default_value(-1), "Number of worker threads (-1=automatic, 0=disable all multithreading)"},
+      {QUEUE_LIMIT.c_str(), po::value<int>()->default_value(2048), "Block segmentation when this many sources need processing"}
   }}};
 }
 
 void MultiThreadingConfig::initialize(const UserValues& args) {
+  int queue_limit = args.at(QUEUE_LIMIT).as<int>();
   m_threads_nb = args.at(THREADS_NB).as<int>();
+
   if (m_threads_nb == -1) {
     m_threads_nb = boost::thread::hardware_concurrency();
   }
   else if (m_threads_nb < -1) {
     throw Elements::Exception("Invalid number of threads.");
   }
+  if (queue_limit < 0) {
+    queue_limit = std::numeric_limits<unsigned int>::max();
+  }
+
   if (m_threads_nb > 0) {
-    m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
+    m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb, 50, queue_limit);
   }
 }
 
