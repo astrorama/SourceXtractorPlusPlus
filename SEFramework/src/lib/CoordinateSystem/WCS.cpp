@@ -79,6 +79,10 @@ static void wcsRaiseOnTransformError(wcsprm *wcs, int ret_code) {
     if (wcs->lin.dispre) {
       wcsLogErr(wcs->lin.dispre->err);
     }
+    if (wcs->lin.disseq) {
+      wcsLogErr(wcs->lin.disseq->err);
+    }
+    linfree(&wcs->lin);
     throw Elements::Exception() << "WCS exception: " << wcs_errmsg[ret_code];
   }
 }
@@ -257,7 +261,6 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
 
   int status = 0;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
-  linfree(&wcs_copy.lin);
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1

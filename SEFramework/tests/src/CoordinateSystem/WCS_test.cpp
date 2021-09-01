@@ -86,13 +86,7 @@ BOOST_FIXTURE_TEST_CASE(ImageOutOfBounds_test, WCSFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(WordOutOfBounds_test, WCSFixture) {
-  auto img = m_wcs->worldToImage(WorldCoordinate(231.42560781394292, 30.238717631401094));
-  BOOST_CHECK_GT(img.m_x, 4136);
-  BOOST_CHECK_GT(img.m_y, 4096);
-
-  img = m_wcs->worldToImage(WorldCoordinate(231.36341601, 30.86537875));
-  BOOST_CHECK_LT(img.m_x, 0);
-  BOOST_CHECK_LT(img.m_y, 0);
+  BOOST_CHECK_THROW(m_wcs->worldToImage(WorldCoordinate(231.42560781394292, 30.238717631401094)), Elements::Exception);
 }
 
 //-----------------------------------------------------------------------------
