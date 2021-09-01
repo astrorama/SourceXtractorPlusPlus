@@ -205,10 +205,10 @@ void WCS::init(char* headers, int number_of_records) {
   // There are some things worth reporting about which WCS will not necessarily complain
   wcsCheckHeaders(wcs, headers, number_of_records);
 
-  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* wcs) {
+  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* ptr) {
     int nwcs_copy = nwcs;
-    wcsfree(wcs);
-    wcsvfree(&nwcs_copy, &wcs);
+    wcsfree(ptr);
+    wcsvfree(&nwcs_copy, &ptr);
   });
 
   int wcsver[3];
