@@ -45,7 +45,8 @@ enum class Flags : int64_t {
   PARTIAL_FIT       = 1ll << 6,  ///< Some/all of the model parameters could not be fitted
   INSUFFICIENT_DATA = 1ll << 7,  ///< There are not enough good pixels to fit the parameters
   ERROR             = 1ll << 10, ///< Error flag: something bad happened during the measurement, model fitting, etc.
-  SENTINEL          = 1ll << 11, ///< Used to find the boundary of possible values
+  BAD_PROJECTION    = 1ll << 12, ///< Failed to project some of the coordinates into one of the measurement frames
+  SENTINEL          = 1ll << 13, ///< Used to find the boundary of possible values
 };
 
 /// String representation of the flags

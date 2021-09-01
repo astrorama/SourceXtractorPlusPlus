@@ -44,14 +44,21 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   auto height = detection_group_stamp.getHeight();
 
   // Transform the 4 corner coordinates from detection image
-  auto coord1 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-    stamp_top_left.m_x, stamp_top_left.m_y)));
-  auto coord2 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-    stamp_top_left.m_x + width, stamp_top_left.m_y)));
-  auto coord3 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-    stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
-  auto coord4 = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(
-    stamp_top_left.m_x, stamp_top_left.m_y + height)));
+  ImageCoordinate coord1, coord2, coord3, coord4;
+  bool bad_coordinates = false;
+  try {
+    coord1 = measurement_frame_coordinates->worldToImage(
+        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y)));
+    coord2 = measurement_frame_coordinates->worldToImage(
+        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x + width, stamp_top_left.m_y)));
+    coord3 = measurement_frame_coordinates->worldToImage(
+        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
+    coord4 = measurement_frame_coordinates->worldToImage(
+        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y + height)));
+  }
+  catch (const InvalidCoordinatesException&) {
+    bad_coordinates = true;
+  }
 
   // Determine the min/max coordinates
   auto min_x = std::min(coord1.m_x, std::min(coord2.m_x, std::min(coord3.m_x, coord4.m_x)));
@@ -66,9 +73,9 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   max_coord.m_y = int(max_y) + 1;
 
   // The full boundaries may lie outside of the frame
-  if (max_coord.m_x < 0 || max_coord.m_y < 0 ||
+  if (bad_coordinates || max_coord.m_x < 0 || max_coord.m_y < 0 ||
       min_coord.m_x >= measurement_frame_info.getWidth() || min_coord.m_y >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance);
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_coordinates);
   }
   // Clip the coordinates to fit the available image
   else {

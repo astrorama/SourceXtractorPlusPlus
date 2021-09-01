@@ -37,10 +37,15 @@ void MeasurementFramePixelCentroidTask::computeProperties(SourceInterface& sourc
 
   ImageCoordinate detection_image_coordinate(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
   auto world_coordinate = detection_coordinate_system->imageToWorld(detection_image_coordinate);
-  auto measurement_image_coordinate = measurement_coordinate_system->worldToImage(world_coordinate);
 
-  source.setIndexedProperty<MeasurementFramePixelCentroid>(
-      m_instance, measurement_image_coordinate.m_x, measurement_image_coordinate.m_y);
+  try {
+    auto measurement_image_coordinate = measurement_coordinate_system->worldToImage(world_coordinate);
+    source.setIndexedProperty<MeasurementFramePixelCentroid>(m_instance, measurement_image_coordinate.m_x,
+                                                             measurement_image_coordinate.m_y);
+  }
+  catch (const InvalidCoordinatesException) {
+    source.setIndexedProperty<MeasurementFramePixelCentroid>(m_instance, true);
+  }
 }
 
 }
