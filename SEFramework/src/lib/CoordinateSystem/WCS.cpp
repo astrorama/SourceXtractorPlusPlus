@@ -83,7 +83,7 @@ static void wcsRaiseOnTransformError(wcsprm *wcs, int ret_code) {
       wcsLogErr(wcs->lin.disseq->err);
     }
     linfree(&wcs->lin);
-    throw Elements::Exception() << "WCS exception: " << wcs_errmsg[ret_code];
+    throw InvalidCoordinatesException() << wcs_errmsg[ret_code];
   }
 }
 
