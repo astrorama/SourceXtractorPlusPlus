@@ -20,7 +20,7 @@
  *  Created on: Oct 08, 2018
  *      Author: Alejandro Alvarez
  */
-
+#include <iostream>
 #include "SEFramework/Aperture/CircularAperture.h"
 
 namespace SourceXtractor {
@@ -52,6 +52,21 @@ SeFloat CircularAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pi
     }
   }
   return area;
+}
+
+SeFloat CircularAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+	SeFloat thickness = 0.5;
+
+	// define an inner and an outer radius
+	SeFloat min_radius_squared = m_radius > thickness ? (m_radius - thickness) * (m_radius - thickness) : 0;
+	SeFloat max_radius_squared = (m_radius + thickness) * (m_radius + thickness);
+
+	// compare the actual radius against the inner and outer radius
+	auto distance_squared = getRadiusSquared(center_x, center_y, pixel_x, pixel_y);
+	if (min_radius_squared < distance_squared && distance_squared <= max_radius_squared) {
+		return 1.0;
+	}
+	return 0.0;
 }
 
 SeFloat CircularAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
