@@ -23,20 +23,23 @@
 #ifndef _SEIMPLEMENTATION_PROPERTY_MEASUREMENTFRAMEPIXELCENTROID_H
 #define _SEIMPLEMENTATION_PROPERTY_MEASUREMENTFRAMEPIXELCENTROID_H
 
-#include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEUtils/Types.h"
 
 namespace SourceXtractor {
 
 class MeasurementFramePixelCentroid : public Property {
 public:
-
   /**
    * @brief Destructor
    */
   virtual ~MeasurementFramePixelCentroid() = default;
 
-  MeasurementFramePixelCentroid(SeFloat centroid_x, SeFloat centroid_y) : m_centroid_x(centroid_x), m_centroid_y(centroid_y) {}
+  explicit MeasurementFramePixelCentroid(bool bad_projection)
+      : m_centroid_x(-1), m_centroid_y(-1), m_bad_projection(bad_projection) {}
+
+  MeasurementFramePixelCentroid(SeFloat centroid_x, SeFloat centroid_y)
+      : m_centroid_x(centroid_x), m_centroid_y(centroid_y) {}
 
   /// X coordinate of centroid
   SeFloat getCentroidX() const {
@@ -48,12 +51,17 @@ public:
     return m_centroid_y;
   }
 
+  /// true if the translation detection pixel -> world -> measurement pixel failed
+  /// (probably falls outside the measurement image and the projection there is discontinuous)
+  bool badProjection() const {
+    return m_bad_projection;
+  }
+
 private:
   SeFloat m_centroid_x, m_centroid_y;
-
+  bool    m_bad_projection;
 };
 
 } /* namespace SourceXtractor */
-
 
 #endif

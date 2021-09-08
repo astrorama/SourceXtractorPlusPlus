@@ -24,6 +24,7 @@
 #ifndef _SEFRAMEWORK_COORDINATESYSTEM_COORDINATESYSTEM_H_
 #define _SEFRAMEWORK_COORDINATESYSTEM_COORDINATESYSTEM_H_
 
+#include "ElementsKernel/Exception.h"
 #include "SEUtils/PixelCoordinate.h"
 #include <map>
 #include <string>
@@ -46,7 +47,6 @@ struct ImageCoordinate {
   ImageCoordinate(double x, double y) : m_x(x), m_y(y) {}
 };
 
-
 class CoordinateSystem {
 public:
   virtual ~CoordinateSystem() = default;
@@ -59,6 +59,8 @@ public:
   };
 };
 
-}
+class InvalidCoordinatesException : public Elements::Exception {};
+
+}  // namespace SourceXtractor
 
 #endif /* _SEFRAMEWORK_COORDINATESYSTEM_COORDINATESYSTEM_H_ */
