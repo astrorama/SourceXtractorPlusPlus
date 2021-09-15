@@ -20,6 +20,7 @@
 
 #include <condition_variable>
 #include "AlexandriaKernel/ThreadPool.h"
+#include "AlexandriaKernel/Semaphore.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEUtils/Observable.h"
@@ -120,6 +121,9 @@ private:
 
   /// Termination condition for the output loop
   std::atomic_bool m_stop;
+
+  /// Keep the queue under control
+  Euclid::Semaphore m_semaphore;
 
   void requestProperty(const PropertyId& property_id);
   void outputLoop();

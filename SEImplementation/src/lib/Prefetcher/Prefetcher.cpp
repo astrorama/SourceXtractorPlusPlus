@@ -42,7 +42,7 @@ private:
 };
 
 Prefetcher::Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
-  : m_thread_pool(thread_pool), m_stop(false) {
+  : m_thread_pool(thread_pool), m_stop(false), m_semaphore(1000) {
   m_output_thread = Euclid::make_unique<std::thread>(&Prefetcher::outputLoop, this);
 }
 
@@ -52,6 +52,8 @@ Prefetcher::~Prefetcher() {
 }
 
 void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) {
+  m_semaphore.acquire();
+
   intptr_t source_addr = reinterpret_cast<intptr_t>(message.get());
   {
     std::lock_guard<std::mutex> queue_lock(m_queue_mutex);
@@ -117,6 +119,7 @@ void Prefetcher::outputLoop() {
       }
       m_finished_sources.erase(processed);
       m_received.pop_front();
+      m_semaphore.release();
     }
 
     if (m_stop && m_received.empty()) {
