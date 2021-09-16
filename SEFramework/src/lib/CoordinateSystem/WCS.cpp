@@ -241,8 +241,8 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   int status = 0;
   wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
-  linfree(&wcs_copy.lin);
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
+  linfree(&wcs_copy.lin);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
@@ -262,6 +262,7 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   int status = 0;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
+  linfree(&wcs_copy.lin);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
