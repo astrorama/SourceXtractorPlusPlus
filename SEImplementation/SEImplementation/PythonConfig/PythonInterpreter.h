@@ -70,6 +70,8 @@ public:
   
   std::map<int, boost::python::object> getDeVaucouleursModels();
   
+  std::map<int, boost::python::object> getOnnxModels();
+
   std::map<int, std::vector<int>> getFrameModelsMap();
 
   std::map<std::string, boost::python::object> getModelFittingParams();

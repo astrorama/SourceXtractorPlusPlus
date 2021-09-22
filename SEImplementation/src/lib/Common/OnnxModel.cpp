@@ -38,29 +38,32 @@ OnnxModel::OnnxModel(const std::string& model_path) {
   onnx_logger.info() << "Loading ONNX model " << model_path;
   m_session = Euclid::make_unique<Ort::Session>(ORT_ENV, model_path.c_str(), Ort::SessionOptions{nullptr});
 
-  if (m_session->GetInputCount() != 1) {
-    throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
-  }
+//  if (m_session->GetInputCount() != 1) {
+//    throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
+//  }
   if (m_session->GetOutputCount() != 1) {
     throw Elements::Exception() << "Only ONNX models with a single output tensor are supported";
   }
 
-  m_input_name = m_session->GetInputName(0, allocator);
+  for (int i=0; i<m_session->GetInputCount(); i++) {
+    auto input_type = m_session->GetInputTypeInfo(i);
+
+    m_input_names.emplace_back(m_session->GetInputName(i, allocator));
+    m_input_shapes.emplace_back(input_type.GetTensorTypeAndShapeInfo().GetShape());
+    m_input_types.emplace_back(input_type.GetTensorTypeAndShapeInfo().GetElementType());
+  }
+
   m_output_name = m_session->GetOutputName(0, allocator);
   m_domain_name = m_session->GetModelMetadata().GetDomain(allocator);
   m_graph_name = m_session->GetModelMetadata().GetGraphName(allocator);
 
-
-  auto input_type = m_session->GetInputTypeInfo(0);
   auto output_type = m_session->GetOutputTypeInfo(0);
 
-  m_input_shape = input_type.GetTensorTypeAndShapeInfo().GetShape();
-  m_input_type = input_type.GetTensorTypeAndShapeInfo().GetElementType();
   m_output_shape = output_type.GetTensorTypeAndShapeInfo().GetShape();
   m_output_type = output_type.GetTensorTypeAndShapeInfo().GetElementType();
 
-  onnx_logger.info() << "ONNX model with input of " << formatShape(m_input_shape);
-  onnx_logger.info() << "ONNX model with output of " << formatShape(m_output_shape);
+//  onnx_logger.info() << "ONNX model with input of " << formatShape(m_input_shapes[0]);
+//  onnx_logger.info() << "ONNX model with output of " << formatShape(m_output_shape);
 }
 
 }

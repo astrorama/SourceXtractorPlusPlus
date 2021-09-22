@@ -38,6 +38,8 @@
 
 namespace SourceXtractor {
 
+class OnnxModel;
+
 class FlexibleModelFittingParameterManager;
 
 class FlexibleModelFittingModel {
@@ -205,6 +207,46 @@ public:
 
 private:
   std::shared_ptr<FlexibleModelFittingParameter> m_value;
+};
+
+class FlexibleModelFittingOnnxModel : public FlexibleModelFittingModel {
+public:
+  FlexibleModelFittingOnnxModel(std::vector<std::shared_ptr<OnnxModel>> models,
+                                std::shared_ptr<FlexibleModelFittingParameter> x,
+                                std::shared_ptr<FlexibleModelFittingParameter> y,
+                                std::shared_ptr<FlexibleModelFittingParameter> flux,
+                                std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
+                                std::shared_ptr<FlexibleModelFittingParameter> angle,
+                                std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params)
+      : m_models(models),
+        m_x(x),
+        m_y(y),
+        m_flux(flux),
+        m_aspect_ratio(aspect_ratio),
+        m_angle(angle),
+        m_params(params) {}
+
+  virtual ~FlexibleModelFittingOnnxModel() {}
+
+  virtual void addForSource(FlexibleModelFittingParameterManager& manager,
+                            const SourceInterface& source,
+                            std::vector<ModelFitting::ConstantModel>& constant_models,
+                            std::vector<ModelFitting::PointModel>& point_models,
+                            std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                            std::tuple<double, double, double, double> jacobian,
+                            std::shared_ptr<CoordinateSystem> reference_coordinates,
+                            std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const;
+
+private:
+  std::shared_ptr<FlexibleModelFittingParameter> m_x;
+  std::shared_ptr<FlexibleModelFittingParameter> m_y;
+  std::shared_ptr<FlexibleModelFittingParameter> m_flux;
+  std::shared_ptr<FlexibleModelFittingParameter> m_aspect_ratio;
+  std::shared_ptr<FlexibleModelFittingParameter> m_angle;
+
+  std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> m_params;
+
+  std::vector<std::shared_ptr<OnnxModel>> m_models;
 };
 
 

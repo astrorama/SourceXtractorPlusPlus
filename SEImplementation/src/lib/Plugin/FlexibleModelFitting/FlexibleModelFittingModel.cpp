@@ -52,6 +52,8 @@
 #include "Configuration/ConfigManager.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
 
+#include "SEImplementation/Plugin/FlexibleModelFitting/OnnxCompactModel.h"
+
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h"
 
 namespace SourceXtractor {
@@ -206,7 +208,6 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-
   auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
@@ -240,6 +241,43 @@ void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParamet
                           std::shared_ptr<CoordinateSystem> /* reference_coordinates */,
                           std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
   constant_models.emplace_back(manager.getParameter(source, m_value));
+}
+
+
+void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterManager& manager,
+                          const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
+                          std::vector<ModelFitting::PointModel>& /*point_models*/,
+                          std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          std::tuple<double, double, double, double> jacobian,
+                          std::shared_ptr<CoordinateSystem> reference_coordinates,
+                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
+
+  auto pixel_x = createDependentParameter(
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
+  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
+
+  auto& boundaries = source.getProperty<PixelBoundaries>();
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+
+  std::map<std::string, std::shared_ptr<BasicParameter>> params;
+  for (auto it : m_params) {
+    params[it.first] = manager.getParameter(source, it.second);
+  }
+
+  extended_models.emplace_back(std::make_shared<OnnxCompactModel<ImageInterfaceTypePtr>>(m_models,
+      x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
+      size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), params, jacobian));
 }
 
 }
