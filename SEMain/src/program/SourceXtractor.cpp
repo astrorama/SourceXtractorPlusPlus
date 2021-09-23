@@ -366,7 +366,7 @@ public:
     // Prefetcher
     std::shared_ptr<Prefetcher> prefetcher;
     if (thread_pool) {
-      prefetcher = std::make_shared<Prefetcher>(thread_pool);
+      prefetcher = std::make_shared<Prefetcher>(thread_pool, multithreading_config.getMaxQueueSize());
     }
 
     // Rest of the stagees
