@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>output &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="measurement_images" href="measurement_images.html" />
+    <link rel="prev" title="argv" href="argv.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Measurements.html">Measuring</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../ConfigAPI.html">Configuration API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="argv.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argv</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_fitting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../ConfigAPI.html">Configuration API Reference</a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-config.output">
+<span id="output"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code><a class="headerlink" href="#module-config.output" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="config.output.add_output_column">
+<span class="sig-name descname"><span class="pre">add_output_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.output.add_output_column" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a new set of columns to the output catalog.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – Name/prefix of the new set of columns</p></li>
+<li><p><strong>params</strong> (<em>list of columns</em>) – List of properties to add to the output with the given name/prefix. They must be subtype
+of one of the known ones: ParameterBase for model fitting, or Aperture for aperture photometry.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>ValueError</strong> – If the name has already been used</p></li>
+<li><p><strong>TypeError</strong> – If any of the parameters are not of a known type (see params)</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">aperture.add_aperture_photometry</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">model_fitting.ParameterBase</span></code></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.output.print_output_columns">
+<span class="sig-name descname"><span class="pre">print_output_columns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.output.print_output_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a human-readable representation of the configured output columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="argv.html" class="btn btn-neutral float-left" title="argv" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="measurement_images.html" class="btn btn-neutral float-right" title="measurement_images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
