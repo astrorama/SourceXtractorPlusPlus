@@ -39,11 +39,12 @@ class MultithreadedMeasurement : public Measurement {
 public:
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
-  MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
+  MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool,
+                           unsigned max_queue_size)
       : m_source_to_row(source_to_row),
         m_thread_pool(thread_pool),
         m_group_counter(0),
-        m_input_done(false), m_abort_raised(false), m_semaphore(1000) {}
+        m_input_done(false), m_abort_raised(false), m_semaphore(max_queue_size) {}
 
   virtual ~MultithreadedMeasurement();
 

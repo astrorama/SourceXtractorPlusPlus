@@ -41,8 +41,8 @@ private:
   Lock& m_lock;
 };
 
-Prefetcher::Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
-  : m_thread_pool(thread_pool), m_stop(false), m_semaphore(1000) {
+Prefetcher::Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool, unsigned max_queue_size)
+  : m_thread_pool(thread_pool), m_stop(false), m_semaphore(max_queue_size) {
   m_output_thread = Euclid::make_unique<std::thread>(&Prefetcher::outputLoop, this);
 }
 

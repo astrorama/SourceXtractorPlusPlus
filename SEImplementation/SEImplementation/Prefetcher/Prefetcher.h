@@ -49,7 +49,7 @@ public:
    * @param thread_pool
    *    Alexandria thread pool
    */
-  Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool);
+  Prefetcher(const std::shared_ptr<Euclid::ThreadPool>& thread_pool, unsigned max_queue_size);
 
   /**
    * Destructor
