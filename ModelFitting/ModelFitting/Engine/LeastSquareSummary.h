@@ -38,7 +38,7 @@ namespace ModelFitting {
 struct LeastSquareSummary {
 
   enum StatusFlag {
-    SUCCESS, MAX_ITER, ERROR
+    SUCCESS, MAX_ITER, ERROR, MEMORY
   };
 
   /// Flag indicating if the minimization was successful

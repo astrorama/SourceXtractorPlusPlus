@@ -34,7 +34,7 @@ namespace SourceXtractor {
 std::unique_ptr<Measurement> MeasurementFactory::getMeasurement() const {
   if (m_threads_nb > 0) {
     auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
-    return std::unique_ptr<Measurement>(new MultithreadedMeasurement(source_to_row, m_thread_pool));
+    return std::unique_ptr<Measurement>(new MultithreadedMeasurement(source_to_row, m_thread_pool, m_max_queue));
   } else {
     return std::unique_ptr<Measurement>(new DummyMeasurement());
   }
@@ -49,6 +49,7 @@ void MeasurementFactory::configure(Euclid::Configuration::ConfigManager& manager
   m_output_properties = manager.getConfiguration<OutputConfig>().getOutputProperties();
   m_threads_nb = manager.getConfiguration<MultiThreadingConfig>().getThreadsNb();
   m_thread_pool = manager.getConfiguration<MultiThreadingConfig>().getThreadPool();
+  m_max_queue = manager.getConfiguration<MultiThreadingConfig>().getMaxQueueSize();
 }
 
 }

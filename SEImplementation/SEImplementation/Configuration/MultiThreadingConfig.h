@@ -47,8 +47,12 @@ public:
     return m_thread_pool;
   }
 
+  unsigned getMaxQueueSize() const {
+    return m_max_queue_size;
+  }
+
 private:
-  int m_threads_nb;
+  int m_threads_nb, m_max_queue_size;
   std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
 };
 
