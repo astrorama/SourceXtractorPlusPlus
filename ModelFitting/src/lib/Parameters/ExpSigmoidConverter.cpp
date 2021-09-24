@@ -32,12 +32,11 @@ using namespace std;
 ExpSigmoidConverter::~ExpSigmoidConverter() = default;
 
 double ExpSigmoidConverter::worldToEngine(const double world_value) const {
-  auto wv = std::max<double>(m_min_value * 1.0001, std::min<double>(world_value, m_max_value *.9999));
-//  if (world_value < m_min_value || world_value > m_max_value) {
-//    throw Elements::Exception()
-//        << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
-//  }
-  return log(log(wv / m_min_value) / log(m_max_value / wv));
+  if (world_value < m_min_value || world_value > m_max_value) {
+    throw Elements::Exception()
+        << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
+  }
+  return log(log(world_value / m_min_value) / log(m_max_value / world_value));
 }
 
 
