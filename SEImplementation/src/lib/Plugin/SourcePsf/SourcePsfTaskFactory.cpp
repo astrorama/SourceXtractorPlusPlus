@@ -21,12 +21,12 @@
 namespace SourceXtractor {
 
 void SourcePsfTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
-  manager.registerConfiguration<SourcePsfPluginConfig>();
+  manager.registerConfiguration<PsfPluginConfig>();
   manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void SourcePsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
-  auto psf_config = manager.getConfiguration<SourcePsfPluginConfig>();
+  auto psf_config = manager.getConfiguration<PsfPluginConfig>();
   auto measurement_config = manager.getConfiguration<MeasurementImageConfig>();
 
   const auto& default_psf = psf_config.getPsf();
@@ -34,7 +34,7 @@ void SourcePsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manag
 
   for (unsigned int i = 0; i < image_infos.size(); i++) {
     if (!image_infos[i].m_psf_path.empty()) {
-      m_vpsf[image_infos[i].m_id] = SourcePsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu);
+      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu);
     }
     else if (default_psf) {
       m_vpsf[image_infos[i].m_id] = default_psf;

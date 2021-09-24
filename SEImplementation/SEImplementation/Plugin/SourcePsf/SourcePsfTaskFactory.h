@@ -21,8 +21,8 @@
 #include <map>
 
 #include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEImplementation/Plugin/SourcePsf/SourcePsfTask.h"
-#include "SourcePsfPluginConfig.h"
 
 namespace SourceXtractor {
 
