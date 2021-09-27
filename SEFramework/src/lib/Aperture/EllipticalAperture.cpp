@@ -22,7 +22,7 @@
  */
 
 #include "SEFramework/Aperture/EllipticalAperture.h"
-
+#include <iostream>
 namespace SourceXtractor {
 
 
@@ -31,12 +31,36 @@ EllipticalAperture::EllipticalAperture(SeFloat cxx, SeFloat cyy, SeFloat cxy,
   : m_cxx{cxx}, m_cyy{cyy}, m_cxy{cxy}, m_rad_max{rad_max} {
 }
 
-SeFloat EllipticalAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
-  if (getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
-    return 1.0;
+  SeFloat EllipticalAperture::getArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+  	if (getRadiusSquared(center_x, center_y, pixel_x, pixel_y) < m_rad_max * m_rad_max) {
+
+  		return 1.0;
+  	}
+  	return 0.;
   }
-  return 0.;
-}
+
+  SeFloat EllipticalAperture::drawArea(SeFloat center_x, SeFloat center_y, SeFloat pixel_x, SeFloat pixel_y) const {
+	  SeFloat thickness = 1.0;
+	  SeFloat min_rad_squared = m_rad_max > thickness ? (m_rad_max - thickness) * (m_rad_max - thickness) : 0;
+
+	  //SeFloat min_rad_squared = .877777*(m_rad_max*m_rad_max);
+	  //SeFloat min_rad_squared = .877777*(m_rad_max*m_rad_max);
+	  //SeFloat min_rad_squared = .133333*(m_rad_max*m_rad_max) > 6.0 ? .877777*(m_rad_max*m_rad_max) : (m_rad_max*m_rad_max)-6.0;
+
+	  //SeFloat max_rad_squared = (m_rad_max + thickness) * (m_rad_max + thickness);
+
+	  //if (min_supersampled_radius_squared < distance_squared && distance_squared <= max_supersampled_radius_squared) {
+	  //if ((m_rad_max-1.)*(m_rad_max-1.)< distance_squared && distance_squared < m_rad_max * m_rad_max) {
+	  //if ((m_rad_max*m_rad_max-thickness)< distance_squared && distance_squared < (m_rad_max * m_rad_max)) {
+	  //if (fabs(distance_squared - (m_rad_max * m_rad_max)) < thickness) {
+
+	  auto distance_squared = getRadiusSquared(center_x, center_y, pixel_x, pixel_y);
+	  if (min_rad_squared < distance_squared && distance_squared < (m_rad_max * m_rad_max)) {
+	  //if (min_rad_squared < distance_squared && distance_squared < max_rad_squared) {
+		  return 1.0;
+	  }
+	  return 0.;
+  }
 
 SeFloat EllipticalAperture::getRadiusSquared(SeFloat center_x, SeFloat center_y, SeFloat pixel_x,
                                              SeFloat pixel_y) const {
