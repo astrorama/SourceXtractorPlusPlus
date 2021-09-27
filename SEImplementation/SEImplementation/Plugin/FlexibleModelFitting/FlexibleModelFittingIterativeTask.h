@@ -19,6 +19,8 @@
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGITERATIVETASK_H_
 
 #include "ModelFitting/Models/FrameModel.h"
+#include "ModelFitting/Engine/ResidualEstimator.h"
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 #include "SEUtils/PixelRectangle.h"
 
@@ -77,6 +79,19 @@ private:
       double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const;
   SeFloat computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
       std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
+  int fitSourcePrepareParameters(FlexibleModelFittingParameterManager& parameter_manager,
+                                 ModelFitting::EngineParameterManager& engine_parameter_manager,
+                                 SourceGroupInterface& group, SourceInterface& source,
+                                 int index, FittingState& state) const;
+  int fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
+      ModelFitting::ResidualEstimator& res_estimator, int& good_pixels,
+      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
+  SeFloat fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
+      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
+  void fitSourceUpdateState(FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
+      SeFloat avg_reduced_chi_squared, unsigned int iterations, unsigned int stop_reason, Flags flags,
+      ModelFitting::LeastSquareSummary solution,
+      int index, FittingState& state) const;
 
   // Task configuration
   std::string m_least_squares_engine;

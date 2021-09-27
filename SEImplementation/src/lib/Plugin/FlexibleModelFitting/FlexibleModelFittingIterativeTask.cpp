@@ -60,7 +60,6 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
-
 namespace {
 
 PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
@@ -316,29 +315,22 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   return deblend_image;
 }
 
-void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
-  double pixel_scale = 1 / m_scale_factor;
-
-  //////////////////////////////////////////////
-  // Prepare parameters
-
-  FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_parameter_manager{};
-  int n_free_parameters = 0;
-
+int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
+                                                    FlexibleModelFittingParameterManager& parameter_manager,
+                                                    ModelFitting::EngineParameterManager& engine_parameter_manager,
+                                                    SourceGroupInterface& group, SourceInterface& source,
+                                                    int index, FittingState& state) const {
+  int free_parameters_nb = 0;
   for (auto parameter : m_parameters) {
     auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
     if (free_parameter != nullptr) {
-      ++n_free_parameters;
+      ++free_parameters_nb;
 
       // Initial with the values from the current iteration run
       parameter_manager.addParameter(source, parameter,
           free_parameter->create(parameter_manager, engine_parameter_manager, source,
               state.source_states[index].parameters_values.at(free_parameter->getId())));
-
-      //std::cout << free_parameter->getId() << " -> " << state.source_states[index].parameters_values.at(free_parameter->getId()) << "\n";
-
     } else {
       parameter_manager.addParameter(source, parameter,
           parameter->create(parameter_manager, engine_parameter_manager, source));
@@ -349,13 +341,16 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   // Reset access checks, as a dependent parameter could have triggered it
   parameter_manager.clearAccessCheck();
 
+  return free_parameters_nb;
+}
 
-  ///////////////////////////////////////////////////////////////////////////////////
-  // Add models for all frames
-  ResidualEstimator res_estimator {};
+int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
+    ResidualEstimator& res_estimator, int& good_pixels,
+    SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
+
+  double pixel_scale = 1 / m_scale_factor;
 
   int valid_frames = 0;
-  int n_good_pixels = 0;
   for (auto frame : m_frames) {
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
@@ -379,7 +374,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
       // count number of pixels that can be used for fitting
       for (int y = 0; y < weight->getHeight(); ++y) {
         for (int x = 0; x < weight->getWidth(); ++x) {
-          n_good_pixels += (weight->at(x, y) != 0.);
+          good_pixels += (weight->at(x, y) != 0.);
         }
       }
 
@@ -392,45 +387,13 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////////
-  // Check that we had enough data for the fit
-  Flags flags = Flags::NONE;
+  return valid_frames;
+}
 
-  if (valid_frames == 0) {
-    flags = Flags::OUTSIDE;
-  }
-  else if (n_good_pixels < n_free_parameters) {
-    flags = Flags::INSUFFICIENT_DATA;
-  }
+SeFloat FlexibleModelFittingIterativeTask::fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
+    SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
 
-  if (flags != Flags::NONE) {
-    // FIXME !!!!!!!
-    std::cout << "setDummyProperty\n";
-    setDummyProperty(source, flags);
-    return;
-  }
-
-  ////////////////////////////////////////////////////////////////////////////////
-  // Add priors
-  for (auto prior : m_priors) {
-    prior->setupPrior(parameter_manager, source, res_estimator);
-  }
-
-  /////////////////////////////////////////////////////////////////////////////////
-  // Model fitting
-
-  auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
-  auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
-
-  auto iterations = solution.iteration_no;
-  auto stop_reason = solution.engine_stop_reason;
-  if (solution.status_flag == LeastSquareSummary::ERROR) {
-    flags |= Flags::ERROR;
-  }
-
-
-  ////////////////////////////////////////////////////////////////////////////////////
-  // compute chi squared
+  double pixel_scale = 1 / m_scale_factor;
 
   int total_data_points = 0;
   SeFloat avg_reduced_chi_squared = computeChiSquared(group, source, index,pixel_scale, parameter_manager, total_data_points, state);
@@ -445,6 +408,14 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   }
   avg_reduced_chi_squared /= (total_data_points - nb_of_free_parameters);
 
+  return avg_reduced_chi_squared;
+}
+
+void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
+    FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
+    SeFloat avg_reduced_chi_squared, unsigned int iterations, unsigned int stop_reason, Flags flags,
+    ModelFitting::LeastSquareSummary solution,
+    int index, FittingState& state) const {
   ////////////////////////////////////////////////////////////////////////////////////
   // Collect parameters for output
   std::unordered_map<int, double> parameters_values, parameters_sigmas;
@@ -481,6 +452,68 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   state.source_states[index].iterations = iterations;
   state.source_states[index].stop_reason = stop_reason;
   state.source_states[index].flags = flags;
+}
+
+void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
+
+  //////////////////////////////////////////////
+  // Prepare parameters
+
+  FlexibleModelFittingParameterManager parameter_manager;
+  ModelFitting::EngineParameterManager engine_parameter_manager{};
+  int n_free_parameters = fitSourcePrepareParameters(
+      parameter_manager, engine_parameter_manager, group, source, index, state);
+
+  ///////////////////////////////////////////////////////////////////////////////////
+  // Add models for all frames
+  ResidualEstimator res_estimator {};
+  int n_good_pixels = 0;
+  int valid_frames = fitSourcePrepareModels(
+      parameter_manager, res_estimator, n_good_pixels, group, source, index, state);
+
+  ///////////////////////////////////////////////////////////////////////////////
+  // Check that we had enough data for the fit
+
+  Flags flags = Flags::NONE;
+
+  if (valid_frames == 0) {
+    flags = Flags::OUTSIDE;
+  }
+  else if (n_good_pixels < n_free_parameters) {
+    flags = Flags::INSUFFICIENT_DATA;
+  }
+
+  if (flags != Flags::NONE) {
+    setDummyProperty(source, flags);
+    return;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // Add priors
+  for (auto prior : m_priors) {
+    prior->setupPrior(parameter_manager, source, res_estimator);
+  }
+
+  /////////////////////////////////////////////////////////////////////////////////
+  // Model fitting
+
+  auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
+  auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
+
+  auto iterations = solution.iteration_no;
+  auto stop_reason = solution.engine_stop_reason;
+  if (solution.status_flag == LeastSquareSummary::ERROR) {
+    flags |= Flags::ERROR;
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // compute chi squared
+
+  SeFloat avg_reduced_chi_squared =  fitSourceComputeChiSquared(parameter_manager, group, source, index, state);
+
+  ////////////////////////////////////////////////////////////////////////////////////
+  // update state with results
+  fitSourceUpdateState(parameter_manager, source, avg_reduced_chi_squared, iterations, stop_reason, flags, solution, index, state);
 }
 
 void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& group,
