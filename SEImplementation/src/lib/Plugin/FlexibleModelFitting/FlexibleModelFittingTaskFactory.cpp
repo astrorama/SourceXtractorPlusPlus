@@ -62,7 +62,7 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   }
 
   m_frames = model_fitting_config.getFrames();
-  
+
   for (auto const& p : model_fitting_config.getPriors()) {
     m_priors.push_back(p.second);
   }
@@ -75,7 +75,15 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   m_deblend_factor = model_fitting_config.getDeblendFactor();
   m_meta_iteration_stop = model_fitting_config.getMetaIterationStop();
 
-  logger.info() << "Using engine " << m_least_squares_engine << " with "
+  std::string approach;
+  if (m_use_iterative_fitting) {
+    approach = "iterative";
+  } else {
+    approach = "classic";
+  }
+
+  logger.info() << "Using engine " << m_least_squares_engine << " with the "
+                << approach << " implementation and "
                 << m_max_iterations << " maximum number of iterations";
 
   m_outputs = model_fitting_config.getOutputs();
