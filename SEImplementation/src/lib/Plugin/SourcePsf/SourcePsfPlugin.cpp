@@ -14,37 +14,19 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfTask.h
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
-
-#include "SEFramework/Task/GroupTask.h"
-#include "SEFramework/Psf/Psf.h"
+#include <SEFramework/Plugin/StaticPlugin.h>
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfPlugin.h"
 
 namespace SourceXtractor {
 
-class PsfTask: public GroupTask {
-public:
-  virtual ~PsfTask() = default;
+void SourcePsfPlugin::registerPlugin(SourceXtractor::PluginAPI &plugin_api) {
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<SourcePsfTaskFactory, SourcePsfProperty>();
+}
 
-  PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
+std::string SourcePsfPlugin::getIdString() const  {
+  return "source_psf";
+}
 
-  virtual void computeProperties(SourceGroupInterface& source) const override;
-
-  typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
-  static std::map<std::string, ValueGetter> component_value_getters;
-
-private:
-  unsigned m_instance;
-  std::shared_ptr<Psf> m_vpsf;
-};
-
-} // end SourceXtractor
-
-#endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+static StaticPlugin<SourcePsfPlugin> psf_plugin;
+}

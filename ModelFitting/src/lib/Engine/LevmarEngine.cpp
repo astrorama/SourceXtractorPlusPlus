@@ -128,6 +128,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 #ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.unlock();
 #endif
+
     auto* extra_ptr = (decltype(adata)*)extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(p);
