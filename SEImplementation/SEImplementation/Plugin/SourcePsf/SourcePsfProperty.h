@@ -14,37 +14,37 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfTask.h
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSF_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSF_H_
 
-#include "SEFramework/Task/GroupTask.h"
-#include "SEFramework/Psf/Psf.h"
+#include <SEFramework/Property/Property.h>
+#include <SEFramework/Image/VectorImage.h>
 
 namespace SourceXtractor {
 
-class PsfTask: public GroupTask {
+class SourcePsfProperty : public Property {
 public:
-  virtual ~PsfTask() = default;
+  virtual ~SourcePsfProperty() = default;
 
-  PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
+  SourcePsfProperty(double pixel_sampling, std::shared_ptr<VectorImage <SeFloat>> psf) :
+    m_pixel_sampling(pixel_sampling), m_psf(psf) {};
 
-  virtual void computeProperties(SourceGroupInterface& source) const override;
+  SourcePsfProperty();
 
-  typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
-  static std::map<std::string, ValueGetter> component_value_getters;
+  double getPixelSampling() const {
+    return m_pixel_sampling;
+  }
+
+  std::shared_ptr<VectorImage<SeFloat>> getPsf() const {
+    return m_psf;
+  }
 
 private:
-  unsigned m_instance;
-  std::shared_ptr<Psf> m_vpsf;
+  double m_pixel_sampling;
+  std::shared_ptr<VectorImage<SeFloat>> m_psf;
 };
 
 } // end SourceXtractor
 
-#endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSF_H_

@@ -14,37 +14,32 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * PsfTask.h
- *
- *  Created on: Jun 25, 2018
- *      Author: Alejandro Álvarez Ayllón
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
-#define _SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
 
-#include "SEFramework/Task/GroupTask.h"
-#include "SEFramework/Psf/Psf.h"
+#include <map>
+
+#include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfTask.h"
 
 namespace SourceXtractor {
 
-class PsfTask: public GroupTask {
+class SourcePsfTaskFactory: public TaskFactory {
 public:
-  virtual ~PsfTask() = default;
+  virtual ~SourcePsfTaskFactory() = default;
 
-  PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
-  virtual void computeProperties(SourceGroupInterface& source) const override;
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
 
-  typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
-  static std::map<std::string, ValueGetter> component_value_getters;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  unsigned m_instance;
-  std::shared_ptr<Psf> m_vpsf;
+  std::map<int, std::shared_ptr<Psf>> m_vpsf;
 };
 
 } // end SourceXtractor
 
-#endif //_SEIMPLEMENTATION_PLUGIN_PSF_PSFTASK_H_
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_

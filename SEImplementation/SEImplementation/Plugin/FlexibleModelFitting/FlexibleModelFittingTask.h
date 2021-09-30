@@ -51,7 +51,7 @@ public:
 
   virtual ~FlexibleModelFittingTask();
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  void computeProperties(SourceGroupInterface& group) const override;
 
 private:
 

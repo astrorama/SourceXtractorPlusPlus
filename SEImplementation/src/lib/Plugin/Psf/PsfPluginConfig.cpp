@@ -115,7 +115,7 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     ll << "Components: ";
     for (auto c : components) {
       ll << c.name << " ";
-      if (component_value_getters.find(c.name) == component_value_getters.end()) {
+      if (PsfTask::component_value_getters.find(c.name) == PsfTask::component_value_getters.end()) {
         throw Elements::Exception() << "Can not find a getter for the component " << c.name;
       }
     }

@@ -24,6 +24,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 
+#include "SEUtils/PixelRectangle.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
@@ -62,6 +63,10 @@ public:
     if (m_max_coord.m_x < 0)
       return 0;
     return m_max_coord.m_y - m_min_coord.m_y + 1;
+  }
+
+  PixelRectangle getRect() const {
+    return PixelRectangle(m_min_coord, m_max_coord);
   }
 
   bool badProjection() const {

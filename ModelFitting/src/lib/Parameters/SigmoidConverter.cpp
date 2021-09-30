@@ -23,18 +23,21 @@
 #include <cmath>
 #include <iostream>
 
+#include <ElementsKernel/Logging.h>
+
 #include "ModelFitting/Parameters/SigmoidConverter.h"
 
 namespace ModelFitting {
 
 using namespace std;
 
+static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
+
 SigmoidConverter::~SigmoidConverter() = default;
 
 double SigmoidConverter::worldToEngine(const double world_value) const {
   if (world_value < m_min_value || world_value > m_max_value) {
-    throw Elements::Exception()
-        << "WorldToEngine SigmoidConverter: world values outside of possible range";
+    logger.warn() << "WorldToEngine SigmoidConverter: world values outside of possible range";
   }
 
   double num = world_value - m_min_value;
