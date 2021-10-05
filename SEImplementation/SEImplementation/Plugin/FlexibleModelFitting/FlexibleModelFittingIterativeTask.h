@@ -60,6 +60,7 @@ private:
     std::unordered_map<int, bool> parameters_fitted;
     Flags flags;
     double reduced_chi_squared;
+    float duration;
     unsigned int iterations;
     unsigned int stop_reason;
   };
@@ -89,7 +90,7 @@ private:
   SeFloat fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
       SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void fitSourceUpdateState(FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
-      SeFloat avg_reduced_chi_squared, unsigned int iterations, unsigned int stop_reason, Flags flags,
+      SeFloat avg_reduced_chi_squared, SeFloat duration, unsigned int iterations, unsigned int stop_reason, Flags flags,
       ModelFitting::LeastSquareSummary solution,
       int index, FittingState& state) const;
 

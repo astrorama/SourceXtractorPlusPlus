@@ -174,6 +174,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   }
 
   // Call the levmar library
+  auto start = std::chrono::steady_clock::now();
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
                          param_values.data(), // The pointer where the parameter values are
                          NULL, // We don't use any measurement vector
@@ -186,6 +187,8 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          covariance_matrix.data(),
                          &adata // No additional data needed
   );
+  auto end     = std::chrono::steady_clock::now();
+  std::chrono::duration<float> elapsed = end - start;
 #ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.unlock();
 #endif
@@ -202,6 +205,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   summary.engine_stop_reason = info[6];
   summary.iteration_no = info[5];
   summary.underlying_framework_info = info;
+  summary.duration                  = elapsed.count();
   return summary;
 }
 

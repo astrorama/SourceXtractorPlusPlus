@@ -64,6 +64,15 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
     "Stop reason (engine dependent)"
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, float>(
+    "fmf_duration",
+    [](const FlexibleModelFitting& prop) {
+      return prop.getDuration();
+    },
+    "seconds",
+    "Fitting runtime"
+  );
+
   plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int64_t>(
           "fmf_flags",
           [](const FlexibleModelFitting& prop) {
