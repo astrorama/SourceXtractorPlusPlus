@@ -25,6 +25,7 @@
 #define _COMPAREIMAGES_H
 
 #include "SEUtils/IsClose.h"
+#include <boost/test/predicate_result.hpp>
 
 namespace SourceXtractor {
 
@@ -33,10 +34,21 @@ boost::test_tools::predicate_result compareImages(
   const T& ref, const U& val, double atol = 1e-8, double rtol = 1e-5) {
   boost::test_tools::predicate_result res(true);
 
+  if (ref->getWidth() != val->getWidth() || ref->getHeight() != val->getHeight()) {
+    res = false;
+    res.message() << "Images do not match in size: "
+                  << ref->getWidth() << 'x' << ref->getHeight() << " vs "
+                  << val->getWidth() << 'x' << val->getHeight();
+  }
+
+  int w = ref->getWidth(), h = ref->getHeight();
+  auto ref_chunk = ref->getChunk(0, 0, w, h);
+  auto val_chunk = val->getChunk(0, 0, w, h);
+
   for (int x = 0; x < ref->getWidth(); ++x) {
     for (int y = 0; y < ref->getHeight(); ++y) {
-      auto expected = ref->getValue(x, y);
-      auto value = val->getValue(x, y);
+      auto expected = ref_chunk->getValue(x, y);
+      auto value = val_chunk->getValue(x, y);
       if (!isClose(expected, value, atol, rtol)) {
         res = false;
         res.message() << "Not matching values at position " << x << "," << y

@@ -50,10 +50,12 @@ public:
 
   std::shared_ptr<ModelFitting::BasicParameter> getParameter(
       const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter) const {
+
     auto key = std::make_tuple(std::cref(source), parameter);
     m_accessed_params.insert(key);
     followDependencies(source, parameter);
-    return m_params.at(key);
+    auto p = m_params.at(key);
+    return p;
   }
 
   void addParameter(const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter,

@@ -26,7 +26,6 @@
 #define	TYPEDSPLINEMODELWRAPPER_H
 
 #include <boost/filesystem.hpp>
-#include "SEFramework/Image/ImageBase.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEImplementation/Background/SE2/SplineModel.h"
 

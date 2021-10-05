@@ -47,6 +47,7 @@ std::map<std::string, Configuration::OptionDescriptionList> PluginConfig::getPro
 void PluginConfig::initialize(const UserValues& args) {
   m_plugin_path = args.at(PLUGIN_DIRECTORY).as<std::string>();
   m_plugin_list = args.at(PLUGIN).as<std::vector<std::string>>();
+  m_plugin_list.erase(std::remove(m_plugin_list.begin(), m_plugin_list.end(), ""), m_plugin_list.end());
 }
 
 std::string PluginConfig::getPluginPath() const {

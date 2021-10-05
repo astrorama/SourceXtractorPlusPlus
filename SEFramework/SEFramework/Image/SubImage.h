@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageBase.h"
+#include "SEFramework/Image/ImageAccessor.h"
 
 namespace SourceXtractor {
 
@@ -31,7 +31,7 @@ namespace SourceXtractor {
  */
 
 template<typename T>
-class SubImage : public ImageBase<T> {
+class SubImage : public Image<T> {
 protected:
   SubImage(std::shared_ptr<const Image<T>> image, const PixelCoordinate &offset, int width, int height)
     : m_image(image), m_offset(offset), m_width(width), m_height(height) {
@@ -68,8 +68,8 @@ public:
     return m_height;
   }
 
-  T getValue(int x, int y) const override {
-    return m_image->getValue(x + m_offset.m_x, y + m_offset.m_y);
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+    return m_image->getChunk(x + m_offset.m_x, y + m_offset.m_y, width, height);
   }
 
 private:

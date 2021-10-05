@@ -67,7 +67,7 @@ public:
    * @return
    *    A pair of new images containing the filtered image and the filtered variance map
    */
-  auto operator()(const Image<T>& image, const Image<T>& variance,
+  auto operator()(const VectorImage<T>& image, const VectorImage<T>& variance,
                   T threshold = 0) const -> std::pair<std::shared_ptr<VectorImage<T>>, std::shared_ptr<VectorImage<T>>> {
     assert(image.getWidth() == variance.getWidth());
     assert(image.getHeight() == variance.getHeight());
@@ -135,7 +135,7 @@ private:
   /**
    * Get the pixel values contained within a box centered at x,y
    */
-  std::vector<T> getBox(const Image<T>& img, int x, int y) const {
+  std::vector<T> getBox(const VectorImage<T>& img, int x, int y) const {
     int hw = clip(x, m_box_width, img.getWidth());
     int hh = clip(y, m_box_height, img.getHeight());
     std::vector<T> data;

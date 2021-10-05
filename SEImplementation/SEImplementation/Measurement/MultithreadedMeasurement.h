@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /*
- * Multithreadedmeasurement->h
+ * Multithreadedmeasurement.h
  *
  *  Created on: May 17, 2018
  *      Author: mschefer
@@ -29,7 +29,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-#include <AlexandriaKernel/ThreadPool.h>
+#include "AlexandriaKernel/ThreadPool.h"
+#include "AlexandriaKernel/Semaphore.h"
 #include "SEFramework/Pipeline/Measurement.h"
 
 namespace SourceXtractor {
@@ -38,19 +39,19 @@ class MultithreadedMeasurement : public Measurement {
 public:
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
-  MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool)
+  MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool,
+                           unsigned max_queue_size)
       : m_source_to_row(source_to_row),
         m_thread_pool(thread_pool),
         m_group_counter(0),
-        m_input_done(false), m_abort_raised(false) {}
+        m_input_done(false), m_abort_raised(false), m_semaphore(max_queue_size) {}
+
+  virtual ~MultithreadedMeasurement();
 
   void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
 
   void startThreads() override;
   void waitForThreads() override;
-
-public:
-  static std::recursive_mutex g_global_mutex;
 
 private:
   static void outputThreadStatic(MultithreadedMeasurement* measurement);
@@ -66,6 +67,7 @@ private:
   std::condition_variable m_new_output;
   std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_output_queue;
   std::mutex m_output_queue_mutex;
+  Euclid::Semaphore m_semaphore;
 };
 
 }

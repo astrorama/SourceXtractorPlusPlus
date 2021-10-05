@@ -90,12 +90,27 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
   return parameter;
 }
 
+std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter::create(
+                                                            FlexibleModelFittingParameterManager& /*parameter_manager*/,
+                                                            ModelFitting::EngineParameterManager& engine_manager,
+                                                            const SourceInterface& source,
+                                                            double initial_value) const {
+  auto converter = m_converter_factory->getConverter(initial_value, source);
+  auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
+  engine_manager.registerParameter(parameter);
+
+  return parameter;
+}
+
 double FlexibleModelFittingFreeParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const {
   auto modelfitting_parameter = parameter_manager.getParameter(source, shared_from_this());
   return free_parameter_sigmas[parameter_manager.getParameterIndex(source, shared_from_this())];
 }
 
+double FlexibleModelFittingFreeParameter::getInitialValue(const SourceInterface& source) const {
+  return m_initial_value(source);
+}
 
 namespace {
 

@@ -25,6 +25,7 @@
 
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlag.h"
 
@@ -56,7 +57,7 @@ public:
 
 private:
   
-  std::shared_ptr<FlagImage> m_flag_image;
+  std::unique_ptr<ImageAccessor<FlagImage::PixelType>> m_flag_image;
   unsigned int m_flag_instance;
   
 };

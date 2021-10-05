@@ -18,6 +18,7 @@
 #ifndef _SEFRAMEWORK_IMAGE_SCALEDIMAGESOURCE_H
 #define _SEFRAMEWORK_IMAGE_SCALEDIMAGESOURCE_H
 
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "MathUtils/interpolation/interpolation.h"
 
@@ -54,6 +55,8 @@ public:
     m_wscale = std::ceil(static_cast<float>(width) / image->getWidth());
     m_hscale = std::ceil(static_cast<float>(height) / image->getHeight());
 
+    ImageAccessor<T> accessor(image);
+
     switch (interp_type) {
       case InterpolationType::BICUBIC:
         m_interpolation_type = Euclid::MathUtils::InterpolationType::CUBIC_SPLINE;
@@ -80,7 +83,7 @@ public:
     for (int x = 0; x < image->getWidth(); ++x) {
       std::vector<double> values(image->getHeight());
       for (int y = 0; y < image->getHeight(); ++y) {
-        values[y] = image->getValue(x, y);
+        values[y] = accessor.getValue(x, y);
       }
       m_interpolated_cols.emplace_back(
         Euclid::MathUtils::interpolate(y_coords, values, m_interpolation_type, true));

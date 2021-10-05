@@ -35,6 +35,7 @@
 
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
@@ -170,18 +171,14 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
   ModelFitting::EngineParameterManager engine_parameter_manager{};
   int n_free_parameters = 0;
 
-  {
-    std::lock_guard<std::recursive_mutex> lock(MultithreadedMeasurement::g_global_mutex);
-
-    // Prepare parameters
-    for (auto& source : group) {
-      for (auto parameter : m_parameters) {
-        if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
-          ++n_free_parameters;
-        }
-        parameter_manager.addParameter(source, parameter,
-                                       parameter->create(parameter_manager, engine_parameter_manager, source));
+  // Prepare parameters
+  for (auto& source : group) {
+    for (auto parameter : m_parameters) {
+      if (std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter)) {
+        ++n_free_parameters;
       }
+      parameter_manager.addParameter(source, parameter,
+                                     parameter->create(parameter_manager, engine_parameter_manager, source));
     }
   }
 
@@ -249,8 +246,15 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
     auto iterations = solution.iteration_no;
     auto stop_reason = solution.engine_stop_reason;
-    if (solution.status_flag == LeastSquareSummary::ERROR) {
-      group_flags |= Flags::ERROR;
+    switch (solution.status_flag) {
+      case LeastSquareSummary::MEMORY:
+        group_flags |= Flags::MEMORY;
+        // fall through
+      case LeastSquareSummary::ERROR:
+        group_flags |= Flags::ERROR;
+        break;
+      default:
+        break;
     }
 
     int total_data_points = 0;
@@ -340,12 +344,13 @@ void FlexibleModelFittingTask::updateCheckImages(SourceGroupInterface& group,
 
       auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
       if (debug_image) {
+        ImageAccessor<SeFloat> debugAccessor(debug_image);
         for (int x = 0; x < final_stamp->getWidth(); x++) {
           for (int y = 0; y < final_stamp->getHeight(); y++) {
             auto x_coord = stamp_rect.getTopLeft().m_x + x;
             auto y_coord = stamp_rect.getTopLeft().m_y + y;
             debug_image->setValue(x_coord, y_coord,
-                                  debug_image->getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+                                  debugAccessor.getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
           }
         }
       }
@@ -358,11 +363,15 @@ SeFloat FlexibleModelFittingTask::computeChiSquaredForFrame(std::shared_ptr<cons
     std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const {
   double reduced_chi_squared = 0.0;
   data_points = 0;
+
+  ImageAccessor<SeFloat> imageAccessor(image), modelAccessor(model);
+  ImageAccessor<SeFloat> weightAccessor(weights);
+
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
-      double tmp = image->getValue(x, y) - model->getValue(x, y);
-      reduced_chi_squared += tmp * tmp * weights->getValue(x, y) * weights->getValue(x, y);
-      if (weights->getValue(x, y) > 0) {
+      double tmp = imageAccessor.getValue(x, y) - modelAccessor.getValue(x, y);
+      reduced_chi_squared += tmp * tmp * weightAccessor.getValue(x, y) * weightAccessor.getValue(x, y);
+      if (weightAccessor.getValue(x, y) > 0) {
         data_points++;
       }
     }

@@ -14,37 +14,32 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * ImageBase.h
- *
- *  Created on: Aug 31, 2017
- *      Author: mschefer
- */
 
-#ifndef _SEFRAMEWORK_IMAGE_IMAGEBASE_H_
-#define _SEFRAMEWORK_IMAGE_IMAGEBASE_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
 
+#include <map>
 
-#include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/WriteableImage.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Task/TaskFactory.h"
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfTask.h"
 
 namespace SourceXtractor {
 
-template <typename T>
-class ImageBase : public virtual Image<T>, public std::enable_shared_from_this<ImageBase<T>> {
-
+class SourcePsfTaskFactory: public TaskFactory {
 public:
-  virtual ~ImageBase() {}
+  virtual ~SourcePsfTaskFactory() = default;
 
-  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    return UniversalImageChunk<T>::create(this->shared_from_this(), x, y, width, height);
-  }
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+
+private:
+  std::map<int, std::shared_ptr<Psf>> m_vpsf;
 };
 
-}
+} // end SourceXtractor
 
-
-
-#endif /* _SEFRAMEWORK_IMAGE_IMAGEBASE_H_ */
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_

@@ -31,13 +31,15 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string THREADS_NB {"thread-count"};
+static const std::string MAX_QUEUE_SIZE {"thread-max-queue-size"};
 
 MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id), m_threads_nb(-1) {
 }
 
 auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-threading", {
-      {THREADS_NB.c_str(), po::value<int>()->default_value(-1), "Number of worker threads (-1=automatic, 0=disable all multithreading)"}
+      {THREADS_NB.c_str(), po::value<int>()->default_value(-1), "Number of worker threads (-1=automatic, 0=disable all multithreading)"},
+      {MAX_QUEUE_SIZE.c_str(), po::value<int>()->default_value(1000), "Limit the size of the internal queues"}
   }}};
 }
 
@@ -49,7 +51,14 @@ void MultiThreadingConfig::initialize(const UserValues& args) {
   else if (m_threads_nb < -1) {
     throw Elements::Exception("Invalid number of threads.");
   }
-  m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
+  if (m_threads_nb > 0) {
+    m_thread_pool = std::make_shared<Euclid::ThreadPool>(m_threads_nb);
+  }
+
+  m_max_queue_size = args.at(MAX_QUEUE_SIZE).as<int>();
+  if (m_max_queue_size <= 0) {
+    throw Elements::Exception(MAX_QUEUE_SIZE + " must be strictly positive");
+  }
 }
 
 } // SourceXtractor namespace

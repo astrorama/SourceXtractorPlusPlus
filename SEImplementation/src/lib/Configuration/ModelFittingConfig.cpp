@@ -186,8 +186,8 @@ void ModelFittingConfig::initializeInner() {
     }
 
     auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      GILStateEnsure ensure;
       try {
-        GILStateEnsure ensure;
         PythonInterpreter::getSingleton().setCoordinateSystem(cs);
         return py::extract<double>((*py_func)(*py::tuple(params)));
       }
@@ -287,6 +287,10 @@ void ModelFittingConfig::initializeInner() {
   }
   m_max_iterations = py::extract<int>(parameters["max_iterations"]);
   m_modified_chi_squared_scale = py::extract<double>(parameters["modified_chi_squared_scale"]);
+  m_use_iterative_fitting = py::extract<bool>(parameters["use_iterative_fitting"]);
+  m_meta_iterations = py::extract<int>(parameters["meta_iterations"]);
+  m_deblend_factor = py::extract<double>(parameters["deblend_factor"]);
+  m_meta_iteration_stop = py::extract<double>(parameters["meta_iteration_stop"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

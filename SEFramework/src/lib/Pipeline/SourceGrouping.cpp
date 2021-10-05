@@ -26,8 +26,9 @@
 namespace SourceXtractor {
 
 SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
-                               std::shared_ptr<SourceGroupFactory> group_factory)
-        : m_grouping_criteria(grouping_criteria), m_group_factory(group_factory) {
+                               std::shared_ptr<SourceGroupFactory> group_factory,
+                               unsigned int hard_limit)
+        : m_grouping_criteria(grouping_criteria), m_group_factory(group_factory), m_hard_limit(hard_limit) {
 }
 
 void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
@@ -37,6 +38,18 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
   std::vector<std::list<std::shared_ptr<SourceGroupInterface>>::iterator> groups_to_remove {};
   
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
+
+    if (m_hard_limit > 0) {
+      unsigned int current_group_size = (matched_group != nullptr) ? matched_group->size() : 1;
+      if (current_group_size >= m_hard_limit) {
+        break; // no need to try to find matching groups anymore, we have reached the limit
+      }
+
+      if (current_group_size + (*group_it)->size() > m_hard_limit) {
+        continue; // we can't merge groups without hitting the limit, so skip it
+      }
+    }
+
     // Search if the source meets the grouping criteria with any of the sources in the group
     bool in_group = false;
     for (auto& s : **group_it) {

@@ -35,11 +35,13 @@ static void fillCutout(const Image<T>& image, int center_x, int center_y, int wi
   int x_end = x_start + width;
   int y_end = y_start + height;
 
+  ImageAccessor<T> accessor(image);
+
   int index = 0;
   for (int iy = y_start; iy < y_end; iy++) {
     for (int ix = x_start; ix < x_end; ix++, index++) {
       if (ix >= 0 && iy >= 0 && ix < image.getWidth() && iy < image.getHeight()) {
-        out[index] = image.getValue(ix, iy);
+        out[index] = accessor.getValue(ix, iy);
       }
     }
   }

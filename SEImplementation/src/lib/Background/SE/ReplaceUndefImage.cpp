@@ -20,29 +20,9 @@
 namespace SourceXtractor {
 
 template<typename T>
-ReplaceUndefImage<T>::ReplaceUndefImage(const std::shared_ptr<VectorImage<T>>& image, T invalid)
-  : m_image{image}, m_invalid{invalid} {
-}
-
-template<typename T>
-std::string ReplaceUndefImage<T>::getRepr() const {
-  return std::string("ReplaceUndef(" + m_image->getRepr() + ")");
-}
-
-template<typename T>
-int ReplaceUndefImage<T>::getWidth() const {
-  return m_image->getWidth();
-}
-
-template<typename T>
-int ReplaceUndefImage<T>::getHeight() const {
-  return m_image->getHeight();
-}
-
-template<typename T>
-T ReplaceUndefImage<T>::getValue(int x, int y) const {
-  auto v = m_image->getValue(x, y);
-  if (v != m_invalid)
+static T getMaskedValue(int x, int y, const VectorImage<T>& img, T invalid) {
+  auto v = img.getValue(x, y);
+  if (v != invalid)
     return v;
 
   auto min_distance = std::numeric_limits<T>::max();
@@ -50,10 +30,10 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
   T acc = 0;
   size_t count = 0;
 
-  for (int iy = 0; iy < m_image->getHeight(); ++iy) {
-    for (int ix = 0; ix < m_image->getWidth(); ++ix) {
-      v = m_image->getValue(ix, iy);
-      if (v != m_invalid) {
+  for (int iy = 0; iy < img.getHeight(); ++iy) {
+    for (int ix = 0; ix < img.getWidth(); ++ix) {
+      v = img.getValue(ix, iy);
+      if (v != invalid) {
         auto dx = x - ix;
         auto dy = y - iy;
         auto distance = dx * dx + dy * dy;
@@ -63,7 +43,7 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
           count = 1;
           min_distance = distance;
         }
-        // This pixel is as close as the closest one, so take it into account
+          // This pixel is as close as the closest one, so take it into account
         else if (distance - min_distance <= std::numeric_limits<T>::epsilon()) {
           acc += v;
           ++count;
@@ -79,7 +59,20 @@ T ReplaceUndefImage<T>::getValue(int x, int y) const {
   return acc;
 }
 
-template
-class ReplaceUndefImage<SeFloat>;
+template<typename T>
+std::shared_ptr<VectorImage<T>> ReplaceUndef(const VectorImage<T>& original, T mask) {
+  auto output = VectorImage<T>::create(original.getWidth(), original.getHeight());
+  for (int y = 0; y < original.getHeight(); ++y) {
+    for (int x = 0; x < original.getWidth(); ++x) {
+      output->at(x, y) = getMaskedValue(x, y, original, mask);
+    }
+  }
+  return output;
+}
+
+// Instantiation
+template std::shared_ptr<VectorImage<SeFloat>> ReplaceUndef(const VectorImage<SeFloat>&, SeFloat);
 
 } // end of namespace SourceXtractor
+
+#include "SEFramework/Image/ImageAccessor.h"

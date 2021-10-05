@@ -146,7 +146,10 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector
 
   // read out the image
   std::valarray<SeFloat> stamp_data;
-  m_pFits->extension(1).read(stamp_data, first_vertex, last_vertex, stride);
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    m_pFits->extension(1).read(stamp_data, first_vertex, last_vertex, stride);
+  }
 
   // create and return the psf image
   return VectorImage<SeFloat>::create(m_psf_size, m_psf_size, std::begin(stamp_data), std::end(stamp_data));

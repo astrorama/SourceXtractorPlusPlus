@@ -142,13 +142,16 @@ elements_add_unit_test(FunctionalImage_test tests/src/Image/FunctionalImage_test
 elements_add_unit_test(BufferedImage_test tests/src/Image/BufferedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-elements_add_unit_test(InterpolatedImage_test tests/src/Image/InterpolatedImage_test.cpp
-                     LINK_LIBRARIES SEFramework
-                     TYPE Boost)
 elements_add_unit_test(MaskedImage_test tests/src/Image/MaskedImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(SubImage_test tests/src/Image/SubImage_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(InterpolatedImageSource_test tests/src/Image/InterpolatedImageSource_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(ImageAccessor_test tests/src/Image/ImageAccessor_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(FFT_test tests/src/FFT/FFT_test.cpp
@@ -163,6 +166,12 @@ elements_add_unit_test(DFT_test tests/src/Convolution/DFT_test.cpp
 elements_add_unit_test(TransformedAperture_test tests/src/Aperture/TransformedAperture_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+elements_add_unit_test(Flagging_test tests/src/Aperture/Flagging_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(FluxMeasurement_test tests/src/Aperture/FluxMeasurement_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 elements_add_unit_test(NeighbourInfo_test tests/src/Aperture/NeighbourInfo_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
@@ -175,7 +184,9 @@ elements_add_unit_test(ImageFitsReader_test tests/src/FITS/FitsReader_test.cpp
 elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-
+elements_add_unit_test(WCS_test tests/src/CoordinateSystem/WCS_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 #===============================================================================
 # Declare the Python programs here
 # Examples :

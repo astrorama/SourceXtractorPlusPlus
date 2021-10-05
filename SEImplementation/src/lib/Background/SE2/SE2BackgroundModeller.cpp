@@ -27,6 +27,7 @@
 #include "fitsio.h"
 
 #include "ElementsKernel/Exception.h"
+#include "SEFramework/Image/ImageAccessor.h"
 #include "SEImplementation/Background/Utils.h"
 #include "SEImplementation/Background/SE2/BackgroundDefine.h"
 #include "SEImplementation/Background/SE2/SE2BackgroundUtils.h"
@@ -70,6 +71,12 @@ SE2BackgroundModeller::~SE2BackgroundModeller() {
 
 void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &varPtr, PIXTYPE &sigFac, const size_t *bckCellSize, const WeightImage::PixelType varianceThreshold, const size_t *filterBoxSize, const float &filterThreshold)
 {
+  using DetectionAccessor = ImageAccessor<DetectionImage::PixelType>;
+  using MaskAccessor = ImageAccessor<unsigned char>;
+
+  DetectionAccessor detectionAccessor(itsImage);
+  MaskAccessor maskAccessor(itsMask);
+
   size_t gridSize[2] = {0,0};
   size_t nGridPoints=0;
 
@@ -175,13 +182,13 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
       long pixIndex=0;
       for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
         for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0]){
-        	gridData[pixIndex++] = (PIXTYPE)itsImage->getValue(int(xIndex), int(yIndex));
+        	gridData[pixIndex++] = (PIXTYPE)detectionAccessor.getValue(int(xIndex), int(yIndex));
         }
       if (itsHasVariance){
         long pixIndex=0;
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0])
-            weightData[pixIndex++] = (PIXTYPE)itsVariance->getValue(int(xIndex), int(yIndex));
+            weightData[pixIndex++] = (PIXTYPE)detectionAccessor.getValue(int(xIndex), int(yIndex));
       }
       if (itsHasMask){
         // load in the image data
@@ -189,7 +196,7 @@ void SE2BackgroundModeller::createSE2Models(std::shared_ptr<TypedSplineModelWrap
         for (auto yIndex=fpixel[1]; yIndex<lpixel[1]; yIndex+=increment[1])
           for (auto xIndex=fpixel[0]; xIndex<lpixel[0]; xIndex+=increment[0], pixIndex++)
             //if (!itsMask->getValue(int(xIndex), int(yIndex)))
-              if (itsMask->getValue(int(xIndex), int(yIndex)) & itsMaskType){
+              if (maskAccessor.getValue(int(xIndex), int(yIndex)) & itsMaskType){
                 gridData[pixIndex] = -BIG;
                 bck_model_logger.debug() << "\tReplacing data value";
               }
