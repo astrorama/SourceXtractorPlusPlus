@@ -21,7 +21,7 @@ if(NOT OnnxRuntime_FOUND)
   set(OnnxRuntime_LIBRARIES ${OnnxRuntime_LIBRARY})
 
   include(FindPackageHandleStandardArgs)
-  find_package_handle_standard_args(OnnxRuntime DEFAULT_MSG OnnxRuntime_INCLUDE_DIRS OnnxRuntime_LIBRARIES)
+  find_package_handle_standard_args(OnnxRuntime FOUND_VAR OnnxRuntime_FOUND REQUIRED_VARS OnnxRuntime_INCLUDE_DIRS OnnxRuntime_LIBRARIES)
 
   mark_as_advanced(OnnxRuntime_FOUND OnnxRuntime_INCLUDE_DIRS OnnxRuntime_LIBRARIES)
 

@@ -44,6 +44,7 @@ static const std::string CHECK_SNR { "check-image-snr" };
 static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
 static const std::string CHECK_PSF { "check-image-psf" };
+static const std::string CHECK_ML_DETECTION { "check-image-ml-detection" };
 
 static const std::string CHECK_MOFFAT { "debug-image-moffat" };
 
@@ -77,7 +78,9 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
       {CHECK_APERTURE.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the aperture check image"},
       {CHECK_PSF.c_str(), po::value<std::string>()->default_value(""),
-        "Path to save the PSF check image"}
+        "Path to save the PSF check image"},
+      {CHECK_ML_DETECTION.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the ML detection check images"}
   }}, {"Debug options (Use with caution!)", {
       {CHECK_MOFFAT.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the moffat debug image (VERY SLOW)"}
@@ -99,6 +102,7 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_aperture_filename = args.find(CHECK_APERTURE)->second.as<std::string>();
   m_moffat_filename = args.find(CHECK_MOFFAT)->second.as<std::string>();
   m_psf_filename = args.find(CHECK_PSF)->second.as<std::string>();
+  m_ml_detection_filename = args.find(CHECK_ML_DETECTION)->second.as<std::string>();
 }
 
 } // SourceXtractor namespace
