@@ -38,9 +38,6 @@ OnnxModel::OnnxModel(const std::string& model_path) {
   onnx_logger.info() << "Loading ONNX model " << model_path;
   m_session = Euclid::make_unique<Ort::Session>(ORT_ENV, model_path.c_str(), Ort::SessionOptions{nullptr});
 
-//  if (m_session->GetInputCount() != 1) {
-//    throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
-//  }
   if (m_session->GetOutputCount() != 1) {
     throw Elements::Exception() << "Only ONNX models with a single output tensor are supported";
   }

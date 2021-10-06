@@ -115,6 +115,10 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
     throw Elements::Exception() << "Only ONNX models with float output are supported";
   }
 
+  if (model.getInputNb() != 1) {
+    throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
+  }
+
   // allocate memory
   std::vector<float> input_data(tile_size * tile_size);
   std::vector<float> output_data(tile_size * tile_size * data_planes);

@@ -278,8 +278,15 @@ void ModelFittingConfig::initializeInner() {
     py::list models = py::extract<py::list>(p.second.attr("models"));
     for (int i = 0; i < py::len(models); ++i) {
       std::string model_filename(py::extract<char const*>(models[i]));
-      std::cout << model_filename << "\n";
       onnx_models.emplace_back(std::make_shared<OnnxModel>(model_filename));
+
+      if (onnx_models.back()->getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT ||
+          onnx_models.back()->getOutputShape().size() != 4 ||
+          onnx_models.back()->getOutputShape()[1] != onnx_models.back()->getOutputShape()[2] ||
+          onnx_models.back()->getOutputShape()[3] != 1)
+      {
+        throw Elements::Exception() << "ONNX models for ModelFitting must output a square array of floats";
+      }
     }
 
     m_models[p.first] = std::make_shared<FlexibleModelFittingOnnxModel>(

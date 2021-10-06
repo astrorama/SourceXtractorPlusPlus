@@ -10,12 +10,16 @@
 
 #include <numeric>
 
+#include <ElementsKernel/Logging.h>
+
 #include "ModelFitting/Models/CompactModelBase.h"
 
 #include "SEImplementation/Common/OnnxModel.h"
 #include "SEImplementation/Common/OnnxCommon.h"
 
 namespace ModelFitting {
+
+static auto logger = Elements::Logging::getLogger("FlexibleModelFitting");
 
 template <typename ImageType>
 class OnnxCompactModel : public CompactModelBase<ImageType> {
@@ -35,16 +39,14 @@ public:
   virtual ~OnnxCompactModel() = default;
 
   double getValue(double x, double y) const override {
-    // FIXME TBI
-    return 0.0;
+    return 0.0; // unused
   }
 
   ImageType getRasterizedImage(double pixel_scale, std::size_t size_x, std::size_t size_y) const override {
     using Traits = ImageTraits<ImageType>;
     ImageType image = Traits::factory(size_x, size_y);
 
-
-    std::size_t largest_size = std::max(size_x, size_y);
+    int largest_size = std::max(size_x, size_y);
 
     std::shared_ptr<SourceXtractor::OnnxModel> selected_model;
     for (auto model : m_models) {
@@ -55,32 +57,24 @@ public:
       }
     }
 
-    //std::cout << largest_size << " / " << selected_model->getModelPath() << "\n";
+    if (selected_model == nullptr) {
+      logger.info() << "No large enough ONNX model could be found, skipping...";
+      return image;
+    }
 
     auto input_shape = selected_model->getInputShape();
     auto output_shape = selected_model->getOutputShape();
     int render_size = output_shape[2];
 
-    // TODO add sanity check
-    int tile_size = output_shape[1];
-    int data_planes = output_shape[3];
-
-//    onnx_logger.info() << "Onnx tile size: " << tile_size << " Data planes: " << data_planes << " RMS: " << average_rms;
-//
-//    if (model.getInputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
-//      throw Elements::Exception() << "Only ONNX models with float input are supported";
-//    }
-//
-//    if (model.getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
-//      throw Elements::Exception() << "Only ONNX models with float output are supported";
-//    }
+    if (selected_model->getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT) {
+      throw Elements::Exception() << "Only ONNX models with float output are supported";
+    }
 
     // allocate memory
     std::map<std::string, std::vector<float>> input_data_arrays;
-    std::vector<float> output_data(tile_size * tile_size * data_planes);
+    std::vector<float> output_data(render_size * render_size);
 
     for (auto const& it : m_params) {
-//      std::cout << ">" << it.first << " " << (it.second->getValue()) << "\n";
       input_data_arrays[it.first] = std::vector<float>( { it.second->getValue() } );
     }
 
@@ -102,16 +96,7 @@ public:
       }
     }
 
-    //fixme use correct model
     selected_model->runMultiInput<float, float>(input_data_arrays, output_data);
-    // fixme size mismatch!
-
-
-//    double total_flux = std::accumulate(output_data.begin(), output_data.end(), 0.f);
-//    //double area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
-//    double correction = (m_flux->getValue() / total_flux);
-
-//    std::cout << "TF " << total_flux << "\n";
 
     for (int x = 0; x < (int) size_x; ++x) {
       for (int y = 0; y < (int) size_y; ++y) {

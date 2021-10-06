@@ -125,6 +125,14 @@ public:
     return m_model_path;
   }
 
+  size_t getInputNb() const {
+    return m_input_names.size();
+  }
+
+  size_t getOutputNb() const {
+    return 1U;
+  }
+
 private:
   std::string m_domain_name;  ///< domain name
   std::string m_graph_name;  ///< graph name

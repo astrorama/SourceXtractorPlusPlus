@@ -280,5 +280,27 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
       size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), params, jacobian));
 }
 
+FlexibleModelFittingOnnxModel::FlexibleModelFittingOnnxModel(
+    std::vector<std::shared_ptr<OnnxModel>> models,
+    std::shared_ptr<FlexibleModelFittingParameter> x,
+    std::shared_ptr<FlexibleModelFittingParameter> y,
+    std::shared_ptr<FlexibleModelFittingParameter> flux,
+    std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
+    std::shared_ptr<FlexibleModelFittingParameter> angle,
+    std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params)
+        : m_x(x),
+          m_y(y),
+          m_flux(flux),
+          m_aspect_ratio(aspect_ratio),
+          m_angle(angle),
+          m_params(params),
+          m_models(models){
+
+  std::sort(m_models.begin(), m_models.end(),
+      [](const std::shared_ptr<OnnxModel>& a, const std::shared_ptr<OnnxModel>& b) -> bool {
+          return a->getOutputShape()[2] < b->getOutputShape()[2];
+      });
+}
+
 }
 
