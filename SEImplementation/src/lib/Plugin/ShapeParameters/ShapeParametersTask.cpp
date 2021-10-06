@@ -108,6 +108,7 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
     }
   }
 
+  assert(!std::isnan(a));
   //std::cout << "abcor " << abcor << std::endl;
   source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels);
 }

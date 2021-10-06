@@ -70,7 +70,7 @@ void Lutz::labelImage(LutzListener& listener, const DetectionImage& image, Pixel
 
   int lines = image.getHeight();
   int chunk_height = TileManager::getInstance()->getTileHeight();
-  std::shared_ptr<ImageChunk<DetectionImage::PixelType>> chunk;
+  std::shared_ptr<VectorImage<DetectionImage::PixelType>> chunk;
 
   for (int y = 0; y < lines; y++) {
     LutzStatus ps = LutzStatus::COMPLETE;

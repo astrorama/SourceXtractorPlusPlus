@@ -25,7 +25,7 @@
 #define _SEFRAMEWORK_IMAGE_CONSTANTIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -58,8 +58,8 @@ public:
     return m_width;
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
-    return UniversalImageChunk<T>::create(std::vector<T>(width * height, m_constant_value), width, height);
+  std::shared_ptr<VectorImage<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
+    return VectorImage<T>::create(width, height, std::move(std::vector<T>(width * height, m_constant_value)));
   }
 
 private:

@@ -24,7 +24,7 @@
 #define _SEFRAMEWORK_IMAGE_FUNCTIONALIMAGE_H
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -69,9 +69,9 @@ public:
     return m_img->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
     auto in_chunk = m_img->getChunk(x, y, width, height);
-    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto chunk = VectorImage<T>::create(width, height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         chunk->at(ix, iy) = m_functor(ix + x, iy + y, in_chunk->getValue(ix, iy));

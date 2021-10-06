@@ -42,7 +42,7 @@ public:
     m_img->setValue(x, y, value);
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     return m_img->getChunk(x, y, width, height);
   }
 

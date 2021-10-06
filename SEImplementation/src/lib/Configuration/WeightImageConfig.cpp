@@ -175,7 +175,7 @@ protected:
   }
 
   void generateFromWeight(ImageTileWithType<WeightImage::PixelType>& tile, int width, int height,
-                          const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+                          const VectorImage<WeightImage::PixelType>& image_chunk) const {
     auto& tile_image = *tile.getImage();
    for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {
@@ -191,7 +191,7 @@ protected:
   }
 
   void generateFromVariance(ImageTileWithType<WeightImage::PixelType>& tile, int width, int height,
-                            const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+                            const VectorImage<WeightImage::PixelType>& image_chunk) const {
     auto& tile_image = *tile.getImage();
     for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {
@@ -202,7 +202,7 @@ protected:
   }
 
   void generateFromRms(ImageTileWithType<WeightImage::PixelType>& tile, int width, int height,
-                       const ImageChunk<WeightImage::PixelType>& image_chunk) const {
+                       const VectorImage<WeightImage::PixelType>& image_chunk) const {
     auto& tile_image = *tile.getImage();
     for (int iy = 0; iy < height; iy++) {
       for (int ix = 0; ix < width; ix++) {

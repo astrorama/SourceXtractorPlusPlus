@@ -41,7 +41,7 @@ std::string BgConvolutionImageSource::getRepr() const {
 }
 
 static std::tuple<float, float>
-applyKernel(const VectorImage<SeFloat>& kernel, ImageChunk<SeFloat>& image_chunk, ImageChunk<SeFloat>& variance_chunk,
+applyKernel(const VectorImage<SeFloat>& kernel, VectorImage<SeFloat>& image_chunk, VectorImage<SeFloat>& variance_chunk,
             int start_x, int start_y, int clip_w, int clip_h, SeFloat threshold) {
   DetectionImage::PixelType total = 0.;
   DetectionImage::PixelType conv_weight = 0.;

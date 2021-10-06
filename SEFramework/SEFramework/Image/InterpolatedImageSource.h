@@ -87,7 +87,7 @@ private:
   WeightImage::PixelType m_variance_threshold;
   int m_interpolation_gap;
 
-  inline T getInterpolatedValue(const ImageChunk<T>& img, const ImageChunk<T>& var, int x, int y) const {
+  inline T getInterpolatedValue(const VectorImage<T>& img, const VectorImage<T>& var, int x, int y) const {
     if (var.getValue(x, y) < m_variance_threshold)
       return img.getValue(x, y);
 

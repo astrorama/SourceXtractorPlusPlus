@@ -24,7 +24,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "SEFramework/Image/VectorImage.h"
-#include "SEFramework/Image/ImageChunk.h"
 
 using namespace SourceXtractor;
 

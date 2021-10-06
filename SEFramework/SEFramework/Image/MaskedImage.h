@@ -25,7 +25,7 @@
 #define SEFRAMEWORK_SEFRAMEWORK_IMAGE_MASKEDIMAGE_H_
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -90,8 +90,8 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
-    auto chunk = UniversalImageChunk<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
+    auto chunk = VectorImage<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
     auto mask_chunk = m_mask->getChunk(x, y, width, height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {

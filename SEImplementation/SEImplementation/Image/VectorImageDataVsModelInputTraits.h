@@ -32,18 +32,18 @@ namespace ModelFitting {
 template <>
 struct DataVsModelInputTraits<ImageInterfaceTypePtr> {
 
-  using iterator = decltype(ImageInterfaceTypePtr()->getData().begin());
+  using iterator = decltype(ImageInterfaceTypePtr()->begin());
 
   static iterator begin(ImageInterfaceTypePtr& input) {
-    return input->getData().begin();
+    return input->begin();
   }
 
   static iterator end(ImageInterfaceTypePtr& input) {
-    return input->getData().end();
+    return input->end();
   }
 
   static size_t size(const ImageInterfaceTypePtr& input) {
-    return input->getData().size();
+    return input->getWidth() * input->getHeight();
   }
 
 };

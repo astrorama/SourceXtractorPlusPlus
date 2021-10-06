@@ -22,7 +22,7 @@
  */
 
 #include "SEFramework/Aperture/FluxMeasurement.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -31,8 +31,8 @@ const SeFloat BADAREA_THRESHOLD_APER = 0.1;
 static std::tuple<SeFloat, SeFloat>
 getMirrorPixel(SeFloat centroid_x, SeFloat centroid_y,
                PixelCoordinate min_pixel, int pixel_x, int pixel_y,
-               const ImageChunk<SeFloat>& img,
-               const ImageChunk<SeFloat>& variance_map,
+               const VectorImage<SeFloat>& img,
+               const VectorImage<SeFloat>& variance_map,
                SeFloat variance_threshold) {
   centroid_x -= min_pixel.m_x;
   centroid_y -= min_pixel.m_y;

@@ -55,7 +55,7 @@ public:
   /// Returns the height of the image in pixels
   int getHeight() const override;
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override;
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override;
 
 protected:
   std::shared_ptr<const ImageSource> m_source;

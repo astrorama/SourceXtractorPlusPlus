@@ -27,7 +27,7 @@
 #include <memory>
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ConstantImage.h"
 
 namespace SourceXtractor {
@@ -72,10 +72,10 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override{
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
     auto img_chunk = m_image->getChunk(x, y, width, height);
     auto var_chunk = m_variance_map->getChunk(x, y, width, height);
-    auto chunk = UniversalImageChunk<T>::create(std::move(*img_chunk));
+    auto chunk = VectorImage<T>::create(std::move(*img_chunk));
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         chunk->at(ix, iy) -= sqrt(var_chunk->getValue(ix, iy)) * m_threshold_multiplier;

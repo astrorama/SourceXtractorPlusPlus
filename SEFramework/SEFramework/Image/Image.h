@@ -31,7 +31,7 @@
 namespace SourceXtractor {
 
 template <typename T>
-class ImageChunk;
+class VectorImage;
 
 
 /**
@@ -60,9 +60,9 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
-  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const = 0;
+  virtual std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const = 0;
 
-  std::shared_ptr<ImageChunk<T>> getChunk(const PixelCoordinate& start,
+  std::shared_ptr<VectorImage<T>> getChunk(const PixelCoordinate& start,
                                           const PixelCoordinate& end) const {
     assert(isInside(start.m_x, start.m_y) && isInside(end.m_x, end.m_y));
     return getChunk(start.m_x, start.m_y, end.m_x - start.m_x + 1, end.m_y - start.m_y + 1);

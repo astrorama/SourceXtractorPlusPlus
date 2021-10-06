@@ -43,10 +43,11 @@ BackgroundModel SimpleBackgroundAnalyzer::analyzeBackground(
   // FIXME we use a VectorImage the same size as input which won't allow larger than memory images to be processed
 
   auto image_copy = VectorImage<DetectionImage::PixelType>::create(*image);
-  std::sort(image_copy->getData().begin(), image_copy->getData().end());
+  auto size = image_copy->getWidth() * image_copy->getHeight();
+  std::sort(image_copy->begin(), image_copy->end());
   bck_model_logger.debug() << "Using the SimpleBackgroundLeverAnalyzer";
 
-  auto background_level = image_copy->getData()[image_copy->getData().size()/2]; // the median
+  auto background_level     = image_copy->begin()[size / 2];  // the median
   auto background_level_map = ConstantImage<SeFloat>::create(image->getWidth(), image->getHeight(), background_level);
 
   auto subtracted_image = SubtractImage<SeFloat>::create(image, background_level_map);

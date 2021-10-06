@@ -17,7 +17,7 @@
 
 #include <Histogram/Histogram.h> // From Alexandria
 
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEImplementation/Background/SE/KappaSigmaBinning.h"
 

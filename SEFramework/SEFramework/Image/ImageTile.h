@@ -172,7 +172,7 @@ public:
   }
 
   void* getDataPtr() override {
-    return &m_tile_image->getData()[0];
+    return &(*m_tile_image->begin());
   }
 
   const std::shared_ptr<VectorImage<T>>& getImage() const {

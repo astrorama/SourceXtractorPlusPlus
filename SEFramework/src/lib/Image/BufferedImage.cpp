@@ -54,7 +54,7 @@ int BufferedImage<T>::getHeight() const {
 
 
 template<typename T>
-std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int width, int height) const {
+std::shared_ptr<VectorImage<T>> BufferedImage<T>::getChunk(int x, int y, int width, int height) const {
   int tile_width = m_tile_manager->getTileWidth();
   int tile_height = m_tile_manager->getTileHeight();
   int tile_offset_x = x % tile_width;
@@ -93,7 +93,7 @@ std::shared_ptr<ImageChunk<T>> BufferedImage<T>::getChunk(int x, int y, int widt
       }
     }
 
-    return UniversalImageChunk<T>::create(std::move(data), width, height);
+    return VectorImage<T>::create(width, height, std::move(data));
   }
 }
 

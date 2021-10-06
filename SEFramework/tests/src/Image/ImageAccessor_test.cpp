@@ -42,7 +42,7 @@ public:
     return m_decorated->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     ++m_count;
     return m_decorated->getChunk(x, y, width, height);
   }
@@ -61,8 +61,7 @@ struct ImageAccessor_Fixture {
 
   ImageAccessor_Fixture() {
     auto vimg = VectorImage<float>::create(512, 512);
-    auto& data = vimg->getData();
-    std::generate(data.begin(), data.end(), std::rand);
+    std::generate(vimg->begin(), vimg->end(), std::rand);
 
     m_image = std::make_shared<MockImage<float>>(vimg);
   }

@@ -79,7 +79,7 @@ BOOST_FIXTURE_TEST_CASE (Simple_test, GrowthCurveFixture) {
   BOOST_CHECK_EQUAL(growth0.getStepSize(), 4. / 64.);
 
   // Last one must be equal to the sum
-  SeFloat acc = std::accumulate(img0->getData().begin(), img0->getData().end(), 0.);
+  SeFloat acc = std::accumulate(img0->begin(), img0->end(), 0.);
   BOOST_CHECK_CLOSE(acc, growth0.getCurve().back(), 1e-5);
 }
 

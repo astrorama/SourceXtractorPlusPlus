@@ -68,7 +68,7 @@ public:
     return m_height;
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     return m_image->getChunk(x + m_offset.m_x, y + m_offset.m_y, width, height);
   }
 

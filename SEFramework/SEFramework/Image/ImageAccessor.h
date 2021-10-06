@@ -19,7 +19,7 @@
 #define _SEFRAMEWORK_IMAGE_IMAGEACCESSOR_H
 
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -125,14 +125,14 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     return m_image->getChunk(x, y, width, height);
   };
 
 private:
   const Image<T>* m_image;
   std::shared_ptr<const Image<T>> m_keep_alive;
-  std::shared_ptr<const ImageChunk<T>> m_chunk;
+  std::shared_ptr<const VectorImage<T>> m_chunk;
   PixelCoordinate m_chunk_min, m_chunk_max;
   AccessHint m_hint;
   int m_read_width, m_read_height;

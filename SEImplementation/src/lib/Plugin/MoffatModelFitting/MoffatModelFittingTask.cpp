@@ -209,7 +209,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   };
 
   auto weight = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
-  std::fill(weight->getData().begin(), weight->getData().end(), 1);
+  std::fill(weight->begin(), weight->end(), 1);
 
   for (int y=0; y < source_stamp.getHeight(); y++) {
     for (int x=0; x < source_stamp.getWidth(); x++) {

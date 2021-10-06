@@ -25,7 +25,7 @@
 
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageAccessor.h"
-#include "SEFramework/Image/ImageChunk.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
@@ -57,9 +57,9 @@ public:
     return m_img->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     ImageAccessor<T> accessor(m_img, ImageAccessor<T>::BOTTOM_RIGHT);
-    auto chunk = UniversalImageChunk<T>::create(width, height);
+    auto chunk = VectorImage<T>::create(width, height);
     auto img_w = accessor.getWidth();
     auto img_h = accessor.getHeight();
     for (int iy = 0; iy < height; ++iy) {

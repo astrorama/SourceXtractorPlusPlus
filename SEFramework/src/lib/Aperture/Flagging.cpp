@@ -18,6 +18,7 @@
 
 
 #include "SEFramework/Aperture/Flagging.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 

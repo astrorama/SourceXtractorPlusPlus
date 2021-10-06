@@ -72,7 +72,7 @@ public:
     return m_image_a->getHeight();
   }
 
-  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     std::vector<T> new_chunk_data(width * height);
     auto a_chunk = m_image_a->getChunk(x, y, width, height);
     auto b_chunk = m_image_b->getChunk(x, y, width, height);
@@ -82,7 +82,7 @@ public:
                                                      b_chunk->getValue(ix, iy));
       }
     }
-    return UniversalImageChunk<T>::create(std::move(new_chunk_data), width, height);
+    return VectorImage<T>::create(width, height, std::move(new_chunk_data));
   }
 
 private:

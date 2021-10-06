@@ -22,6 +22,7 @@
  */
 
 #include "SEFramework/Aperture/NeighbourInfo.h"
+#include "SEFramework/Image/VectorImage.h"
 
 namespace SourceXtractor {
 
