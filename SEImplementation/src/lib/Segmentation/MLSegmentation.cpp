@@ -126,7 +126,6 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
   auto image = frame->getSubtractedImage();
   ImageAccessor<SeFloat> image_acc(image);
 
-
   std::vector<std::shared_ptr<WriteableImage<float>>> tmp_images;
   std::vector<std::shared_ptr<WriteableImage<float>>> check_images;
   for (int i=0; i < data_planes; i++) {
