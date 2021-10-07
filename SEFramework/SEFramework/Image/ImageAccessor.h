@@ -125,9 +125,13 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     return m_image->getChunk(x, y, width, height);
-  };
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    m_image->getChunk(x, y, output);
+  }
 
 private:
   const Image<T>* m_image;

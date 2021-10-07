@@ -100,9 +100,14 @@ BOOST_AUTO_TEST_CASE(chunk_iterators) {
   std::iota(base.begin(), base.end(), 0);
   auto image = VectorImage<int>::create(10, 10, base);
 
+  BOOST_CHECK(!image->mayBeShared());
+
   auto chunk    = image->getChunk(3, 4, 5, 5);
   auto expected = VectorImage<int>::create(
       5, 5, std::vector<int>{43, 44, 45, 46, 47, 53, 54, 55, 56, 57, 63, 64, 65, 66, 67, 73, 74, 75, 76, 77, 83, 84, 85, 86, 87});
+
+  BOOST_CHECK(image->mayBeShared());
+  BOOST_CHECK(chunk->mayBeShared());
 
   BOOST_CHECK_EQUAL_COLLECTIONS(expected->begin(), expected->end(), chunk->begin(), chunk->end());
 
@@ -110,6 +115,22 @@ BOOST_AUTO_TEST_CASE(chunk_iterators) {
   a += 10;
   BOOST_CHECK_EQUAL(*a, 63);
   BOOST_CHECK_EQUAL(*(--a), 57);
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(chunk_inplace) {
+  std::vector<int> base(100);
+  std::iota(base.begin(), base.end(), 0);
+  auto image = VectorImage<int>::create(10, 10, base);
+
+  auto chunk = VectorImage<int>::create(5, 5);
+  image->getChunk(3, 4, *chunk);
+
+  auto expected = VectorImage<int>::create(
+      5, 5, std::vector<int>{43, 44, 45, 46, 47, 53, 54, 55, 56, 57, 63, 64, 65, 66, 67, 73, 74, 75, 76, 77, 83, 84, 85, 86, 87});
+
+  BOOST_CHECK_EQUAL_COLLECTIONS(expected->begin(), expected->end(), chunk->begin(), chunk->end());
 }
 
 //-----------------------------------------------------------------------------

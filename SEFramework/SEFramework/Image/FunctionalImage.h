@@ -69,15 +69,21 @@ public:
     return m_img->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const final {
+    int  width    = output.getWidth();
+    int  height   = output.getHeight();
     auto in_chunk = m_img->getChunk(x, y, width, height);
-    auto chunk = VectorImage<T>::create(width, height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        chunk->at(ix, iy) = m_functor(ix + x, iy + y, in_chunk->getValue(ix, iy));
+        output.at(ix, iy) = m_functor(ix + x, iy + y, in_chunk->getValue(ix, iy));
       }
     }
-    return chunk;
   }
 
 private:

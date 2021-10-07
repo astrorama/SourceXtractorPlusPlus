@@ -264,14 +264,22 @@ auto VectorImage<T>::end() const -> const_iterator {
 }
 
 template <typename T>
-std::shared_ptr<VectorImage<T>> VectorImage<T>::getChunk(int x, int y, int width, int height) const {
-  auto dst = create(width, height);
-  for (int iy = 0; iy < height; ++iy) {
-    for (int ix = 0; ix < width; ++ix) {
-      dst->at(ix, iy) = at(ix + x, iy + y);
+bool VectorImage<T>::mayBeShared() const {
+  return m_data.use_count() > 1;
+}
+
+template <typename T>
+std::shared_ptr<const VectorImage<T>> VectorImage<T>::getChunk(int x, int y, int width, int height) const {
+  return create(width, height, m_data, m_offset + x + y * m_stride, m_stride);
+}
+
+template <typename T>
+void VectorImage<T>::getChunk(int x, int y, VectorImage<T>& output) const {
+  for (int iy = 0; iy < output.m_height; ++iy) {
+    for (int ix = 0; ix < output.m_width; ++ix) {
+      output.at(ix, iy) = at(ix + x, iy + y);
     }
   }
-  return dst;
 }
 
 }  // namespace SourceXtractor

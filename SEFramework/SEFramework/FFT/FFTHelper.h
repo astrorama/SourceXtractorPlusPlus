@@ -41,7 +41,7 @@ namespace SourceXtractor {
  *  The size of the buffer *must* fit the padded data used by FFTW3: height * (width / 2 + 1) * 2
  */
 template <typename T, template <typename> class Img>
-static void copyImageToFFTWorkArea(Img<T>& origin, std::vector<T>& buffer) {
+static void copyImageToFFTWorkArea(const Img<T>& origin, std::vector<T>& buffer) {
   int width  = origin.getWidth();
   int height = origin.getHeight();
   int pad    = 2 * (width / 2 + 1) - width;

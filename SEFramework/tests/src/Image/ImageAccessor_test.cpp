@@ -42,9 +42,14 @@ public:
     return m_decorated->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
     ++m_count;
     return m_decorated->getChunk(x, y, width, height);
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    ++m_count;
+    m_decorated->getChunk(x, y, output);
   }
 
   int getChunkCount() const {

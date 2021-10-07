@@ -58,8 +58,12 @@ public:
     return m_width;
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
+  std::shared_ptr<const VectorImage<T>> getChunk(int /*x*/, int /*y*/, int width, int height) const final {
     return VectorImage<T>::create(width, height, std::move(std::vector<T>(width * height, m_constant_value)));
+  }
+
+  void getChunk(int /*x*/, int /*y*/, VectorImage<T>& output) const final {
+    output.fillValue(m_constant_value);
   }
 
 private:

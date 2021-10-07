@@ -55,13 +55,15 @@ public:
   /// Returns the height of the image in pixels
   int getHeight() const override;
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override;
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override;
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override;
 
 protected:
   std::shared_ptr<const ImageSource> m_source;
   std::shared_ptr<TileManager> m_tile_manager;
 
-  void copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T> &output,
+  void copyOverlappingPixels(const ImageTileWithType<T> &tile, VectorImage<T>& output,
                              int x, int y, int w, int h,
                              int tile_w, int tile_h) const;
 };

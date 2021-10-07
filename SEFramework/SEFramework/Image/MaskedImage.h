@@ -90,18 +90,24 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
-    auto chunk = VectorImage<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const final {
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const final {
+    int width  = output.getWidth();
+    int height = output.getHeight();
+    m_image->getChunk(x, y, output);
     auto mask_chunk = m_mask->getChunk(x, y, width, height);
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         if (m_operator(mask_chunk->getValue(ix, iy), m_mask_flag))
-          chunk->setValue(ix, iy, m_replacement);
+          output.setValue(ix, iy, m_replacement);
       }
     }
-    return chunk;
   }
-
 };
 
 } // end of namespace SourceXtractor

@@ -60,13 +60,18 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
-  virtual std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const = 0;
+  /// Get a read-only chunk, owned by the callee.
+  /// This allows the underlying implementation to share the memory if it can
+  virtual std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const = 0;
 
-  std::shared_ptr<VectorImage<T>> getChunk(const PixelCoordinate& start,
+  std::shared_ptr<const VectorImage<T>> getChunk(const PixelCoordinate& start,
                                           const PixelCoordinate& end) const {
     assert(isInside(start.m_x, start.m_y) && isInside(end.m_x, end.m_y));
     return getChunk(start.m_x, start.m_y, end.m_x - start.m_x + 1, end.m_y - start.m_y + 1);
   }
+
+  /// Get a writeable chunk, owned by the caller.
+  virtual void getChunk(int x, int y, VectorImage<T>& output) const = 0;
 
   /// Returns true if the given coordinates are inside the image bounds
   bool isInside(int x, int y) const {

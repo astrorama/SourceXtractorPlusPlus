@@ -102,19 +102,25 @@ public:
     return m_height;
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    int              width  = output.getWidth();
+    int              height = output.getHeight();
     ImageAccessor<T> accessor(m_img, ImageAccessor<T>::TOP_LEFT, width, height);
-    auto chunk = VectorImage<T>::create(width, height);
-    auto img_w = accessor.getWidth();
-    auto img_h = accessor.getHeight();
+    auto             img_w = accessor.getWidth();
+    auto             img_h = accessor.getHeight();
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        auto img_x = CoordinateInterpolation(img_w, ix + x - m_lpad);
-        auto img_y = CoordinateInterpolation(img_h, iy + y - m_tpad);
-        chunk->at(ix, iy) = accessor.getValue(img_x, img_y);
+        auto img_x        = CoordinateInterpolation(img_w, ix + x - m_lpad);
+        auto img_y        = CoordinateInterpolation(img_h, iy + y - m_tpad);
+        output.at(ix, iy) = accessor.getValue(img_x, img_y);
       }
     }
-    return chunk;
   }
 
 private:
@@ -157,26 +163,29 @@ public:
     return m_height;
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
-    ImageAccessor<T> accessor(m_img, ImageAccessor<T>::TOP_LEFT, width, height);
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
 
-    auto chunk = VectorImage<T>::create(width, height);
-    auto img_w = accessor.getWidth();
-    auto img_h = accessor.getHeight();
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    int              width  = output.getWidth();
+    int              height = output.getHeight();
+    ImageAccessor<T> accessor(m_img, ImageAccessor<T>::TOP_LEFT, width, height);
+    auto             img_w = accessor.getWidth();
+    auto             img_h = accessor.getHeight();
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
         auto img_x = x + ix;
         auto img_y = y + iy;
-        if (img_x < m_lpad || img_y < m_tpad || img_x >= img_w + m_lpad ||
-            img_y >= img_h + m_tpad) {
-          chunk->at(ix, iy) = m_default;
-        }
-        else {
-          chunk->at(ix, iy) = accessor.getValue(img_x - m_lpad, img_y - m_tpad);
+        if (img_x < m_lpad || img_y < m_tpad || img_x >= img_w + m_lpad || img_y >= img_h + m_tpad) {
+          output.at(ix, iy) = m_default;
+        } else {
+          output.at(ix, iy) = accessor.getValue(img_x - m_lpad, img_y - m_tpad);
         }
       }
     }
-    return chunk;
   }
 
 private:

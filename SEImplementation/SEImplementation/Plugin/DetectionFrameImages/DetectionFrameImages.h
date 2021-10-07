@@ -39,7 +39,8 @@ public:
     return std::make_shared<ImageAccessor<SeFloat>>(m_frame->getImage(layer));
   }
 
-  std::shared_ptr<VectorImage<DetectionImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width, int height) const {
+  std::shared_ptr<const VectorImage<DetectionImage::PixelType>> getImageChunk(FrameImageLayer layer, int x, int y, int width,
+                                                                              int height) const {
     return m_frame->getImage(layer)->getChunk(x, y, width, height);
   }
 

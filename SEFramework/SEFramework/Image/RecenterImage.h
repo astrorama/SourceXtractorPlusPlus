@@ -57,20 +57,23 @@ public:
     return m_img->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    int              width  = output.getWidth();
+    int              height = output.getHeight();
     ImageAccessor<T> accessor(m_img);
-    auto chunk = VectorImage<T>::create(width, height);
-    auto img_w = accessor.getWidth();
-    auto img_h = accessor.getHeight();
+    auto             img_w = accessor.getWidth();
+    auto             img_h = accessor.getHeight();
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        chunk->at(ix, iy) = accessor.getValue(
-          (ix + x + m_center.m_x) % img_w,
-          (iy + y + m_center.m_y) % img_h
-        );
+        output.at(ix, iy) = accessor.getValue((ix + x + m_center.m_x) % img_w, (iy + y + m_center.m_y) % img_h);
       }
     }
-    return chunk;
   }
 
 private:

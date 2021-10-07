@@ -157,12 +157,16 @@ public:
 
   const_iterator end() const;
 
+  bool mayBeShared() const;
+
   /**
    * @brief Destructor
    */
   virtual ~VectorImage() = default;
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final;
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const final;
+
+  void getChunk(int x, int y, VectorImage<T>& output) const final;
 
 private:
   int                             m_width, m_height;

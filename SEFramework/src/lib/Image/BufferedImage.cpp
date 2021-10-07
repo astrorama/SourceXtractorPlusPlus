@@ -54,7 +54,7 @@ int BufferedImage<T>::getHeight() const {
 
 
 template<typename T>
-std::shared_ptr<VectorImage<T>> BufferedImage<T>::getChunk(int x, int y, int width, int height) const {
+std::shared_ptr<const VectorImage<T>> BufferedImage<T>::getChunk(int x, int y, int width, int height) const {
   int tile_width = m_tile_manager->getTileWidth();
   int tile_height = m_tile_manager->getTileHeight();
   int tile_offset_x = x % tile_width;
@@ -72,34 +72,74 @@ std::shared_ptr<VectorImage<T>> BufferedImage<T>::getChunk(int x, int y, int wid
     auto image = tile->getImage();
     return image->getChunk(tile_offset_x, tile_offset_y, width, height);
   }
-  else {
-    // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
-    // To avoid the overhead of calling getValue() - which uses a thread local - we do the full thing here
-    // Also, instead of iterating on the pixel coordinates, to avoid asking several times for the same tile,
-    // iterate over the tiles
-    std::vector<T> data(width * height);
-    int tile_w = m_tile_manager->getTileWidth();
-    int tile_h = m_tile_manager->getTileHeight();
 
-    int tile_start_x = x / tile_w * tile_w;
-    int tile_start_y = y / tile_h * tile_h;
-    int tile_end_x = (x + width - 1) / tile_w * tile_w;
-    int tile_end_y = (y + height - 1) / tile_h * tile_h;
+  // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
+  // To avoid the overhead of calling getValue() - which uses a thread local - we do the full thing here
+  // Also, instead of iterating on the pixel coordinates, to avoid asking several times for the same tile,
+  // iterate over the tiles
+  auto data = VectorImage<T>::create(width, height);
+  int tile_w = m_tile_manager->getTileWidth();
+  int tile_h = m_tile_manager->getTileHeight();
 
-    for (int iy = tile_start_y; iy <= tile_end_y; iy += tile_h) {
-      for (int ix = tile_start_x; ix <= tile_end_x; ix += tile_w) {
-        auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
-        copyOverlappingPixels(*tile, data, x, y, width, height, tile_w, tile_h);
-      }
+  int tile_start_x = x / tile_w * tile_w;
+  int tile_start_y = y / tile_h * tile_h;
+  int tile_end_x = (x + width - 1) / tile_w * tile_w;
+  int tile_end_y = (y + height - 1) / tile_h * tile_h;
+
+  for (int iy = tile_start_y; iy <= tile_end_y; iy += tile_h) {
+    for (int ix = tile_start_x; ix <= tile_end_x; ix += tile_w) {
+      auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
+      copyOverlappingPixels(*tile, *data, x, y, width, height, tile_w, tile_h);
     }
+  }
 
-    return VectorImage<T>::create(width, height, std::move(data));
+  return data;
+}
+
+template<typename T>
+void BufferedImage<T>::getChunk(int x, int y, VectorImage<T>& output) const {
+  int tile_width = m_tile_manager->getTileWidth();
+  int tile_height = m_tile_manager->getTileHeight();
+  int tile_offset_x = x % tile_width;
+  int tile_offset_y = y % tile_height;
+  int width = output.getWidth();
+  int height = output.getHeight();
+
+  // When the chunk does *not* cross boundaries, we can just use the memory hold by the single tile
+  if (tile_offset_x + width <= tile_width && tile_offset_y + height <= tile_height) {
+    // the tile image is going to be kept in memory as long as the chunk exists, but it could be unloaded
+    // from TileManager and even reloaded again, wasting memory,
+    // however image chunks are normally short lived so it's probably OK
+    auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(x, y, m_source));
+    assert(tile != nullptr);
+
+    // The tile may be smaller than tile_width x tile_height if the image is smaller, or does not divide neatly!
+    auto image = tile->getImage();
+    image->getChunk(tile_offset_x, tile_offset_y, output);
+  }
+
+  // If the chunk cross boundaries, we can't just use the memory from within a tile, so we need to copy
+  // To avoid the overhead of calling getValue() - which uses a thread local - we do the full thing here
+  // Also, instead of iterating on the pixel coordinates, to avoid asking several times for the same tile,
+  // iterate over the tiles
+  int tile_w = m_tile_manager->getTileWidth();
+  int tile_h = m_tile_manager->getTileHeight();
+
+  int tile_start_x = x / tile_w * tile_w;
+  int tile_start_y = y / tile_h * tile_h;
+  int tile_end_x = (x + width - 1) / tile_w * tile_w;
+  int tile_end_y = (y + height - 1) / tile_h * tile_h;
+
+  for (int iy = tile_start_y; iy <= tile_end_y; iy += tile_h) {
+    for (int ix = tile_start_x; ix <= tile_end_x; ix += tile_w) {
+      auto tile = std::dynamic_pointer_cast<ImageTileWithType<T>>(m_tile_manager->getTileForPixel(ix, iy, m_source));
+      copyOverlappingPixels(*tile, output, x, y, width, height, tile_w, tile_h);
+    }
   }
 }
 
-
 template<typename T>
-void BufferedImage<T>::copyOverlappingPixels(const ImageTileWithType<T> &tile, std::vector<T>& output,
+void BufferedImage<T>::copyOverlappingPixels(const ImageTileWithType<T> &tile, VectorImage<T>& output,
                                              int x, int y, int w, int h,
                                              int tile_w, int tile_h) const {
   int start_x = std::max(tile.getPosX(), x);
@@ -111,7 +151,7 @@ void BufferedImage<T>::copyOverlappingPixels(const ImageTileWithType<T> &tile, s
 
   for (int data_y = off_y, img_y = start_y; img_y < end_y; ++data_y, ++img_y) {
     for (int data_x = off_x, img_x = start_x; img_x < end_x; ++data_x, ++img_x) {
-      tile.getValue(img_x, img_y, output[data_x + data_y * w]);
+      tile.getValue(img_x, img_y, output.at(data_x, data_y));
     }
   }
 }

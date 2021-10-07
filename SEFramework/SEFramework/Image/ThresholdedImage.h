@@ -72,16 +72,22 @@ public:
     return m_image->getHeight();
   }
 
-  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
-    auto img_chunk = m_image->getChunk(x, y, width, height);
+  std::shared_ptr<const VectorImage<T>> getChunk(int x, int y, int width, int height) const override{
+    auto output = VectorImage<T>::create(width, height);
+    getChunk(x, y, *output);
+    return output;
+  }
+
+  void getChunk(int x, int y, VectorImage<T>& output) const override {
+    int width = output.getWidth();
+    int height = output.getHeight();
+    m_image->getChunk(x, y, output);
     auto var_chunk = m_variance_map->getChunk(x, y, width, height);
-    auto chunk = VectorImage<T>::create(std::move(*img_chunk));
     for (int iy = 0; iy < height; ++iy) {
       for (int ix = 0; ix < width; ++ix) {
-        chunk->at(ix, iy) -= sqrt(var_chunk->getValue(ix, iy)) * m_threshold_multiplier;
+        output.at(ix, iy) -= sqrt(var_chunk->getValue(ix, iy)) * m_threshold_multiplier;
       }
     }
-    return chunk;
   }
 
 private:
