@@ -48,53 +48,27 @@ namespace SourceXtractor {
 template <typename T>
 class VectorImage final : public WriteableImage<T> {
 protected:
-  VectorImage(const VectorImage<T>& other)
-      : m_width(other.m_width)
-      , m_height(other.m_height)
-      , m_offset(0)
-      , m_stride(m_width)
-      , m_data(std::make_shared<std::vector<T>>(*other.m_data)) {}
+  VectorImage(const VectorImage<T>& other);
 
   VectorImage(VectorImage<T>&& other) = default;
 
-  VectorImage(int width, int height)
-      : m_width(width), m_height(height), m_offset(0), m_stride(m_width), m_data(std::make_shared<std::vector<T>>(width * height)) {
-    assert(width > 0 && height > 0);
-  }
+  VectorImage(int width, int height);
 
-  VectorImage(int width, int height, std::vector<T>&& data)
-      : m_width(width)
-      , m_height(height)
-      , m_offset(0)
-      , m_stride(m_width)
-      , m_data(std::make_shared<std::vector<T>>(std::move(data))) {
-    assert(width > 0 && height > 0);
-    assert(m_data->size() == std::size_t(width * height));
-  }
+  VectorImage(int width, int height, std::vector<T>&& data);
 
-  VectorImage(int width, int height, const std::vector<T>& data) : VectorImage(width, height, std::move(std::vector<T>(data))) {}
+  VectorImage(int width, int height, const std::vector<T>& data);
 
   template <typename Iter>
   VectorImage(int width, int height, Iter data_begin, Iter data_end,
               typename std::enable_if<
                   std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value and
-                  std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value>::type* = 0)
-      : m_width(width)
-      , m_height(height)
-      , m_offset(0)
-      , m_stride(m_width)
-      , m_data(std::make_shared<std::vector<T>>(data_begin, data_end)) {
-    assert(m_data->size() == std::size_t(width * height));
-  }
+                  std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value>::type* = 0);
 
-  VectorImage(const Image<T>& other) : VectorImage(std::move(*other.getChunk(0, 0, other.getWidth(), other.getHeight()))) {}
+  VectorImage(const Image<T>& other);
 
-  VectorImage(const std::shared_ptr<const Image<T>>& other) : VectorImage(static_cast<const Image<T>&>(*other)) {}
+  VectorImage(const std::shared_ptr<const Image<T>>& other);
 
-  VectorImage(int width, int height, std::shared_ptr<std::vector<T>> data, int offset, int stride)
-      : m_width(width), m_height(height), m_offset(offset), m_stride(stride), m_data(std::move(data)) {
-    assert(static_cast<size_t>((m_height - 1) * m_stride + m_offset) <= m_data->size());
-  }
+  VectorImage(int width, int height, std::shared_ptr<std::vector<T>> data, int offset, int stride);
 
 public:
   template <typename IT>
@@ -105,102 +79,45 @@ public:
 
     iterator_impl& operator=(const iterator_impl&) = default;
 
-    IT& operator*() {
-      return m_img->at(m_x, m_y);
-    }
+    IT& operator*();
 
-    bool operator==(const iterator_impl& other) const {
-      return m_img == other.m_img && m_x == other.m_x && m_y == other.m_y;
-    }
+    bool operator==(const iterator_impl& other) const;
 
-    bool operator!=(const iterator_impl& other) const {
-      return !(*this == other);
-    }
+    bool operator!=(const iterator_impl& other) const;
 
-    iterator_impl& operator++() {
-      ++m_x;
-      if (m_x >= m_img->m_width) {
-        m_x = 0;
-        ++m_y;
-      }
-      return *this;
-    }
+    iterator_impl& operator++();
 
-    iterator_impl& operator--() {
-      --m_x;
-      if (m_x < 0) {
-        m_x = m_img->m_width - 1;
-        --m_y;
-      }
-      return *this;
-    }
+    iterator_impl& operator--();
 
-    iterator_impl operator++(int) {
-      iterator_impl iter(*this);
-      ++(*this);
-      return iter;
-    }
+    iterator_impl operator++(int);
 
-    iterator_impl operator--(int) {
-      iterator_impl iter(*this);
-      --(*this);
-      return iter;
-    }
+    iterator_impl operator--(int);
 
-    iterator_impl& operator+=(int n) {
-      m_x += n;
-      m_y += m_x / m_img->m_width;
-      m_x = m_x % m_img->m_width;
-      return *this;
-    }
+    iterator_impl& operator+=(int n);
 
-    iterator_impl& operator-=(int n) {
-      return *this += -n;
-    }
+    iterator_impl& operator-=(int n);
 
-    iterator_impl operator+(int n) {
-      iterator_impl iter(*this);
-      iter += n;
-      return iter;
-    }
+    iterator_impl operator+(int n);
 
-    iterator_impl operator-(int n) const {
-      iterator_impl iter(*this);
-      iter -= n;
-      return iter;
-    }
+    iterator_impl operator-(int n) const;
 
-    ptrdiff_t operator-(const iterator_impl& other) const {
-      int off_self  = m_x + m_y * m_img->m_width;
-      int off_other = other.m_x + other.m_y * other.m_img->m_width;
-      return off_self - off_other;
-    }
+    ptrdiff_t operator-(const iterator_impl& other) const;
 
-    IT& operator[](int n) {
-      return *(*this + n);
-    }
+    IT& operator[](int n);
 
-    bool operator<(const iterator_impl& other) const {
-      return m_y < other.m_y || (m_y == other.m_y && m_x < other.m_x);
-    }
+    bool operator<(const iterator_impl& other) const;
 
-    bool operator>(const iterator_impl& other) const {
-      return m_y > other.m_y || (m_y == other.m_y && m_x > other.m_x);
-    }
+    bool operator>(const iterator_impl& other) const;
 
-    bool operator<=(const iterator_impl& other) const {
-      return !(*this > other);
-    }
+    bool operator<=(const iterator_impl& other) const;
 
-    bool operator>=(const iterator_impl& other) const {
-      return !(*this < other);
-    }
+    bool operator>=(const iterator_impl& other) const;
 
   private:
     friend class VectorImage<T>;
     using VectorImagePtr = typename std::conditional<std::is_const<IT>::value, const VectorImage<T>, VectorImage<T>>::type*;
 
-    iterator_impl(VectorImagePtr img, int x, int y) : m_img(img), m_x(x), m_y(y) {}
+    iterator_impl(VectorImagePtr img, int x, int y);
 
     VectorImagePtr m_img;
     int            m_x, m_y;
@@ -210,86 +127,42 @@ public:
   using const_iterator = iterator_impl<const T>;
 
   template <typename... Args>
-  static std::shared_ptr<VectorImage<T>> create(Args&&... args) {
-    return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
-  }
+  static std::shared_ptr<VectorImage<T>> create(Args&&... args);
 
-  std::string getRepr() const final {
-    return "VectorImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
-  }
+  std::string getRepr() const final;
 
-  int getHeight() const final {
-    return m_height;
-  }
+  int getHeight() const final;
 
-  int getWidth() const final {
-    return m_width;
-  }
+  int getWidth() const final;
 
-  T getValue(int x, int y) const {
-    return this->at(x, y);
-  }
+  T getValue(int x, int y) const;
 
-  T getValue(PixelCoordinate coord) const {
-    return this->at(coord.m_x, coord.m_y);
-  }
+  T getValue(PixelCoordinate coord) const;
 
-  void setValue(int x, int y, T value) final {
-    at(x, y) = value;
-  }
+  void setValue(int x, int y, T value) final;
 
-  void setValue(PixelCoordinate pc, T value) {
-    setValue(pc.m_x, pc.m_y, value);
-  }
+  void setValue(PixelCoordinate pc, T value);
 
-  T& at(int x, int y) {
-    assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
-    return (*m_data)[m_offset + x + y * m_stride];
-  }
+  T& at(int x, int y);
 
-  const T& at(int x, int y) const {
-    assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
-    return (*m_data)[m_offset + x + y * m_stride];
-  }
+  const T& at(int x, int y) const;
 
-  void fillValue(T value) {
-    for (int y = 0; y < m_height; ++y) {
-      for (int x = 0; x < m_width; ++x) {
-        at(x, y) = value;
-      }
-    }
-  }
+  void fillValue(T value);
 
-  iterator begin() {
-    return iterator(this, 0, 0);
-  }
+  iterator begin();
 
-  iterator end() {
-    return iterator(this, 0, m_height);
-  }
+  iterator end();
 
-  const_iterator begin() const {
-    return const_iterator(this, 0, 0);
-  }
+  const_iterator begin() const;
 
-  const_iterator end() const {
-    return const_iterator(this, 0, m_height);
-  }
+  const_iterator end() const;
 
   /**
    * @brief Destructor
    */
   virtual ~VectorImage() = default;
 
-  virtual std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const override {
-    auto dst = create(width, height);
-    for (int iy = 0; iy < height; ++iy) {
-      for (int ix = 0; ix < width; ++ix) {
-        dst->at(ix, iy) = at(ix + x, iy + y);
-      }
-    }
-    return dst;
-  }
+  std::shared_ptr<VectorImage<T>> getChunk(int x, int y, int width, int height) const final;
 
 private:
   int                             m_width, m_height;
@@ -299,5 +172,7 @@ private:
 }; /* End of VectorImage class */
 
 } /* namespace SourceXtractor */
+
+#include "SEFramework/Image/_impl/VectorImage.icpp"
 
 #endif

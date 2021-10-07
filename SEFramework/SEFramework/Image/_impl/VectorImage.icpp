@@ -1,0 +1,279 @@
+#ifndef _SEFRAMEWORK_IMAGE_VECTORIMAGE_ICPP
+#define _SEFRAMEWORK_IMAGE_VECTORIMAGE_ICPP
+
+namespace SourceXtractor {
+
+template <typename T>
+VectorImage<T>::VectorImage(const VectorImage<T>& other)
+    : VectorImage(other.m_width, other.m_height, std::move(std::vector<T>(other.begin(), other.end()))) {}
+
+template <typename T>
+VectorImage<T>::VectorImage(int width, int height)
+    : m_width(width), m_height(height), m_offset(0), m_stride(m_width), m_data(std::make_shared<std::vector<T>>(width * height)) {
+  assert(width > 0 && height > 0);
+}
+
+template <typename T>
+VectorImage<T>::VectorImage(int width, int height, std::vector<T>&& data)
+    : m_width(width), m_height(height), m_offset(0), m_stride(m_width), m_data(std::make_shared<std::vector<T>>(std::move(data))) {
+  assert(width > 0 && height > 0);
+  assert(m_data->size() == std::size_t(width * height));
+}
+
+template <typename T>
+VectorImage<T>::VectorImage(int width, int height, const std::vector<T>& data)
+    : VectorImage(width, height, std::move(std::vector<T>(data))) {}
+
+template <typename T>
+template <typename Iter>
+VectorImage<T>::VectorImage(
+    int width, int height, Iter data_begin, Iter data_end,
+    typename std::enable_if<
+        std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<Iter>::iterator_category>::value and
+        std::is_same<T, typename std::iterator_traits<Iter>::value_type>::value>::type*)
+    : m_width(width)
+    , m_height(height)
+    , m_offset(0)
+    , m_stride(m_width)
+    , m_data(std::make_shared<std::vector<T>>(data_begin, data_end)) {
+  assert(m_data->size() == std::size_t(width * height));
+}
+
+template <typename T>
+VectorImage<T>::VectorImage(const Image<T>& other)
+    : VectorImage(std::move(*other.getChunk(0, 0, other.getWidth(), other.getHeight()))) {}
+
+template <typename T>
+VectorImage<T>::VectorImage(const std::shared_ptr<const Image<T>>& other) : VectorImage(static_cast<const Image<T>&>(*other)) {}
+
+template <typename T>
+VectorImage<T>::VectorImage(int width, int height, std::shared_ptr<std::vector<T>> data, int offset, int stride)
+    : m_width(width), m_height(height), m_offset(offset), m_stride(stride), m_data(std::move(data)) {
+  assert(static_cast<size_t>((m_height - 1) * m_stride + m_offset) <= m_data->size());
+}
+
+template <typename T>
+template <typename IT>
+IT& VectorImage<T>::iterator_impl<IT>::operator*() {
+  return m_img->at(m_x, m_y);
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator==(const iterator_impl& other) const {
+  return m_img == other.m_img && m_x == other.m_x && m_y == other.m_y;
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator!=(const iterator_impl& other) const {
+  return !(*this == other);
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator++() -> iterator_impl& {
+  ++m_x;
+  if (m_x >= m_img->m_width) {
+    m_x = 0;
+    ++m_y;
+  }
+  return *this;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator--() -> iterator_impl& {
+  --m_x;
+  if (m_x < 0) {
+    m_x = m_img->m_width - 1;
+    --m_y;
+  }
+  return *this;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator++(int) -> iterator_impl {
+  iterator_impl iter(*this);
+  ++(*this);
+  return iter;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator--(int) -> iterator_impl {
+  iterator_impl iter(*this);
+  --(*this);
+  return iter;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator+=(int n) -> iterator_impl& {
+  m_x += n;
+  m_y += m_x / m_img->m_width;
+  m_x = m_x % m_img->m_width;
+  return *this;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator-=(int n) -> iterator_impl& {
+  return *this += -n;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator+(int n) -> iterator_impl {
+  iterator_impl iter(*this);
+  iter += n;
+  return iter;
+}
+
+template <typename T>
+template <typename IT>
+auto VectorImage<T>::iterator_impl<IT>::operator-(int n) const -> iterator_impl {
+  iterator_impl iter(*this);
+  iter -= n;
+  return iter;
+}
+
+template <typename T>
+template <typename IT>
+ptrdiff_t VectorImage<T>::iterator_impl<IT>::operator-(const iterator_impl& other) const {
+  int off_self  = m_x + m_y * m_img->m_width;
+  int off_other = other.m_x + other.m_y * other.m_img->m_width;
+  return off_self - off_other;
+}
+
+template <typename T>
+template <typename IT>
+IT& VectorImage<T>::iterator_impl<IT>::operator[](int n) {
+  return *(*this + n);
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator<(const iterator_impl& other) const {
+  return m_y < other.m_y || (m_y == other.m_y && m_x < other.m_x);
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator>(const iterator_impl& other) const {
+  return m_y > other.m_y || (m_y == other.m_y && m_x > other.m_x);
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator<=(const iterator_impl& other) const {
+  return !(*this > other);
+}
+
+template <typename T>
+template <typename IT>
+bool VectorImage<T>::iterator_impl<IT>::operator>=(const iterator_impl& other) const {
+  return !(*this < other);
+}
+
+template <typename T>
+template <typename IT>
+VectorImage<T>::iterator_impl<IT>::iterator_impl(VectorImagePtr img, int x, int y) : m_img(img), m_x(x), m_y(y) {}
+
+template <typename T>
+template <typename... Args>
+std::shared_ptr<VectorImage<T>> VectorImage<T>::create(Args&&... args) {
+  return std::shared_ptr<VectorImage<T>>(new VectorImage<T>(std::forward<Args>(args)...));
+}
+
+template <typename T>
+std::string VectorImage<T>::getRepr() const {
+  return "VectorImage<" + std::to_string(m_width) + "," + std::to_string(m_height) + ">";
+}
+
+template <typename T>
+int VectorImage<T>::getHeight() const {
+  return m_height;
+}
+
+template <typename T>
+int VectorImage<T>::getWidth() const {
+  return m_width;
+}
+
+template <typename T>
+T VectorImage<T>::getValue(int x, int y) const {
+  return this->at(x, y);
+}
+
+template <typename T>
+T VectorImage<T>::getValue(PixelCoordinate coord) const {
+  return this->at(coord.m_x, coord.m_y);
+}
+
+template <typename T>
+void VectorImage<T>::setValue(int x, int y, T value) {
+  at(x, y) = value;
+}
+
+template <typename T>
+void VectorImage<T>::setValue(PixelCoordinate pc, T value) {
+  setValue(pc.m_x, pc.m_y, value);
+}
+
+template <typename T>
+T& VectorImage<T>::at(int x, int y) {
+  assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
+  return (*m_data)[m_offset + x + y * m_stride];
+}
+
+template <typename T>
+const T& VectorImage<T>::at(int x, int y) const {
+  assert(x >= 0 && y >= 0 && x < m_width && y < m_height);
+  return (*m_data)[m_offset + x + y * m_stride];
+}
+
+template <typename T>
+void VectorImage<T>::fillValue(T value) {
+  for (int y = 0; y < m_height; ++y) {
+    for (int x = 0; x < m_width; ++x) {
+      at(x, y) = value;
+    }
+  }
+}
+
+template <typename T>
+auto VectorImage<T>::begin() -> iterator {
+  return iterator(this, 0, 0);
+}
+
+template <typename T>
+auto VectorImage<T>::end() -> iterator {
+  return iterator(this, 0, m_height);
+}
+
+template <typename T>
+auto VectorImage<T>::begin() const -> const_iterator {
+  return const_iterator(this, 0, 0);
+}
+
+template <typename T>
+auto VectorImage<T>::end() const -> const_iterator {
+  return const_iterator(this, 0, m_height);
+}
+
+template <typename T>
+std::shared_ptr<VectorImage<T>> VectorImage<T>::getChunk(int x, int y, int width, int height) const {
+  auto dst = create(width, height);
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      dst->at(ix, iy) = at(ix + x, iy + y);
+    }
+  }
+  return dst;
+}
+
+}  // namespace SourceXtractor
+
+#endif  // _SEFRAMEWORK_IMAGE_VECTORIMAGE_ICPP
