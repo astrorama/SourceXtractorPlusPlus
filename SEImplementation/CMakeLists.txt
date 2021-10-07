@@ -63,29 +63,36 @@ file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
 list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
 
 file(GLOB PLUGIN_SRC src/lib/Plugin/*/*.cpp)
+file(GLOB SEGMENTATION_SRC src/lib/Segmentation/*.cpp)
+file(GLOB COMMON_SRC src/lib/Common/*.cpp)
 
 if(NOT OnnxRuntime_FOUND)
   message("ONNX Runtime not found")
   file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onn*/*.cpp)
+  file(GLOB ML_SEGMENTATION_SRC src/lib/Segmentation/ML*.cpp)
+  file(GLOB ONNX_COMMON_SRC src/lib/Common/Onnx*.cpp)
   list(REMOVE_ITEM PLUGIN_SRC ${ONNXPLUGIN_SRC})
+  list(REMOVE_ITEM SEGMENTATION_SRC ${ML_SEGMENTATION_SRC})
+  list(REMOVE_ITEM COMMON_SRC ${ONNX_COMMON_SRC})
 else()
   list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
   list(APPEND OPT_LIBRARIES OnnxRuntime)
+  add_definitions(-DWITH_ML_SEGMENTATION)
 endif()
 
 elements_add_library(SEImplementation
-			src/lib/Background/*.cpp
-			src/lib/Background/*/*.cpp
+            src/lib/Background/*.cpp
+            src/lib/Background/*/*.cpp
             src/lib/Partition/*.cpp
-            src/lib/Segmentation/*.cpp
+            ${SEGMENTATION_SRC}
             src/lib/Grouping/*.cpp
             src/lib/Configuration/*.cpp
             src/lib/Output/*.cpp
-           	src/lib/Measurement/*.cpp
-           	src/lib/CheckImages/*.cpp
+            src/lib/Measurement/*.cpp
+            src/lib/CheckImages/*.cpp
             src/lib/Deblending/*.cpp
             src/lib/Image/*.cpp
-            src/lib/Common/*.cpp
+            ${COMMON_SRC}
             src/lib/Prefetcher/*.cpp
             ${PLUGIN_SRC}
             ${SE_PYTHON_SRC}
