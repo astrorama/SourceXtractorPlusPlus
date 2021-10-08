@@ -35,7 +35,10 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 #include "SEImplementation/PythonConfig/ObjectInfo.h"
 #include "SEImplementation/Configuration/PythonConfig.h"
+
+#ifdef WITH_ONNX_MODELS
 #include "SEImplementation/Common/OnnxModel.h"
+#endif
 
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
 
@@ -259,6 +262,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
   
+#ifdef WITH_ONNX_MODELS
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getOnnxModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -293,6 +297,11 @@ void ModelFittingConfig::initializeInner() {
         onnx_models, m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[aspect_ratio_id], m_parameters[angle_id], params);
   }
+#else
+  if (getDependency<PythonConfig>().getInterpreter().getOnnxModels().size() > 0) {
+       throw Elements::Exception("Trying to use ONNX models but ONNX support is not available");
+  }
+#endif
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
     std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};

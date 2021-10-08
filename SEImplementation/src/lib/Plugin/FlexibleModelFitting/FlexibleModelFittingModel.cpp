@@ -52,7 +52,9 @@
 #include "Configuration/ConfigManager.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
 
+#ifdef WITH_ONNX_MODELS
 #include "SEImplementation/Plugin/FlexibleModelFitting/OnnxCompactModel.h"
+#endif
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h"
 
@@ -243,6 +245,7 @@ void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParamet
   constant_models.emplace_back(manager.getParameter(source, m_value));
 }
 
+#ifdef WITH_ONNX_MODELS
 
 void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterManager& manager,
                           const SourceInterface& source,
@@ -301,6 +304,8 @@ FlexibleModelFittingOnnxModel::FlexibleModelFittingOnnxModel(
           return a->getOutputShape()[2] < b->getOutputShape()[2];
       });
 }
+
+#endif
 
 }
 

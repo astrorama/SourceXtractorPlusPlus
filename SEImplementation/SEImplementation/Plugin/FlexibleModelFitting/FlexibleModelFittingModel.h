@@ -38,8 +38,6 @@
 
 namespace SourceXtractor {
 
-class OnnxModel;
-
 class FlexibleModelFittingParameterManager;
 
 class FlexibleModelFittingModel {
@@ -209,6 +207,10 @@ private:
   std::shared_ptr<FlexibleModelFittingParameter> m_value;
 };
 
+#ifdef WITH_ONNX_MODELS
+
+class OnnxModel;
+
 class FlexibleModelFittingOnnxModel : public FlexibleModelFittingModel {
 public:
   FlexibleModelFittingOnnxModel(std::vector<std::shared_ptr<OnnxModel>> models,
@@ -242,6 +244,7 @@ private:
   std::vector<std::shared_ptr<OnnxModel>> m_models;
 };
 
+#endif
 
 }
 
