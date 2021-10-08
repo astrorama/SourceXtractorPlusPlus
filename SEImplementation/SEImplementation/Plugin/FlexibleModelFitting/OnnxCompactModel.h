@@ -58,7 +58,7 @@ public:
     }
 
     if (selected_model == nullptr) {
-      logger.info() << "No large enough ONNX model could be found, skipping...";
+      logger.warn() << "No large enough ONNX model could be found, skipping...";
       return image;
     }
 
@@ -83,10 +83,10 @@ public:
 
     auto transform = getCombinedTransform(pixel_scale);
 
-    for (int x=0; x<(int)size_x; ++x) {
-      int dx = x - size_x / 2;
-      for (int y=0; y<(int)size_y; ++y) {
-        int dy = y - size_y / 2;
+    for (int y=0; y<(int)size_y; ++y) {
+      int dy = y - size_y / 2;
+      for (int x=0; x<(int)size_x; ++x) {
+        int dx = x - size_x / 2;
 
         float x2 = dx * transform[0] + dy * transform[1];
         float y2 = dx * transform[2] + dy * transform[3];
@@ -98,8 +98,8 @@ public:
 
     selected_model->runMultiInput<float, float>(input_data_arrays, output_data);
 
-    for (int x = 0; x < (int) size_x; ++x) {
-      for (int y = 0; y < (int) size_y; ++y) {
+    for (int y = 0; y < (int) size_y; ++y) {
+      for (int x = 0; x < (int) size_x; ++x) {
           Traits::at(image, x, y) = output_data[x + y * render_size];
       }
     }
