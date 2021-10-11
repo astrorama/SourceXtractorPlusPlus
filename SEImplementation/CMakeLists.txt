@@ -78,6 +78,7 @@ else()
   list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
   list(APPEND OPT_LIBRARIES OnnxRuntime)
   add_definitions(-DWITH_ML_SEGMENTATION)
+  add_definitions(-DWITH_ONNX_MODELS)
 endif()
 
 elements_add_library(SEImplementation
