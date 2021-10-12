@@ -23,25 +23,31 @@
 #include <cmath>
 #include <iostream>
 
+#include <ElementsKernel/Logging.h>
+
 #include "ModelFitting/Parameters/ExpSigmoidConverter.h"
 
 namespace ModelFitting {
 
 using namespace std;
 
+static Elements::Logging logger = Elements::Logging::getLogger("ModelFitting");
+
 ExpSigmoidConverter::~ExpSigmoidConverter() = default;
 
 double ExpSigmoidConverter::worldToEngine(const double world_value) const {
   if (world_value < m_min_value || world_value > m_max_value) {
-    throw Elements::Exception()
-        << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
+    logger.warn() << "WorldToEngine ExpSigmoidConverter: world values outside of possible range";
   }
-  return log(log(world_value / m_min_value) / log(m_max_value / world_value));
+
+  auto wv = std::max(m_min_value, std::min(m_max_value, world_value));
+  return log(log(wv / m_min_value) / log(m_max_value / wv));
 }
 
 
 double ExpSigmoidConverter::engineToWorld(const double engine_value) const {
-  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-engine_value)) );
+  auto clamped_value = std::max(-50.0, std::min(50.0, engine_value));
+  return m_min_value * exp( log(m_max_value / m_min_value) / (1 + exp(-clamped_value)) );
 }
 
 double ExpSigmoidConverter::getEngineToWorldDerivative(const double value) const {

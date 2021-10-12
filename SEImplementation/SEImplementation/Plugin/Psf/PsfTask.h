@@ -29,9 +29,6 @@
 
 namespace SourceXtractor {
 
-typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
-extern std::map<std::string, ValueGetter> component_value_getters;
-
 class PsfTask: public GroupTask {
 public:
   virtual ~PsfTask() = default;
@@ -39,6 +36,9 @@ public:
   PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
 
   virtual void computeProperties(SourceGroupInterface& source) const override;
+
+  typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
+  static std::map<std::string, ValueGetter> component_value_getters;
 
 private:
   unsigned m_instance;

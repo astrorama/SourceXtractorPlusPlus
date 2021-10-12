@@ -52,6 +52,10 @@
 #include "Configuration/ConfigManager.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
 
+#ifdef WITH_ONNX_MODELS
+#include "SEImplementation/Plugin/FlexibleModelFitting/OnnxCompactModel.h"
+#endif
+
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h"
 
 namespace SourceXtractor {
@@ -206,7 +210,6 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-
   auto pixel_y = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
@@ -241,6 +244,68 @@ void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParamet
                           std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
   constant_models.emplace_back(manager.getParameter(source, m_value));
 }
+
+#ifdef WITH_ONNX_MODELS
+
+void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterManager& manager,
+                          const SourceInterface& source,
+                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
+                          std::vector<ModelFitting::PointModel>& /*point_models*/,
+                          std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          std::tuple<double, double, double, double> jacobian,
+                          std::shared_ptr<CoordinateSystem> reference_coordinates,
+                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
+
+  auto pixel_x = createDependentParameter(
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_x - offset.m_x + 0.5;
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+
+  auto pixel_y = createDependentParameter(
+      [reference_coordinates, coordinates, offset](double x, double y) {
+        return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
+      }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
+
+  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
+  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
+
+  auto& boundaries = source.getProperty<PixelBoundaries>();
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+
+  std::map<std::string, std::shared_ptr<BasicParameter>> params;
+  for (auto it : m_params) {
+    params[it.first] = manager.getParameter(source, it.second);
+  }
+
+  extended_models.emplace_back(std::make_shared<OnnxCompactModel<ImageInterfaceTypePtr>>(m_models,
+      x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
+      size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), params, jacobian));
+}
+
+FlexibleModelFittingOnnxModel::FlexibleModelFittingOnnxModel(
+    std::vector<std::shared_ptr<OnnxModel>> models,
+    std::shared_ptr<FlexibleModelFittingParameter> x,
+    std::shared_ptr<FlexibleModelFittingParameter> y,
+    std::shared_ptr<FlexibleModelFittingParameter> flux,
+    std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
+    std::shared_ptr<FlexibleModelFittingParameter> angle,
+    std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params)
+        : m_x(x),
+          m_y(y),
+          m_flux(flux),
+          m_aspect_ratio(aspect_ratio),
+          m_angle(angle),
+          m_params(params),
+          m_models(models){
+
+  std::sort(m_models.begin(), m_models.end(),
+      [](const std::shared_ptr<OnnxModel>& a, const std::shared_ptr<OnnxModel>& b) -> bool {
+          return a->getOutputShape()[2] < b->getOutputShape()[2];
+      });
+}
+
+#endif
 
 }
 

@@ -184,7 +184,9 @@ elements_add_unit_test(ImageFitsReader_test tests/src/FITS/FitsReader_test.cpp
 elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSource_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
-
+elements_add_unit_test(WCS_test tests/src/CoordinateSystem/WCS_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
 #===============================================================================
 # Declare the Python programs here
 # Examples :

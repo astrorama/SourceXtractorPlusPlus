@@ -55,7 +55,7 @@ private:
   std::shared_ptr<OutputRegistry> m_output_registry;
   std::shared_ptr<Euclid::ThreadPool> m_thread_pool;
 
-  unsigned int m_threads_nb;
+  unsigned int m_threads_nb, m_max_queue;
 };
 
 }
