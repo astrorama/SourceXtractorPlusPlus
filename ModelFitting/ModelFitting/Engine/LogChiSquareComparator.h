@@ -59,7 +59,7 @@ public:
   /// Returns the modified \f$\chi^2\f$ residual
   double operator()(double real, double model, double weight) const {
     double val =  weight * (real - model) / m_u0;
-    return val>0. ? m_u0 * std::log(1. + val) : -1. * m_u0 * std::log(1. - val);
+    return val>0. ? m_u0 * std::log1p(val) : -1. * m_u0 * std::log(1. - val);
   }
   
 private:

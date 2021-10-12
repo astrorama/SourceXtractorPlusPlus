@@ -55,6 +55,8 @@ public:
    * with the same kernel (i.e. ModelFitting)
    */
   struct ConvolutionContext {
+    ConvolutionContext() = default;
+
   private:
     int m_padded_width, m_padded_height, m_transform_padding;
     std::vector<real_t> m_kernel_transform, m_work_area;
