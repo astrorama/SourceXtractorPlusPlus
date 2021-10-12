@@ -57,7 +57,7 @@ public:
   };
 
 
-  AssocModeConfig(long manager_id);
+  explicit AssocModeConfig(long manager_id);
   virtual ~AssocModeConfig() = default;
 
   std::map<std::string, OptionDescriptionList> getProgramOptions() override;

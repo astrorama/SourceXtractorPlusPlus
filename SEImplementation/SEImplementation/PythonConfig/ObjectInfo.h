@@ -32,7 +32,7 @@ class ObjectInfo {
   
 public:
   
-  ObjectInfo(const SourceInterface& source);
+  explicit ObjectInfo(const SourceInterface& source);
   
   virtual ~ObjectInfo() = default;
   

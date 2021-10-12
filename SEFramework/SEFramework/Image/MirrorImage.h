@@ -36,7 +36,7 @@ namespace SourceXtractor {
 template <typename T>
 class MirrorImage: public Image<T> {
 protected:
-  MirrorImage(std::shared_ptr<const Image<T>> img) : m_img{img} {
+  explicit MirrorImage(std::shared_ptr<const Image<T>> img) : m_img{img} {
   }
 
 public:

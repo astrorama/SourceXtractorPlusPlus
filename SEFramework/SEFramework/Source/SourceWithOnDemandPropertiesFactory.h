@@ -36,7 +36,7 @@ namespace SourceXtractor {
 
 class SourceWithOnDemandPropertiesFactory : public SourceFactory {
 public:
-  SourceWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
+  explicit SourceWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
   virtual std::shared_ptr<SourceInterface> createSource() const override {

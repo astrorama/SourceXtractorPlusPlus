@@ -27,7 +27,7 @@ namespace SourceXtractor {
  */
 class GrowthCurveConfig : public Euclid::Configuration::Configuration {
 public:
-  GrowthCurveConfig(long managerId);
+  explicit GrowthCurveConfig(long managerId);
 
   virtual ~GrowthCurveConfig() = default;
 

@@ -46,7 +46,7 @@ public:
   /// Destructor
   virtual ~TaskProvider() = default;
 
-  TaskProvider(std::shared_ptr<TaskFactoryRegistry> task_factory_registry)
+  explicit TaskProvider(std::shared_ptr<TaskFactoryRegistry> task_factory_registry)
     : m_task_factory_registry(task_factory_registry) {}
 
   /// Template version of getTask() that includes casting the returned pointer to the appropriate type

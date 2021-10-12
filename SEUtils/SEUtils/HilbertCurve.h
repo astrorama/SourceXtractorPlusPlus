@@ -27,7 +27,7 @@ namespace SourceXtractor {
 
 class HilbertCurve {
 public:
-  HilbertCurve(unsigned int size) {
+  explicit HilbertCurve(unsigned int size) {
     m_size = nextPowerOfTwo(size);
   }
 

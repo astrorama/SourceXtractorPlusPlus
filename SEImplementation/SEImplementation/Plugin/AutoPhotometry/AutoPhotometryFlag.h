@@ -35,7 +35,7 @@ class AutoPhotometryFlag: public Property {
 public:
   virtual ~AutoPhotometryFlag() = default;
 
-  AutoPhotometryFlag(const Flags flags): m_flags{flags} {}
+  explicit AutoPhotometryFlag(const Flags flags): m_flags{flags} {}
 
   Flags getFlags() const {
     return m_flags;

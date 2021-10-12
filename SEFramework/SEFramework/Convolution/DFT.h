@@ -70,7 +70,7 @@ public:
    * @param img
    *    Convolution kernel
    */
-  DFTConvolution(std::shared_ptr<const Image<T>> img)
+  explicit DFTConvolution(std::shared_ptr<const Image<T>> img)
     : m_kernel{std::move(img)} {
   }
 

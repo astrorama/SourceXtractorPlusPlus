@@ -65,7 +65,7 @@ public:
   /// Destructor
   virtual ~Segmentation() = default;
 
-  Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing);
+  explicit Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing);
 
   template<class LabellingType, typename ... Args>
   void setLabelling(Args... args) {

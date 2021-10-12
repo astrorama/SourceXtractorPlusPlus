@@ -26,7 +26,7 @@ class SamplingConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  SamplingConfig(long manager_id);
+  explicit SamplingConfig(long manager_id);
 
   virtual ~SamplingConfig() = default;
 

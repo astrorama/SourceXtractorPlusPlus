@@ -43,7 +43,7 @@ class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
 
 public:
   
-  SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
+  explicit SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
 
   /**
    * @brief Destructor

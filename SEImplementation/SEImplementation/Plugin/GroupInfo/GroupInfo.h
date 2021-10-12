@@ -32,7 +32,8 @@ namespace SourceXtractor {
 class GroupInfo : public Property {
 public:
 
-  GroupInfo(unsigned int group_id) : m_group_id(group_id) {}
+  explicit GroupInfo(unsigned int group_id) : m_group_id(group_id) {}
+
   /**
    * @brief Destructor
    */

@@ -35,7 +35,7 @@ namespace SourceXtractor {
 
 class MeasurementFrame : public Property {
 public:
-  MeasurementFrame(std::shared_ptr<MeasurementImageFrame> measurement_frame) : m_measurement_frame(measurement_frame) {
+  explicit MeasurementFrame(std::shared_ptr<MeasurementImageFrame> measurement_frame) : m_measurement_frame(measurement_frame) {
   }
 
 protected:

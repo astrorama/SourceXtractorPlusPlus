@@ -35,7 +35,7 @@ class MeasurementFrameRectangle: public Property {
 public:
   virtual ~MeasurementFrameRectangle() = default;
 
-  MeasurementFrameRectangle(bool bad_projection):
+  explicit MeasurementFrameRectangle(bool bad_projection):
   m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection}{}
 
   MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):

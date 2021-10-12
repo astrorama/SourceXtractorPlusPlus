@@ -38,7 +38,8 @@ namespace SourceXtractor {
 class SE2BackgroundModeller {
 
 public:
-  SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map=nullptr, std::shared_ptr<Image<unsigned char>> mask=nullptr, const unsigned char mask_type_flag=0x0001);
+  explicit SE2BackgroundModeller(std::shared_ptr<DetectionImage> image, std::shared_ptr<WeightImage> variance_map = nullptr,
+                                 std::shared_ptr<Image<unsigned char>> mask = nullptr, const unsigned char mask_type_flag = 0x0001);
   virtual ~SE2BackgroundModeller();
 
   void createSE2Models(std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &bckPtr, std::shared_ptr<TypedSplineModelWrapper<SeFloat>> &sigPtr, PIXTYPE &sigFac, const size_t *bckCellSize,  const WeightImage::PixelType varianceThreshold,  const size_t *filterBoxSize, const float &filterThreshold=0.0);

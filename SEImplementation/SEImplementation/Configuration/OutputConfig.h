@@ -45,7 +45,7 @@ public:
   virtual ~OutputConfig() = default;
 
   /// Constructor
-  OutputConfig(long manager_id);
+  explicit OutputConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   

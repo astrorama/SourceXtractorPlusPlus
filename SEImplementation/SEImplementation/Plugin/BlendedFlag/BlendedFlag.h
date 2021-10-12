@@ -32,7 +32,7 @@ class BlendedFlag : public Property {
 public:
   virtual ~BlendedFlag() = default;
 
-  BlendedFlag(bool blended_flag) : m_blended_flag{blended_flag} {}
+  explicit BlendedFlag(bool blended_flag) : m_blended_flag{blended_flag} {}
 
   bool getBlendedFlag() const {
     return m_blended_flag;

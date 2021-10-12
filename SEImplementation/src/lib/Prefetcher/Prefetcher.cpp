@@ -29,7 +29,7 @@ namespace SourceXtractor {
  */
 template<typename Lock>
 struct ReverseLock {
-  ReverseLock(Lock& lock) : m_lock(lock) {
+  explicit ReverseLock(Lock& lock) : m_lock(lock) {
     m_lock.unlock();
   }
 
