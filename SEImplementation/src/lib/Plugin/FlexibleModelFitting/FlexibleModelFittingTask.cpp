@@ -298,7 +298,7 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
         }
       }
       source.setProperty<FlexibleModelFitting>(iterations, stop_reason,
-                                               avg_reduced_chi_squared, source_flags,
+                                               avg_reduced_chi_squared, solution.duration, source_flags,
                                                parameter_values, parameter_sigmas);
     }
     updateCheckImages(group, pixel_scale, parameter_manager);
@@ -324,7 +324,7 @@ void FlexibleModelFittingTask::setDummyProperty(SourceGroupInterface& group,
       }
       dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
     }
-    source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
+    source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), 0., flags,
                                              dummy_values, dummy_values);
   }
 }
