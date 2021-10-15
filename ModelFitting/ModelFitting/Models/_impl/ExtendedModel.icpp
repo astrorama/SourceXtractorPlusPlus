@@ -85,13 +85,8 @@ ImageType ExtendedModel<ImageType>::getRasterizedImage(double pixel_scale, std::
   double r_max = std::sqrt(size_x * size_x + size_y * size_y) / 2.;
   for (auto& component : m_component_list) {
     component->updateRasterizationInfo(pixel_scale, r_max);
-    ImageType comp_image = Traits::factory(size_x, size_y);
-    _impl::addSharp(comp_image, pixel_scale, *component);
-    _impl::addSmooth(comp_image, pixel_scale, *component);
-    for (auto im_it = Traits::begin(image), comp_it = Traits::begin(comp_image);
-        im_it != Traits::end(image); ++im_it, ++comp_it) {
-      *im_it += *comp_it;
-    }
+    _impl::addSharp(image, pixel_scale, *component);
+    _impl::addSmooth(image, pixel_scale, *component);
   }
   return image;
 }
