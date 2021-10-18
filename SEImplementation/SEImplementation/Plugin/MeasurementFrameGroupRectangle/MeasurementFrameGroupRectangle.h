@@ -34,8 +34,8 @@ class MeasurementFrameGroupRectangle: public Property {
 public:
   virtual ~MeasurementFrameGroupRectangle() = default;
 
-  MeasurementFrameGroupRectangle():
-    m_min_coord{-1, -1}, m_max_coord{-1, -1} {}
+  explicit MeasurementFrameGroupRectangle(bool bad_projection):
+    m_min_coord(-1, -1), m_max_coord(-1, -1), m_bad_projection(bad_projection) {}
 
   MeasurementFrameGroupRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):
     m_min_coord{min_coord}, m_max_coord(max_coord) {
@@ -64,12 +64,15 @@ public:
     return m_max_coord.m_y - m_min_coord.m_y + 1;
   }
 
-  bool isOutsideOfFrame() const {
-    return m_min_coord.m_x < 0;
+  /// true if the translation detection pixel -> world -> measurement pixel failed
+  /// (probably falls outside the measurement image and the projection there is discontinuous)
+  bool badProjection() const {
+    return m_bad_projection;
   }
 
 private:
   PixelCoordinate m_min_coord, m_max_coord;
+  bool m_bad_projection;
 };
 
 } // end SourceXtractor

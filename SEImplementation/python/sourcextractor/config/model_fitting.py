@@ -486,7 +486,9 @@ point_source_model_dict = {}
 sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
-params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": ""}
+onnx_model_dict = {}
+params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": False, "meta_iterations": 3,
+               "deblend_factor": 1, "meta_iteration_stop": 0.0001}
 
 
 def set_max_iterations(iterations):
@@ -520,6 +522,42 @@ def set_engine(engine):
         Minimization engine for the model fitting : levmar or gsl
     """
     params_dict["engine"] = engine
+    
+def use_iterative_fitting(use_iterative_fitting):
+    """
+    Parameters
+    ----------
+    use_iterative_fitting : boolean
+        use iterative model fitting or legacy 
+    """
+    params_dict["use_iterative_fitting"] = use_iterative_fitting
+    
+def set_meta_iterations(meta_iterations):
+    """
+    Parameters
+    ----------
+    meta_iterations : int
+        number of meta iterations on the whole group (when using iterative model fitting) 
+    """
+    params_dict["meta_iterations"] = meta_iterations
+
+def set_deblend_factor(deblend_factor):
+    """
+    Parameters
+    ----------
+    
+    """
+    params_dict["deblend_factor"] = deblend_factor
+
+def set_meta_iteration_stop(meta_iteration_stop):
+    """
+    Parameters
+    ----------
+    
+    """
+    params_dict["meta_iteration_stop"] = meta_iteration_stop
+
+
 
 
 class ModelBase(cpp.Id):
@@ -811,6 +849,64 @@ class DeVaucouleursModel(SersicModelBase):
                 self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
         else:
             return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
+
+class OnnxModel(CoordinateModelBase):
+    """
+    Onnx model 
+
+    Parameters
+    ----------
+    x_coord : ParameterBase or float
+        X coordinate (in the detection image)
+    y_coord : ParameterBase or float
+        Y coordinate (in the detection image)
+    flux : ParameterBase or float
+        Total flux
+    effective_radius : ParameterBase or float
+        Ellipse semi-major axis, in pixels on the detection image.
+    aspect_ratio : ParameterBase or float
+        Ellipse ratio.
+    angle : ParameterBase or float
+        Ellipse rotation, in radians
+    params : Dictionary of String and ParameterBase or float
+        Dictionary of custom parameters for the ONNX model
+    """
+    
+    def __init__(self, models, x_coord, y_coord, flux, aspect_ratio, angle, params={}):
+        """
+        Constructor.
+        """
+        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
+        self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
+        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        for k in params.keys():
+            if not isinstance(params[k], ParameterBase):
+                params[k] = ConstantParameter(params[k])
+        self.params = params
+        self.models = models if isinstance(models, list) else [models]
+        
+        global onnx_model_dict
+        onnx_model_dict[self.id] = self
+
+    def to_string(self, show_params=False):
+        """
+        Return a human readable representation of the model.
+
+        Parameters
+        ----------
+        show_params: bool
+            If True, include information about the parameters.
+
+        Returns
+        -------
+        str
+        """
+        if show_params:
+            return 'Onnx[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
+        else:
+            return 'Onnx[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
 

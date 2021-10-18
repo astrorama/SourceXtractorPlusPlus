@@ -20,13 +20,13 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include <gsl/gsl_multifit_nlinear.h>
-#include <gsl/gsl_blas.h>
-#include <ElementsKernel/Exception.h>
-#include <iostream>
-#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/GSLEngine.h"
-
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
+#include <ElementsKernel/Exception.h>
+#include <chrono>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_multifit_nlinear.h>
+#include <iostream>
 
 namespace ModelFitting {
 
@@ -181,6 +181,7 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   gsl_blas_ddot(residual, residual, &chisq0);
 
   // Solve
+  auto start = std::chrono::steady_clock::now();
   int info = 0;
   int ret = gsl_multifit_nlinear_driver(
     m_itmax,  // Maximum number of iterations
@@ -192,6 +193,8 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
     &info,    // Convergence information if GSL_SUCCESS
     workspace // The solver workspace
   );
+  auto end     = std::chrono::steady_clock::now();
+  std::chrono::duration<float> elapsed = end - start;
 
   // Final cost
   double chisq;
@@ -206,6 +209,7 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   summary.engine_stop_reason = ret;
   summary.iteration_no = gsl_multifit_nlinear_niter(workspace);
   summary.parameter_sigmas = {};
+  summary.duration = elapsed.count();
 
   // Covariance matrix. Note: Do not free J! It is owned by the workspace.
   gsl_matrix *J = gsl_multifit_nlinear_jac(workspace);

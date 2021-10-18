@@ -25,7 +25,7 @@
 #define _MODELFITTING_ENGINE_ASINHCHISQUARECOMPARATOR_H_
 
 #include <cstdlib>
-#include <math.h>
+#include <cmath>
 
 namespace ModelFitting {
 

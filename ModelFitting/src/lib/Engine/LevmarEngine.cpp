@@ -29,6 +29,10 @@
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/LevmarEngine.h"
 
+#ifndef LEVMAR_WORKAREA_MAX_SIZE
+#define LEVMAR_WORKAREA_MAX_SIZE size_t(2<<30) // 2 GiB
+#endif
+
 namespace {
 
 __attribute__((unused))
@@ -124,6 +128,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 #ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.unlock();
 #endif
+
     auto* extra_ptr = (decltype(adata)*)extra;
     EngineParameterManager& pm = std::get<0>(*extra_ptr);
     pm.updateEngineValues(p);
@@ -148,7 +153,28 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 #ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.lock();
 #endif
+
+  std::unique_ptr<double[]> workarea;
+  size_t workarea_size = LM_DIF_WORKSZ(parameter_manager.numberOfParameters(),
+                                       residual_estimator.numberOfResiduals());
+
+  if (workarea_size <= LEVMAR_WORKAREA_MAX_SIZE / sizeof(double)) {
+    try {
+      workarea.reset(new double[workarea_size]);
+    } catch (const std::bad_alloc&) {
+    }
+  }
+
+  // Didn't allocate
+  if (workarea == nullptr) {
+    LeastSquareSummary summary {};
+    summary.status_flag = LeastSquareSummary::MEMORY;
+    summary.iteration_no = workarea_size;
+    return summary;
+  }
+
   // Call the levmar library
+  auto start = std::chrono::steady_clock::now();
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
                          param_values.data(), // The pointer where the parameter values are
                          NULL, // We don't use any measurement vector
@@ -157,10 +183,12 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
                          m_itmax, // The maximum number of iterations
                          m_opts.data(), // The minimization options
                          info.data(), // Where the information of the minimization is stored
-                         NULL, // Working memory is allocated internally
+                         workarea.get(), // Working memory is allocated internally
                          covariance_matrix.data(),
                          &adata // No additional data needed
-                        );
+  );
+  auto end     = std::chrono::steady_clock::now();
+  std::chrono::duration<float> elapsed = end - start;
 #ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.unlock();
 #endif
@@ -177,6 +205,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   summary.engine_stop_reason = info[6];
   summary.iteration_no = info[5];
   summary.underlying_framework_info = info;
+  summary.duration                  = elapsed.count();
   return summary;
 }
 
