@@ -38,7 +38,7 @@ public:
 
   virtual ~AutoPhotometryArrayTask() = default;
 
-  AutoPhotometryArrayTask(const std::vector<unsigned> &images): m_images(images) {}
+  explicit AutoPhotometryArrayTask(const std::vector<unsigned> &images): m_images(images) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 

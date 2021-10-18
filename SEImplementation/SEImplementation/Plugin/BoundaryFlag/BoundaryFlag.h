@@ -47,7 +47,7 @@ class BoundaryFlag : public Property {
 public:
   virtual ~BoundaryFlag() = default;
 
-  BoundaryFlag(bool boundary_flag) : m_boundary_flag{boundary_flag} {}
+  explicit BoundaryFlag(bool boundary_flag) : m_boundary_flag{boundary_flag} {}
 
   bool getBoundaryFlag() const {
     return m_boundary_flag;

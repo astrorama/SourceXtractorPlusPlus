@@ -33,7 +33,7 @@ class SNRRatio : public Property {
 public:
   virtual ~SNRRatio() = default;
 
-  SNRRatio(SeFloat snrratio) : m_snrratio(snrratio) {}
+  explicit SNRRatio(SeFloat snrratio) : m_snrratio(snrratio) {}
 
   SeFloat getSNRRatio() const {
     return m_snrratio;

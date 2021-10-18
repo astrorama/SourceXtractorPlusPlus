@@ -29,7 +29,7 @@ class OnnxConfig: public Euclid::Configuration::Configuration {
 public:
 
   /// Construct a new OnnxConfig
-  OnnxConfig(long manager_id);
+  explicit OnnxConfig(long manager_id);
 
   /// Destructor
   ~OnnxConfig() override = default;

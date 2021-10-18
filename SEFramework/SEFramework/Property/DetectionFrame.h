@@ -48,10 +48,10 @@ public:
     friend class MeasurementFrame;
   };
 
-  DetectionFrame(std::shared_ptr<DetectionImageFrame> detection_frame)
+  explicit DetectionFrame(std::shared_ptr<DetectionImageFrame> detection_frame)
       : m_detection_frame(detection_frame) {}
 
-  DetectionFrame(EncapsulatedDetectionImageFrame encapsulated_frame)
+  explicit DetectionFrame(EncapsulatedDetectionImageFrame encapsulated_frame)
       : m_detection_frame(encapsulated_frame.getFrame()) {}
 
   EncapsulatedDetectionImageFrame getEncapsulatedFrame() const {

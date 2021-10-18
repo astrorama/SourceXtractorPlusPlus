@@ -31,7 +31,7 @@ class MeasurementFrameInfoTask : public SourceTask {
 public:
 
   /// Constructor
-  MeasurementFrameInfoTask(unsigned int instance) : m_instance(instance) {}
+  explicit MeasurementFrameInfoTask(unsigned int instance) : m_instance(instance) {}
 
   virtual ~MeasurementFrameInfoTask() = default;
 

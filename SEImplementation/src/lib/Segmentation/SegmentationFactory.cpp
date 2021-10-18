@@ -44,7 +44,7 @@ namespace SourceXtractor {
 
 SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_provider)
     : m_algorithm(SegmentationConfig::Algorithm::UNKNOWN),
-      m_task_provider(task_provider), m_lutz_window_size(0) {
+      m_task_provider(task_provider), m_lutz_window_size(0), m_bfs_max_delta(0), m_ml_threshold(0.) {
 }
 
 void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {

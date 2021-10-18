@@ -92,7 +92,7 @@ protected:
    * This move constructor from an ImageChunk uses a dynamic cast, so if the chunk is
    * another universal chunk, we can avoid copying data, and we just move-assign the underlying vector
    */
-  UniversalImageChunk(ImageChunk<T>&& chunk) :
+  explicit UniversalImageChunk(ImageChunk<T>&& chunk) :
     ImageChunk<T>(nullptr, 0, chunk.getWidth(), chunk.getHeight(), chunk.getWidth()) {
     UniversalImageChunk<T>* universal_ptr = dynamic_cast<UniversalImageChunk<T>*>(&chunk);
     if (universal_ptr) {

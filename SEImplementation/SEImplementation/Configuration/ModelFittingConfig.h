@@ -35,7 +35,7 @@ class ModelFittingConfig : public Euclid::Configuration::Configuration {
   
 public:
   
-  ModelFittingConfig(long manager_id);
+  explicit ModelFittingConfig(long manager_id);
 
   ~ModelFittingConfig();
   

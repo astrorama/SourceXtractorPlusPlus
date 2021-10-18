@@ -31,7 +31,7 @@ class ManualParameter : public BasicParameter {
 
 public:
 
-  ManualParameter(const double value) : BasicParameter{value} { }
+  explicit ManualParameter(const double value) : BasicParameter{value} { }
 
   virtual ~ManualParameter() = default;
 

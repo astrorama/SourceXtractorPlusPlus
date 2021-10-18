@@ -36,7 +36,7 @@ namespace SourceXtractor {
 class PyOutputWrapper {
 public:
 
-  PyOutputWrapper(Elements::Logging &logger);
+  explicit PyOutputWrapper(Elements::Logging &logger);
 
   // Can not be closed, but expose the API
   const bool closed;

@@ -28,7 +28,7 @@ class FluxRadius : public Property {
 public:
   virtual ~FluxRadius() = default;
 
-  FluxRadius(Euclid::NdArray::NdArray<SeFloat>&& flux_radius) : m_flux_radius{std::move(flux_radius)} {}
+  explicit FluxRadius(Euclid::NdArray::NdArray<SeFloat>&& flux_radius) : m_flux_radius{std::move(flux_radius)} {}
 
   const Euclid::NdArray::NdArray<SeFloat>& getFluxRadius() const {
     return m_flux_radius;

@@ -45,7 +45,7 @@ public:
   /**
    * Constructor
    */
-  VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits) : m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0) {
+  explicit VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits) : m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0) {
     setup(pFits);
     selfTest();
   };

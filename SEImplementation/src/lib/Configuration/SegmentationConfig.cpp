@@ -55,9 +55,10 @@ static const std::string SEGMENTATION_BFS_MAX_DELTA {"segmentation-bfs-max-delta
 static const std::string SEGMENTATION_ONNX_MODEL {"segmentation-onnx-model" };
 static const std::string SEGMENTATION_ML_THRESHOLD {"segmentation-ml-threshold" };
 
-SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id),
-    m_selected_algorithm(Algorithm::UNKNOWN), m_lutz_window_size(0), m_bfs_max_delta(1000) {
-}
+SegmentationConfig::SegmentationConfig(long manager_id) : Configuration(manager_id), m_selected_algorithm(Algorithm::UNKNOWN)
+    , m_lutz_window_size(0)
+    , m_bfs_max_delta(1000)
+    , m_ml_threshold(0.9) {}
 
 std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::getProgramOptions() {
   return { {"Detection image", {

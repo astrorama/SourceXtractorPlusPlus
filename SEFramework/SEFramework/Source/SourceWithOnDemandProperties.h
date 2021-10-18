@@ -57,7 +57,7 @@ public:
   SourceWithOnDemandProperties& operator=(SourceWithOnDemandProperties&&) = delete;
 
   /// Constructor
-  SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider);
+  explicit SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider);
 
   // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For

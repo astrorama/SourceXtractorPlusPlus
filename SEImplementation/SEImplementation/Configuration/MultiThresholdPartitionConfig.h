@@ -33,7 +33,7 @@ class MultiThresholdPartitionConfig : public Euclid::Configuration::Configuratio
 
 public:
 
-  MultiThresholdPartitionConfig(long manager_id);
+  explicit MultiThresholdPartitionConfig(long manager_id);
 
   virtual ~MultiThresholdPartitionConfig() = default;
 
