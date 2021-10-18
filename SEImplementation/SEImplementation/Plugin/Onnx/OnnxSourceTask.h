@@ -38,7 +38,7 @@ public:
    * @param models
    *    Reference to the loaded ONNX models
    */
-  OnnxSourceTask(const std::vector<OnnxModelInfo>& model_infos);
+  explicit OnnxSourceTask(const std::vector<OnnxModelInfo>& model_infos);
 
   /**
    * Destructor

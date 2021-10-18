@@ -44,7 +44,7 @@ public:
    */
   virtual ~LutzSegmentation() = default;
 
-  LutzSegmentation(std::shared_ptr<SourceFactory> source_factory, int window_size = 0)
+  explicit LutzSegmentation(std::shared_ptr<SourceFactory> source_factory, int window_size = 0)
       : m_source_factory(source_factory),
         m_window_size(window_size) {
     assert(source_factory != nullptr);

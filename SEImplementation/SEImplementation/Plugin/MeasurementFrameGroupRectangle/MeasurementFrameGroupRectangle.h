@@ -38,7 +38,7 @@ public:
     m_min_coord(-1, -1), m_max_coord(-1, -1), m_bad_projection(bad_projection) {}
 
   MeasurementFrameGroupRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):
-    m_min_coord{min_coord}, m_max_coord(max_coord) {
+    m_min_coord{min_coord}, m_max_coord(max_coord), m_bad_projection(false) {
     assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
   }
 

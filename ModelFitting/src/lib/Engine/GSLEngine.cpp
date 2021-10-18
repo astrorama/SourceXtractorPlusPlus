@@ -51,7 +51,7 @@ private:
 
 public:
 
-  GslVectorIterator(gsl_vector *v): m_v{v}, m_i{0} {}
+  explicit GslVectorIterator(gsl_vector *v): m_v{v}, m_i{0} {}
 
   GslVectorIterator(const GslVectorIterator&) = default;
 
@@ -83,7 +83,7 @@ private:
 
 public:
 
-  GslVectorConstIterator(const gsl_vector *v): m_v{v}, m_i{0} {}
+  explicit GslVectorConstIterator(const gsl_vector *v): m_v{v}, m_i{0} {}
 
   GslVectorConstIterator(const GslVectorConstIterator&) = default;
 

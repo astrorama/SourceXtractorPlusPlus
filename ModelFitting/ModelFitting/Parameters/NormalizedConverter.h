@@ -43,7 +43,7 @@ public:
    * @param norm_value
    *    The world value which will be normalized to 1 in engine coordinates
    */
-  NormalizedConverter(double norm_value);
+  explicit NormalizedConverter(double norm_value);
   
   /// Destructor
   virtual ~NormalizedConverter();

@@ -25,7 +25,7 @@ namespace SourceXtractor {
 
 class FluxRadiusConfig : public Euclid::Configuration::Configuration {
 public:
-  FluxRadiusConfig(long managerId);
+  explicit FluxRadiusConfig(long managerId);
 
   virtual ~FluxRadiusConfig() = default;
 

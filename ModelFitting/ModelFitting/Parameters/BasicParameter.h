@@ -80,7 +80,7 @@ protected:
 
   GetValueHook m_get_value_hook;
 
-  BasicParameter(const double value) :
+  explicit BasicParameter(const double value) :
       m_value(value) {
   }
 

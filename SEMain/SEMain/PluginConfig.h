@@ -33,7 +33,7 @@ public:
 
   virtual ~PluginConfig() = default;
 
-  PluginConfig(long manager_id);
+  explicit PluginConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   

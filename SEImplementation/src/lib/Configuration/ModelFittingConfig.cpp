@@ -89,7 +89,7 @@ R py_call_wrapper(const py::object& func, T... args) {
  */
 class PyObjectHolder {
   public:
-    PyObjectHolder(py::object&& obj): m_obj_ptr(std::make_shared<py::object>(obj)) {}
+    explicit PyObjectHolder(py::object&& obj): m_obj_ptr(std::make_shared<py::object>(obj)) {}
 
     PyObjectHolder(const PyObjectHolder&) = default;
     PyObjectHolder(PyObjectHolder&&) = default;

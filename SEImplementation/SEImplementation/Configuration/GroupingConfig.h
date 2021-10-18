@@ -49,7 +49,7 @@ public:
   virtual ~GroupingConfig() = default;
 
   /// Constructs a new GroupingConfig object
-  GroupingConfig(long manager_id);
+  explicit GroupingConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;

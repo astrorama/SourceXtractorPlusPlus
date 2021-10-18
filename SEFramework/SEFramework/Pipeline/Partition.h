@@ -64,7 +64,7 @@ public:
   virtual ~Partition() = default;
 
   /// Constructor - takes a vector of PartitionSteps to be applied in order
-  Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
+  explicit Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
 
   /// Handles a Source (applies PartitionSteps) and notifies the Observers for every Source in the final result
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;

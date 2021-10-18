@@ -49,7 +49,7 @@ class SourceFlags : public Property {
 public:
 
   virtual ~SourceFlags() = default;
-  SourceFlags(const std::vector<Flags> &source_flags) : m_source_flags(source_flags) {}
+  explicit SourceFlags(const std::vector<Flags> &source_flags) : m_source_flags(source_flags) {}
 
   std::vector<Flags> getSourceFlags () const {
     return m_source_flags;

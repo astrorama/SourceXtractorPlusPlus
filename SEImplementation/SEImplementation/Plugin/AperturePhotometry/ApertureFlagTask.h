@@ -34,7 +34,7 @@ public:
 
   virtual ~ApertureFlagTask() = default;
 
-  ApertureFlagTask(const std::vector<SeFloat> &apertures)
+  explicit ApertureFlagTask(const std::vector<SeFloat> &apertures)
     : m_apertures(apertures) {}
 
   virtual void computeProperties(SourceInterface &source) const override;

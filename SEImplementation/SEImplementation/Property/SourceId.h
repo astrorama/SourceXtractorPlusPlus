@@ -33,7 +33,7 @@ class SourceId : public Property {
 
 public:
 
-  SourceId(unsigned int detection_id)
+  explicit SourceId(unsigned int detection_id)
       : m_source_id(getNewId()), m_detection_id(detection_id) {
   }
 

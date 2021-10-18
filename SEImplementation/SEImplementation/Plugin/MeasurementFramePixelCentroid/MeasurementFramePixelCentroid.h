@@ -39,7 +39,7 @@ public:
       : m_centroid_x(-1), m_centroid_y(-1), m_bad_projection(bad_projection) {}
 
   MeasurementFramePixelCentroid(SeFloat centroid_x, SeFloat centroid_y)
-      : m_centroid_x(centroid_x), m_centroid_y(centroid_y) {}
+      : m_centroid_x(centroid_x), m_centroid_y(centroid_y), m_bad_projection(false) {}
 
   /// X coordinate of centroid
   SeFloat getCentroidX() const {

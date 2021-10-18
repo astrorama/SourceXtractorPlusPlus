@@ -31,7 +31,7 @@ class VignetConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  VignetConfig(long manager_id);
+  explicit VignetConfig(long manager_id);
 
   virtual ~VignetConfig() = default;
 

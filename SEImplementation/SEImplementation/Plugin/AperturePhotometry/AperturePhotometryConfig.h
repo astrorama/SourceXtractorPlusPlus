@@ -28,7 +28,7 @@ namespace SourceXtractor {
 
 class AperturePhotometryConfig: public Euclid::Configuration::Configuration {
 public:
-  AperturePhotometryConfig(long manager_id);
+  explicit AperturePhotometryConfig(long manager_id);
 
   void initialize(const UserValues& args) override;
 

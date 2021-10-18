@@ -40,7 +40,7 @@ public:
 
   virtual ~ApertureFlag() = default;
 
-  ApertureFlag(const std::map<float, Flags>& flags): m_flags{flags} {}
+  explicit ApertureFlag(const std::map<float, Flags>& flags): m_flags{flags} {}
 
   const std::map<float, Flags>& getFlags() const {
     return m_flags;

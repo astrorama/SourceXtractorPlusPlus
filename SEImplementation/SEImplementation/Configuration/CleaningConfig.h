@@ -33,7 +33,7 @@ class CleaningConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  CleaningConfig(long manager_id);
+  explicit CleaningConfig(long manager_id);
 
   virtual ~CleaningConfig() = default;
 
