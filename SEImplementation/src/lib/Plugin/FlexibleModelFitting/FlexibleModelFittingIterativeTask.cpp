@@ -179,6 +179,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   //std::cout << "gs " << group.size() << "\n";
   for (auto& source : group) {
     SourceState initial_state;
+    initial_state.flags = Flags::NONE;
     initial_state.iterations = 0;
     initial_state.stop_reason = 0;
     initial_state.reduced_chi_squared = 0.0;
