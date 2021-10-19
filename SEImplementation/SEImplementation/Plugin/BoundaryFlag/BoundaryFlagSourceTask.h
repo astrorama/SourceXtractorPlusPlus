@@ -49,7 +49,7 @@ namespace SourceXtractor {
 class BoundaryFlagSourceTask : public SourceTask {
 public:
 
-  BoundaryFlagSourceTask(unsigned instance): m_instance{instance} {}
+  explicit BoundaryFlagSourceTask(unsigned instance): m_instance{instance} {}
 
   virtual ~BoundaryFlagSourceTask() = default;
 

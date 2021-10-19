@@ -44,8 +44,8 @@ namespace SourceXtractor {
 class NCorePixel : public Property {
 public:
   virtual ~NCorePixel() = default;
-  NCorePixel(unsigned long n_core_pixel) : m_n_core_pixel(n_core_pixel) {}
-  long int getNCorePixel () const {
+  explicit NCorePixel(unsigned long n_core_pixel) : m_n_core_pixel(n_core_pixel) {}
+  long int getNCorePixel() const {
     return m_n_core_pixel;
   }
 private:

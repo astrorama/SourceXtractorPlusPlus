@@ -47,7 +47,7 @@ public:
    */
   virtual ~AperturePhotometryArray() = default;
 
-  AperturePhotometryArray(const std::vector<AperturePhotometry> &measurements) {
+  explicit AperturePhotometryArray(const std::vector<AperturePhotometry> &measurements) {
     using Euclid::make_unique;
 
     assert(measurements.size() > 0);

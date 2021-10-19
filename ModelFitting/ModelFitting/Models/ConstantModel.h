@@ -31,7 +31,7 @@ class ConstantModel {
   
 public:
   
-  ConstantModel( std::shared_ptr<BasicParameter> value);
+  explicit ConstantModel( std::shared_ptr<BasicParameter> value);
           
   ConstantModel(ConstantModel&& other);
 

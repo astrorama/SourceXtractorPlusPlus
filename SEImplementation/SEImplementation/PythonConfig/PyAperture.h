@@ -31,7 +31,7 @@ namespace SourceXtractor {
 
 class PyAperture : public PyId {
 public:
-  PyAperture(const boost::python::list &py_apertures);
+  explicit PyAperture(const boost::python::list &py_apertures);
 
   std::vector<float> apertures;
 

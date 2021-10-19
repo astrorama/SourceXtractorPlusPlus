@@ -31,7 +31,7 @@ namespace SourceXtractor {
 
 class MultiThreadingConfig : public Euclid::Configuration::Configuration {
 public:
-  MultiThreadingConfig(long manager_id);
+  explicit MultiThreadingConfig(long manager_id);
 
   virtual ~MultiThreadingConfig() = default;
 

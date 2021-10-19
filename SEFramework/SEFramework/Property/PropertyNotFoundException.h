@@ -35,7 +35,7 @@ namespace SourceXtractor {
  */
 class PropertyNotFoundException : public Elements::Exception {
 public:
-  PropertyNotFoundException(PropertyId property_id) : Elements::Exception(
+  explicit PropertyNotFoundException(PropertyId property_id) : Elements::Exception(
       std::string("Property ") + property_id.getString() + " not found!") {}
 };
 

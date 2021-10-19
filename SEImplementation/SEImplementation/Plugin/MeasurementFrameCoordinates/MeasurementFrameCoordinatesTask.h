@@ -36,7 +36,7 @@ public:
   virtual ~MeasurementFrameCoordinatesTask() = default;
 
   /// Constructor
-  MeasurementFrameCoordinatesTask(unsigned int instance) : m_instance(instance) {}
+  explicit MeasurementFrameCoordinatesTask(unsigned int instance) : m_instance(instance) {}
 
   void computeProperties(SourceInterface& source) const override;
 

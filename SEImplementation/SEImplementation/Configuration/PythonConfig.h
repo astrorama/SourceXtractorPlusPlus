@@ -31,7 +31,7 @@ class PythonConfig : public Euclid::Configuration::Configuration {
   
 public:
   
-  PythonConfig(long manager_id);
+  explicit PythonConfig(long manager_id);
   
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
 

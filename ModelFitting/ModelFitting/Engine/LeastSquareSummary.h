@@ -53,6 +53,9 @@ struct LeastSquareSummary {
   /// Engine-specific reason for stopping the fitting
   int engine_stop_reason {0};
 
+  /// Runtime (in seconds)
+  float duration;
+
   /// Info of the minimization process, as provided by the underlying framework.
   ///
   /// WARNING: Using this result will make your code compatible with only one

@@ -44,7 +44,7 @@ public:
   virtual ~SegmentationFactory() = default;
 
   /// Constructor
-  SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
+  explicit SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
 
   std::shared_ptr<Segmentation> createSegmentation() const;
   

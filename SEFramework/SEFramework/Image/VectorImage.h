@@ -80,7 +80,7 @@ protected:
     assert(m_data->size() == std::size_t(width * height));
   }
 
-  VectorImage(const Image <T>& other_image)
+  explicit VectorImage(const Image <T>& other_image)
     : m_width(other_image.getWidth()), m_height(other_image.getHeight()),
       m_data(std::make_shared<std::vector<T>>(m_width * m_height)) {
     // FIXME: We probably could use a getChunk were we give the buffer to use
@@ -92,7 +92,7 @@ protected:
     }
   }
 
-  VectorImage(const std::shared_ptr<const Image <T>>& other_image) : VectorImage(
+  explicit VectorImage(const std::shared_ptr<const Image <T>>& other_image) : VectorImage(
     static_cast<const Image <T>&>(*other_image)) {}
 
 public:

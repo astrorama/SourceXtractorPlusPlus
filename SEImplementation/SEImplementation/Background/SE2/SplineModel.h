@@ -36,7 +36,7 @@ public:
 
   SplineModel(const size_t* naxes, const size_t* gridCellSize, const size_t* nGrid, PIXTYPE* gridData);
 
-  SplineModel(const boost::filesystem::path modelFile);
+  explicit SplineModel(const boost::filesystem::path modelFile);
   virtual ~SplineModel();
 
   void gridToFits(boost::filesystem::path& fitsName, const bool overwrite=true);

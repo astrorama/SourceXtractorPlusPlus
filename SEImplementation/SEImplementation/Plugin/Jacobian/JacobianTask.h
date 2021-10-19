@@ -34,7 +34,7 @@ class JacobianGroupTask : public GroupTask {
 public:
   virtual ~JacobianGroupTask() = default;
 
-  JacobianGroupTask(unsigned instance) : m_instance{instance} {}
+  explicit JacobianGroupTask(unsigned instance) : m_instance{instance} {}
 
   void computeProperties(SourceGroupInterface &source) const override;
 

@@ -33,8 +33,7 @@ namespace SourceXtractor {
 static const std::string THREADS_NB {"thread-count"};
 static const std::string MAX_QUEUE_SIZE {"thread-max-queue-size"};
 
-MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id), m_threads_nb(-1) {
-}
+MultiThreadingConfig::MultiThreadingConfig(long manager_id) : Configuration(manager_id), m_threads_nb(-1), m_max_queue_size(1000) {}
 
 auto MultiThreadingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-threading", {

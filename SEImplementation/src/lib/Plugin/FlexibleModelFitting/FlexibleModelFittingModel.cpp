@@ -193,6 +193,10 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
 
 static double computeBn(double n) {
   // Using approximation from MacArthur, L.A., Courteau, S., & Holtzman, J.A. 2003, ApJ, 582, 689
+
+  // The approximation only works for n >= 0.36, so we clamp the value to avoid numerical problems
+  n = std::max(0.36, n);
+
   return 2 * n - 1.0 / 3.0 + 4 / (405 * n)
       + 46 / (25515 * n * n) + 131 / (1148175 * n * n * n) - 2194697 / (30690717750 * n * n * n * n);
 }

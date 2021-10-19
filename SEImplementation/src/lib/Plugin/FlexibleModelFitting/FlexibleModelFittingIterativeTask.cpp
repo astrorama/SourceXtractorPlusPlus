@@ -179,9 +179,11 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   //std::cout << "gs " << group.size() << "\n";
   for (auto& source : group) {
     SourceState initial_state;
+    initial_state.flags = Flags::NONE;
     initial_state.iterations = 0;
     initial_state.stop_reason = 0;
     initial_state.reduced_chi_squared = 0.0;
+    initial_state.duration = 0.0;
 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
@@ -242,7 +244,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   for (auto& source : group) {
     auto& source_state = fitting_state.source_states.at(index);
     source.setProperty<FlexibleModelFitting>(source_state.iterations, source_state.stop_reason,
-        source_state.reduced_chi_squared, source_state.flags,
+        source_state.reduced_chi_squared, source_state.duration, source_state.flags,
         source_state.parameters_values, source_state.parameters_sigmas);
 
     index++;
@@ -258,7 +260,7 @@ void FlexibleModelFittingIterativeTask::setDummyProperty(SourceInterface& source
   for (auto parameter : m_parameters) {
     dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
   }
-  source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), flags,
+  source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), 0., flags,
                                            dummy_values, dummy_values);
 }
 
@@ -413,7 +415,7 @@ SeFloat FlexibleModelFittingIterativeTask::fitSourceComputeChiSquared(FlexibleMo
 
 void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
     FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
-    SeFloat avg_reduced_chi_squared, unsigned int iterations, unsigned int stop_reason, Flags flags,
+    SeFloat avg_reduced_chi_squared, SeFloat duration, unsigned int iterations, unsigned int stop_reason, Flags flags,
     ModelFitting::LeastSquareSummary solution,
     int index, FittingState& state) const {
   ////////////////////////////////////////////////////////////////////////////////////
@@ -449,6 +451,7 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
   state.source_states[index].parameters_sigmas = parameters_sigmas;
   state.source_states[index].parameters_fitted = parameters_fitted;
   state.source_states[index].reduced_chi_squared = avg_reduced_chi_squared;
+  state.source_states[index].duration += duration;
   state.source_states[index].iterations = iterations;
   state.source_states[index].stop_reason = stop_reason;
   state.source_states[index].flags = flags;
@@ -505,6 +508,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   if (solution.status_flag == LeastSquareSummary::ERROR) {
     flags |= Flags::ERROR;
   }
+  auto duration = solution.duration;
 
   ////////////////////////////////////////////////////////////////////////////////////
   // compute chi squared
@@ -513,7 +517,8 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   ////////////////////////////////////////////////////////////////////////////////////
   // update state with results
-  fitSourceUpdateState(parameter_manager, source, avg_reduced_chi_squared, iterations, stop_reason, flags, solution, index, state);
+  fitSourceUpdateState(parameter_manager, source, avg_reduced_chi_squared, duration, iterations, stop_reason, flags, solution,
+                       index, state);
 }
 
 void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& group,
