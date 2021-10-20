@@ -189,7 +189,7 @@ private:
 
 class FlexibleModelFittingConstantModel : public FlexibleModelFittingModel {
 public:
-  FlexibleModelFittingConstantModel(std::shared_ptr<FlexibleModelFittingParameter> value)
+  explicit FlexibleModelFittingConstantModel(std::shared_ptr<FlexibleModelFittingParameter> value)
       : m_value(value) {}
 
   virtual ~FlexibleModelFittingConstantModel() {}
