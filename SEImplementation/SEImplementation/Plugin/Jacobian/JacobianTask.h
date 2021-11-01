@@ -46,7 +46,7 @@ class JacobianSourceTask : public SourceTask {
 public:
   virtual ~JacobianSourceTask() = default;
 
-  JacobianSourceTask(unsigned instance) : m_instance{instance} {}
+  explicit JacobianSourceTask(unsigned instance) : m_instance{instance} {}
 
   void computeProperties(SourceInterface &source) const override;
 

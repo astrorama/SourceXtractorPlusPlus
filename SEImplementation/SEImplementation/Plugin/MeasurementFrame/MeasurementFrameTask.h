@@ -55,7 +55,7 @@ public:
    */
   virtual ~DefaultMeasurementFrameTask() = default;
 
-  DefaultMeasurementFrameTask(unsigned int instance) : m_instance(instance) {}
+  explicit DefaultMeasurementFrameTask(unsigned int instance) : m_instance(instance) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 

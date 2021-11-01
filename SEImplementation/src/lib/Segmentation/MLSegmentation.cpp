@@ -161,9 +161,9 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
         for (int y = start_y; y < end_y; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
             for (int i=0; i<data_planes; i++) {
-              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * 3 + i] - detection_threshold);
+              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * data_planes + i] - detection_threshold);
               if (check_images[i] != nullptr) {
-                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * 3 + i]);
+                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * data_planes + i]);
               }
             }
           }

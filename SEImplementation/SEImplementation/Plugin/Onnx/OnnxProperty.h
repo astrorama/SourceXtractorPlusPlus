@@ -45,7 +45,7 @@ public:
     Euclid::NdArray::NdArray<T> m_ndarray;
 
     template <typename ...Args>
-    NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
+    explicit NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
   };
 
   /**
