@@ -75,7 +75,7 @@ public:
     std::vector<float> output_data(render_size * render_size);
 
     for (auto const& it : m_params) {
-      input_data_arrays[it.first] = std::vector<float>( { it.second->getValue() } );
+      input_data_arrays[it.first] = std::vector<float>( { static_cast<float>(it.second->getValue()) } );
     }
 
     input_data_arrays["x"] = std::vector<float>(render_size * render_size);
