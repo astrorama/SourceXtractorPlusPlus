@@ -109,9 +109,9 @@ int fftRoundDimension(int size) {
 
 template <typename T>
 auto FFT<T>::createForwardPlan(int width, int height, std::vector<T>& inout) -> plan_ptr_t {
-  int phy_height = height;
-  int phy_width  = 2 * (width / 2 + 1);
-  int mem_size = phy_height * phy_width;
+  size_t phy_height = height;
+  size_t phy_width  = 2 * (width / 2 + 1);
+  size_t mem_size = phy_height * phy_width;
 
   // Make sure the buffers are big enough
   if (inout.size() < mem_size) {
@@ -149,9 +149,9 @@ auto FFT<T>::createForwardPlan(int width, int height, std::vector<T>& inout) -> 
 
 template <typename T>
 auto FFT<T>::createInversePlan(int width, int height, std::vector<T>& inout) -> plan_ptr_t {
-  int phy_height = height;
-  int phy_width  = 2 * (width / 2 + 1);
-  int mem_size = phy_height * phy_width;
+  size_t phy_height = height;
+  size_t phy_width  = 2 * (width / 2 + 1);
+  size_t mem_size = phy_height * phy_width;
 
   // Make sure the buffers are big enough
   if (inout.size() < mem_size) {
@@ -197,7 +197,7 @@ void FFT<T>::executeInverse(plan_ptr_t& plan, std::vector<T>& inout) {
   fftw_traits::func_execute_inv(plan.get(), reinterpret_cast<complex_t*>(inout.data()), inout.data());
 }
 
-template class FFT<float>;
-template class FFT<double>;
+template struct FFT<float>;
+template struct FFT<double>;
 
 }  // namespace SourceXtractor
