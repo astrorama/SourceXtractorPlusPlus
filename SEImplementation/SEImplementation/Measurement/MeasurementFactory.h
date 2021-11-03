@@ -40,7 +40,7 @@ class MeasurementFactory : public Configurable {
 
 public:
 
-  MeasurementFactory(std::shared_ptr<OutputRegistry> output_registry)
+  explicit MeasurementFactory(std::shared_ptr<OutputRegistry> output_registry)
       : m_output_registry(output_registry), m_threads_nb(0), m_max_queue(0) {}
 
   std::unique_ptr<Measurement> getMeasurement() const;
