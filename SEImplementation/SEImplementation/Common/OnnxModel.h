@@ -21,7 +21,7 @@ namespace SourceXtractor {
 class OnnxModel {
 public:
 
-  OnnxModel(const std::string& model_path);
+  explicit OnnxModel(const std::string& model_path);
 
   template<typename T, typename U>
   void run(std::vector<T>& input_data, std::vector<U>& output_data) const {
