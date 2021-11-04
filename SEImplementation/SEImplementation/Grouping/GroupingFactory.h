@@ -42,7 +42,7 @@ class GroupingFactory : public Configurable {
 
 public:
 
-  GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
+  explicit GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
     : m_source_group_factory(source_group_factory), m_hard_limit(0) {}
 
   virtual ~GroupingFactory() = default;

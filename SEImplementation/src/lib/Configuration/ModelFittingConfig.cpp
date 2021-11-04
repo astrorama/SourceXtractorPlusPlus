@@ -274,14 +274,14 @@ void ModelFittingConfig::initializeInner() {
     py::dict parameters = py::extract<py::dict>(p.second.attr("params"));
     py::list names = parameters.keys();
     for (int i = 0; i < py::len(names); ++i) {
-      std::string name(py::extract<char const*>(names[i]));
+      std::string name = py::extract<std::string>(names[i]);
       params[name] = m_parameters[py::extract<int>(parameters[names[i]].attr("id"))];
     }
 
     std::vector<std::shared_ptr<OnnxModel>> onnx_models;
     py::list models = py::extract<py::list>(p.second.attr("models"));
     for (int i = 0; i < py::len(models); ++i) {
-      std::string model_filename(py::extract<char const*>(models[i]));
+      std::string model_filename = py::extract<std::string>(models[i]);
       onnx_models.emplace_back(std::make_shared<OnnxModel>(model_filename));
 
       if (onnx_models.back()->getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT ||
