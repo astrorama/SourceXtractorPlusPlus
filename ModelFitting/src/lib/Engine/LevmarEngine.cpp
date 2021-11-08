@@ -30,7 +30,7 @@
 #include "ModelFitting/Engine/LevmarEngine.h"
 
 #ifndef LEVMAR_WORKAREA_MAX_SIZE
-#define LEVMAR_WORKAREA_MAX_SIZE size_t(2<<30) // 2 GiB
+#define LEVMAR_WORKAREA_MAX_SIZE size_t(2ul<<30) // 2 GiB
 #endif
 
 namespace {
