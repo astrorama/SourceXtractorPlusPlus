@@ -170,6 +170,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
     LeastSquareSummary summary {};
     summary.status_flag = LeastSquareSummary::MEMORY;
     summary.iteration_no = workarea_size;
+    summary.parameter_sigmas.resize(parameter_manager.numberOfParameters());
     return summary;
   }
 
