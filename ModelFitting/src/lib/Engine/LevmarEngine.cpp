@@ -30,7 +30,7 @@
 #include "ModelFitting/Engine/LevmarEngine.h"
 
 #ifndef LEVMAR_WORKAREA_MAX_SIZE
-#define LEVMAR_WORKAREA_MAX_SIZE size_t(2<<30) // 2 GiB
+#define LEVMAR_WORKAREA_MAX_SIZE size_t(2ul<<30) // 2 GiB
 #endif
 
 namespace {
@@ -170,6 +170,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
     LeastSquareSummary summary {};
     summary.status_flag = LeastSquareSummary::MEMORY;
     summary.iteration_no = workarea_size;
+    summary.parameter_sigmas.resize(parameter_manager.numberOfParameters());
     return summary;
   }
 
