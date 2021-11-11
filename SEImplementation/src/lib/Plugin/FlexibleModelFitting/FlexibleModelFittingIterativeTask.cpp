@@ -21,6 +21,7 @@
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 #include "SEImplementation/Image/ImagePsf.h"
+#include "SEImplementation/Image/DownSampledImagePsf.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -101,6 +102,13 @@ std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, i
   auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
       LayerSubtractedImage, rect.getTopLeft().m_x, rect.getTopLeft().m_y, rect.getWidth(), rect.getHeight()));
 
+//  if (scale_factor != 1.0) {
+//    using Traits = ImageTraits<std::shared_ptr<VectorImage<SeFloat>>>;
+//    auto scaled_image = VectorImage<SeFloat>::create(rect.getWidth() * scale_factor, rect.getHeight() * scale_factor);
+//    Traits::addImageToImage(scaled_image, image, scale_factor, 0, 0);
+//    image = scaled_image;
+//  }
+//
   return image;
 }
 
@@ -132,12 +140,14 @@ std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source,
       }
     }
   }
+
+
   return weight;
 }
 
-FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
+FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
-    std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect) {
+    std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling=1.0) {
 
   int frame_index = frame->getFrameNb();
 
@@ -151,7 +161,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> crea
   // It will be used to compute the rastering grid size, and after convolving with the PSF the result will be
   // downscaled before copied into the frame image.
   // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
-  auto source_psf = ImagePsf(pixel_scale * psf_property.getPixelSampling(), psf_property.getPsf());
+  auto source_psf = DownSampledImagePsf(psf_property.getPixelSampling(), psf_property.getPsf(), down_scaling);
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
@@ -163,9 +173,9 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> crea
   }
 
   // Full frame model with all sources
-  FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
+  FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-    std::move(constant_models), std::move(point_models), std::move(extended_models), source_psf);
+    std::move(constant_models), std::move(point_models), std::move(extended_models), source_psf, down_scaling);
 
   return frame_model;
 }
@@ -348,7 +358,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
 
 int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
     ResidualEstimator& res_estimator, int& good_pixels,
-    SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
+    SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double down_scaling) const {
 
   double pixel_scale = 1 / m_scale_factor;
 
@@ -360,7 +370,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
       valid_frames++;
 
       auto stamp_rect = getFittingRect(source, frame_index);
-      auto frame_model = createFrameModel(source, pixel_scale, parameter_manager, frame, stamp_rect);
+      auto frame_model = createFrameModel(source, pixel_scale, parameter_manager, frame, stamp_rect, down_scaling);
 
       auto image = createImageCopy(source, frame_index);
 
@@ -460,6 +470,26 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
 void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
 
   //////////////////////////////////////////////
+  // Determine size of fitted area and if needed downsize factor
+
+  int fit_size = 0;
+  for (auto frame : m_frames) {
+    int frame_index = frame->getFrameNb();
+    // Validate that each frame covers the model fitting region
+    if (isFrameValid(source, frame_index)) {
+      auto stamp_rect = getFittingRect(source, frame_index);
+      fit_size = std::max(fit_size, stamp_rect.getWidth() * stamp_rect.getHeight());
+    }
+  }
+
+  double down_scaling = 1.0;
+  if (fit_size > m_max_fit_size) {
+    down_scaling = sqrt(double(m_max_fit_size) / fit_size);
+    std::cout << "Exceeding max fit size: " << fit_size << " / " << m_max_fit_size
+        << " scaling: " << down_scaling << "\n";
+  }
+
+  //////////////////////////////////////////////
   // Prepare parameters
 
   FlexibleModelFittingParameterManager parameter_manager;
@@ -472,7 +502,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   ResidualEstimator res_estimator {};
   int n_good_pixels = 0;
   int valid_frames = fitSourcePrepareModels(
-      parameter_manager, res_estimator, n_good_pixels, group, source, index, state);
+      parameter_manager, res_estimator, n_good_pixels, group, source, index, state, down_scaling);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Check that we had enough data for the fit
@@ -621,8 +651,7 @@ SeFloat FlexibleModelFittingIterativeTask::computeChiSquared(SourceGroupInterfac
       auto weight = createWeightImage(source, frame_index);
 
       int data_points = 0;
-      SeFloat chi_squared = computeChiSquaredForFrame(
-          image, final_stamp, weight, data_points);
+      SeFloat chi_squared = computeChiSquaredForFrame(image, final_stamp, weight, data_points);
 
       total_data_points += data_points;
       total_chi_squared += chi_squared;

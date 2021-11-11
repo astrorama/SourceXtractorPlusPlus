@@ -31,7 +31,7 @@ namespace ModelFitting {
  * This way they do not have to be modified.
  *
  * PSF types that have this concept should specialize the trait with has_context = true
- * and the appropiate context_t
+ * and the appropriate context_t
  */
 template <typename PsfType>
 struct PsfTraits {

@@ -41,24 +41,28 @@ FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width
                                            std::vector<ConstantModel> constant_model_list,
                                            std::vector<PointModel> point_model_list,
                                            std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
-                                           PsfType psf)
+                                           PsfType psf,
+                                           double down_scaling)
         : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
           m_constant_model_list{std::move(constant_model_list)},
           m_point_model_list{std::move(point_model_list)},
           m_extended_model_list{std::move(extended_model_list)},
-          m_psf{std::move(psf), m_extended_model_list.size()} {
+          m_psf{std::move(psf), m_extended_model_list.size()},
+          m_down_scaling{down_scaling} {
 }
 
 template <typename PsfType, typename ImageType>
 FrameModel<PsfType, ImageType>::FrameModel(double pixel_scale, std::size_t width, std::size_t height,
                                            std::vector<ConstantModel> constant_model_list,
                                            std::vector<PointModel> point_model_list,
-                                           std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list)
+                                           std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
+                                           double down_scaling)
         : m_pixel_scale{pixel_scale}, m_width{width}, m_height{height},
           m_constant_model_list{std::move(constant_model_list)},
           m_point_model_list{std::move(point_model_list)},
           m_extended_model_list{std::move(extended_model_list)},
-          m_psf{m_extended_model_list.size()} {
+          m_psf{m_extended_model_list.size()},
+          m_down_scaling{down_scaling} {
 }
 
 template <typename PsfType, typename ImageType>
@@ -89,21 +93,23 @@ void addPointModels(ImageType& image, const std::vector<PointModel>& model_list,
   
 template <typename ImageType, typename PsfType>
 void addExtendedModels(ImageType& image, const std::vector<std::shared_ptr<ExtendedModel<ImageType>>>& model_list,
-                       PsfType& psf, double pixel_scale) {
+                       PsfType& psf, double pixel_scale, double down_scaling) {
   using Traits = ImageTraits<ImageType>;
   auto scale_factor = psf.getPixelScale() / pixel_scale;
   for (size_t i = 0; i < model_list.size(); ++i) {
     auto& model = model_list[i];
-    std::size_t width = std::ceil(model->getWidth() / psf.getPixelScale() + psf.getSize());
-    if (width%2 == 0) {
+    std::size_t width = std::ceil((model->getWidth() / psf.getPixelScale() + psf.getSize()) * down_scaling);
+    if (width % 2 == 0) {
       ++width;
     }
-    std::size_t height = std::ceil(model->getHeight() / psf.getPixelScale() + psf.getSize());
-    if (height%2 == 0) {
+    std::size_t height = std::ceil((model->getHeight() / psf.getPixelScale() + psf.getSize()) * down_scaling);
+    if (height % 2 == 0) {
       ++height;
     }
+
     auto extended_image = model->getRasterizedImage(psf.getPixelScale(), width, height);
     psf.convolve(i, extended_image);
+    //psf.convolve(i, extended_image, down_scaling);
     Traits::addImageToImage(image, extended_image, scale_factor, model->getX(), model->getY());
   }
 }
@@ -127,7 +133,7 @@ template <typename PsfType, typename ImageType>
 void FrameModel<PsfType, ImageType>::rasterToImage(ImageType &model_image) {
   _impl::addConstantModels(model_image, m_constant_model_list);
   _impl::addPointModels(model_image, m_point_model_list, m_psf, m_pixel_scale);
-  _impl::addExtendedModels(model_image, m_extended_model_list, m_psf, m_pixel_scale);
+  _impl::addExtendedModels(model_image, m_extended_model_list, m_psf, m_pixel_scale, m_down_scaling);
 }
 
 template <typename PsfType, typename ImageType>

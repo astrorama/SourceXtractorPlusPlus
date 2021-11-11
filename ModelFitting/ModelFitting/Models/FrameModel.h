@@ -66,9 +66,9 @@ public:
    * @param image
    *    The image to convolve
    */
-  template <typename ImageType>
-  void convolve(size_t, ImageType& image) {
-    PsfType::convolve(image);
+  template<typename... Args>
+  void convolve(size_t, Args&&... args) {
+    PsfType::convolve(std::forward<Args>(args)...);
   }
 };
 
@@ -107,14 +107,14 @@ public:
    * @param image
    *    The image to convolve
    */
-  template <typename ImageType>
-  void convolve(size_t i, ImageType& image) {
+  template<typename... Args>
+  void convolve(size_t i, Args&&... args) {
     auto& context = m_psf_contexts[i];
     if (!context) {
-      context = PsfType::prepare(image);
+      context = PsfType::prepare(std::forward<Args>(args)...);
       m_psf_contexts[i] = std::move(context);
     }
-    PsfType::convolve(image, m_psf_contexts[i]);
+    PsfType::convolve(std::forward<Args>(args)..., m_psf_contexts[i]);
   }
 
 private:
@@ -146,12 +146,14 @@ public:
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
              std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
-             PsfType psf);
+             PsfType psf,
+             double down_scaling=1.0);
   
   FrameModel(double pixel_scale, std::size_t width, std::size_t height,
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
-             std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list);
+             std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
+             double down_scaling=1.0);
 
 
   FrameModel(FrameModel&&) = default;
@@ -180,6 +182,7 @@ private:
   std::vector<std::shared_ptr<ExtendedModel<ImageType>>> m_extended_model_list;
   psf_container_t m_psf;
   std::unique_ptr<ImageType> m_model_image {};
+  double m_down_scaling;
   
 }; // end of class FrameModel
 

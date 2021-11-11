@@ -86,7 +86,7 @@ private:
                                  int index, FittingState& state) const;
   int fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
       ModelFitting::ResidualEstimator& res_estimator, int& good_pixels,
-      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
+      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double downscaling) const;
   SeFloat fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
       SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void fitSourceUpdateState(FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
@@ -107,6 +107,8 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
   double m_scale_factor;
+
+  int m_max_fit_size = 100*100;
 };
 
 }
