@@ -104,13 +104,6 @@ std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, i
   auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
       LayerSubtractedImage, rect.getTopLeft().m_x, rect.getTopLeft().m_y, rect.getWidth(), rect.getHeight()));
 
-//  if (scale_factor != 1.0) {
-//    using Traits = ImageTraits<std::shared_ptr<VectorImage<SeFloat>>>;
-//    auto scaled_image = VectorImage<SeFloat>::create(rect.getWidth() * scale_factor, rect.getHeight() * scale_factor);
-//    Traits::addImageToImage(scaled_image, image, scale_factor, 0, 0);
-//    image = scaled_image;
-//  }
-//
   return image;
 }
 
