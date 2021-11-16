@@ -38,7 +38,7 @@ public:
 
   virtual ~OnnxCompactModel() = default;
 
-  double getValue(double x, double y) const override {
+  double getValue(double, double) const override {
     return 0.0; // unused
   }
 

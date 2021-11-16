@@ -146,14 +146,12 @@ public:
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
              std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
-             PsfType psf,
-             double down_scaling=1.0);
+             PsfType psf);
   
   FrameModel(double pixel_scale, std::size_t width, std::size_t height,
              std::vector<ConstantModel> constant_model_list,
              std::vector<PointModel> point_model_list,
-             std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list,
-             double down_scaling=1.0);
+             std::vector<std::shared_ptr<ExtendedModel<ImageType>>> extended_model_list);
 
 
   FrameModel(FrameModel&&) = default;
@@ -182,7 +180,6 @@ private:
   std::vector<std::shared_ptr<ExtendedModel<ImageType>>> m_extended_model_list;
   psf_container_t m_psf;
   std::unique_ptr<ImageType> m_model_image {};
-  double m_down_scaling;
   
 }; // end of class FrameModel
 

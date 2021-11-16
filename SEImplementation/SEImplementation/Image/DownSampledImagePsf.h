@@ -35,6 +35,9 @@
 
 namespace SourceXtractor {
 
+/*
+ * Encapsulates ImagePsf to provide a downscaled version for performance
+ */
 class DownSampledImagePsf {
 public:
 
@@ -42,33 +45,33 @@ public:
 
   virtual ~DownSampledImagePsf() = default;
 
-  double getPixelScale(int mip=0) const;
-  std::size_t getSize(int mip=0) const;
-  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> getScaledKernel(SeFloat scale, int mip=0) const;
-  void convolve(std::shared_ptr<WriteableImage<float>> image, double down_scaling=1.0) const;
+  double getPixelScale() const;
+  std::size_t getSize() const;
+  std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> getScaledKernel(SeFloat scale) const;
+  void convolve(std::shared_ptr<WriteableImage<float>> image) const;
+
+  // For ConvolutionContext optimization
+  std::unique_ptr<DFTConvolution<SeFloat>::ConvolutionContext> prepare(const std::shared_ptr<const Image<SeFloat>>& model_ptr) const;
+  void convolve(std::shared_ptr<WriteableImage<float>> image, std::unique_ptr<DFTConvolution<SeFloat>::ConvolutionContext>& context) const;
 
 private:
-  void generateMips(std::shared_ptr<const VectorImage<SeFloat>> image);
-
-  double m_pixel_scale;
   double m_down_scaling;
-  std::vector<std::shared_ptr<ImagePsf>> m_psf_mip;
-
+  std::shared_ptr<ImagePsf> m_psf;
 };
 
 } // end of SourceXtractor
 
-//namespace ModelFitting {
-//
-///**
-// * Specialization of PsfTraits, as DFTConvolution has the concept of context
-// */
-//template<>
-//struct PsfTraits<SourceXtractor::DownSampledImagePsf> {
-//  using context_t = typename std::unique_ptr<SourceXtractor::ImagePsf::ConvolutionContext>;
-//  static constexpr bool has_context = true;
-//};
+namespace ModelFitting {
 
-//} // end of ModelFitting
+/**
+ * Specialization of PsfTraits, as DFTConvolution has the concept of context
+ */
+template<>
+struct PsfTraits<SourceXtractor::DownSampledImagePsf> {
+  using context_t = typename std::unique_ptr<SourceXtractor::ImagePsf::ConvolutionContext>;
+  static constexpr bool has_context = true;
+};
+
+} // end of ModelFitting
 
 #endif /* _SEIMPLEMENTATION_IMAGE_DOWNSAMPLEDIMAGEPSF_H_ */

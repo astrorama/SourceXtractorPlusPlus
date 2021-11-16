@@ -248,8 +248,8 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
     auto stop_reason = solution.engine_stop_reason;
     switch (solution.status_flag) {
       case LeastSquareSummary::MEMORY:
-        group_flags |= Flags::MEMORY;
-        // fall through
+        group_flags |= (Flags::MEMORY | Flags::ERROR);
+        break;
       case LeastSquareSummary::ERROR:
         group_flags |= Flags::ERROR;
         break;

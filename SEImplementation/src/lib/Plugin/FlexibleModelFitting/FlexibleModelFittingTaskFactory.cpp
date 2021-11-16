@@ -39,7 +39,7 @@ std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const Property
     if (m_use_iterative_fitting) {
       return std::make_shared<FlexibleModelFittingIterativeTask>(m_least_squares_engine, m_max_iterations,
           m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor,
-          m_meta_iterations, m_deblend_factor, m_meta_iteration_stop);
+          m_meta_iterations, m_deblend_factor, m_meta_iteration_stop, m_max_fit_size);
     } else {
       return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
           m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
@@ -89,6 +89,7 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   m_outputs = model_fitting_config.getOutputs();
 
   m_scale_factor = sampling_config.getScaleFactor();
+  m_max_fit_size = sampling_config.getMaxFitSize();
 }
 
 void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& registry) {

@@ -52,11 +52,13 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     double scale_factor,
     int meta_iterations,
     double deblend_factor,
-    double meta_iteration_stop)
-  : m_least_squares_engine(least_squares_engine),
-    m_max_iterations(max_iterations), m_modified_chi_squared_scale(modified_chi_squared_scale),
-    m_parameters(parameters), m_frames(frames), m_priors(priors), m_scale_factor(scale_factor),
-    m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop) {}
+    double meta_iteration_stop,
+    size_t max_fit_size)
+    : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations),
+      m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
+      m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
+      m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors) {
+}
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
@@ -175,7 +177,7 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   // Full frame model with all sources
   FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> frame_model(
     pixel_scale, (size_t) stamp_rect.getWidth(), (size_t) stamp_rect.getHeight(),
-    std::move(constant_models), std::move(point_models), std::move(extended_models), source_psf, down_scaling);
+    std::move(constant_models), std::move(point_models), std::move(extended_models), source_psf);
 
   return frame_model;
 }
@@ -235,8 +237,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
 
 
   // Remove parameters that couldn't be fit from the output
-  int index = 0;
-  for (auto& source : group) {
+
+  for (size_t index = 0; index < group.size(); index++){
     auto& source_state = fitting_state.source_states.at(index);
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
@@ -246,11 +248,10 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
         source_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
     }
-    index++;
   }
 
   // output a property for every source
-  index = 0;
+  size_t index = 0;
   for (auto& source : group) {
     auto& source_state = fitting_state.source_states.at(index);
     source.setProperty<FlexibleModelFitting>(source_state.iterations, source_state.stop_reason,
@@ -260,7 +261,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     index++;
   }
 
-  updateCheckImages(group, 1 / m_scale_factor, fitting_state);
+  updateCheckImages(group, 1.0, fitting_state);
 }
 
 
@@ -280,7 +281,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   int frame_index = frame->getFrameNb();
   auto rect = getFittingRect(source, frame_index);
 
-  double pixel_scale = 1 / m_scale_factor;
+  double pixel_scale = 1.0;
   FlexibleModelFittingParameterManager parameter_manager;
   ModelFitting::EngineParameterManager engine_parameter_manager {};
   int n_free_parameters = 0;
@@ -330,8 +331,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
 int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
                                                     FlexibleModelFittingParameterManager& parameter_manager,
                                                     ModelFitting::EngineParameterManager& engine_parameter_manager,
-                                                    SourceGroupInterface& group, SourceInterface& source,
-                                                    int index, FittingState& state) const {
+                                                    SourceInterface& source, int index, FittingState& state) const {
   int free_parameters_nb = 0;
   for (auto parameter : m_parameters) {
     auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
@@ -360,7 +360,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
     ResidualEstimator& res_estimator, int& good_pixels,
     SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double down_scaling) const {
 
-  double pixel_scale = 1 / m_scale_factor;
+  double pixel_scale = 1.0;
 
   int valid_frames = 0;
   for (auto frame : m_frames) {
@@ -405,7 +405,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
 SeFloat FlexibleModelFittingIterativeTask::fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
     SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
 
-  double pixel_scale = 1 / m_scale_factor;
+  double pixel_scale = 1.0;
 
   int total_data_points = 0;
   SeFloat avg_reduced_chi_squared = computeChiSquared(group, source, index,pixel_scale, parameter_manager, total_data_points, state);
@@ -472,21 +472,22 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   //////////////////////////////////////////////
   // Determine size of fitted area and if needed downsize factor
 
-  int fit_size = 0;
+  double fit_size = 0;
   for (auto frame : m_frames) {
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(source, frame_index)) {
+      auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
       auto stamp_rect = getFittingRect(source, frame_index);
-      fit_size = std::max(fit_size, stamp_rect.getWidth() * stamp_rect.getHeight());
+      fit_size = std::max(fit_size, stamp_rect.getWidth() * stamp_rect.getHeight() / psf_property.getPixelSampling());
     }
   }
 
-  double down_scaling = 1.0;
-  if (fit_size > m_max_fit_size) {
-    down_scaling = sqrt(double(m_max_fit_size) / fit_size);
-    std::cout << "Exceeding max fit size: " << fit_size << " / " << m_max_fit_size
-        << " scaling: " << down_scaling << "\n";
+  double down_scaling = m_scale_factor;
+  if (fit_size > m_max_fit_size * 2.0) {
+    down_scaling *= sqrt(double(m_max_fit_size) / fit_size);
+    logger.warn() << "Exceeding max fit size: " << fit_size << " / " << m_max_fit_size
+        << " scaling factor: " << down_scaling;
   }
 
   //////////////////////////////////////////////
@@ -495,7 +496,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   FlexibleModelFittingParameterManager parameter_manager;
   ModelFitting::EngineParameterManager engine_parameter_manager{};
   int n_free_parameters = fitSourcePrepareParameters(
-      parameter_manager, engine_parameter_manager, group, source, index, state);
+      parameter_manager, engine_parameter_manager, source, index, state);
 
   ///////////////////////////////////////////////////////////////////////////////////
   // Add models for all frames
@@ -516,10 +517,16 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
     flags = Flags::INSUFFICIENT_DATA;
   }
 
+  // Do not run the model fitting for the flags above
   if (flags != Flags::NONE) {
     setDummyProperty(source, flags);
     return;
   }
+
+  if (down_scaling < 1.0) {
+    flags |= Flags::DOWNSAMPLED;
+  }
+
 
   ////////////////////////////////////////////////////////////////////////////////
   // Add priors
