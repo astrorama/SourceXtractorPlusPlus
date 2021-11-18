@@ -24,11 +24,12 @@ namespace po = boost::program_options;
 
 namespace SourceXtractor {
 
-static const std::string SAMPLING_ADAPTIVE_TARGET {"sampling-adaptive-target"};
+//static const std::string SAMPLING_ADAPTIVE_TARGET {"sampling-adaptive-target"};
 static const std::string SAMPLING_SCALE_FACTOR {"sampling-scale-factor"};
+static const std::string SAMPLING_MAX_FIT_SIZE {"sampling-max-fit-size"};
 
 SamplingConfig::SamplingConfig(long manager_id) : Configuration(manager_id),
-    m_adaptive_target(0.001), m_scale_factor(1.0) {}
+    m_adaptive_target(0.001), m_scale_factor(1.0), m_max_fit_size(1000) {}
 
 auto SamplingConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"Model Fitting Sampling",
@@ -36,7 +37,9 @@ auto SamplingConfig::getProgramOptions() -> std::map<std::string, OptionDescript
 //        {SAMPLING_ADAPTIVE_TARGET.c_str(), po::value<double>()->default_value(0.001),
 //         "Adaptive sampling will stop when difference is less than this"},
         {SAMPLING_SCALE_FACTOR.c_str(), po::value<double>()->default_value(1.0),
-         "Scaling factor for the rendering of models (e.g. 2 = twice the resolution)"}
+         "Scaling factor for the rendering of models (e.g. 2 = twice the resolution)"},
+        {SAMPLING_MAX_FIT_SIZE.c_str(), po::value<size_t>()->default_value(1000),
+         "Size of maximum fit area before downsampling (in pixels, one side)"}
       }
   }};
 }
@@ -47,6 +50,7 @@ void SamplingConfig::preInitialize(const UserValues& args) {
 void SamplingConfig::initialize(const UserValues& args) {
 //  m_adaptive_target = args.at(SAMPLING_ADAPTIVE_TARGET).as<double>();
   m_scale_factor = args.at(SAMPLING_SCALE_FACTOR).as<double>();
+  m_max_fit_size = args.at(SAMPLING_MAX_FIT_SIZE).as<size_t>();
 }
 
 } /* namespace SourceXtractor */

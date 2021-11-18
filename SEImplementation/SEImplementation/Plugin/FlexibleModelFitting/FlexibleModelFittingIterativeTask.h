@@ -46,7 +46,8 @@ public:
       double scale_factor=1.0,
       int meta_iterations=3,
       double deblend_factor=1.0,
-      double meta_iteration_stop=0.0001
+      double meta_iteration_stop=0.0001,
+      size_t max_fit_size=100
       );
 
   virtual ~FlexibleModelFittingIterativeTask();
@@ -82,11 +83,10 @@ private:
       std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
   int fitSourcePrepareParameters(FlexibleModelFittingParameterManager& parameter_manager,
                                  ModelFitting::EngineParameterManager& engine_parameter_manager,
-                                 SourceGroupInterface& group, SourceInterface& source,
-                                 int index, FittingState& state) const;
+                                 SourceInterface& source, int index, FittingState& state) const;
   int fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
       ModelFitting::ResidualEstimator& res_estimator, int& good_pixels,
-      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
+      SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double downscaling) const;
   SeFloat fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
       SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void fitSourceUpdateState(FlexibleModelFittingParameterManager& parameter_manager, SourceInterface& source,
@@ -98,15 +98,15 @@ private:
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;
   double m_modified_chi_squared_scale;
+  double m_scale_factor;
   int m_meta_iterations;
   double m_deblend_factor;
   double m_meta_iteration_stop;
+  size_t m_max_fit_size;
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
-
-  double m_scale_factor;
 };
 
 }
