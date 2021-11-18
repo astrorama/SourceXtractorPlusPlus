@@ -472,7 +472,8 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
     if (isFrameValid(source, frame_index)) {
       auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
       auto stamp_rect = getFittingRect(source, frame_index);
-      fit_size = std::max(fit_size, stamp_rect.getWidth() * stamp_rect.getHeight() / psf_property.getPixelSampling());
+      fit_size = std::max(fit_size, stamp_rect.getWidth() * stamp_rect.getHeight() /
+          (psf_property.getPixelSampling() * psf_property.getPixelSampling()));
     }
   }
 
