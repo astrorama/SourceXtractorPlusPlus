@@ -64,6 +64,8 @@ private:
     float duration;
     unsigned int iterations;
     unsigned int stop_reason;
+    std::vector<SeFloat> chi_squared_per_meta;
+    std::vector<int> iterations_per_meta;
   };
 
   struct FittingState {

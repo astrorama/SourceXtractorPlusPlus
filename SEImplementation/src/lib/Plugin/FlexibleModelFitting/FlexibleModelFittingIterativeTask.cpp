@@ -247,9 +247,16 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   size_t index = 0;
   for (auto& source : group) {
     auto& source_state = fitting_state.source_states.at(index);
+
+    int meta_iterations = source_state.chi_squared_per_meta.size();
+    source_state.chi_squared_per_meta.resize(m_meta_iterations);
+    source_state.iterations_per_meta.resize(m_meta_iterations);
+
     source.setProperty<FlexibleModelFitting>(source_state.iterations, source_state.stop_reason,
         source_state.reduced_chi_squared, source_state.duration, source_state.flags,
-        source_state.parameters_values, source_state.parameters_sigmas);
+        source_state.parameters_values, source_state.parameters_sigmas,
+        source_state.chi_squared_per_meta, source_state.iterations_per_meta,
+        meta_iterations);
 
     index++;
   }
@@ -265,7 +272,9 @@ void FlexibleModelFittingIterativeTask::setDummyProperty(SourceInterface& source
     dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
   }
   source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), 0., flags,
-                                           dummy_values, dummy_values);
+                                           dummy_values, dummy_values,
+                                           std::vector<SeFloat>(m_meta_iterations),
+                                           std::vector<int>(m_meta_iterations), 0);
 }
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createDeblendImage(
@@ -454,8 +463,10 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
   state.source_states[index].parameters_sigmas = parameters_sigmas;
   state.source_states[index].parameters_fitted = parameters_fitted;
   state.source_states[index].reduced_chi_squared = avg_reduced_chi_squared;
+  state.source_states[index].chi_squared_per_meta.emplace_back(avg_reduced_chi_squared);
   state.source_states[index].duration += duration;
-  state.source_states[index].iterations = iterations;
+  state.source_states[index].iterations += iterations;
+  state.source_states[index].iterations_per_meta.emplace_back(iterations);
   state.source_states[index].stop_reason = stop_reason;
   state.source_states[index].flags = flags;
 }
