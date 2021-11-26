@@ -863,26 +863,32 @@ class OnnxModel(CoordinateModelBase):
         Y coordinate (in the detection image)
     flux : ParameterBase or float
         Total flux
-    effective_radius : ParameterBase or float
-        Ellipse semi-major axis, in pixels on the detection image.
-    aspect_ratio : ParameterBase or float
-        Ellipse ratio.
-    angle : ParameterBase or float
-        Ellipse rotation, in radians
     params : Dictionary of String and ParameterBase or float
         Dictionary of custom parameters for the ONNX model
     """
     
-    def __init__(self, models, x_coord, y_coord, flux, aspect_ratio, angle, params={}):
+    def __init__(self, models, x_coord, y_coord, flux, params={}):
         """
         Constructor.
         """
         CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
-        self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
-        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        
+        ratio_name = "_aspect_ratio"
+        angle_name = "_angle"
+
         for k in params.keys():
             if not isinstance(params[k], ParameterBase):
                 params[k] = ConstantParameter(params[k])
+                
+        aspect_ratio = params[ratio_name] if ratio_name in params.keys() else 1.0
+        angle = params[angle_name] if angle_name in params.keys() else 0.0
+        
+        self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
+        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        
+        params.pop(ratio_name, None)
+        params.pop(angle_name, None)
+                    
         self.params = params
         self.models = models if isinstance(models, list) else [models]
         
