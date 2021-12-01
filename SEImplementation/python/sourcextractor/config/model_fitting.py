@@ -875,6 +875,7 @@ class OnnxModel(CoordinateModelBase):
         
         ratio_name = "_aspect_ratio"
         angle_name = "_angle"
+        scale_name = "_scale"
 
         for k in params.keys():
             if not isinstance(params[k], ParameterBase):
@@ -882,12 +883,15 @@ class OnnxModel(CoordinateModelBase):
                 
         aspect_ratio = params[ratio_name] if ratio_name in params.keys() else 1.0
         angle = params[angle_name] if angle_name in params.keys() else 0.0
+        scale = params[scale_name] if scale_name in params.keys() else 1.0
         
         self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
         self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        self.scale = scale if isinstance(scale, ParameterBase) else ConstantParameter(scale)
         
         params.pop(ratio_name, None)
         params.pop(angle_name, None)
+        params.pop(scale_name, None)
                     
         self.params = params
         self.models = models if isinstance(models, list) else [models]
