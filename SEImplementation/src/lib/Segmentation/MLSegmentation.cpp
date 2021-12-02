@@ -115,6 +115,10 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
     throw Elements::Exception() << "Only ONNX models with float output are supported";
   }
 
+  if (model.getInputNb() != 1) {
+    throw Elements::Exception() << "Only ONNX models with a single input tensor are supported";
+  }
+
   // allocate memory
   std::vector<float> input_data(tile_size * tile_size);
   std::vector<float> output_data(tile_size * tile_size * data_planes);
@@ -157,9 +161,9 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
         for (int y = start_y; y < end_y; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
             for (int i=0; i<data_planes; i++) {
-              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * 3 + i] - detection_threshold);
+              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * data_planes + i] - detection_threshold);
               if (check_images[i] != nullptr) {
-                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * 3 + i]);
+                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * data_planes + i]);
               }
             }
           }

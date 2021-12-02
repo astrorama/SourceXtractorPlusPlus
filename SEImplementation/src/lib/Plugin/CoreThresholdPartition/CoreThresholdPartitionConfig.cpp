@@ -65,7 +65,7 @@ void CoreThresholdPartitionConfig::initialize(const UserValues &args) {
     throw Elements::Exception() << "Invalid " << CORE_MINAREA << " value: " << m_core_minarea;
   }
 
-  if (m_core_minarea > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()){
+  if (m_core_threshold > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()){
 
     double core_threshold = m_core_threshold;
     int core_minarea      = m_core_minarea;

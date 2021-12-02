@@ -44,7 +44,7 @@ class FlexibleModelFittingConverterFactory;
 
 class FlexibleModelFittingParameter : public std::enable_shared_from_this<FlexibleModelFittingParameter>{
 public:
-  FlexibleModelFittingParameter(int id);
+  explicit FlexibleModelFittingParameter(int id);
   virtual ~FlexibleModelFittingParameter() = default;
 
   virtual std::shared_ptr<ModelFitting::BasicParameter> create(

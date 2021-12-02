@@ -54,11 +54,11 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
 
   float area_correction = (1.0 / fabs(m_jacobian[0] * m_jacobian[3] - m_jacobian[1] * m_jacobian[2])) * pixel_scale * pixel_scale;
 
-  for (int x=0; x<(int)size_x; ++x) {
-    int dx = x - size_x / 2;
-    for (int y=0; y<(int)size_y; ++y) {
-      int dy = y - size_y / 2;
-      if (dx*dx + dy*dy < m_sharp_radius_squared) {
+  for (int y = 0; y < (int)size_y; ++y) {
+    int dy = y - size_y / 2;
+    for (int x = 0; x < (int)size_x; ++x) {
+      int dx = x - size_x / 2;
+      if (dx * dx + dy * dy < m_sharp_radius_squared) {
         Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 7, 0.01) * area_correction;
       } else {
         Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;

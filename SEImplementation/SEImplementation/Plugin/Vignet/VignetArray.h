@@ -28,7 +28,7 @@ namespace SourceXtractor {
 
 class VignetArray: public Property {
 public:
-  VignetArray(const std::vector<std::reference_wrapper<const Vignet>>& vignets) {
+  explicit VignetArray(const std::vector<std::reference_wrapper<const Vignet>>& vignets) {
     const auto& representative = vignets.front().get().getVignet();
 
     if (vignets.size() > 1) {

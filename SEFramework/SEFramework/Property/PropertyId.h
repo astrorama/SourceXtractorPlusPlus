@@ -93,10 +93,10 @@ template <>
 struct hash<SourceXtractor::PropertyId>
 {
   std::size_t operator()(const SourceXtractor::PropertyId& id) const {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, id.m_type_id);
-    boost::hash_combine(hash, id.m_index);
-    return hash;
+    std::size_t h = 0;
+    boost::hash_combine(h, id.m_type_id);
+    boost::hash_combine(h, id.m_index);
+    return h;
   }
 };
 

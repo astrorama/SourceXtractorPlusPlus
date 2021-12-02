@@ -22,7 +22,7 @@ from .model_fitting import (RangeType, Range, Unbounded, print_parameters, Const
                             FreeParameter, DependentParameter,get_pos_parameters,
                             FluxParameterType, get_flux_parameter, add_model,
                             ConstantModel, PointSourceModel, SersicModel, ExponentialModel,
-                            DeVaucouleursModel, print_model_fitting_info, add_prior, set_max_iterations,
+                            DeVaucouleursModel, OnnxModel, print_model_fitting_info, add_prior, set_max_iterations,
                             pixel_to_world_coordinate, radius_to_wc_angle, get_separation_angle, get_position_angle,
                             get_world_position_parameters, get_world_parameters,
                             set_modified_chi_squared_scale, set_engine, use_iterative_fitting, set_meta_iterations,

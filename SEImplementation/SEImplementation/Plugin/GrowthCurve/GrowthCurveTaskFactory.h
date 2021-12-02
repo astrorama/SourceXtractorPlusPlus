@@ -24,6 +24,8 @@ namespace SourceXtractor {
 
 class GrowthCurveTaskFactory: public TaskFactory {
 public:
+  GrowthCurveTaskFactory() = default;
+
   virtual ~GrowthCurveTaskFactory() = default;
 
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;

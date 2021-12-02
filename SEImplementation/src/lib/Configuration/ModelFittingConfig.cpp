@@ -19,8 +19,16 @@
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <string>
+#include <boost/python/extract.hpp>
+#include <boost/python/object.hpp>
+#include <boost/python/tuple.hpp>
+#include <boost/python/dict.hpp>
+
 #include "ElementsKernel/Logging.h"
+
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
+
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
 #include "SEImplementation/PythonConfig/ObjectInfo.h"
@@ -34,6 +42,13 @@
 #include <string>
 #include <boost/python/extract.hpp>
 #include <boost/python/object.hpp>
+
+#ifdef WITH_ONNX_MODELS
+#include "SEImplementation/Common/OnnxModel.h"
+#endif
+
+#include "SEImplementation/Configuration/ModelFittingConfig.h"
+
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;
@@ -49,7 +64,6 @@ struct FunctionFromPython {
 
 template<>
 struct FunctionFromPython<double(const SourceInterface&)> {
-
   static
   std::function<double(const SourceInterface&)> get(const char *readable,
                                                  Pyston::ExpressionTreeBuilder& builder,
@@ -287,6 +301,48 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
+
+#ifdef WITH_ONNX_MODELS
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getOnnxModels()) {
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    int scale_id = py::extract<int>(p.second.attr("scale").attr("id"));
+
+    std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params;
+    py::dict parameters = py::extract<py::dict>(p.second.attr("params"));
+    py::list names = parameters.keys();
+    for (int i = 0; i < py::len(names); ++i) {
+      std::string name = py::extract<std::string>(names[i]);
+      params[name] = m_parameters[py::extract<int>(parameters[names[i]].attr("id"))];
+    }
+
+    std::vector<std::shared_ptr<OnnxModel>> onnx_models;
+    py::list models = py::extract<py::list>(p.second.attr("models"));
+    for (int i = 0; i < py::len(models); ++i) {
+      std::string model_filename = py::extract<std::string>(models[i]);
+      onnx_models.emplace_back(std::make_shared<OnnxModel>(model_filename));
+
+      if (onnx_models.back()->getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT ||
+          onnx_models.back()->getOutputShape().size() != 4 ||
+          onnx_models.back()->getOutputShape()[1] != onnx_models.back()->getOutputShape()[2] ||
+          onnx_models.back()->getOutputShape()[3] != 1)
+      {
+        throw Elements::Exception() << "ONNX models for ModelFitting must output a square array of floats";
+      }
+    }
+
+    m_models[p.first] = std::make_shared<FlexibleModelFittingOnnxModel>(
+        onnx_models, m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
+        m_parameters[aspect_ratio_id], m_parameters[angle_id], m_parameters[scale_id], params);
+  }
+#else
+  if (getDependency<PythonConfig>().getInterpreter().getOnnxModels().size() > 0) {
+       throw Elements::Exception("Trying to use ONNX models but ONNX support is not available");
+  }
+#endif
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
     std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};

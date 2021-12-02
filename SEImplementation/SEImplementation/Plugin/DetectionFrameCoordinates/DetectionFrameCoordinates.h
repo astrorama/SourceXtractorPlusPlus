@@ -28,7 +28,7 @@ class DetectionFrameCoordinates : public Property {
 public:
   virtual ~DetectionFrameCoordinates() = default;
 
-  DetectionFrameCoordinates(std::shared_ptr<CoordinateSystem> coordinate_system)
+  explicit DetectionFrameCoordinates(std::shared_ptr<CoordinateSystem> coordinate_system)
       : m_coordinate_system(coordinate_system) {}
 
   const std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {

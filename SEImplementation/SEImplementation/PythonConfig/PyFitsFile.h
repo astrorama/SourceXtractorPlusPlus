@@ -29,7 +29,7 @@ class PyFitsFile {
 
 public:
 
-  PyFitsFile(const std::string& filename);
+  explicit PyFitsFile(const std::string& filename);
 
   virtual ~PyFitsFile() = default;
 

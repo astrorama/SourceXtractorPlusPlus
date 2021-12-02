@@ -49,7 +49,7 @@ public:
   virtual ~SegmentationConfig() = default;
 
   /// Constructs a new SegmentationConfig object
-  SegmentationConfig(long manager_id);
+  explicit SegmentationConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void preInitialize(const UserValues& args) override;

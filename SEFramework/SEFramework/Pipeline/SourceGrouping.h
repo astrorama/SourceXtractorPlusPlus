@@ -72,7 +72,7 @@ struct ProcessSourcesEvent {
 
   const std::shared_ptr<SelectionCriteria> m_selection_criteria;   // Used to identify the Sources to process
 
-  ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
+  explicit ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
     : m_selection_criteria(selection_criteria) {}
 };
 

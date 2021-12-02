@@ -62,7 +62,7 @@ public:
   virtual ~Deblending() = default;
 
   /// Constructor - takes a vector of DeblendStep to be applied, in order, to every SourceGroup
-  Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps);
+  explicit Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps);
 
   /// Handles a new SourceGroup, applies the DeblendSteps and then notifies the observers with the result
   virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;

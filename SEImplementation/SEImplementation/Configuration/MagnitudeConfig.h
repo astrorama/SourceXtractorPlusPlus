@@ -33,7 +33,7 @@ class MagnitudeConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  MagnitudeConfig(long manager_id);
+  explicit MagnitudeConfig(long manager_id);
 
   virtual ~MagnitudeConfig() = default;
 

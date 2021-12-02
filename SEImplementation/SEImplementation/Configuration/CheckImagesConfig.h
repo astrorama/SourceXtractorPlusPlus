@@ -33,7 +33,7 @@ class CheckImagesConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  CheckImagesConfig(long manager_id);
+  explicit CheckImagesConfig(long manager_id);
 
   virtual ~CheckImagesConfig() = default;
 

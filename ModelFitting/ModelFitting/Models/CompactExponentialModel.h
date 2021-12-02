@@ -61,7 +61,6 @@ private:
   std::shared_ptr<BasicParameter> m_i0;
   std::shared_ptr<BasicParameter> m_k;
   std::shared_ptr<BasicParameter> m_flux;
-
 };
 
 }

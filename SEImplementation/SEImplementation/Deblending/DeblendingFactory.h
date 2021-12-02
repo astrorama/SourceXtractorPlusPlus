@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file DeblendingFactory.h
  * @author nikoapos
  */
@@ -31,12 +31,12 @@
 namespace SourceXtractor {
 
 class DeblendingFactory : public Configurable {
-  
+
 public:
-  
-  DeblendingFactory(std::shared_ptr<SourceFactory> source_factory) :m_source_factory{source_factory} {
+
+  explicit DeblendingFactory(std::shared_ptr<SourceFactory> source_factory) :m_source_factory{source_factory} {
   }
-  
+
   virtual ~DeblendingFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override {
@@ -46,13 +46,13 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override {
     m_steps = manager.getConfiguration<DeblendStepConfig>().getSteps(m_source_factory);
   }
-  
+
   std::unique_ptr<Deblending> createDeblending() const {
     return std::unique_ptr<Deblending>(new Deblending(m_steps));
   }
-  
+
 private:
-  
+
   std::shared_ptr<SourceFactory> m_source_factory;
   std::vector<std::shared_ptr<DeblendStep>> m_steps;
 

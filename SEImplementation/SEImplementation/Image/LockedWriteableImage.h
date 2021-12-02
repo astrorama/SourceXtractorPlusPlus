@@ -17,7 +17,7 @@ namespace SourceXtractor {
 template <typename T>
 class LockedWriteableImage: public WriteableImage<T> {
 protected:
-  LockedWriteableImage(std::shared_ptr<WriteableImage<T>> img) : m_img{img}, m_lock(img->m_write_mutex) {
+  explicit LockedWriteableImage(std::shared_ptr<WriteableImage<T>> img) : m_img{img}, m_lock(img->m_write_mutex) {
   }
 
 public:

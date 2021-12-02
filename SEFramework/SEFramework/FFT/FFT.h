@@ -154,8 +154,8 @@ struct FFT {
  */
 int fftRoundDimension(int size);
 
-extern template class FFT<float>;
-extern template class FFT<double>;
+extern template struct FFT<float>;
+extern template struct FFT<double>;
 
 }  // namespace SourceXtractor
 

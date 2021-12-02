@@ -34,7 +34,7 @@ class Vignet : public Property {
 public:
   virtual ~Vignet() = default;
 
-  Vignet(const std::shared_ptr<VectorImage<DetectionImage::PixelType>> vignet) : m_vignet(vignet) {}
+  explicit Vignet(const std::shared_ptr<VectorImage<DetectionImage::PixelType>> vignet) : m_vignet(vignet) {}
 
   const VectorImage<DetectionImage::PixelType>& getVignet() const {
     return *m_vignet;

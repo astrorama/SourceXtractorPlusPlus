@@ -31,9 +31,12 @@
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include "SEImplementation/Segmentation/LutzSegmentation.h"
 #include "SEImplementation/Segmentation/BFSSegmentation.h"
-#include "SEImplementation/Segmentation/MLSegmentation.h"
-
 #include "SEImplementation/Segmentation/SegmentationFactory.h"
+
+#ifdef WITH_ML_SEGMENTATION
+#include "SEImplementation/Segmentation/MLSegmentation.h"
+#endif
+
 
 using namespace Euclid::Configuration;
 
@@ -41,7 +44,7 @@ namespace SourceXtractor {
 
 SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_provider)
     : m_algorithm(SegmentationConfig::Algorithm::UNKNOWN),
-      m_task_provider(task_provider), m_lutz_window_size(0) {
+      m_task_provider(task_provider), m_lutz_window_size(0), m_bfs_max_delta(0), m_ml_threshold(0.) {
 }
 
 void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -71,10 +74,12 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
       segmentation->setLabelling<BFSSegmentation>(
           std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_bfs_max_delta);
       break;
+#ifdef WITH_ML_SEGMENTATION
     case SegmentationConfig::Algorithm::ML:
       segmentation->setLabelling<MLSegmentation>(
           std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_model_path, m_ml_threshold);
       break;
+#endif
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
       throw Elements::Exception("Unknown segmentation algorithm.");

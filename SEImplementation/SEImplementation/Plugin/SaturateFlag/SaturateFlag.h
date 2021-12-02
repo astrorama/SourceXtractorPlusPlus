@@ -47,7 +47,7 @@ class SaturateFlag : public Property {
 public:
   virtual ~SaturateFlag() = default;
 
-  SaturateFlag(bool saturate_flag) : m_saturate_flag{saturate_flag} {}
+  explicit SaturateFlag(bool saturate_flag) : m_saturate_flag{saturate_flag} {}
 
   bool getSaturateFlag() const {
     return m_saturate_flag;

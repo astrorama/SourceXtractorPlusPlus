@@ -41,7 +41,7 @@ public:
    */
   virtual ~SourceXtractorConfig() = default;
 
-  SourceXtractorConfig(long manager_id);
+  explicit SourceXtractorConfig(long manager_id);
 
 }; /* End of SourceXtractorConfig class */
 

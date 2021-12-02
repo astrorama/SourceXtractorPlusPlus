@@ -38,7 +38,7 @@ public:
   
   using PartitionStepCreator = std::function<std::shared_ptr<PartitionStep>(std::shared_ptr<SourceFactory>)>;
   
-  PartitionStepConfig(long manager_id);
+  explicit PartitionStepConfig(long manager_id);
   
   virtual ~PartitionStepConfig() = default;
   

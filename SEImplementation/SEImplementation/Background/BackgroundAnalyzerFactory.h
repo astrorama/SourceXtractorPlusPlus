@@ -35,7 +35,7 @@ namespace SourceXtractor {
 
 class BackgroundAnalyzerFactory  : public Euclid::Configuration::Configuration {
 public:
-  BackgroundAnalyzerFactory(long manager_id);
+  explicit BackgroundAnalyzerFactory(long manager_id);
 
   /// Destructor
   virtual ~BackgroundAnalyzerFactory() = default;

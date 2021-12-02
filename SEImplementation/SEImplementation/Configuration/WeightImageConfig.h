@@ -42,7 +42,7 @@ public:
   };
 
   virtual ~WeightImageConfig() = default;
-  WeightImageConfig(long manager_id);
+  explicit WeightImageConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;

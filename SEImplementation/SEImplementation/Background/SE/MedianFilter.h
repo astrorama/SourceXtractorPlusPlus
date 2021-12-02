@@ -52,7 +52,7 @@ public:
    * @param box
    *    A two dimensional array where the first value corresponds to the width, and the second to the height.
    */
-  MedianFilter(const std::array<int, 2>& box) : MedianFilter(box[0], box[1]) {
+  explicit MedianFilter(const std::array<int, 2>& box) : MedianFilter(box[0], box[1]) {
   }
 
   /**

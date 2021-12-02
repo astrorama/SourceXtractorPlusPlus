@@ -6,4 +6,4 @@ find_package(ElementsProject)
 #---------------------------------------------------------------
 
 # Declare project name and version
-elements_project(SourceXtractorPlusPlus 0.16 USE Alexandria 2.22.0 Pyston 0.1)
+elements_project(SourceXtractorPlusPlus 0.16 USE Alexandria 2.22.0)

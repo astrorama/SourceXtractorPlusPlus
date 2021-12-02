@@ -295,6 +295,10 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
   return getMapFromDict("sourcextractor.config.model_fitting", "de_vaucouleurs_model_dict");
 }
 
+std::map<int, boost::python::object> PythonInterpreter::getOnnxModels() {
+  return getMapFromDict("sourcextractor.config.model_fitting", "onnx_model_dict");
+}
+
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
   Pyston::GILLocker locker;
   try {

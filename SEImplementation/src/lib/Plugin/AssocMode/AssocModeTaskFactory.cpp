@@ -30,7 +30,7 @@
 
 namespace SourceXtractor {
 
-AssocModeTaskFactory::AssocModeTaskFactory() {}
+AssocModeTaskFactory::AssocModeTaskFactory(): m_assoc_mode(AssocModeConfig::AssocMode::UNKNOWN), m_assoc_radius(0.) {}
 
 void AssocModeTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
   manager.registerConfiguration<AssocModeConfig>();
