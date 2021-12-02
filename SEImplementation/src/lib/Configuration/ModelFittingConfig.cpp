@@ -269,6 +269,7 @@ void ModelFittingConfig::initializeInner() {
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    int scale_id = py::extract<int>(p.second.attr("scale").attr("id"));
 
     std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params;
     py::dict parameters = py::extract<py::dict>(p.second.attr("params"));
@@ -295,7 +296,7 @@ void ModelFittingConfig::initializeInner() {
 
     m_models[p.first] = std::make_shared<FlexibleModelFittingOnnxModel>(
         onnx_models, m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
-        m_parameters[aspect_ratio_id], m_parameters[angle_id], params);
+        m_parameters[aspect_ratio_id], m_parameters[angle_id], m_parameters[scale_id], params);
   }
 #else
   if (getDependency<PythonConfig>().getInterpreter().getOnnxModels().size() > 0) {
