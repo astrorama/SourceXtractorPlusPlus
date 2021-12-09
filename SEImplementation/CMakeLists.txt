@@ -35,8 +35,8 @@ find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
-
 find_package(OnnxRuntime)
+find_package(Log4CPP REQUIRED)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
