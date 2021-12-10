@@ -22,6 +22,7 @@ elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEUtils)
+elements_depends_on_subdirs(Pyston)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -34,8 +35,8 @@ find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
-
 find_package(OnnxRuntime)
+find_package(Log4CPP REQUIRED)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -101,6 +102,7 @@ elements_add_library(SEImplementation
               ElementsKernel Configuration Table
               SEUtils SEFramework ModelFitting
               BoostPython PythonLibs PythonInterp
+              Pyston
               ${OPT_LIBRARIES}
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
             PUBLIC_HEADERS SEImplementation)

@@ -66,9 +66,9 @@ public:
    * @param image
    *    The image to convolve
    */
-  template <typename ImageType>
-  void convolve(size_t, ImageType& image) {
-    PsfType::convolve(image);
+  template<typename... Args>
+  void convolve(size_t, Args&&... args) {
+    PsfType::convolve(std::forward<Args>(args)...);
   }
 };
 
@@ -107,14 +107,14 @@ public:
    * @param image
    *    The image to convolve
    */
-  template <typename ImageType>
-  void convolve(size_t i, ImageType& image) {
+  template<typename... Args>
+  void convolve(size_t i, Args&&... args) {
     auto& context = m_psf_contexts[i];
     if (!context) {
-      context = PsfType::prepare(image);
+      context = PsfType::prepare(std::forward<Args>(args)...);
       m_psf_contexts[i] = std::move(context);
     }
-    PsfType::convolve(image, m_psf_contexts[i]);
+    PsfType::convolve(std::forward<Args>(args)..., m_psf_contexts[i]);
   }
 
 private:

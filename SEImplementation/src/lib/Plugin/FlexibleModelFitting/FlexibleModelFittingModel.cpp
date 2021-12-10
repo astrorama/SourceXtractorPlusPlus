@@ -271,8 +271,10 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
-  auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
+  auto y_scale = createDependentParameter(
+      [](double scale, double ratio) {
+        return scale * ratio;
+      }, manager.getParameter(source, m_scale), manager.getParameter(source, m_aspect_ratio));
 
   auto& boundaries = source.getProperty<PixelBoundaries>();
   int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
@@ -283,7 +285,7 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
   }
 
   extended_models.emplace_back(std::make_shared<OnnxCompactModel<ImageInterfaceTypePtr>>(m_models,
-      x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
+      manager.getParameter(source, m_scale), y_scale, manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), params, jacobian));
 }
 
@@ -294,12 +296,14 @@ FlexibleModelFittingOnnxModel::FlexibleModelFittingOnnxModel(
     std::shared_ptr<FlexibleModelFittingParameter> flux,
     std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
     std::shared_ptr<FlexibleModelFittingParameter> angle,
+    std::shared_ptr<FlexibleModelFittingParameter> scale,
     std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params)
         : m_x(x),
           m_y(y),
           m_flux(flux),
           m_aspect_ratio(aspect_ratio),
           m_angle(angle),
+          m_scale(scale),
           m_params(params),
           m_models(models){
 

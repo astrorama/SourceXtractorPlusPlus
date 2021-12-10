@@ -17,17 +17,20 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 from __future__ import division, print_function
 
+import math
 import sys
+import warnings
 from enum import Enum
 
 import _SourceXtractorPy as cpp
-from .measurement_images import MeasurementGroup
-
+try:
+    import pyston
+except ImportError:
+    warnings.warn('Could not import pyston: running outside sourcextractor?', ImportWarning)
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-from astropy.coordinates import Angle
 
-import math
+from .measurement_images import MeasurementGroup
 
 
 class RangeType(Enum):
@@ -70,16 +73,34 @@ class Range(object):
         Constructor.
         """
         self.__limits = limits
+        self.__callable = limits if hasattr(limits, '__call__') else lambda v, o: limits
         self.__type = type
 
-    def get_limits(self):
+    def get_min(self, v, o):
         """
+        Parameters
+        ----------
+        v : initial value
+        o : object being fitted
+
         Returns
         -------
-        callable
-            Receives a source, and returns a tuple (min, max)
+        The minimum acceptable value for the range
         """
-        return self.__limits if hasattr(self.__limits, '__call__') else lambda v,o: self.__limits
+        return self.__callable(v, o)[0]
+
+    def get_max(self, v, o):
+        """
+        Parameters
+        ----------
+        v : initial value
+        o : object being fitted
+
+        Returns
+        -------
+        The maximum acceptable value for the range
+        """
+        return self.__callable(v, o)[1]
 
     def get_type(self):
         """
@@ -125,16 +146,24 @@ class Unbounded(object):
         Constructor.
         """
         self.__normalization_factor = normalization_factor
+        if hasattr(normalization_factor, '__call__'):
+            self.__callable = normalization_factor
+        else:
+            self.__callable = lambda v, o: normalization_factor
     
-    def get_normalization_factor(self):
+    def get_normalization_factor(self, v, o):
         """
+        Parameters
+        ----------
+        v : initial value
+        o : object being fitted
+
         Returns
         -------
-        callable
-            Receives the initial parameter value and a source, and returns the world value which will be
-            normalized to 1 in engine coordinates
+        float
+            The world value which will be normalized to 1 in engine coordinates
         """
-        return self.__normalization_factor if hasattr(self.__normalization_factor, '__call__') else lambda v,o: self.__normalization_factor
+        return self.__callable(v, o)
     
     def __str__(self):
         """
@@ -212,16 +241,21 @@ class ConstantParameter(ParameterBase):
         """
         ParameterBase.__init__(self)
         self.__value = value
+        self.__callable = value if hasattr(value, '__call__') else lambda o: value
         constant_parameter_dict[self.id] = self
 
-    def get_value(self):
+    def get_value(self, o):
         """
+        Parameters
+        ----------
+        o : object being fitted
+
         Returns
         -------
-        callable
-            Receives a source and returns a value for the parameter
+        float
+            Value of the constant parameter
         """
-        return self.__value if hasattr(self.__value, '__call__') else lambda o: self.__value
+        return self.__callable(o)
 
     def __str__(self):
         """
@@ -265,17 +299,22 @@ class FreeParameter(ParameterBase):
         """
         ParameterBase.__init__(self)
         self.__init_value = init_value
+        self.__init_call = init_value if hasattr(init_value, '__call__') else lambda o: init_value
         self.__range = range
         free_parameter_dict[self.id] = self
 
-    def get_init_value(self):
+    def get_init_value(self, o):
         """
+        Parameters
+        ----------
+        o : object being fitted
+
         Returns
         -------
-        callable
-            Receives a source, and returns an initial value for the parameter.
+        float
+            Initial value for the free parameter
         """
-        return self.__init_value if hasattr(self.__init_value, '__call__') else lambda o: self.__init_value
+        return self.__init_call(o)
 
     def get_range(self):
         """
@@ -347,9 +386,10 @@ def get_pos_parameters():
     X and Y are fitted on the detection image X and Y coordinates. Internally, these are translated to measurement
     images using the WCS headers.
     """
+    param_range = Range(lambda v,o: (v-o.radius, v+o.radius), RangeType.LINEAR)
     return (
-        FreeParameter(lambda o: o.get_centroid_x(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR)),
-        FreeParameter(lambda o: o.get_centroid_y(), Range(lambda v,o: (v-o.get_radius(), v+o.get_radius()), RangeType.LINEAR))
+        FreeParameter(lambda o: o.centroid_x, param_range),
+        FreeParameter(lambda o: o.centroid_y, param_range)
     )
 
 
@@ -377,10 +417,10 @@ def get_flux_parameter(type=FluxParameterType.ISO, scale=1):
     flux : FreeParameter
         Flux parameter, starting at the flux defined by `type`, and limited to +/- 1e3 times the initial value.
     """
-    func_map = {
-        FluxParameterType.ISO : 'get_iso_flux'
+    attr_map = {
+        FluxParameterType.ISO : 'isophotal_flux'
     }
-    return FreeParameter(lambda o: getattr(o, func_map[type])() * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
+    return FreeParameter(lambda o: getattr(o, attr_map[type]) * scale, Range(lambda v,o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
 prior_dict = {}
@@ -863,26 +903,36 @@ class OnnxModel(CoordinateModelBase):
         Y coordinate (in the detection image)
     flux : ParameterBase or float
         Total flux
-    effective_radius : ParameterBase or float
-        Ellipse semi-major axis, in pixels on the detection image.
-    aspect_ratio : ParameterBase or float
-        Ellipse ratio.
-    angle : ParameterBase or float
-        Ellipse rotation, in radians
     params : Dictionary of String and ParameterBase or float
         Dictionary of custom parameters for the ONNX model
     """
     
-    def __init__(self, models, x_coord, y_coord, flux, aspect_ratio, angle, params={}):
+    def __init__(self, models, x_coord, y_coord, flux, params={}):
         """
         Constructor.
         """
         CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
-        self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
-        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        
+        ratio_name = "_aspect_ratio"
+        angle_name = "_angle"
+        scale_name = "_scale"
+
         for k in params.keys():
             if not isinstance(params[k], ParameterBase):
                 params[k] = ConstantParameter(params[k])
+                
+        aspect_ratio = params[ratio_name] if ratio_name in params.keys() else 1.0
+        angle = params[angle_name] if angle_name in params.keys() else 0.0
+        scale = params[scale_name] if scale_name in params.keys() else 1.0
+        
+        self.aspect_ratio = aspect_ratio if isinstance(aspect_ratio, ParameterBase) else ConstantParameter(aspect_ratio)
+        self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
+        self.scale = scale if isinstance(scale, ParameterBase) else ConstantParameter(scale)
+        
+        params.pop(ratio_name, None)
+        params.pop(angle_name, None)
+        params.pop(scale_name, None)
+                    
         self.params = params
         self.models = models if isinstance(models, list) else [models]
         
@@ -942,9 +992,10 @@ def pixel_to_world_coordinate(x, y):
     -------
     WorldCoordinate
     """
-    global coordinate_system
-    wc = coordinate_system.image_to_world(cpp.ImageCoordinate(x-1, y-1)) # -1 as we go FITS -> internal 
-    return WorldCoordinate(wc.alpha, wc.delta)
+    # -1 as we go FITS -> internal
+    wc_alpha = pyston.image_to_world_alpha(x - 1, y - 1)
+    wc_delta = pyston.image_to_world_delta(x - 1, y - 1)
+    return WorldCoordinate(wc_alpha, wc_delta)
 
 
 def get_sky_coord(x, y):
@@ -1025,14 +1076,6 @@ def get_position_angle(x1, y1, x2, y2):
     return (angle + 90.0) % 180.0 - 90.0
 
 
-def set_coordinate_system(cs):
-    """
-    Set the global coordinate system. This function is used internally by SourceXtractor++.
-    """
-    global coordinate_system
-    coordinate_system = cs
-
-
 def get_world_position_parameters(x, y):
     """
     Convenience function for generating two dependent parameter with world (alpha, delta) coordinates
@@ -1095,8 +1138,8 @@ def get_world_parameters(x, y, radius, angle, ratio):
     --------
     >>> flux = get_flux_parameter()
     >>> x, y = get_pos_parameters()
-    >>> radius = FreeParameter(lambda o: o.get_radius(), Range(lambda v, o: (.01 * v, 100 * v), RangeType.EXPONENTIAL))
-    >>> angle = FreeParameter(lambda o: o.get_angle(), Range((-np.pi, np.pi), RangeType.LINEAR))
+    >>> radius = FreeParameter(lambda o: o.radius, Range(lambda v, o: (.01 * v, 100 * v), RangeType.EXPONENTIAL))
+    >>> angle = FreeParameter(lambda o: o.angle, Range((-np.pi, np.pi), RangeType.LINEAR))
     >>> ratio = FreeParameter(1, Range((0, 10), RangeType.LINEAR))
     >>> add_model(group, ExponentialModel(x, y, flux, radius, ratio, angle))
     >>> ra, dec, wc_rad, wc_angle, wc_ratio = get_world_parameters(x, y, radius, angle, ratio)
@@ -1146,5 +1189,5 @@ def get_world_parameters(x, y, radius, angle, ratio):
     wc_angle = DependentParameter(wc_angle_func, x, y, radius, angle, ratio)
     wc_ratio = DependentParameter(wc_ratio_func, x, y, radius, angle, ratio)
     
-    return (ra, dec, wc_rad, wc_angle, wc_ratio)
+    return ra, dec, wc_rad, wc_angle, wc_ratio
 

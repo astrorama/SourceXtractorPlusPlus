@@ -32,7 +32,7 @@ namespace SourceXtractor {
 class LineSelectionCriteria : public SelectionCriteria {
 public:
 
-  LineSelectionCriteria(int line_number) : m_line_number(line_number) {
+  explicit LineSelectionCriteria(int line_number) : m_line_number(line_number) {
   }
 
   virtual bool mustBeProcessed(const SourceInterface& ) const override;
