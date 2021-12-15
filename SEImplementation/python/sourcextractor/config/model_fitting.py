@@ -891,12 +891,14 @@ class DeVaucouleursModel(SersicModelBase):
             return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
-class OnnxModel(CoordinateModelBase):
+class ComputeGraphModel(CoordinateModelBase):
     """
-    Onnx model 
+    ComputeGraphModel model 
 
     Parameters
     ----------
+    models: string or list of strings, corresponding to path to Onnx format models,
+     (specifying more than one allows using the most efficient model based on render size.)
     x_coord : ParameterBase or float
         X coordinate (in the detection image)
     y_coord : ParameterBase or float
@@ -953,10 +955,10 @@ class OnnxModel(CoordinateModelBase):
         str
         """
         if show_params:
-            return 'Onnx[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+            return 'ComputeGraph[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio, self.angle)
         else:
-            return 'Onnx[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
+            return 'ComputeGraph[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id, self.aspect_ratio.id, self.angle.id)
 
 

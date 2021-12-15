@@ -23,19 +23,20 @@ using namespace Euclid::Configuration;
 
 namespace SourceXtractor {
 
-static const std::string ONNX_MODEL{"onnx-model"};
+static const std::string ML_MEASUREMENT_MODEL{"ml-measurement-model"};
 
 OnnxConfig::OnnxConfig(long manager_id) : Configuration(manager_id) {
 }
 
 auto OnnxConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"ONNX", {
-    {ONNX_MODEL.c_str(), po::value<std::vector<std::string>>()->multitoken(), "ONNX models"}
+    {ML_MEASUREMENT_MODEL.c_str(), po::value<std::vector<std::string>>()->multitoken(),
+        "ONNX-format models for machine learning based measurements"}
   }}};
 }
 
 void OnnxConfig::initialize(const Configuration::Configuration::UserValues& args) {
-  auto i = args.find(ONNX_MODEL);
+  auto i = args.find(ML_MEASUREMENT_MODEL);
   if (i != args.end()) {
     m_onnx_model_paths = i->second.as<std::vector<std::string>>();
   }
