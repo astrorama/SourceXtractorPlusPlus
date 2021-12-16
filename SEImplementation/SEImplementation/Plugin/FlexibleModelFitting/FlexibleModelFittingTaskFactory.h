@@ -59,6 +59,7 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
   double m_scale_factor {1.0};
+  double m_max_fit_size {100};
 };
 
 }

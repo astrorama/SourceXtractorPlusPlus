@@ -219,6 +219,7 @@ public:
                                 std::shared_ptr<FlexibleModelFittingParameter> flux,
                                 std::shared_ptr<FlexibleModelFittingParameter> aspect_ratio,
                                 std::shared_ptr<FlexibleModelFittingParameter> angle,
+                                std::shared_ptr<FlexibleModelFittingParameter> scale,
                                 std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params);
 
   virtual ~FlexibleModelFittingOnnxModel() {}
@@ -238,6 +239,7 @@ private:
   std::shared_ptr<FlexibleModelFittingParameter> m_flux;
   std::shared_ptr<FlexibleModelFittingParameter> m_aspect_ratio;
   std::shared_ptr<FlexibleModelFittingParameter> m_angle;
+  std::shared_ptr<FlexibleModelFittingParameter> m_scale;
 
   std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> m_params;
 

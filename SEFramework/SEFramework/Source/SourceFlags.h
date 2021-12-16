@@ -47,7 +47,8 @@ enum class Flags : int64_t {
   ERROR             = 1ll << 10, ///< Error flag: something bad happened during the measurement, model fitting, etc.
   MEMORY            = 1ll << 11, ///< Failed to allocate an object, buffer, etc.
   BAD_PROJECTION    = 1ll << 12, ///< Failed to project some of the coordinates into one of the measurement frames
-  SENTINEL          = 1ll << 13, ///< Used to find the boundary of possible values
+  DOWNSAMPLED       = 1ll << 13, ///< The fit was done on a downsampled image due to exceeding max size
+  SENTINEL          = 1ll << 14, ///< Used to find the boundary of possible values
 };
 
 /// String representation of the flags
@@ -61,7 +62,9 @@ const std::map<Flags, std::string> FlagsStr = {
   {Flags::PARTIAL_FIT, "PARTIAL_FIT"},
   {Flags::INSUFFICIENT_DATA, "INSUFFICIENT_DATA"},
   {Flags::ERROR, "ERROR"},
-  {Flags::MEMORY, "MEMORY"}
+  {Flags::MEMORY, "MEMORY"},
+  {Flags::BAD_PROJECTION, "BAD_PROJECTION"},
+  {Flags::DOWNSAMPLED, "DOWNSAMPLED"}
 };
 
 
