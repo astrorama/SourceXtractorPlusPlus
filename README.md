@@ -8,7 +8,7 @@
 
 The next generation SExtractor.
 
-Documentation: https://sourcextractorplusplus.readthedocs.io/en/latest/Introduction.html
+Documentation: https://astrorama.github.io/SourceXtractorPlusPlus/
 
 # Installation
 
