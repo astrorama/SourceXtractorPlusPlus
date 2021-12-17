@@ -63,9 +63,9 @@ public:
         SeFloat gain, SeFloat saturation, int interpolation_gap);
 
   // FIXME: this simplified version is used in unit tests, get rid of it
-  Frame(std::shared_ptr<Image<T>> detection_image,
-        std::shared_ptr<CoordinateSystem> coordinate_system = nullptr,
-        std::shared_ptr<WeightImage> variance_map = nullptr);
+  explicit Frame(std::shared_ptr<Image<T>> detection_image,
+                 std::shared_ptr<CoordinateSystem> coordinate_system = nullptr,
+                 std::shared_ptr<WeightImage> variance_map = nullptr);
 
   //
   // Methods to get the image in one form or another

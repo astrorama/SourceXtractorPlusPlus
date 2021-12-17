@@ -50,7 +50,7 @@ public:
   class SourceWrapper : public SourceInterface {
   public:
 
-    SourceWrapper(std::shared_ptr<SourceInterface> source) : m_source(source) {}
+    explicit SourceWrapper(std::shared_ptr<SourceInterface> source) : m_source(source) {}
 
     SourceWrapper(const SourceWrapper& source) : m_source(source.m_source) {}
 

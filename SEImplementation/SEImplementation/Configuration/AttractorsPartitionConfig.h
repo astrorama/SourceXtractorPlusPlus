@@ -30,7 +30,7 @@ class AttractorsPartitionConfig : public Euclid::Configuration::Configuration {
   
 public:
   
-  AttractorsPartitionConfig(long manager_id);
+  explicit AttractorsPartitionConfig(long manager_id);
   
   virtual ~AttractorsPartitionConfig() = default;
   

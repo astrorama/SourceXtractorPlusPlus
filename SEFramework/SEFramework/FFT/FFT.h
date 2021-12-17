@@ -24,9 +24,9 @@
 #define _SEFRAMEWORK_FFT_FFT_H
 
 #include <complex>
-#include <memory>
 #include <fftw3.h>
-
+#include <memory>
+#include <vector>
 
 namespace SourceXtractor {
 
@@ -34,27 +34,26 @@ namespace SourceXtractor {
  * @brief Wrap FFTW types and functions depending on the primitive type (float or double)
  */
 template <typename T>
-struct FFTTraits {
-};
+struct FFTTraits {};
 
 /**
  * @brief Traits for float
  */
 template <>
 struct FFTTraits<float> {
-  typedef fftwf_plan_s plan_t;
-  typedef fftwf_complex complex_t;
-  typedef decltype(fftwf_plan_many_dft_r2c) func_plan_fwd_t;
-  typedef decltype(fftwf_plan_many_dft_c2r) func_plan_inv_t;
-  typedef decltype(fftwf_destroy_plan) func_destroy_plan_t;
+  typedef fftwf_plan_s                    plan_t;
+  typedef fftwf_complex                   complex_t;
+  typedef decltype(fftwf_plan_dft_r2c_2d) func_plan_fwd_t;
+  typedef decltype(fftwf_plan_dft_c2r_2d) func_plan_inv_t;
+  typedef decltype(fftwf_destroy_plan)    func_destroy_plan_t;
   typedef decltype(fftwf_execute_dft_r2c) func_execute_fwd_t;
   typedef decltype(fftwf_execute_dft_c2r) func_execute_inv_t;
 
-  static func_plan_fwd_t *func_plan_fwd;
-  static func_plan_inv_t *func_plan_inv;
-  static func_destroy_plan_t *func_destroy_plan;
-  static func_execute_fwd_t *func_execute_fwd;
-  static func_execute_inv_t *func_execute_inv;
+  static func_plan_fwd_t*     func_plan_fwd;
+  static func_plan_inv_t*     func_plan_inv;
+  static func_destroy_plan_t* func_destroy_plan;
+  static func_execute_fwd_t*  func_execute_fwd;
+  static func_execute_inv_t*  func_execute_inv;
 };
 
 /**
@@ -62,19 +61,19 @@ struct FFTTraits<float> {
  */
 template <>
 struct FFTTraits<double> {
-  typedef fftw_plan_s plan_t;
-  typedef fftw_complex complex_t;
-  typedef decltype(fftw_plan_many_dft_r2c) func_plan_fwd_t;
-  typedef decltype(fftw_plan_many_dft_c2r) func_plan_inv_t;
-  typedef decltype(fftw_destroy_plan) func_destroy_plan_t;
+  typedef fftw_plan_s                    plan_t;
+  typedef fftw_complex                   complex_t;
+  typedef decltype(fftw_plan_dft_r2c_2d) func_plan_fwd_t;
+  typedef decltype(fftw_plan_dft_c2r_2d) func_plan_inv_t;
+  typedef decltype(fftw_destroy_plan)    func_destroy_plan_t;
   typedef decltype(fftw_execute_dft_r2c) func_execute_fwd_t;
   typedef decltype(fftw_execute_dft_c2r) func_execute_inv_t;
 
-  static func_plan_fwd_t *func_plan_fwd;
-  static func_plan_inv_t *func_plan_inv;
-  static func_destroy_plan_t *func_destroy_plan;
-  static func_execute_fwd_t *func_execute_fwd;
-  static func_execute_inv_t *func_execute_inv;
+  static func_plan_fwd_t*     func_plan_fwd;
+  static func_plan_inv_t*     func_plan_inv;
+  static func_destroy_plan_t* func_destroy_plan;
+  static func_execute_fwd_t*  func_execute_fwd;
+  static func_execute_inv_t*  func_execute_inv;
 };
 
 /**
@@ -83,76 +82,62 @@ struct FFTTraits<double> {
  * @details It builds on top of the FFTTraits as defined previously
  * @tparam T A floating point type
  */
-template<typename T>
+template <typename T>
 struct FFT {
   static_assert(std::is_floating_point<T>::value, "FFTTraits only supported for floating point types");
 
   typedef FFTTraits<T> fftw_traits;
 
   typedef std::shared_ptr<typename fftw_traits::plan_t> plan_ptr_t;
-  typedef std::complex<T> complex_t;
+  typedef typename fftw_traits::complex_t               complex_t;
 
   /**
    * Create, or reuses if already exists, a 2D FFTW forward plan.
-   * @param howmany
-   *    How many transforms to compute in one shot.
    * @param width
    *    The width of the 2D original data
    * @param height
    *    The height of the 2D original data
-   * @param in
-   *    A buffer *in row major order*, with width*height*howmany positions. This buffer is passed to FFTW
-   *    to perform its planning, and *will be overwritten*
-   * @param out
-   *    A buffer *in row major order*, width width*height*howmany positions.  This buffer is passed to FFTW
-   *    to perform its planning, and *will be overwritten*
+   * @param inout
+   *    A buffer *in row major order*, with 2*(width/2 + 1) * height positions. This buffer is passed to FFTW
+   *    to perform its planning, and *will be overwritten*.
+   *    If the memory area is not big enough, createForwardPlan will resize the vector.
    * @return
    *    A pointer to a plan fit to the given dimensions. It can be safely reused between threads.
    */
-  static plan_ptr_t
-  createForwardPlan(int howmany, int width, int height, std::vector<T> &in, std::vector<complex_t> &out);
+  static plan_ptr_t createForwardPlan(int width, int height, std::vector<T>& inout);
 
   /**
    * Create, or reuses if already exists, a 2D FFTW inverse plan.
-   * @param howmany
-   *    How many inverse transforms to compute in one shot.
    * @param width
    *    The width of the 2D original data
    * @param height
    *    The height of the 2D original data
-   * @param in
-   *    A buffer *in row major order*, with width*height*howmany positions. This buffer is passed to FFTW
-   *    to perform its planning, and *will be overwritten*
-   * @param out
-   *    A buffer *in row major order*, width width*height*howmany positions.  This buffer is passed to FFTW
-   *    to perform its planning, and *will be overwritten*
+   * @param inout
+   *    A buffer *in row major order*, with 2*(width/2 + 1) * height positions. This buffer is passed to FFTW
+   *    to perform its planning, and *will be overwritten*.
+   *    If the memory area is not big enough, createInversePlan will resize the vector.
    * @return
    *    A pointer to a plan fit to the given dimensions. It can be safely reused between threads.
    */
-  static plan_ptr_t
-  createInversePlan(int howmany, int width, int height, std::vector<complex_t> &in, std::vector<T> &out);
+  static plan_ptr_t createInversePlan(int width, int height, std::vector<T>& inout);
 
   /**
    * Execute a forward Fourier Transform
    * @param plan
    *    A plan as created by createForwardPlan
-   * @param in
-   *    A buffer *in row major order* with the input data.
-   * @param out
-   *    A buffer *in row major order* where the transform will be stored.
+   * @param inout
+   *    A buffer *in row major order* with the input data. It will be overwritten.
    */
-  static void executeForward(plan_ptr_t &plan, std::vector<T> &in, std::vector<complex_t> &out);
+  static void executeForward(plan_ptr_t& plan, std::vector<T>& inout);
 
   /**
    * Execute an inverse Fourier Transform
    * @param plan
    *    A plan as created by createInversePlan
-   * @param in
-   *    A buffer *in row major order* with the input data.
-   * @param out
-   *    A buffer *in row major order* where the transform will be stored.
+   * @param inout
+   *    A buffer *in row major order* with the input data. It will be overwritten.
    */
-  static void executeInverse(plan_ptr_t &plan, std::vector<complex_t> &in, std::vector<T> &out);
+  static void executeInverse(plan_ptr_t& plan, std::vector<T>& inout);
 };
 
 /**
@@ -169,6 +154,9 @@ struct FFT {
  */
 int fftRoundDimension(int size);
 
-} // end SourceXtractor
+extern template struct FFT<float>;
+extern template struct FFT<double>;
 
-#endif // _SEFRAMEWORK_FFT_FFT_H
+}  // namespace SourceXtractor
+
+#endif  // _SEFRAMEWORK_FFT_FFT_H

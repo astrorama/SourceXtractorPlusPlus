@@ -45,7 +45,7 @@ public:
   /**
    * Constructor
    */
-  VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits) : m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0) {
+  explicit VariablePsfStack(std::shared_ptr<CCfits::FITS> pFits) : m_pFits(pFits), m_psf_size(0), mm_pixel_sampling(0.0) {
     setup(pFits);
     selfTest();
   };
@@ -89,6 +89,7 @@ public:
   virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double>& values) const;
 
 private:
+  mutable std::mutex m_mutex;
   std::shared_ptr<CCfits::FITS> m_pFits;
 
   int m_psf_size;

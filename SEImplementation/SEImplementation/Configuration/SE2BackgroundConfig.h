@@ -31,7 +31,7 @@ class SE2BackgroundConfig : public Euclid::Configuration::Configuration {
   
 public:
   
-  SE2BackgroundConfig(long manager_id);
+  explicit SE2BackgroundConfig(long manager_id);
   
   virtual ~SE2BackgroundConfig() = default;
 

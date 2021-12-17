@@ -85,7 +85,7 @@ void AutoPhotometryFlagTask::computeProperties(SourceInterface& source) const {
   auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage();
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
-    fillAperture<int>(ell_aper, centroid_x, centroid_y, aperture_check_img, src_id);
+    drawAperture<int>(ell_aper, centroid_x, centroid_y, aperture_check_img, src_id);
   }
 }
 

@@ -49,7 +49,7 @@ public:
    */
   virtual ~ExternalFlagConfig() = default;
   
-  ExternalFlagConfig(long manager_id) : Configuration(manager_id) {}
+  explicit ExternalFlagConfig(long manager_id) : Configuration(manager_id) {}
 
   std::map<std::string, OptionDescriptionList> getProgramOptions() override;
   

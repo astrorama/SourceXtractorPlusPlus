@@ -31,7 +31,7 @@ class MeasurementFrameConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  MeasurementFrameConfig(long manager_id);
+  explicit MeasurementFrameConfig(long manager_id);
 
   void initialize(const UserValues& args) override;
 

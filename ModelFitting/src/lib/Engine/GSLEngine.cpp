@@ -20,22 +20,22 @@
  * @author Alejandro Alvarez Ayllon
  */
 
-#include <gsl/gsl_multifit_nlinear.h>
-#include <gsl/gsl_blas.h>
-#include <ElementsKernel/Exception.h>
-#include <iostream>
-#include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include "ModelFitting/Engine/GSLEngine.h"
-
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
+#include <ElementsKernel/Exception.h>
+#include <chrono>
+#include <gsl/gsl_blas.h>
+#include <gsl/gsl_multifit_nlinear.h>
+#include <iostream>
 
 namespace ModelFitting {
 
 
-static std::shared_ptr<LeastSquareEngine> createLevmarEngine(unsigned max_iterations) {
+static std::shared_ptr<LeastSquareEngine> createGslEngine(unsigned max_iterations) {
   return std::make_shared<GSLEngine>(max_iterations);
 }
 
-static LeastSquareEngineManager::StaticEngine levmar_engine{"gsl", createLevmarEngine};
+static LeastSquareEngineManager::StaticEngine gsl_engine{"gsl", createGslEngine};
 
 GSLEngine::GSLEngine(int itmax, double xtol, double gtol, double ftol, double delta):
   m_itmax{itmax}, m_xtol{xtol}, m_gtol{gtol}, m_ftol{ftol}, m_delta{delta} {
@@ -51,7 +51,7 @@ private:
 
 public:
 
-  GslVectorIterator(gsl_vector *v): m_v{v}, m_i{0} {}
+  explicit GslVectorIterator(gsl_vector *v): m_v{v}, m_i{0} {}
 
   GslVectorIterator(const GslVectorIterator&) = default;
 
@@ -83,7 +83,7 @@ private:
 
 public:
 
-  GslVectorConstIterator(const gsl_vector *v): m_v{v}, m_i{0} {}
+  explicit GslVectorConstIterator(const gsl_vector *v): m_v{v}, m_i{0} {}
 
   GslVectorConstIterator(const GslVectorConstIterator&) = default;
 
@@ -181,6 +181,7 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   gsl_blas_ddot(residual, residual, &chisq0);
 
   // Solve
+  auto start = std::chrono::steady_clock::now();
   int info = 0;
   int ret = gsl_multifit_nlinear_driver(
     m_itmax,  // Maximum number of iterations
@@ -192,6 +193,8 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
     &info,    // Convergence information if GSL_SUCCESS
     workspace // The solver workspace
   );
+  auto end     = std::chrono::steady_clock::now();
+  std::chrono::duration<float> elapsed = end - start;
 
   // Final cost
   double chisq;
@@ -206,6 +209,7 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   summary.engine_stop_reason = ret;
   summary.iteration_no = gsl_multifit_nlinear_niter(workspace);
   summary.parameter_sigmas = {};
+  summary.duration = elapsed.count();
 
   // Covariance matrix. Note: Do not free J! It is owned by the workspace.
   gsl_matrix *J = gsl_multifit_nlinear_jac(workspace);

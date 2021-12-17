@@ -53,7 +53,7 @@ std::map<std::string, ExternalFlagConfig::Type> available_types {
 auto ExternalFlagConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"External flag options", {
       {poh::wildcard(FLAG_IMAGE).c_str(), po::value<std::string>(),
-          "The FITS file containing the external flag"},
+          "The FITS file containing the external flag, several images can be provided, replace * by any identifier (ex. use numbers)"},
       {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>(),
           "The combination type of the external flag (OR, AND, MIN, MAX, MOST)"}
   }}};

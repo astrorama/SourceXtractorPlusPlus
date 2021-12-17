@@ -38,7 +38,7 @@ namespace SourceXtractor {
 class CoreThresholdPartitionTask : public SourceTask {
 
 public:
-  CoreThresholdPartitionTask(double snr_level): m_snr_level(snr_level) {};
+  explicit CoreThresholdPartitionTask(double snr_level): m_snr_level(snr_level) {};
 
   virtual ~CoreThresholdPartitionTask() = default;
 

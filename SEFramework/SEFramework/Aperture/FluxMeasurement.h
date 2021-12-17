@@ -94,6 +94,37 @@ void fillAperture(const std::shared_ptr<Aperture> &aperture, SeFloat centroid_x,
   }
 }
 
+/**
+ * Draws the pixels that fall within the aperture with the given value. Useful for debugging.
+ * @tparam T
+ * @param aperture
+ *  Aperture to use
+ * @param centroid_x
+ *  Center of the aperture on the X axis
+ * @param centroid_y
+ *  Center of the aperture on the Y axis
+ * @param img
+ *  Image to modify
+ * @param value
+ *  Value to use for the fill
+ */
+template <typename T>
+void drawAperture(const std::shared_ptr<Aperture> &aperture, SeFloat centroid_x, SeFloat centroid_y,
+                  const std::shared_ptr<WriteableImage<T>> &img, T value) {
+  auto min_pixel = aperture->getMinPixel(centroid_x, centroid_y);
+  auto max_pixel = aperture->getMaxPixel(centroid_x, centroid_y);
+
+  for (int y = min_pixel.m_y; y <= max_pixel.m_y; ++y) {
+    for (int x = min_pixel.m_x; x <= max_pixel.m_x; ++x) {
+      if (aperture->drawArea(centroid_x, centroid_y, x, y) > 0) {
+        if (x >= 0 && y >= 0 && x < img->getWidth() && y < img->getHeight()) {
+          img->setValue(x, y, value);
+        }
+      }
+    }
+  }
+}
+
 } // end SourceXtractor
 
 #endif // _SEFRAMEWORK_SEFRAMEWORK_APERTURE_MEASUREFLUX_H

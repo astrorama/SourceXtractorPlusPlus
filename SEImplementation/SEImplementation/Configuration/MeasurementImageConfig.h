@@ -63,7 +63,7 @@ public:
     int m_weight_hdu;
   };
 
-  MeasurementImageConfig(long manager_id);
+  explicit MeasurementImageConfig(long manager_id);
   
   void initialize(const UserValues& args) override;
 

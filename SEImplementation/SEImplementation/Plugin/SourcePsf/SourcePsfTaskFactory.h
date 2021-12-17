@@ -14,44 +14,32 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MultiframeModelFittingFactory.h
- *
- *  Created on: Sep 12, 2017
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGFACTORY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_
 
+#include <map>
 
 #include "SEFramework/Task/TaskFactory.h"
-#include "SEImplementation/Plugin/MultiframeModelFitting/MultiframeModelFittingTask.h"
-
+#include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfTask.h"
 
 namespace SourceXtractor {
 
-class MultiframeModelFittingTaskFactory : public TaskFactory {
+class SourcePsfTaskFactory: public TaskFactory {
 public:
-  MultiframeModelFittingTaskFactory() {}
-
-  /// Destructor
-  virtual ~MultiframeModelFittingTaskFactory() = default;
-
-  // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const;
+  virtual ~SourcePsfTaskFactory() = default;
 
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+
 private:
-  unsigned int m_max_iterations {0};
-  std::vector<std::vector<int>> m_frame_indices_per_band;
+  std::map<int, std::shared_ptr<Psf>> m_vpsf;
 };
 
-}
+} // end SourceXtractor
 
-
-
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGFACTORY_H_ */
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASKFACTORY_H_

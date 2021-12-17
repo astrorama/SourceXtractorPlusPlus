@@ -49,7 +49,7 @@ public:
   /// a pair containing the minimum and maximum values of the range.
   using RangeFunc = std::function<std::pair<double, double>(double, const SourceInterface&)>;
 
-  FlexibleModelFittingExponentialRangeConverterFactory(RangeFunc range) : m_range(range) {}
+  explicit FlexibleModelFittingExponentialRangeConverterFactory(RangeFunc range) : m_range(range) {}
 
   std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const override;
 
@@ -62,7 +62,7 @@ public:
   using RangeFunc = std::function<std::pair<double, double>(double, const SourceInterface&)>;
 
 
-  FlexibleModelFittingLinearRangeConverterFactory(RangeFunc range) : m_range(range) {}
+  explicit FlexibleModelFittingLinearRangeConverterFactory(RangeFunc range) : m_range(range) {}
 
   std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const override;
 
@@ -74,7 +74,7 @@ class FlexibleModelFittingUnboundedConverterFactory : public FlexibleModelFittin
 public:
   using ValueFunc = std::function<double(double, const SourceInterface&)>;
 
-  FlexibleModelFittingUnboundedConverterFactory(ValueFunc normalization_factor)
+  explicit FlexibleModelFittingUnboundedConverterFactory(ValueFunc normalization_factor)
       : m_normalization_factor(normalization_factor) {}
 
   std::unique_ptr<ModelFitting::CoordinateConverter> getConverter(double initial_value, const SourceInterface& source) const override;

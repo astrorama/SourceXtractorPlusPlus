@@ -40,6 +40,7 @@ static const std::string OUTPUT_FILE {"output-catalog-filename"};
 static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 static const std::string OUTPUT_FLUSH_SIZE {"output-flush-size"};
+static const std::string OUTPUT_UNSORTED {"output-flush-unsorted"};
 
 static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
   {"ASCII",     OutputConfig::OutputFileFormat::ASCII},
@@ -48,7 +49,7 @@ static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
 };
 
 OutputConfig::OutputConfig(long manager_id) : Configuration(manager_id), m_format(OutputFileFormat::ASCII),
-                                              m_flush_size(100) {
+                                              m_flush_size(100), m_unsorted(false) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getProgramOptions() {
@@ -56,11 +57,13 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
       {OUTPUT_FILE.c_str(), po::value<std::string>()->default_value(""),
           "The file to store the output catalog"},
       {OUTPUT_FILE_FORMAT.c_str(), po::value<std::string>()->default_value("FITS"),
-          "The format of the output catalog, one of ASCII or FITS (default: FITS)"},
+          "The format of the output catalog, one of ASCII, FITS or FITS_LDAC (default: FITS)"},
       {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value("PixelCentroid"),
           "The output properties to add in the output catalog"},
       {OUTPUT_FLUSH_SIZE.c_str(), po::value<int>()->default_value(100),
-         "Write to the catalog after this number of sources have been processed (0 means once at the end)"}
+         "Write to the catalog after this number of sources have been processed (0 means once at the end)"},
+      {OUTPUT_UNSORTED.c_str(), po::bool_switch(),
+         "Write finished sources to the catalog without waiting for previously detected unfinished sources"}
   }}};
 }
 
@@ -85,6 +88,8 @@ void OutputConfig::initialize(const UserValues& args) {
 
   int flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
   m_flush_size = (flush_size >= 0) ? flush_size : 0;
+
+  m_unsorted = args.at(OUTPUT_UNSORTED).as<bool>();
 }
 
 std::string OutputConfig::getOutputFile() {
@@ -101,6 +106,10 @@ const std::vector<std::string> OutputConfig::getOutputProperties() {
 
 size_t OutputConfig::getFlushSize() const {
   return m_flush_size;
+}
+
+bool OutputConfig::getOutputUnsorted() const {
+  return m_unsorted;
 }
 
 } // SEImplementation namespace

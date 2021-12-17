@@ -44,7 +44,7 @@ public:
    * @param min_interval
    *    Do not log an update if less than `min_interval` has elapsed since the last logged update.
    */
-  ProgressLogger(const std::chrono::steady_clock::duration& min_interval);
+  explicit ProgressLogger(const std::chrono::steady_clock::duration& min_interval);
 
   void handleMessage(const std::list<ProgressInfo>& info) override;
 

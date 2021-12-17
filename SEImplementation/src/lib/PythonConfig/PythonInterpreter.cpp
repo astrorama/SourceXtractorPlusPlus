@@ -20,6 +20,8 @@
  */
 
 #include <signal.h>
+#include <fstream>
+#include <system_error>
 #include <utility>
 #include <boost/python/dict.hpp>
 #include <boost/python/exec.hpp>
@@ -27,10 +29,11 @@
 #include <boost/python/import.hpp>
 #include <boost/python/object.hpp>
 #include <Python.h>
-
-#include <SEUtils/Python.h>
 #include <SEImplementation/PythonConfig/PythonModule.h>
 #include <SEImplementation/PythonConfig/PythonInterpreter.h>
+#include <Pyston/GIL.h>
+#include <Pyston/Exceptions.h>
+#include <Pyston/Module.h>
 
 namespace py = boost::python;
 
@@ -52,6 +55,7 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
   struct sigaction sigint_handler;
   sigaction(SIGINT, nullptr, &sigint_handler);
 
+  PyImport_AppendInittab("pyston", PYSTON_MODULE_INIT);
   Py_Initialize();
   PyEval_InitThreads();
   PyEval_SaveThread();
@@ -59,8 +63,12 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
   sigaction(SIGINT, &sigint_handler, nullptr);
 }
 
+PythonInterpreter::~PythonInterpreter() {
+  logger.info() << "Python GIL acquired " << Pyston::GILLocker::getLockCount() << " times";
+}
+
 void PythonInterpreter::runCode(const std::string &code) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object main_module = py::import("__main__");
   py::object main_namespace = main_module.attr("__dict__");
@@ -68,12 +76,12 @@ void PythonInterpreter::runCode(const std::string &code) {
     py::exec(code.c_str(), main_namespace);
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 void PythonInterpreter::runFile(const std::string &filename, const std::vector<std::string> &argv) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     // Setup argv
@@ -83,7 +91,7 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
 #  define py_argv_assign(d, s, l) d = strndup(s, l)
 #else
     using py_argv_char_t = wchar_t;
-#  define py_argv_assign(d, s, l) d = Py_DecodeLocale(s, &l)
+#  define py_argv_assign(d, s, l) d = Py_DecodeLocale(s, &(l))
 #endif
 
     py_argv_char_t **py_argv = static_cast<py_argv_char_t**>(PyMem_MALLOC((argv.size() + 1) * sizeof(py_argv_char_t*)));
@@ -106,15 +114,27 @@ void PythonInterpreter::runFile(const std::string &filename, const std::vector<s
     py::object main_module = py::import("__main__");
     py::setattr(main_module, "__file__", py::object(filename));
     py::object main_namespace = main_module.attr("__dict__");
-    py::exec_file(filename.c_str(), main_namespace);
+
+    // boost 1.75 up to 1.77 has a bug that trashes the heap
+    // See https://github.com/boostorg/python/issues/371
+    // So we read the file ourselves as a workaround
+    std::ifstream fs(filename);
+    if (fs.fail()) {
+      throw std::system_error(errno, std::system_category(), filename);
+    }
+    std::string pycode((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
+    py::exec(pycode.c_str(), main_namespace);
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+  }
+  catch (const std::system_error& e) {
+    throw Elements::Exception() << e.what() << ": " << e.code().message();
   }
 }
 
 std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object meas_images_module = py::import("sourcextractor.config.measurement_images");
@@ -129,12 +149,12 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<int, PyAperture> PythonInterpreter::getApertures() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object apertures_module = py::import("sourcextractor.config.aperture");
@@ -149,12 +169,12 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getModelFittingOutputColumns() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object output_module = py::import("sourcextractor.config.output");
@@ -181,12 +201,12 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColumns() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object output_module = py::import("sourcextractor.config.output");
@@ -211,14 +231,14 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 namespace {
 
 std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, const py::str &dict_name) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object model_fitting_module = py::import(module_name);
@@ -233,7 +253,7 @@ std::map<int, boost::python::object> getMapFromDict(const py::str &module_name, 
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
@@ -275,8 +295,12 @@ std::map<int, boost::python::object> PythonInterpreter::getDeVaucouleursModels()
   return getMapFromDict("sourcextractor.config.model_fitting", "de_vaucouleurs_model_dict");
 }
 
+std::map<int, boost::python::object> PythonInterpreter::getOnnxModels() {
+  return getMapFromDict("sourcextractor.config.model_fitting", "onnx_model_dict");
+}
+
 std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     std::map<int, std::vector<int>> result{};
     py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
@@ -293,12 +317,12 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingParams() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   py::dict parameters = py::extract<py::dict>(model_fitting_module.attr("params_dict"));
@@ -313,7 +337,7 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
 }
 
 std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   try {
     py::object model_fitting_module = py::import("sourcextractor.config.measurement_images");
@@ -325,12 +349,12 @@ std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
     return result;
   }
   catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
 
   py::object model_fitting_module = py::import("sourcextractor.config.model_fitting");
   auto python_function = model_fitting_module.attr("set_coordinate_system");

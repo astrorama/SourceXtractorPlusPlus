@@ -26,7 +26,7 @@ class SamplingConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  SamplingConfig(long manager_id);
+  explicit SamplingConfig(long manager_id);
 
   virtual ~SamplingConfig() = default;
 
@@ -44,9 +44,15 @@ public:
     return m_scale_factor;
   }
 
+  size_t getMaxFitSize() const {
+    return m_max_fit_size;
+  }
+
+
 private:
   double m_adaptive_target;
   double m_scale_factor;
+  size_t m_max_fit_size;
 };
 
 

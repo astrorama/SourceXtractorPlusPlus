@@ -366,7 +366,7 @@ public:
     // Prefetcher
     std::shared_ptr<Prefetcher> prefetcher;
     if (thread_pool) {
-      prefetcher = std::make_shared<Prefetcher>(thread_pool);
+      prefetcher = std::make_shared<Prefetcher>(thread_pool, multithreading_config.getMaxQueueSize());
     }
 
     // Rest of the stagees
@@ -381,8 +381,6 @@ public:
       prefetcher->requestProperties(source_grouping->requiredProperties());
       prefetcher->requestProperties(deblending->requiredProperties());
     }
-
-    auto sorter = std::make_shared<Sorter>();
 
     // Link together the pipeline's steps
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
@@ -400,8 +398,16 @@ public:
 
     source_grouping->addObserver(deblending);
     deblending->addObserver(measurement);
-    measurement->addObserver(sorter);
-    sorter->addObserver(output);
+
+    if (config_manager.getConfiguration<OutputConfig>().getOutputUnsorted()) {
+      logger.info() << "Writing output following measure order";
+      measurement->addObserver(output);
+    } else {
+      logger.info() << "Writing output following segmentation order";
+      auto sorter = std::make_shared<Sorter>();
+      measurement->addObserver(sorter);
+      sorter->addObserver(output);
+    }
 
     segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
     segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
@@ -462,7 +468,7 @@ public:
       auto background = ConstantImage<DetectionImage::PixelType>::create(
           detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
-      detection_frame->setBackgroundLevel(background, 0.);
+      detection_frame->setBackgroundLevel(background, background_model.getMedianRms());
       CheckImages::getInstance().setBackgroundCheckImage(background);
     }
 

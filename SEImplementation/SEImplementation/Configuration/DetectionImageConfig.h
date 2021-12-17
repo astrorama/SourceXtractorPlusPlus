@@ -44,7 +44,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   virtual ~DetectionImageConfig() = default;
 
   /// Constructs a new DetectionImageConfig object
-  DetectionImageConfig(long manager_id);
+  explicit DetectionImageConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   

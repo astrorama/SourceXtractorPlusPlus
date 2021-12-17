@@ -42,7 +42,7 @@ public:
    */
   virtual ~MeasurementFramePixelCentroidTask() = default;
 
-  MeasurementFramePixelCentroidTask(unsigned int instance) : m_instance(instance) {}
+  explicit MeasurementFramePixelCentroidTask(unsigned int instance) : m_instance(instance) {}
 
   virtual void computeProperties(SourceInterface& source) const override;
 

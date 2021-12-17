@@ -45,7 +45,7 @@ public:
     Euclid::NdArray::NdArray<T> m_ndarray;
 
     template <typename ...Args>
-    NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
+    explicit NdWrapper(Args&&... args) : m_ndarray(std::forward<Args>(args)...) {}
   };
 
   /**
@@ -59,7 +59,7 @@ public:
    *    A map where the key corresponds to the path of one of the ONNX models, and the
    *    value to the corresponding output tensor
    */
-  OnnxProperty(std::map<std::string, std::unique_ptr<NdWrapperBase>>&& output) : m_output(std::move(output)) {}
+  explicit OnnxProperty(std::map<std::string, std::unique_ptr<NdWrapperBase>>&& output) : m_output(std::move(output)) {}
 
   /**
    * @param key

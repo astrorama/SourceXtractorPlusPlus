@@ -30,7 +30,7 @@ namespace SourceXtractor {
 
 class MemoryConfig : public Euclid::Configuration::Configuration {
 public:
-  MemoryConfig(long manager_id);
+  explicit MemoryConfig(long manager_id);
 
   virtual ~MemoryConfig() = default;
 

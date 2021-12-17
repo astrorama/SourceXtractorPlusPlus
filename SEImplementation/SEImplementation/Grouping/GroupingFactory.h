@@ -42,8 +42,8 @@ class GroupingFactory : public Configurable {
 
 public:
 
-  GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
-    : m_source_group_factory(source_group_factory) {}
+  explicit GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
+    : m_source_group_factory(source_group_factory), m_hard_limit(0) {}
 
   virtual ~GroupingFactory() = default;
 
@@ -67,18 +67,20 @@ public:
       m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
       break;
     }
+    m_hard_limit = grouping_config.getHardLimit();
   }
 
   std::shared_ptr<SourceGrouping> createGrouping() const {
     assert(m_grouping_criteria != nullptr);
     assert(m_source_group_factory != nullptr);
 
-    return std::make_shared<SourceGrouping>(m_grouping_criteria, m_source_group_factory);
+    return std::make_shared<SourceGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit);
   }
 
 private:
   std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_source_group_factory;
+  unsigned int m_hard_limit;
 };
 
 } /* namespace SourceXtractor */

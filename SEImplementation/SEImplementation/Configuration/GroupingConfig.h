@@ -49,7 +49,7 @@ public:
   virtual ~GroupingConfig() = default;
 
   /// Constructs a new GroupingConfig object
-  GroupingConfig(long manager_id);
+  explicit GroupingConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;
@@ -66,10 +66,15 @@ public:
     return m_moffat_max_distance;
   }
 
+  unsigned int getHardLimit() const {
+    return m_hard_limit;
+  }
+
 private:
   Algorithm m_selected_algorithm;
   double m_moffat_threshold;
   double m_moffat_max_distance;
+  unsigned int m_hard_limit;
 
 }; /* End of GroupingConfig class */
 

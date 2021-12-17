@@ -69,14 +69,7 @@ public:
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
-    ImageAccessor<T> accessor(m_image);
-    auto chunk = UniversalImageChunk<T>::create(width, height);
-    for (int iy = 0; iy < height; ++iy) {
-      for (int ix = 0; ix < width; ++ix) {
-        chunk->at(ix, iy) = accessor.getValue(ix + x + m_offset.m_x, iy + y + m_offset.m_y);
-      }
-    }
-    return chunk;
+    return m_image->getChunk(x + m_offset.m_x, y + m_offset.m_y, width, height);
   }
 
 private:

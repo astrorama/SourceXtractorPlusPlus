@@ -24,6 +24,7 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 
+#include "SEUtils/PixelRectangle.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
@@ -34,11 +35,11 @@ class MeasurementFrameRectangle: public Property {
 public:
   virtual ~MeasurementFrameRectangle() = default;
 
-  MeasurementFrameRectangle():
-  m_min_coord{-1, -1}, m_max_coord{-1, -1} {}
+  explicit MeasurementFrameRectangle(bool bad_projection):
+  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection}{}
 
   MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):
-    m_min_coord{min_coord}, m_max_coord{max_coord} {
+    m_min_coord{min_coord}, m_max_coord{max_coord}, m_bad_projection{false} {
     assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
   }
 
@@ -64,8 +65,17 @@ public:
     return m_max_coord.m_y - m_min_coord.m_y + 1;
   }
 
+  PixelRectangle getRect() const {
+    return PixelRectangle(m_min_coord, m_max_coord);
+  }
+
+  bool badProjection() const {
+    return m_bad_projection;
+  }
+
 private:
   PixelCoordinate m_min_coord, m_max_coord;
+  bool m_bad_projection;
 };
 
 } // end SourceXtractor

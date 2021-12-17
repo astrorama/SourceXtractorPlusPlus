@@ -38,7 +38,7 @@ namespace ModelFitting {
 struct LeastSquareSummary {
 
   enum StatusFlag {
-    SUCCESS, MAX_ITER, ERROR
+    SUCCESS, MAX_ITER, ERROR, MEMORY
   };
 
   /// Flag indicating if the minimization was successful
@@ -52,6 +52,9 @@ struct LeastSquareSummary {
 
   /// Engine-specific reason for stopping the fitting
   int engine_stop_reason {0};
+
+  /// Runtime (in seconds)
+  float duration;
 
   /// Info of the minimization process, as provided by the underlying framework.
   ///

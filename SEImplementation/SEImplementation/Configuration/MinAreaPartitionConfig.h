@@ -30,7 +30,7 @@ class MinAreaPartitionConfig : public Euclid::Configuration::Configuration {
   
 public:
   
-  MinAreaPartitionConfig(long manager_id);
+  explicit MinAreaPartitionConfig(long manager_id);
   
   virtual ~MinAreaPartitionConfig() = default;
   

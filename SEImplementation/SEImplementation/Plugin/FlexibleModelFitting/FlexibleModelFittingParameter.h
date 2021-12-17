@@ -44,7 +44,7 @@ class FlexibleModelFittingConverterFactory;
 
 class FlexibleModelFittingParameter : public std::enable_shared_from_this<FlexibleModelFittingParameter>{
 public:
-  FlexibleModelFittingParameter(int id);
+  explicit FlexibleModelFittingParameter(int id);
   virtual ~FlexibleModelFittingParameter() = default;
 
   virtual std::shared_ptr<ModelFitting::BasicParameter> create(
@@ -109,8 +109,16 @@ public:
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source) const override;
 
+  std::shared_ptr<ModelFitting::BasicParameter> create(
+                                  FlexibleModelFittingParameterManager& parameter_manager,
+                                  ModelFitting::EngineParameterManager& engine_manager,
+                                  const SourceInterface& source,
+                                  double initial_value) const;
+
   double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const override;
+
+  double getInitialValue(const SourceInterface& source) const;
 
 private:
 

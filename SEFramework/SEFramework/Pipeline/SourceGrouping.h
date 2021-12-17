@@ -72,7 +72,7 @@ struct ProcessSourcesEvent {
 
   const std::shared_ptr<SelectionCriteria> m_selection_criteria;   // Used to identify the Sources to process
 
-  ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
+  explicit ProcessSourcesEvent(const std::shared_ptr<SelectionCriteria>& selection_criteria)
     : m_selection_criteria(selection_criteria) {}
 };
 
@@ -112,7 +112,8 @@ public:
   virtual ~SourceGrouping() = default;
 
   SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
-                 std::shared_ptr<SourceGroupFactory> group_factory);
+                 std::shared_ptr<SourceGroupFactory> group_factory,
+                 unsigned int hard_limit);
 
   /// Handles a new Source
   virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
@@ -128,6 +129,7 @@ private:
   std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_group_factory;
   std::list<std::shared_ptr<SourceGroupInterface>> m_source_groups;
+  unsigned int m_hard_limit;
 
 }; /* End of SourceGrouping class */
 

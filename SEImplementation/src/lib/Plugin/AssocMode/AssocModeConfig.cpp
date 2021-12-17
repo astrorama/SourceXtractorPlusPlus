@@ -84,8 +84,7 @@ std::vector<int> parseColumnList(const std::string& arg) {
 
 }
 
-AssocModeConfig::AssocModeConfig(long manager_id) :
-    Configuration(manager_id) {
+AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN), m_assoc_radius(0.) {
   declareDependency<PartitionStepConfig>();
   ConfigManager::getInstance(manager_id).registerDependency<AssocModeConfig, MultiThresholdPartitionConfig>();
 }

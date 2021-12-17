@@ -14,36 +14,31 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MultiframeModelFittingPlugin.h
- *
- *  Created on: Sep 12, 2017
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGPLUGIN_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASK_H_
 
-
-#include "SEFramework/Plugin/Plugin.h"
+#include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/Psf/Psf.h"
 
 namespace SourceXtractor {
 
-class MultiframeModelFittingPlugin : public Plugin {
-
+class SourcePsfTask: public SourceTask {
 public:
+  virtual ~SourcePsfTask() = default;
 
-  virtual ~MultiframeModelFittingPlugin() = default;
+  SourcePsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
 
-  virtual void registerPlugin(PluginAPI& plugin_api) override;
-  virtual std::string getIdString() const override;
+  void computeProperties(SourceInterface& source) const override;
+
+  typedef std::function<double(SourceXtractor::SourceInterface &group, unsigned instance)> ValueGetter;
+  static std::map<std::string, ValueGetter> component_value_getters;
 
 private:
-
+  unsigned m_instance;
+  std::shared_ptr<Psf> m_vpsf;
 };
 
-}
+} // end SourceXtractor
 
-
-
-#endif /* _SEIMPLEMENTATION_PLUGIN_MULTIFRAMEMODELFITTING_MULTIFRAMEMODELFITTINGPLUGIN_H_ */
+#endif //_SEIMPLEMENTATION_PLUGIN_SOURCEPSF_SOURCEPSFTASK_H_

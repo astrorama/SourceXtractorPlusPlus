@@ -14,91 +14,124 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file ModelFittingConfig.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
-
-#include "ElementsKernel/Logging.h"
-#include "ModelFitting/Engine/LeastSquareEngineManager.h"
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
-#include "SEImplementation/PythonConfig/ObjectInfo.h"
-#include "SEImplementation/Configuration/PythonConfig.h"
-#include "SEImplementation/Configuration/ModelFittingConfig.h"
-#include "SEUtils/Python.h"
 
 #include <string>
 #include <boost/python/extract.hpp>
 #include <boost/python/object.hpp>
 #include <boost/python/tuple.hpp>
+#include <boost/python/dict.hpp>
+
+#include "ElementsKernel/Logging.h"
+
+#include "ModelFitting/Engine/LeastSquareEngineManager.h"
+
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
+#include "SEImplementation/PythonConfig/ObjectInfo.h"
+#include "SEImplementation/Configuration/PythonConfig.h"
+#include "SEImplementation/Configuration/ModelFittingConfig.h"
+#include "Pyston/GIL.h"
+#include "Pyston/Exceptions.h"
+#include "Pyston/ExpressionTreeBuilder.h"
+#include "Pyston/Util/GraphvizGenerator.h"
+
+#include <string>
+#include <boost/python/extract.hpp>
+#include <boost/python/object.hpp>
+
+#ifdef WITH_ONNX_MODELS
+#include "SEImplementation/Common/OnnxModel.h"
+#endif
+
+#include "SEImplementation/Configuration/ModelFittingConfig.h"
 
 
 using namespace Euclid::Configuration;
 namespace py = boost::python;
+using Pyston::AttributeSet;
 
 static Elements::Logging logger = Elements::Logging::getLogger("Config");
 
 namespace SourceXtractor {
 
-/**
- * Wrap py::extract *and* the call so Python errors can be properly translated and logged
- * @tparam R
- *  Return type
- * @tparam T
- *  Variadic template for any arbitrary number of arguments
- * @param func
- *  Python function to be called
- * @param args
- *  Arguments for the Python function
- * @return
- *  Whatever the Python function returns
- * @throw
- *  Elements::Exception if either the call or the extract throw a Python exception
- */
-template <typename R, typename ...T>
-R py_call_wrapper(const py::object& func, T... args) {
-  GILStateEnsure ensure;
-  try {
-    return py::extract<R>(func(args...));
+template<typename Signature>
+struct FunctionFromPython {
+};
+
+template<>
+struct FunctionFromPython<double(const SourceInterface&)> {
+  static
+  std::function<double(const SourceInterface&)> get(const char *readable,
+                                                 Pyston::ExpressionTreeBuilder& builder,
+                                                 py::object py_func) {
+    auto wrapped = builder.build<double(const AttributeSet&)>(py_func, ObjectInfo{});
+
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
+    }
+
+    return [wrapped](const SourceInterface& o) -> double {
+      return wrapped(ObjectInfo{o});
+    };
   }
-  catch (const py::error_already_set &e) {
-    throw pyToElementsException(logger);
+};
+
+template<>
+struct FunctionFromPython<double(const Pyston::Context&, const std::vector<double>&)> {
+  static
+  std::function<double(const Pyston::Context&, const std::vector<double>&)>
+    get(const char *readable, Pyston::ExpressionTreeBuilder& builder, py::object py_func,
+        size_t nparams) {
+    auto wrapped = builder.build<double(const std::vector<double>&)>(py_func, nparams);
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
+    }
+
+    return wrapped;
   }
-}
+};
 
-/**
- * @brief Hold a reference to a Python object
- * @details
- *  A boost::python::object contains a pointer to the underlying Python struct, which is
- *  copied as-is (shared) when copied. When the boost::python::object is destroyed, it checks,
- *  and then decrements, the reference count. This destruction is *not* thread safe, as the pointer
- *  is not protected by a mutex or anything.
- *  This class holds a single reference to the Python object, and relies on the mechanism of
- *  std::shared_ptr to destroy the object once there is no one using it. std::shared_ptr *is*
- *  thread safe, unlike boost::python::object.
- */
-class PyObjectHolder {
-  public:
-    PyObjectHolder(py::object&& obj): m_obj_ptr(std::make_shared<py::object>(obj)) {}
+template<>
+struct FunctionFromPython<double(double, const SourceInterface&)> {
+  static
+  std::function<double(double, const SourceInterface&)> get(const char *readable,
+                                                            Pyston::ExpressionTreeBuilder& builder,
+                                                            py::object py_func) {
+    auto wrapped = builder.build<double(double, const AttributeSet&)>(py_func, ObjectInfo{});
 
-    PyObjectHolder(const PyObjectHolder&) = default;
-    PyObjectHolder(PyObjectHolder&&) = default;
-
-    operator const py::object&() const {
-      return *m_obj_ptr;
+    if (!wrapped.isCompiled()) {
+      logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
+      wrapped.reason()->log(log4cpp::Priority::DEBUG, logger);
+    }
+    else {
+      logger.info() << readable << " compiled";
+      Pyston::GraphvizGenerator gv(readable);
+      wrapped.getTree()->visit(gv);
+      logger.info() << gv.str();
     }
 
-    const py::object& operator *() const {
-      return *m_obj_ptr;
-    }
-
-    py::object attr(const char *name) {
-      return m_obj_ptr->attr(name);
-    }
-
-  private:
-    std::shared_ptr<py::object> m_obj_ptr;
+    return [wrapped](double a, const SourceInterface& o) -> double {
+      return wrapped(a, ObjectInfo{o});
+    };
+  }
 };
 
 ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_id) {
@@ -106,7 +139,7 @@ ModelFittingConfig::ModelFittingConfig(long manager_id) : Configuration(manager_
 }
 
 ModelFittingConfig::~ModelFittingConfig() {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   m_parameters.clear();
   m_models.clear();
   m_frames.clear();
@@ -115,53 +148,72 @@ ModelFittingConfig::~ModelFittingConfig() {
 }
 
 void ModelFittingConfig::initialize(const UserValues&) {
-  GILStateEnsure ensure;
+  Pyston::GILLocker locker;
   try {
     initializeInner();
   }
   catch (py::error_already_set &e) {
-    throw pyToElementsException(logger);
+    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
 
+static double image_to_world_alpha(const Pyston::Context& context, double x, double y) {
+  auto coord_system = boost::any_cast<std::shared_ptr<CoordinateSystem>>(context.at("coordinate_system"));
+  return coord_system->imageToWorld({x, y}).m_alpha;
+}
+
+static double image_to_world_delta(const Pyston::Context& context, double x, double y) {
+  auto coord_system = boost::any_cast<std::shared_ptr<CoordinateSystem>>(context.at("coordinate_system"));
+  return coord_system->imageToWorld({x, y}).m_delta;
+}
+
 void ModelFittingConfig::initializeInner() {
+  Pyston::ExpressionTreeBuilder expr_builder;
+  expr_builder.registerFunction<double(const Pyston::Context&, double, double)>(
+    "image_to_world_alpha", image_to_world_alpha
+  );
+  expr_builder.registerFunction<double(const Pyston::Context&, double, double)>(
+    "image_to_world_delta", image_to_world_delta
+  );
+
+  /* Constant parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
-    auto py_value_func = PyObjectHolder(p.second.attr("get_value")());
-    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_value_func, oi);
-    };
+    auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Constant parameter", expr_builder, p.second.attr("get_value")
+    );
+
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
                                                            p.first, value_func);
   }
-  
-  for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
-    auto py_init_value_func = PyObjectHolder(p.second.attr("get_init_value")());
-    auto init_value_func = [py_init_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_init_value_func, oi);
-    };
 
-    auto py_range_obj = PyObjectHolder(p.second.attr("get_range")());
+  /* Free parameters */
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
+    auto init_value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Free parameter", expr_builder, p.second.attr("get_init_value")
+    );
+
+    auto py_range_obj = p.second.attr("get_range")();
 
     std::shared_ptr<FlexibleModelFittingConverterFactory> converter;
     std::string type_string(py::extract<char const*>(py_range_obj.attr("__class__").attr("__name__")));
+
     if (type_string == "Unbounded") {
-      auto py_factor_func = PyObjectHolder(py_range_obj.attr("get_normalization_factor")());
-      auto factor_func = [py_factor_func] (double init, const SourceInterface& o) -> double {
-        ObjectInfo oi {o};
-        return py_call_wrapper<double>(py_factor_func, init, oi);
-      };
+      auto factor_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Unbounded", expr_builder, py_range_obj.attr("get_normalization_factor")
+      );
       converter = std::make_shared<FlexibleModelFittingUnboundedConverterFactory>(factor_func);
     } else if (type_string == "Range") {
-      auto py_range_func = PyObjectHolder(py_range_obj.attr("get_limits")());
-      auto range_func = [py_range_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
-        ObjectInfo oi {o};
-        py::tuple range = py_call_wrapper<py::tuple>(py_range_func, init, oi);
-        double low = py::extract<double>(range[0]);
-        double high = py::extract<double>(range[1]);
-        return {low, high};
+      auto min_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Range min", expr_builder, py_range_obj.attr("get_min")
+      );
+      auto max_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
+        "Range max", expr_builder, py_range_obj.attr("get_max")
+      );
+
+      auto range_func = [min_func, max_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
+        return {min_func(init, o), max_func(init, o)};
       };
+
       bool is_exponential = py::extract<int>(py_range_obj.attr("get_type")().attr("value")) == 2;
 
       if (is_exponential) {
@@ -175,9 +227,10 @@ void ModelFittingConfig::initializeInner() {
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingFreeParameter>(
                           p.first, init_value_func, converter);
   }
-  
+
+  /* Dependent parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
-    auto py_func = PyObjectHolder(p.second.attr("func"));
+    auto py_func = p.second.attr("func");
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
     py::list param_ids = py::extract<py::list>(p.second.attr("params"));
     for (int i = 0; i < py::len(param_ids); ++i) {
@@ -185,27 +238,23 @@ void ModelFittingConfig::initializeInner() {
       params.push_back(m_parameters[id]);
     }
 
-    auto dependent_func = [py_func](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
-      GILStateEnsure ensure;
-      try {
-        PythonInterpreter::getSingleton().setCoordinateSystem(cs);
-        return py::extract<double>((*py_func)(*py::tuple(params)));
-      }
-      catch (const py::error_already_set&) {
-        throw pyToElementsException(logger);
-      }
+    auto dependent = FunctionFromPython<double(const Pyston::Context&, const std::vector<double>&)>
+      ::get("Dependent parameter", expr_builder, py_func, params.size());
+
+    auto dependent_func = [dependent](const std::shared_ptr<CoordinateSystem> &cs, const std::vector<double> &params) -> double {
+      Pyston::Context context;
+      context["coordinate_system"] = cs;
+      return dependent(context, params);
     };
 
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingDependentParameter>(
                                                       p.first, dependent_func, params);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {
     int value_id = py::extract<int>(p.second.attr("value").attr("id"));
-    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(
-        m_parameters[value_id]);
+    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(m_parameters[value_id]);
   }
-
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
@@ -214,7 +263,7 @@ void ModelFittingConfig::initializeInner() {
     m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -228,7 +277,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
         m_parameters[angle_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -240,7 +289,7 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
     int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
@@ -252,7 +301,49 @@ void ModelFittingConfig::initializeInner() {
         m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
         m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
   }
-  
+
+#ifdef WITH_ONNX_MODELS
+  for (auto& p : getDependency<PythonConfig>().getInterpreter().getOnnxModels()) {
+    int x_coord_id = py::extract<int>(p.second.attr("x_coord").attr("id"));
+    int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
+    int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
+    int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
+    int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
+    int scale_id = py::extract<int>(p.second.attr("scale").attr("id"));
+
+    std::map<std::string, std::shared_ptr<FlexibleModelFittingParameter>> params;
+    py::dict parameters = py::extract<py::dict>(p.second.attr("params"));
+    py::list names = parameters.keys();
+    for (int i = 0; i < py::len(names); ++i) {
+      std::string name = py::extract<std::string>(names[i]);
+      params[name] = m_parameters[py::extract<int>(parameters[names[i]].attr("id"))];
+    }
+
+    std::vector<std::shared_ptr<OnnxModel>> onnx_models;
+    py::list models = py::extract<py::list>(p.second.attr("models"));
+    for (int i = 0; i < py::len(models); ++i) {
+      std::string model_filename = py::extract<std::string>(models[i]);
+      onnx_models.emplace_back(std::make_shared<OnnxModel>(model_filename));
+
+      if (onnx_models.back()->getOutputType() != ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT ||
+          onnx_models.back()->getOutputShape().size() != 4 ||
+          onnx_models.back()->getOutputShape()[1] != onnx_models.back()->getOutputShape()[2] ||
+          onnx_models.back()->getOutputShape()[3] != 1)
+      {
+        throw Elements::Exception() << "ONNX models for ModelFitting must output a square array of floats";
+      }
+    }
+
+    m_models[p.first] = std::make_shared<FlexibleModelFittingOnnxModel>(
+        onnx_models, m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
+        m_parameters[aspect_ratio_id], m_parameters[angle_id], m_parameters[scale_id], params);
+  }
+#else
+  if (getDependency<PythonConfig>().getInterpreter().getOnnxModels().size() > 0) {
+       throw Elements::Exception("Trying to use ONNX models but ONNX support is not available");
+  }
+#endif
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFrameModelsMap()) {
     std::vector<std::shared_ptr<FlexibleModelFittingModel>> model_list {};
     for (int x : p.second) {
@@ -260,24 +351,22 @@ void ModelFittingConfig::initializeInner() {
     }
     m_frames.push_back(std::make_shared<FlexibleModelFittingFrame>(p.first, model_list));
   }
-  
+
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPriors()) {
     auto& prior = p.second;
     int param_id = py::extract<int>(prior.attr("param"));
     auto param = m_parameters[param_id];
-    auto py_value_func = PyObjectHolder(prior.attr("value"));
-    auto value_func = [py_value_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_value_func, oi);
-    };
-    auto py_sigma_func = PyObjectHolder(prior.attr("sigma"));
-    auto sigma_func = [py_sigma_func] (const SourceInterface& o) -> double {
-      ObjectInfo oi {o};
-      return py_call_wrapper<double>(py_sigma_func, oi);
-    };
+
+    auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Prior mean", expr_builder, prior.attr("value")
+    );
+    auto sigma_func = FunctionFromPython<double(const SourceInterface&)>::get(
+      "Prior sigma", expr_builder, prior.attr("sigma")
+    );
+
     m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
   }
-  
+
   m_outputs = getDependency<PythonConfig>().getInterpreter().getModelFittingOutputColumns();
 
   auto parameters = getDependency<PythonConfig>().getInterpreter().getModelFittingParams();
@@ -287,6 +376,10 @@ void ModelFittingConfig::initializeInner() {
   }
   m_max_iterations = py::extract<int>(parameters["max_iterations"]);
   m_modified_chi_squared_scale = py::extract<double>(parameters["modified_chi_squared_scale"]);
+  m_use_iterative_fitting = py::extract<bool>(parameters["use_iterative_fitting"]);
+  m_meta_iterations = py::extract<int>(parameters["meta_iterations"]);
+  m_deblend_factor = py::extract<double>(parameters["deblend_factor"]);
+  m_meta_iteration_stop = py::extract<double>(parameters["meta_iteration_stop"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

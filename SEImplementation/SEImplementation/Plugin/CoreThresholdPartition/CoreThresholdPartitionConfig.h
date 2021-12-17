@@ -32,7 +32,7 @@ namespace SourceXtractor {
 public:
   virtual ~CoreThresholdPartitionConfig() = default;
 
-  CoreThresholdPartitionConfig(long manager_id);
+  explicit CoreThresholdPartitionConfig(long manager_id);
 
   std::map<std::string, OptionDescriptionList> getProgramOptions() override;
 

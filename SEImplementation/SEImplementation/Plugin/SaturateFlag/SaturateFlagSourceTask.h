@@ -53,7 +53,7 @@ namespace SourceXtractor {
 
 class SaturateFlagSourceTask : public SourceTask {
 public:
-  SaturateFlagSourceTask(unsigned instance): m_instance{instance} {}
+  explicit SaturateFlagSourceTask(unsigned instance): m_instance{instance} {}
 
   virtual ~SaturateFlagSourceTask() = default;
 

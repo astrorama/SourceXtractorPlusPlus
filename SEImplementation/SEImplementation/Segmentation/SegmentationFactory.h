@@ -44,7 +44,7 @@ public:
   virtual ~SegmentationFactory() = default;
 
   /// Constructor
-  SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
+  explicit SegmentationFactory(std::shared_ptr<TaskProvider> task_provider);
 
   std::shared_ptr<Segmentation> createSegmentation() const;
   
@@ -60,6 +60,9 @@ private:
 
   int m_lutz_window_size;
   int m_bfs_max_delta;
+
+  std::string m_model_path;
+  double m_ml_threshold;
 
 }; /* End of SegmentationFactory class */
 

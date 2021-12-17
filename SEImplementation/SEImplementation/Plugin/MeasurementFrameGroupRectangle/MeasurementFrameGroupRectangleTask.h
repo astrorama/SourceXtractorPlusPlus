@@ -34,7 +34,7 @@ public:
 
   virtual ~MeasurementFrameGroupRectangleTask() = default;
 
-  MeasurementFrameGroupRectangleTask(unsigned instance): m_instance{instance} {}
+  explicit MeasurementFrameGroupRectangleTask(unsigned instance): m_instance{instance} {}
 
   virtual void computeProperties(SourceGroupInterface& group) const override;
 

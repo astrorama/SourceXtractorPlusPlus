@@ -54,7 +54,7 @@ public:
    *    HDU number. If <= 0, the constructor will use the first HDU containing an image
    * @param manager
    */
-  FitsImageSource(const std::string& filename, int hdu_number = 0,
+  explicit FitsImageSource(const std::string& filename, int hdu_number = 0,
                   ImageTile::ImageType image_type = ImageTile::AutoType,
                   std::shared_ptr<FileManager> manager = FileManager::getDefault());
 
