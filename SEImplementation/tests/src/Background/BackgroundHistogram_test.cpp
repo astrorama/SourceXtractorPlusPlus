@@ -16,7 +16,7 @@
  */
 
 #include <boost/test/unit_test.hpp>
-#include "SEImplementation/Background/SE2/BackgroundHistogram.h"
+#include "SEFramework/Image/VectorImage.h"
 #include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEUtils/TestUtils.h"
 
@@ -34,9 +34,9 @@ BOOST_AUTO_TEST_SUITE (BackgroundHistogram_test)
  * HistogramImage does not need these values, as it computes them itself
  */
 struct Histogram_Cell_1 {
-  double mean = 31329.7;
-  double sigma = 27928.3;
-  std::vector<PIXTYPE> values{
+  float mean = 31329.7;
+  float sigma = 27928.3;
+  std::vector<float> values{
     4857.2197, 7628.263, 12726.14, 21709.928, 60000., 60000., 60000., 60000., 60000., 60000.,
     3991.6655, 5723.0806, 8843.776, 14066.48, 60000., 60000., 60000., 60000., 60000., 60000.,
     3248.9814, 4297.6294, 6044.9634, 8816.455, 29915.367, 60000., 60000., 60000., 60000., 60000.,
@@ -53,12 +53,12 @@ struct Histogram_Cell_1 {
  * Cell from an actual image that ends up with a sigma of 0
  */
 struct Histogram_Cell_2 {
-  double mean = 2479.76;
-  double sigma = 7755.37;
+  float mean = 2479.76;
+  float sigma = 7755.37;
   size_t ndata = 87;
   // A uniform distribution between 0 and 100, plus a Gaussian centered on 2,2
   // with a size of 3 pixels, mean of 500 and sigma of 10
-  std::vector<PIXTYPE> values{
+  std::vector<float> values{
     1059.6154, 1087.7279, 1103.0453, 1094.2203, 1183.6117, 1128.3158, 45756.457, 60000., 60000., 60000.,
     971.41034, 1014.7733, 1000.2077, 1094.3527, 1046.2103, 1067.4185, 1080.4036, 60000., 60000., 60000.,
     918.8282, 940.27734, 956.0524, 1001.61487, 970.8749, 1018.0088, 1030.165, 60000., 60000., 60000.,
@@ -75,12 +75,12 @@ struct Histogram_Cell_2 {
  * Cell from an actual image
  */
 struct Histogram_Cell_3 {
-  double mean = 6682.03;
-  double sigma = 9749.24;
+  float mean = 6682.03;
+  float sigma = 9749.24;
   size_t ndata = 86;
   // A uniform distribution between 0 and 100, plus a Gaussian centered on 2,2
   // with a size of 3 pixels, mean of 500 and sigma of 10
-  std::vector<PIXTYPE> values{
+  std::vector<float> values{
     60000., 60000., 58254.043, 31667.43, 17265.59, 9496.521, 5579.286, 3418.8032, 2425.4026, 1798.5122,
     60000., 60000., 45827.15, 26480.13, 14519.701, 8105.3887, 4956.8438, 3146.938, 2266.9792, 1733.0563,
     60000., 60000., 34206.965, 20255.967, 11735.001, 6850.9517, 4288.0464, 2922.809, 2150.1013, 1635.3331,
@@ -97,10 +97,10 @@ struct Histogram_Cell_3 {
  * Cell from an actual image that converges into a sigma value of 0
  */
 struct Histogram_Cell_4 {
-  double mean = 18.969934;
-  double sigma = 50.762934;
+  float mean = 18.969934;
+  float sigma = 50.762934;
   size_t ndata = 93;
-  std::vector<PIXTYPE> values{
+  std::vector<float> values{
     9.7458380e-01,  1.6089185e+00,  2.1246729e+00,  2.0380810e+01,  1.2126788e+02,  1.8637155e+02,  9.2191461e+02,  8.2063385e+02,  2.5136021e+02,  6.9224292e-01,
     9.4556081e-01,  3.8256418e-02, -1.1680878e+00,  2.8432534e+00,  2.3142546e+01,  1.1719874e+02,  1.3932178e+02,  8.9128271e+02,  8.5308124e+02,  2.8023126e+02,
     5.5220968e-01,  6.0490292e-01, -8.3996785e-01,  1.2442479e-01,  1.7127032e+00,  2.8168287e+01,  1.0903653e+02,  9.9017204e+01,  8.5283356e+02,  8.8399048e+02,
@@ -120,9 +120,9 @@ BOOST_FIXTURE_TEST_CASE(basic_test, Histogram_Cell_1) {
   BOOST_CHECK_EQUAL(mean, histogram.itsMean);
   BOOST_CHECK_EQUAL(sigma, histogram.itsSigma);
 
-  std::for_each(values.begin(), values.end(), [&histogram](PIXTYPE v) { histogram.addDatum(v); });
+  std::for_each(values.begin(), values.end(), [&histogram](float v) { histogram.addDatum(v); });
 
-  PIXTYPE backVal, sigmaVal;
+  float backVal, sigmaVal;
   histogram.getBackGuess(backVal, sigmaVal);
   BOOST_CHECK(checkIsClose(14544.8, backVal));
   BOOST_CHECK(checkIsClose(27666.5, sigmaVal));
@@ -153,9 +153,9 @@ BOOST_FIXTURE_TEST_CASE(basic_test2, Histogram_Cell_2) {
   BOOST_CHECK_EQUAL(mean, histogram.itsMean);
   BOOST_CHECK_EQUAL(sigma, histogram.itsSigma);
 
-  std::for_each(values.begin(), values.end(), [&histogram](PIXTYPE v) { histogram.addDatum(v); });
+  std::for_each(values.begin(), values.end(), [&histogram](float v) { histogram.addDatum(v); });
 
-  PIXTYPE backVal, sigmaVal;
+  float backVal, sigmaVal;
   histogram.getBackGuess(backVal, sigmaVal);
   BOOST_CHECK(checkIsClose(1142.63, backVal));
   BOOST_CHECK_SMALL(sigmaVal, 1e-5f);
@@ -185,9 +185,9 @@ BOOST_FIXTURE_TEST_CASE(basic_test3, Histogram_Cell_3) {
   BOOST_CHECK_EQUAL(mean, histogram.itsMean);
   BOOST_CHECK_EQUAL(sigma, histogram.itsSigma);
 
-  std::for_each(values.begin(), values.end(), [&histogram](PIXTYPE v) { histogram.addDatum(v); });
+  std::for_each(values.begin(), values.end(), [&histogram](float v) { histogram.addDatum(v); });
 
-  PIXTYPE backVal, sigmaVal;
+  float backVal, sigmaVal;
   histogram.getBackGuess(backVal, sigmaVal);
   BOOST_CHECK(checkIsClose(2374.23, backVal));
   BOOST_CHECK(checkIsClose(2069.18, sigmaVal));
@@ -217,9 +217,9 @@ BOOST_FIXTURE_TEST_CASE(basic_test4, Histogram_Cell_4) {
   BOOST_CHECK_EQUAL(mean, histogram.itsMean);
   BOOST_CHECK_EQUAL(sigma, histogram.itsSigma);
 
-  std::for_each(values.begin(), values.end(), [&histogram](PIXTYPE v) { histogram.addDatum(v); });
+  std::for_each(values.begin(), values.end(), [&histogram](float v) { histogram.addDatum(v); });
 
-  PIXTYPE backVal, sigmaVal;
+  float backVal, sigmaVal;
   histogram.getBackGuess(backVal, sigmaVal);
   BOOST_CHECK(checkIsClose(-0.134392, backVal));
   BOOST_CHECK_SMALL(sigmaVal, 1e-5f);
