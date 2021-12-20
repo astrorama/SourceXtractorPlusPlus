@@ -45,7 +45,7 @@ MultiThresholdPartitionConfig::MultiThresholdPartitionConfig(long manager_id) : 
 
 auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Multi-thresholding", {
-      {MTHRESH_USE.c_str(), po::bool_switch(), "activates multithreshold partitioning"},
+      {MTHRESH_USE.c_str(), po::value<bool>()->default_value(true), "activates/deactivates multithreshold partitioning"},
       {MTHRESH_THRESHOLDS_NB.c_str(), po::value<int>()->default_value(32), "# of thresholds"},
       {MTHRESH_MIN_AREA.c_str(), po::value<int>()->default_value(3), "min area in pixels to consider partitioning"},
       {MTHRESH_MIN_CONTRAST.c_str(), po::value<double>()->default_value(0.005), "min contrast of for partitioning"}

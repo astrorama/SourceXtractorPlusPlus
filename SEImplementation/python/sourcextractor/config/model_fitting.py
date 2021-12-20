@@ -527,8 +527,8 @@ sersic_model_dict = {}
 exponential_model_dict = {}
 de_vaucouleurs_model_dict = {}
 onnx_model_dict = {}
-params_dict = {"max_iterations": 100, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": False, "meta_iterations": 3,
-               "deblend_factor": 1, "meta_iteration_stop": 0.0001}
+params_dict = {"max_iterations": 200, "modified_chi_squared_scale": 10, "engine": "", "use_iterative_fitting": True, "meta_iterations": 5,
+               "deblend_factor": 0.95, "meta_iteration_stop": 0.0001}
 
 
 def set_max_iterations(iterations):
