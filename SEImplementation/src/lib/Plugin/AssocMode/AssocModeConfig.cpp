@@ -113,13 +113,13 @@ void AssocModeConfig::initialize(const UserValues& args) {
       auto assoc_filter = assoc_filter_table.at(filter);
       if (assoc_filter == AssocFilter::MATCHED) {
         getDependency<PartitionStepConfig>().addPartitionStepCreator(
-                [](std::shared_ptr<SourceFactory> source_factory) {
+                [](std::shared_ptr<SourceFactory> ) {
                   return std::make_shared<AssocModePartitionStep>(true);
                 }
         );
       } else if (assoc_filter == AssocFilter::UNMATCHED) {
         getDependency<PartitionStepConfig>().addPartitionStepCreator(
-                [](std::shared_ptr<SourceFactory> source_factory) {
+                [](std::shared_ptr<SourceFactory> ) {
                   return std::make_shared<AssocModePartitionStep>(false);
                 }
         );
