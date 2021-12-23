@@ -37,7 +37,7 @@ public:
   AutoPhotometryFlagTask(SeFloat kron_factor, SeFloat kron_minrad)
   : m_kron_factor{kron_factor}, m_kron_minrad{kron_minrad} {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   SeFloat m_kron_factor;

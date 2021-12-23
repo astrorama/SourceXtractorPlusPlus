@@ -44,7 +44,7 @@ public:
 
   explicit IsophotalFluxTask(SeFloat magnitude_zero_point) : m_magnitude_zero_point(magnitude_zero_point) {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 
 private:

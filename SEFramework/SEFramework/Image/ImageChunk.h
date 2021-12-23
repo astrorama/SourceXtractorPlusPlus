@@ -73,7 +73,7 @@ public:
     return m_height;
   }
 
-  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
     return create(m_data, m_offset + x + y * m_stride, width, height, m_stride);
   }
 

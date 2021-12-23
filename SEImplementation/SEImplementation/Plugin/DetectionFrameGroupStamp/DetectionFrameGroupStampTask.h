@@ -45,7 +45,7 @@ public:
   /// Constructor
   DetectionFrameGroupStampTask() {}
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  void computeProperties(SourceGroupInterface& group) const override;
 
 }; /* End of DetectionFrameGroupStampTask class */
 

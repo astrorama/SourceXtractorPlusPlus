@@ -38,11 +38,11 @@ public:
 
   virtual ~FlattenedMoffatComponent() = default;
 
-  virtual double getValue(double x, double y) override;
+  double getValue(double x, double y) override;
 
-  virtual void updateRasterizationInfo(double scale, double r_max) override;
-  virtual std::vector<ModelSample> getSharpSampling() override;
-  virtual bool insideSharpRegion(double x, double y) override;
+  void updateRasterizationInfo(double scale, double r_max) override;
+  std::vector<ModelSample> getSharpSampling() override;
+  bool insideSharpRegion(double x, double y) override;
 
 private:
   std::shared_ptr<BasicParameter> m_max_intensity;

@@ -38,7 +38,7 @@ public:
 
   SourceIDTask() {}
 
-  virtual void computeProperties(SourceInterface& source) const override {
+  void computeProperties(SourceInterface& source) const override {
     auto detection_id = source.getProperty<SourceId>().getDetectionId();
     source.setProperty<SourceID>(getNewId(), detection_id);
   }
