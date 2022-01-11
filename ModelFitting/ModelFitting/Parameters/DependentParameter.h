@@ -117,8 +117,8 @@ private:
   }
 
   template<typename Param>
-  void addParameterObserver(int i, Param& param) {
-    param->addObserver([this](double v){
+  void addParameterObserver(int, Param& param) {
+    param->addObserver([this](double){
       // Do not bother updating live if there are no observers
       if (this->isObserved()) {
           this->update((*m_params)[0]->getValue());
