@@ -29,6 +29,7 @@ jobs:
 
       - name: Build
         run: |
+          echo ${{ github.ref_name }}
           cd doc
           make html
       - name: Deploy
@@ -38,5 +39,5 @@ jobs:
           publish_branch: doc-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: doc/build/html/
-          destination_dir: test
+          destination_dir: ${{ github.ref_name }}
 
