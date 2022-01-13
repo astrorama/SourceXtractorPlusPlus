@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>measurement_images &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="aperture" href="aperture.html" />
+    <link rel="prev" title="output" href="output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Measurements.html">Measuring</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../ConfigAPI.html">Configuration API Reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="argv.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argv</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="output.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="model_fitting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../ConfigAPI.html">Configuration API Reference</a> &raquo;</li>
+      <li><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-config.measurement_images">
+<span id="measurement-images"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code><a class="headerlink" href="#module-config.measurement_images" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.ByKeyword">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ByKeyword</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByKeyword" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>key</strong> (<em>str</em>) – FITS header keyword (i.e. FILTER)</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#config.measurement_images.ImageGroup.split" title="config.measurement_images.ImageGroup.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImageGroup.split</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.ByPattern">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ByPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByPattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
+expression and using the first matching group as key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>key</strong> (<em>str</em>) – FITS header keyword</p></li>
+<li><p><strong>pattern</strong> (<em>str</em>) – Regular expression. The first matching group will be used as grouping key.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#config.measurement_images.ImageGroup.split" title="config.measurement_images.ImageGroup.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImageGroup.split</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.FitsFile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FitsFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.FitsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.FitsFile</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ImageGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Models the grouping of images. Measurement can <em>not</em> be made directly on instances of this type.
+The configuration must be “frozen” before creating a MeasurementGroup</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#config.measurement_images.MeasurementGroup" title="config.measurement_images.MeasurementGroup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementGroup</span></code></a></p>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup.add_images">
+<span class="sig-name descname"><span class="pre">add_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.add_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new images to the group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>images</strong> (<em>list of</em><em>, or </em><em>a single</em><em>, </em><a class="reference internal" href="#config.measurement_images.MeasurementImage" title="config.measurement_images.MeasurementImage"><em>MeasurementImage</em></a>) – </p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If the group has been split, no new images can be added.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup.add_subgroup">
+<span class="sig-name descname"><span class="pre">add_subgroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.add_subgroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a subgroup to a group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The new of the new group</p></li>
+<li><p><strong>group</strong> (<a class="reference internal" href="#config.measurement_images.ImageGroup" title="config.measurement_images.ImageGroup"><em>ImageGroup</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup.is_leaf">
+<span class="sig-name descname"><span class="pre">is_leaf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.is_leaf" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the group is a leaf group</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup.print">
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_images=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a human-readable representation of the group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em>) – Print each line with this prefix. Used internally for indentation.</p></li>
+<li><p><strong>show_images</strong> (<em>bool</em>) – Show the images belonging to a leaf group.</p></li>
+<li><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.ImageGroup.split">
+<span class="sig-name descname"><span class="pre">split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grouping_method</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the group in various subgroups, applying a filter on the contained images. If the group has
+already been split, applies the split to each subgroup.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>grouping_method</strong> (<em>callable</em>) – A callable that receives as a parameter the list of contained images, and returns
+a list of tuples, with the grouping key value, and the list of grouped images belonging to the given key.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#config.measurement_images.ByKeyword" title="config.measurement_images.ByKeyword"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ByKeyword</span></code></a>, <a class="reference internal" href="#config.measurement_images.ByPattern" title="config.measurement_images.ByPattern"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ByPattern</span></code></a></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If some images have not been grouped by the callable.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.MeasurementGroup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MeasurementGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_subgroup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Once an instance of this class is created from an ImageGroup, its configuration is “frozen”. i.e.
+no new images can be added, or no new grouping applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image_group</strong> (<a class="reference internal" href="#config.measurement_images.ImageGroup" title="config.measurement_images.ImageGroup"><em>ImageGroup</em></a>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.MeasurementGroup.is_leaf">
+<span class="sig-name descname"><span class="pre">is_leaf</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup.is_leaf" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the group is a leaf group</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.measurement_images.MeasurementGroup.print">
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_images=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup.print" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a human-readable representation of the group.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefix</strong> (<em>str</em>) – Print each line with this prefix. Used internally for indentation.</p></li>
+<li><p><strong>show_images</strong> (<em>bool</em>) – Show the images belonging to a leaf group.</p></li>
+<li><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.MeasurementImage">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MeasurementImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.MeasurementImage</span></code></p>
+<p>A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
+over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fits_file</strong> (<em>str</em><em> or </em><em>FitsFile object</em>) – The path to a FITS image, or an instance of FitsFile</p></li>
+<li><p><strong>psf_file</strong> (<em>str</em>) – The path to a PSF. It can be either a FITS image, or a PSFEx model.</p></li>
+<li><p><strong>weight_file</strong> (<em>str</em><em> or </em><a class="reference internal" href="#config.measurement_images.FitsFile" title="config.measurement_images.FitsFile"><em>FitsFile</em></a>) – The path to a FITS image with the pixel weights, or an instance of FitsFile</p></li>
+<li><p><strong>gain</strong> (<em>float</em>) – Image gain. If None, <cite>gain_keyword</cite> will be used instead.</p></li>
+<li><p><strong>gain_keyword</strong> (<em>str</em>) – Keyword for the header containing the gain.</p></li>
+<li><p><strong>saturation</strong> (<em>float</em>) – Saturation value. If None, <cite>saturation_keyword</cite> will be used instead.</p></li>
+<li><p><strong>saturation_keyword</strong> (<em>str</em>) – Keyword for the header containing the saturation value.</p></li>
+<li><p><strong>flux_scale</strong> (<em>float</em>) – Flux scaling. Each pixel value will be multiplied by this. If None, <cite>flux_scale_keyword</cite> will be used
+instead.</p></li>
+<li><p><strong>flux_scale_keyword</strong> (<em>str</em>) – Keyword for the header containing the flux scaling.</p></li>
+<li><p><strong>weight_type</strong> (<em>str</em>) – <p>The type of the weight image. It must be one of:</p>
+<blockquote>
+<div><ul>
+<li><dl class="simple">
+<dt>none</dt><dd><p>The image itself is used to compute internally a constant variance (default)</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>background</dt><dd><p>The image itself is used to compute internally a variance map</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>rms</dt><dd><p>The weight image must contain a weight-map in units of absolute standard deviations
+(in ADUs per pixel).</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>variance</dt><dd><p>The weight image must contain a weight-map in units of relative variance.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>weight</dt><dd><p>The weight image must contain a weight-map in units of relative weights. The data are converted
+to variance units.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>weight_absolute</strong> (<em>bool</em>) – If False, the weight map will be scaled according to an absolute variance map built from the image itself.</p></li>
+<li><p><strong>weight_scaling</strong> (<em>float</em>) – Apply an scaling to the weight map.</p></li>
+<li><p><strong>weight_threshold</strong> (<em>float</em>) – Pixels with weights beyond this value are treated just like pixels discarded by the masking process.</p></li>
+<li><p><strong>constant_background</strong> (<em>float</em>) – If set a constant background of that value is assumed for the image instead of using automatic detection</p></li>
+<li><p><strong>image_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the image. Default 0 (primary HDU)</p></li>
+<li><p><strong>psf_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu</p></li>
+<li><p><strong>weight_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.measurement_images.load_fits_image">
+<span class="sig-name descname"><span class="pre">load_fits_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.load_fits_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an image group with the images of a (possibly multi-HDU) single FITS file.</p>
+<p>If image is multi-hdu, psf and weight can either be multi hdu or lists of individual files.</p>
+<p>In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> – The filename of the FITS file containing the image(s)</p></li>
+<li><p><strong>psf</strong> – psf file or list of psf files</p></li>
+<li><p><strong>weight</strong> – FITS file for the weight image or a list of such files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A ImageGroup representing the images</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.measurement_images.load_fits_images">
+<span class="sig-name descname"><span class="pre">load_fits_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psfs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.load_fits_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an image group for the given images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>images</strong> (<em>list of str</em>) – <dl class="simple">
+<dt>A list of relative paths to the images FITS files. Can also be single string in which case,</dt><dd><p>this function acts like load_fits_image</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>psfs</strong> (<em>list of str</em>) – A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.</p></li>
+<li><p><strong>weights</strong> (<em>list of str</em>) – A list of relative paths to the weight files (optional). It must match the length of image_list or be None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A ImageGroup representing the images</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#config.measurement_images.ImageGroup" title="config.measurement_images.ImageGroup">ImageGroup</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – In case of mismatched list of files</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.measurement_images.print_measurement_images">
+<span class="sig-name descname"><span class="pre">print_measurement_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.print_measurement_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print a human-readable representation of the configured measurement images.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="output.html" class="btn btn-neutral float-left" title="output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aperture.html" class="btn btn-neutral float-right" title="aperture" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
