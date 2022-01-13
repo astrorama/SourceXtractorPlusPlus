@@ -38,5 +38,5 @@ jobs:
           publish_branch: doc-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: doc/build/html/
-          destination_dir: ${{env.GITHUB_REF_NAME}}
+          destination_dir: test
 
