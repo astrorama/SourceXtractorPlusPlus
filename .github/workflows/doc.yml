@@ -31,7 +31,6 @@ jobs:
           make html
 
       - name: Set destination dir
-        run: |
         if: github.ref_name == 'master' && failure()
         env:
           DOC_DEST: ${{ github.ref_name }}
