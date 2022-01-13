@@ -30,7 +30,7 @@ jobs:
           cd doc
           make html
 
-      -name: Set destination dir
+      - name: Set destination dir
         run: |
           echo "DOC_DEST = ${{ github.ref_name }}"
         if: github.ref_name != 'master'
