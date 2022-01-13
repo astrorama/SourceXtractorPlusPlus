@@ -1,4 +1,6 @@
 astropy
+sphinx
++docutils==0.17.1
 sphinxcontrib-bibtex
 sphinx_rtd_theme
 
