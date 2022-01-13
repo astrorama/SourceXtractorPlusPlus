@@ -32,8 +32,10 @@ jobs:
 
       - name: Set destination dir
         run: |
-          echo "DOC_DEST = ${{ github.ref_name }}"
-        if: github.ref_name != 'master'
+        if: github.ref_name == 'master' && failure()
+        env:
+          DOC_DEST: ${{ github.ref_name }}
+
 
       - name: Deploy
         if: success()
