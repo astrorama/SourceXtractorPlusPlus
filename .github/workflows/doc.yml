@@ -29,6 +29,12 @@ jobs:
         run: |
           cd doc
           make html
+
+      -name: Set destination dir
+        run: |
+          echo "DOC_DEST = ${{ github.ref_name }}"
+        if: github.ref_name != 'master'
+
       - name: Deploy
         if: success()
         uses: peaceiris/actions-gh-pages@v3
@@ -36,6 +42,5 @@ jobs:
           publish_branch: doc-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: doc/build/html/
-          if: ${{ github.ref_name != 'master' }}
-          destination_dir: ${{ github.ref_name }}
+          destination_dir: ${{ env.DOC_DEST }}
 
