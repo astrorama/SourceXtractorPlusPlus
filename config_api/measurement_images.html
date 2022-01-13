@@ -88,7 +88,7 @@
 <span id="measurement-images"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code><a class="headerlink" href="#module-config.measurement_images" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.ByKeyword">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">ByKeyword</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByKeyword" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ByKeyword</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByKeyword" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).</p>
 <dl class="field-list simple">
@@ -104,7 +104,7 @@
 
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.ByPattern">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">ByPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByPattern" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ByPattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pattern</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ByPattern" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
 expression and using the first matching group as key.</p>
@@ -124,13 +124,13 @@ expression and using the first matching group as key.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.FitsFile">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">FitsFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.FitsFile" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">FitsFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.FitsFile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.FitsFile</span></code></p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.ImageGroup">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">ImageGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ImageGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Models the grouping of images. Measurement can <em>not</em> be made directly on instances of this type.
 The configuration must be “frozen” before creating a MeasurementGroup</p>
@@ -181,7 +181,7 @@ The configuration must be “frozen” before creating a MeasurementGroup</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="config.measurement_images.ImageGroup.print">
-<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">prefix=''</span></em>, <em class="sig-param"><span class="pre">show_images=False</span></em>, <em class="sig-param"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.print" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_images=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.ImageGroup.print" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a human-readable representation of the group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -220,7 +220,7 @@ a list of tuples, with the grouping key value, and the list of grouped images be
 
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.MeasurementGroup">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">MeasurementGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_subgroup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MeasurementGroup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_subgroup</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Once an instance of this class is created from an ImageGroup, its configuration is “frozen”. i.e.
 no new images can be added, or no new grouping applied.</p>
@@ -244,7 +244,7 @@ no new images can be added, or no new grouping applied.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="config.measurement_images.MeasurementGroup.print">
-<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">prefix=''</span></em>, <em class="sig-param"><span class="pre">show_images=False</span></em>, <em class="sig-param"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup.print" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">print</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefix=''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_images=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementGroup.print" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a human-readable representation of the group.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -261,8 +261,8 @@ no new images can be added, or no new grouping applied.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="config.measurement_images.MeasurementImage">
-<em class="property"><span class="pre">class</span> </em><span class="sig-name descname"><span class="pre">MeasurementImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementImage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.</span></code></p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">MeasurementImage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.MeasurementImage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_SourceXtractorPy.MeasurementImage</span></code></p>
 <p>A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
 over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.</p>
 <dl class="field-list simple">
@@ -373,7 +373,7 @@ to variance units.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="config.measurement_images.print_measurement_images">
-<span class="sig-name descname"><span class="pre">print_measurement_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.print_measurement_images" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">print_measurement_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.print_measurement_images" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print a human-readable representation of the configured measurement images.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
