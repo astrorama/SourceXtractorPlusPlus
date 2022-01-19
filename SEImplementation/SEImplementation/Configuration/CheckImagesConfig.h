@@ -33,7 +33,7 @@ class CheckImagesConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  CheckImagesConfig(long manager_id);
+  explicit CheckImagesConfig(long manager_id);
 
   virtual ~CheckImagesConfig() = default;
 
@@ -97,6 +97,10 @@ public:
     return m_psf_filename;
   }
 
+  const std::string& getMLDetectionFilename() const {
+    return m_ml_detection_filename;
+  }
+
 private:
 
   std::string m_model_fitting_filename;
@@ -113,6 +117,7 @@ private:
   std::string m_aperture_filename;
   std::string m_moffat_filename;
   std::string m_psf_filename;
+  std::string m_ml_detection_filename;
 };
 
 }

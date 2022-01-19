@@ -25,7 +25,7 @@ public:
   Mat22(double m1, double m2, double m3, double m4) : m_mat { m1, m2, m3, m4 } {
   }
 
-  Mat22(std::tuple<double, double, double, double> tuple) : m_mat {
+  explicit Mat22(std::tuple<double, double, double, double> tuple) : m_mat {
     std::get<0>(tuple),
     std::get<1>(tuple),
     std::get<2>(tuple),

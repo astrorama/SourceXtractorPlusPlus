@@ -42,15 +42,23 @@ public:
   virtual ~FlexibleModelFitting() = default;
 
   FlexibleModelFitting(unsigned int iterations, unsigned int stop_reason,
-                       SeFloat chi_squared, Flags flags,
+                       SeFloat chi_squared, SeFloat duration, Flags flags,
                        std::unordered_map<int, double> parameter_values,
-                       std::unordered_map<int, double> parameter_sigmas) :
+                       std::unordered_map<int, double> parameter_sigmas,
+                       std::vector<SeFloat> chi_squared_per_meta,
+                       std::vector<int> iterations_per_meta,
+                       int meta_iterations) :
     m_iterations(iterations),
     m_stop_reason(stop_reason),
     m_chi_squared(chi_squared),
+    m_duration(duration),
     m_flags(flags),
     m_parameter_values(parameter_values),
-    m_parameter_sigmas(parameter_sigmas) {}
+    m_parameter_sigmas(parameter_sigmas),
+    m_chi_squared_per_meta(chi_squared_per_meta),
+    m_iterations_per_meta(iterations_per_meta),
+    m_meta_iterations(meta_iterations)
+{}
 
   unsigned int getIterations() const {
     return m_iterations;
@@ -76,12 +84,32 @@ public:
     return m_parameter_sigmas.at(index);
   }
 
+  SeFloat getDuration() const {
+    return m_duration;
+  }
+
+  std::vector<SeFloat> getChiSquaredPerMetaIteration() const {
+    return m_chi_squared_per_meta;
+  }
+
+  std::vector<int> getIterationsPerMetaIteration() const {
+    return m_iterations_per_meta;
+  }
+
+  int getMetaIterations() const {
+    return m_meta_iterations;
+  }
+
 private:
   unsigned int m_iterations, m_stop_reason;
-  SeFloat m_chi_squared;
+  SeFloat m_chi_squared, m_duration;
   Flags m_flags;
   std::unordered_map<int, double> m_parameter_values;
   std::unordered_map<int, double> m_parameter_sigmas;
+
+  std::vector<SeFloat> m_chi_squared_per_meta;
+  std::vector<int> m_iterations_per_meta;
+  int m_meta_iterations;
 };
 
 }

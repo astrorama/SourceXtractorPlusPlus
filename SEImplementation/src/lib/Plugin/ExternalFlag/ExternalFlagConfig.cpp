@@ -53,7 +53,7 @@ std::map<std::string, ExternalFlagConfig::Type> available_types {
 auto ExternalFlagConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"External flag options", {
       {poh::wildcard(FLAG_IMAGE).c_str(), po::value<std::string>(),
-          "The FITS file containing the external flag"},
+          "The FITS file containing the external flag, several images can be provided, replace * by any identifier (ex. use numbers)"},
       {poh::wildcard(FLAG_TYPE).c_str(), po::value<std::string>(),
           "The combination type of the external flag (OR, AND, MIN, MAX, MOST)"}
   }}};
@@ -73,12 +73,6 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
       type = "OR";
     } else {
       type = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
-    }
-    
-    // Check that the file exists
-    auto& filename = args.at(poh::wildcard(FLAG_IMAGE, name)).as<std::string>();
-    if (!fs::exists(filename)) {
-      throw Elements::Exception() << "File " << filename << " does not exist";
     }
     
     // Check that the type is a valid option

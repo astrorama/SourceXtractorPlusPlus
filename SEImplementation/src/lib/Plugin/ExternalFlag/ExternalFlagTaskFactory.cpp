@@ -80,7 +80,7 @@ void ExternalFlagTaskFactory::configure(Euclid::Configuration::ConfigManager& ma
 
 void ExternalFlagTaskFactory::registerPropertyInstances(OutputRegistry& output_registry) {
   output_registry.registerPropertyInstances<ExternalFlag>(m_instance_names);
-  if (m_is_output_requested && m_instance_names.size() <= 0) {
+  if (m_is_output_requested && m_instance_names.empty()) {
     throw Elements::Exception() << "Requested property ExternalFlag is not configured to produce any output";
   }
 }

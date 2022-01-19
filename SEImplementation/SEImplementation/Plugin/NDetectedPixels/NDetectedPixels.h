@@ -45,7 +45,7 @@ namespace SourceXtractor {
 class NDetectedPixels : public Property {
 public:
   virtual ~NDetectedPixels() = default;
-  NDetectedPixels(unsigned long n_detected_pixels) : m_n_detected_pixels(n_detected_pixels) {}
+  explicit NDetectedPixels(unsigned long n_detected_pixels) : m_n_detected_pixels(n_detected_pixels) {}
   long int getNDetectedPixels () const {
     return m_n_detected_pixels;
   }

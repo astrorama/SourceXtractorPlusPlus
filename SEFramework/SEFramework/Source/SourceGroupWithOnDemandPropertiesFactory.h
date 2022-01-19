@@ -36,7 +36,7 @@ class SourceGroupWithOnDemandPropertiesFactory : public SourceGroupFactory {
   
 public:
   
-  SourceGroupWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
+  explicit SourceGroupWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
   virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {

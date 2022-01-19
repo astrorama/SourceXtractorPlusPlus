@@ -22,6 +22,7 @@ elements_depends_on_subdirs(SEUtils)
 elements_depends_on_subdirs(SEFramework)
 elements_depends_on_subdirs(ModelFitting)
 elements_depends_on_subdirs(SEUtils)
+elements_depends_on_subdirs(Pyston)
 
 #===============================================================================
 # Add the find_package macro (a pure CMake command) here to locate the
@@ -34,8 +35,8 @@ find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
-
 find_package(OnnxRuntime)
+find_package(Log4CPP REQUIRED)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -63,35 +64,45 @@ file(GLOB SE_PYTHON_SRC src/lib/PythonConfig/*.cpp)
 list(REMOVE_ITEM SE_PYTHON_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/PythonConfig/PythonModule.cpp)
 
 file(GLOB PLUGIN_SRC src/lib/Plugin/*/*.cpp)
+file(GLOB SEGMENTATION_SRC src/lib/Segmentation/*.cpp)
+file(GLOB COMMON_SRC src/lib/Common/*.cpp)
 
 if(NOT OnnxRuntime_FOUND)
   message("ONNX Runtime not found")
   file(GLOB ONNXPLUGIN_SRC src/lib/Plugin/Onn*/*.cpp)
+  file(GLOB ML_SEGMENTATION_SRC src/lib/Segmentation/ML*.cpp)
+  file(GLOB ONNX_COMMON_SRC src/lib/Common/Onnx*.cpp)
   list(REMOVE_ITEM PLUGIN_SRC ${ONNXPLUGIN_SRC})
+  list(REMOVE_ITEM SEGMENTATION_SRC ${ML_SEGMENTATION_SRC})
+  list(REMOVE_ITEM COMMON_SRC ${ONNX_COMMON_SRC})
 else()
   list(APPEND OPT_INCLUDES ${OnnxRuntime_INCLUDE_DIRS})
   list(APPEND OPT_LIBRARIES OnnxRuntime)
+  add_definitions(-DWITH_ML_SEGMENTATION)
+  add_definitions(-DWITH_ONNX_MODELS)
 endif()
 
 elements_add_library(SEImplementation
-			src/lib/Background/*.cpp
-			src/lib/Background/*/*.cpp
+            src/lib/Background/*.cpp
+            src/lib/Background/*/*.cpp
             src/lib/Partition/*.cpp
-            src/lib/Segmentation/*.cpp
+            ${SEGMENTATION_SRC}
             src/lib/Grouping/*.cpp
             src/lib/Configuration/*.cpp
             src/lib/Output/*.cpp
-           	src/lib/Measurement/*.cpp
-           	src/lib/CheckImages/*.cpp
+            src/lib/Measurement/*.cpp
+            src/lib/CheckImages/*.cpp
             src/lib/Deblending/*.cpp
             src/lib/Image/*.cpp
-			src/lib/Prefetcher/*.cpp
+            ${COMMON_SRC}
+            src/lib/Prefetcher/*.cpp
             ${PLUGIN_SRC}
-			${SE_PYTHON_SRC}
+            ${SE_PYTHON_SRC}
             LINK_LIBRARIES
               ElementsKernel Configuration Table
               SEUtils SEFramework ModelFitting
               BoostPython PythonLibs PythonInterp
+              Pyston
               ${OPT_LIBRARIES}
             INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
             PUBLIC_HEADERS SEImplementation)

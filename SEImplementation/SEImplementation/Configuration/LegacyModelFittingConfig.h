@@ -32,7 +32,7 @@ class LegacyModelFittingConfig : public Euclid::Configuration::Configuration {
 
 public:
 
-  LegacyModelFittingConfig(long manager_id);
+  explicit LegacyModelFittingConfig(long manager_id);
 
   virtual ~LegacyModelFittingConfig() = default;
 

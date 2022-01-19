@@ -32,7 +32,7 @@ namespace SourceXtractor {
 template <typename T = SeFloat, class TPadding = PaddedImage<T, Reflect101Coordinates>>
 class DirectConvolution {
 public:
-  DirectConvolution(std::shared_ptr<const Image<T>> img)
+  explicit DirectConvolution(std::shared_ptr<const Image<T>> img)
     : m_kernel{VectorImage<T>::create(*MirrorImage<T>::create(img))} {
   }
 

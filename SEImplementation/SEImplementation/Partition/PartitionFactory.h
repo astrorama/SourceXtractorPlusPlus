@@ -34,7 +34,7 @@ class PartitionFactory : public Configurable {
   
 public:
   
-  PartitionFactory(std::shared_ptr<SourceFactory> source_factory) :m_source_factory{source_factory} {
+  explicit PartitionFactory(std::shared_ptr<SourceFactory> source_factory) :m_source_factory{source_factory} {
   }
   
   virtual ~PartitionFactory() = default;

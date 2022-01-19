@@ -26,7 +26,7 @@ class VignetArraySourceTask: public SourceTask {
 public:
   virtual ~VignetArraySourceTask() = default;
 
-  VignetArraySourceTask(const std::vector<unsigned> images);
+  explicit VignetArraySourceTask(const std::vector<unsigned> images);
 
   void computeProperties(SourceInterface& source) const override;
 

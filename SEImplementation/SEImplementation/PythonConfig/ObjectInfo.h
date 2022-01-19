@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file ObjectInfo.h
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
@@ -25,33 +25,18 @@
 #include <functional>
 #include <SEUtils/Types.h>
 #include <SEFramework/Source/SourceInterface.h>
+#include <Pyston/Graph/Node.h>
 
 namespace SourceXtractor {
 
-class ObjectInfo {
-  
+class ObjectInfo : public Pyston::AttributeSet {
+
 public:
-  
-  ObjectInfo(const SourceInterface& source);
-  
+  ObjectInfo();
+
+  explicit ObjectInfo(const SourceInterface& source);
+
   virtual ~ObjectInfo() = default;
-  
-  SeFloat getCentroidX() const;
-  
-  SeFloat getCentroidY() const;
-  
-  SeFloat getIsoFlux() const;
-  
-  SeFloat getRadius() const;
-  
-  SeFloat getAngle() const;
-
-  SeFloat getAspectRatio() const;
-
-private:
-  
-  std::reference_wrapper<const SourceInterface> m_source;
-  
 };
 
 } // end of namespace SourceXtractor

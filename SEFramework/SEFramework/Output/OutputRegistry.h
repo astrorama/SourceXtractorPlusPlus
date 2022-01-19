@@ -163,9 +163,9 @@ private:
   class ColumnFromSource {
   public:
     template <typename PropertyType, typename OutType>
-    ColumnFromSource(ColumnConverter<PropertyType, OutType> converter) {
-      m_convert_func = [converter](const SourceInterface& source, std::size_t index){
-        return converter(source.getProperty<PropertyType>(index));
+    explicit ColumnFromSource(ColumnConverter<PropertyType, OutType> converter) {
+      m_convert_func = [converter](const SourceInterface& source, std::size_t i){
+        return converter(source.getProperty<PropertyType>(i));
       };
     }
     Euclid::Table::Row::cell_type operator()(const SourceInterface& source) {

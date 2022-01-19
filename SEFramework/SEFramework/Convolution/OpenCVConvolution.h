@@ -30,7 +30,7 @@ namespace SourceXtractor {
 
 class OpenCVConvolution {
 public:
-  OpenCVConvolution(std::shared_ptr<const VectorImage<SeFloat>> img)
+  explicit OpenCVConvolution(std::shared_ptr<const VectorImage<SeFloat>> img)
     : m_kernel(img->getWidth(), img->getHeight(), CV_32F) {
     cv::Mat aux(img->getWidth(), img->getHeight(), CV_32F);
     std::copy(img->getData().begin(), img->getData().end(), aux.begin<float>());

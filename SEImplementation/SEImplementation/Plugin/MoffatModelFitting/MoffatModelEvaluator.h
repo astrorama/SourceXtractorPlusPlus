@@ -34,7 +34,8 @@ namespace SourceXtractor {
 
 class MoffatModelEvaluator: public Property {
 public:
-  MoffatModelEvaluator(const MoffatModelFitting& model);
+  explicit MoffatModelEvaluator(const MoffatModelFitting& model);
+
   double getValue(double x, double y) const {
     return m_model->getValue(x, y);
   }

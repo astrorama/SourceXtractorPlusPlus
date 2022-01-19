@@ -38,7 +38,7 @@ public:
   
   using DeblendStepCreator = std::function<std::shared_ptr<DeblendStep>(std::shared_ptr<SourceFactory>)>;
   
-  DeblendStepConfig(long manager_id);
+  explicit DeblendStepConfig(long manager_id);
   
   virtual ~DeblendStepConfig() = default;
   

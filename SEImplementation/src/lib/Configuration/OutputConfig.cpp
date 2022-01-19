@@ -57,7 +57,7 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
       {OUTPUT_FILE.c_str(), po::value<std::string>()->default_value(""),
           "The file to store the output catalog"},
       {OUTPUT_FILE_FORMAT.c_str(), po::value<std::string>()->default_value("FITS"),
-          "The format of the output catalog, one of ASCII or FITS (default: FITS)"},
+          "The format of the output catalog, one of ASCII, FITS or FITS_LDAC (default: FITS)"},
       {OUTPUT_PROPERTIES.c_str(), po::value<std::string>()->default_value("PixelCentroid"),
           "The output properties to add in the output catalog"},
       {OUTPUT_FLUSH_SIZE.c_str(), po::value<int>()->default_value(100),

@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         os-type: [fedora]
-        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.stable) }}
         include:
           - os-type: centos
             os-version: 7
@@ -121,13 +121,13 @@ jobs:
 #########################
   artifactory:
     if: ${{ github.event_name != 'pull_request' }}
-    needs: [ build, litmus-test ]
+    needs: [ build, litmus-test, get_fedora_releases ]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         os-type: [fedora]
-        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.active) }}
+        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.stable) }}
         include:
           - os-type: centos
             os-version: 7

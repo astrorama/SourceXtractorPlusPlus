@@ -477,13 +477,13 @@ def load_fits_image(image, psf=None, weight=None, **kwargs):
         weight_hdu_list = FitsFile(weight)
         weight_hdu_idx = weight_hdu_list.hdu_list
         weight_list = [weight_hdu_list] * len(image_hdu_idx)
- 
+
     image_list = []
     for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
             image_hdu_idx, psf_list, psf_hdu_idx, weight_list, weight_hdu_idx):
         image_list.append(MeasurementImage(image_hdu_list, psf_file, weight_file,
                                            image_hdu=hdu, psf_hdu=psf_hdu, weight_hdu=weight_hdu, **kwargs))
- 
+
     return ImageGroup(images=image_list)
 
 def load_fits_images(images, psfs=None, weights=None, **kwargs):

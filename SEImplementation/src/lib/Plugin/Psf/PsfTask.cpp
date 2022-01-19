@@ -42,7 +42,7 @@ static double getCoordY(SourceXtractor::SourceGroupInterface& group, unsigned in
   return top_y + measurement_frame_group.getHeight() / 2.;
 }
 
-std::map<std::string, ValueGetter> component_value_getters{
+std::map<std::string, PsfTask::ValueGetter> PsfTask::component_value_getters{
   {"X_IMAGE",      getCoordX},
   {"Y_IMAGE",      getCoordY},
   {"XWIN_IMAGE",   getCoordX},

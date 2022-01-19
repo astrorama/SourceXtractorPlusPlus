@@ -64,6 +64,15 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
     "Stop reason (engine dependent)"
   );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, float>(
+    "fmf_duration",
+    [](const FlexibleModelFitting& prop) {
+      return prop.getDuration();
+    },
+    "seconds",
+    "Fitting runtime"
+  );
+
   plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int64_t>(
           "fmf_flags",
           [](const FlexibleModelFitting& prop) {
@@ -72,6 +81,33 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
           "",
           "Model fitting flags"
   );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, std::vector<SeFloat>>(
+            "fmf_chi2_per_meta",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getChiSquaredPerMetaIteration();
+            },
+            "",
+            "Reduced chi^2 per meta-iteration"
+    );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, std::vector<int>>(
+            "fmf_iterations_per_meta",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getIterationsPerMetaIteration();
+            },
+            "",
+            "Iterations per meta-iteration"
+    );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, int>(
+            "fmf_meta_iterations",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getMetaIterations();
+            },
+            "",
+            "Meta-iterations"
+    );
 
   plugin_api.getOutputRegistry().enableOutput<FlexibleModelFitting>("FlexibleModelFitting");
 }

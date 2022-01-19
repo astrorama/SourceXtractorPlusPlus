@@ -47,7 +47,7 @@
 namespace SourceXtractor {
 class SourceFlagsSourceTask : public SourceTask {
 public:
-  SourceFlagsSourceTask(const std::map<std::string, std::vector<unsigned int>> &instances_per_group)
+  explicit SourceFlagsSourceTask(const std::map<std::string, std::vector<unsigned int>> &instances_per_group)
     : m_instances_per_group{instances_per_group} {}
 
   virtual ~SourceFlagsSourceTask() = default;

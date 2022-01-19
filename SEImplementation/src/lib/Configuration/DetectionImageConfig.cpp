@@ -79,16 +79,43 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   double detection_image_gain = 0, detection_image_saturate = 0;
   auto img_metadata = m_image_source->getMetadata();
 
-  if (img_metadata.count("GAIN"))
-    detection_image_gain = boost::get<double>(img_metadata.at("GAIN").m_value);
-  if (img_metadata.count("SATURATE"))
-    detection_image_saturate = boost::get<double>(img_metadata.at("SATURATE").m_value);
+  if (img_metadata.count("GAIN")){
+	  // read the keyword GAIN from the metadata
+	  if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
+		  detection_image_gain = *double_gain;
+	  } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
+		  detection_image_gain = (double) *int64_gain;
+	  }
+	  else {
+		  throw Elements::Exception() << "Keyword GAIN must be either float or int!";
+	  }
+  }
+
+  if (img_metadata.count("SATURATE")){
+	  // read the keyword SATURATE from the metadata
+	  if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
+		  detection_image_saturate = *double_saturate;
+	  } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
+		  detection_image_saturate = (double) *int64_saturate;
+	  }
+	  else {
+		  throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
+	  }
+  }
 
   if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
     m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
   }
   else if (img_metadata.count("FLXSCALE")) {
-    m_flux_scale = boost::get<double>(img_metadata.at("FLXSCALE").m_value);
+	  // read the keyword FLXSCALE from the metadata
+	  if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
+		  m_flux_scale = *f_scale;
+	  } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
+		  m_flux_scale = (double) *int64_f_scale;
+	  }
+	  else {
+		  throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
+	  }
   }
 
   if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {

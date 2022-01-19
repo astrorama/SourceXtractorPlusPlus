@@ -81,7 +81,7 @@ struct ImageTraits<WriteableInterfaceTypePtr> {
 
   public:
 
-    WriteableIterator(WriteableInterfaceTypePtr image)
+    explicit WriteableIterator(WriteableInterfaceTypePtr image)
       : m_image{image}, m_accessor{image}, m_x{0}, m_y{0},
         m_width{image->getWidth()},
         m_height{image->getHeight()},
