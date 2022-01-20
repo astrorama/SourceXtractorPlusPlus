@@ -108,7 +108,7 @@
 <section id="modified-least-squares">
 <h2>Modified least squares<a class="headerlink" href="#modified-least-squares" title="Permalink to this headline">¶</a></h2>
 <p>The first term in <a class="reference internal" href="#equation-loss-func">(3)</a> is a modified <a class="reference external" href="http://en.wikipedia.org/wiki/Least_squares#Weighted_least_squares">weighted sum of squares</a> that aims at minimizing the residuals of the fit. <span class="math notranslate nohighlight">\(p_i\)</span>, <span class="math notranslate nohighlight">\(\tilde{m}_i(\boldsymbol{q})\)</span> and <span class="math notranslate nohighlight">\(\sigma_i\)</span> are respectively the pixel value above the background, the value of the resampled model, and the pixel value uncertainty at image pixel <span class="math notranslate nohighlight">\(i\)</span>.
-<span class="math notranslate nohighlight">\(g(u)\)</span> is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (<a class="reference internal" href="#fig-robustgalfit"><span class="std std-numref">Fig. 3</span></a>):</p>
+<span class="math notranslate nohighlight">\(g(u)\)</span> is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (<a class="reference internal" href="#fig-robustgalfit"><span class="std std-numref">Fig. 4</span></a>):</p>
 <div class="math notranslate nohighlight" id="equation-modified-lsq">
 <span class="eqno">(4)<a class="headerlink" href="#equation-modified-lsq" title="Permalink to this equation">¶</a></span>\[g(u) = u_0\,\mathrm{arsinh}\,\frac{u}{u_0}.\]</div>
 <p><span class="math notranslate nohighlight">\(u_0\)</span> sets the level below which <span class="math notranslate nohighlight">\(g(u)\approx u\)</span>.
@@ -120,7 +120,7 @@ In practice, choosing <span class="math notranslate nohighlight">\(u_0 = \kappa 
 <figure class="align-center" id="id8" style="width: 100%">
 <span id="fig-robustgalfit"></span><img alt="_images/robustgalfit.png" src="_images/robustgalfit.png" />
 <figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Effect of the modified least squares loss function on fitting a model to a galaxy with a bright neighbor. <em>Left</em>: the original image; <em>Middle</em>: residuals of the model fitting with a regular least squares (<span class="math notranslate nohighlight">\(\kappa = +\infty\)</span>); <em>Right</em>: modified least squares with <span class="math notranslate nohighlight">\(\kappa = 10\)</span>.</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Effect of the modified least squares loss function on fitting a model to a galaxy with a bright neighbor. <em>Left</em>: the original image; <em>Middle</em>: residuals of the model fitting with a regular least squares (<span class="math notranslate nohighlight">\(\kappa = +\infty\)</span>); <em>Right</em>: modified least squares with <span class="math notranslate nohighlight">\(\kappa = 10\)</span>.</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <p>The vector <span class="math notranslate nohighlight">\(\tilde{\boldsymbol{m}}(\boldsymbol{q})\)</span> is obtained by convolving the high resolution model <span class="math notranslate nohighlight">\(\boldsymbol{m}(\boldsymbol{q})\)</span> with the local PSF model <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> and applying a resampling operator <span class="math notranslate nohighlight">\(\mathbf{R}(\boldsymbol{x})\)</span> to generate the final model raster at position <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> at the nominal image resolution:</p>
@@ -182,11 +182,11 @@ Exponential ranges are better suited to strictly positive parameters with a larg
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">range</span> <span class="o">=</span> <span class="n">Range</span><span class="p">((</span><span class="mf">0.01</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>The relation between model and engine parameters is plotted <a class="reference internal" href="#fig-rangetypes"><span class="std std-numref">Fig. 4</span></a> for both examples.
+<p>The relation between model and engine parameters is plotted <a class="reference internal" href="#fig-rangetypes"><span class="std std-numref">Fig. 5</span></a> for both examples.
 <a class="reference internal" href="#change-of-variable-table"><span class="std std-numref">Table 1</span></a> details the formula applied for currently supported range types.</p>
 <figure class="align-center" id="id9" style="width: 100%">
 <span id="fig-rangetypes"></span><img alt="_images/rangetypes.svg" src="_images/rangetypes.svg" /><figcaption>
-<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Engine vs model parameters. <em>Left:</em> example of a linear range (x position parameter in the range <span class="math notranslate nohighlight">\(]-1, 1[\)</span>). <em>Right</em>: example of an exponential range (aspect ratio parameter in the range <span class="math notranslate nohighlight">\(]0.01,100[\)</span>). Note the logarithmic scale of the abcissa in the second example.</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Engine vs model parameters. <em>Left:</em> example of a linear range (x position parameter in the range <span class="math notranslate nohighlight">\(]-1, 1[\)</span>). <em>Right</em>: example of an exponential range (aspect ratio parameter in the range <span class="math notranslate nohighlight">\(]0.01,100[\)</span>). Note the logarithmic scale of the abcissa in the second example.</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 <span id="change-of-variable-table"></span><table class="docutils align-default" id="id10">
@@ -347,10 +347,10 @@ For example, to penalize <a class="reference external" href="https://en.wikipedi
 <span class="n">add_prior</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="#fig-sersicpriors"><span class="std std-numref">Fig. 5</span></a> shows the resulting prior on <span class="math notranslate nohighlight">\(n\)</span> , and its regularizing effect on the solution.</p>
+<p><a class="reference internal" href="#fig-sersicpriors"><span class="std std-numref">Fig. 6</span></a> shows the resulting prior on <span class="math notranslate nohighlight">\(n\)</span> , and its regularizing effect on the solution.</p>
 <figure class="align-center" id="id11" style="width: 100%">
 <span id="fig-sersicpriors"></span><img alt="_images/sersicpriors.svg" src="_images/sersicpriors.svg" /><figcaption>
-<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Effect of a non-Gaussian prior generated through a change of variable (see text).
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Effect of a non-Gaussian prior generated through a change of variable (see text).
 <em>Left:</em> Effective prior on the Sérsic index.
 <em>Right</em>: Distribution of Sérsic indices obtained for Sérsic fits on noisy data before (blue) and after (green) applying the prior.</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
 </figcaption>
@@ -382,10 +382,10 @@ For example, the following code applied to images taken in the <span class="math
 <span class="o">...</span>
 </pre></div>
 </div>
-<p><a class="reference internal" href="#fig-colorprior"><span class="std std-numref">Fig. 6</span></a> shows the impact of the prior on the color-magnitude diagram.</p>
+<p><a class="reference internal" href="#fig-colorprior"><span class="std std-numref">Fig. 7</span></a> shows the impact of the prior on the color-magnitude diagram.</p>
 <figure class="align-center" id="id12" style="width: 100%">
 <span id="fig-colorprior"></span><img alt="_images/colorprior.svg" src="_images/colorprior.svg" /><figcaption>
-<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Effect of a Gaussian prior (centered on 0.5 mag with standard deviation 0.3 mag) on <span class="math notranslate nohighlight">\(g - r\)</span> source color measurements.</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Effect of a Gaussian prior (centered on 0.5 mag with standard deviation 0.3 mag) on <span class="math notranslate nohighlight">\(g - r\)</span> source color measurements.</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>

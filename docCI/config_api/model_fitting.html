@@ -88,6 +88,38 @@
   <section id="module-config.model_fitting">
 <span id="model-fitting"></span><h1><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code><a class="headerlink" href="#module-config.model_fitting" title="Permalink to this headline">¶</a></h1>
 <dl class="py class">
+<dt class="sig sig-object py" id="config.model_fitting.ComputeGraphModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ComputeGraphModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.ComputeGraphModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#config.model_fitting.CoordinateModelBase" title="config.model_fitting.CoordinateModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">config.model_fitting.CoordinateModelBase</span></code></a></p>
+<p>ComputeGraphModel model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>string</em><em> or </em><em>list of strings</em><em>, </em><em>corresponding to path to Onnx format models</em><em>,</em>) – (specifying more than one allows using the most efficient model based on render size.)</p></li>
+<li><p><strong>x_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – X coordinate (in the detection image)</p></li>
+<li><p><strong>y_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Y coordinate (in the detection image)</p></li>
+<li><p><strong>flux</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Total flux</p></li>
+<li><p><strong>params</strong> (<em>Dictionary of String and ParameterBase</em><em> or </em><em>float</em>) – Dictionary of custom parameters for the ONNX model</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="config.model_fitting.ComputeGraphModel.to_string">
+<span class="sig-name descname"><span class="pre">to_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">show_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.ComputeGraphModel.to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a human readable representation of the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="config.model_fitting.ConstantModel">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ConstantModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.ConstantModel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#config.model_fitting.ModelBase" title="config.model_fitting.ModelBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">config.model_fitting.ModelBase</span></code></a></p>
@@ -105,11 +137,8 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -128,13 +157,16 @@
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="config.model_fitting.ConstantParameter.get_value">
-<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.ConstantParameter.get_value" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.ConstantParameter.get_value" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Receives a source and returns a value for the parameter</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>o</strong> (<em>object being fitted</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>callable</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Value of the constant parameter</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -182,11 +214,8 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -241,11 +270,8 @@ evaluation is needed.</p></li>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -283,13 +309,16 @@ Right now, only isophotal is supported.</p>
 </div>
 <dl class="py method">
 <dt class="sig sig-object py" id="config.model_fitting.FreeParameter.get_init_value">
-<span class="sig-name descname"><span class="pre">get_init_value</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.FreeParameter.get_init_value" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_init_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">o</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.FreeParameter.get_init_value" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Receives a source, and returns an initial value for the parameter.</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>o</strong> (<em>object being fitted</em>) – </p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>callable</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Initial value for the free parameter</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -298,11 +327,8 @@ Right now, only isophotal is supported.</p>
 <dt class="sig sig-object py" id="config.model_fitting.FreeParameter.get_range">
 <span class="sig-name descname"><span class="pre">get_range</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.FreeParameter.get_range" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded">Unbounded</a> or <a class="reference internal" href="#config.model_fitting.Range" title="config.model_fitting.Range">Range</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded">Unbounded</a> or <a class="reference internal" href="#config.model_fitting.Range" title="config.model_fitting.Range">Range</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -346,11 +372,8 @@ Can not be used directly.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -400,14 +423,33 @@ world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }\end{split}\]</div>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="config.model_fitting.Range.get_limits">
-<span class="sig-name descname"><span class="pre">get_limits</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Range.get_limits" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="config.model_fitting.Range.get_max">
+<span class="sig-name descname"><span class="pre">get_max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Range.get_max" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Receives a source, and returns a tuple (min, max)</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>initial value</em>) – </p></li>
+<li><p><strong>o</strong> (<em>object being fitted</em>) – </p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>callable</p>
+<dd class="field-even"><p>The maximum acceptable value for the range</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="config.model_fitting.Range.get_min">
+<span class="sig-name descname"><span class="pre">get_min</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Range.get_min" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>initial value</em>) – </p></li>
+<li><p><strong>o</strong> (<em>object being fitted</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>The minimum acceptable value for the range</p>
 </dd>
 </dl>
 </dd></dl>
@@ -416,11 +458,8 @@ world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }\end{split}\]</div>
 <dt class="sig sig-object py" id="config.model_fitting.Range.get_type">
 <span class="sig-name descname"><span class="pre">get_type</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Range.get_type" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#config.model_fitting.RangeType" title="config.model_fitting.RangeType">RangeType</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#config.model_fitting.RangeType" title="config.model_fitting.RangeType">RangeType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -460,11 +499,8 @@ world = min * e^\frac{ \ln(max / min) }{ (1 + e^{-engine}) }\end{split}\]</div>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>show_params</strong> (<em>bool</em>) – If True, include information about the parameters.</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
@@ -503,14 +539,19 @@ The world value which will be normalized to 1 in engine coordinates</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="config.model_fitting.Unbounded.get_normalization_factor">
-<span class="sig-name descname"><span class="pre">get_normalization_factor</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Unbounded.get_normalization_factor" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">get_normalization_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">o</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.Unbounded.get_normalization_factor" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Receives the initial parameter value and a source, and returns the world value which will be
-normalized to 1 in engine coordinates</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>initial value</em>) – </p></li>
+<li><p><strong>o</strong> (<em>object being fitted</em>) – </p></li>
+</ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>callable</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The world value which will be normalized to 1 in engine coordinates</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float</p>
 </dd>
 </dl>
 </dd></dl>
@@ -612,11 +653,8 @@ images using the WCS headers.</p>
 <li><p><strong>y2</strong> – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Position angle in degrees, normalized to -/+ 90</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Position angle in degrees, normalized to -/+ 90</p>
 </dd>
 </dl>
 </dd></dl>
@@ -634,11 +672,8 @@ images using the WCS headers.</p>
 <li><p><strong>y2</strong> (<em>float</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Separation in degrees</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Separation in degrees</p>
 </dd>
 </dl>
 </dd></dl>
@@ -654,11 +689,8 @@ images using the WCS headers.</p>
 <li><p><strong>y</strong> (<em>float</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>SkyCoord</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>SkyCoord</p>
 </dd>
 </dl>
 </dd></dl>
@@ -693,8 +725,8 @@ in image coordinates than in world coordinates</p></li>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flux</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">get_pos_parameters</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">angle</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get_angle</span><span class="p">(),</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">angle</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_model</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ExponentialModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">angle</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">wc_rad</span><span class="p">,</span> <span class="n">wc_angle</span><span class="p">,</span> <span class="n">wc_ratio</span> <span class="o">=</span> <span class="n">get_world_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">ratio</span><span class="p">)</span>
@@ -745,11 +777,8 @@ from image (X, Y) coordinates.</p>
 :param y:
 :type y: float</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p></p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="#config.model_fitting.WorldCoordinate" title="config.model_fitting.WorldCoordinate">WorldCoordinate</a></p>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#config.model_fitting.WorldCoordinate" title="config.model_fitting.WorldCoordinate">WorldCoordinate</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -793,20 +822,16 @@ from image (X, Y) coordinates.</p>
 <li><p><strong>rad</strong> (<em>float</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p></p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Radius in degrees</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Radius in degrees</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_coordinate_system">
-<span class="sig-name descname"><span class="pre">set_coordinate_system</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_coordinate_system" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the global coordinate system. This function is used internally by SourceXtractor++.</p>
-</dd></dl>
+<dt class="sig sig-object py" id="config.model_fitting.set_deblend_factor">
+<span class="sig-name descname"><span class="pre">set_deblend_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deblend_factor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_deblend_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="config.model_fitting.set_engine">
@@ -829,6 +854,21 @@ from image (X, Y) coordinates.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="config.model_fitting.set_meta_iteration_stop">
+<span class="sig-name descname"><span class="pre">set_meta_iteration_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meta_iteration_stop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_meta_iteration_stop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.model_fitting.set_meta_iterations">
+<span class="sig-name descname"><span class="pre">set_meta_iterations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meta_iterations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_meta_iterations" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>meta_iterations</strong> (<em>int</em>) – number of meta iterations on the whole group (when using iterative model fitting)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="config.model_fitting.set_modified_chi_squared_scale">
 <span class="sig-name descname"><span class="pre">set_modified_chi_squared_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_modified_chi_squared_scale" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -837,6 +877,16 @@ from image (X, Y) coordinates.</p>
 deviations.
 Refer to the SourceXtractor++ documentation for a better explanation of how residuals are computed and how
 this value affects the model fitting.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="config.model_fitting.use_iterative_fitting">
+<span class="sig-name descname"><span class="pre">use_iterative_fitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_iterative_fitting</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.use_iterative_fitting" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>use_iterative_fitting</strong> (<em>boolean</em>) – use iterative model fitting or legacy</p>
 </dd>
 </dl>
 </dd></dl>

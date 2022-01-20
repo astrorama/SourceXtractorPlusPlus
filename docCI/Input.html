@@ -101,7 +101,7 @@ If the catalog output format is set to ASCII, all catalogs from the individual e
 <p>In <strong class="program">SourceXtractor++</strong>, as in all similar programs, <abbr title="Flexible Image Transport System">FITS</abbr> axis #1 is traditionally referred to as the <em>x</em> axis, and <abbr title="Flexible Image Transport System">FITS</abbr> axis #2 as the <em>y</em> axis.</p>
 <section id="detection-and-measurement-images">
 <h2>Detection and measurement images<a class="headerlink" href="#detection-and-measurement-images" title="Permalink to this headline">¶</a></h2>
-<p><strong class="program">SourceXtractor++</strong> distinguishes between two kinds of science images, detection and measurement images:</p>
+<p><strong class="program">SourceXtractor++</strong> distinguishes between two kinds of science images, detection and measurement images ():</p>
 <ul class="simple">
 <li><p><strong>The detection image</strong> is where the sources are extracted.
 Rough estimates of position and shapes are obtained from the detection image; they define the photometric apertures and initial guesses for model-fitting parameters that will be applied to the measurement images.
@@ -114,6 +114,11 @@ However if the pixel grid is different, both detection and measurement image hea
 A scaling parameter for pixel values can be applied to any measurement image independently, provided either as a <code class="docutils literal notranslate"><span class="pre">flux_scale</span></code> optional argument to <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.load_fits_image" title="config.measurement_images.load_fits_image"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code></a> in the Python measurement configuration file, or as the value of a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword (<span class="param">FLXSCALE</span> by default).
 Note that sources need not be detectable at all on measurement images for the software to work.</p></li>
 </ul>
+<figure class="align-center" id="id3" style="width: 100%">
+<span id="fig-detandmeas"></span><img alt="_images/detandmeas.svg" src="_images/detandmeas.svg" /><figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Detection and measurement images (see text). The concept of measurement groups is detailed in the <a class="reference internal" href="Measurements.html#groups"><span class="std std-ref">grouping and splitting section</span></a>.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 </section>
 <section id="weight-maps">
 <h2>Weight-maps<a class="headerlink" href="#weight-maps" title="Permalink to this headline">¶</a></h2>

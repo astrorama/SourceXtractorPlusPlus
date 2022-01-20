@@ -21,7 +21,7 @@ In |SourceXtractor++|, as in all similar programs, |FITS| axis #1 is traditional
 Detection and measurement images
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-|SourceXtractor++| distinguishes between two kinds of science images, detection and measurement images:
+|SourceXtractor++| distinguishes between two kinds of science images, detection and measurement images ():
 
 - **The detection image** is where the sources are extracted.
   Rough estimates of position and shapes are obtained from the detection image; they define the photometric apertures and initial guesses for model-fitting parameters that will be applied to the measurement images.
@@ -34,6 +34,14 @@ Detection and measurement images
   |SourceXtractor++| uses that information to precisely match celestial positions and areas on all images.
   A scaling parameter for pixel values can be applied to any measurement image independently, provided either as a ``flux_scale`` optional argument to :func:`~config.measurement_images.load_fits_image()` in the Python measurement configuration file, or as the value of a |FITS| header keyword (:param:`FLXSCALE` by default).
   Note that sources need not be detectable at all on measurement images for the software to work.
+
+.. _fig_detandmeas:
+
+.. figure:: figures/detandmeas.*
+   :figwidth: 100%
+   :align: center
+
+   Detection and measurement images (see text). The concept of measurement groups is detailed in the :ref:`grouping and splitting section <groups>`.
 
 Weight-maps
 ~~~~~~~~~~~
