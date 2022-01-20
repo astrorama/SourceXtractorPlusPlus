@@ -114,10 +114,11 @@ It also requires the following packages for installation:
 
 The following packages are optional:
 
+* |GSL|_ (model fitting engine)
+* |LevMar|_ (model fitting engine)
 * `Readline <https://tiswww.case.edu/php/chet/readline/rltop.html>`_
 * `Ncurses <https://invisible-island.net/ncurses/>`_ (progress bar display)
-* |LevMar|_ (model fitting engine)
-* |GSL|_ (model fitting engine)
+* `ONNXRunTime <https://onnxruntime.ai/>`_ (AI-based features)
 
 All or most of these packages are available in the main Linux distributions.
 You will also need the ``-devel`` version of the packages if you compile |SourceXtractor++| from the source.

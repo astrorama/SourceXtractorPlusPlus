@@ -23,14 +23,14 @@ The configuration file
 
 |SourceXtractor++| searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository. Each time it is run, |SourceXtractor++|_ looks for a configuration file. The name of a dedicated configuration files is given with: ::
 
-    $sourcextractor++ --config-file sepp.config
+    $ sourcextractor++ --config-file sepp.config
 
 Creating a configuration file
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |SE++|_ dumps all parameters with their default values into a configuration files with: ::
 
-    $sourcextractor++ --dump-default-config > my_sepp.config
+    $ sourcextractor++ --dump-default-config > my_sepp.config
 
 
 Format of the configuration file
