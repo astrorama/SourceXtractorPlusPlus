@@ -26,7 +26,7 @@ CPUs
 ----
 
 |SourceXtractor++|'s measurement pipeline is multithreaded and can take advantage of multiple CPU cores.
-As of version 0.13, |SourceXtractor++| scales reasonably well up to 8 cores.
+As of version 0.16, |SourceXtractor++| scales reasonably well up to 30 cores.
 
 Obtaining |SourceXtractor++|
 ============================
@@ -121,7 +121,11 @@ The following packages are optional:
 * `ONNXRunTime <https://onnxruntime.ai/>`_ (AI-based features)
 
 All or most of these packages are available in the main Linux distributions.
-You will also need the ``-devel`` version of the packages if you compile |SourceXtractor++| from the source.
+You will also need the development version (``-devel`` or ``-dev``) of the packages if you compile |SourceXtractor++| from the source, plus the following packages:
+
+* `GMock <https://github.com/google/googletest>`__
+* `GTest <https://github.com/google/googletest>`_
+* `Pytest <https://pytest.org>`_
 
 If you have installed Elements and Alexandria from your distribution repository (right now, only in Fedora), you can skip the following section.
 
@@ -130,11 +134,11 @@ If you have installed Elements and Alexandria from your distribution repository 
   # dnf install elements-devel elements-alexandria-devel
 
 
-Installation of Elements and Alexandria
-_______________________________________
+Installing Elements and Alexandria
+__________________________________
 
 Elements is a C++ and CMake framework. It is capable of managing the dependencies
-of the projects that are based on it, as long as it knows where to find them.
+of projects based on CMake as long as it knows where to find them.
 By convention, this location usually is ``~/Work/Projects``, but you can choose
 any other.
 
