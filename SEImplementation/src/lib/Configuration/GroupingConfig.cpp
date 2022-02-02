@@ -50,7 +50,7 @@ GroupingConfig::GroupingConfig(long manager_id)
 
 std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getProgramOptions() {
   return { {"Grouping", {
-      {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_NONE),
+      {GROUPING_ALGORITHM.c_str(), po::value<std::string>()->default_value(GROUPING_ALGORITHM_SPLIT),
           "Grouping algorithm to be used [none|overlap|split|moffat]."},
       {GROUPING_HARD_LIMIT.c_str(), po::value<unsigned int>()->default_value(0),
           "Maximum number of sources in a single group (0 = unlimited)"},

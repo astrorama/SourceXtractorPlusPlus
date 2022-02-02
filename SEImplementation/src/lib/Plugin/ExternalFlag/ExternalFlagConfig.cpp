@@ -75,12 +75,6 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
       type = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
     }
     
-    // Check that the file exists
-    auto& filename = args.at(poh::wildcard(FLAG_IMAGE, name)).as<std::string>();
-    if (!fs::exists(filename)) {
-      throw Elements::Exception() << "File " << filename << " does not exist";
-    }
-    
     // Check that the type is a valid option
     if (available_types.count(type) == 0) {
       throw Elements::Exception() << "Invalid option " << poh::wildcard(FLAG_TYPE, name)

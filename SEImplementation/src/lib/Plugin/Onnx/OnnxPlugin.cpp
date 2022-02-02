@@ -23,16 +23,16 @@
 namespace SourceXtractor {
 
 static StaticPlugin<OnnxPlugin> onnx_plugin;
-Elements::Logging onnx_logger = Elements::Logging::getLogger("Onnx");
+Elements::Logging onnx_logger = Elements::Logging::getLogger("MLMeasurement");
 
 std::string OnnxPlugin::getIdString() const {
-  return "OnnxPlugin";
+  return "MLMeasurementPlugin";
 }
 
 void OnnxPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<OnnxTaskFactory, OnnxProperty>();
   // Note that we do not now the output yet, so we do not register any columns
-  plugin_api.getOutputRegistry().enableOutput<OnnxProperty>("ONNX", true);
+  plugin_api.getOutputRegistry().enableOutput<OnnxProperty>("MLMeasurement", true);
 }
 
 } // end of namespace SourceXtractor
