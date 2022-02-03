@@ -22,13 +22,7 @@ elements_depends_on_subdirs(ElementsKernel)
 #          find_package(CppUnit)
 #===============================================================================
 
-find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
-find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(GMock)
-
-if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
-    message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
-endif ()
 
 #===============================================================================
 # Declare the library dependencies here
@@ -40,8 +34,7 @@ endif ()
 #===============================================================================
 elements_add_library(SEUtils
                      LINKER_LANGUAGE CXX
-                     LINK_LIBRARIES ElementsKernel BoostPython PythonLibs
-                     INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS}
+                     LINK_LIBRARIES ElementsKernel
                      PUBLIC_HEADERS SEUtils)
 
 #===============================================================================
