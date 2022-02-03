@@ -108,7 +108,7 @@ Extra-memory is taken advantage of through caching of pixel data.</p>
 <section id="cpus">
 <h3>CPUs<a class="headerlink" href="#cpus" title="Permalink to this headline">¶</a></h3>
 <p><strong class="program">SourceXtractor++</strong>’s measurement pipeline is multithreaded and can take advantage of multiple CPU cores.
-As of version 0.13, <strong class="program">SourceXtractor++</strong> scales reasonably well up to 8 cores.</p>
+As of version 0.16, <strong class="program">SourceXtractor++</strong> scales reasonably well up to 30 cores.</p>
 </section>
 </section>
 <section id="obtaining-sourcextractor">
@@ -168,13 +168,18 @@ They are also available in Fedora and EPEL as <code class="docutils literal notr
 <li><p><a class="reference external" href="https://onnxruntime.ai/">ONNXRunTime</a> (AI-based features)</p></li>
 </ul>
 <p>All or most of these packages are available in the main Linux distributions.
-You will also need the <code class="docutils literal notranslate"><span class="pre">-devel</span></code> version of the packages if you compile <strong class="program">SourceXtractor++</strong> from the source.</p>
+You will also need the development version (<code class="docutils literal notranslate"><span class="pre">-devel</span></code> or <code class="docutils literal notranslate"><span class="pre">-dev</span></code>) of the packages if you compile <strong class="program">SourceXtractor++</strong> from the source, plus the following packages:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/google/googletest">GMock</a></p></li>
+<li><p><a class="reference external" href="https://github.com/google/googletest">GTest</a></p></li>
+<li><p><a class="reference external" href="https://pytest.org">Pytest</a></p></li>
+</ul>
 <p>If you have installed Elements and Alexandria from your distribution repository (right now, only in Fedora), you can skip the following section.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> dnf install elements-devel elements-alexandria-devel
 </pre></div>
 </div>
 <p>Elements is a C++ and CMake framework. It is capable of managing the dependencies
-of the projects that are based on it, as long as it knows where to find them.
+of projects based on CMake as long as it knows where to find them.
 By convention, this location usually is <code class="docutils literal notranslate"><span class="pre">~/Work/Projects</span></code>, but you can choose
 any other.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
