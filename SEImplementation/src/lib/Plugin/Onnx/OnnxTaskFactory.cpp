@@ -52,18 +52,6 @@ static std::string generatePropertyName(const OnnxModel& model) {
   return prop_name.str();
 }
 
-/**
- * Pretty-print a vector with shape information
- */
-static std::string formatShape(const std::vector<int64_t>& shape) {
-  std::ostringstream stream;
-  for (auto i = shape.begin(); i != shape.end() - 1; ++i) {
-    stream << *i << " x ";
-  }
-  stream << shape.back();
-  return stream.str();
-}
-
 OnnxTaskFactory::OnnxTaskFactory() {}
 
 std::shared_ptr<Task> OnnxTaskFactory::createTask(const PropertyId& property_id) const {

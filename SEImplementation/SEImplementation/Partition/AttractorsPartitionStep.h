@@ -50,7 +50,7 @@ public:
   explicit AttractorsPartitionStep(std::shared_ptr<SourceFactory> source_factory) :
         m_source_factory(source_factory) {}
 
-  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
+  std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
 
 private:
   std::shared_ptr<SourceFactory> m_source_factory;

@@ -67,7 +67,7 @@ public:
   explicit Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
 
   /// Handles a Source (applies PartitionSteps) and notifies the Observers for every Source in the final result
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
+  void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
 
 private:
   std::vector<std::shared_ptr<PartitionStep>> m_steps;

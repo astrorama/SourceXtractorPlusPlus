@@ -39,7 +39,7 @@ public:
   explicit ImageProcessingList(const std::vector<std::shared_ptr<ImageProcessing<T>>>& processing_list)
       : m_processing_list(processing_list) {}
 
-  virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image) const override {
+  std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image) const override {
     auto processed_image = image;
     for (auto& processing_step : m_processing_list) {
       processed_image = processing_step->processImage(processed_image);
@@ -47,7 +47,7 @@ public:
 
     return processed_image;
   }
-  virtual std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> variance, T threshold) const override {
+  std::shared_ptr<Image<T>> processImage(std::shared_ptr<Image<T>> image, std::shared_ptr<Image<T>> variance, T threshold) const override {
     auto processed_image = image;
     for (auto& processing_step : m_processing_list) {
       processed_image = processing_step->processImage(processed_image, variance, threshold);

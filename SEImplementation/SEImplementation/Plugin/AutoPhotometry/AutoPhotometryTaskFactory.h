@@ -44,7 +44,7 @@ public:
   void registerPropertyInstances(OutputRegistry &) override;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
   SeFloat m_magnitude_zero_point;

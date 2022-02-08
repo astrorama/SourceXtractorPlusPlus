@@ -40,7 +40,7 @@ public:
 
   SimpleSourceFactory() {}
 
-  virtual std::shared_ptr<SourceInterface> createSource() const override {
+  std::shared_ptr<SourceInterface> createSource() const override {
     return std::make_shared<SimpleSource>();
   }
 };

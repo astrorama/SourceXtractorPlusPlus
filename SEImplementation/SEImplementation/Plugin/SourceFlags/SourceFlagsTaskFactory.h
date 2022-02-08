@@ -52,7 +52,7 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
 
 private:
   std::map<std::string, std::vector<unsigned int>> m_instances_per_group;

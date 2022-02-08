@@ -34,9 +34,9 @@ class PsfPlugin: public Plugin {
 public:
   virtual ~PsfPlugin() = default;
 
-  virtual void registerPlugin(PluginAPI& plugin_api) override;
+  void registerPlugin(PluginAPI& plugin_api) override;
 
-  virtual std::string getIdString() const override;
+  std::string getIdString() const override;
 };
 
 } // end SourceXtractor

@@ -31,7 +31,7 @@ namespace SourceXtractor {
 
 class NoGroupingCriteria : public GroupingCriteria {
 public:
-  virtual bool shouldGroup(const SourceInterface&, const SourceInterface&) const override {
+  bool shouldGroup(const SourceInterface&, const SourceInterface&) const override {
     return false;
   }
 };
