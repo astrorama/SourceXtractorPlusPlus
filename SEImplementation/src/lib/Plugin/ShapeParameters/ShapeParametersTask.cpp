@@ -35,6 +35,7 @@ namespace SourceXtractor {
 
 void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();
+  const auto& pixel_variances = source.getProperty<DetectionFramePixelValues>().getVariances();
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
   const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
   auto min_value = source.getProperty<PeakValue>().getMinValue();
@@ -44,31 +45,57 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   SeFloat x_2 = 0.0;
   SeFloat y_2 = 0.0;
   SeFloat x_y = 0.0;
+  SeFloat x_2_error = 0.0;
+  SeFloat y_2_error = 0.0;
+  SeFloat x_y_error = 0.0;
 
   SeFloat total_intensity = 0;
+  SeFloat total_variance = 0;
 
   DetectionImage::PixelType half_peak_threshold = (peak_value + min_value) / 2.0;
   int nb_of_pixels_above_half = 0;
   int nb_of_pixels = coordinates.size();
 
   auto i = pixel_values.begin();
+  auto j = pixel_variances.begin();
   for (auto pixel_coord : coordinates) {
-    SeFloat value = *i++;
+	SeFloat value = *i++;
+	SeFloat variance = *j++;
+	SeFloat x_pos = pixel_coord.m_x - centroid_x;
+	SeFloat y_pos = pixel_coord.m_y - centroid_y;
 
     if (value > half_peak_threshold) {
       nb_of_pixels_above_half++;
     }
 
-    x_2 += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_x - centroid_x) * value;
-    y_2 += (pixel_coord.m_y - centroid_y) * (pixel_coord.m_y - centroid_y) * value;
-    x_y += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_y - centroid_y) * value;
+    //x_2 += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_x - centroid_x) * value;
+    //y_2 += (pixel_coord.m_y - centroid_y) * (pixel_coord.m_y - centroid_y) * value;
+    //x_y += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_y - centroid_y) * value;
+    x_2 += x_pos * x_pos * value;
+    y_2 += y_pos * y_pos * value;
+    x_y += x_pos * y_pos * value;
+
+    //emx2 += err*x*x;
+    //emy2 += err*y*y;
+    //emxy += err*x*y;
+    x_2_error += x_pos * x_pos * variance;
+    y_2_error += y_pos * y_pos * variance;
+    x_y_error += x_pos * y_pos * variance;
 
     total_intensity += value;
+    total_variance  += variance;
   }
 
   x_2 /= total_intensity;
   y_2 /= total_intensity;
   x_y /= total_intensity;
+
+  SeFloat total_intensity_2 = total_intensity * total_intensity;
+  x_2_error /= total_intensity_2;
+  y_2_error /= total_intensity_2;
+  x_y_error /= total_intensity_2;
+  //esum *= 0.08333/flux2;
+  total_variance *= 0.08333/total_intensity_2;
 
   SeFloat theta;
   if (fabs(x_2 - y_2) > 0.0) {
@@ -84,11 +111,16 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
 
   // From original SExtractor: Handle fully correlated x/y (which cause a singularity...)
   SeFloat tmp = x_2 * y_2 - x_y * x_y;
-
   if (tmp < 0.00694) {
     x_2 += 0.0833333;
     y_2 += 0.0833333;
     tmp = x_2 * y_2 - x_y * x_y;
+
+    if ((x_2_error*y_2_error-x_y_error*x_y_error)  <  total_variance*total_variance) {
+    	x_2_error += total_variance;
+    	y_2_error += total_variance;
+    }
+
   }
 
   SeFloat cxx = y_2 / tmp;
@@ -108,8 +140,42 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
     }
   }
 
+  /*------------------------- Error ellipse parameters ------------------------*/
+  /*    if (FLAG(obj2.poserr_a))
+        {
+         double	pmx2,pmy2,temp,theta;
+
+        if (fabs(temp=obj->poserr_mx2-obj->poserr_my2) > 0.0)
+          theta = atan2(2.0 * obj->poserr_mxy,temp) / 2.0;
+        else
+          theta = PI/4.0;
+
+        temp = sqrt(0.25*temp*temp+obj->poserr_mxy*obj->poserr_mxy);
+        pmy2 = pmx2 = 0.5*(obj->poserr_mx2+obj->poserr_my2);
+        pmx2+=temp;
+        pmy2-=temp;
+
+        obj2->poserr_a = (float)sqrt(pmx2);
+        obj2->poserr_b = (float)sqrt(pmy2);
+        obj2->poserr_theta = theta*180.0/PI;
+        }
+	*/
+  SeFloat theta_error, a_error, b_error;
+  SeFloat temp_error = fabs(x_2_error - y_2_error);
+  if (temp_error>0.0)
+	  theta_error = atan2(2.0*x_y_error, temp_error) /  2.0;
+  else
+	  theta_error = M_PI /4.0;
+
+  temp_error = sqrt(0.25*temp_error*temp_error+x_y_error*x_y_error);
+  a_error = 0.5*(x_2_error+y_2_error);
+  b_error = a_error;
+  a_error = sqrt(a_error+temp_error);
+  b_error = sqrt(b_error-temp_error);
+
   //std::cout << "abcor " << abcor << std::endl;
-  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels);
+  //source.setProperty<ShapeParameters>(a, b, theta, 0.0, 0.0, 0.0, abcor, cxx, cyy, cxy, 0.0, 0.0, 0.0, nb_of_pixels);
+  source.setProperty<ShapeParameters>(a, b, theta, a_error, b_error, theta_error, abcor, cxx, cyy, cxy, x_2_error, y_2_error, x_y_error, nb_of_pixels);
 }
 
 

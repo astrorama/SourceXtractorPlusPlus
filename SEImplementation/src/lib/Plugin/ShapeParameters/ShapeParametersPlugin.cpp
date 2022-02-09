@@ -63,6 +63,33 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_a_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseAError();
+          },
+          "pixel",
+          "Error for profile RMS along major axis"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_b_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseBError();
+          },
+          "pixel",
+          "Error for profile RMS along minor axis"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_theta_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseThetaError() * 180.0 / M_PI;
+          },
+          "deg",
+          "Position angle error (CCW/x)"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "ellipse_cxx",
           [](const ShapeParameters& prop){
             return prop.getEllipseCxx();
@@ -87,6 +114,33 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           },
           "pixel^{-2}",
           "Cxy object ellipse parameter"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_cxx_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseCxxError();
+          },
+          "pixel^{-2}",
+          "Cxx object ellipse parameter error"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_cyy_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseCyyError();
+          },
+          "pixel^{-2}",
+          "Cyy object ellipse parameter error"
+  );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
+          "ellipse_cxy_error",
+          [](const ShapeParameters& prop){
+            return prop.getEllipseCxyError();
+          },
+          "pixel^{-2}",
+          "Cxy object ellipse parametererror"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
