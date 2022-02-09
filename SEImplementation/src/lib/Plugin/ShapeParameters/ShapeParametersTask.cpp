@@ -68,9 +68,6 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
       nb_of_pixels_above_half++;
     }
 
-    //x_2 += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_x - centroid_x) * value;
-    //y_2 += (pixel_coord.m_y - centroid_y) * (pixel_coord.m_y - centroid_y) * value;
-    //x_y += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_y - centroid_y) * value;
     x_2 += x_pos * x_pos * value;
     y_2 += y_pos * y_pos * value;
     x_y += x_pos * y_pos * value;
@@ -160,21 +157,23 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
         obj2->poserr_theta = theta*180.0/PI;
         }
 	*/
+
+  // error for theta_image
   SeFloat theta_error, a_error, b_error;
   SeFloat temp_error = fabs(x_2_error - y_2_error);
   if (temp_error>0.0)
-	  theta_error = atan2(2.0*x_y_error, temp_error) /  2.0;
+	  //theta_error = atan2(2.0*x_y_error, temp_error) /  2.0;
+	  theta_error = atan2(2.0*x_y_error, temp_error);
   else
 	  theta_error = M_PI /4.0;
 
+  // error for a/b_image
   temp_error = sqrt(0.25*temp_error*temp_error+x_y_error*x_y_error);
   a_error = 0.5*(x_2_error+y_2_error);
   b_error = a_error;
   a_error = sqrt(a_error+temp_error);
   b_error = sqrt(b_error-temp_error);
 
-  //std::cout << "abcor " << abcor << std::endl;
-  //source.setProperty<ShapeParameters>(a, b, theta, 0.0, 0.0, 0.0, abcor, cxx, cyy, cxy, 0.0, 0.0, 0.0, nb_of_pixels);
   source.setProperty<ShapeParameters>(a, b, theta, a_error, b_error, theta_error, abcor, cxx, cyy, cxy, x_2_error, y_2_error, x_y_error, nb_of_pixels);
 }
 
