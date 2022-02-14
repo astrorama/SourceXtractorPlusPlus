@@ -32,8 +32,8 @@ namespace SourceXtractor {
 class ShapeParameters : public Property {
 public:
 
-	  ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat area)
-	    : m_a(a), m_b(b), m_theta(theta), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_area(area) {}
+	  ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat area, SeFloat intensity, bool singu)
+	    : m_a(a), m_b(b), m_theta(theta), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_area(area), m_intensity(intensity), m_singu_flag(singu) {}
 	  //ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat a_error, SeFloat b_error, SeFloat theta_error, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat cxx_error, SeFloat cyy_error, SeFloat cxy_error, SeFloat area)
 	  //  : m_a(a), m_b(b), m_theta(theta), m_a_error(a_error), m_b_error(b_error), m_theta_error(theta_error), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_cxx_error(cxx_error), m_cyy_error(cyy_error), m_cxy_error(cxy_error), m_area(area) {}
 
@@ -140,6 +140,14 @@ public:
     return 1 - m_b / m_a;
   }
 
+  SeFloat getIntensity() const {
+    return m_intensity;
+  }
+
+  bool getSinguFlag() const {
+    return m_singu_flag;
+  }
+
 private:
   SeFloat m_a, m_b, m_theta; // ellipse semi-major axis, semi-minor axis, and angle
   //SeFloat m_a_error, m_b_error, m_theta_error; // errors for ellipse semi-major axis, semi-minor axis, and angle
@@ -147,7 +155,8 @@ private:
   SeFloat m_cxx, m_cyy, m_cxy;
   //SeFloat m_cxx_error, m_cyy_error, m_cxy_error;
   SeFloat m_area;
-
+  SeFloat m_intensity;
+  bool m_singu_flag;
 };
 
 }

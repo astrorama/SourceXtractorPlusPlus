@@ -86,10 +86,13 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
 
   // From original SExtractor: Handle fully correlated x/y (which cause a singularity...)
   SeFloat tmp = x_2 * y_2 - x_y * x_y;
+  bool singu=false;
   if (tmp < 0.00694) {
     x_2 += 0.0833333;
     y_2 += 0.0833333;
     tmp = x_2 * y_2 - x_y * x_y;
+    singu=true;
+    //std::cout << " singuflag shape" << std::endl;
 
   }
 
@@ -108,7 +111,7 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
     }
   }
 
-  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels);
+  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels, total_intensity, singu);
 }
 
 

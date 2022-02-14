@@ -26,6 +26,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 #include "SEImplementation/Plugin/ErrorEllipse/ErrorEllipse.h"
+#include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 
@@ -34,19 +35,25 @@
 namespace SourceXtractor {
 
 void ErrorEllipseTask::computeProperties(SourceInterface& source) const {
+  const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();
   const auto& pixel_variances = source.getProperty<DetectionFramePixelValues>().getVariances();
   const auto& centroid_x = source.getProperty<PixelCentroid>().getCentroidX();
   const auto& centroid_y = source.getProperty<PixelCentroid>().getCentroidY();
-  auto& coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  const auto& coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+  auto total_intensity = source.getProperty<ShapeParameters>().getIntensity();
+  auto singu = source.getProperty<ShapeParameters>().getSinguFlag();
 
   SeFloat x_2_error = 0.0;
   SeFloat y_2_error = 0.0;
   SeFloat x_y_error = 0.0;
 
+  //SeFloat total_intensity = 0;
   SeFloat total_variance = 0;
 
   auto j = pixel_variances.begin();
+  //auto i = pixel_values.begin();
   for (auto pixel_coord : coordinates) {
+    //SeFloat value = *i++;
 	SeFloat variance = *j++;
 	SeFloat x_pos = pixel_coord.m_x - centroid_x;
 	SeFloat y_pos = pixel_coord.m_y - centroid_y;
@@ -55,7 +62,22 @@ void ErrorEllipseTask::computeProperties(SourceInterface& source) const {
     y_2_error += y_pos * y_pos * variance;
     x_y_error += x_pos * y_pos * variance;
 
+    //total_intensity += value;
     total_variance  += variance;
+  }
+
+
+  SeFloat total_intensity_2 = total_intensity * total_intensity;
+  x_2_error /= total_intensity_2;
+  y_2_error /= total_intensity_2;
+  x_y_error /= total_intensity_2;
+  //esum *= 0.08333/flux2;
+  total_variance *= 0.08333/total_intensity_2;
+
+  if (singu && (x_2_error*y_2_error-x_y_error*x_y_error)<total_variance*total_variance) {
+  	x_2_error += total_variance;
+  	y_2_error += total_variance;
+  	//std::cout << " singuflag " << std::endl;
   }
 
   /*------------------------- Error ellipse parameters ------------------------*/

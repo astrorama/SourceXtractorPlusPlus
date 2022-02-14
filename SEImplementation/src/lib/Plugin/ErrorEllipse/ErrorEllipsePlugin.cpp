@@ -63,30 +63,30 @@ void ErrorEllipsePlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "error_ellipse_cxx",
+          "error_centroid_x2",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCxxError();
           },
-          "pixel^{-2}",
-          "Isophotal image centroid Cxx error ellipse parameter"
+          "pixel^2",
+          "Estimated variance of isophotal image centroid x coordinate"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "error_ellipse_cyy",
+          "error_centroid_y2",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCyyError();
           },
-          "pixel^{-2}",
-          "Isophotal image centroid Cyy error ellipse parameter"
+          "pixel^2",
+          "Estimated variance of isophotal image centroid y coordinate"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "error_ellipse_cxy",
+          "error_centroid_xy",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCxyError();
           },
-          "pixel^{-2}",
-          "Isophotal image centroid Cxy error ellipse parameter"
+          "pixel^2",
+          "Estimated covariance of isophotal image centroid x and y coordinates"
   );
 
   plugin_api.getOutputRegistry().enableOutput<ErrorEllipse>("ErrorEllipse");
