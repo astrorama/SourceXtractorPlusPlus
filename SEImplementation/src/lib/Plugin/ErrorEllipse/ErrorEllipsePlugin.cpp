@@ -35,147 +35,59 @@ static StaticPlugin<ErrorEllipsePlugin> error_ellipse_plugin;
 void ErrorEllipsePlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<ErrorEllipseTaskFactory, ErrorEllipse>();
 
-  /*
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_a_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseA();
-          },
-          "pixel",
-          "Profile RMS along major axis"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_b_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseB();
-          },
-          "pixel",
-          "Profile RMS along minor axis"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_theta_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseTheta() * 180.0 / M_PI;
-          },
-          "deg",
-          "Position angle (CCW/x)"
-  );
-  */
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_a_error_2",
+          "error_ellipse_a",
           [](const ErrorEllipse& prop){
             return prop.getEllipseAError();
           },
           "pixel",
-          "Error for profile RMS along major axis"
+          "Major axis of the isophotal image centroid error ellipse"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_b_error_2",
+          "error_ellipse_b",
           [](const ErrorEllipse& prop){
             return prop.getEllipseBError();
           },
           "pixel",
-          "Error for profile RMS along minor axis"
+          "Minor axis of the isophotal image centroid error ellipse"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_theta_error_2",
+          "error_ellipse_theta",
           [](const ErrorEllipse& prop){
             return prop.getEllipseThetaError() * 180.0 / M_PI;
           },
           "deg",
-          "Position angle error (CCW/x)"
-  );
-
-  /*
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cxx_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseCxx();
-          },
-          "pixel^{-2}",
-          "Cxx object ellipse parameter"
+          "Position angle of the isophotal image centroid ellipse"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cyy_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseCyy();
-          },
-          "pixel^{-2}",
-          "Cyy object ellipse parameter"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cxy_2",
-          [](const ErrorEllipse& prop){
-            return prop.getEllipseCxy();
-          },
-          "pixel^{-2}",
-          "Cxy object ellipse parameter"
-  );
-  */
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cxx_error_2",
+          "error_ellipse_cxx",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCxxError();
           },
           "pixel^{-2}",
-          "Cxx object ellipse parameter error"
+          "Isophotal image centroid Cxx error ellipse parameter"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cyy_error_2",
+          "error_ellipse_cyy",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCyyError();
           },
           "pixel^{-2}",
-          "Cyy object ellipse parameter error"
+          "Isophotal image centroid Cyy error ellipse parameter"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipse_cxy_error_2",
+          "error_ellipse_cxy",
           [](const ErrorEllipse& prop){
             return prop.getEllipseCxyError();
           },
           "pixel^{-2}",
-          "Cxy object ellipse parameter error"
+          "Isophotal image centroid Cxy error ellipse parameter"
   );
-
-  /*
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "area_2",
-          [](const ErrorEllipse& prop){
-            return prop.getArea();
-          },
-          "pixel",
-          "Total number of detected pixels"
-  );
-
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "elongation_2",
-          [](const ErrorEllipse& prop) {
-            return prop.getElongation();
-          },
-          "",
-          "The object elongation (a_image / b_image)"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ErrorEllipse, double>(
-          "ellipticity_2",
-          [](const ErrorEllipse& prop) {
-            return prop.getEllipticity();
-          },
-          "",
-          "The object ellipticity"
-  );
-  */
 
   plugin_api.getOutputRegistry().enableOutput<ErrorEllipse>("ErrorEllipse");
 }

@@ -59,37 +59,8 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipseTheta() * 180.0 / M_PI;
           },
           "deg",
-          "Position angle (CCW/x)"
+          "Isophotal image position angle (CCW/x)"
   );
-
-  /*
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_a_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseAError();
-          },
-          "pixel",
-          "Error for profile RMS along major axis"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_b_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseBError();
-          },
-          "pixel",
-          "Error for profile RMS along minor axis"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_theta_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseThetaError() * 180.0 / M_PI;
-          },
-          "deg",
-          "Position angle error (CCW/x)"
-  );
-  */
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "ellipse_cxx",
@@ -97,7 +68,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipseCxx();
           },
           "pixel^{-2}",
-          "Cxx object ellipse parameter"
+          "Isophotal image Cxx ellipse parameter"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
@@ -106,7 +77,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipseCyy();
           },
           "pixel^{-2}",
-          "Cyy object ellipse parameter"
+          "Isophotal image Cyy ellipse parameter"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
@@ -115,37 +86,8 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipseCxy();
           },
           "pixel^{-2}",
-          "Cxy object ellipse parameter"
+          "Isophotal image Cxy ellipse parameter"
   );
-
-  /*
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_cxx_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseCxxError();
-          },
-          "pixel^{-2}",
-          "Cxx object ellipse parameter error"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_cyy_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseCyyError();
-          },
-          "pixel^{-2}",
-          "Cyy object ellipse parameter error"
-  );
-
-  plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
-          "ellipse_cxy_error",
-          [](const ShapeParameters& prop){
-            return prop.getEllipseCxyError();
-          },
-          "pixel^{-2}",
-          "Cxy object ellipse parameter error"
-  );
-  */
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "area",
@@ -153,7 +95,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getArea();
           },
           "pixel",
-          "Total number of detected pixels"
+          "Isophotal area (filtered) above detection threshold"
   );
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
@@ -171,7 +113,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipticity();
           },
           "",
-          "The object ellipticity"
+          "The object ellipticity (1 - b_image / a_image)"
   );
 
   plugin_api.getOutputRegistry().enableOutput<ShapeParameters>("ShapeParameters");
