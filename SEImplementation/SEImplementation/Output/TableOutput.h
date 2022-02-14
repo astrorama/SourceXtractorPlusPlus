@@ -40,22 +40,33 @@ public:
   size_t flush() override {
     if (!m_rows.empty()) {
       Euclid::Table::Table table {m_rows};
-      m_table_handler(table);
+      m_table_writer->addData(table);
     }
     m_total_rows_written += m_rows.size();
     m_rows.clear();
     return m_total_rows_written;
   }
   
-  TableOutput(SourceToRowConverter source_to_row, TableHandler table_handler, SourceHandler source_handler,
-              size_t flush_size)
-    : m_source_to_row(source_to_row), m_table_handler(table_handler), m_source_handler(source_handler),
-      m_flush_size(flush_size), m_total_rows_written(0) {
+  void nextPart() override {
+    m_part_nb++;
+    auto fits_table_writer = std::dynamic_pointer_cast<Euclid::Table::FitsWriter>(m_table_writer);
+    if (fits_table_writer != nullptr) {
+      std::stringstream hdu_name;
+      hdu_name << "CATALOG_" << m_part_nb;
+      fits_table_writer->setHduName(hdu_name.str());
+    }
+  }
+
+  TableOutput(SourceToRowConverter source_to_row, std::shared_ptr<Euclid::Table::TableWriter> table_writer,
+      SourceHandler source_handler, size_t flush_size)
+    : m_source_to_row(source_to_row), m_table_writer(table_writer), m_source_handler(source_handler),
+      m_flush_size(flush_size), m_total_rows_written(0), m_part_nb(0) {
   }
 
   void outputSource(const SourceInterface& source) override {
-    if (m_source_handler)
+    if (m_source_handler) {
       m_source_handler(source);
+    }
     m_rows.emplace_back(m_source_to_row(source));
     if (m_flush_size > 0 && m_rows.size() % m_flush_size == 0) {
       flush();
@@ -63,12 +74,15 @@ public:
   }
   
 private:
+
   SourceToRowConverter m_source_to_row;
-  TableHandler m_table_handler;
+  std::shared_ptr<Euclid::Table::TableWriter> m_table_writer;
   SourceHandler m_source_handler;
   std::vector<Euclid::Table::Row> m_rows {};
   size_t m_flush_size;
   size_t m_total_rows_written;
+
+  int m_part_nb;
 };
 
 } /* namespace SourceXtractor */

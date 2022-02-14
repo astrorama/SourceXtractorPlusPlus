@@ -41,9 +41,9 @@ static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturatio
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
-DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id),
-    m_gain(0), m_saturation(0), m_flux_scale(1.0), m_interpolation_gap(0) {
-}
+DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id)
+//    m_gain(0), m_saturation(0), m_flux_scale(1.0), m_interpolation_gap(0) {
+{}
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
   return { {"Detection image", {
@@ -71,75 +71,94 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   }
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
-  auto fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, 0, ImageTile::FloatImage);
-  m_image_source = fits_image_source;
-  m_detection_image = BufferedImage<DetectionImage::PixelType>::create(m_image_source);
-  m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
-  double detection_image_gain = 0, detection_image_saturate = 0;
-  auto img_metadata = m_image_source->getMetadata();
+  for (int i=0;; i++) {
+    DetectionImageExtension extension;
 
-  if (img_metadata.count("GAIN")){
-	  // read the keyword GAIN from the metadata
-	  if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
-		  detection_image_gain = *double_gain;
-	  } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
-		  detection_image_gain = (double) *int64_gain;
-	  }
-	  else {
-		  throw Elements::Exception() << "Keyword GAIN must be either float or int!";
-	  }
-  }
+    std::shared_ptr<FitsImageSource> fits_image_source;
+    try {
+      fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, i+1, ImageTile::FloatImage);
+    } catch (...) {
+      if (i==0) {
+        // Skip past primary HDU if it doesn't have an image
+        continue;
+      } else {
+        break;
+      }
+    }
 
-  if (img_metadata.count("SATURATE")){
-	  // read the keyword SATURATE from the metadata
-	  if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
-		  detection_image_saturate = *double_saturate;
-	  } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
-		  detection_image_saturate = (double) *int64_saturate;
-	  }
-	  else {
-		  throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
-	  }
-  }
+    extension.m_image_source = fits_image_source;
+    extension.m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+    extension.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
-  if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
-    m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
-  }
-  else if (img_metadata.count("FLXSCALE")) {
-	  // read the keyword FLXSCALE from the metadata
-	  if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
-		  m_flux_scale = *f_scale;
-	  } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
-		  m_flux_scale = (double) *int64_f_scale;
-	  }
-	  else {
-		  throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
-	  }
-  }
+    double detection_image_gain = 0, detection_image_saturate = 0;
+    auto img_metadata = fits_image_source->getMetadata();
 
-  if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
-    m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
-  }
-  else {
-    m_gain = detection_image_gain;
-  }
+    if (img_metadata.count("GAIN")){
+        // read the keyword GAIN from the metadata
+        if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
+          detection_image_gain = *double_gain;
+        } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
+          detection_image_gain = (double) *int64_gain;
+        }
+        else {
+          throw Elements::Exception() << "Keyword GAIN must be either float or int!";
+        }
+    }
 
-  if (args.find(DETECTION_IMAGE_SATURATION) != args.end()) {
-    m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
-  }
-  else {
-    m_saturation = detection_image_saturate;
-  }
+    if (img_metadata.count("SATURATE")){
+      // read the keyword SATURATE from the metadata
+      if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
+        detection_image_saturate = *double_saturate;
+      } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
+        detection_image_saturate = (double) *int64_saturate;
+      }
+      else {
+        throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
+      }
+    }
 
-  m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
-      std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
+    if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
+      extension.m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
+    }
+    else if (img_metadata.count("FLXSCALE")) {
+      // read the keyword FLXSCALE from the metadata
+      if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
+        extension.m_flux_scale = *f_scale;
+      } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
+        extension.m_flux_scale = (double) *int64_f_scale;
+      }
+      else {
+        throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
+      }
+    }
 
-  // Adapt image and parameters to take flux_scale into consideration
-  if (m_flux_scale != 1.0) {
-    m_detection_image = MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, m_flux_scale);
-    m_gain /= m_flux_scale;
-    m_saturation *= m_flux_scale;
+    if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
+      extension.m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
+    }
+    else {
+      extension.m_gain = detection_image_gain;
+    }
+
+    if (args.find(DETECTION_IMAGE_SATURATION) != args.end()) {
+      extension.m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
+    }
+    else {
+      extension.m_saturation = detection_image_saturate;
+    }
+
+    extension.m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
+        std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
+
+    // Adapt image and parameters to take flux_scale into consideration
+    if (extension.m_flux_scale != 1.0) {
+      extension.m_detection_image =
+          MultiplyImage<DetectionImage::PixelType>::create(extension.m_detection_image, extension.m_flux_scale);
+      extension.m_gain /= extension.m_flux_scale;
+      extension.m_saturation *= extension.m_flux_scale;
+    }
+
+    m_extensions.emplace_back(std::move(extension));
   }
 }
 
@@ -147,18 +166,18 @@ std::string DetectionImageConfig::getDetectionImagePath() const {
   return m_detection_image_path;
 }
 
-std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage() const {
+std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage(size_t index) const {
   if (getCurrentState() < State::INITIALIZED) {
     throw Elements::Exception() << "getDetectionImage() call on not initialized DetectionImageConfig";
   }
-  return m_detection_image;
+  return m_extensions.at(index).m_detection_image;
 }
 
-std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem() const {
+std::shared_ptr<CoordinateSystem> DetectionImageConfig::getCoordinateSystem(size_t index) const {
   if (getCurrentState() < State::INITIALIZED) {
     throw Elements::Exception() << "getCoordinateSystem() call on not initialized DetectionImageConfig";
   }
-  return m_coordinate_system;
+  return m_extensions.at(index).m_coordinate_system;
 }
 
 } // SourceXtractor namespace

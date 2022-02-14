@@ -23,6 +23,10 @@
 #ifndef _SEIMPLEMENTATION_OUTPUT_OUTPUTFACTORY_H
 #define _SEIMPLEMENTATION_OUTPUT_OUTPUTFACTORY_H
 
+#include "Table/TableWriter.h"
+#include "Table/FitsWriter.h"
+
+#include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEFramework/Output/Output.h"
 #include "SEFramework/Configuration/Configurable.h"
 #include "TableOutput.h"
@@ -39,26 +43,27 @@ class OutputFactory : public Configurable {
 public:
 
   explicit OutputFactory(std::shared_ptr<OutputRegistry> output_registry)
-    : m_output_registry(output_registry), m_flush_size(100) {
+    : m_output_registry(output_registry), m_flush_size(100), m_output_format(OutputConfig::OutputFileFormat::ASCII) {
   }
-
 
   /// Destructor
   virtual ~OutputFactory() = default;
 
-  std::unique_ptr<Output> getOutput() const;
+  std::shared_ptr<Output> createOutput() const;
 
   // Implementation of the Configurable interface
   void configure(Euclid::Configuration::ConfigManager& manager) override;
   void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
 
 private:
-
   std::shared_ptr<OutputRegistry> m_output_registry;
-  TableOutput::TableHandler m_table_handler;
+  std::shared_ptr<Euclid::Table::TableWriter> m_table_writer;
   TableOutput::SourceHandler m_source_handler;
   std::vector<std::string> m_output_properties;
   size_t m_flush_size;
+
+  OutputConfig::OutputFileFormat m_output_format;
+  std::string m_output_filename;
 
 }; /* End of OutputFactory class */
 

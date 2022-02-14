@@ -31,18 +31,35 @@
 
 #include "SEFramework/Output/OutputRegistry.h"
 
-#include "SEImplementation/Output/OutputFactory.h"
-#include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Output/LdacWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
+
+#include "SEImplementation/Output/AsciiOutput.h"
+#include "SEImplementation/Output/FitsOutput.h"
+#include "SEImplementation/Output/LdacOutput.h"
+
+#include "SEImplementation/Output/OutputFactory.h"
 
 using Euclid::make_unique;
 
 namespace SourceXtractor {
 
-std::unique_ptr<Output> OutputFactory::getOutput() const {
+std::shared_ptr<Output> OutputFactory::createOutput() const {
   auto source_to_row = m_output_registry->getSourceToRowConverter(m_output_properties);
-  return std::unique_ptr<Output>(new TableOutput(source_to_row, m_table_handler, m_source_handler, m_flush_size));
+
+  if (m_output_filename != "") {
+    switch (m_output_format) {
+      case OutputConfig::OutputFileFormat::FITS:
+        return std::make_shared<FitsOutput>(m_output_filename, source_to_row, m_flush_size);
+      case OutputConfig::OutputFileFormat::FITS_LDAC:
+        return std::make_shared<LdacOutput>(m_output_filename, source_to_row, m_flush_size);
+      default:
+      case OutputConfig::OutputFileFormat::ASCII:
+        return std::make_shared<AsciiOutput>(m_output_filename, source_to_row, m_flush_size);
+    }
+  } else {
+    return std::make_shared<AsciiOutput>(m_output_filename, source_to_row, m_flush_size);
+  }
 }
 
 void OutputFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
@@ -53,55 +70,18 @@ void OutputFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& output_config = manager.getConfiguration<OutputConfig>();
   m_output_properties = output_config.getOutputProperties();
   m_flush_size = output_config.getFlushSize();
-  
-  auto out_file = output_config.getOutputFile();
+  m_output_filename = output_config.getOutputFile();
+  m_output_format = output_config.getOutputFileFormat();
 
-  std::shared_ptr<Euclid::Table::TableWriter> table_writer;
-
-  if (out_file != "") {
+  if (m_output_filename != "") {
     // Check if we can, at least, create it.
     // Otherwise, the error will be triggered only at the end of the full process!
-    {
-      std::ofstream check_writeable{out_file};
-      if (!check_writeable) {
-        throw Elements::Exception(
-          std::system_error(errno, std::system_category(), "Failed to open the output catalog").what());
-      }
+    std::ofstream check_writeable{m_output_filename};
+    if (!check_writeable) {
+      throw Elements::Exception(
+        std::system_error(errno, std::system_category(), "Failed to open the output catalog").what());
     }
-
-    std::unique_ptr<Euclid::Table::FitsWriter> fits_table_writer;
-    std::shared_ptr<LdacWriter> ldac_writer;
-
-    switch (output_config.getOutputFileFormat()) {
-      case OutputConfig::OutputFileFormat::FITS:
-        fits_table_writer = Euclid::make_unique<Euclid::Table::FitsWriter>(out_file, true);
-        fits_table_writer->setHduName("CATALOG");
-        table_writer = std::move(fits_table_writer);
-        break;
-      case OutputConfig::OutputFileFormat::FITS_LDAC:
-        ldac_writer = std::make_shared<LdacWriter>(out_file, manager);
-        m_source_handler = [ldac_writer](const SourceInterface &source) {
-          ldac_writer->notifySource(source);
-        };
-        table_writer = ldac_writer;
-        break;
-      case OutputConfig::OutputFileFormat::ASCII:
-        table_writer = std::make_shared<Euclid::Table::AsciiWriter>(out_file);
-        break;
-    }
-  } else {
-    table_writer = std::make_shared<Euclid::Table::AsciiWriter>(std::cout);
   }
-
-  m_table_handler = [table_writer](const Euclid::Table::Table& table) {
-    try {
-      table_writer->addData(table);
-    }
-    // This one doesn't inherit from std::exception, so wrap it up here
-    catch (const CCfits::FitsException &e) {
-      throw Elements::Exception(e.message());
-    }
-  };
 }
 
 } // SourceXtractor namespace

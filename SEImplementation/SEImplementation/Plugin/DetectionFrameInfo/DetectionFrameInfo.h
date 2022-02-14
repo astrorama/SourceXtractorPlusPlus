@@ -21,6 +21,7 @@
 #include "SEUtils/Types.h"
 
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
@@ -31,10 +32,12 @@ public:
   virtual ~DetectionFrameInfo() = default;
 
   DetectionFrameInfo(int width, int height, double gain, double saturation,
-      double variance_threshold, double background_median_rms)
+      double variance_threshold, double background_median_rms, const std::map<std::string,
+      MetadataEntry>& metadata = std::map<std::string, MetadataEntry>())
       : m_width(width), m_height(height),
         m_gain(gain), m_saturation(saturation),
-        m_variance_threshold(variance_threshold), m_background_median_rms(background_median_rms) {}
+        m_variance_threshold(variance_threshold), m_background_median_rms(background_median_rms),
+        m_metadata(metadata) {}
 
   double getGain() const {
     return m_gain;
@@ -60,6 +63,11 @@ public:
     return m_background_median_rms;
   }
 
+  // Metadata of the original image
+  const std::map<std::string, MetadataEntry>& getMetadata() const {
+    return m_metadata;
+  };
+
 private:
   int m_width;
   int m_height;
@@ -69,6 +77,8 @@ private:
 
   double m_variance_threshold;
   double m_background_median_rms;
+
+  std::map<std::string, MetadataEntry> m_metadata;
 };
 
 }

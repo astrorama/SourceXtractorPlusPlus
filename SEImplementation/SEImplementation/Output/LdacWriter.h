@@ -18,9 +18,11 @@
 #ifndef _SEIMPLEMENTATION_LDACWRITER_H
 #define _SEIMPLEMENTATION_LDACWRITER_H
 
-#include <Configuration/ConfigManager.h>
 #include <Table/FitsWriter.h>
+
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Frame/Frame.h"
 #include "SEFramework/Source/SourceInterface.h"
 
 namespace SourceXtractor {
@@ -29,7 +31,7 @@ class LdacWriter : public Euclid::Table::TableWriter {
 public:
   ~LdacWriter() override = default;
 
-  LdacWriter(const std::string& filename, Euclid::Configuration::ConfigManager& manager);
+  LdacWriter(const std::string& filename);
 
   void addComment(const std::string& comment) override;
 
@@ -43,11 +45,13 @@ protected:
   void append(const Euclid::Table::Table& table) override;
 
 private:
-  Euclid::Configuration::ConfigManager &m_config_manager;
   std::string m_filename;
   std::unique_ptr<Euclid::Table::FitsWriter> m_objects_writer;
+
   std::vector<std::string> m_comments;
+  std::map<std::string, MetadataEntry> m_image_metadata {};
   DetectionImage::PixelType m_rms;
+  double m_gain;
 };
 
 } // end of namespace SourceXtractor

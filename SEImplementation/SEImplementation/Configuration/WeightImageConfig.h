@@ -47,8 +47,8 @@ public:
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;
 
-  std::shared_ptr<WeightImage> getWeightImage() const {
-    return m_weight_image;
+  std::shared_ptr<WeightImage> getWeightImage(size_t index = 0) const {
+    return m_weight_images.at(index);
   }
 
   WeightType getWeightType() const {
@@ -71,7 +71,8 @@ public:
 
 private:
 
-  std::shared_ptr<WeightImage> m_weight_image;
+  std::vector<std::shared_ptr<WeightImage>> m_weight_images;
+
   WeightType m_weight_type;
   bool m_absolute_weight;
   WeightImage::PixelType m_weight_scaling;
