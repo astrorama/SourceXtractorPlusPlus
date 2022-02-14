@@ -58,7 +58,7 @@ struct GrowthCurveFixture {
     source.setIndexedProperty<JacobianSource>(1, 1, 0, 0, 1);
 
     // Detection frame properties
-    source.setProperty<ShapeParameters>(0.4, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0); // Only a really needed
+    source.setProperty<ShapeParameters>(0.4, 0.4, 0, 0, 0, 0, 0, 0); // Only a really needed
     source.setProperty<KronRadius>(4, 0); // Kron radius must dominate 0.4*6=2.4
   }
 };

@@ -163,7 +163,7 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   SeFloat temp_error = fabs(x_2_error - y_2_error);
   if (temp_error>0.0)
 	  //theta_error = atan2(2.0*x_y_error, temp_error) /  2.0;
-	  theta_error = atan2(2.0*x_y_error, temp_error);
+	  theta_error = atan2(2.0*x_y_error, temp_error); // when dividing by 2.0 as in SE2 the range is -45 < theta_error < 45 whis is smaller than in SE2
   else
 	  theta_error = M_PI /4.0;
 
@@ -174,7 +174,7 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   a_error = sqrt(a_error+temp_error);
   b_error = sqrt(b_error-temp_error);
 
-  source.setProperty<ShapeParameters>(a, b, theta, a_error, b_error, theta_error, abcor, cxx, cyy, cxy, x_2_error, y_2_error, x_y_error, nb_of_pixels);
+  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels);
 }
 
 

@@ -62,6 +62,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           "Position angle (CCW/x)"
   );
 
+  /*
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "ellipse_a_error",
           [](const ShapeParameters& prop){
@@ -88,6 +89,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           "deg",
           "Position angle error (CCW/x)"
   );
+  */
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "ellipse_cxx",
@@ -116,6 +118,7 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
           "Cxy object ellipse parameter"
   );
 
+  /*
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "ellipse_cxx_error",
           [](const ShapeParameters& prop){
@@ -140,8 +143,9 @@ void ShapeParametersPlugin::registerPlugin(PluginAPI& plugin_api) {
             return prop.getEllipseCxyError();
           },
           "pixel^{-2}",
-          "Cxy object ellipse parametererror"
+          "Cxy object ellipse parameter error"
   );
+  */
 
   plugin_api.getOutputRegistry().registerColumnConverter<ShapeParameters, double>(
           "area",

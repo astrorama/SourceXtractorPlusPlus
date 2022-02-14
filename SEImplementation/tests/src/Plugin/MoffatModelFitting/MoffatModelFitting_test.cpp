@@ -98,7 +98,7 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 
   source->setProperty<DetectionFrameSourceStamp>(image, image, image, PixelCoordinate(0,0), variance_image, variance_image);
   source->setProperty<PixelCentroid>(13, 12);
-  source->setProperty<ShapeParameters>(10, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  source->setProperty<ShapeParameters>(10, 10, 0, 0, 0, 0, 0, 0);
   source->setProperty<IsophotalFlux>(500., 0., 1., 0.);
   source->setProperty<PixelCoordinateList>(pixel_coordinates);
   source->setProperty<DetectionFrame>(detection_frame);
