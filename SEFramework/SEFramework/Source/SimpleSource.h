@@ -64,11 +64,11 @@ public:
 protected:
 
   // Implementation of SourceInterface
-  virtual const Property& getProperty(const PropertyId& property_id) const override {
+  const Property& getProperty(const PropertyId& property_id) const override {
     return m_property_holder.getProperty(property_id);
   }
 
-  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
+  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
     m_property_holder.setProperty(std::move(property), property_id);
   }
 

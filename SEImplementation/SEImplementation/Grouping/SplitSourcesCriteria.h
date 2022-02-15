@@ -36,7 +36,7 @@ namespace SourceXtractor {
 
 class SplitSourcesCriteria : public GroupingCriteria {
 public:
-  virtual bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const override;
+  bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const override;
 };
 
 

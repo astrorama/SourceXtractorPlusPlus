@@ -129,8 +129,6 @@ jobs:
         include:
           - os-type: centos
             os-version: 7
-          - os-type: centos
-            os-version: 8
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout

@@ -42,7 +42,7 @@ public:
   PixelBoundariesTaskFactory() {}
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 }; /* End of PixelBoundariesTaskFactory class */
 

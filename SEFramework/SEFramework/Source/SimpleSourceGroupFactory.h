@@ -36,7 +36,7 @@ class SimpleSourceGroupFactory : public SourceGroupFactory {
   
 public:
 
-  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
+  std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
     return std::make_shared<SimpleSourceGroup>();
   }
   

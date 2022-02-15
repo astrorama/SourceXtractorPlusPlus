@@ -69,8 +69,8 @@ public:
 protected:
   
   // Implementation of SourceInterface
-  virtual const Property& getProperty(const PropertyId& property_id) const override;
-  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+  const Property& getProperty(const PropertyId& property_id) const override;
+  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
   std::shared_ptr<const TaskProvider> m_task_provider;
