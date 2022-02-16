@@ -23,6 +23,7 @@
 
 #include "SEFramework/Source/SourceGroupInterface.h"
 
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
@@ -32,7 +33,8 @@
 namespace SourceXtractor {
 
 void GroupIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto check_image = CheckImages::getInstance().getGroupImage();
+  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+  auto check_image = CheckImages::getInstance().getGroupImage(hdu_index);
   if (check_image) {
     // get the ID of the group
     auto group_id = group->getProperty<GroupInfo>().getGroupId();

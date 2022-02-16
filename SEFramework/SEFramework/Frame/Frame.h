@@ -80,6 +80,14 @@ public:
     return m_image;
   }
 
+  size_t getHduIndex() const {
+   return m_hdu_index;
+  }
+
+  void setHduIndex(size_t hdu_index) {
+    m_hdu_index = hdu_index;
+  }
+
   // Metadata of the original image
   const std::map<std::string, MetadataEntry>& getMetadata() const {
     return m_metadata;
@@ -193,6 +201,7 @@ private:
   std::shared_ptr<Image<T>> m_filtered_variance_map;
 
   std::string m_label;
+  size_t m_hdu_index = 0;
   std::map<std::string, MetadataEntry> m_metadata {};
 };
 

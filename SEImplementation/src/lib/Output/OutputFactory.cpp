@@ -25,13 +25,8 @@
 #include <system_error>
 #include <CCfits/CCfits>
 
-#include "AlexandriaKernel/memory_tools.h"
-#include "Table/AsciiWriter.h"
-#include "Table/FitsWriter.h"
-
 #include "SEFramework/Output/OutputRegistry.h"
 
-#include "SEImplementation/Output/LdacWriter.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 #include "SEImplementation/Output/AsciiOutput.h"

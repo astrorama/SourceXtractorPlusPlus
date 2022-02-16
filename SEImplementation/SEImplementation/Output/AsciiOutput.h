@@ -25,6 +25,7 @@
 #ifndef _SEIMPLEMENTATION_OUTPUT_ASCIIOUTPUT_H_
 #define _SEIMPLEMENTATION_OUTPUT_ASCIIOUTPUT_H_
 
+#include "Table/AsciiWriter.h"
 
 #include "SEImplementation/Output/FlushableOutput.h"
 

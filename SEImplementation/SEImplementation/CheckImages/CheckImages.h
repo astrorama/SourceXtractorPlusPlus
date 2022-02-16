@@ -51,82 +51,94 @@ public:
 
   void saveImages();
 
-  std::shared_ptr<WriteableImage<int>> getSegmentationImage() const {
-    if (m_segmentation_image != nullptr) {
-      return LockedWriteableImage<int>::create(m_segmentation_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<int>> getSegmentationImage(size_t index) const {
+    if (index < m_segmentation_images.size()) {
+      auto segmentation_image = m_segmentation_images.at(index);
+      if (segmentation_image != nullptr) {
+        return LockedWriteableImage<int>::create(segmentation_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<int>> getPartitionImage() const {
-    if (m_partition_image != nullptr) {
-      return LockedWriteableImage<int>::create(m_partition_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<int>> getPartitionImage(size_t index) const {
+    if (index < m_partition_images.size()) {
+      auto partition_image = m_partition_images.at(index);
+      if (partition_image != nullptr) {
+        return LockedWriteableImage<int>::create(partition_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<int>> getGroupImage() const {
-    if (m_group_image != nullptr) {
-      return LockedWriteableImage<int>::create(m_group_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<int>> getGroupImage(size_t index) const {
+    if (index < m_group_images.size()) {
+      auto group_image = m_group_images.at(index);
+      if (group_image != nullptr) {
+        return LockedWriteableImage<int>::create(group_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<int>> getAutoApertureImage() const {
-    if (m_auto_aperture_image != nullptr) {
-      return LockedWriteableImage<int>::create(m_auto_aperture_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<int>> getDetectionAutoApertureImage(size_t index) const {
+    if (index < m_auto_aperture_images.size()) {
+      auto auto_aperture_image = m_auto_aperture_images.at(index);
+      if (auto_aperture_image != nullptr) {
+        return LockedWriteableImage<int>::create(auto_aperture_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<int>> getApertureImage() const {
-    if (m_aperture_image != nullptr) {
-      return LockedWriteableImage<int>::create(m_aperture_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<int>> getDetectionApertureImage(size_t index) const {
+    if (index < m_aperture_images.size()) {
+      auto aperture_image = m_aperture_images.at(index);
+      if (aperture_image != nullptr) {
+        return LockedWriteableImage<int>::create(aperture_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<SeFloat>> getMoffatImage() const {
-    if (m_moffat_image != nullptr) {
-      return LockedWriteableImage<SeFloat>::create(m_moffat_image);
-    } else {
-      return nullptr;
+  std::shared_ptr<WriteableImage<SeFloat>> getMoffatImage(size_t index) const {
+    if (index < m_moffat_images.size()) {
+      auto moffat_image = m_moffat_images.at(index);
+      if (moffat_image != nullptr) {
+        return LockedWriteableImage<SeFloat>::create(moffat_image);
+      }
     }
+    return nullptr;
   }
 
-  std::shared_ptr<WriteableImage<int>> getAutoApertureImage(unsigned int frame_number);
+  std::shared_ptr<WriteableImage<int>> getMeasurementAutoApertureImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<int>> getApertureImage(unsigned int frame_number);
+  std::shared_ptr<WriteableImage<int>> getMeasurementApertureImage(unsigned int frame_number);
 
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getModelFittingImage(unsigned int frame_number);
 
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getPsfImage(unsigned int frame_number);
 
-  std::shared_ptr<WriteableImage<float>> getMLDetectionImage(unsigned int plane_number);
+  std::shared_ptr<WriteableImage<float>> getMLDetectionImage(unsigned int plane_number, size_t index);
 
-  void setBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
-    m_background_image = background_image;
+  void addBackgroundCheckImage(std::shared_ptr<Image<SeFloat>> background_image) {
+    m_background_images.emplace_back(background_image);
   }
 
-  void setVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
-    m_variance_image = variance_image;
+  void addVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
+    m_variance_images.emplace_back(variance_image);
   }
 
-  void setFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
-    m_filtered_image = filtered_image;
+  void addFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
+    m_filtered_images.emplace_back(filtered_image);
   }
 
-  void setThresholdedCheckImage(std::shared_ptr<Image<SeFloat>> thresholded_image) {
-    m_thresholded_image = thresholded_image;
+  void addThresholdedCheckImage(std::shared_ptr<Image<SeFloat>> thresholded_image) {
+    m_thresholded_images.emplace_back(thresholded_image);
   }
 
-  void setSnrCheckImage(std::shared_ptr<Image<SeFloat>> snr_image) {
-    m_snr_image = snr_image;
+  void addSnrCheckImage(std::shared_ptr<Image<SeFloat>> snr_image) {
+    m_snr_images.emplace_back(snr_image);
   }
 
   std::shared_ptr<WriteableImage<SeFloat>> getWriteableCheckImage(std::string id, int width, int height);
@@ -156,24 +168,27 @@ private:
   };
 
   // check image
-  std::shared_ptr<WriteableImage<int>> m_segmentation_image;
-  std::shared_ptr<WriteableImage<int>> m_partition_image;
-  std::shared_ptr<WriteableImage<int>> m_group_image;
-  std::shared_ptr<WriteableImage<int>> m_auto_aperture_image;
-  std::shared_ptr<WriteableImage<int>> m_aperture_image;
-  std::shared_ptr<WriteableImage<SeFloat>> m_moffat_image;
-  std::map<unsigned int, decltype(m_aperture_image)> m_measurement_aperture_images;
-  std::map<unsigned int, decltype(m_auto_aperture_image)> m_measurement_auto_aperture_images;
-  std::map<unsigned int, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
-  std::map<unsigned int, std::shared_ptr<WriteableImage<float>>> m_check_image_ml_detection;
+  std::vector<std::shared_ptr<WriteableImage<int>>> m_segmentation_images;
+  std::vector<std::shared_ptr<WriteableImage<int>>> m_partition_images;
+  std::vector<std::shared_ptr<WriteableImage<int>>> m_group_images;
+  std::vector<std::shared_ptr<WriteableImage<int>>> m_auto_aperture_images;
+  std::vector<std::shared_ptr<WriteableImage<int>>> m_aperture_images;
+  std::vector<std::shared_ptr<WriteableImage<SeFloat>>> m_moffat_images;
 
-  std::shared_ptr<DetectionImage> m_detection_image;
-  std::shared_ptr<Image<SeFloat>> m_background_image;
-  std::shared_ptr<Image<SeFloat>> m_filtered_image;
-  std::shared_ptr<Image<SeFloat>> m_thresholded_image;
-  std::shared_ptr<Image<SeFloat>> m_snr_image;
-  std::shared_ptr<WeightImage> m_variance_image;
-  std::shared_ptr<CoordinateSystem> m_coordinate_system;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<int>>> m_measurement_aperture_images;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<int>>> m_measurement_auto_aperture_images;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
+  std::vector<std::map<unsigned int, std::shared_ptr<WriteableImage<float>>>> m_check_image_ml_detection;
+
+  std::vector<std::shared_ptr<DetectionImage>> m_detection_images;
+  std::vector<std::shared_ptr<Image<SeFloat>>> m_background_images;
+  std::vector<std::shared_ptr<Image<SeFloat>>> m_filtered_images;
+  std::vector<std::shared_ptr<Image<SeFloat>>> m_thresholded_images;
+  std::vector<std::shared_ptr<Image<SeFloat>>> m_snr_images;
+  std::vector<std::shared_ptr<WeightImage>> m_variance_images;
+
+
+  std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
 
   boost::filesystem::path m_model_fitting_image_filename;
   boost::filesystem::path m_residual_filename;

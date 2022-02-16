@@ -113,11 +113,7 @@ void LdacOutput::outputSource(const SourceInterface& source) {
     m_gain = detection_frame_info.getGain();
 
     // Headers from the image
-
-    // FIXME !!!!!!!!!!!!!!!
-
-    //auto img_source = detection_image_config.getImageSource();
-    //auto img_metadata = img_source->getMetadata();
+    m_image_metadata = detection_frame_info.getMetadata();
 
     writeHeaders();
 

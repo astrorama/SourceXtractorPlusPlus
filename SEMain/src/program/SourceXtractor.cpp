@@ -407,19 +407,19 @@ public:
     measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
-    if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
+    if (CheckImages::getInstance().getSegmentationImage(0) != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>());
     }
-    if (CheckImages::getInstance().getPartitionImage() != nullptr) {
+    if (CheckImages::getInstance().getPartitionImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<SourceIdCheckImage>());
     }
-    if (CheckImages::getInstance().getGroupImage() != nullptr) {
+    if (CheckImages::getInstance().getGroupImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<GroupIdCheckImage>());
     }
-    if (CheckImages::getInstance().getMoffatImage() != nullptr) {
+    if (CheckImages::getInstance().getMoffatImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<MoffatCheckImage>());
     }

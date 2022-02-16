@@ -23,13 +23,9 @@
 #ifndef _SEIMPLEMENTATION_OUTPUT_OUTPUTFACTORY_H
 #define _SEIMPLEMENTATION_OUTPUT_OUTPUTFACTORY_H
 
-#include "Table/TableWriter.h"
-#include "Table/FitsWriter.h"
-
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEFramework/Output/Output.h"
 #include "SEFramework/Configuration/Configurable.h"
-#include "TableOutput.h"
 
 namespace SourceXtractor {
 
@@ -57,8 +53,6 @@ public:
 
 private:
   std::shared_ptr<OutputRegistry> m_output_registry;
-  std::shared_ptr<Euclid::Table::TableWriter> m_table_writer;
-  TableOutput::SourceHandler m_source_handler;
   std::vector<std::string> m_output_properties;
   size_t m_flush_size;
 

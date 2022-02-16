@@ -33,11 +33,12 @@ public:
 
   DetectionFrameInfo(int width, int height, double gain, double saturation,
       double variance_threshold, double background_median_rms, const std::map<std::string,
-      MetadataEntry>& metadata = std::map<std::string, MetadataEntry>())
+      MetadataEntry>& metadata = std::map<std::string, MetadataEntry>(), size_t hdu_index=0)
       : m_width(width), m_height(height),
         m_gain(gain), m_saturation(saturation),
         m_variance_threshold(variance_threshold), m_background_median_rms(background_median_rms),
-        m_metadata(metadata) {}
+        m_metadata(metadata),
+        m_hdu_index(hdu_index) {}
 
   double getGain() const {
     return m_gain;
@@ -68,6 +69,10 @@ public:
     return m_metadata;
   };
 
+  size_t getHduIndex() const {
+   return m_hdu_index;
+  }
+
 private:
   int m_width;
   int m_height;
@@ -79,6 +84,7 @@ private:
   double m_background_median_rms;
 
   std::map<std::string, MetadataEntry> m_metadata;
+  size_t m_hdu_index;
 };
 
 }

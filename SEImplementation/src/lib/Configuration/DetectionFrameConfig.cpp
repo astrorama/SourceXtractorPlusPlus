@@ -29,6 +29,8 @@
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
 
+#include "SEImplementation/CheckImages/CheckImages.h"
+
 #include "SEImplementation/Configuration/DetectionFrameConfig.h"
 
 using namespace Euclid::Configuration;
@@ -87,7 +89,10 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
           detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
 
       detection_frame->setBackgroundLevel(background, background_model.getMedianRms());
-      //CheckImages::getInstance().setBackgroundCheckImage(background);
+
+      CheckImages::getInstance().addBackgroundCheckImage(background);
+    } else {
+      CheckImages::getInstance().addBackgroundCheckImage(background_model.getLevelMap());
     }
 
     if (background_config.isDetectionThresholdAbsolute()) {
@@ -97,15 +102,12 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
     auto img_source = getDependency<DetectionImageConfig>().getImageSource(i);
     detection_frame->setMetadata(img_source->getMetadata());
 
-    // FIXME
-    // initial set of the variance and background check images, might be overwritten below
-    //  CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
-    ////  CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
-    //  CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
-    //  CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
-    //  CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
-    //  CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
-    //  CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
+    detection_frame->setHduIndex(i);
+
+    CheckImages::getInstance().addVarianceCheckImage(detection_frame->getImage(FrameImageLayer::LayerVarianceMap));
+    CheckImages::getInstance().addFilteredCheckImage(detection_frame->getImage(FrameImageLayer::LayerFilteredImage));
+    CheckImages::getInstance().addThresholdedCheckImage(detection_frame->getImage(FrameImageLayer::LayerThresholdedImage));
+    CheckImages::getInstance().addSnrCheckImage(detection_frame->getImage(FrameImageLayer::LayerSignalToNoiseMap));
 
     m_frames.emplace_back(detection_frame);
   }
