@@ -25,7 +25,6 @@
 
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersTaskFactory.h"
-
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParametersPlugin.h"
 
 namespace SourceXtractor {

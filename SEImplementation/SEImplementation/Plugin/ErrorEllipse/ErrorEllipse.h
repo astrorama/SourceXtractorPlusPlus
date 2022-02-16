@@ -34,31 +34,8 @@ public:
 
 	  ErrorEllipse(SeFloat a_error, SeFloat b_error, SeFloat theta_error, SeFloat cxx_error, SeFloat cyy_error, SeFloat cxy_error)
 	    : m_a_error(a_error), m_b_error(b_error), m_theta_error(theta_error), m_cxx_error(cxx_error), m_cyy_error(cyy_error), m_cxy_error(cxy_error) {}
-//ErrorEllipse(SeFloat a, SeFloat b, SeFloat theta, SeFloat a_error, SeFloat b_error, SeFloat theta_error, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat cxx_error, SeFloat cyy_error, SeFloat cxy_error, SeFloat area)
-//	    : m_a(a), m_b(b), m_theta(theta), m_a_error(a_error), m_b_error(b_error), m_theta_error(theta_error), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_cxx_error(cxx_error), m_cyy_error(cyy_error), m_cxy_error(cxy_error), m_area(area) {}
 
   virtual ~ErrorEllipse() = default;
-
-  /**
-   * Semi-major axis
-   */
-  //SeFloat getEllipseA() const {
-  //  return m_a;
-  //}
-
-  /**
-   * Semi-minor axis
-   */
-  //SeFloat getEllipseB() const {
-  //  return m_b;
-  //}
-
-  /**
-   * Angle in degrees
-   */
-  //SeFloat getEllipseTheta() const {
-  //  return m_theta;
-  //}
 
   /**
    * Semi-major axis error
@@ -81,36 +58,6 @@ public:
     return m_theta_error;
   }
 
-  /**
-   * \f[
-   *    \frac{\cos^2 {\tt THETA}}{{\tt A}^2} + \frac{\sin^2 {\tt THETA}}{{\tt B}^2} =
-   *    \frac{\overline{y^2}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
-   * \f]
-   */
-  //SeFloat getEllipseCxx() const {
-  //  return m_cxx;
-  //}
-
-  /**
-   * \f[
-   *     \frac{\sin^2 {\tt THETA}}{{\tt A}^2} + \frac{\cos^2 {\tt THETA}}{{\tt B}^2} =
-   *     \frac{\overline{x^2}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
-   * \f]
-   */
-  //SeFloat getEllipseCyy() const {
-  //  return m_cyy;
-  //}
-
-  /**
-   * \f[
-   *     2 \,\cos {\tt THETA}\,\sin {\tt THETA} \left( \frac{1}{{\tt A}^2} - \frac{1}{{\tt B}^2}\right) =
-   *     -2\,\frac{\overline{xy}}{\overline{x^2} \overline{y^2} - \overline{xy}^2}
-   * \f]
-   */
-  //SeFloat getEllipseCxy() const {
-  //  return m_cxy;
-  //}
-
   SeFloat getEllipseCxxError() const {
     return m_cxx_error;
   }
@@ -123,31 +70,9 @@ public:
     return m_cxy_error;
   }
 
-  /*
-  SeFloat getAbcor() const {
-    return m_abcor;
-  }
-
-  SeFloat getArea() const {
-    return m_area;
-  }
-
-  SeFloat getElongation() const {
-    return m_a / m_b;
-  }
-
-  SeFloat getEllipticity() const {
-    return 1 - m_b / m_a;
-  }
-  */
-
 private:
-  //SeFloat m_a, m_b, m_theta; // ellipse semi-major axis, semi-minor axis, and angle
   SeFloat m_a_error, m_b_error, m_theta_error; // errors for ellipse semi-major axis, semi-minor axis, and angle
-  //SeFloat m_abcor;
-  //SeFloat m_cxx, m_cyy, m_cxy;
   SeFloat m_cxx_error, m_cyy_error, m_cxy_error;
-  //SeFloat m_area;
 
 };
 

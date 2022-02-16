@@ -34,8 +34,6 @@ public:
 
 	  ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat area, SeFloat intensity, bool singu)
 	    : m_a(a), m_b(b), m_theta(theta), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_area(area), m_intensity(intensity), m_singu_flag(singu) {}
-	  //ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat a_error, SeFloat b_error, SeFloat theta_error, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat cxx_error, SeFloat cyy_error, SeFloat cxy_error, SeFloat area)
-	  //  : m_a(a), m_b(b), m_theta(theta), m_a_error(a_error), m_b_error(b_error), m_theta_error(theta_error), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_cxx_error(cxx_error), m_cyy_error(cyy_error), m_cxy_error(cxy_error), m_area(area) {}
 
   virtual ~ShapeParameters() = default;
 
@@ -59,27 +57,6 @@ public:
   SeFloat getEllipseTheta() const {
     return m_theta;
   }
-
-  /**
-   * Semi-major axis error
-   */
-  //SeFloat getEllipseAError() const {
-  //  return m_a_error;
-  //}
-
-  /**
-   * Semi-minor axis error
-   */
-  //SeFloat getEllipseBError() const {
-  //  return m_b_error;
-  //}
-
-  /**
-   * Angle error in degrees
-   */
-  //SeFloat getEllipseThetaError() const {
-  //  return m_theta_error;
-  //}
 
   /**
    * \f[
@@ -110,19 +87,6 @@ public:
   SeFloat getEllipseCxy() const {
     return m_cxy;
   }
-  /*
-  SeFloat getEllipseCxxError() const {
-    return m_cxx_error;
-  }
-
-  SeFloat getEllipseCyyError() const {
-    return m_cyy_error;
-  }
-
-  SeFloat getEllipseCxyError() const {
-    return m_cxy_error;
-  }
-  */
 
   SeFloat getAbcor() const {
     return m_abcor;
@@ -150,10 +114,8 @@ public:
 
 private:
   SeFloat m_a, m_b, m_theta; // ellipse semi-major axis, semi-minor axis, and angle
-  //SeFloat m_a_error, m_b_error, m_theta_error; // errors for ellipse semi-major axis, semi-minor axis, and angle
   SeFloat m_abcor;
   SeFloat m_cxx, m_cyy, m_cxy;
-  //SeFloat m_cxx_error, m_cyy_error, m_cxy_error;
   SeFloat m_area;
   SeFloat m_intensity;
   bool m_singu_flag;

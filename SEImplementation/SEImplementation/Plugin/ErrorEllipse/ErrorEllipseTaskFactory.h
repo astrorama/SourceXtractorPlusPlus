@@ -42,6 +42,4 @@ public:
 
 } /* namespace SourceXtractor */
 
-
-
 #endif /* _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASKFACTORY_H_ */
