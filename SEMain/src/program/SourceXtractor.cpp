@@ -456,7 +456,8 @@ public:
         detection_frame->setVarianceMap(scaled_image);
       }
     } else {
-      detection_frame->setVarianceMap(background_model.getVarianceMap());
+        logger.info() << "Variance map from background model";
+        detection_frame->setVarianceMap(background_model.getVarianceMap());
     }
     // re-set the variance check image to what's in the detection_frame()
     CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
