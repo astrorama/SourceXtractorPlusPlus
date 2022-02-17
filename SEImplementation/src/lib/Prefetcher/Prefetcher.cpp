@@ -144,4 +144,18 @@ void Prefetcher::wait() {
   m_output_thread->join();
 }
 
+void Prefetcher::synchronize() {
+  // Wait until the output queue is empty
+  while (true) {
+    {
+      std::unique_lock<std::mutex> output_lock(m_queue_mutex);
+      if (m_received.empty()) {
+        break;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
+
 } // end of namespace SourceXtractor

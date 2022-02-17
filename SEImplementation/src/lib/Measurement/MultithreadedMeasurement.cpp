@@ -43,12 +43,29 @@ void MultithreadedMeasurement::startThreads() {
   m_output_thread = Euclid::make_unique<std::thread>(outputThreadStatic, this);
 }
 
-void MultithreadedMeasurement::waitForThreads() {
+void MultithreadedMeasurement::stopThreads() {
   m_input_done = true;
   m_thread_pool->block();
   m_output_thread->join();
   logger.debug() << "All worker threads done!";
 }
+
+void MultithreadedMeasurement::synchronizeThreads() {
+  // Wait until all worker threads are done
+  m_thread_pool->block();
+
+  // Wait until the output queue is empty
+  while (true) {
+    {
+      std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+      if (m_output_queue.empty()) {
+        break;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+}
+
 
 void
 MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {

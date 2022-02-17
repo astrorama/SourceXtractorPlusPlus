@@ -429,22 +429,25 @@ public:
     measurement->startThreads();
 
     size_t n_total_writen_rows = 0;
+    size_t frame_number = 0;
     for (auto& detection_frame : detection_frames) {
+      frame_number++;
       try {
         // Process the image
-        logger.info() << "Processing frame " << detection_frame->getLabel();
+        logger.info() << "Processing frame "
+            << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
         segmentation->processFrame(detection_frame);
       }
       catch (const std::exception &e) {
         logger.error() << "Failed to process the frame! " << e.what();
-        measurement->waitForThreads();
+        measurement->stopThreads();
         return Elements::ExitCode::NOT_OK;
       }
 
       if (prefetcher) {
-        prefetcher->wait();
+        prefetcher->synchronize();
       }
-      measurement->waitForThreads();
+      measurement->synchronizeThreads();
 
       size_t n_writen_rows = output->flush();
       n_total_writen_rows += n_writen_rows;
@@ -452,6 +455,11 @@ public:
 
       logger.info() << n_writen_rows << " sources detected in frame, " << n_total_writen_rows << " total";
     }
+
+    if (prefetcher) {
+      prefetcher->wait();
+    }
+    measurement->stopThreads();
 
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
