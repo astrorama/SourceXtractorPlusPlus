@@ -65,7 +65,7 @@ public:
   explicit Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps);
 
   /// Handles a new SourceGroup, applies the DeblendSteps and then notifies the observers with the result
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
+  void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
 
   /// Returns the set of required properties to compute the deblending
   std::set<PropertyId> requiredProperties() const;

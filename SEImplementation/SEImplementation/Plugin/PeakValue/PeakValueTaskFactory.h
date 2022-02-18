@@ -40,7 +40,7 @@ public:
   virtual ~PeakValueTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override {
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override {
     if (property_id == PropertyId::create<PeakValue>()) {
       return std::make_shared<PeakValueTask>();
     } else {

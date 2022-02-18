@@ -15,32 +15,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /*
- * MeasurementFrameGroupRectanglePlugin.h
+ * ErrorEllipseTask.h
  *
- *  Created on: Sep 5, 2018
- *      Author: Alejandro Alvarez Ayllon
+ *  Created on: Feb 11 2022
+ *      Author: mkuemmel
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASK_H_
 
-#include "SEFramework/Plugin/Plugin.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
 
-class MeasurementFrameGroupRectanglePlugin : public Plugin {
+class ErrorEllipseTask : public SourceTask {
 
 public:
 
-  virtual ~MeasurementFrameGroupRectanglePlugin() = default;
+  virtual ~ErrorEllipseTask() = default;
 
-  void registerPlugin(PluginAPI& plugin_api) override;
-  std::string getIdString() const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
 
 };
 
-} // end SourceXtractor
+}
 
-#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
+#endif /* _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASK_H_ */

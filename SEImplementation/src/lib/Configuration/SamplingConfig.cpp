@@ -44,7 +44,7 @@ auto SamplingConfig::getProgramOptions() -> std::map<std::string, OptionDescript
   }};
 }
 
-void SamplingConfig::preInitialize(const UserValues& args) {
+void SamplingConfig::preInitialize(const UserValues& ) {
 }
 
 void SamplingConfig::initialize(const UserValues& args) {

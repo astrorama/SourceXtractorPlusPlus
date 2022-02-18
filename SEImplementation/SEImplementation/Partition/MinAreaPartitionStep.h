@@ -42,7 +42,7 @@ public:
   /// Constructor
   explicit MinAreaPartitionStep(unsigned int min_pixel_count);
 
-  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
+  std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
 
 
 private:

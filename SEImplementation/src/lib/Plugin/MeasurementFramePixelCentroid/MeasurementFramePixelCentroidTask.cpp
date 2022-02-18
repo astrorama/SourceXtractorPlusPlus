@@ -43,7 +43,7 @@ void MeasurementFramePixelCentroidTask::computeProperties(SourceInterface& sourc
     source.setIndexedProperty<MeasurementFramePixelCentroid>(m_instance, measurement_image_coordinate.m_x,
                                                              measurement_image_coordinate.m_y);
   }
-  catch (const InvalidCoordinatesException) {
+  catch (const InvalidCoordinatesException&) {
     source.setIndexedProperty<MeasurementFramePixelCentroid>(m_instance, true);
   }
 }

@@ -40,7 +40,7 @@ public:
     m_instance(instance),
     m_measurement_frame(measurement_frame) {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned int m_instance;
@@ -57,7 +57,7 @@ public:
 
   explicit DefaultMeasurementFrameTask(unsigned int instance) : m_instance(instance) {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned int m_instance;

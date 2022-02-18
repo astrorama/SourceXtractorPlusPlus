@@ -156,7 +156,7 @@ public:
    */
   virtual ~VectorImage() = default;
 
-  virtual std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
+  std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const override {
     return ImageChunk<T>::create(m_data, x + y * m_width, width, height, m_width);
   }
 

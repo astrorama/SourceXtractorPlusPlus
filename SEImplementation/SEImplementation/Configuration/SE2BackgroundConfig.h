@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file BackgroundConfiguration.h
  * @author nikoapos
  */
@@ -28,17 +28,17 @@
 namespace SourceXtractor {
 
 class SE2BackgroundConfig : public Euclid::Configuration::Configuration {
-  
+
 public:
-  
+
   explicit SE2BackgroundConfig(long manager_id);
-  
+
   virtual ~SE2BackgroundConfig() = default;
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
-  
+
   void initialize(const UserValues& args) override;
-  
+
   std::vector<int> getCellSize() const {
     return m_cell_size;
   }
@@ -47,15 +47,9 @@ public:
     return m_smoothing_box;
   }
 
-  bool useLegacy() const {
-    return m_legacy;
-  }
-
 private:
   std::vector<int> m_cell_size;
   std::vector<int> m_smoothing_box;
-  bool m_legacy;
-
 };
 
 } /* namespace SourceXtractor */

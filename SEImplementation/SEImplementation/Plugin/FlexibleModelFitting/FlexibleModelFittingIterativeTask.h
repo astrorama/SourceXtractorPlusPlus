@@ -52,7 +52,7 @@ public:
 
   virtual ~FlexibleModelFittingIterativeTask();
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  void computeProperties(SourceGroupInterface& group) const override;
 
 private:
   struct SourceState {

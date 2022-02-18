@@ -15,32 +15,31 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /*
- * MeasurementFrameGroupRectanglePlugin.h
+ * ErrorEllipseTaskFactory.h
  *
- *  Created on: Sep 5, 2018
- *      Author: Alejandro Alvarez Ayllon
+ *  Created on: Feb 11 2022
+ *      Author: mkuemmel
  */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASKFACTORY_H_
+#define _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASKFACTORY_H_
 
-#include "SEFramework/Plugin/Plugin.h"
+#include "SEFramework/Task/TaskFactory.h"
 
 namespace SourceXtractor {
 
-class MeasurementFrameGroupRectanglePlugin : public Plugin {
-
+class ErrorEllipseTaskFactory : public TaskFactory {
 public:
+  ErrorEllipseTaskFactory() {}
 
-  virtual ~MeasurementFrameGroupRectanglePlugin() = default;
+  /// Destructor
+  virtual ~ErrorEllipseTaskFactory() = default;
 
-  void registerPlugin(PluginAPI& plugin_api) override;
-  std::string getIdString() const override;
-
-private:
-
+  // TaskFactory implementation
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 };
 
-} // end SourceXtractor
 
-#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMEGROUPRECTANGLE_MEASUREMENTFRAMEGROUPRECTANGLEPLUGIN_H_
+} /* namespace SourceXtractor */
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSETASKFACTORY_H_ */
