@@ -32,8 +32,8 @@ namespace SourceXtractor {
 class ShapeParameters : public Property {
 public:
 
-  ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat area)
-    : m_a(a), m_b(b), m_theta(theta), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_area(area) {}
+	  ShapeParameters(SeFloat a, SeFloat b, SeFloat theta, SeFloat abcor, SeFloat cxx, SeFloat cyy, SeFloat cxy, SeFloat area, SeFloat intensity, bool singu)
+	    : m_a(a), m_b(b), m_theta(theta), m_abcor(abcor), m_cxx(cxx), m_cyy(cyy), m_cxy(cxy), m_area(area), m_intensity(intensity), m_singu_flag(singu) {}
 
   virtual ~ShapeParameters() = default;
 
@@ -104,12 +104,21 @@ public:
     return 1 - m_b / m_a;
   }
 
+  SeFloat getIntensity() const {
+    return m_intensity;
+  }
+
+  bool getSinguFlag() const {
+    return m_singu_flag;
+  }
+
 private:
-  SeFloat m_a, m_b, m_theta; // Ellipse semi-major axis, semi-minor axis, and angle
+  SeFloat m_a, m_b, m_theta; // ellipse semi-major axis, semi-minor axis, and angle
   SeFloat m_abcor;
   SeFloat m_cxx, m_cyy, m_cxy;
   SeFloat m_area;
-
+  SeFloat m_intensity;
+  bool m_singu_flag;
 };
 
 }
