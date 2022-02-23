@@ -37,7 +37,6 @@
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/FITS/FitsWriter.h"
 #include "SEImplementation/Background/SimpleBackgroundAnalyzer.h"
-#include "SEImplementation/Background/SE2/SE2BackgroundLevelAnalyzer.h"
 #include "SEImplementation/Background/SE/SEBackgroundLevelAnalyzer.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
@@ -64,12 +63,11 @@ private:
   std::vector<int> m_cell_size, m_smooth;
 
   enum class Algorithm {
-    SIMPLE, SE2, NG
+    SIMPLE, NG
   } m_algorithm;
 
   std::map<std::string, Algorithm> s_algo_map{
     {"simple", Algorithm::SIMPLE},
-    {"se2",    Algorithm::SE2},
     {"ng",     Algorithm::NG}
   };
 
@@ -97,8 +95,6 @@ private:
     switch (m_algorithm) {
       case Algorithm::SIMPLE:
         return Euclid::make_unique<SimpleBackgroundAnalyzer>();
-      case Algorithm::SE2:
-        return Euclid::make_unique<SE2BackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
       case Algorithm::NG:
         return Euclid::make_unique<SEBackgroundLevelAnalyzer>(m_cell_size, m_smooth, m_weight_config.getWeightType());
     }
@@ -122,7 +118,7 @@ public:
       ("output", po::value<std::string>(), "Output image for the background")
       ("output-variance", po::value<std::string>(), "Output image for the variance")
       ("output-area", po::value<std::string>()->default_value(boost::filesystem::temp_directory_path().native()), "Output area")
-      ("algorithm", po::value<std::string>()->required(), "Algorithm to use: Simple, SE2")
+      ("algorithm", po::value<std::string>()->required(), "Algorithm to use: Simple, ng")
       ("cell-size", po::value<std::string>()->default_value("64"), "Cell size for the histogram")
       ("smooth-size", po::value<std::string>()->default_value("3"), "Box size for the median filtering")
       ("no-write", po::bool_switch(), "Do not write the image (skip interpolation)")

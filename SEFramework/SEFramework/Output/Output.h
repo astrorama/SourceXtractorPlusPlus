@@ -38,11 +38,11 @@ public:
 
   virtual ~Output() = default;
 
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
+  void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
     outputSource(*source);
   }
 
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
+  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
     for (auto& source : *source_group) {
       outputSource(source);
     }

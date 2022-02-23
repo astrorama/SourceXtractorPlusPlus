@@ -132,12 +132,6 @@ elements_add_python_module(SourceXtractorPy
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
-elements_add_unit_test(BackgroundCell_test tests/src/Background/BackgroundCell_test.cpp
-		             LINK_LIBRARIES SEImplementation
-		             TYPE Boost)
-elements_add_unit_test(BackgroundHistogram_test tests/src/Background/BackgroundHistogram_test.cpp
-		             LINK_LIBRARIES SEImplementation
-		             TYPE Boost)
 elements_add_unit_test(KappaSigmaBinning_test tests/src/Background/KappaSigmaBinning_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)

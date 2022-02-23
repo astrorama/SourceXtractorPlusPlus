@@ -35,7 +35,7 @@ public:
 
   PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
 
-  virtual void computeProperties(SourceGroupInterface& source) const override;
+  void computeProperties(SourceGroupInterface& source) const override;
 
   typedef std::function<double(SourceXtractor::SourceGroupInterface &group, unsigned instance)> ValueGetter;
   static std::map<std::string, ValueGetter> component_value_getters;

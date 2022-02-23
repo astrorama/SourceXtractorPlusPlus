@@ -42,7 +42,7 @@ public:
     m_kron_minrad(kron_minrad),
     m_use_symmetry(use_symmetry) {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned m_instance;

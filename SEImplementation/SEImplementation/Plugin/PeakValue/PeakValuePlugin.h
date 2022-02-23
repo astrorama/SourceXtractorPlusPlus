@@ -34,8 +34,8 @@ public:
 
   virtual ~PeakValuePlugin() = default;
 
-  virtual void registerPlugin(PluginAPI& plugin_api) override;
-  virtual std::string getIdString() const override;
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
 
 private:
 

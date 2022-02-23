@@ -14,21 +14,6 @@
 
 namespace SourceXtractor {
 
-namespace {
-/**
- * Pretty-print a vector with shape information
- */
-static std::string formatShape(const std::vector<int64_t>& shape) {
-  std::ostringstream stream;
-  for (auto i = shape.begin(); i != shape.end() - 1; ++i) {
-    stream << *i << " x ";
-  }
-  stream << shape.back();
-  return stream.str();
-}
-
-}
-
 OnnxModel::OnnxModel(const std::string& model_path) {
   m_model_path = model_path;
 
@@ -42,7 +27,7 @@ OnnxModel::OnnxModel(const std::string& model_path) {
     throw Elements::Exception() << "Only ONNX models with a single output tensor are supported";
   }
 
-  for (int i=0; i<m_session->GetInputCount(); i++) {
+  for (size_t i=0; i<m_session->GetInputCount(); i++) {
     auto input_type = m_session->GetInputTypeInfo(i);
 
     m_input_names.emplace_back(m_session->GetInputName(i, allocator));

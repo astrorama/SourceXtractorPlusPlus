@@ -31,14 +31,13 @@ namespace SourceXtractor {
 class DummyMeasurement : public Measurement {
 public:
 
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
+  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
     notifyObservers(source_group);
   }
 
   virtual void startThreads() {};
   virtual void stopThreads() {};
   virtual void synchronizeThreads() {};
-
 };
 
 }

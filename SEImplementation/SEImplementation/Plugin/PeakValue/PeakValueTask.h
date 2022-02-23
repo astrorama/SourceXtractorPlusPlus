@@ -36,7 +36,7 @@ public:
 
   virtual ~PeakValueTask() = default;
 
-  virtual void computeProperties(SourceInterface& source) const override {
+  void computeProperties(SourceInterface& source) const override {
     // FIXME is it correct to use filtered values?
     const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();
 

@@ -53,15 +53,17 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
 
   auto i = pixel_values.begin();
   for (auto pixel_coord : coordinates) {
-    SeFloat value = *i++;
+	SeFloat value = *i++;
+	SeFloat x_pos = pixel_coord.m_x - centroid_x;
+	SeFloat y_pos = pixel_coord.m_y - centroid_y;
 
     if (value > half_peak_threshold) {
       nb_of_pixels_above_half++;
     }
 
-    x_2 += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_x - centroid_x) * value;
-    y_2 += (pixel_coord.m_y - centroid_y) * (pixel_coord.m_y - centroid_y) * value;
-    x_y += (pixel_coord.m_x - centroid_x) * (pixel_coord.m_y - centroid_y) * value;
+    x_2 += x_pos * x_pos * value;
+    y_2 += y_pos * y_pos * value;
+    x_y += x_pos * y_pos * value;
 
     total_intensity += value;
   }
@@ -84,11 +86,12 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
 
   // From original SExtractor: Handle fully correlated x/y (which cause a singularity...)
   SeFloat tmp = x_2 * y_2 - x_y * x_y;
-
+  bool singu=false;
   if (tmp < 0.00694) {
     x_2 += 0.0833333;
     y_2 += 0.0833333;
     tmp = x_2 * y_2 - x_y * x_y;
+    singu=true;
   }
 
   SeFloat cxx = y_2 / tmp;
@@ -98,8 +101,6 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   SeFloat area_under_half = (double) pixel_values.size() - nb_of_pixels_above_half;
   SeFloat t1t2 = min_value / half_peak_threshold;
 
-  //std::cout << "a "<< a << " b " << b << " t1t2 " << t1t2 << " area " << area_under_half << "     " << min_value << " " << half_peak_threshold << std::endl;
-
   SeFloat abcor = 1.0;
   if (t1t2 > 0.0) { // && !prefs.dweight_flag
     abcor = (area_under_half > 0.0 ? area_under_half : 1.0) / (2 * M_PI * -log(t1t2 < 1.0 ? t1t2 : 0.99) * a * b);
@@ -108,8 +109,8 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
     }
   }
 
-  //std::cout << "abcor " << abcor << std::endl;
-  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels);
+  // set the object property
+  source.setProperty<ShapeParameters>(a, b, theta, abcor, cxx, cyy, cxy, nb_of_pixels, total_intensity, singu);
 }
 
 

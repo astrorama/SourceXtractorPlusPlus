@@ -50,23 +50,23 @@ public:
     return m_temp_file.path().native();
   }
 
-  virtual std::string getRepr() const override {
+  std::string getRepr() const override {
     return getFullPath();
   }
 
-  virtual std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
+  std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
     return m_image_source->getImageTile(x, y, width, height);
   }
 
-  virtual void saveTile(ImageTile& tile) override {
+  void saveTile(ImageTile& tile) override {
     return m_image_source->saveTile(tile);
   }
 
-  virtual int getWidth() const override {
+  int getWidth() const override {
     return m_image_source->getWidth();
   }
 
-  virtual int getHeight() const override {
+  int getHeight() const override {
     return m_image_source->getHeight();
   }
 
