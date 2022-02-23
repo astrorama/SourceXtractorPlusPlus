@@ -48,7 +48,11 @@ public:
   void initialize(const UserValues& args) override;
 
   std::shared_ptr<WeightImage> getWeightImage(size_t index = 0) const {
-    return m_weight_images.at(index);
+    try {
+      return m_weight_images.at(index);
+    } catch(...) {
+      return nullptr;
+    }
   }
 
   WeightType getWeightType() const {

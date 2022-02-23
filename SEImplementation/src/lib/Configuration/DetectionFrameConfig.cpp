@@ -55,7 +55,7 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
     auto detection_image_saturation = getDependency<DetectionImageConfig>().getSaturation(i);
     auto interpolation_gap = getDependency<DetectionImageConfig>().getInterpolationGap(i);
 
-    auto weight_image = getDependency<WeightImageConfig>().getWeightImage();
+    auto weight_image = getDependency<WeightImageConfig>().getWeightImage(i);
     bool is_weight_absolute = getDependency<WeightImageConfig>().isWeightAbsolute();
     auto weight_threshold = getDependency<WeightImageConfig>().getWeightThreshold();
 

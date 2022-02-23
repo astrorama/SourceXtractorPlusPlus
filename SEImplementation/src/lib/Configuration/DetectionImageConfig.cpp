@@ -21,6 +21,11 @@
  */
 #include "Configuration/ConfigManager.h"
 
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
+
 #include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/Image/BufferedImage.h>
 #include "SEFramework/FITS/FitsImageSource.h"
@@ -72,18 +77,28 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
 
+  boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+
   for (int i=0;; i++) {
     DetectionImageExtension extension;
 
     std::shared_ptr<FitsImageSource> fits_image_source;
-    try {
-      fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, i+1, ImageTile::FloatImage);
-    } catch (...) {
+    if (boost::regex_match(m_detection_image_path, hdu_regex)) {
       if (i==0) {
-        // Skip past primary HDU if it doesn't have an image
-        continue;
+        fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, 0, ImageTile::FloatImage);
       } else {
         break;
+      }
+    } else {
+      try {
+        fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, i+1, ImageTile::FloatImage);
+      } catch (...) {
+        if (i==0) {
+          // Skip past primary HDU if it doesn't have an image
+          continue;
+        } else {
+          break;
+        }
       }
     }
 

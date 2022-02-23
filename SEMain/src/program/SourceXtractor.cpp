@@ -428,7 +428,7 @@ public:
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
 
-    size_t n_total_writen_rows = 0;
+    size_t prev_writen_rows = 0;
     size_t frame_number = 0;
     for (auto& detection_frame : detection_frames) {
       frame_number++;
@@ -449,11 +449,12 @@ public:
       }
       measurement->synchronizeThreads();
 
-      size_t n_writen_rows = output->flush();
-      n_total_writen_rows += n_writen_rows;
+      size_t nb_writen_rows = output->flush();
       output->nextPart();
 
-      logger.info() << n_writen_rows << " sources detected in frame, " << n_total_writen_rows << " total";
+      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+
+      prev_writen_rows = nb_writen_rows;
     }
 
     if (prefetcher) {
@@ -465,8 +466,8 @@ public:
     TileManager::getInstance()->flush();
     progress_mediator->done();
 
-    if (n_total_writen_rows > 0) {
-      logger.info() << "total " << n_total_writen_rows << " sources detected";
+    if (prev_writen_rows > 0) {
+      logger.info() << "total " << prev_writen_rows << " sources detected";
     } else {
       logger.info() << "NO SOURCES DETECTED";
     }

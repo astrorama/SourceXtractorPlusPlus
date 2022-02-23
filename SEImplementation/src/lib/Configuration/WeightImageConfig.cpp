@@ -23,6 +23,10 @@
 
 #include <limits>
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
 
 #include "Configuration/ConfigManager.h"
 
@@ -134,16 +138,26 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
 
   if (weight_image_filename != "") {
+    boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+
     for (int i=0;; i++) {
       std::shared_ptr<FitsImageSource> fits_image_source;
-      try {
-        fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, i+1, ImageTile::FloatImage);
-      } catch (...) {
+      if (boost::regex_match(weight_image_filename, hdu_regex)) {
         if (i==0) {
-          // Skip past primary HDU if it doesn't have an image
-          continue;
+          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, 0, ImageTile::FloatImage);
         } else {
           break;
+        }
+      } else {
+        try {
+          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, i+1, ImageTile::FloatImage);
+        } catch (...) {
+          if (i==0) {
+            // Skip past primary HDU if it doesn't have an image
+            continue;
+          } else {
+            break;
+          }
         }
       }
 
