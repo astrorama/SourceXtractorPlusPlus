@@ -156,6 +156,9 @@ void WeightImageConfig::initialize(const UserValues& args) {
             // Skip past primary HDU if it doesn't have an image
             continue;
           } else {
+            if (m_weight_images.size() == 0) {
+              throw Elements::Exception() << "Can't find 2D image in FITS file: " << weight_image_filename;
+            }
             break;
           }
         }

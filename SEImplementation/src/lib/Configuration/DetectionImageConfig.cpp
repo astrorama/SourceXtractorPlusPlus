@@ -47,7 +47,6 @@ static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interp
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id)
-//    m_gain(0), m_saturation(0), m_flux_scale(1.0), m_interpolation_gap(0) {
 {}
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
@@ -97,6 +96,9 @@ void DetectionImageConfig::initialize(const UserValues& args) {
           // Skip past primary HDU if it doesn't have an image
           continue;
         } else {
+          if (m_extensions.size() == 0) {
+            throw Elements::Exception() << "Can't find 2D image in FITS file: " << m_detection_image_path;
+          }
           break;
         }
       }
