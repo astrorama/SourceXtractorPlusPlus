@@ -117,10 +117,10 @@ void WeightImageConfig::initialize(const UserValues& args) {
   m_weight_type = weight_iter->second;
   m_weight_scaling = args.find(WEIGHT_SCALING)->second.as<double>();
 
+  auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale();
   if (m_weight_image != nullptr) {
     m_weight_image = convertWeightMap(m_weight_image, m_weight_type, m_weight_scaling);
 
-    auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale();
     if (flux_scale != 1. && m_absolute_weight) {
       m_weight_image = MultiplyImage<WeightImage::PixelType>::create(m_weight_image, flux_scale * flux_scale);
     }
@@ -129,6 +129,10 @@ void WeightImageConfig::initialize(const UserValues& args) {
   if (args.count(WEIGHT_THRESHOLD) != 0) {
     auto threshold = args.find(WEIGHT_THRESHOLD)->second.as<double>();
     m_weight_threshold = computeWeightThreshold(m_weight_type, threshold);
+    if (flux_scale != 1. && m_absolute_weight){
+	// adjust the m_weight_threshold
+	m_weight_threshold *= flux_scale;
+    }
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
   }
