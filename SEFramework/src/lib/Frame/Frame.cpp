@@ -188,7 +188,14 @@ void Frame<T>::setVarianceMap(std::shared_ptr<WeightImage> variance_map) {
 
 template<typename T>
 void Frame<T>::setVarianceThreshold(WeightImage::PixelType threshold) {
-  m_variance_threshold = threshold;
+
+  // set the variance threshold if it make sense
+  if (m_variance_threshold < std::numeric_limits<WeightImage::PixelType>::max()){
+    m_variance_threshold = threshold;
+  }
+  else{
+    return;
+  }
 
   // resets the interpolated image cache and filtered image
   m_interpolated_image = nullptr;

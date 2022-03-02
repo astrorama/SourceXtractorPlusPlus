@@ -452,8 +452,11 @@ public:
       if (is_weight_absolute) {
         detection_frame->setVarianceMap(weight_image);
       } else {
-        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
+	// apply the rms scaling factor from the background
+    	auto bck_scaling_factor = background_model.getScalingFactor();
+        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, bck_scaling_factor);
         detection_frame->setVarianceMap(scaled_image);
+        detection_frame->setVarianceThreshold(detection_frame->getVarianceThreshold()*bck_scaling_factor);
       }
     } else {
         logger.info() << "Variance map from background model";
