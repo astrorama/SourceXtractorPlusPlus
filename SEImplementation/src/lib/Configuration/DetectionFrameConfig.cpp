@@ -56,8 +56,8 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
     auto interpolation_gap = getDependency<DetectionImageConfig>().getInterpolationGap(i);
 
     auto weight_image = getDependency<WeightImageConfig>().getWeightImage(i);
+    auto weight_threshold = getDependency<WeightImageConfig>().getWeightThreshold(i);
     bool is_weight_absolute = getDependency<WeightImageConfig>().isWeightAbsolute();
-    auto weight_threshold = getDependency<WeightImageConfig>().getWeightThreshold();
 
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
@@ -74,8 +74,11 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
       if (is_weight_absolute) {
         detection_frame->setVarianceMap(weight_image);
       } else {
-        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
+        // apply the rms scaling factor from the background
+        auto bck_scaling_factor = background_model.getScalingFactor();
+        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, bck_scaling_factor);
         detection_frame->setVarianceMap(scaled_image);
+        detection_frame->setVarianceThreshold(detection_frame->getVarianceThreshold()*bck_scaling_factor);
       }
     } else {
       // re-set the variance check image to what's in the detection_frame()

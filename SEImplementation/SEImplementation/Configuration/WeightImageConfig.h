@@ -63,8 +63,12 @@ public:
     return m_absolute_weight;
   }
 
-  WeightImage::PixelType getWeightThreshold() const {
-    return m_weight_threshold;
+  WeightImage::PixelType getWeightThreshold(size_t index = 0) const {
+    try {
+      return m_scaled_weight_thresholds.at(index);
+    } catch(...) {
+      return m_weight_threshold;
+    }
   }
 
   bool symmetryUsage() const {
@@ -76,6 +80,7 @@ public:
 private:
 
   std::vector<std::shared_ptr<WeightImage>> m_weight_images;
+  std::vector<WeightImage::PixelType> m_scaled_weight_thresholds;
 
   WeightType m_weight_type;
   bool m_absolute_weight;

@@ -136,7 +136,6 @@ void WeightImageConfig::initialize(const UserValues& args) {
   if (m_absolute_weight && weight_image_filename == "")
     throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
 
-
   if (weight_image_filename != "") {
     boost::regex hdu_regex(".*\\[[0-9]*\\]$");
 
@@ -169,11 +168,18 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
       // we should have a corresponding detection image
       auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale(m_weight_images.size());
+
+      WeightImage::PixelType scaled_weight_threshold = m_weight_threshold;
       if (flux_scale != 1. && m_absolute_weight) {
         weight_image = MultiplyImage<WeightImage::PixelType>::create(weight_image, flux_scale * flux_scale);
+        if (scaled_weight_threshold < std::numeric_limits<WeightImage::PixelType>::max()){
+          // adjust the weight threshold
+          scaled_weight_threshold *= flux_scale;
+        }
       }
 
       m_weight_images.emplace_back(weight_image);
+      m_scaled_weight_thresholds.emplace_back(scaled_weight_threshold);
     }
   }
 }
