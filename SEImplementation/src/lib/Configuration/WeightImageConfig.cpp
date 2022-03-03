@@ -131,7 +131,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
     m_weight_threshold = computeWeightThreshold(m_weight_type, threshold);
     if (flux_scale != 1. && m_absolute_weight){
 	// adjust the m_weight_threshold
-	m_weight_threshold *= flux_scale;
+	m_weight_threshold *= flux_scale * flux_scale;
     }
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
