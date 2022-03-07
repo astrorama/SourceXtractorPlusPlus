@@ -174,7 +174,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
         weight_image = MultiplyImage<WeightImage::PixelType>::create(weight_image, flux_scale * flux_scale);
         if (scaled_weight_threshold < std::numeric_limits<WeightImage::PixelType>::max()){
           // adjust the weight threshold
-          scaled_weight_threshold *= flux_scale;
+          scaled_weight_threshold *= flux_scale * flux_scale;
         }
       }
 
