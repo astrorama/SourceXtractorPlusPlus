@@ -153,7 +153,7 @@ void Prefetcher::synchronize() {
         break;
       }
       else if (m_thread_pool->checkForException(false)) {
-        logger.fatal() << "An exception was thrown while computing a required property";
+        logger.fatal() << "An exception was thrown from a worker thread";
         m_thread_pool->checkForException(true);
       }
       else if (m_thread_pool->activeThreads() == 0) {
