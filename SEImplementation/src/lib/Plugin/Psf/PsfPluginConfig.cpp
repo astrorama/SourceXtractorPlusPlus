@@ -20,6 +20,7 @@
  *  Created on: Jun 25, 2018
  *      Author: Alejandro Álvarez Ayllón (greatly adapted from mschefer's code)
  */
+#include <boost/algorithm/string.hpp>
 
 #include "SEImplementation/Plugin/Psf/PsfPluginConfig.h"
 #include "SEFramework/Psf/VariablePsf.h"
@@ -33,6 +34,8 @@ namespace po = boost::program_options;
 using Euclid::Configuration::Configuration;
 
 static auto logger = Elements::Logging::getLogger("PsfPlugin");
+
+namespace fs = boost::filesystem;
 
 namespace SourceXtractor {
 
@@ -159,6 +162,11 @@ static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
 /// Reads a PSF from a fits file. The image must be square and have sides of odd
 /// number of pixels.
 std::shared_ptr<Psf> PsfPluginConfig::readPsf(const std::string& filename, int hdu_number) {
+
+  // check whether the filename points to a delta function as PSF or NOPSF
+  if (boost::to_upper_copy(fs::path(filename).filename().string())=="NOPSF")
+    return generateNoPsf();
+
   try {
     // Read the HDU from the file
     std::unique_ptr<CCfits::FITS> pFits{new CCfits::FITS(filename, CCfits::Read)};
@@ -215,10 +223,22 @@ std::shared_ptr<Psf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat 
   return std::make_shared<VariablePsf>(pixel_sampling, kernel);
 }
 
+std::shared_ptr<Psf> PsfPluginConfig::generateNoPsf() {
+
+  // create the trivial kernel and set the value
+  auto kernel = VectorImage<SeFloat>::create(1, 1);
+  kernel->setValue(0, 0, 1.0);
+
+  // some feedback
+  logger.info() << "Using NoPsf!";
+
+  return std::make_shared<VariablePsf>(1.0, kernel);
+}
+
 std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::getProgramOptions() {
   return {{"Variable PSF", {
     {PSF_FILE.c_str(), po::value<std::string>(),
-        "Psf image file (FITS format)."},
+        "Psf file (PSFEx/psfStack/image/NOPSF)."},
     {PSF_FWHM.c_str(), po::value<double>(),
        "Generate a gaussian PSF with the given full-width half-maximum (in pixels)"},
     {PSF_PIXEL_SAMPLING.c_str(), po::value<double>(),
@@ -236,7 +256,13 @@ void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::
 
 void PsfPluginConfig::initialize(const UserValues &args) {
   if (args.find(PSF_FILE) != args.end()) {
-    m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
+      auto psf_file = args.find(PSF_FILE)->second.as<std::string>();
+      logger.debug() << "Provided by user: " << psf_file;
+      if (boost::to_upper_copy(psf_file) == "NOPSF"){
+	  m_vpsf = generateNoPsf();
+    } else {
+	  m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
+    }
   } else if (args.find(PSF_FWHM) != args.end()) {
     m_vpsf = generateGaussianPsf(args.find(PSF_FWHM)->second.as<double>(),
                                 args.find(PSF_PIXEL_SAMPLING)->second.as<double>());

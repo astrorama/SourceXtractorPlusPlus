@@ -44,6 +44,7 @@ public:
 
   static std::shared_ptr<Psf> readPsf(const std::string &filename, int hdu_number = 1);
   static std::shared_ptr<Psf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling);
+  static std::shared_ptr<Psf> generateNoPsf();
 
 private:
   std::shared_ptr<Psf> m_vpsf;
