@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,24 +15,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "SEFramework/Property/DetectionFrame.h"
-
-
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
-#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfoTask.h"
+
+#include "SEImplementation/Plugin/HduNumber/HduNumber.h"
+#include "SEImplementation/Plugin/HduNumber/HduNumberTask.h"
 
 namespace SourceXtractor {
 
-void DetectionFrameInfoTask::computeProperties(SourceInterface& source) const {
-  auto detection_frame = source.getProperty<DetectionFrame>().getFrame();
-  auto width = detection_frame->getOriginalImage()->getWidth();
-  auto height = detection_frame->getOriginalImage()->getHeight();
+void HduNumberTask::computeProperties(SourceInterface& source) const {
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
 
-  source.setProperty<DetectionFrameInfo>(width, height,
-      detection_frame->getGain(), detection_frame->getSaturation(),
-      detection_frame->getVarianceThreshold(), detection_frame->getBackgroundMedianRms(),
-      detection_frame->getMetadata(), detection_frame->getHduIndex());
+  source.setProperty<HduNumber>(detection_frame_info.getHduIndex());
 }
 
-} // SEImplementation namespace
+}
+
 

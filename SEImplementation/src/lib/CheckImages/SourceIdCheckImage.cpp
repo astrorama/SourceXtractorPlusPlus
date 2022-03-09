@@ -21,6 +21,7 @@
  *      Author: mschefer
  */
 
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
@@ -30,7 +31,8 @@
 namespace SourceXtractor {
 
 void SourceIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto check_image = CheckImages::getInstance().getPartitionImage();
+  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+  auto check_image = CheckImages::getInstance().getPartitionImage(hdu_index);
   if (check_image != nullptr) {
     for (auto& source : *group) {
       auto coordinates = source.getProperty<PixelCoordinateList>();

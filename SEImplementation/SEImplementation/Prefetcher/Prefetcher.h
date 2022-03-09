@@ -91,6 +91,13 @@ public:
    */
   void wait();
 
+  /**
+   * Wait until the queue is empty but don't stop the thread
+   */
+
+  void synchronize();
+
+
 private:
   struct EventType {
     enum Type {

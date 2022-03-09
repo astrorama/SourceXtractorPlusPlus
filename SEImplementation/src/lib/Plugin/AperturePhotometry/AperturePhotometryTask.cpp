@@ -107,7 +107,7 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   source.setIndexedProperty<AperturePhotometry>(m_instance, fluxes, fluxes_error, mags, mags_error, flags);
 
   // draw the apertures onto the checkimage
-  auto aperture_check_img = CheckImages::getInstance().getApertureImage(m_instance);
+  auto aperture_check_img = CheckImages::getInstance().getMeasurementApertureImage(m_instance);
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
     for (auto aperture_diameter : m_apertures) {

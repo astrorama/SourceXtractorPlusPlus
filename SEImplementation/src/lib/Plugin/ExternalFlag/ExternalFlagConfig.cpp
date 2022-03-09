@@ -23,6 +23,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
+
 #include "Configuration/ProgramOptionsHelper.h"
 
 #include "SEFramework/FITS/FitsReader.h"
@@ -87,7 +92,35 @@ void ExternalFlagConfig::initialize(const UserValues& args) {
   for (auto& name : poh::findWildcardNames({FLAG_IMAGE, FLAG_TYPE}, args)) {
     
     auto& filename = args.at(poh::wildcard(FLAG_IMAGE, name)).as<std::string>();
-    auto image = FitsReader<std::int64_t>::readFile(filename);
+    std::vector<std::shared_ptr<FlagImage>> flag_images;
+    boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+
+    for (int i=0;; i++) {
+      std::shared_ptr<FitsImageSource> fits_image_source;
+      if (boost::regex_match(filename, hdu_regex)) {
+        if (i==0) {
+          fits_image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::LongLongImage);
+        } else {
+          break;
+        }
+      } else {
+        try {
+          fits_image_source = std::make_shared<FitsImageSource>(filename, i+1, ImageTile::LongLongImage);
+        } catch (...) {
+          if (i==0) {
+            // Skip past primary HDU if it doesn't have an image
+            continue;
+          } else {
+            if (flag_images.size() == 0) {
+              throw;
+            }
+            break;
+          }
+        }
+      }
+
+      flag_images.emplace_back(BufferedImage<std::int64_t>::create(fits_image_source));
+    }
     
     std::string type_str;
     if (args.count(poh::wildcard(FLAG_TYPE, name)) == 0) {
@@ -97,7 +130,7 @@ void ExternalFlagConfig::initialize(const UserValues& args) {
     }
     Type type = available_types.at(type_str);
     
-    m_flag_info_list.emplace_back(name, FlagInfo{std::move(image), type});
+    m_flag_info_list.emplace_back(name, FlagInfo{std::move(flag_images), type});
   }
 }
 

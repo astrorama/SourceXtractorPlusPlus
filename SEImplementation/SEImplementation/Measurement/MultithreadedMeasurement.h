@@ -51,7 +51,8 @@ public:
   void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
 
   void startThreads() override;
-  void waitForThreads() override;
+  void stopThreads() override;
+  void synchronizeThreads() override;
 
 private:
   static void outputThreadStatic(MultithreadedMeasurement* measurement);

@@ -51,13 +51,13 @@ public:
   
   virtual ~ExternalFlagTask();
   
-  ExternalFlagTask(std::shared_ptr<FlagImage> flag_image, unsigned int flag_instance);
+  ExternalFlagTask(const std::vector<std::shared_ptr<FlagImage>>& flag_images, unsigned int flag_instance);
 
   void computeProperties(SourceInterface& source) const override;
 
 private:
   
-  std::unique_ptr<ImageAccessor<FlagImage::PixelType>> m_flag_image;
+  std::vector<std::shared_ptr<FlagImage>> m_flag_images;
   unsigned int m_flag_instance;
   
 };
