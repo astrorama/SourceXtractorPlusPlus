@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,33 +14,36 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * DummyMeasurement.h
- *
- *  Created on: May 17, 2018
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
-#define _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBERTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBERTASK_H_
 
-#include "SEFramework/Pipeline/Measurement.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
 
-class DummyMeasurement : public Measurement {
+/**
+ * @class HduNumberTask
+ * @brief Task to produce the HduNumber Property
+ *
+ */
+
+class HduNumberTask : public SourceTask {
 public:
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    notifyObservers(source_group);
-  }
+  /**
+   * @brief Destructor
+   */
+  virtual ~HduNumberTask() = default;
+  HduNumberTask() {}
 
-  virtual void startThreads() {};
-  virtual void stopThreads() {};
-  virtual void synchronizeThreads() {};
-};
+  void computeProperties(SourceInterface& source) const override;
 
-}
+private:
+
+}; /* End of HduNumberTask class */
 
 
-#endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_ */
+} /* namespace SourceXtractor */
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBERTASK_H_ */

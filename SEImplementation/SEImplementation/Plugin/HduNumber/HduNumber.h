@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,33 +14,33 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * DummyMeasurement.h
- *
- *  Created on: May 17, 2018
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
-#define _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBER_H_
+#define _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBER_H_
 
-#include "SEFramework/Pipeline/Measurement.h"
+#include "SEUtils/Types.h"
+#include "SEFramework/Property/Property.h"
 
 namespace SourceXtractor {
 
-class DummyMeasurement : public Measurement {
+class HduNumber : public Property {
 public:
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    notifyObservers(source_group);
+  explicit HduNumber(unsigned int hdu_number) : m_hdu_number(hdu_number) {}
+
+  /**
+   * @brief Destructor
+   */
+  virtual ~HduNumber() = default;
+
+  unsigned int getHduNumber() const {
+    return m_hdu_number;
   }
 
-  virtual void startThreads() {};
-  virtual void stopThreads() {};
-  virtual void synchronizeThreads() {};
+private:
+  unsigned int m_hdu_number;
 };
 
 }
 
-
-#endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_ */
+#endif /* _SEIMPLEMENTATION_PLUGIN_HDUNUMBER_HDUNUMBER_H_ */

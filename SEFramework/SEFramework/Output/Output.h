@@ -52,6 +52,8 @@ public:
 
   /// @return Number of elements written
   virtual size_t flush() = 0;
+
+  virtual void nextPart() = 0;
 };
 
 }

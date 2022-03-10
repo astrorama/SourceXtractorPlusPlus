@@ -142,10 +142,11 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
-        if (threshold>0)
+        if (threshold > 0) {
           threshold = 1.0 / threshold;
-        else
+        } else {
           threshold = std::numeric_limits<WeightImage::PixelType>::max();
+        }
         break; 
   }
   return threshold;
