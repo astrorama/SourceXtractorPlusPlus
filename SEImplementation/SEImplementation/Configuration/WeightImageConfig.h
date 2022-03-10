@@ -47,8 +47,12 @@ public:
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
   void initialize(const UserValues& args) override;
 
-  std::shared_ptr<WeightImage> getWeightImage() const {
-    return m_weight_image;
+  std::shared_ptr<WeightImage> getWeightImage(size_t index = 0) const {
+    try {
+      return m_weight_images.at(index);
+    } catch(...) {
+      return nullptr;
+    }
   }
 
   WeightType getWeightType() const {
@@ -59,8 +63,12 @@ public:
     return m_absolute_weight;
   }
 
-  WeightImage::PixelType getWeightThreshold() const {
-    return m_weight_threshold;
+  WeightImage::PixelType getWeightThreshold(size_t index = 0) const {
+    try {
+      return m_scaled_weight_thresholds.at(index);
+    } catch(...) {
+      return m_weight_threshold;
+    }
   }
 
   bool symmetryUsage() const {
@@ -71,7 +79,9 @@ public:
 
 private:
 
-  std::shared_ptr<WeightImage> m_weight_image;
+  std::vector<std::shared_ptr<WeightImage>> m_weight_images;
+  std::vector<WeightImage::PixelType> m_scaled_weight_thresholds;
+
   WeightType m_weight_type;
   bool m_absolute_weight;
   WeightImage::PixelType m_weight_scaling;

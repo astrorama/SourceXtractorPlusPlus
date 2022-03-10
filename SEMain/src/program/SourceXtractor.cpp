@@ -66,6 +66,7 @@
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 #include "SEImplementation/Configuration/BackgroundConfig.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
 #include "SEImplementation/Configuration/WeightImageConfig.h"
@@ -188,6 +189,7 @@ public:
       config_manager.registerConfiguration<MemoryConfig>();
       config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
       config_manager.registerConfiguration<SamplingConfig>();
+      config_manager.registerConfiguration<DetectionFrameConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -347,16 +349,6 @@ public:
       return Elements::ExitCode::OK;
     }
 
-    auto detection_image = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
-    auto detection_image_path = config_manager.getConfiguration<DetectionImageConfig>().getDetectionImagePath();
-    auto weight_image = config_manager.getConfiguration<WeightImageConfig>().getWeightImage();
-    bool is_weight_absolute = config_manager.getConfiguration<WeightImageConfig>().isWeightAbsolute();
-    auto weight_threshold = config_manager.getConfiguration<WeightImageConfig>().getWeightThreshold();
-
-    auto detection_image_coordinate_system = config_manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
-    auto detection_image_gain = config_manager.getConfiguration<DetectionImageConfig>().getGain();
-    auto detection_image_saturation = config_manager.getConfiguration<DetectionImageConfig>().getSaturation();
-
     auto segmentation = segmentation_factory.createSegmentation();
 
     // Multithreading
@@ -375,7 +367,7 @@ public:
 
     std::shared_ptr<Deblending> deblending = deblending_factory.createDeblending();
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
-    std::shared_ptr<Output> output = output_factory.getOutput();
+    std::shared_ptr<Output> output = output_factory.createOutput();
 
     if (prefetcher) {
       prefetcher->requestProperties(source_grouping->requiredProperties());
@@ -415,101 +407,67 @@ public:
     measurement->addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
-    if (CheckImages::getInstance().getSegmentationImage() != nullptr) {
+    if (CheckImages::getInstance().getSegmentationImage(0) != nullptr) {
       segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
           std::make_shared<DetectionIdCheckImage>());
     }
-    if (CheckImages::getInstance().getPartitionImage() != nullptr) {
+    if (CheckImages::getInstance().getPartitionImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<SourceIdCheckImage>());
     }
-    if (CheckImages::getInstance().getGroupImage() != nullptr) {
+    if (CheckImages::getInstance().getGroupImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<GroupIdCheckImage>());
     }
-    if (CheckImages::getInstance().getMoffatImage() != nullptr) {
+    if (CheckImages::getInstance().getMoffatImage(0) != nullptr) {
       measurement->addObserver(
           std::make_shared<MoffatCheckImage>());
     }
-
-    auto interpolation_gap = config_manager.getConfiguration<DetectionImageConfig>().getInterpolationGap();
-    auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
-        weight_threshold, detection_image_coordinate_system, detection_image_gain,
-        detection_image_saturation, interpolation_gap);
-    detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
-
-    auto background_analyzer = config_manager.getConfiguration<BackgroundAnalyzerFactory>().createBackgroundAnalyzer();
-    auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
-        ConstantImage<unsigned char>::create(detection_image->getWidth(), detection_image->getHeight(), false), detection_frame->getVarianceThreshold());
-
-    // initial set of the variance and background check images, might be overwritten below
-    CheckImages::getInstance().setBackgroundCheckImage(background_model.getLevelMap());
-    CheckImages::getInstance().setVarianceCheckImage(background_model.getVarianceMap());
-
-    detection_frame->setBackgroundLevel(background_model.getLevelMap(), background_model.getMedianRms());
-
-    if (weight_image != nullptr) {
-      if (is_weight_absolute) {
-        detection_frame->setVarianceMap(weight_image);
-      } else {
-        auto scaled_image = MultiplyImage<SeFloat>::create(weight_image, background_model.getScalingFactor());
-        detection_frame->setVarianceMap(scaled_image);
-      }
-    } else {
-        logger.info() << "Variance map from background model";
-        detection_frame->setVarianceMap(background_model.getVarianceMap());
-    }
-    // re-set the variance check image to what's in the detection_frame()
-    CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
-
-    const auto& background_config = config_manager.getConfiguration<BackgroundConfig>();
-
-    // Override background level and threshold if requested by the user
-    if (background_config.isBackgroundLevelAbsolute()) {
-      auto background = ConstantImage<DetectionImage::PixelType>::create(
-          detection_image->getWidth(), detection_image->getHeight(), background_config.getBackgroundLevel());
-
-      detection_frame->setBackgroundLevel(background, background_model.getMedianRms());
-      CheckImages::getInstance().setBackgroundCheckImage(background);
-    }
-
-    if (background_config.isDetectionThresholdAbsolute()) {
-      detection_frame->setDetectionThreshold(background_config.getDetectionThreshold());
-    }
-    CheckImages::getInstance().setVarianceCheckImage(detection_frame->getVarianceMap());
-
-    //CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
+    const auto& detection_frames = config_manager.getConfiguration<DetectionFrameConfig>().getDetectionFrames();
 
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
 
-    try {
-      // Process the image
-      segmentation->processFrame(detection_frame);
-    }
-    catch (const std::exception &e) {
-      logger.error() << "Failed to process the frame! " << e.what();
-      measurement->waitForThreads();
-      return Elements::ExitCode::NOT_OK;
+    size_t prev_writen_rows = 0;
+    size_t frame_number = 0;
+    for (auto& detection_frame : detection_frames) {
+      frame_number++;
+      try {
+        // Process the image
+        logger.info() << "Processing frame "
+            << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
+        segmentation->processFrame(detection_frame);
+      }
+      catch (const std::exception &e) {
+        logger.error() << "Failed to process the frame! " << e.what();
+        measurement->stopThreads();
+        return Elements::ExitCode::NOT_OK;
+      }
+
+      if (prefetcher) {
+        prefetcher->synchronize();
+      }
+      measurement->synchronizeThreads();
+
+      size_t nb_writen_rows = output->flush();
+      output->nextPart();
+
+      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+
+      prev_writen_rows = nb_writen_rows;
     }
 
     if (prefetcher) {
       prefetcher->wait();
     }
-    measurement->waitForThreads();
+    measurement->stopThreads();
 
-    CheckImages::getInstance().setFilteredCheckImage(detection_frame->getFilteredImage());
-    CheckImages::getInstance().setThresholdedCheckImage(detection_frame->getThresholdedImage());
-    CheckImages::getInstance().setSnrCheckImage(detection_frame->getSnrImage());
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
-
-    size_t n_writen_rows = output->flush();
-
     progress_mediator->done();
 
-    if (n_writen_rows > 0) {
-      logger.info() << n_writen_rows << " sources detected";
+    if (prev_writen_rows > 0) {
+      logger.info() << "total " << prev_writen_rows << " sources detected";
     } else {
       logger.info() << "NO SOURCES DETECTED";
     }

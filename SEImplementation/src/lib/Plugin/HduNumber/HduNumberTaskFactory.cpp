@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,33 +14,26 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * DummyMeasurement.h
- *
- *  Created on: May 17, 2018
- *      Author: mschefer
- */
 
-#ifndef _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
-#define _SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_
-
-#include "SEFramework/Pipeline/Measurement.h"
+#include "SEImplementation/Plugin/HduNumber/HduNumber.h"
+#include "SEImplementation/Plugin/HduNumber/HduNumberTask.h"
+#include "SEImplementation/Plugin/HduNumber/HduNumberTaskFactory.h"
 
 namespace SourceXtractor {
 
-class DummyMeasurement : public Measurement {
-public:
+void HduNumberTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager&) const {
+}
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    notifyObservers(source_group);
+void HduNumberTaskFactory::configure(Euclid::Configuration::ConfigManager&) {
+}
+
+std::shared_ptr<Task> HduNumberTaskFactory::createTask(const PropertyId& property_id) const {
+  if (property_id == PropertyId::create<HduNumber>()) {
+    return std::make_shared<HduNumberTask>();
+  } else {
+    return nullptr;
   }
-
-  virtual void startThreads() {};
-  virtual void stopThreads() {};
-  virtual void synchronizeThreads() {};
-};
+}
 
 }
 
-
-#endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_MEASUREMENT_DUMMYMEASUREMENT_H_ */

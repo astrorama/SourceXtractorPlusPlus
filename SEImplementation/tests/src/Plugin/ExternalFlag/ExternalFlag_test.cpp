@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_or_test, ExternalFlagFixture ) {
 
   auto flag_image = VectorImage<std::int64_t>::create(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
 
-  ExternalFlagTaskOr task(flag_image, 0);
+  ExternalFlagTaskOr task({flag_image}, 0);
   task.computeProperties(source);
 
   auto& external_flag_property = source.getProperty<ExternalFlag>();
@@ -69,7 +69,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_and_test, ExternalFlagFixture ) {
 
   auto flag_image = VectorImage<std::int64_t>::create(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
 
-  ExternalFlagTaskAnd task(flag_image, 0);
+  ExternalFlagTaskAnd task({flag_image}, 0);
   task.computeProperties(source);
 
   auto& external_flag_property = source.getProperty<ExternalFlag>();
@@ -85,7 +85,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_min_test, ExternalFlagFixture ) {
 
   auto flag_image = VectorImage<std::int64_t>::create(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
 
-  ExternalFlagTaskMin task(flag_image, 0);
+  ExternalFlagTaskMin task({flag_image}, 0);
   task.computeProperties(source);
 
   auto& external_flag_property = source.getProperty<ExternalFlag>();
@@ -101,7 +101,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_max_test, ExternalFlagFixture ) {
 
   auto flag_image = VectorImage<std::int64_t>::create(4, 1, std::vector<std::int64_t> {0, 1, 2, 3} );
 
-  ExternalFlagTaskMax task(flag_image, 0);
+  ExternalFlagTaskMax task({flag_image}, 0);
   task.computeProperties(source);
 
   auto& external_flag_property = source.getProperty<ExternalFlag>();
@@ -117,7 +117,7 @@ BOOST_FIXTURE_TEST_CASE( external_flag_most_test, ExternalFlagFixture ) {
 
   auto flag_image = VectorImage<std::int64_t>::create(4, 1, std::vector<std::int64_t> {0, 1, 1, 3} );
 
-  ExternalFlagTaskMost task(flag_image, 0);
+  ExternalFlagTaskMost task({flag_image}, 0);
   task.computeProperties(source);
 
   auto& external_flag_property = source.getProperty<ExternalFlag>();
