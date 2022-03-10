@@ -175,6 +175,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       logger.debug() << "Loading measurement image: " << py_image.file << " HDU: " << py_image.image_hdu;
       logger.debug() << "\tWeight: " << py_image.weight_file << " HDU: " << py_image.weight_hdu;
+      logger.debug() << "\tWeight threshold: " << py_image.weight_threshold << " hasThreshold: " << py_image.has_weight_threshold;
       logger.debug() << "\tPSF: " << py_image.psf_file << " HDU: " << py_image.psf_hdu;
       logger.debug() << "\tGain: " << py_image.gain;
       logger.debug() << "\tSaturation: " << py_image.saturation;
