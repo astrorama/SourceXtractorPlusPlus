@@ -61,6 +61,13 @@ void MultithreadedMeasurement::synchronizeThreads() {
       if (m_output_queue.empty()) {
         break;
       }
+      else if (m_thread_pool->checkForException(false)) {
+        logger.fatal() << "An exception was thrown from a worker thread";
+        m_thread_pool->checkForException(true);
+      }
+      else if (m_thread_pool->activeThreads() == 0) {
+        throw Elements::Exception() << "No active threads and the queue is not empty! Please, report this as a bug";
+      }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
