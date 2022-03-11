@@ -131,7 +131,7 @@ void LdacOutput::outputSource(const SourceInterface& source) {
 
 
     if (m_part_nb >= 1) {
-    std::stringstream hdu_name;
+      std::stringstream hdu_name;
       hdu_name << "LDAC_OBJECTS_" << m_part_nb;
       m_fits_writer->setHduName(hdu_name.str());
     } else {
