@@ -50,11 +50,16 @@ std::string generateHeader(const std::string& name, T value, const std::string& 
       << std::scientific << std::setw(20) << std::right << value
       << " / ";
 
-  size_t remaining = 80 - str.str().size();
-  str << comment << std::string(remaining-comment.size(), ' ');
+  if (str.str().size() > 80) {
+    throw Elements::Exception() << "Header cannot exceed 80 characters: \"" << str.str() << "\"";
+  }
 
-  if (str.str().size() != 80) {
-    throw Elements::Exception() << "Header must be exactly 80 characters long: \"" << str.str() << "\"";
+  size_t remaining = 80 - str.str().size();
+  if (comment.size() < remaining) {
+    str << comment << std::string(remaining - comment.size(), ' ');
+  } else {
+    // truncate comment if too long
+    str << comment.substr(0, remaining);
   }
 
   return str.str();
@@ -70,11 +75,16 @@ std::string generateHeader<std::string>(const std::string& name, std::string val
       << std::setw(20) << std::left << quoted_value.str()
       << " / ";
 
-  size_t remaining = 80 - str.str().size();
-  str << comment << std::string(remaining-comment.size(), ' ');
+  if (str.str().size() > 80) {
+    throw Elements::Exception() << "Header cannot exceed 80 characters: \"" << str.str() << "\"";
+  }
 
-  if (str.str().size() != 80) {
-    throw Elements::Exception() << "Header must be exactly 80 characters long: \"" << str.str() << "\"";
+  size_t remaining = 80 - str.str().size();
+  if (comment.size() < remaining) {
+    str << comment << std::string(remaining - comment.size(), ' ');
+  } else {
+    // truncate comment if too long
+    str << comment.substr(0, remaining);
   }
 
   return str.str();
@@ -118,25 +128,41 @@ void LdacOutput::outputSource(const SourceInterface& source) {
     writeHeaders();
 
     m_fits_writer = std::make_shared<FitsWriter>(m_filename);
-    m_fits_writer->setHduName("LDAC_OBJECTS");
+
+
+    if (m_part_nb >= 1) {
+      std::stringstream hdu_name;
+      hdu_name << "LDAC_OBJECTS_" << m_part_nb;
+      m_fits_writer->setHduName(hdu_name.str());
+    } else {
+      m_fits_writer->setHduName("LDAC_OBJECTS");
+    }
   }
   FlushableOutput::outputSource(source);
 }
 
 void LdacOutput::writeHeaders() {
-  auto imhead_writer = Euclid::make_unique<FitsWriter>(m_filename, true);
-  imhead_writer->setHduName("LDAC_IMHEAD");
+  auto imhead_writer = Euclid::make_unique<FitsWriter>(m_filename, m_part_nb == 0);
+  if (m_part_nb >= 1) {
+    std::stringstream hdu_name;
+    hdu_name << "LDAC_IMHEAD_" << m_part_nb;
+    imhead_writer->setHduName(hdu_name.str());
+  } else {
+    imhead_writer->setHduName("LDAC_IMHEAD");
+  }
 
   // Headers from the image
   std::vector<std::string> ldac_imhead;
   for (const auto &p : m_image_metadata) {
     std::string comment;
-    if (p.second.m_extra.count("comment"))
+    if (p.second.m_extra.count("comment")) {
       comment = p.second.m_extra.at("comment");
-    if (p.second.m_value.type() == typeid(std::string))
+    }
+    if (p.second.m_value.type() == typeid(std::string)) {
       ldac_imhead.emplace_back(generateHeader(p.first, boost::get<std::string>(p.second.m_value), comment));
-    else
+    } else {
       ldac_imhead.emplace_back(generateHeader(p.first, p.second.m_value, comment));
+    }
   }
 
   // Headers from the configuration and detection
@@ -158,6 +184,12 @@ void LdacOutput::writeHeaders() {
     rows.emplace_back(std::vector<Row::cell_type>{header}, column_info);
   }
   imhead_writer->addData(Table{std::vector<Row>{rows}});
+}
+
+void LdacOutput::nextPart() {
+  m_part_nb++;
+  // closes current HDU and will trigger a new header HDU when the next source is written
+  m_fits_writer = nullptr;
 }
 
 } // end of namespace SourceXtractor
