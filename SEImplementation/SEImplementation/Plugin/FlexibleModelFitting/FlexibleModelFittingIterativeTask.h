@@ -77,7 +77,6 @@ private:
       std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const;
 
   void fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
-  void setDummyProperty(SourceInterface& source, Flags flags) const;
   void updateCheckImages(SourceGroupInterface& group, double pixel_scale, FittingState& state) const;
   SeFloat computeChiSquared(SourceGroupInterface& group, SourceInterface& source, int index,
       double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const;
