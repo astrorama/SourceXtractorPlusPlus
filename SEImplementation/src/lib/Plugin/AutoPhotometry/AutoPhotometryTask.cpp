@@ -97,7 +97,7 @@ void AutoPhotometryTask::computeProperties(SourceInterface &source) const {
   source.setIndexedProperty<AutoPhotometry>(m_instance, measurement.m_flux, flux_error, mag, mag_error, measurement.m_flags);
 
   // Draw the aperture
-  auto aperture_check_img = CheckImages::getInstance().getAutoApertureImage(m_instance);
+  auto aperture_check_img = CheckImages::getInstance().getMeasurementAutoApertureImage(m_instance);
   if (aperture_check_img) {
     auto src_id = source.getProperty<SourceID>().getId();
 

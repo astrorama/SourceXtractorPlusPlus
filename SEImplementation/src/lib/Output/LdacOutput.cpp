@@ -21,10 +21,12 @@
 
 #include "SOURCEXTRACTORPLUSPLUS_VERSION.h"
 
+#include "SEFramework/Image/ImageSource.h"
+
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
-#include "SEImplementation/Output/LdacWriter.h"
+#include "SEImplementation/Output/LdacOutput.h"
 
 #if BOOST_VERSION < 107300
 #include <boost/io/detail/quoted_manip.hpp>
@@ -38,27 +40,7 @@ using Euclid::Configuration::ConfigManager;
 using Euclid::make_unique;
 using namespace Euclid::Table;
 
-
-LdacWriter::LdacWriter(const std::string& filename, ConfigManager& manager)
-  : m_config_manager(manager), m_filename(filename), m_rms(0) {
-}
-
-void LdacWriter::addComment(const std::string& comment) {
-  if (m_objects_writer) {
-    throw Elements::Exception() << "Can not add comments once the output table has been initialized";
-  }
-  m_comments.emplace_back(comment);
-}
-
-// Handle sources instead of table records, so before writing anything
-// we can recover useful information
-void LdacWriter::notifySource(const SourceInterface& source) {
-  if (m_objects_writer)
-    return;
-
-  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
-  m_rms = detection_frame_info.getBackgroundMedianRms();
-}
+namespace {
 
 template<typename T>
 std::string generateHeader(const std::string& name, T value, const std::string& comment) {
@@ -122,16 +104,32 @@ static void generateHistory(std::vector<std::string>& headers) {
   }
 }
 
-void LdacWriter::writeImHead() {
-  auto& detection_image_config = m_config_manager.getConfiguration<DetectionImageConfig>();
+}
+
+void LdacOutput::outputSource(const SourceInterface& source) {
+  if (m_fits_writer == nullptr) {
+    const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
+    m_rms = detection_frame_info.getBackgroundMedianRms();
+    m_gain = detection_frame_info.getGain();
+
+    // Headers from the image
+    m_image_metadata = detection_frame_info.getMetadata();
+
+    writeHeaders();
+
+    m_fits_writer = std::make_shared<FitsWriter>(m_filename);
+    m_fits_writer->setHduName("LDAC_OBJECTS");
+  }
+  FlushableOutput::outputSource(source);
+}
+
+void LdacOutput::writeHeaders() {
   auto imhead_writer = Euclid::make_unique<FitsWriter>(m_filename, true);
   imhead_writer->setHduName("LDAC_IMHEAD");
 
   // Headers from the image
   std::vector<std::string> ldac_imhead;
-  auto img_source = detection_image_config.getImageSource();
-  auto img_metadata = img_source->getMetadata();
-  for (const auto &p : img_metadata) {
+  for (const auto &p : m_image_metadata) {
     std::string comment;
     if (p.second.m_extra.count("comment"))
       comment = p.second.m_extra.at("comment");
@@ -142,8 +140,7 @@ void LdacWriter::writeImHead() {
   }
 
   // Headers from the configuration and detection
-  auto gain = detection_image_config.getGain();
-  ldac_imhead.emplace_back(generateHeader("SPPGAIN", gain, "Gain used"));
+  ldac_imhead.emplace_back(generateHeader("SPPGAIN", m_gain, "Gain used"));
   ldac_imhead.emplace_back(generateHeader("SPPBKDEV", m_rms, "Median background RMS"));
 
   // History, why not
@@ -161,24 +158,6 @@ void LdacWriter::writeImHead() {
     rows.emplace_back(std::vector<Row::cell_type>{header}, column_info);
   }
   imhead_writer->addData(Table{std::vector<Row>{rows}});
-}
-
-void LdacWriter::init(const Table&) {
-  // Initialize LDAC_IMHEAD HDU
-  writeImHead();
-
-  // Initialize LDAC_OBJECTS HDU
-  m_objects_writer = Euclid::make_unique<FitsWriter>(m_filename, false);
-  m_objects_writer->setHduName("LDAC_OBJECTS");
-  for (auto& comment: m_comments) {
-    m_objects_writer->addComment(comment);
-  }
-  m_comments.clear();
-}
-
-void LdacWriter::append(const Table& table) {
-  assert(m_objects_writer);
-  m_objects_writer->addData(table);
 }
 
 } // end of namespace SourceXtractor

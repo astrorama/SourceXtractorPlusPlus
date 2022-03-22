@@ -23,6 +23,10 @@
 
 #include <limits>
 #include <boost/algorithm/string.hpp>
+#include <boost/regex.hpp>
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
 
 #include "Configuration/ConfigManager.h"
 
@@ -30,6 +34,7 @@
 #include "SEFramework/Image/ProcessingImageSource.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsReader.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -86,10 +91,11 @@ static WeightImage::PixelType computeWeightThreshold(WeightImageConfig::WeightTy
     case WeightType::WEIGHT_TYPE_VARIANCE:
       return threshold;
     case WeightType::WEIGHT_TYPE_WEIGHT:
-      if (threshold > 0)
+      if (threshold > 0) {
         return 1.0 / threshold;
-      else
+      } else {
         return std::numeric_limits<WeightImage::PixelType>::max();
+      }
   }
 }
 
@@ -104,10 +110,8 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
   m_absolute_weight = args.find(WEIGHT_ABSOLUTE)->second.as<bool>();
   m_symmetry_usage = args.find(WEIGHT_SYMMETRYUSAGE)->second.as<bool>();
+
   auto weight_image_filename = args.find(WEIGHT_IMAGE)->second.as<std::string>();
-  if (weight_image_filename != "") {
-    m_weight_image = FitsReader<WeightImage::PixelType>::readFile(weight_image_filename);
-  }
 
   auto weight_type_name = boost::to_upper_copy(args.at(WEIGHT_TYPE).as<std::string>());
   auto weight_iter = WEIGHT_MAP.find(weight_type_name);
@@ -117,22 +121,9 @@ void WeightImageConfig::initialize(const UserValues& args) {
   m_weight_type = weight_iter->second;
   m_weight_scaling = args.find(WEIGHT_SCALING)->second.as<double>();
 
-  auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale();
-  if (m_weight_image != nullptr) {
-    m_weight_image = convertWeightMap(m_weight_image, m_weight_type, m_weight_scaling);
-
-    if (flux_scale != 1. && m_absolute_weight) {
-      m_weight_image = MultiplyImage<WeightImage::PixelType>::create(m_weight_image, flux_scale * flux_scale);
-    }
-  }
-
   if (args.count(WEIGHT_THRESHOLD) != 0) {
     auto threshold = args.find(WEIGHT_THRESHOLD)->second.as<double>();
     m_weight_threshold = computeWeightThreshold(m_weight_type, threshold);
-    if (flux_scale != 1. && m_absolute_weight){
-	// adjust the m_weight_threshold
-	m_weight_threshold *= flux_scale * flux_scale;
-    }
   } else {
     m_weight_threshold = std::numeric_limits<WeightImage::PixelType>::max();
   }
@@ -144,6 +135,53 @@ void WeightImageConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << weight_image_filename;
   if (m_absolute_weight && weight_image_filename == "")
     throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
+
+  if (weight_image_filename != "") {
+    boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+
+    for (int i=0;; i++) {
+      std::shared_ptr<FitsImageSource> fits_image_source;
+      if (boost::regex_match(weight_image_filename, hdu_regex)) {
+        if (i==0) {
+          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, 0, ImageTile::FloatImage);
+        } else {
+          break;
+        }
+      } else {
+        try {
+          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, i+1, ImageTile::FloatImage);
+        } catch (...) {
+          if (i==0) {
+            // Skip past primary HDU if it doesn't have an image
+            continue;
+          } else {
+            if (m_weight_images.size() == 0) {
+              throw Elements::Exception() << "Can't find 2D image in FITS file: " << weight_image_filename;
+            }
+            break;
+          }
+        }
+      }
+
+      std::shared_ptr<WeightImage> weight_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+      weight_image = convertWeightMap(weight_image, m_weight_type, m_weight_scaling);
+
+      // we should have a corresponding detection image
+      auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale(m_weight_images.size());
+
+      WeightImage::PixelType scaled_weight_threshold = m_weight_threshold;
+      if (flux_scale != 1. && m_absolute_weight) {
+        weight_image = MultiplyImage<WeightImage::PixelType>::create(weight_image, flux_scale * flux_scale);
+        if (scaled_weight_threshold < std::numeric_limits<WeightImage::PixelType>::max()){
+          // adjust the weight threshold
+          scaled_weight_threshold *= flux_scale * flux_scale;
+        }
+      }
+
+      m_weight_images.emplace_back(weight_image);
+      m_scaled_weight_thresholds.emplace_back(scaled_weight_threshold);
+    }
+  }
 }
 
 class WeightMapImageSource : public ProcessingImageSource<WeightImage::PixelType> {
