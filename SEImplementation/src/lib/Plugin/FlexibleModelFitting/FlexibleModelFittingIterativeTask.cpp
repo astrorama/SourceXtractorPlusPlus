@@ -570,7 +570,6 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         parameter_manager.addParameter(src, parameter,
             free_parameter->create(parameter_manager, engine_parameter_manager, src,
                 state.source_states[index].parameters_values.at(free_parameter->getId())));
-
       } else {
         parameter_manager.addParameter(src, parameter,
             parameter->create(parameter_manager, engine_parameter_manager, src));

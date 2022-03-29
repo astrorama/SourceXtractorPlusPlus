@@ -164,8 +164,9 @@ static std::shared_ptr<VariablePsf> readImage(T& image_hdu) {
 std::shared_ptr<Psf> PsfPluginConfig::readPsf(const std::string& filename, int hdu_number) {
 
   // check whether the filename points to a delta function as PSF or NOPSF
-  if (boost::to_upper_copy(fs::path(filename).filename().string())=="NOPSF")
-    return generateNoPsf();
+  if (boost::to_upper_copy(fs::path(filename).filename().string())=="NOPSF") {
+    return nullptr;
+  }
 
   try {
     // Read the HDU from the file
@@ -223,18 +224,6 @@ std::shared_ptr<Psf> PsfPluginConfig::generateGaussianPsf(SeFloat fwhm, SeFloat 
   return std::make_shared<VariablePsf>(pixel_sampling, kernel);
 }
 
-std::shared_ptr<Psf> PsfPluginConfig::generateNoPsf() {
-
-  // create the trivial kernel and set the value
-  auto kernel = VectorImage<SeFloat>::create(1, 1);
-  kernel->setValue(0, 0, 1.0);
-
-  // some feedback
-  logger.info() << "Using NoPsf!";
-
-  return std::make_shared<VariablePsf>(1.0, kernel);
-}
-
 std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::getProgramOptions() {
   return {{"Variable PSF", {
     {PSF_FILE.c_str(), po::value<std::string>(),
@@ -256,12 +245,12 @@ void PsfPluginConfig::preInitialize(const Euclid::Configuration::Configuration::
 
 void PsfPluginConfig::initialize(const UserValues &args) {
   if (args.find(PSF_FILE) != args.end()) {
-      auto psf_file = args.find(PSF_FILE)->second.as<std::string>();
-      logger.debug() << "Provided by user: " << psf_file;
-      if (boost::to_upper_copy(psf_file) == "NOPSF"){
-	  m_vpsf = generateNoPsf();
+    auto psf_file = args.find(PSF_FILE)->second.as<std::string>();
+    logger.debug() << "Provided by user: " << psf_file;
+    if (boost::to_upper_copy(psf_file) == "NOPSF"){
+      m_vpsf = nullptr;
     } else {
-	  m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
+      m_vpsf = readPsf(args.find(PSF_FILE)->second.as<std::string>());
     }
   } else if (args.find(PSF_FWHM) != args.end()) {
     m_vpsf = generateGaussianPsf(args.find(PSF_FWHM)->second.as<double>(),

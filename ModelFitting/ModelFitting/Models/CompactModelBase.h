@@ -49,6 +49,8 @@ protected:
   Mat22 m_inv_jacobian;
 
 private:
+  double computeSqrDistanceLineToOrigin(double x1, double y1, double x2, double y2) const;
+
   std::shared_ptr<BasicParameter> m_x_scale;
   std::shared_ptr<BasicParameter> m_y_scale;
   std::shared_ptr<BasicParameter> m_rotation;

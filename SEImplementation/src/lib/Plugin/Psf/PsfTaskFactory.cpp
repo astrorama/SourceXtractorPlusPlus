@@ -46,18 +46,12 @@ void PsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
       m_vpsf[image_infos[i].m_id] = default_psf;
     }
   }
-
-  for (auto& vpsf : m_vpsf) {
-    if (!vpsf.second) {
-      throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF, or that there is a valid default PSF";
-    }
-  }
 }
 
 std::shared_ptr<Task> PsfTaskFactory::createTask(const SourceXtractor::PropertyId& property_id) const {
   auto instance = property_id.getIndex();
 
-  if (m_vpsf.find(instance) == m_vpsf.end() || !m_vpsf.at(instance)) {
+  if (m_vpsf.find(instance) == m_vpsf.end()) {
     throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF";
   }
 
