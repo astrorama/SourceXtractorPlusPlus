@@ -74,6 +74,8 @@ void MeasurementFrameConfig::initialize(const UserValues&) {
             image_info.m_weight_image,
             background_model.getScalingFactor());
         measurement_frame->setVarianceMap(scaled_image);
+        if (image_info.m_weight_threshold < std::numeric_limits<WeightImage::PixelType>::max())
+          measurement_frame->setVarianceThreshold(image_info.m_weight_threshold*background_model.getScalingFactor());
       }
     } else {
       measurement_frame->setVarianceMap(background_model.getVarianceMap());

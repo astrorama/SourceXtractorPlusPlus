@@ -21,10 +21,7 @@ public:
     : FlushableOutput(source_to_row, flush_size), m_filename(filename), m_part_nb(0), m_rms(0), m_gain(0) {
   }
 
-  void nextPart() override {
-    // TODO does it make sense to implement for LDAC?
-    // Do nothing?
-  }
+  void nextPart() override;
 
   void outputSource(const SourceInterface& source) override;
 
