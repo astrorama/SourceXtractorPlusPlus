@@ -63,12 +63,6 @@ jobs:
       - name: Build
         id: build
         uses: astrorama/actions/elements-build-rpm@v3
-      - name: Upload RPM to GitHub
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.os-type }}${{ matrix.os-version }}
-          path: ${{ steps.build.outputs.rpm-dir }}/*.rpm
-          retention-days: 15
       - name: Upload RPM to repository
         if: ${{ github.repository_owner == 'astrorama' }}
         uses: astrorama/actions/upload-rpm@v3
