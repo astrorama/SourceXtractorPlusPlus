@@ -74,7 +74,7 @@ void validateImagePaths(const PyMeasurementImage& image) {
   if (image.weight_file != "" && !fs::exists(image.weight_file)) {
     throw Elements::Exception() << "File " << image.weight_file << " does not exist";
   }
-  if (image.psf_file != "" && !fs::exists(image.psf_file)) {
+  if (image.psf_file != "" && boost::to_upper_copy(fs::path(image.psf_file).filename().string())!="NOPSF" && !fs::exists(image.psf_file)) {
     throw Elements::Exception() << "File " << image.psf_file << " does not exist";
   }
 }

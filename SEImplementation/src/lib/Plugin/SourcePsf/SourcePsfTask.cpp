@@ -50,26 +50,30 @@ SourcePsfTask::SourcePsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf
 }
 
 void SourcePsfTask::computeProperties(SourceXtractor::SourceInterface &source) const {
-  std::vector<double> component_values;
+  if (m_vpsf != nullptr) {
+    std::vector<double> component_values;
 
-  for (auto component : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[component](source, m_instance));
-  }
+    for (auto component : m_vpsf->getComponents()) {
+      component_values.push_back(component_value_getters[component](source, m_instance));
+    }
 
-  auto psf = m_vpsf->getPsf(component_values);
-  // The result may not be normalized!
-  auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
-  auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-  source.setIndexedProperty<SourcePsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
+    auto psf = m_vpsf->getPsf(component_values);
+    // The result may not be normalized!
+    auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
+    auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
+    source.setIndexedProperty<SourcePsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
 
-  // Check image
-  auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
-  if (check_image) {
-    auto x = component_value_getters["X_IMAGE"](source, m_instance);
-    auto y = component_value_getters["Y_IMAGE"](source, m_instance);
+    // Check image
+    auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
+    if (check_image) {
+      auto x = component_value_getters["X_IMAGE"](source, m_instance);
+      auto y = component_value_getters["Y_IMAGE"](source, m_instance);
 
-    ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
-      check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+      ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
+        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+    }
+  } else {
+    source.setIndexedProperty<SourcePsfProperty>(m_instance, 1.0, nullptr);
   }
 }
 
