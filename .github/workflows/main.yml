@@ -3,6 +3,7 @@ name: RPM - Repository
 on:
   push:
     branches: [ master, develop ]
+    tags: [ '*' ]
     paths-ignore:
       - 'doc/**'
       - 'README.md'
