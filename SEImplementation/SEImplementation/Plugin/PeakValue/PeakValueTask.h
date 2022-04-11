@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_PEAKVALUE_PEAKVALUETASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
 
@@ -36,18 +37,31 @@ public:
 
   virtual ~PeakValueTask() = default;
 
-  virtual void computeProperties(SourceInterface& source) const override {
+  void computeProperties(SourceInterface& source) const override {
     // FIXME is it correct to use filtered values?
     const auto& pixel_values = source.getProperty<DetectionFramePixelValues>().getFilteredValues();
 
+    auto& coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
     DetectionImage::PixelType peak_value = std::numeric_limits<DetectionImage::PixelType>::min();
     DetectionImage::PixelType min_value = std::numeric_limits<DetectionImage::PixelType>::max();
-    for (auto value : pixel_values) {
-      peak_value = std::max(peak_value, value);
-      min_value = std::min(min_value, value);
-    }
 
-    source.setProperty<PeakValue>(min_value, peak_value);
+    unsigned int index=0;
+    int peak_value_x=-1;
+    int peak_value_y=-1;
+    for (auto value = pixel_values.begin(); value!=pixel_values.end(); ++value){
+    //for(unsigned i : indices(pixel_values)) {
+	if (*value>peak_value){
+	    peak_value = *value;
+	    peak_value_x = coordinates[index].m_x;
+	    peak_value_y = coordinates[index].m_y;
+	}
+	if (*value<min_value)
+	  min_value=*value;
+	index++;
+    }
+    //std::cout << "Value: " << peak_value << "x/y: " << peak_value_x << " " << peak_value_y<< std::endl;
+    source.setProperty<PeakValue>(min_value, peak_value, peak_value_x, peak_value_y);
   }
 
 

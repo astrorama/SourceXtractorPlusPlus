@@ -43,7 +43,7 @@ public:
   virtual ~GroupInfoTask() = default;
   GroupInfoTask() {}
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  void computeProperties(SourceGroupInterface& group) const override;
 
 private:
 

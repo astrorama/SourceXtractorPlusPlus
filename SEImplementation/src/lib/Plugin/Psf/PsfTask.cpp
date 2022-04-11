@@ -58,28 +58,32 @@ PsfTask::PsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf)
 }
 
 void PsfTask::computeProperties(SourceXtractor::SourceGroupInterface &group) const {
-  std::vector<double> component_values;
+  if (m_vpsf != nullptr) {
+    std::vector<double> component_values;
 
-  for (auto component : m_vpsf->getComponents()) {
-    component_values.push_back(component_value_getters[component](group, m_instance));
-  }
-
-  auto psf = m_vpsf->getPsf(component_values);
-  // The result may not be normalized!
-  auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
-  auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-  group.setIndexedProperty<PsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
-
-  // Check image
-  if (group.size()) {
-    auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
-    if (check_image) {
-      auto x = component_value_getters["X_IMAGE"](group, m_instance);
-      auto y = component_value_getters["Y_IMAGE"](group, m_instance);
-
-      ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
-        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+    for (auto component : m_vpsf->getComponents()) {
+      component_values.push_back(component_value_getters[component](group, m_instance));
     }
+
+    auto psf = m_vpsf->getPsf(component_values);
+    // The result may not be normalized!
+    auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
+    auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
+    group.setIndexedProperty<PsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
+
+    // Check image
+    if (group.size()) {
+      auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
+      if (check_image) {
+        auto x = component_value_getters["X_IMAGE"](group, m_instance);
+        auto y = component_value_getters["Y_IMAGE"](group, m_instance);
+
+        ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
+          check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+      }
+    }
+  } else {
+    group.setIndexedProperty<PsfProperty>(m_instance, 1.0, nullptr);
   }
 }
 

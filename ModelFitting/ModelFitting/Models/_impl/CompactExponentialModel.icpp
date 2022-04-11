@@ -42,7 +42,8 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
         << "but got (" << size_x << ',' << size_y << ")";
   }
 
-  ImageType image = Traits::factory(size_x, size_y);
+  // Add a 4 pixels border to prevent cropping from Lanczos resize
+  ImageType image = Traits::factory(size_x+8, size_y+8);
 
   auto combined_tranform = getCombinedTransform(pixel_scale);
 
@@ -59,9 +60,9 @@ ImageType CompactExponentialModel<ImageType>::getRasterizedImage(double pixel_sc
     for (int x = 0; x < (int)size_x; ++x) {
       int dx = x - size_x / 2;
       if (dx * dx + dy * dy < m_sharp_radius_squared) {
-        Traits::at(image, x, y) = adaptiveSamplePixel(model_eval, dx, dy, 7, 0.01) * area_correction;
+        Traits::at(image, x+4, y+4) = adaptiveSamplePixel(model_eval, dx, dy, 7, 0.01) * area_correction;
       } else {
-        Traits::at(image, x, y) = model_eval.evaluateModel(dx, dy) * area_correction;
+        Traits::at(image, x+4, y+4) = model_eval.evaluateModel(dx, dy) * area_correction;
       }
     }
   }

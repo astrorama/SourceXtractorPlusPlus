@@ -42,7 +42,7 @@ public:
    */
   virtual ~PixelBoundariesTask() = default;
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 
 private:
@@ -64,7 +64,7 @@ public:
    */
   virtual ~PixelBoundariesTaskHalfMaximum() = default;
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 
 private:

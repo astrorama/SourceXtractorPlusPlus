@@ -40,7 +40,7 @@ public:
   virtual ~PixelCentroidTaskFactory() = default;
 
   // TaskFactory implementation
-  virtual std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 };
 
 

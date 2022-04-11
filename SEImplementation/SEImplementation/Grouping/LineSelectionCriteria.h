@@ -35,7 +35,7 @@ public:
   explicit LineSelectionCriteria(int line_number) : m_line_number(line_number) {
   }
 
-  virtual bool mustBeProcessed(const SourceInterface& ) const override;
+  bool mustBeProcessed(const SourceInterface& ) const override;
 
 private:
   int m_line_number;

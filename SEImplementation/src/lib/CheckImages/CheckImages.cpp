@@ -32,6 +32,24 @@
 
 namespace SourceXtractor {
 
+namespace {
+
+std::string addNumberToFilename(boost::filesystem::path original_filename, size_t number, bool add_number) {
+  if (add_number) {
+    auto filename = original_filename.stem();
+    filename += "_" + std::to_string(number);
+    filename += original_filename.extension();
+
+    filename = original_filename.parent_path() / filename;
+
+    return filename.native();
+  } else {
+    return original_filename.native();
+  }
+}
+
+}
+
 std::unique_ptr<CheckImages> CheckImages::m_instance;
 
 CheckImages::CheckImages() {
@@ -52,7 +70,6 @@ std::shared_ptr<WriteableImage<SeFloat>> CheckImages::getWriteableCheckImage(std
     }
   }
 
-
   auto image = FitsWriter::newImage<SeFloat>(id + ".fits",
       width, height);
   m_custom_images[id] = std::make_tuple(image, false);
@@ -65,7 +82,6 @@ void CheckImages::setCustomCheckImage(std::string id, std::shared_ptr<Image<SeFl
 }
 
 void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
-  m_detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
   auto& config = manager.getConfiguration<CheckImagesConfig>();
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
@@ -84,38 +100,52 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_psf_filename = config.getPsfFilename();
   m_ml_detection_filename = config.getMLDetectionFilename();
 
-  m_coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
+  size_t detection_images_nb = manager.getConfiguration<DetectionImageConfig>().getExtensionsNb();
 
-  if (m_segmentation_filename != "") {
-    m_segmentation_image = FitsWriter::newImage<int>(m_segmentation_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
-  }
+  m_check_image_ml_detection.resize(detection_images_nb);
 
-  if (m_partition_filename != "") {
-    m_partition_image = FitsWriter::newImage<int>(m_partition_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
-  }
+  for (size_t i = 0; i < detection_images_nb; i++) {
+    auto detection_image = manager.getConfiguration<DetectionImageConfig>().getDetectionImage();
+    auto coordinate_system = manager.getConfiguration<DetectionImageConfig>().getCoordinateSystem();
 
-  if (m_group_filename != "") {
-    m_group_image = FitsWriter::newImage<int>(m_group_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
-  }
+    m_detection_images.emplace_back(detection_image);
+    m_coordinate_systems.emplace_back(coordinate_system);
 
-  if (m_auto_aperture_filename != "") {
-    m_auto_aperture_image = FitsWriter::newImage<int>(m_auto_aperture_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system);
-  }
+    if (m_segmentation_filename != "") {
+      m_segmentation_images.emplace_back(FitsWriter::newImage<int>(
+          addNumberToFilename(m_segmentation_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
 
-  if (m_aperture_filename != "") {
-    m_aperture_image = FitsWriter::newImage<int>(m_aperture_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
-    );
-  }
+    if (m_partition_filename != "") {
+      m_partition_images.emplace_back(FitsWriter::newImage<int>(
+          addNumberToFilename(m_partition_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
 
-  if (m_moffat_filename != "") {
-    m_moffat_image = FitsWriter::newImage<SeFloat>(m_moffat_filename.native(),
-        m_detection_image->getWidth(), m_detection_image->getHeight(), m_coordinate_system
-    );
+    if (m_group_filename != "") {
+      m_group_images.emplace_back(FitsWriter::newImage<int>(
+          addNumberToFilename(m_group_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
+
+    if (m_auto_aperture_filename != "") {
+      m_auto_aperture_images.emplace_back(FitsWriter::newImage<int>(
+          addNumberToFilename(m_auto_aperture_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
+
+    if (m_aperture_filename != "") {
+      m_aperture_images.emplace_back(FitsWriter::newImage<int>(
+          addNumberToFilename(m_aperture_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
+
+    if (m_moffat_filename != "") {
+      m_moffat_images.emplace_back(FitsWriter::newImage<SeFloat>(
+          addNumberToFilename(m_moffat_filename, i, detection_images_nb>1),
+          detection_image->getWidth(), detection_image->getHeight(), coordinate_system));
+    }
   }
 
   // Measurement images
@@ -135,7 +165,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   }
 }
 
-std::shared_ptr<WriteableImage<int>> CheckImages::getAutoApertureImage(unsigned int frame_number) {
+std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementAutoApertureImage(unsigned int frame_number) {
   if (m_auto_aperture_filename.empty()) {
     return nullptr;
   }
@@ -162,7 +192,7 @@ std::shared_ptr<WriteableImage<int>> CheckImages::getAutoApertureImage(unsigned 
   return LockedWriteableImage<int>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<int>> CheckImages::getApertureImage(unsigned int frame_number) {
+std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementApertureImage(unsigned int frame_number) {
   if (m_aperture_filename.empty()) {
     return nullptr;
   }
@@ -251,27 +281,29 @@ std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsf
   return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getMLDetectionImage(unsigned int plane_number) {
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
+    CheckImages::getMLDetectionImage(unsigned int plane_number, size_t index) {
+
   if (m_ml_detection_filename.empty()) {
     return nullptr;
   }
 
   std::lock_guard<std::mutex> lock{m_access_mutex};
 
-  auto i = m_check_image_ml_detection.find(plane_number);
-  if (i == m_check_image_ml_detection.end()) {
+  auto i = m_check_image_ml_detection.at(index).find(plane_number);
+  if (i == m_check_image_ml_detection.at(index).end()) {
     auto filename = m_ml_detection_filename.stem();
     filename += "_" + std::to_string(plane_number);
     filename += m_ml_detection_filename.extension();
     auto frame_filename = m_ml_detection_filename.parent_path() / filename;
-    i = m_check_image_ml_detection.emplace(
+    i = m_check_image_ml_detection.at(index).emplace(
       std::make_pair(
         plane_number,
         FitsWriter::newImage<MeasurementImage::PixelType>(
           frame_filename.native(),
-          m_detection_image->getWidth(),
-          m_detection_image->getHeight(),
-          m_coordinate_system
+          m_detection_images.at(index)->getWidth(),
+          m_detection_images.at(index)->getHeight(),
+          m_coordinate_systems.at(index)
         ))).first;
   }
   return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
@@ -280,29 +312,37 @@ std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getMLD
 void CheckImages::saveImages() {
   std::lock_guard<std::mutex> lock(m_access_mutex);
 
-  // if possible, save the background image
-  if (m_background_image != nullptr && m_model_background_filename != "") {
-    FitsWriter::writeFile(*m_background_image, m_model_background_filename.native(), m_coordinate_system);
-  }
+  auto detection_images_nb = m_coordinate_systems.size();
+  for (size_t i = 0; i < detection_images_nb; i++) {
+    // if possible, save the background image
+    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_model_background_filename != "") {
+      FitsWriter::writeFile(*m_background_images.at(i),
+          addNumberToFilename(m_model_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+    }
 
-  // if possible, save the variance image
-  if (m_variance_image != nullptr && m_model_variance_filename != "") {
-    FitsWriter::writeFile(*m_variance_image, m_model_variance_filename.native(), m_coordinate_system);
-  }
+    // if possible, save the variance image
+    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_model_variance_filename != "") {
+      FitsWriter::writeFile(*m_variance_images.at(i),
+          addNumberToFilename(m_model_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+    }
 
-  // if possible, save the filtered image
-  if (m_filtered_image != nullptr && m_filtered_filename != "") {
-    FitsWriter::writeFile(*m_filtered_image, m_filtered_filename.native(), m_coordinate_system);
-  }
+    // if possible, save the filtered image
+    if (i < m_filtered_images.size() && m_filtered_images.at(i) != nullptr && m_filtered_filename != "") {
+      FitsWriter::writeFile(*m_filtered_images.at(i),
+          addNumberToFilename(m_filtered_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+    }
 
-  // if possible, save the thresholded image
-  if (m_thresholded_image != nullptr && m_thresholded_filename != "") {
-    FitsWriter::writeFile(*m_thresholded_image, m_thresholded_filename.native(), m_coordinate_system);
-  }
+    // if possible, save the thresholded image
+    if (i < m_thresholded_images.size() && m_thresholded_images.at(i) != nullptr && m_thresholded_filename != "") {
+      FitsWriter::writeFile(*m_thresholded_images.at(i),
+          addNumberToFilename(m_thresholded_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+    }
 
-  // if possible, save the SNR image
-  if (m_snr_image != nullptr && m_snr_filename != "") {
-    FitsWriter::writeFile(*m_snr_image, m_snr_filename.native(), m_coordinate_system);
+    // if possible, save the SNR image
+    if (i < m_snr_images.size() && m_snr_images.at(i) != nullptr && m_snr_filename != "") {
+      FitsWriter::writeFile(*m_snr_images.at(i),
+          addNumberToFilename(m_snr_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+    }
   }
 
   // if possible, create and save the residual image

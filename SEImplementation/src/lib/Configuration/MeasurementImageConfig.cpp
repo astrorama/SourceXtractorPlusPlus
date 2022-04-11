@@ -74,7 +74,7 @@ void validateImagePaths(const PyMeasurementImage& image) {
   if (image.weight_file != "" && !fs::exists(image.weight_file)) {
     throw Elements::Exception() << "File " << image.weight_file << " does not exist";
   }
-  if (image.psf_file != "" && !fs::exists(image.psf_file)) {
+  if (image.psf_file != "" && boost::to_upper_copy(fs::path(image.psf_file).filename().string())!="NOPSF" && !fs::exists(image.psf_file)) {
     throw Elements::Exception() << "File " << image.psf_file << " does not exist";
   }
 }
@@ -142,10 +142,11 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
       case WeightImageConfig::WeightType::WEIGHT_TYPE_VARIANCE:
         break;
       case WeightImageConfig::WeightType::WEIGHT_TYPE_WEIGHT:
-        if (threshold>0)
+        if (threshold > 0) {
           threshold = 1.0 / threshold;
-        else
+        } else {
           threshold = std::numeric_limits<WeightImage::PixelType>::max();
+        }
         break; 
   }
   return threshold;
@@ -175,6 +176,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       logger.debug() << "Loading measurement image: " << py_image.file << " HDU: " << py_image.image_hdu;
       logger.debug() << "\tWeight: " << py_image.weight_file << " HDU: " << py_image.weight_hdu;
+      logger.debug() << "\tWeight threshold: " << py_image.weight_threshold << " hasThreshold: " << py_image.has_weight_threshold;
       logger.debug() << "\tPSF: " << py_image.psf_file << " HDU: " << py_image.psf_hdu;
       logger.debug() << "\tGain: " << py_image.gain;
       logger.debug() << "\tSaturation: " << py_image.saturation;

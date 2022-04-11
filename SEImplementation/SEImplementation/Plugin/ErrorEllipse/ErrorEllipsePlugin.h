@@ -15,50 +15,35 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /*
- * Created on Jan 05, 2015
- * @author: mkuemmel@usm.lmu.de
+ * ErrorEllipsePlugin.h
  *
- * Date:     $Date$
- * Revision: $Revision$
- * Author:   $Author$
+ *  Created on: Feb 11, 20122
+ *      Author: mkuemmel
  */
-#ifndef BACKGROUNDHISTOGRAM_H
-#define	BACKGROUNDHISTOGRAM_H
 
-#include <cstddef>
-#include <vector>
-#include "SEImplementation/Background/SE2/BackgroundDefine.h"
+#ifndef _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSEPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSEPLUGIN_H_
+
+#include "SEFramework/Plugin/Plugin.h"
 
 namespace SourceXtractor {
 
-class BackgroundHistogram {
+class ErrorEllipsePlugin : public Plugin {
 
 public:
-  BackgroundHistogram(const double& mean, const double& sigm, const size_t& ndata);
-  virtual ~BackgroundHistogram();
 
-  //void fillInData(const PIXTYPE* cellData, const size_t ndata);
-  void addDatum(const PIXTYPE& pixVal);
-  
-  void getBackGuessMod(PIXTYPE& bckVal, PIXTYPE& sigmaVal);
-  void getBackGuess(PIXTYPE& bckVal, PIXTYPE& sigmaVal);
+  /**
+   * @brief Destructor
+   */
+  virtual ~ErrorEllipsePlugin() = default;
 
-  double itsMean=0.0;
-  double itsSigma=0.0;
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
 
 private:
-  size_t itsStatNData=0;
 
-  float itsQzero  = 0.0;
-  float itsQscale = 0.0;
-  float itsCste   = 0.0;
-
-  int* itsHisto=NULL;
-  size_t itsNLevels=0;
 };
 
-} // end of namespace SourceXtractor
+}
 
-
-#endif	/* BACKGROUNDHISTOGRAM_H */
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_ERRORELLIPSE_ERRORELLIPSEPLUGIN_H_ */

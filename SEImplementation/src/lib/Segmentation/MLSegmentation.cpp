@@ -130,7 +130,7 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
   std::vector<std::shared_ptr<WriteableImage<float>>> check_images;
   for (int i=0; i < data_planes; i++) {
     tmp_images.emplace_back(FitsWriter::newTemporaryImage<float>("_tmp_ml_seg%%%%%%.fits", image->getWidth(), image->getHeight()));
-    check_images.emplace_back(CheckImages::getInstance().getMLDetectionImage(i));
+    check_images.emplace_back(CheckImages::getInstance().getMLDetectionImage(i, frame->getHduIndex()));
   }
 
   Lutz lutz;

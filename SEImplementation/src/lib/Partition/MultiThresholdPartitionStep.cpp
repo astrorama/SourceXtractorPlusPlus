@@ -21,6 +21,8 @@
  *      Author: mschefer
  */
 
+#include <boost/random.hpp>
+
 #include "SEImplementation/Measurement/MultithreadedMeasurement.h"
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
@@ -39,6 +41,10 @@
 #include "SEImplementation/Segmentation/Lutz.h"
 
 namespace SourceXtractor {
+
+namespace {
+  boost::random::mt19937 rng { ((unsigned int) time(NULL)) };
+}
 
 class MultiThresholdNode : public std::enable_shared_from_this<MultiThresholdNode> {
 public:
@@ -306,8 +312,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
       }
 
       if (probabilities.back() > 1.0e-31) {
-        // TODO probably should use a better RNG
-        auto drand = double(probabilities.back()) * double(rand()) / RAND_MAX;
+        auto drand = double(probabilities.back()) * boost::random::uniform_01<double>()(rng);
 
         unsigned int i=0;
         for (; i<probabilities.size() && drand >= probabilities[i]; i++);
@@ -346,7 +351,9 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
   return new_sources;
 }
 
+MultiThresholdPartitionStep::MultiThresholdPartitionStep(std::shared_ptr<SourceFactory> source_factory, SeFloat contrast,
+    unsigned int thresholds_nb, unsigned int min_deblend_area) :
+  m_source_factory(source_factory), m_contrast(contrast), m_thresholds_nb(thresholds_nb),
+  m_min_deblend_area(min_deblend_area) {}
 
 } // namespace
-
-

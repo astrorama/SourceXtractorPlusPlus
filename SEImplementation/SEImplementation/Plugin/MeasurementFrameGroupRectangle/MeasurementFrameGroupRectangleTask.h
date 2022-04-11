@@ -36,7 +36,7 @@ public:
 
   explicit MeasurementFrameGroupRectangleTask(unsigned instance): m_instance{instance} {}
 
-  virtual void computeProperties(SourceGroupInterface& group) const override;
+  void computeProperties(SourceGroupInterface& group) const override;
 
 private:
   unsigned m_instance;

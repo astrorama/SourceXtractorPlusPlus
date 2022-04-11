@@ -14,12 +14,13 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file BackgroundConfig.cpp
  * @author nikoapos
  */
 
 #include <algorithm>
+#include <ElementsKernel/Logging.h>
 #include "AlexandriaKernel/StringUtils.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEImplementation/Configuration/SE2BackgroundConfig.h"
@@ -29,12 +30,14 @@ namespace po = boost::program_options;
 
 namespace SourceXtractor {
 
+static Elements::Logging logger = Elements::Logging::getLogger("BackgroundConfig");
+
 static const std::string CELLSIZE_VALUE {"background-cell-size" };
 static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-size" };
 static const std::string LEGACY_BACKGROUND {"background-legacy"};
 
 SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
-  Configuration(manager_id), m_cell_size(), m_smoothing_box(), m_legacy(false) {
+  Configuration(manager_id), m_cell_size(), m_smoothing_box() {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig::getProgramOptions() {
@@ -44,7 +47,7 @@ std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig:
       {SMOOTHINGBOX_VALUE.c_str(), po::value<std::string>()->default_value(std::string("3")),
           "Background median filter size"},
       {LEGACY_BACKGROUND.c_str(), po::bool_switch(),
-          "Use the legacy implementation"}
+          "Deprecated, kept for compatibility"}
   }}};
 }
 
@@ -69,7 +72,8 @@ void SE2BackgroundConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "There are value(s) < 0 in smoothing-box-size: " << smoothing_box_str;
   }
   if (args.find(LEGACY_BACKGROUND) != args.end()) {
-    m_legacy = args.at(LEGACY_BACKGROUND).as<bool>();
+    logger.warn() << "The option "
+                  << LEGACY_BACKGROUND << " is deprecated and has no effect starting at version 0.17";
   }
 }
 

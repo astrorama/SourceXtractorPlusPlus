@@ -37,7 +37,10 @@ public:
     output_shape[0] = 1;
     size_t output_size = std::accumulate(output_shape.begin(), output_shape.end(), 1u, std::multiplies<size_t>());
 
-    // FIXME check input and output size are OK
+    // Check input and output size are OK
+    if (input_data.size() < input_size || output_data.size() < output_size) {
+      throw Elements::Exception() << "OnnxModel: Insufficient buffer size ";
+    }
 
     // Setup input/output tensors
     auto input_tensor = Ort::Value::CreateTensor<T>(
@@ -69,6 +72,11 @@ public:
       input_shape[0] = 1;
       size_t input_size = std::accumulate(input_shape.begin(), input_shape.end(), 1u, std::multiplies<size_t>());
 
+      // Check input size is OK
+      if (input_data[m_input_names[i]].size() < input_size) {
+        throw Elements::Exception() << "OnnxModel: Insufficient buffer size ";
+      }
+
       input_tensors.emplace_back(Ort::Value::CreateTensor<T>(
         mem_info, input_data[m_input_names[i]].data(), input_data[m_input_names[i]].size(),
         input_shape.data(), input_shape.size()));
@@ -81,6 +89,12 @@ public:
 
     // Setup output tensor
     size_t output_size = std::accumulate(output_shape.begin(), output_shape.end(), 1u, std::multiplies<size_t>());
+
+    // Check output and output size are OK
+    if (output_data.size() < output_size) {
+      throw Elements::Exception() << "OnnxModel: Insufficient buffer size ";
+    }
+
     auto output_tensor = Ort::Value::CreateTensor<U>(
       mem_info, output_data.data(), output_data.size(), output_shape.data(), output_shape.size());
 

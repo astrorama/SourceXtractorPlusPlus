@@ -37,7 +37,7 @@ public:
   explicit ApertureFlagTask(const std::vector<SeFloat> &apertures)
     : m_apertures(apertures) {}
 
-  virtual void computeProperties(SourceInterface &source) const override;
+  void computeProperties(SourceInterface &source) const override;
 
 private:
   std::vector<SeFloat> m_apertures;

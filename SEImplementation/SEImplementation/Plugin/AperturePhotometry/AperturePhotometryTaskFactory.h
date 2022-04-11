@@ -56,7 +56,7 @@ public:
 
   void configure(Euclid::Configuration::ConfigManager &manager) override;
 
-  virtual std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
+  std::shared_ptr<Task> createTask(const PropertyId &property_id) const override;
 
   void registerPropertyInstances(OutputRegistry &) override;
 
