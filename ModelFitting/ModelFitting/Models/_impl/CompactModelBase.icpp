@@ -26,7 +26,9 @@ CompactModelBase<ImageType>::CompactModelBase(
 template<typename ImageType>
 Mat22 CompactModelBase<ImageType>::getCombinedTransform(double pixel_scale) const {
   double s, c;
-#ifdef _GNU_SOURCE
+#if defined(__APPLE__)
+  __sincos(m_rotation->getValue(), &s, &c);
+#elif defined(_GNU_SOURCE)
   sincos(m_rotation->getValue(), &s, &c);
 #else
   s = sin(m_rotation->getValue());
@@ -95,22 +97,32 @@ inline float CompactModelBase<ImageType>::adaptiveSamplePixel(const ModelEvaluat
   return value;
 }
 
+// computes the square of distance from origin to a line defined by 2 points
+template<typename ImageType>
+double CompactModelBase<ImageType>::computeSqrDistanceLineToOrigin(double x1, double y1, double x2, double y2) const {
+  double a = (x2-x1) * y1 - (y2-y1) * x1;
+  return a * a / ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+}
+
 template<typename ImageType>
 double CompactModelBase<ImageType>::getMaxRadiusSqr(std::size_t size_x, std::size_t size_y, const Mat22& transform) const {
 
-  float x_x = (size_x * 0.95f / 2.f - 1) * transform[0];
-  float x_y = (size_x * 0.95f / 2.f - 1) * transform[2];
+  // transform coordinates of 3 corner points of the rendering rectangle, to be in the same space the model is evaluated
 
-  float y_x = (size_y * 0.95f / 2.f - 1)  * transform[1];
-  float y_y = (size_y * 0.95f / 2.f - 1)  * transform[3];
+  double x = size_x * 0.95f / 2.f;
+  double y = size_y * 0.95f / 2.f;
 
-  float xy_x = x_x + y_x;
-  float xy_y = x_y + y_y;
+  double p0_x =  x * transform[0] + y * transform[1];
+  double p0_y =  x * transform[2] + y * transform[3];
+  double p1_x = -x * transform[0] + y * transform[1];
+  double p1_y = -x * transform[2] + y * transform[3];
+  double p2_x =  x * transform[0] - y * transform[1];
+  double p2_y =  x * transform[2] - y * transform[3];
 
-  float d1 = (xy_x * x_y - xy_y * x_x) * (xy_x * x_y - xy_y * x_x) / ((xy_x - x_x) * (xy_x - x_x) + (xy_y - x_y) * (xy_y - x_y));
-  float d2 = (xy_x * y_y - xy_y * y_x) * (xy_x * y_y - xy_y * y_x) / ((xy_x - y_x) * (xy_x - y_x) + (xy_y - y_y) * (xy_y - y_y));
+  // Now computes distance from border lines in that space and use that as maximum radius to be evaluated
 
-  return std::min(d1, d2);
+  return std::min(computeSqrDistanceLineToOrigin(p0_x, p0_y, p1_x, p1_y),
+                  computeSqrDistanceLineToOrigin(p0_x, p0_y, p2_x, p2_y));
 }
 
 template<typename ImageType>

@@ -39,7 +39,8 @@ public:
   virtual ~Measurement() = default;
 
   virtual void startThreads() = 0;
-  virtual void waitForThreads() = 0;
+  virtual void stopThreads() = 0;
+  virtual void synchronizeThreads() = 0;
 };
 
 }

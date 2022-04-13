@@ -70,11 +70,11 @@ public:
   void loadPlugins();
 
   // PluginAPI implementation
-  virtual TaskFactoryRegistry& getTaskFactoryRegistry() const override {
+  TaskFactoryRegistry& getTaskFactoryRegistry() const override {
     return *m_task_factory_registry;
   }
 
-  virtual OutputRegistry& getOutputRegistry() const override {
+  OutputRegistry& getOutputRegistry() const override {
     return *m_output_registry;
   }
 

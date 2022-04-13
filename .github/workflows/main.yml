@@ -1,8 +1,9 @@
-name: RPM - Artifactory
+name: RPM - Repository
 
 on:
   push:
     branches: [ master, develop ]
+    tags: [ '*' ]
     paths-ignore:
       - 'doc/**'
       - 'README.md'
@@ -49,38 +50,36 @@ jobs:
         include:
           - os-type: centos
             os-version: 7
-          - os-type: centos
-            os-version: 8
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Get package name and version
         id: package-version
-        uses: astrorama/actions/elements-project@v2
+        uses: astrorama/actions/elements-project@v3
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@v2
+        uses: astrorama/actions/setup-dependencies@v3
         with:
           dependency-list: .github/workflows/dependencies.txt
       - name: Build
         id: build
-        uses: astrorama/actions/elements-build-rpm@v2
+        uses: astrorama/actions/elements-build-rpm@v3
       - name: Upload RPM to GitHub
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}
           path: ${{ steps.build.outputs.rpm-dir }}/*.rpm
-          retention-days: 15
-      - name: Setup jfrog cli
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: jfrog/setup-jfrog-cli@v1
+          retention-days: 1
+      - name: Upload RPM to repository
+        if: ${{ github.repository_owner == 'astrorama' }}
+        uses: astrorama/actions/upload-rpm@v3
         env:
-          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
-      - name: Upload RPM to Artifactory
-        if: ${{ github.event_name != 'pull_request' }}
-        uses: astrorama/actions/upload-rpm@v2
+          REPOSITORY_USER: ${{ secrets.REPOSITORY_USER }}
+          REPOSITORY_PASSWORD: ${{ secrets.REPOSITORY_PASSWORD }}
+          REPOSITORY_KEY: ${{ secrets.REPOSITORY_KEY }}
         with:
-          path: ${{ steps.build.outputs.rpm-dir }}
+          rpm-dir: ${{ steps.build.outputs.rpm-dir }}
+          srpm-dir: ${{ steps.build.outputs.srpm-dir }}
 
 #############
 # Run tests #
@@ -98,7 +97,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@v2
+        uses: astrorama/actions/setup-dependencies@v3
         with:
           dependency-list: .github/workflows/test-dependencies.txt
       - name: Download RPM
@@ -114,43 +113,5 @@ jobs:
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}-test-results
           path: /tmp/sourcex/
-          retention-days: 15
+          retention-days: 5
 
-#########################
-# Upload to artifactory #
-#########################
-  artifactory:
-    if: ${{ github.event_name != 'pull_request' }}
-    needs: [ build, litmus-test, get_fedora_releases ]
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        os-type: [fedora]
-        os-version: ${{ fromJson(needs.get_fedora_releases.outputs.stable) }}
-        include:
-          - os-type: centos
-            os-version: 7
-          - os-type: centos
-            os-version: 8
-    container: ${{ matrix.os-type }}:${{ matrix.os-version }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Get package name and version
-        id: package-version
-        uses: astrorama/actions/elements-project@v2
-      - name: Download RPM
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ matrix.os-type }}${{ matrix.os-version }}
-      - name: Setup jfrog cli
-        uses: jfrog/setup-jfrog-cli@v1
-        env:
-          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
-      - name: Upload RPM to Artifactory
-        uses: astrorama/actions/upload-rpm@v2
-        with:
-          os_type: ${{ matrix.os-type }}
-          os_version: ${{ matrix.os-version }}
-          path: .

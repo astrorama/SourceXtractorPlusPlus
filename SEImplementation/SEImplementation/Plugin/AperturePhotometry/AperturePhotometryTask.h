@@ -41,7 +41,7 @@ public:
       m_magnitude_zero_point(magnitude_zero_point),
       m_use_symmetry(use_symmetry) {}
 
-  virtual void computeProperties(SourceInterface &source) const override;
+  void computeProperties(SourceInterface &source) const override;
 
 private:
   std::vector<SeFloat> m_apertures;

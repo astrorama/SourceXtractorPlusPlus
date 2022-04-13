@@ -45,7 +45,7 @@ public:
   /// Constructor
   DetectionFrameSourceStampTask() {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 }; /* End of DetectionFrameSourceStampTask class */
 

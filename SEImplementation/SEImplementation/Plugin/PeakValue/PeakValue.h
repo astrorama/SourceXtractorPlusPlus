@@ -34,7 +34,7 @@ public:
 
   virtual ~PeakValue() = default;
 
-  PeakValue(SeFloat min_value, SeFloat max_value) : m_min_value(min_value), m_max_value(max_value) {}
+  PeakValue(SeFloat min_value, SeFloat max_value, int max_value_x, int max_value_y) : m_min_value(min_value), m_max_value(max_value), m_peak_x(max_value_x), m_peak_y(max_value_y) {}
 
   SeFloat getMinValue() const {
     return m_min_value;
@@ -44,8 +44,17 @@ public:
     return m_max_value;
   }
 
+  SeFloat getMaxValueX() const {
+    return m_peak_x;
+  }
+
+  SeFloat getMaxValueY() const {
+    return m_peak_y;
+  }
+
 private:
   SeFloat m_min_value, m_max_value;
+  int m_peak_x, m_peak_y;
 
 };
 

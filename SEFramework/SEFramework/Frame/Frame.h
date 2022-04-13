@@ -28,6 +28,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Image/Image.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
@@ -78,6 +79,23 @@ public:
   std::shared_ptr<Image<T>> getOriginalImage() const {
     return m_image;
   }
+
+  size_t getHduIndex() const {
+   return m_hdu_index;
+  }
+
+  void setHduIndex(size_t hdu_index) {
+    m_hdu_index = hdu_index;
+  }
+
+  // Metadata of the original image
+  const std::map<std::string, MetadataEntry>& getMetadata() const {
+    return m_metadata;
+  };
+
+  void setMetadata(const std::map<std::string, MetadataEntry>& metadata) {
+    m_metadata = metadata;
+  };
 
   // Returns the image with bad pixels interpolated (if interpolation is active, otherwise returns original)
   std::shared_ptr<Image<T>> getInterpolatedImage() const;
@@ -183,6 +201,8 @@ private:
   std::shared_ptr<Image<T>> m_filtered_variance_map;
 
   std::string m_label;
+  size_t m_hdu_index = 0;
+  std::map<std::string, MetadataEntry> m_metadata {};
 };
 
 using DetectionImageFrame = Frame<DetectionImage::PixelType>;

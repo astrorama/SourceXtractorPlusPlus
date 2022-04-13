@@ -57,7 +57,7 @@ public:
  */
 class SelectAllCriteria : public SelectionCriteria {
 public:
-  virtual bool mustBeProcessed(const SourceInterface& ) const override {
+  bool mustBeProcessed(const SourceInterface& ) const override {
     return true;
   }
 };
@@ -116,10 +116,10 @@ public:
                  unsigned int hard_limit);
 
   /// Handles a new Source
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
+  void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
 
   /// Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
-  virtual void handleMessage(const ProcessSourcesEvent& source) override;
+  void handleMessage(const ProcessSourcesEvent& source) override;
 
   /// Returns the set of required properties to compute the grouping
   std::set<PropertyId> requiredProperties() const;

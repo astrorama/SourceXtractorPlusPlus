@@ -253,7 +253,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   // Perform the minimization
   auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
   auto solution = engine->solveProblem(manager, res_estimator);
-  size_t iterations = (size_t) boost::any_cast<std::array<double,10>>(solution.underlying_framework_info)[5];
+  size_t iterations = solution.iteration_no;
 
   auto final_stamp = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
 

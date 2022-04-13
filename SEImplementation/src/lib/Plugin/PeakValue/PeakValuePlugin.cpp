@@ -43,6 +43,22 @@ void PeakValuePlugin::registerPlugin(PluginAPI& plugin_api) {
           "count",
           "Highest pixel value in the detection image"
   );
+  plugin_api.getOutputRegistry().registerColumnConverter<PeakValue, int>(
+          "peak_value_x",
+          [](const PeakValue& prop){
+            return prop.getMaxValueX()+1.0;  // add one to use FITS standard coordinates
+          },
+          "pix",
+          "X-coordinate of highest pixel value"
+  );
+  plugin_api.getOutputRegistry().registerColumnConverter<PeakValue, int>(
+          "peak_value_y",
+          [](const PeakValue& prop){
+            return prop.getMaxValueY()+1.0;  // add one to use FITS standard coordinates
+          },
+          "pix",
+          "Y-coordinate of highest pixel value"
+  );
 
   plugin_api.getOutputRegistry().enableOutput<PeakValue>("PeakValue");
 }

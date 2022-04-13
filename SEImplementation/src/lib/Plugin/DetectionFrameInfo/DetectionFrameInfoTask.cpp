@@ -30,7 +30,8 @@ void DetectionFrameInfoTask::computeProperties(SourceInterface& source) const {
 
   source.setProperty<DetectionFrameInfo>(width, height,
       detection_frame->getGain(), detection_frame->getSaturation(),
-      detection_frame->getVarianceThreshold(), detection_frame->getBackgroundMedianRms());
+      detection_frame->getVarianceThreshold(), detection_frame->getBackgroundMedianRms(),
+      detection_frame->getMetadata(), detection_frame->getHduIndex());
 }
 
 } // SEImplementation namespace

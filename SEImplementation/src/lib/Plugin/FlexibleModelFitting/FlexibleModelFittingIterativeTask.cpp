@@ -69,7 +69,7 @@ PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
   auto fitting_rect = source.getProperty<MeasurementFrameRectangle>(frame_index).getRect();
 
   if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
-      return PixelRectangle();
+    return PixelRectangle();
   } else {
     const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
 
@@ -181,7 +181,6 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
   FittingState fitting_state;
 
-  //std::cout << "gs " << group.size() << "\n";
   for (auto& source : group) {
     SourceState initial_state;
     initial_state.flags = Flags::NONE;
@@ -197,6 +196,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
       } else {
         initial_state.parameters_values[parameter->getId()] = 0.0;
       }
+      // Make sure we have a default value for sigmas in case we cannot do the fit
+      initial_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
     }
     fitting_state.source_states.emplace_back(std::move(initial_state));
   }
@@ -233,6 +234,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
 
   for (size_t index = 0; index < group.size(); index++){
     auto& source_state = fitting_state.source_states.at(index);
+
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
@@ -264,18 +266,6 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   updateCheckImages(group, 1.0, fitting_state);
 }
 
-
-// Used to set a dummy property in case of error that contains no result but just an error flag
-void FlexibleModelFittingIterativeTask::setDummyProperty(SourceInterface& source, Flags flags) const {
-  std::unordered_map<int, double> dummy_values;
-  for (auto parameter : m_parameters) {
-    dummy_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
-  }
-  source.setProperty<FlexibleModelFitting>(0, 0, std::numeric_limits<double>::quiet_NaN(), 0., flags,
-                                           dummy_values, dummy_values,
-                                           std::vector<SeFloat>(m_meta_iterations),
-                                           std::vector<int>(m_meta_iterations), 0);
-}
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createDeblendImage(
     SourceGroupInterface& group, SourceInterface& source, int source_index,
@@ -524,7 +514,6 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   // Do not run the model fitting for the flags above
   if (flags != Flags::NONE) {
-    setDummyProperty(source, flags);
     return;
   }
 
@@ -581,7 +570,6 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         parameter_manager.addParameter(src, parameter,
             free_parameter->create(parameter_manager, engine_parameter_manager, src,
                 state.source_states[index].parameters_values.at(free_parameter->getId())));
-
       } else {
         parameter_manager.addParameter(src, parameter,
             parameter->create(parameter_manager, engine_parameter_manager, src));

@@ -40,7 +40,7 @@ public:
 
   explicit AutoPhotometryArrayTask(const std::vector<unsigned> &images): m_images(images) {}
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
   std::vector<unsigned> m_images;

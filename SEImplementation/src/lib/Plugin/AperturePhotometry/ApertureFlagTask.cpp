@@ -71,7 +71,7 @@ void ApertureFlagTask::computeProperties(SourceInterface &source) const {
   source.setProperty<ApertureFlag>(all_flags);
 
   // draw check image for all apertures
-  auto aperture_check_img = CheckImages::getInstance().getApertureImage();
+  auto aperture_check_img = CheckImages::getInstance().getDetectionApertureImage(detection_frame_info.getHduIndex());
   if (aperture_check_img) {
 	  for (auto aperture_diameter : m_apertures) {
 		  unsigned int src_id = source.getProperty<SourceID>().getId();

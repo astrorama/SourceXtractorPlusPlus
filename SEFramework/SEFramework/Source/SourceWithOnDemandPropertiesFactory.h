@@ -39,7 +39,7 @@ public:
   explicit SourceWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
-  virtual std::shared_ptr<SourceInterface> createSource() const override {
+  std::shared_ptr<SourceInterface> createSource() const override {
     return std::make_shared<SourceWithOnDemandProperties>(m_task_provider);
   }
 

@@ -37,7 +37,7 @@ public:
   AperturePhotometryArrayTask(const std::vector<unsigned> &aperture_instances, unsigned instance)
     : m_aperture_instances(aperture_instances), m_instance(instance) {}
 
-  virtual void computeProperties(SourceInterface &source) const override;
+  void computeProperties(SourceInterface &source) const override;
 
 private:
   std::vector<unsigned> m_aperture_instances;

@@ -22,6 +22,8 @@
 
 #include <mutex>
 
+#include "SEFramework/Image/ImageAccessor.h"
+
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
@@ -34,9 +36,9 @@ ExternalFlagTask<Combine>::~ExternalFlagTask() {
 }
 
 template<typename Combine>
-ExternalFlagTask<Combine>::ExternalFlagTask(std::shared_ptr<FlagImage> flag_image,
+ExternalFlagTask<Combine>::ExternalFlagTask(const std::vector<std::shared_ptr<FlagImage>>& flag_images,
                                             unsigned int flag_instance)
-  : m_flag_image(new ImageAccessor<FlagImage::PixelType>(flag_image)),
+  : m_flag_images(flag_images),
     m_flag_instance(flag_instance) {
 }
 
@@ -46,17 +48,19 @@ void ExternalFlagTask<Combine>::computeProperties(SourceInterface &source) const
   // FIXME: for flag_image access, the external flags image not part of detection frame?!
   const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
 
-  if (m_flag_image->getWidth() != detection_frame_info.getWidth() ||
-      m_flag_image->getHeight() != detection_frame_info.getHeight()) {
+  auto flag_image_acc = ImageAccessor<int64_t>(m_flag_images.at(detection_frame_info.getHduIndex()));
+
+  if (flag_image_acc.getWidth() != detection_frame_info.getWidth() ||
+      flag_image_acc.getHeight() != detection_frame_info.getHeight()) {
     throw Elements::Exception()
       << "The flag image size does not match the detection image size: "
-      << m_flag_image->getWidth() << "x" << m_flag_image->getHeight() << " != "
+      << flag_image_acc.getWidth() << "x" << flag_image_acc.getHeight() << " != "
       << detection_frame_info.getWidth() << "x" << detection_frame_info.getHeight();
   }
 
   std::vector<FlagImage::PixelType> pixel_flags{};
   for (auto& coords : source.getProperty<PixelCoordinateList>().getCoordinateList()) {
-    pixel_flags.push_back(m_flag_image->getValue(coords.m_x, coords.m_y));
+    pixel_flags.push_back(flag_image_acc.getValue(coords.m_x, coords.m_y));
   }
   std::int64_t flag = 0;
   int count = 0;

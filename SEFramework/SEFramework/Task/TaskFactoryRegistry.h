@@ -61,8 +61,8 @@ public:
   }
 
   // Configurable interface
-  virtual void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  virtual void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
 
   void registerPropertyInstances(OutputRegistry& output_registry);
 

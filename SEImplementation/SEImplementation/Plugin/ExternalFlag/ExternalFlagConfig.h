@@ -42,7 +42,7 @@ public:
     OR, AND, MIN, MAX, MOST
   };
   
-  using FlagInfo = std::pair<std::shared_ptr<FlagImage>, Type>;
+  using FlagInfo = std::pair<std::vector<std::shared_ptr<FlagImage>>, Type>;
 
   /**
    * @brief Destructor

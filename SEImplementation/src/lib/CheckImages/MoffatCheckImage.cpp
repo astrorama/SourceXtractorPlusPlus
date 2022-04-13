@@ -27,6 +27,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 
@@ -37,7 +38,8 @@ namespace SourceXtractor {
 using namespace ModelFitting;
 
 void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto check_image = CheckImages::getInstance().getMoffatImage();
+  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+  auto check_image = CheckImages::getInstance().getMoffatImage(hdu_index);
   ImageAccessor<SeFloat> check_accessor(check_image);
 
   if (check_image != nullptr) {

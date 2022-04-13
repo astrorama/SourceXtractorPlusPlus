@@ -34,7 +34,7 @@ public:
 
   virtual ~ShapeParametersTask() = default;
 
-  virtual void computeProperties(SourceInterface& source) const override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
 

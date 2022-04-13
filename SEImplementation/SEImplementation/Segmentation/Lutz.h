@@ -77,7 +77,7 @@ public:
   }
 
 protected:
-  virtual void publishGroup(PixelGroup& pixel_group) override;
+  void publishGroup(PixelGroup& pixel_group) override;
 
 private:
   std::vector<PixelGroup> m_groups;
