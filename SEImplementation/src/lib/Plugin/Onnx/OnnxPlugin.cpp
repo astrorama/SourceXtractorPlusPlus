@@ -32,6 +32,15 @@ std::string OnnxPlugin::getIdString() const {
 void OnnxPlugin::registerPlugin(PluginAPI& plugin_api) {
   plugin_api.getTaskFactoryRegistry().registerTaskFactory<OnnxTaskFactory, OnnxProperty>();
   // Note that we do not now the output yet, so we do not register any columns
+
+  plugin_api.getOutputRegistry().registerColumnConverter<OnnxProperty, int>(
+            "ml_measurment_flags",
+            [](const OnnxProperty&) {
+              return 0; // Dummy property for now to avoid crash
+            },
+            "",
+            "flags"
+    );
   plugin_api.getOutputRegistry().enableOutput<OnnxProperty>("MLMeasurement", true);
 }
 

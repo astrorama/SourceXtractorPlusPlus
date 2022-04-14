@@ -22,11 +22,9 @@
 #include "SOURCEXTRACTORPLUSPLUS_VERSION.h"
 
 #include "SEFramework/Image/ImageSource.h"
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
-#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
-
 #include "SEImplementation/Output/LdacOutput.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 
 #if BOOST_VERSION < 107300
 #include <boost/io/detail/quoted_manip.hpp>
@@ -175,15 +173,13 @@ void LdacOutput::writeHeaders() {
   // END
   ldac_imhead.emplace_back("END" + std::string(77, ' '));
 
+  // Join everything as a single string
+  std::string header = std::accumulate(ldac_imhead.begin(), ldac_imhead.end(), std::string());
+
   // Write the table
-  auto column_info = std::make_shared<ColumnInfo>(std::vector<ColumnInfo::info_type>{
-    {"Field Header Card", typeid(std::string)}
-  });
-  std::vector<Row> rows;
-  for (const auto& header : ldac_imhead) {
-    rows.emplace_back(std::vector<Row::cell_type>{header}, column_info);
-  }
-  imhead_writer->addData(Table{std::vector<Row>{rows}});
+  auto column_info = std::make_shared<ColumnInfo>(std::vector<ColumnInfo::info_type>{{"Field Header Card", typeid(std::string)}});
+  std::vector<Row> rows{{std::vector<Row::cell_type>{header}, column_info}};
+  imhead_writer->addData(Table{std::move(rows)});
 }
 
 void LdacOutput::nextPart() {
@@ -192,4 +188,4 @@ void LdacOutput::nextPart() {
   m_fits_writer = nullptr;
 }
 
-} // end of namespace SourceXtractor
+}  // end of namespace SourceXtractor

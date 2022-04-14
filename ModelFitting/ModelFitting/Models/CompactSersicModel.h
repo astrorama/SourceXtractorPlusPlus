@@ -46,7 +46,7 @@ public:
         float r = std::sqrt(r_sqr);
         return i0 * std::exp(float(-k * powf(r, 1. / n)));
       } else {
-        return 0;
+        return 0.f;
       }
     }
   };

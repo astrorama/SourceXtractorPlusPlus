@@ -139,6 +139,10 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   auto psf_property = group.getProperty<PsfProperty>(frame_index);
   auto jacobian = group.getProperty<JacobianGroup>(frame_index).asTuple();
 
+  if (psf_property.getPsf() == nullptr) {
+    throw Elements::Exception() << "Missing PSF. No PSF mode is not supported in legacy model fitting";
+  }
+
   // The model fitting module expects to get a PSF with a pixel scale, but we have the pixel sampling step size
   // It will be used to compute the rastering grid size, and after convolving with the PSF the result will be
   // downscaled before copied into the frame image.
