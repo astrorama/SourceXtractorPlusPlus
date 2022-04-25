@@ -23,6 +23,7 @@
 #include "ModelFitting/Engine/GSLEngine.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 #include <ElementsKernel/Exception.h>
+#include <array>
 #include <chrono>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multifit_nlinear.h>
