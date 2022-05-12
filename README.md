@@ -71,7 +71,6 @@ For Euclid Consortium papers it is sufficient to point to the [SourceXtractor++ 
 the standard EC acknowledgement text.
 
 For scientific publication which are non EC papers we would be greatful if the following acknowledgment could be added:
-
 ```
 This research made use of {\tt SourceXtractor++}\footnote{https://github.com/astrorama/SourceXtractorPlusPlus},
 an open source software package developed for the Euclid satellite project.
