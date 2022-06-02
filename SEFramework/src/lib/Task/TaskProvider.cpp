@@ -38,18 +38,20 @@ std::shared_ptr<const Task> TaskProvider::getTask(const PropertyId& property_id)
 
   if (iterTask != m_tasks.end()) {
     return iterTask->second;
-  } else if (m_task_factory_registry != nullptr) {
-    // Use the TaskFactoryRegistry to get the correct factory for the requested property_id
-    auto& task_factory = m_task_factory_registry->getFactory(property_id.getTypeId());
-    auto task = task_factory.createTask(property_id);
-
-    // Put it in the cache
-    const_cast<TaskProvider&>(*this).m_tasks[property_id] = task;
-
-    return task;
-  } else {
+  } else if (m_task_factory_registry == nullptr) {
     return nullptr;
   }
+
+  // Use the TaskFactoryRegistry to get the correct factory for the requested property_id
+  auto task_factory = m_task_factory_registry->getFactory(property_id.getTypeId());
+  if (task_factory == nullptr) {
+    return nullptr;
+  }
+  auto task = task_factory->createTask(property_id);
+
+  // Put it in the cache
+  m_tasks[property_id] = task;
+  return task;
 }
 
 } // SEFramework namespace

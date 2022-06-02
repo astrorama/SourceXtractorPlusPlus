@@ -52,6 +52,8 @@ public:
 
   MOCK_CONST_METHOD1(getProperty, Property& (const PropertyId& property_id));
   void setProperty(std::unique_ptr<Property>, const PropertyId& ) {}
+
+  bool supportsProperty(const PropertyId &) const override { return true; }
 };
 
 //-----------------------------------------------------------------------------

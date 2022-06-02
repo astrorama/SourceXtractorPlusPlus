@@ -60,7 +60,7 @@ protected:
 
 private:
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
-  std::unordered_map<PropertyId, std::shared_ptr<Task>> m_tasks;
+  mutable std::unordered_map<PropertyId, std::shared_ptr<Task>> m_tasks;
 
 }; /* End of TaskProvider class */
 

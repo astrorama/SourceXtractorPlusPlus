@@ -61,6 +61,10 @@ public:
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 
+  bool supportsProperty(const PropertyId &property_id) const {
+    return m_property_holder.isPropertySet(property_id);
+  }
+
 protected:
 
   // Implementation of SourceInterface

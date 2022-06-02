@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file EntangledSource.cpp
  * @author nikoapos
  */
@@ -49,35 +49,39 @@ const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(
     return m_group.getProperty(property_id);
   }
 
-  try {
-    // Try to get the the property from the encapsulated Source
-    // if it cannot provide it, this will throw a PropertyNotFoundException
+  if (m_source->supportsProperty(property_id)) {
     return m_source->getProperty(property_id);
-  } catch (PropertyNotFoundException& e) {
-    // Getting this exception means the property must be computed at the group level
+  }
 
-    // Get the group task
-    auto group_task = m_group.m_task_provider->getTask<GroupTask>(property_id);
-    if (!group_task) {
-      // No task is available to make that property
-      throw PropertyNotFoundException(property_id);
-    }
+  // Getting this exception means the property must be computed at the group
+  // level
+
+  // Get the group task
+  auto group_task = m_group.m_task_provider->getTask<GroupTask>(property_id);
+  if (!group_task) {
+    // No task is available to make that property
+    throw PropertyNotFoundException(property_id);
+  }
 
   // Use the task to make the property
-    group_task->computeProperties(m_group);
+  group_task->computeProperties(m_group);
 
-    // The property should now be available either in this object or in the group object
-    if (m_property_holder.isPropertySet(property_id)) {
-      return m_property_holder.getProperty(property_id);
-    } else {
-      return m_group.m_property_holder.getProperty(property_id);
-    }
+  // The property should now be available either in this object or in the group
+  // object
+  if (m_property_holder.isPropertySet(property_id)) {
+    return m_property_holder.getProperty(property_id);
+  } else {
+    return m_group.m_property_holder.getProperty(property_id);
   }
 
 } // end of getProperty()
 
 void SourceGroupWithOnDemandProperties::EntangledSource::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
+}
+
+bool SourceGroupWithOnDemandProperties::EntangledSource::supportsProperty(const PropertyId &property_id) const {
+  return m_property_holder.isPropertySet(property_id) || m_source->supportsProperty(property_id);
 }
 
 bool SourceGroupWithOnDemandProperties::EntangledSource::operator<(const EntangledSource& other) const {

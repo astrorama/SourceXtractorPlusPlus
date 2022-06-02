@@ -56,8 +56,12 @@ public:
     registerTaskFactoryImpl<Ts...>(task_factory_shared);
   }
 
-  const TaskFactory& getFactory(std::type_index type_id) const {
-    return *m_type_task_factories_map.at(type_id);
+  const TaskFactory* getFactory(std::type_index type_id) const {
+    auto iter = m_type_task_factories_map.find(type_id);
+    if (iter != m_type_task_factories_map.end()) {
+      return iter->second.get();
+    }
+    return nullptr;
   }
 
   // Configurable interface

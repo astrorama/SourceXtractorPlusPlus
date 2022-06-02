@@ -42,7 +42,7 @@ namespace SourceXtractor {
 class SourceGroupWithOnDemandProperties : public SourceGroupInterface {
 
 public:
-  
+
   explicit SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider);
 
   /**
@@ -51,41 +51,42 @@ public:
   virtual ~SourceGroupWithOnDemandProperties() = default;
 
   iterator begin() override;
-  
+
   iterator end() override;
-  
+
   const_iterator cbegin() override;
-  
+
   const_iterator cend() override;
-  
+
   const_iterator begin() const override;
-  
+
   const_iterator end() const override;
-  
+
   void addSource(std::shared_ptr<SourceInterface> source) override;
-  
+
   iterator removeSource(iterator pos) override;
-  
+
   void merge(const SourceGroupInterface& other) override;
-  
+
   unsigned int size() const override;
 
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
+  bool supportsProperty(const PropertyId &property_id) const override;
 
 protected:
-  
+
   const Property& getProperty(const PropertyId& property_id) const override;
 
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
-  
+
   class EntangledSource;
   std::list<SourceWrapper> m_sources;
   PropertyHolder m_property_holder;
   std::shared_ptr<TaskProvider> m_task_provider;
-  
+
   void clearGroupProperties();
 
 }; /* End of SourceGroup class */
@@ -93,9 +94,9 @@ private:
 
 
 class SourceGroupWithOnDemandProperties::EntangledSource : public SourceInterface {
-  
+
 public:
-  
+
   EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group);
 
   virtual ~EntangledSource() = default;
@@ -103,15 +104,17 @@ public:
   const Property& getProperty(const PropertyId& property_id) const override;
 
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
-  
+
+  bool supportsProperty(const PropertyId &property_id) const override;
+
   bool operator<(const EntangledSource& other) const;
 
 private:
-  
+
   PropertyHolder m_property_holder;
   std::shared_ptr<SourceInterface> m_source;
   SourceGroupWithOnDemandProperties& m_group;
-  
+
   friend void SourceGroupWithOnDemandProperties::clearGroupProperties();
   friend void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface&);
 

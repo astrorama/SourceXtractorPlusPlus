@@ -108,6 +108,10 @@ unsigned int SourceGroupWithOnDemandProperties::size() const {
   return m_sources.size();
 }
 
+bool SourceGroupWithOnDemandProperties::supportsProperty(const PropertyId &property_id) const {
+  return m_property_holder.isPropertySet(property_id) || m_task_provider->getTask<GroupTask>(property_id) != nullptr;
+}
+
 } // SourceXtractor namespace
 
 

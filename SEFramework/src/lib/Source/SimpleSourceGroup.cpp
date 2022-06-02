@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SimpleSourceGroup.cpp
  * @author nikoapos
  */
@@ -74,6 +74,9 @@ void SimpleSourceGroup::setProperty(std::unique_ptr<Property> property, const Pr
 
 unsigned int SimpleSourceGroup::size() const {
   return m_sources.size();
+}
+bool SimpleSourceGroup::supportsProperty(const PropertyId &property_id) const {
+  return m_property_holder.isPropertySet(property_id);
 }
 
 } // SourceXtractor namespace

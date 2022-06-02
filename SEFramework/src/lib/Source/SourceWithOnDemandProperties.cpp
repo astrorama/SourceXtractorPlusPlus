@@ -53,7 +53,9 @@ void SourceWithOnDemandProperties::setProperty(std::unique_ptr<Property> propert
   // just forward to the ObjectWithProperties implementation
   m_property_holder.setProperty(std::move(property), property_id);
 }
-
+bool SourceWithOnDemandProperties::supportsProperty(const PropertyId &property_id) const {
+  return m_property_holder.isPropertySet(property_id) || m_task_provider->getTask<SourceTask>(property_id) != nullptr;
+}
 
 } // SEFramework namespace
 

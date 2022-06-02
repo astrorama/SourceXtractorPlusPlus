@@ -67,7 +67,7 @@ public:
     setProperty(std::unique_ptr<PropertyType>{new PropertyType(std::forward<Args>(args)...)},
                 PropertyId::create<PropertyType>(index));
   }
-  
+
   template<typename PropertyType, typename ... Args>
   void setProperty(Args... args) {
     setIndexedProperty<PropertyType>(0, std::forward<Args>(args)...);
@@ -77,6 +77,8 @@ public:
   /// Throws a PropertyNotFoundException if the property cannot be provided.
   virtual const Property& getProperty(const PropertyId& property_id) const = 0;
   virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
+
+  virtual bool supportsProperty(const PropertyId& property_id) const = 0;
 
 }; /* End of SourceInterface class */
 

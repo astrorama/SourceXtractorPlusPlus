@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SourceGroupInterface.h
  * @author nikoapos
  */
@@ -35,7 +35,7 @@ namespace SourceXtractor {
  */
 
 class SourceGroupInterface : protected SourceInterface {
-  
+
   template <typename Collection>
   using CollectionType = typename std::iterator_traits<typename Collection::iterator>::value_type;
 
@@ -46,7 +46,7 @@ class SourceGroupInterface : protected SourceInterface {
   struct is_shared_ptr<std::shared_ptr<T>> : std::true_type {};
 
 public:
-  
+
   class SourceWrapper : public SourceInterface {
   public:
 
@@ -60,6 +60,10 @@ public:
 
     void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
       m_source->setProperty(std::move(property), property_id);
+    }
+
+    bool supportsProperty(const PropertyId &property_id) const override {
+      return m_source->supportsProperty(property_id);
     }
 
     bool operator<(const SourceWrapper& other) const {
@@ -87,12 +91,12 @@ public:
   virtual const_iterator cend() = 0;
   virtual const_iterator begin() const = 0;
   virtual const_iterator end() const = 0;
-  
+
   virtual void addSource(std::shared_ptr<SourceInterface> source) = 0;
   virtual iterator removeSource(iterator pos) = 0;
   virtual void merge(const SourceGroupInterface& other) = 0;
   virtual unsigned int size() const = 0;
-  
+
   /// Convenient method to add all the sources of a collection
   template <typename SourceCollection>
   void addAllSources(const SourceCollection& sources) {
@@ -104,7 +108,7 @@ public:
       addSource(source);
     }
   }
-  
+
   // We introduce the get/setProperty methods from the SourceInterface in the
   // public symbols so they become part of the SourceGroupInterface. The group
   // implementations must implement the methods with the PropertyId
@@ -112,8 +116,8 @@ public:
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
   using SourceInterface::setIndexedProperty;
-  
-}; // end of SourceGroupInterface class 
+
+}; // end of SourceGroupInterface class
 
 } /* namespace SourceXtractor */
 
