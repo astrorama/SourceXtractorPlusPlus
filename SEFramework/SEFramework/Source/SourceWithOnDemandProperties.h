@@ -23,10 +23,9 @@
 #ifndef _SEFRAMEWORK_SOURCE_SOURCE_H
 #define _SEFRAMEWORK_SOURCE_SOURCE_H
 
-#include <vector>
-
 #include "SEFramework/Property/PropertyHolder.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include <mutex>
 
 namespace SourceXtractor {
 
@@ -47,7 +46,7 @@ public:
   /**
    * @brief Destructor
    */
-  virtual ~SourceWithOnDemandProperties() = default;
+  ~SourceWithOnDemandProperties() override = default;
 
   // removes copy/move constructors and assignment operators
 
@@ -77,6 +76,7 @@ protected:
 private:
   std::shared_ptr<const TaskProvider> m_task_provider;
   PropertyHolder m_property_holder;
+  mutable std::mutex m_mutex;
 }; /* End of Source class */
 
 } /* namespace SourceXtractor */

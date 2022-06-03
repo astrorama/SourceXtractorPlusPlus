@@ -34,14 +34,18 @@ SourceWithOnDemandProperties::SourceWithOnDemandProperties(std::shared_ptr<const
 
 const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& property_id) const {
   // if we have the property already, just return it
-  if (m_property_holder.isPropertySet(property_id)) {
-    return m_property_holder.getProperty(property_id);
+  {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (m_property_holder.isPropertySet(property_id)) {
+      return m_property_holder.getProperty(property_id);
+    }
   }
 
   // if not, get the task that makes it and execute, we should have it then
   auto task = m_task_provider->getTask<SourceTask>(property_id);
   if (task) {
     task->computeProperties(const_cast<SourceWithOnDemandProperties&>(*this));
+    std::lock_guard<std::mutex> lock(m_mutex);
     return m_property_holder.getProperty(property_id);
   }
 
@@ -50,10 +54,11 @@ const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& prop
 }
 
 void SourceWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
-  // just forward to the ObjectWithProperties implementation
+  std::lock_guard<std::mutex> lock(m_mutex);
   m_property_holder.setProperty(std::move(property), property_id);
 }
 bool SourceWithOnDemandProperties::supportsProperty(const PropertyId &property_id) const {
+  std::lock_guard<std::mutex> lock(m_mutex);
   return m_property_holder.isPropertySet(property_id) || m_task_provider->getTask<SourceTask>(property_id) != nullptr;
 }
 

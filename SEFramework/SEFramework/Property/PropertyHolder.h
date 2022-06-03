@@ -23,11 +23,10 @@
 #ifndef _SEFRAMEWORK_PROPERTY_PROPERTYHOLDER_H
 #define _SEFRAMEWORK_PROPERTY_PROPERTYHOLDER_H
 
-#include <memory>
-#include <unordered_map>
-
 #include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Property/Property.h"
+#include <memory>
+#include <unordered_map>
 
 namespace SourceXtractor {
 
@@ -54,7 +53,7 @@ public:
   PropertyHolder& operator=(PropertyHolder&&) = delete;
 
   /// Constructors
-  PropertyHolder() {}
+  PropertyHolder() = default;
 
   /// Returns a reference to a Property if it is set, if not throws a PropertyNotFoundException
   const Property& getProperty(const PropertyId& property_id) const;
@@ -64,7 +63,7 @@ public:
 
   /// Returns true if the property is set
   bool isPropertySet(const PropertyId& property_id) const;
-  
+
   void clear();
 
 private:
