@@ -90,7 +90,7 @@ BOOST_FIXTURE_TEST_CASE( TaskProvider_notfound_test, TaskProviderFixture ) {
   registry->registerTaskFactory<ExampleTaskFactory, ExampleProperty>();
 
   // Try to create a task for property type not registered
-  BOOST_CHECK_EQUAL(provider->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>()), nullptr);
+  BOOST_CHECK(provider->getTask<SourceTask>(PropertyId::create<ExamplePropertyB>()) == nullptr);
 }
 
 //-----------------------------------------------------------------------------
