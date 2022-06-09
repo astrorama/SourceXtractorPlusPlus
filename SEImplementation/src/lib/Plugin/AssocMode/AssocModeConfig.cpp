@@ -72,9 +72,6 @@ std::vector<int> parseColumnList(const std::string& arg) {
       for (auto& part : parts) {
 	  // the input is a 1-based index, the internal index is 0-based
 	  column_list.emplace_back(boost::lexical_cast<int>(part)-1);
-	  if (column_list.back()<0){
-	      throw Elements::Exception() << "Column index is <1: " << part;
-	  }
       }
       return column_list;
     } catch(...) {
