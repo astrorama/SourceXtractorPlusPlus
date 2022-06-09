@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SimpleSourceGroupFactory.h
  * @author nikoapos
  */
@@ -33,13 +33,13 @@ namespace SourceXtractor {
  */
 
 class SimpleSourceGroupFactory : public SourceGroupFactory {
-  
+
 public:
 
-  std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_shared<SimpleSourceGroup>();
+  std::unique_ptr<SourceGroupInterface> createSourceGroup() const override {
+    return std::make_unique<SimpleSourceGroup>();
   }
-  
+
 };
 
 }

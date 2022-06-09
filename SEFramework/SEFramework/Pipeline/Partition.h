@@ -41,7 +41,7 @@ public:
    */
   virtual ~PartitionStep() = default;
 
-  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const = 0;
+  virtual std::vector<std::unique_ptr<SourceInterface>> partition(std::unique_ptr<SourceInterface> source) const = 0;
 };
 
 /**
@@ -64,7 +64,7 @@ public:
   /// Constructor - takes a vector of PartitionSteps to be applied in order
   explicit Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
 
-  void receiveSource(const std::shared_ptr<SourceInterface>& source) override;
+  void receiveSource(std::unique_ptr<SourceInterface> source) override;
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:

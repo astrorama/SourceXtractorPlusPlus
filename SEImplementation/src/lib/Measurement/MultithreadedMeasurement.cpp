@@ -73,7 +73,7 @@ void MultithreadedMeasurement::synchronizeThreads() {
   }
 }
 
-void MultithreadedMeasurement::receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) {
+void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterface> source_group) {
   // Force computation of SourceID here, where the order is still deterministic
   for (auto& source : *source_group) {
     source.getProperty<SourceID>();
@@ -81,7 +81,7 @@ void MultithreadedMeasurement::receiveSource(const std::shared_ptr<SourceGroupIn
 
   // Put the new SourceGroup into the input queue
   auto order_number = m_group_counter;
-  m_thread_pool->submit([this, order_number, source_group]() {
+  auto lambda = [this, order_number, source_group = std::move(source_group)]() mutable {
     // Trigger measurements
     for (auto& source : *source_group) {
       m_source_to_row(source);
@@ -89,10 +89,14 @@ void MultithreadedMeasurement::receiveSource(const std::shared_ptr<SourceGroupIn
     // Pass to the output thread
     {
       std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
-      m_output_queue.emplace_back(order_number, source_group);
+      m_output_queue.emplace_back(order_number, std::move(source_group));
     }
     m_new_output.notify_one();
-  });
+  };
+  auto lambda_copyable = [lambda = std::make_shared<decltype(lambda)>(std::move(lambda))](){
+    (*lambda)();
+  };
+  m_thread_pool->submit(lambda_copyable);
   ++m_group_counter;
 }
 
@@ -123,7 +127,7 @@ void MultithreadedMeasurement::outputThreadLoop() {
 
     // Process the output queue
     while (!m_output_queue.empty()) {
-      sendSource(m_output_queue.front().second);
+      sendSource(std::move(m_output_queue.front().second));
       m_output_queue.pop_front();
     }
 

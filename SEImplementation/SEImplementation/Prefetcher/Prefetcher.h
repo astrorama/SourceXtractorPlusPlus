@@ -57,7 +57,7 @@ public:
    * Once they are done, the message will be passed along.
    * @param message
    */
-  void receiveSource(const std::shared_ptr<SourceInterface>& source) override;
+  void receiveSource(std::unique_ptr<SourceInterface> source) override;
 
   /**
    * Handle ProcessSourcesEvent. All sources received prior to this message need to
@@ -114,7 +114,7 @@ private:
   /// Notifies there is a new source done processing
   std::condition_variable m_new_output;
   /// Finished sources
-  std::map<intptr_t, std::shared_ptr<SourceInterface>> m_finished_sources;
+  std::map<intptr_t, std::unique_ptr<SourceInterface>> m_finished_sources;
   /// Queue of received ProcessSourceEvent, order preserved
   std::deque<ProcessSourcesEvent> m_event_queue;
   /// Queue of type of received events. Used to pass downstream events respecting the received order

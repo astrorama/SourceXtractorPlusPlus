@@ -28,7 +28,7 @@ Deblending::Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps)
   : m_deblend_steps(std::move(deblend_steps)) {
 }
 
-void Deblending::receiveSource(const std::shared_ptr<SourceGroupInterface>& group) {
+void Deblending::receiveSource(std::unique_ptr<SourceGroupInterface> group) {
 
   // Applies every DeblendStep to the SourceGroup
   for (auto& step : m_deblend_steps) {
@@ -37,7 +37,7 @@ void Deblending::receiveSource(const std::shared_ptr<SourceGroupInterface>& grou
 
   // If the SourceGroup still contains sources, we notify the observers
   if (group->begin() != group->end()) {
-    sendSource(group);
+    sendSource(std::move(group));
   }
 }
 

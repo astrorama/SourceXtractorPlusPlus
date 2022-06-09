@@ -35,7 +35,7 @@ class Output : public PipelineReceiver<SourceGroupInterface> {
 public:
   virtual ~Output() = default;
 
-  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) override {
+  void receiveSource(std::unique_ptr<SourceGroupInterface> source_group) override {
     for (auto& source : *source_group) {
       outputSource(source);
     }

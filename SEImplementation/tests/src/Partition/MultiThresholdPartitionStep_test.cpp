@@ -70,7 +70,7 @@ public:
 struct MultiThresholdPartitionFixture {
   std::shared_ptr<TaskFactoryRegistry> task_factory_registry {new TaskFactoryRegistry};
   std::shared_ptr<TaskProvider> task_provider {new TaskProvider(task_factory_registry)};
-  std::shared_ptr<SourceWithOnDemandProperties> source {new SourceWithOnDemandProperties(task_provider)};
+  std::unique_ptr<SourceWithOnDemandProperties> source {new SourceWithOnDemandProperties(task_provider)};
   std::shared_ptr<MultiThresholdPartitionStep> multithreshold_step {
     new MultiThresholdPartitionStep(std::make_shared<SourceWithOnDemandPropertiesFactory>(task_provider), 0.005, 32, 1)
   };
@@ -125,7 +125,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
 
@@ -151,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
   BOOST_CHECK(source_observer->m_list.size() == 2);
 }
 
@@ -177,7 +177,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
 //-----------------------------------------------------------------------------

@@ -76,9 +76,9 @@ struct SourceGroupingFixture {
   std::shared_ptr<SourceGrouping> source_grouping_limit {
     new SourceGrouping(std::unique_ptr<GroupingCriteria>(new TestGroupingCriteria), group_factory, 2)};
 
-  std::shared_ptr<SourceInterface> source_a {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_b {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_c {new SimpleSource};
+  std::unique_ptr<SourceInterface> source_a {new SimpleSource};
+  std::unique_ptr<SourceInterface> source_b {new SimpleSource};
+  std::unique_ptr<SourceInterface> source_c {new SimpleSource};
 
   std::shared_ptr<SourceGroupObserver> source_group_observer {new SourceGroupObserver};
   std::shared_ptr<SourceGroupObserver> source_group_observer_limit {new SourceGroupObserver};
@@ -106,9 +106,9 @@ BOOST_FIXTURE_TEST_CASE( source_grouping_test, SourceGroupingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(1);
 
-  source_grouping->receiveSource(source_a);
-  source_grouping->receiveSource(source_b);
-  source_grouping->receiveSource(source_c);
+  source_grouping->receiveSource(std::move(source_a));
+  source_grouping->receiveSource(std::move(source_b));
+  source_grouping->receiveSource(std::move(source_c));
 
   source_grouping->receiveProcessSignal(ProcessSourcesEvent { select_all_criteria } );
 
@@ -135,13 +135,13 @@ BOOST_FIXTURE_TEST_CASE( process_sources_test, SourceGroupingFixture ) {
   source_b->setProperty<SimpleIntProperty>(2);
   source_c->setProperty<SimpleIntProperty>(1);
 
-  source_grouping->receiveSource(source_a);
-  source_grouping->receiveSource(source_b);
+  source_grouping->receiveSource(std::move(source_a));
+  source_grouping->receiveSource(std::move(source_b));
 
   // Process all sources currently in source_grouping
   source_grouping->receiveProcessSignal(ProcessSourcesEvent { select_all_criteria } );
 
-  source_grouping->receiveSource(source_c);
+  source_grouping->receiveSource(std::move(source_c));
 
   // Process all sources
   source_grouping->receiveProcessSignal(ProcessSourcesEvent { select_all_criteria } );
@@ -171,9 +171,9 @@ BOOST_FIXTURE_TEST_CASE( grouping_limit, SourceGroupingFixture ) {
   source_b->setProperty<SimpleIntProperty>(1);
   source_c->setProperty<SimpleIntProperty>(1);
 
-  source_grouping_limit->receiveSource(source_a);
-  source_grouping_limit->receiveSource(source_b);
-  source_grouping_limit->receiveSource(source_c);
+  source_grouping_limit->receiveSource(std::move(source_a));
+  source_grouping_limit->receiveSource(std::move(source_b));
+  source_grouping_limit->receiveSource(std::move(source_c));
 
   source_grouping_limit->receiveProcessSignal(ProcessSourcesEvent { select_all_criteria } );
 

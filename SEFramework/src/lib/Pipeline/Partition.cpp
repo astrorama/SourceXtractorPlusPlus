@@ -28,14 +28,14 @@ Partition::Partition(std::vector<std::shared_ptr<PartitionStep>> steps)
   : m_steps(std::move(steps)) {
 }
 
-void Partition::receiveSource(const std::shared_ptr<SourceInterface>& input_source) {
+void Partition::receiveSource(std::unique_ptr<SourceInterface> input_source) {
   // The input of the current step
-  std::vector<std::shared_ptr<SourceInterface>> step_input_sources;
-  step_input_sources.emplace_back(input_source);
+  std::vector<std::unique_ptr<SourceInterface>> step_input_sources;
+  step_input_sources.emplace_back(std::move(input_source));
 
   // Applies all the steps
   for (const auto& step : m_steps) {
-    std::vector<std::shared_ptr<SourceInterface>> step_output_sources;
+    std::vector<std::unique_ptr<SourceInterface>> step_output_sources;
     // For each Source in pour input list
     for (auto& source : step_input_sources) {
       // applies the current step

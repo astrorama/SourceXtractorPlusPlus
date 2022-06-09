@@ -78,7 +78,7 @@ struct DeblendingFixture {
   std::shared_ptr<SourceInterface> source_a {new SimpleSource};
   std::shared_ptr<SourceInterface> source_b {new SimpleSource};
   std::shared_ptr<SourceInterface> source_c {new SimpleSource};
-  std::shared_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
+  std::unique_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
   std::shared_ptr<TestGroupObserver> test_group_observer {new TestGroupObserver};
 
   DeblendingFixture() {
@@ -102,7 +102,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   Deblending deblending({example_deblend_step});
   deblending.addObserver(test_group_observer);
 
-  deblending.receiveSource(source_group);
+  deblending.receiveSource(std::move(source_group));
 
   BOOST_CHECK_EQUAL(test_group_observer->m_groups.size(), 1);
   auto group = test_group_observer->m_groups.front();
@@ -127,7 +127,7 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   Deblending deblending({example_deblend_step, example_deblend_step});
   deblending.addObserver(test_group_observer);
 
-  deblending.receiveSource(source_group);
+  deblending.receiveSource(std::move(source_group));
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
   auto group = test_group_observer->m_groups.front();

@@ -51,7 +51,7 @@ public:
    * Receive a source from the previous stage. The receiver owns the object.
    * @param source
    */
-  virtual void receiveSource(const std::shared_ptr<T>& source)        = 0;
+  virtual void receiveSource(std::unique_ptr<T> source)        = 0;
 
   /**
    * Receive a signal to process sources when grouping
@@ -82,10 +82,10 @@ public:
   }
 
 protected:
-  void sendSource(const std::shared_ptr<T>& source) const {
+  void sendSource(std::unique_ptr<T> source) const {
     Observable<T>::notifyObservers(*source);
     if (m_next_stage) {
-      m_next_stage->receiveSource(source);
+      m_next_stage->receiveSource(std::move(source));
     }
   }
 

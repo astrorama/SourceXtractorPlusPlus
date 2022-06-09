@@ -31,8 +31,8 @@ namespace SourceXtractor {
 class DummyMeasurement : public Measurement {
 public:
 
-  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    sendSource(source_group);
+  void receiveSource(std::unique_ptr<SourceGroupInterface> source_group) override {
+    sendSource(std::move(source_group));
 
   }
   void receiveProcessSignal(const ProcessSourcesEvent& event) override {

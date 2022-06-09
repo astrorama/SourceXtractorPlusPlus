@@ -33,7 +33,7 @@ using namespace SourceXtractor;
 
 struct MinAreaPartitionFixture {
   const static int min_pixels = 3;
-  std::shared_ptr<SimpleSource> source {new SimpleSource};
+  std::unique_ptr<SimpleSource> source {new SimpleSource};
   std::shared_ptr<MinAreaPartitionStep> min_area_step {new MinAreaPartitionStep(min_pixels)};
 };
 
@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
 
   BOOST_CHECK(source_observer->m_list.empty());
 }
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
 
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }

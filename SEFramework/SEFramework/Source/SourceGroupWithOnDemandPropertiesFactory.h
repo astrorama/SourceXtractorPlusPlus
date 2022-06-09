@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SourceGroupWithOnDemandPropertiesFactory.h
  * @author nikoapos
  */
@@ -33,20 +33,20 @@ namespace SourceXtractor {
  */
 
 class SourceGroupWithOnDemandPropertiesFactory : public SourceGroupFactory {
-  
+
 public:
-  
+
   explicit SourceGroupWithOnDemandPropertiesFactory(std::shared_ptr<TaskProvider> task_provider) :
         m_task_provider(task_provider) {}
 
-  std::shared_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_shared<SourceGroupWithOnDemandProperties>(m_task_provider);
+  std::unique_ptr<SourceGroupInterface> createSourceGroup() const override {
+    return std::make_unique<SourceGroupWithOnDemandProperties>(m_task_provider);
   }
-  
+
 private:
-  
+
   std::shared_ptr<TaskProvider> m_task_provider;
-  
+
 };
 
 }

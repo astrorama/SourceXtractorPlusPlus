@@ -35,11 +35,11 @@ public:
   Sorter();
   virtual ~Sorter() = default;
 
-  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source) override;
+  void receiveSource(std::unique_ptr<SourceGroupInterface> source) override;
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:
-  std::map<int, std::shared_ptr<SourceGroupInterface>> m_output_buffer;
+  std::map<int, std::unique_ptr<SourceGroupInterface>> m_output_buffer;
   int m_output_next;
 };
 

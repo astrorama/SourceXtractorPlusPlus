@@ -48,7 +48,7 @@ public:
 
   ~MultithreadedMeasurement() override;
 
-  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) override;
+  void receiveSource(std::unique_ptr<SourceGroupInterface> source_group) override;
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
   void startThreads() override;
@@ -67,7 +67,7 @@ private:
   std::atomic_bool m_input_done, m_abort_raised;
 
   std::condition_variable m_new_output;
-  std::list<std::pair<int, std::shared_ptr<SourceGroupInterface>>> m_output_queue;
+  std::list<std::pair<int, std::unique_ptr<SourceGroupInterface>>> m_output_queue;
   std::mutex m_output_queue_mutex;
   Euclid::Semaphore m_semaphore;
 };

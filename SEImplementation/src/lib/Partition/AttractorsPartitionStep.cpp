@@ -32,7 +32,7 @@
 
 namespace SourceXtractor {
 
-std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
+std::vector<std::unique_ptr<SourceInterface>> AttractorsPartitionStep::partition(std::unique_ptr<SourceInterface> source) const {
   using Accessor = ImageAccessor<DetectionImage::PixelType>;
   Accessor stamp(source->getProperty<DetectionFrameSourceStamp>().getStamp());
   auto& detection_frame = source->getProperty<DetectionFrame>();
@@ -62,19 +62,18 @@ std::vector<std::shared_ptr<SourceInterface>> AttractorsPartitionStep::partition
   auto merged = mergeAttractors(attractors);
 
   // If we end up with a single group use the original group
+  std::vector<std::unique_ptr<SourceInterface>> sources;
   if (merged.size() == 1) {
-    return { source };
+    sources.emplace_back(std::move(source));
   } else {
-    std::vector<std::shared_ptr<SourceInterface>> sources;
     for (auto& source_pixels : merged) {
       auto new_source = m_source_factory->createSource();
       new_source->setProperty<PixelCoordinateList>(source_pixels);
       new_source->setProperty<DetectionFrame>(detection_frame.getEncapsulatedFrame());
-
-      sources.push_back(new_source);
+      sources.emplace_back(std::move(new_source));
     }
-    return sources;
   }
+  return sources;
 }
 
 void AttractorsPartitionStep::attractPixels(

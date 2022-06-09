@@ -86,9 +86,9 @@ public:
     m_segmentation(segmentation),
     m_detection_frame(detection_frame) {}
 
-  void publishSource(std::shared_ptr<SourceInterface> source) const {
+  void publishSource(std::unique_ptr<SourceInterface> source) const {
     source->setProperty<DetectionFrame>(m_detection_frame);
-    m_segmentation.sendSource(source);
+    m_segmentation.sendSource(std::move(source));
   }
 
   void notifyProgress(int position, int total) {

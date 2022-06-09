@@ -50,7 +50,8 @@ public:
 };
 
 struct AttractorsPartitionFixture {
-  std::shared_ptr<SimpleSource> source {new SimpleSource};
+  std::unique_ptr<SimpleSource> source {new SimpleSource};
+  std::unique_ptr<SimpleSource> source2 {new SimpleSource};
   std::shared_ptr<AttractorsPartitionStep> attractors_step {
     new AttractorsPartitionStep(std::make_shared<SimpleSourceFactory>())
   };
@@ -75,10 +76,15 @@ BOOST_AUTO_TEST_SUITE (AttractorsPartitionStep_test)
 
 BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   auto detection_image = VectorImage<SeFloat>::create(1,1);
-  source->setProperty<DetectionFrame>(std::make_shared<DetectionImageFrame>(detection_image, std::make_shared<DummyCoordinateSystem>()));
+  auto detection_image_frame = std::make_shared<DetectionImageFrame>(detection_image, std::make_shared<DummyCoordinateSystem>());
+  source->setProperty<DetectionFrame>(detection_image_frame);
+  source2->setProperty<DetectionFrame>(detection_image_frame);
 
   source->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
   source->setProperty<PixelBoundaries>(0, 0, 3, 0);
+  source2->setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{{0,0}, {1,0}, {2,0}, {3,0}});
+  source2->setProperty<PixelBoundaries>(0, 0, 3, 0);
+
   auto stamp_one_source = VectorImage<DetectionImage::PixelType>::create(
       4, 1, std::vector<DetectionImage::PixelType> {2.0, 3.0, 4.0, 2.0});
   auto stamp_two_sources = VectorImage<DetectionImage::PixelType>::create(
@@ -89,12 +95,12 @@ BOOST_FIXTURE_TEST_CASE( attractors_test, AttractorsPartitionFixture ) {
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.receiveSource(source);
+  partition.receiveSource(std::move(source));
   BOOST_CHECK(source_observer->m_list.size() == 1);
   source_observer->m_list.clear();
 
-  source->setProperty<DetectionFrameSourceStamp>(stamp_two_sources, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.receiveSource(source);
+  source2->setProperty<DetectionFrameSourceStamp>(stamp_two_sources, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
+  partition.receiveSource(std::move(source2));
   BOOST_CHECK(source_observer->m_list.size() == 2);
   source_observer->m_list.clear();
 }

@@ -103,7 +103,7 @@ public:
   std::set<PropertyId> requiredProperties() const;
 
   /// Handles a new Source
-  void receiveSource(const std::shared_ptr<SourceInterface>& source) override;
+  void receiveSource(std::unique_ptr<SourceInterface> source) override;
 
   /// Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
@@ -111,7 +111,7 @@ public:
 private:
   std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_group_factory;
-  std::list<std::shared_ptr<SourceGroupInterface>> m_source_groups;
+  std::list<std::unique_ptr<SourceGroupInterface>> m_source_groups;
   unsigned int m_hard_limit;
 
 }; /* End of SourceGrouping class */
