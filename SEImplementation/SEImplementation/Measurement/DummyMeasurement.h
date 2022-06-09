@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,13 +31,17 @@ namespace SourceXtractor {
 class DummyMeasurement : public Measurement {
 public:
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    notifyObservers(source_group);
+  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) override {
+    sendSource(source_group);
+
+  }
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override {
+    sendProcessSignal(event);
   }
 
-  virtual void startThreads() {};
-  virtual void stopThreads() {};
-  virtual void synchronizeThreads() {};
+  void startThreads() override {};
+  void stopThreads() override {};
+  void synchronizeThreads() override {};
 };
 
 }

@@ -63,9 +63,9 @@ public:
   }
 };
 
-class MockSourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
+class MockSourceObserver : public Observer<SourceInterface> {
 public:
-  MOCK_METHOD1(handleMessage, void (const std::shared_ptr<SourceInterface>&));
+  MOCK_METHOD1(handleMessage, void (const SourceInterface&));
 };
 
 struct RefineSourceFixture {
@@ -86,13 +86,13 @@ BOOST_FIXTURE_TEST_CASE( default_behavior_test, RefineSourceFixture ) {
   Partition partition( {} );
 
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(testing::Ref(*source))).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);
 
   // And process the Source
-  partition.handleMessage(source);
+  partition.receiveSource(source);
 }
 
 //-----------------------------------------------------------------------------
@@ -102,13 +102,13 @@ BOOST_FIXTURE_TEST_CASE( nop_step_test, RefineSourceFixture ) {
   Partition partition( { nop_step } );
 
   // We expect to get our Source back unchanged
-  EXPECT_CALL(*mock_observer, handleMessage(source)).Times(1);
+  EXPECT_CALL(*mock_observer, handleMessage(testing::Ref(*source))).Times(1);
 
   // Add the Observer
   partition.addObserver(mock_observer);
 
   // And process the Source
-  partition.handleMessage(source);
+  partition.receiveSource(source);
 }
 
 BOOST_FIXTURE_TEST_CASE( example_step_test, RefineSourceFixture ) {
@@ -119,7 +119,7 @@ BOOST_FIXTURE_TEST_CASE( example_step_test, RefineSourceFixture ) {
   EXPECT_CALL(*mock_observer, handleMessage(_)).Times(4);
 
   partition.addObserver(mock_observer);
-  partition.handleMessage(source);
+  partition.receiveSource(source);
 }
 
 //-----------------------------------------------------------------------------

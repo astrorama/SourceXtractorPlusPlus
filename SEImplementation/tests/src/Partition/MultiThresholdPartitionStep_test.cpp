@@ -86,13 +86,13 @@ struct MultiThresholdPartitionFixture {
   }
 };
 
-class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
+class SourceObserver : public Observer<SourceInterface> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-      m_list.push_back(source);
+  virtual void handleMessage(const SourceInterface& source) override {
+      m_list.push_back(source.getProperty<DetectionFrameSourceStamp>());
   }
 
-  std::list<std::shared_ptr<SourceInterface>> m_list;
+  std::list<DetectionFrameSourceStamp> m_list;
 };
 
 using namespace SourceXtractor;
@@ -125,7 +125,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test, MultiThresholdPartitionFixture ) {
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.handleMessage(source);
+  partition.receiveSource(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
 
@@ -151,7 +151,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_2, MultiThresholdPartitionFixture )
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.handleMessage(source);
+  partition.receiveSource(source);
   BOOST_CHECK(source_observer->m_list.size() == 2);
 }
 
@@ -177,7 +177,7 @@ BOOST_FIXTURE_TEST_CASE( multithreshold_test_3, MultiThresholdPartitionFixture )
   partition.addObserver(source_observer);
 
   source->setProperty<DetectionFrameSourceStamp>(stamp_one_source, nullptr, nullptr, PixelCoordinate(0,0), nullptr, nullptr);
-  partition.handleMessage(source);
+  partition.receiveSource(source);
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }
 //-----------------------------------------------------------------------------

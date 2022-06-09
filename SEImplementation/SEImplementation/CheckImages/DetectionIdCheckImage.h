@@ -30,12 +30,12 @@
 
 namespace SourceXtractor {
 
-class DetectionIdCheckImage : public Observer<std::shared_ptr<SourceInterface>> {
+class DetectionIdCheckImage : public Observer<SourceInterface> {
 public:
 
-  DetectionIdCheckImage() {}
+  DetectionIdCheckImage() = default;
 
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source);
+  void handleMessage(const SourceInterface& source) override;
 };
 
 }

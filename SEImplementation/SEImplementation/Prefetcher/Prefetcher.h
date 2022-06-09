@@ -22,8 +22,7 @@
 #include "AlexandriaKernel/ThreadPool.h"
 #include "AlexandriaKernel/Semaphore.h"
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Pipeline/SourceGrouping.h"
-#include "SEUtils/Observable.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 
 namespace SourceXtractor {
 
@@ -38,10 +37,7 @@ namespace SourceXtractor {
  * Then, they will be released and sent along.
  *
  */
-class Prefetcher : public Observer<std::shared_ptr<SourceInterface>>,
-                   public Observable<std::shared_ptr<SourceInterface>>,
-                   public Observer<ProcessSourcesEvent>,
-                   public Observable<ProcessSourcesEvent> {
+class Prefetcher : public PipelineReceiver<SourceInterface>, public PipelineEmitter<SourceInterface> {
 public:
 
   /**
@@ -61,14 +57,14 @@ public:
    * Once they are done, the message will be passed along.
    * @param message
    */
-  void handleMessage(const std::shared_ptr<SourceInterface>& message) override;
+  void receiveSource(const std::shared_ptr<SourceInterface>& source) override;
 
   /**
    * Handle ProcessSourcesEvent. All sources received prior to this message need to
    * be processed before sources coming after are passed along.
    * @param message
    */
-  void handleMessage(const ProcessSourcesEvent& message) override;
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
   /**
    * Tell the prefetcher to compute this property

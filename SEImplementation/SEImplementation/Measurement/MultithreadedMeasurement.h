@@ -46,9 +46,10 @@ public:
         m_group_counter(0),
         m_input_done(false), m_abort_raised(false), m_semaphore(max_queue_size) {}
 
-  virtual ~MultithreadedMeasurement();
+  ~MultithreadedMeasurement() override;
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override;
+  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) override;
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
   void startThreads() override;
   void stopThreads() override;

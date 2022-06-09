@@ -37,13 +37,13 @@ struct MinAreaPartitionFixture {
   std::shared_ptr<MinAreaPartitionStep> min_area_step {new MinAreaPartitionStep(min_pixels)};
 };
 
-class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
+class SourceObserver : public Observer<SourceInterface> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-      m_list.push_back(source);
+  virtual void handleMessage(const SourceInterface& source) override {
+      m_list.push_back(source.getProperty<PixelCoordinateList>());
   }
 
-  std::list<std::shared_ptr<SourceInterface>> m_list;
+  std::list<PixelCoordinateList> m_list;
 };
 
 //-----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ BOOST_FIXTURE_TEST_CASE( source_filtered_test, MinAreaPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  partition.handleMessage(source);
+  partition.receiveSource(source);
 
   BOOST_CHECK(source_observer->m_list.empty());
 }
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE( source_ok_test, MinAreaPartitionFixture ) {
   auto source_observer = std::make_shared<SourceObserver>();
   partition.addObserver(source_observer);
 
-  partition.handleMessage(source);
+  partition.receiveSource(source);
 
   BOOST_CHECK(source_observer->m_list.size() == 1);
 }

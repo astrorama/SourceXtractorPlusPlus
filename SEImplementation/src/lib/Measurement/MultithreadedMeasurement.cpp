@@ -73,9 +73,7 @@ void MultithreadedMeasurement::synchronizeThreads() {
   }
 }
 
-
-void
-MultithreadedMeasurement::handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) {
+void MultithreadedMeasurement::receiveSource(const std::shared_ptr<SourceGroupInterface>& source_group) {
   // Force computation of SourceID here, where the order is still deterministic
   for (auto& source : *source_group) {
     source.getProperty<SourceID>();
@@ -125,7 +123,7 @@ void MultithreadedMeasurement::outputThreadLoop() {
 
     // Process the output queue
     while (!m_output_queue.empty()) {
-      notifyObservers(m_output_queue.front().second);
+      sendSource(m_output_queue.front().second);
       m_output_queue.pop_front();
     }
 
@@ -134,4 +132,8 @@ void MultithreadedMeasurement::outputThreadLoop() {
       break;
     }
   }
+}
+
+void MultithreadedMeasurement::receiveProcessSignal(const ProcessSourcesEvent& event) {
+  sendProcessSignal(event);
 }

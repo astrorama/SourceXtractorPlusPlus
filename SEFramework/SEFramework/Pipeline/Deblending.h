@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_PIPELINE_DEBLENDING_H
 #define _SEFRAMEWORK_PIPELINE_DEBLENDING_H
 
-#include "SEUtils/Observable.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Task/TaskProvider.h"
 
@@ -53,8 +53,7 @@ public:
  * for deblending the group.
  *
  */
-class Deblending : public Observer<std::shared_ptr<SourceGroupInterface>>,
-  public Observable<std::shared_ptr<SourceGroupInterface>> {
+class Deblending : public PipelineReceiver<SourceGroupInterface>, public PipelineEmitter<SourceGroupInterface> {
 
 public:
 
@@ -65,7 +64,9 @@ public:
   explicit Deblending(std::vector<std::shared_ptr<DeblendStep>> deblend_steps);
 
   /// Handles a new SourceGroup, applies the DeblendSteps and then notifies the observers with the result
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override;
+  void receiveSource(const std::shared_ptr<SourceGroupInterface>& group) override;
+
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
   /// Returns the set of required properties to compute the deblending
   std::set<PropertyId> requiredProperties() const;

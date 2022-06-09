@@ -32,13 +32,13 @@
 
 using namespace SourceXtractor;
 
-class SourceObserver : public Observer<std::shared_ptr<SourceInterface>> {
+class SourceObserver : public Observer<SourceInterface> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-    m_list.push_back(source);
+  virtual void handleMessage(const SourceInterface& source) override {
+    m_list.push_back(source.getProperty<PixelCoordinateList>());
   }
 
-  std::list<std::shared_ptr<SourceInterface>> m_list;
+  std::list<PixelCoordinateList> m_list;
 };
 
 
@@ -150,7 +150,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   Segmentation segmentation(nullptr);
   segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>());
 
-  segmentation.Observable<std::shared_ptr<SourceInterface>>::addObserver(source_observer);
+  segmentation.Observable<SourceInterface>::addObserver(source_observer);
 
   auto detection_frame = std::make_shared<DetectionImageFrame>(image);
 
@@ -165,7 +165,7 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
   // and remove that group
   for (auto& source : source_observer->m_list) {
     auto check_image = VectorImage<DetectionImage::PixelType>::create(10, 10, std::vector<DetectionImage::PixelType>(100, 0.0));
-    for (auto& pixel : source->getProperty<PixelCoordinateList>().getCoordinateList()) {
+    for (auto& pixel : source.getCoordinateList()) {
       BOOST_CHECK_CLOSE(check_image->getValue(pixel), 0.0, 0.00001);
       check_image->setValue(pixel, 1.0);
     }

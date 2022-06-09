@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,19 +24,19 @@
 #ifndef _SEMAIN_SORTER_H_
 #define _SEMAIN_SORTER_H_
 
-#include "SEUtils/Observable.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
 
 namespace SourceXtractor {
 
-class Sorter: public Observer<std::shared_ptr<SourceGroupInterface>>,
-              public Observable<std::shared_ptr<SourceGroupInterface>> {
+class Sorter: public PipelineReceiver<SourceGroupInterface>, public PipelineEmitter<SourceGroupInterface> {
 public:
 
   Sorter();
   virtual ~Sorter() = default;
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& message) override;
+  void receiveSource(const std::shared_ptr<SourceGroupInterface>& source) override;
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:
   std::map<int, std::shared_ptr<SourceGroupInterface>> m_output_buffer;

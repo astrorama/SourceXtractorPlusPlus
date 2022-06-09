@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,11 +37,11 @@ SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::e
   return m_sources.end();
 }
 
-SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cbegin() {
+SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cbegin() const {
   return m_sources.cbegin();
 }
 
-SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cend() {
+SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandProperties::cend() const {
   return m_sources.cend();
 }
 

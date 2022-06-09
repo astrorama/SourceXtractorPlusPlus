@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,14 +32,14 @@
 
 namespace SourceXtractor {
 
-void GroupIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+void GroupIdCheckImage::handleMessage(const SourceGroupInterface& group) {
+  auto hdu_index = group.cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
   auto check_image = CheckImages::getInstance().getGroupImage(hdu_index);
   if (check_image) {
     // get the ID of the group
-    auto group_id = group->getProperty<GroupInfo>().getGroupId();
+    auto group_id = group.getProperty<GroupInfo>().getGroupId();
 
-    for (auto& source : *group) {
+    for (auto& source : group) {
       auto& coordinates = source.getProperty<PixelCoordinateList>();
 
       // iterate over the pixels and set the group_id value
