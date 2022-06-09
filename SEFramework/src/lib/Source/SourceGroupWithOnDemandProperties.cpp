@@ -53,9 +53,9 @@ SourceGroupWithOnDemandProperties::const_iterator SourceGroupWithOnDemandPropert
   return m_sources.cend();
 }
 
-void SourceGroupWithOnDemandProperties::addSource(std::shared_ptr<SourceInterface> source) {
+void SourceGroupWithOnDemandProperties::addSource(std::unique_ptr<SourceInterface> source) {
   clearGroupProperties();
-  m_sources.emplace_back(std::make_shared<EntangledSource>(source, *this));
+  m_sources.emplace_back(Euclid::make_unique<EntangledSource>(std::move(source), *this));
 }
 
 SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::removeSource(iterator pos) {
@@ -64,15 +64,16 @@ SourceGroupWithOnDemandProperties::iterator SourceGroupWithOnDemandProperties::r
   return next_iter;
 }
 
-void SourceGroupWithOnDemandProperties::merge(const SourceGroupInterface& other) {
-  auto& other_group = dynamic_cast<const SourceGroupWithOnDemandProperties&>(other);
+void SourceGroupWithOnDemandProperties::merge(SourceGroupInterface&& other) {
+  auto& other_group = dynamic_cast<SourceGroupWithOnDemandProperties&>(other);
   // We go through the EntangledSources of the other group and we create new ones
   // locally, pointing to the same wrapped sources. This is necessary, so the
   // new EntangledSources have a reference to the correct group.
   for (auto& source : other_group.m_sources) {
     auto& entangled_source = dynamic_cast<EntangledSource&>(source.getRef());
-    m_sources.emplace_back(std::make_shared<EntangledSource>(entangled_source.m_source, *this));
+    m_sources.emplace_back(Euclid::make_unique<EntangledSource>(std::move(entangled_source.m_source), *this));
   }
+  other_group.m_sources.clear();
   clearGroupProperties();
 }
 

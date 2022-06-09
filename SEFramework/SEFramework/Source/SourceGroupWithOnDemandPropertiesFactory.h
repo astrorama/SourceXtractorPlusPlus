@@ -24,6 +24,7 @@
 
 #include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
+#include <AlexandriaKernel/memory_tools.h>
 
 namespace SourceXtractor {
 
@@ -40,7 +41,7 @@ public:
         m_task_provider(task_provider) {}
 
   std::unique_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_unique<SourceGroupWithOnDemandProperties>(m_task_provider);
+    return Euclid::make_unique<SourceGroupWithOnDemandProperties>(m_task_provider);
   }
 
 private:

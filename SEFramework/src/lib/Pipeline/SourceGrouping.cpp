@@ -65,7 +65,7 @@ void SourceGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
         matched_group = group_it->get();
         matched_group->addSource(std::move(source));
       } else {
-        matched_group->merge(**group_it);
+        matched_group->merge(std::move(**group_it));
         groups_to_remove.emplace_back(group_it);
       }
     }

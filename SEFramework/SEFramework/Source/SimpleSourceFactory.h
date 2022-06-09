@@ -26,6 +26,7 @@
 
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SimpleSource.h"
+#include <AlexandriaKernel/memory_tools.h>
 
 namespace SourceXtractor {
 
@@ -41,7 +42,7 @@ public:
   SimpleSourceFactory() {}
 
   std::unique_ptr<SourceInterface> createSource() const override {
-    return std::make_unique<SimpleSource>();
+    return Euclid::make_unique<SimpleSource>();
   }
 };
 

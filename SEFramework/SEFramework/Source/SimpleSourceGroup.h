@@ -54,13 +54,13 @@ public:
 
   const_iterator end() const override;
 
-  void addSource(std::shared_ptr<SourceInterface> source) override;
+  void addSource(std::unique_ptr<SourceInterface> source) override;
 
   iterator removeSource(iterator pos) override;
 
   unsigned int size() const override;
 
-  void merge(const SourceGroupInterface& other) override;
+  void merge(SourceGroupInterface&& other) override;
 
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;

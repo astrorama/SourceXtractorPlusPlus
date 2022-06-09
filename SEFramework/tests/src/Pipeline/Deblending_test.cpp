@@ -75,16 +75,20 @@ public:
 
 struct DeblendingFixture {
   std::shared_ptr<ExampleDeblendStep> example_deblend_step {new ExampleDeblendStep};
-  std::shared_ptr<SourceInterface> source_a {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_b {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_c {new SimpleSource};
   std::unique_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
   std::shared_ptr<TestGroupObserver> test_group_observer {new TestGroupObserver};
 
   DeblendingFixture() {
-    source_group->addSource(source_a);
-    source_group->addSource(source_b);
-    source_group->addSource(source_c);
+    std::unique_ptr<SourceInterface> source_a {new SimpleSource};
+    std::unique_ptr<SourceInterface> source_b {new SimpleSource};
+    std::unique_ptr<SourceInterface> source_c {new SimpleSource};
+    source_a->setProperty<SimpleIntProperty>(1);
+    source_b->setProperty<SimpleIntProperty>(2);
+    source_c->setProperty<SimpleIntProperty>(3);
+
+    source_group->addSource(std::move(source_a));
+    source_group->addSource(std::move(source_b));
+    source_group->addSource(std::move(source_c));
   }
 };
 
@@ -95,10 +99,6 @@ BOOST_AUTO_TEST_SUITE (Deblending_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
-  source_a->setProperty<SimpleIntProperty>(1);
-  source_b->setProperty<SimpleIntProperty>(2);
-  source_c->setProperty<SimpleIntProperty>(3);
-
   Deblending deblending({example_deblend_step});
   deblending.addObserver(test_group_observer);
 
@@ -119,10 +119,6 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
 
 //-----------------------------------------------------------------------------
 BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
-  source_a->setProperty<SimpleIntProperty>(1);
-  source_b->setProperty<SimpleIntProperty>(2);
-  source_c->setProperty<SimpleIntProperty>(3);
-
   // we want to execute step twice
   Deblending deblending({example_deblend_step, example_deblend_step});
   deblending.addObserver(test_group_observer);

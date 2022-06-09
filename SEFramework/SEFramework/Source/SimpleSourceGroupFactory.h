@@ -24,6 +24,7 @@
 
 #include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
+#include <AlexandriaKernel/memory_tools.h>
 
 namespace SourceXtractor {
 
@@ -37,7 +38,7 @@ class SimpleSourceGroupFactory : public SourceGroupFactory {
 public:
 
   std::unique_ptr<SourceGroupInterface> createSourceGroup() const override {
-    return std::make_unique<SimpleSourceGroup>();
+    return Euclid::make_unique<SimpleSourceGroup>();
   }
 
 };
