@@ -70,15 +70,12 @@ std::vector<int> parseColumnList(const std::string& arg) {
 
       std::vector<int> column_list;
       for (auto& part : parts) {
-	  // the input is a 1-based index, the internal index is 0-based
-	  column_list.emplace_back(boost::lexical_cast<int>(part)-1);
-	  if (column_list.back()<0){
-	      throw Elements::Exception() << "Column index is <1: " << part;
-	  }
+        column_list.emplace_back(boost::lexical_cast<int>(part));
       }
+
       return column_list;
     } catch(...) {
-      throw Elements::Exception() << "Can't parse column list to int: " << arg;
+      throw Elements::Exception() << "Can't parse column list";
     }
   } else {
     return {};
@@ -96,16 +93,16 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
   return { {"Assoc config", {
       {ASSOC_CATALOG.c_str(), po::value<std::string>(),
           "Assoc catalog file"},
-      {ASSOC_COLUMNS.c_str(), po::value<std::string>()->default_value("1,2"),
-          "Assoc columns to specify x,y[,weight] (the index of the first column is 1)"},
+      {ASSOC_COLUMNS.c_str(), po::value<std::string>()->default_value("2,3,4"),
+          "Assoc columns"},
       {ASSOC_MODE.c_str(), po::value<std::string>()->default_value("NEAREST"),
-          "Assoc mode [FIRST, NEAREST, MEAN, MAG_MEAN, SUM, MAG_SUM, MIN, MAX]"},
+          "Assoc mode"},
       {ASSOC_RADIUS.c_str(), po::value<double>()->default_value(2.0),
           "Assoc radius"},
       {ASSOC_FILTER.c_str(), po::value<std::string>()->default_value("ALL"),
           "Assoc catalog filter setting: ALL, MATCHED, UNMATCHED"},
       {ASSOC_COPY.c_str(), po::value<std::string>()->default_value(""),
-          "List of columns indices in the assoc catalog to copy on match (the index of the first column is 1). "},
+          "List of assoc catalog columns to copy on match"},
   }}};
 }
 
@@ -153,8 +150,9 @@ void AssocModeConfig::initialize(const UserValues& args) {
   }
 
   if (args.find(ASSOC_CATALOG) != args.end()) {
-    auto filename = args.at(ASSOC_CATALOG).as<std::string>();
     try {
+      auto filename = args.at(ASSOC_CATALOG).as<std::string>();
+
       std::shared_ptr<Euclid::Table::TableReader> reader;
       try {
         reader = std::make_shared<Euclid::Table::FitsReader>(filename);
@@ -166,7 +164,7 @@ void AssocModeConfig::initialize(const UserValues& args) {
       readTable(table, columns, copy_columns);
 
     } catch(...) {
-      throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
+      throw Elements::Exception() << "Can't open/read assoc catalog";
     }
   }
 }
