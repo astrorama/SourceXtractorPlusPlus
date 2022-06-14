@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,11 +30,11 @@
 
 namespace SourceXtractor {
 
-class GroupIdCheckImage : public Observer<std::shared_ptr<SourceGroupInterface>> {
+class GroupIdCheckImage : public Observer<SourceGroupInterface> {
 public:
   GroupIdCheckImage() {}
 
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group);
+  void handleMessage(const SourceGroupInterface& group) override;
 };
 
 

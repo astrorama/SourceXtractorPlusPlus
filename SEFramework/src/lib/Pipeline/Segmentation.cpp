@@ -39,7 +39,7 @@ void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) cons
   }
 
   // Flush source grouping buffer
-  Observable<ProcessSourcesEvent>::notifyObservers(ProcessSourcesEvent(std::make_shared<SelectAllCriteria>()));
+  sendProcessSignal(ProcessSourcesEvent(std::make_shared<SelectAllCriteria>()));
 }
 
 }

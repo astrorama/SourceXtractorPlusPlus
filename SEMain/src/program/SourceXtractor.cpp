@@ -375,53 +375,46 @@ public:
     }
 
     // Link together the pipeline's steps
-    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(partition);
+    segmentation->setNextStage(partition);
 
     if (prefetcher) {
-      segmentation->Observable<ProcessSourcesEvent>::addObserver(prefetcher);
-      prefetcher->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-      partition->addObserver(prefetcher);
-      prefetcher->Observable<std::shared_ptr<SourceInterface>>::addObserver(source_grouping);
+      partition->setNextStage(prefetcher);
+      prefetcher->setNextStage(source_grouping);
     }
     else {
-      segmentation->Observable<ProcessSourcesEvent>::addObserver(source_grouping);
-      partition->addObserver(source_grouping);
+      partition->setNextStage(source_grouping);
     }
 
-    source_grouping->addObserver(deblending);
-    deblending->addObserver(measurement);
+    source_grouping->setNextStage(deblending);
+    deblending->setNextStage(measurement);
 
     if (config_manager.getConfiguration<OutputConfig>().getOutputUnsorted()) {
       logger.info() << "Writing output following measure order";
-      measurement->addObserver(output);
+      measurement->setNextStage(output);
     } else {
       logger.info() << "Writing output following segmentation order";
       auto sorter = std::make_shared<Sorter>();
-      measurement->addObserver(sorter);
-      sorter->addObserver(output);
+      measurement->setNextStage(sorter);
+      sorter->setNextStage(output);
     }
 
     segmentation->Observable<SegmentationProgress>::addObserver(progress_mediator->getSegmentationObserver());
-    segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(progress_mediator->getDetectionObserver());
-    deblending->addObserver(progress_mediator->getDeblendingObserver());
-    measurement->addObserver(progress_mediator->getMeasurementObserver());
+    segmentation->Observable<SourceInterface>::addObserver(progress_mediator->getDetectionObserver());
+    deblending->Observable<SourceGroupInterface>::addObserver(progress_mediator->getDeblendingObserver());
+    measurement->Observable<SourceGroupInterface>::addObserver(progress_mediator->getMeasurementObserver());
 
     // Add observers for CheckImages
     if (CheckImages::getInstance().getSegmentationImage(0) != nullptr) {
-      segmentation->Observable<std::shared_ptr<SourceInterface>>::addObserver(
-          std::make_shared<DetectionIdCheckImage>());
+      segmentation->Observable<SourceInterface>::addObserver(std::make_shared<DetectionIdCheckImage>());
     }
     if (CheckImages::getInstance().getPartitionImage(0) != nullptr) {
-      measurement->addObserver(
-          std::make_shared<SourceIdCheckImage>());
+      measurement->Observable<SourceGroupInterface>::addObserver(std::make_shared<SourceIdCheckImage>());
     }
     if (CheckImages::getInstance().getGroupImage(0) != nullptr) {
-      measurement->addObserver(
-          std::make_shared<GroupIdCheckImage>());
+      measurement->Observable<SourceGroupInterface>::addObserver(std::make_shared<GroupIdCheckImage>());
     }
     if (CheckImages::getInstance().getMoffatImage(0) != nullptr) {
-      measurement->addObserver(
-          std::make_shared<MoffatCheckImage>());
+      measurement->Observable<SourceGroupInterface>::addObserver(std::make_shared<MoffatCheckImage>());
     }
     const auto& detection_frames = config_manager.getConfiguration<DetectionFrameConfig>().getDetectionFrames();
 

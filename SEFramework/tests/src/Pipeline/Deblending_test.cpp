@@ -60,27 +60,35 @@ public:
   }
 };
 
-class TestGroupObserver : public Observer<std::shared_ptr<SourceGroupInterface>> {
+class TestGroupObserver : public Observer<SourceGroupInterface> {
 public:
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
-    m_groups.push_back(source_group);
+  virtual void handleMessage(const SourceGroupInterface& source_group) override {
+    std::vector<SimpleIntProperty> int_properties;
+    for (auto& source : source_group) {
+      int_properties.emplace_back(source.getProperty<SimpleIntProperty>());
+    }
+    m_groups.push_back(int_properties);
   }
 
-  std::list<std::shared_ptr<SourceGroupInterface>> m_groups;
+  std::list<std::vector<SimpleIntProperty>> m_groups;
 };
 
 struct DeblendingFixture {
   std::shared_ptr<ExampleDeblendStep> example_deblend_step {new ExampleDeblendStep};
-  std::shared_ptr<SourceInterface> source_a {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_b {new SimpleSource};
-  std::shared_ptr<SourceInterface> source_c {new SimpleSource};
-  std::shared_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
+  std::unique_ptr<SourceGroupInterface> source_group {new SimpleSourceGroup};
   std::shared_ptr<TestGroupObserver> test_group_observer {new TestGroupObserver};
 
   DeblendingFixture() {
-    source_group->addSource(source_a);
-    source_group->addSource(source_b);
-    source_group->addSource(source_c);
+    std::unique_ptr<SourceInterface> source_a {new SimpleSource};
+    std::unique_ptr<SourceInterface> source_b {new SimpleSource};
+    std::unique_ptr<SourceInterface> source_c {new SimpleSource};
+    source_a->setProperty<SimpleIntProperty>(1);
+    source_b->setProperty<SimpleIntProperty>(2);
+    source_c->setProperty<SimpleIntProperty>(3);
+
+    source_group->addSource(std::move(source_a));
+    source_group->addSource(std::move(source_b));
+    source_group->addSource(std::move(source_c));
   }
 };
 
@@ -91,14 +99,10 @@ BOOST_AUTO_TEST_SUITE (Deblending_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
-  source_a->setProperty<SimpleIntProperty>(1);
-  source_b->setProperty<SimpleIntProperty>(2);
-  source_c->setProperty<SimpleIntProperty>(3);
-
   Deblending deblending({example_deblend_step});
   deblending.addObserver(test_group_observer);
 
-  deblending.handleMessage(source_group);
+  deblending.receiveSource(std::move(source_group));
 
   BOOST_CHECK_EQUAL(test_group_observer->m_groups.size(), 1);
   auto group = test_group_observer->m_groups.front();
@@ -106,8 +110,8 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
   std::set<int> expected_result {2, 3};
   std::set<int> actual_result;
 
-  for (auto& source : *group) {
-    actual_result.insert(source.getProperty<SimpleIntProperty>().m_value);
+  for (auto& source_prop : group) {
+    actual_result.insert(source_prop.m_value);
   }
 
   BOOST_CHECK(expected_result == actual_result);
@@ -115,15 +119,11 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_a, DeblendingFixture ) {
 
 //-----------------------------------------------------------------------------
 BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
-  source_a->setProperty<SimpleIntProperty>(1);
-  source_b->setProperty<SimpleIntProperty>(2);
-  source_c->setProperty<SimpleIntProperty>(3);
-
   // we want to execute step twice
   Deblending deblending({example_deblend_step, example_deblend_step});
   deblending.addObserver(test_group_observer);
 
-  deblending.handleMessage(source_group);
+  deblending.receiveSource(std::move(source_group));
 
   BOOST_CHECK(test_group_observer->m_groups.size() == 1);
   auto group = test_group_observer->m_groups.front();
@@ -131,8 +131,8 @@ BOOST_FIXTURE_TEST_CASE( deblending_test_b, DeblendingFixture ) {
   std::set<int> expected_result {3};
   std::set<int> actual_result;
 
-  for (auto& source : *group) {
-    actual_result.insert(source.getProperty<SimpleIntProperty>().m_value);
+  for (auto& source_prop : group) {
+    actual_result.insert(source_prop.m_value);
   }
 
   BOOST_CHECK(expected_result == actual_result);

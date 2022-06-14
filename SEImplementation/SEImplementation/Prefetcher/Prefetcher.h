@@ -22,8 +22,7 @@
 #include "AlexandriaKernel/ThreadPool.h"
 #include "AlexandriaKernel/Semaphore.h"
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Pipeline/SourceGrouping.h"
-#include "SEUtils/Observable.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 
 namespace SourceXtractor {
 
@@ -38,10 +37,7 @@ namespace SourceXtractor {
  * Then, they will be released and sent along.
  *
  */
-class Prefetcher : public Observer<std::shared_ptr<SourceInterface>>,
-                   public Observable<std::shared_ptr<SourceInterface>>,
-                   public Observer<ProcessSourcesEvent>,
-                   public Observable<ProcessSourcesEvent> {
+class Prefetcher : public PipelineReceiver<SourceInterface>, public PipelineEmitter<SourceInterface> {
 public:
 
   /**
@@ -61,14 +57,14 @@ public:
    * Once they are done, the message will be passed along.
    * @param message
    */
-  void handleMessage(const std::shared_ptr<SourceInterface>& message) override;
+  void receiveSource(std::unique_ptr<SourceInterface> source) override;
 
   /**
    * Handle ProcessSourcesEvent. All sources received prior to this message need to
    * be processed before sources coming after are passed along.
    * @param message
    */
-  void handleMessage(const ProcessSourcesEvent& message) override;
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
   /**
    * Tell the prefetcher to compute this property
@@ -118,7 +114,7 @@ private:
   /// Notifies there is a new source done processing
   std::condition_variable m_new_output;
   /// Finished sources
-  std::map<intptr_t, std::shared_ptr<SourceInterface>> m_finished_sources;
+  std::map<intptr_t, std::unique_ptr<SourceInterface>> m_finished_sources;
   /// Queue of received ProcessSourceEvent, order preserved
   std::deque<ProcessSourcesEvent> m_event_queue;
   /// Queue of type of received events. Used to pass downstream events respecting the received order

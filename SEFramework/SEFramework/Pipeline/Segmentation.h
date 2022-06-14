@@ -26,18 +26,13 @@
 #include <memory>
 #include <type_traits>
 
-#include "SEFramework/Property/DetectionFrame.h"
-#include "SEFramework/Frame/Frame.h"
-
-#include "SEUtils/Observable.h"
-#include "SEFramework/Source/SourceInterface.h"
-#include "SEFramework/Image/Image.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Frame/Frame.h"
-
+#include "SEFramework/Image/Image.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
-
-
+#include "SEFramework/Property/DetectionFrame.h"
+#include "SEFramework/Source/SourceInterface.h"
 
 namespace SourceXtractor {
 
@@ -55,8 +50,7 @@ struct SegmentationProgress {
  * results in a notification of the Segmentation's Observers.
  *
  */
-class Segmentation : public Observable<std::shared_ptr<SourceInterface>>, public Observable<SegmentationProgress>,
-    public Observable<ProcessSourcesEvent> {
+class Segmentation : public PipelineEmitter<SourceInterface> , public Observable<SegmentationProgress> {
 
 public:
   class LabellingListener;
@@ -80,11 +74,6 @@ public:
   /// Processes a Frame notifying Observers with a Source object for each detection
   void processFrame(std::shared_ptr<DetectionImageFrame> frame) const;
 
-protected:
-  void publishSource(std::shared_ptr<SourceInterface> source) const {
-    Observable<std::shared_ptr<SourceInterface>>::notifyObservers(source);
-  }
-
 private:
   std::unique_ptr<Labelling> m_labelling;
   std::shared_ptr<DetectionImageFrame::ImageFilter> m_filter_image_processing;
@@ -97,9 +86,9 @@ public:
     m_segmentation(segmentation),
     m_detection_frame(detection_frame) {}
 
-  void publishSource(std::shared_ptr<SourceInterface> source) const {
+  void publishSource(std::unique_ptr<SourceInterface> source) const {
     source->setProperty<DetectionFrame>(m_detection_frame);
-    m_segmentation.Observable<std::shared_ptr<SourceInterface>>::notifyObservers(source);
+    m_segmentation.sendSource(std::move(source));
   }
 
   void notifyProgress(int position, int total) {
@@ -107,7 +96,7 @@ public:
   }
 
   void requestProcessing(const ProcessSourcesEvent& event) {
-    m_segmentation.Observable<ProcessSourcesEvent>::notifyObservers(event);
+    m_segmentation.sendProcessSignal(event);
   }
 
 private:
