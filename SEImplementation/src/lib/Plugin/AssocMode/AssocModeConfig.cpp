@@ -25,6 +25,7 @@
 #include "Table/AsciiReader.h"
 #include "Table/FitsReader.h"
 
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 #include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
 
@@ -35,12 +36,18 @@ namespace po = boost::program_options;
 
 namespace SourceXtractor {
 
+enum class AssocCoordType {
+  PIXEL,
+  WORLD
+};
+
 static const std::string ASSOC_CATALOG { "assoc-catalog" };
 static const std::string ASSOC_MODE { "assoc-mode" };
 static const std::string ASSOC_RADIUS { "assoc-radius" };
 static const std::string ASSOC_FILTER { "assoc-filter" };
 static const std::string ASSOC_COPY { "assoc-copy" };
 static const std::string ASSOC_COLUMNS { "assoc-columns" };
+static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
 
 namespace {
 
@@ -60,6 +67,11 @@ const std::map<std::string, AssocModeConfig::AssocFilter> assoc_filter_table {
   std::make_pair("ALL", AssocModeConfig::AssocFilter::ALL),
   std::make_pair("MATCHED", AssocModeConfig::AssocFilter::MATCHED),
   std::make_pair("UNMATCHED", AssocModeConfig::AssocFilter::UNMATCHED)
+};
+
+const std::map<std::string, AssocCoordType> assoc_coord_type_table {
+  std::make_pair("PIXEL", AssocCoordType::PIXEL),
+  std::make_pair("WORLD", AssocCoordType::WORLD)
 };
 
 std::vector<int> parseColumnList(const std::string& arg) {
@@ -85,6 +97,7 @@ std::vector<int> parseColumnList(const std::string& arg) {
 }
 
 AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN), m_assoc_radius(0.) {
+  declareDependency<DetectionImageConfig>();
   declareDependency<PartitionStepConfig>();
   ConfigManager::getInstance(manager_id).registerDependency<AssocModeConfig, MultiThresholdPartitionConfig>();
 }
@@ -94,7 +107,7 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
       {ASSOC_CATALOG.c_str(), po::value<std::string>(),
           "Assoc catalog file"},
       {ASSOC_COLUMNS.c_str(), po::value<std::string>()->default_value("1,2"),
-          "Assoc columns to specify x,y[,weight] (the index of the first column is 1)"},
+          "Assoc columns to specify x/ra,y/dec[,weight] (the index of the first column is 1)"},
       {ASSOC_MODE.c_str(), po::value<std::string>()->default_value("NEAREST"),
           "Assoc mode [FIRST, NEAREST, MEAN, MAG_MEAN, SUM, MAG_SUM, MIN, MAX]"},
       {ASSOC_RADIUS.c_str(), po::value<double>()->default_value(2.0),
@@ -103,6 +116,8 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
           "Assoc catalog filter setting: ALL, MATCHED, UNMATCHED"},
       {ASSOC_COPY.c_str(), po::value<std::string>()->default_value(""),
           "List of columns indices in the assoc catalog to copy on match (the index of the first column is 1). "},
+      {ASSOC_COORD_TYPE.c_str(), po::value<std::string>()->default_value("PIXEL"),
+          "Assoc coordinates type: PIXEL, WORLD"},
   }}};
 }
 
@@ -149,6 +164,16 @@ void AssocModeConfig::initialize(const UserValues& args) {
     }
   }
 
+  AssocCoordType assoc_coord_type = AssocCoordType::PIXEL;
+  if (args.find(ASSOC_COORD_TYPE) != args.end()) {
+    auto assoc_coord_type_str = boost::to_upper_copy(args.at(ASSOC_COORD_TYPE).as<std::string>());
+    if (assoc_coord_type_table.find(assoc_coord_type_str) != assoc_coord_type_table.end()) {
+      assoc_coord_type = assoc_coord_type_table.at(assoc_coord_type_str);
+    } else {
+      throw Elements::Exception() << "Invalid association coordinate type: " << assoc_coord_type_str;
+    }
+  }
+
   if (args.find(ASSOC_CATALOG) != args.end()) {
     auto filename = args.at(ASSOC_CATALOG).as<std::string>();
     try {
@@ -160,7 +185,12 @@ void AssocModeConfig::initialize(const UserValues& args) {
         reader = std::make_shared<Euclid::Table::AsciiReader>(filename);
       }
       auto table = reader->read();
-      readTable(table, columns, copy_columns);
+
+      std::shared_ptr<CoordinateSystem> coordinate_system;
+      if (assoc_coord_type == AssocCoordType::WORLD) {
+        coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem();
+      }
+      readTable(table, columns, copy_columns, coordinate_system);
 
     } catch(...) {
       throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
@@ -169,11 +199,25 @@ void AssocModeConfig::initialize(const UserValues& args) {
 }
 
 void AssocModeConfig::readTable(
-    const Euclid::Table::Table& table, const std::vector<int>& columns, const std::vector<int>& copy_columns) {
+    const Euclid::Table::Table& table, const std::vector<int>& columns,
+    const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system) {
   for (auto& row : table) {
     // our internal pixel coordinates are zero-based
-    auto coord =
-        ImageCoordinate { boost::get<double>(row[columns.at(0)]) - 1.0, boost::get<double>(row[columns.at(1)]) - 1.0 };
+
+    ImageCoordinate coord;
+    if (coordinate_system != nullptr) {
+      auto world_coord = WorldCoordinate {
+        boost::get<double>(row[columns.at(0)]),
+        boost::get<double>(row[columns.at(1)])
+      };
+
+      coord = coordinate_system->worldToImage(world_coord);
+    } else {
+      coord = ImageCoordinate {
+        boost::get<double>(row[columns.at(0)]) - 1.0,
+        boost::get<double>(row[columns.at(1)]) - 1.0
+      };
+    }
     m_catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
     if (columns.size() == 3 && columns.at(2) >= 0) {
       m_catalog.back().weight = boost::get<double>(row[columns.at(2)]);

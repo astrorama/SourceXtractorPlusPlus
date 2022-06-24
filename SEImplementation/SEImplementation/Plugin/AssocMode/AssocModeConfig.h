@@ -77,8 +77,8 @@ public:
 
 private:
 
-  void readTable(const Euclid::Table::Table& table,
-      const std::vector<int>& columns, const std::vector<int>& copy_columns);
+  void readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
+      const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system);
 
   AssocMode m_assoc_mode;
   double m_assoc_radius;
