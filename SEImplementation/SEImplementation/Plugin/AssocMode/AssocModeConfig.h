@@ -71,19 +71,18 @@ public:
     return m_assoc_radius;
   }
 
-  const std::vector<CatalogEntry>& getCatalog() const {
-    return m_catalog;
+  const std::vector<std::vector<CatalogEntry>>& getCatalogs() const {
+    return m_catalogs;
   }
 
 private:
-
-  void readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
+  std::vector<CatalogEntry> readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
       const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system);
 
   AssocMode m_assoc_mode;
   double m_assoc_radius;
 
-  std::vector<CatalogEntry> m_catalog;
+  std::vector<std::vector<CatalogEntry>> m_catalogs;
 };
 
 } /* namespace SourceXtractor */

@@ -22,6 +22,7 @@
 #include "SEFramework/Source/SimpleSource.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
 #include "SEImplementation/Plugin/AssocMode/AssocMode.h"
 #include "SEImplementation/Plugin/AssocMode/AssocModeTask.h"
 
@@ -29,15 +30,18 @@ using namespace SourceXtractor;
 
 struct AssocModeFixture {
   SimpleSource source;
-  std::vector<AssocModeConfig::CatalogEntry> catalog {
+  std::vector<std::vector<AssocModeConfig::CatalogEntry>> catalog { {
     { {110, 100}, 1.0, {2.0, 3.0} },
     { {50, 50}, 1.0, {2.0, 3.0} },
     { {50, 60}, 0.5, {4.0, 5.0} },
     { {60, 60}, 3.0, {6.0, 7.0} },
     { {60, 50}, 2.0, {8.0, 9.0} }
-  };
+  } };
 
-  AssocModeFixture() {}
+  AssocModeFixture() {
+    // Initialize DetectionFrameInfo with dummy info and hdu_index=0
+    source.setProperty<DetectionFrameInfo>(200, 200, 1.0, 65000, 1000000, 20);
+  }
 };
 
 //-----------------------------------------------------------------------------
@@ -178,7 +182,7 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
 
   {
     source.setProperty<PixelCentroid>(0, 0);
-    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 150.0);
+    AssocModeTask assoc_mode_task( { large_catalog }, AssocModeConfig::AssocMode::SUM, 150.0);
     assoc_mode_task.computeProperties(source);
 
     auto assoc_mode_property = source.getProperty<AssocMode>();
@@ -187,7 +191,7 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
   }
   {
     source.setProperty<PixelCentroid>(0, 1000);
-    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 150.0);
+    AssocModeTask assoc_mode_task( { large_catalog }, AssocModeConfig::AssocMode::SUM, 150.0);
     assoc_mode_task.computeProperties(source);
 
     auto assoc_mode_property = source.getProperty<AssocMode>();
@@ -196,7 +200,7 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
   }
   {
     source.setProperty<PixelCentroid>(0, 0);
-    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::SUM, 5000.0);
+    AssocModeTask assoc_mode_task( { large_catalog }, AssocModeConfig::AssocMode::SUM, 5000.0);
     assoc_mode_task.computeProperties(source);
 
     auto assoc_mode_property = source.getProperty<AssocMode>();
@@ -205,7 +209,7 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
   }
   {
     source.setProperty<PixelCentroid>(55.0, 55.0);
-    AssocModeTask assoc_mode_task(large_catalog, AssocModeConfig::AssocMode::NEAREST, 20.0);
+    AssocModeTask assoc_mode_task( { large_catalog }, AssocModeConfig::AssocMode::NEAREST, 20.0);
     assoc_mode_task.computeProperties(source);
 
     auto assoc_mode_property = source.getProperty<AssocMode>();

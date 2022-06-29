@@ -39,14 +39,14 @@ void AssocModeTaskFactory::reportConfigDependencies(Euclid::Configuration::Confi
 void AssocModeTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
   auto config = manager.getConfiguration<AssocModeConfig>();
 
-  m_catalog = config.getCatalog();
+  m_catalogs = config.getCatalogs();
   m_assoc_radius = config.getAssocRadius();
   m_assoc_mode = config.getAssocMode();
 }
 
 std::shared_ptr<Task> AssocModeTaskFactory::createTask(const PropertyId &property_id) const {
   if (property_id.getTypeId() == typeid(AssocMode)) {
-    return std::make_shared<AssocModeTask>(m_catalog, m_assoc_mode, m_assoc_radius);
+    return std::make_shared<AssocModeTask>(m_catalogs, m_assoc_mode, m_assoc_radius);
   } else {
     return nullptr;
   }
