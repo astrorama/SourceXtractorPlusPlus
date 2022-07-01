@@ -76,6 +76,9 @@ public:
   }
 
 private:
+  void readConfig(const UserValues& args);
+  void readCatalogs(const UserValues& args);
+
   std::vector<CatalogEntry> readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
       const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system);
 

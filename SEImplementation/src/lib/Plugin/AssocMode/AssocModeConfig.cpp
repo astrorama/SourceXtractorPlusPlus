@@ -15,12 +15,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
-
 #include <map>
 #include <boost/algorithm/string.hpp>
 
 #include <CCfits/CCfits>
+
+#include "ElementsKernel/Logging.h"
 
 #include "Table/AsciiReader.h"
 #include "Table/FitsReader.h"
@@ -31,10 +31,14 @@
 
 #include "SEImplementation/Plugin/AssocMode/AssocModePartitionStep.h"
 
+#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("AssocModeConfig");
 
 enum class AssocCoordType {
   PIXEL,
@@ -122,38 +126,30 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
 }
 
 void AssocModeConfig::initialize(const UserValues& args) {
+  readConfig(args);
+  readCatalogs(args);
+}
 
+void AssocModeConfig::readConfig(const UserValues& args) {
   auto filter = boost::to_upper_copy(args.at(ASSOC_FILTER).as<std::string>());
   if (assoc_filter_table.find(filter) != assoc_filter_table.end()) {
-      auto assoc_filter = assoc_filter_table.at(filter);
-      if (assoc_filter == AssocFilter::MATCHED) {
-        getDependency<PartitionStepConfig>().addPartitionStepCreator(
-                [](std::shared_ptr<SourceFactory> ) {
-                  return std::make_shared<AssocModePartitionStep>(true);
-                }
-        );
-      } else if (assoc_filter == AssocFilter::UNMATCHED) {
-        getDependency<PartitionStepConfig>().addPartitionStepCreator(
-                [](std::shared_ptr<SourceFactory> ) {
-                  return std::make_shared<AssocModePartitionStep>(false);
-                }
-        );
-      }
+    auto assoc_filter = assoc_filter_table.at(filter);
+    if (assoc_filter == AssocFilter::MATCHED) {
+      getDependency<PartitionStepConfig>().addPartitionStepCreator(
+              [](std::shared_ptr<SourceFactory> ) {
+                return std::make_shared<AssocModePartitionStep>(true);
+              }
+      );
+    } else if (assoc_filter == AssocFilter::UNMATCHED) {
+      getDependency<PartitionStepConfig>().addPartitionStepCreator(
+              [](std::shared_ptr<SourceFactory> ) {
+                return std::make_shared<AssocModePartitionStep>(false);
+              }
+      );
+    }
   } else {
-      throw Elements::Exception() << "Invalid assoc filter: " << filter;
+    throw Elements::Exception() << "Invalid assoc filter: " << filter;
   }
-
-  m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
-
-  auto columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
-  if (columns.size() < 2) {
-    throw Elements::Exception() << "At least 2 columns must be specified for x,y coordinates in the assoc catalog";
-  }
-  if (columns.size() > 3) {
-    throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
-  }
-
-  auto copy_columns = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
 
   if (args.find(ASSOC_MODE) != args.end()) {
     auto assoc_mode = boost::to_upper_copy(args.at(ASSOC_MODE).as<std::string>());
@@ -163,6 +159,20 @@ void AssocModeConfig::initialize(const UserValues& args) {
       throw Elements::Exception() << "Invalid association mode: " << assoc_mode;
     }
   }
+
+  m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
+}
+
+void AssocModeConfig::readCatalogs(const UserValues& args) {
+  auto columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
+  if (columns.size() < 2) {
+    throw Elements::Exception() << "At least 2 columns must be specified for x,y coordinates in the assoc catalog";
+  }
+  if (columns.size() > 3) {
+    throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
+  }
+
+  auto copy_columns = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
 
   AssocCoordType assoc_coord_type = AssocCoordType::PIXEL;
   if (args.find(ASSOC_COORD_TYPE) != args.end()) {
@@ -188,8 +198,8 @@ void AssocModeConfig::initialize(const UserValues& args) {
 
       for (size_t i = 0; i < getDependency<DetectionImageConfig>().getExtensionsNb(); i++) {
         if (assoc_coord_type == AssocCoordType::WORLD) {
-            auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-            m_catalogs.emplace_back(readTable(table, columns, copy_columns, coordinate_system));
+          auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
+          m_catalogs.emplace_back(readTable(table, columns, copy_columns, coordinate_system));
         } else {
           m_catalogs.emplace_back(readTable(table, columns, copy_columns, nullptr));
         }
@@ -198,6 +208,11 @@ void AssocModeConfig::initialize(const UserValues& args) {
     } catch(...) {
       throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
     }
+  }
+
+  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() > 1) {
+    logger.warn() <<
+        "Using Assoc catalog matching in pixel coordinates with multiple detection images";
   }
 }
 
