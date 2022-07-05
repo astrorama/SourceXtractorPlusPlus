@@ -115,7 +115,7 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
       {ASSOC_MODE.c_str(), po::value<std::string>()->default_value("NEAREST"),
           "Assoc mode [FIRST, NEAREST, MEAN, MAG_MEAN, SUM, MAG_SUM, MIN, MAX]"},
       {ASSOC_RADIUS.c_str(), po::value<double>()->default_value(2.0),
-          "Assoc radius"},
+          "Assoc radius (Always in pixels of the detection image)"},
       {ASSOC_FILTER.c_str(), po::value<std::string>()->default_value("ALL"),
           "Assoc catalog filter setting: ALL, MATCHED, UNMATCHED"},
       {ASSOC_COPY.c_str(), po::value<std::string>()->default_value(""),
@@ -246,8 +246,12 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
         catalog.back().assoc_columns.emplace_back(boost::get<int>(row[column]));
       } else if (row[column].type() == typeid(double)) {
         catalog.back().assoc_columns.emplace_back(boost::get<double>(row[column]));
-      } else {
-        throw Elements::Exception() << "Wrong type in assoc column";
+      } else if (row[column].type() == typeid(int64_t)) {
+        catalog.back().assoc_columns.emplace_back(boost::get<int64_t>(row[column]));
+      } else if (row[column].type() == typeid(SeFloat)) {
+        catalog.back().assoc_columns.emplace_back(boost::get<SeFloat>(row[column]));
+      } else{
+        throw Elements::Exception() << "Wrong type in assoc column (must be a numeric type)";
       }
     }
   }
