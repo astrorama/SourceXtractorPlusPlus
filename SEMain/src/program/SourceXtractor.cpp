@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -355,13 +355,7 @@ public:
     auto multithreading_config = config_manager.getConfiguration<MultiThreadingConfig>();
     auto thread_pool = multithreading_config.getThreadPool();
 
-    // Prefetcher
-    std::shared_ptr<Prefetcher> prefetcher;
-    if (thread_pool) {
-      prefetcher = std::make_shared<Prefetcher>(thread_pool, multithreading_config.getMaxQueueSize());
-    }
-
-    // Rest of the stagees
+    // Rest of the stages
     auto partition = partition_factory.getPartition();
     auto source_grouping = grouping_factory.createGrouping();
 
@@ -369,9 +363,16 @@ public:
     std::shared_ptr<Measurement> measurement = measurement_factory.getMeasurement();
     std::shared_ptr<Output> output = output_factory.createOutput();
 
-    if (prefetcher) {
-      prefetcher->requestProperties(source_grouping->requiredProperties());
-      prefetcher->requestProperties(deblending->requiredProperties());
+    // Prefetcher
+    std::shared_ptr<Prefetcher> prefetcher;
+    if (thread_pool) {
+      auto prefetch = source_grouping->requiredProperties();
+      auto deblending_prefetch =  deblending->requiredProperties();
+      prefetch.insert(deblending_prefetch.begin(), deblending_prefetch.end());
+      if (!prefetch.empty()) {
+        prefetcher = std::make_shared<Prefetcher>(thread_pool, multithreading_config.getMaxQueueSize());
+        prefetcher->requestProperties(prefetch);
+      }
     }
 
     // Link together the pipeline's steps
