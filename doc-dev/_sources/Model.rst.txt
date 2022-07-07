@@ -15,7 +15,7 @@ Fitting procedure
 .. math::
   :label: loss_func
 
-  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{f_j(\boldsymbol{q}) - \mu_j}{s_j}\right)^2
+  \lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}; \kappa\right)\right)^2 + \sum_j \left(\frac{f_j(\boldsymbol{q}) - \mu_j}{s_j}\right)^2
 
 with respect to components of the model parameter vector :math:`\boldsymbol{q}`. :math:`\boldsymbol{q}` comprises parameters describing the shape of the model and the model central coordinates :math:`\boldsymbol{x}`.
 
@@ -23,15 +23,15 @@ Modified least squares
 ----------------------
 
 The first term in :eq:`loss_func` is a modified `weighted sum of squares <http://en.wikipedia.org/wiki/Least_squares#Weighted_least_squares>`_ that aims at minimizing the residuals of the fit. :math:`p_i`, :math:`\tilde{m}_i(\boldsymbol{q})` and :math:`\sigma_i` are respectively the pixel value above the background, the value of the resampled model, and the pixel value uncertainty at image pixel :math:`i`.
-:math:`g(u)` is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (:numref:`fig_robustgalfit`):
+:math:`g(u; \kappa)` is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (:numref:`fig_robustgalfit`):
 
 .. math::
   :label: modified_lsq
 
-  g(u) = u_0\,\mathrm{arsinh}\,\frac{u}{u_0}.
+  g(u; \kappa) = \kappa\,\mathrm{arsinh}\,\frac{u}{\kappa}.
 
-:math:`u_0` sets the level below which :math:`g(u)\approx u`.
-In practice, choosing :math:`u_0 = \kappa \sigma_i` with :math:`\kappa = 10` makes the first term in :eq:`loss_func` behave like a traditional weighted sum of squares for residuals close to the noise level.
+:math:`\kappa` sets the level below which :math:`g(u)\approx u`.
+In practice, choosing :math:`\kappa = 10` makes the first term in :eq:`loss_func` behave like a traditional weighted sum of squares for residuals close to the noise level.
 
 .. caution::
   The cost function in :eq:`loss_func` is optimized for noise distributions with a Gaussian core and makes model-fitting in |SourceXtractor++| appropriate only for image noise with a |pdf| symmetrical around the mean.
