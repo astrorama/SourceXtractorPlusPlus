@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -92,7 +93,7 @@
            <div itemprop="articleBody">
              
   <section id="aperture-photometry">
-<span id="photometry"></span><h1>Aperture photometry<a class="headerlink" href="#aperture-photometry" title="Permalink to this headline">¶</a></h1>
+<span id="photometry"></span><h1>Aperture photometry<a class="headerlink" href="#aperture-photometry" title="Permalink to this heading">¶</a></h1>
 <p>Besides <a class="reference internal" href="Position.html#flux-iso-def"><span class="std std-ref">isophotal</span></a>, <abbr title="Point Spread Function">PSF</abbr> and <a class="reference internal" href="Model.html#models-def"><span class="std std-ref">model-fitting</span></a> flux estimates, <strong class="program">SourceXtractor++</strong> can currently perform two types of aperture flux measurements: <a class="reference internal" href="#flux-aper-def"><span class="std std-ref">fixed-aperture</span></a> and <a class="reference internal" href="#flux-auto-def"><span class="std std-ref">adaptive-aperture</span></a>.</p>
 <p>Both types are applied to the measurement image(s). In <strong class="program">SourceXtractor++</strong> runs with only a detection image it is necessary to define the detection image as measurement in a python configuration files such as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
@@ -116,13 +117,13 @@
 </pre></div>
 </div>
 <section id="fixed-aperture-flux">
-<span id="flux-aper-def"></span><h2>Fixed-aperture flux<a class="headerlink" href="#fixed-aperture-flux" title="Permalink to this headline">¶</a></h2>
+<span id="flux-aper-def"></span><h2>Fixed-aperture flux<a class="headerlink" href="#fixed-aperture-flux" title="Permalink to this heading">¶</a></h2>
 <p id="flux-auto-def">The fixed aperture flux measurements are requested with <code class="docutils literal notranslate"><span class="pre">output-properties=...,AperturePhotometry,...</span></code>. The diameter of the aperture is specified in the python configuration file (see above) with <code class="docutils literal notranslate"><span class="pre">all_apertures.extend(add_aperture_photometry(img,&lt;diameter</span> <span class="pre">[pix]&gt;))</span></code>. It is possible to give a vector with several diameters <code class="docutils literal notranslate"><span class="pre">[diam_1,</span> <span class="pre">diam_2,</span> <span class="pre">diam_3,</span> <span class="pre">...]</span></code>.</p>
 <p>It is also necessary to append the aperture measurements to the output with a given column name such as <code class="docutils literal notranslate"><span class="pre">add_output_column('aperture',</span> <span class="pre">all_apertures)</span></code>. The measurements have the dimension <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">m</span></code> for each object with <code class="docutils literal notranslate"><span class="pre">n</span></code> the number of measurement images and <code class="docutils literal notranslate"><span class="pre">m</span></code> the number of diameters.</p>
 <p>The fixed aperture checkimage is specified with <code class="docutils literal notranslate"><span class="pre">check-image-aperture=&lt;name.fits&gt;</span></code> and provides a visual impression of the apertures for each measurement image.</p>
 </section>
 <section id="automatic-aperture-flux">
-<h2>Automatic aperture flux<a class="headerlink" href="#automatic-aperture-flux" title="Permalink to this headline">¶</a></h2>
+<h2>Automatic aperture flux<a class="headerlink" href="#automatic-aperture-flux" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">SourceXtractor++</strong>’s automatic aperture photometry routine derives from Kron’s “first moment” algorithm <span id="id1">[<a class="reference internal" href="references.html#id17" title="R. G. Kron, 1980. Photometry of a complete sample of faint galaxies. ApJS, 43:305-325.">10</a>]</span>:</p>
 <p><span id="id2">[<a class="reference internal" href="references.html#id17" title="R. G. Kron, 1980. Photometry of a complete sample of faint galaxies. ApJS, 43:305-325.">10</a>]</span> and <span id="id3">[<a class="reference internal" href="references.html#id13" title="L. Infante, 1987. A faint object processing software - Description and testing. A&amp;A, 183:177-184.">9</a>]</span> have shown that for stars and galaxy profiles convolved with Gaussian seeing, <span class="math notranslate nohighlight">\(\ge 90\%\)</span> of the flux is expected to lie inside a circular aperture of radius <span class="math notranslate nohighlight">\(k r_{\rm Kron}\)</span> with <span class="math notranslate nohighlight">\(k = 2\)</span>, almost independently of the magnitude.
 Experiments have shown <span id="id4">[<a class="reference internal" href="references.html#id2" title="E. Bertin and S. Arnouts, 1996. SExtractor: Software for source extraction. A&amp;AS, 117:393-404.">1</a>]</span> that this conclusion remains unchanged if one replaces the circular aperture with the “Kron elliptical aperture” <span class="math notranslate nohighlight">\({\cal K}\)</span> with reduced pseudo-radius <span class="math notranslate nohighlight">\(k r_{\rm Kron}\)</span>.</p>

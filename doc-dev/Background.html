@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -90,13 +91,13 @@
            <div itemprop="articleBody">
              
   <section id="modeling-the-background">
-<span id="chap-background"></span><h1>Modeling the background<a class="headerlink" href="#modeling-the-background" title="Permalink to this headline">¶</a></h1>
+<span id="chap-background"></span><h1>Modeling the background<a class="headerlink" href="#modeling-the-background" title="Permalink to this heading">¶</a></h1>
 <p>On linear detectors, the value measured at each pixel is the sum of a “background” signal and light coming from the sources of interest.
 To be able to detect the faintest objects and make accurate measurements, <strong class="program">SourceXtractor++</strong> needs first computing a precise estimate of the background level at any position of the image: a <em>background map</em>.
 Strictly speaking, there should be one background map per source, that is, what would the image look like if that very source was missing.
 However, one can start by assuming that most discrete sources do not overlap too severely — which is generally the case for high galactic latitude fields —, and that the background varies smoothly across the field. <strong class="program">SourceXtractor++</strong>’s current background model is essentially the same as that of <a class="reference external" href="http://astromatic.net/software/sextractor"><strong class="program">SExtractor</strong></a> <span id="id1">[<a class="reference internal" href="references.html#id2" title="E. Bertin and S. Arnouts, 1996. SExtractor: Software for source extraction. A&amp;AS, 117:393-404.">1</a>]</span>.</p>
 <section id="background-estimation">
-<h2>Background estimation<a class="headerlink" href="#background-estimation" title="Permalink to this headline">¶</a></h2>
+<h2>Background estimation<a class="headerlink" href="#background-estimation" title="Permalink to this heading">¶</a></h2>
 <p>To compute the background map, <strong class="program">SourceXtractor++</strong> makes a first pass through the pixel data, estimating the local background in each cell of a square grid that covers the whole frame.
 The background estimator is a combination of <span class="math notranslate nohighlight">\(\kappa\,\sigma\)</span> clipping and mode estimation, similar to Stetson’s <a class="reference external" href="http://ascl.net/phpBB3/viewtopic.php?t=23410"><strong class="program">DAOPHOT</strong></a> program <span id="id2">[<a class="reference internal" href="references.html#id26" title="P. B. Stetson, 1987. DAOPHOT - A computer program for crowded-field stellar photometry. PASP, 99:191-222.">5</a>, <a class="reference internal" href="references.html#id33" title="G. S. Da Costa, 1992. Basic Photometry Techniques. In S. B. Howell, editor, Astronomical CCD Observing and Reduction Techniques, volume 23 of Astronomical Society of the Pacific Conference Series, 90. 1992.">6</a>]</span>.</p>
 <p>Briefly, the local background histogram is clipped iteratively until convergence at <span class="math notranslate nohighlight">\(\pm 3\sigma\)</span> around its median. The mode of the histogram is estimated using:</p>
@@ -116,7 +117,7 @@ While being a bit noisier, the clipped “mode” gives a more robust estimate t
 </figure>
 </section>
 <section id="background-map">
-<span id="chap-backfilter"></span><h2>Background map<a class="headerlink" href="#background-map" title="Permalink to this headline">¶</a></h2>
+<span id="chap-backfilter"></span><h2>Background map<a class="headerlink" href="#background-map" title="Permalink to this heading">¶</a></h2>
 <p>Once the values of all background cells have been estimated, a median box filter is applied to suppress possible local overestimations due to bright stars.
 Median filtering helps reducing possible ringing effects of the bicubic-spline around bright features.
 The final background map is a (natural) bicubic-spline interpolation between grid cells.</p>
@@ -124,7 +125,7 @@ The final background map is a (natural) bicubic-spline interpolation between gri
 It is used as an internal weight map when the <code class="docutils literal notranslate"><span class="pre">weight-type</span></code> configuration parameter is set to <code class="docutils literal notranslate"><span class="pre">weight-type=background</span></code>, which is the default.</p>
 </section>
 <section id="configuration-and-tuning">
-<h2>Configuration and tuning<a class="headerlink" href="#configuration-and-tuning" title="Permalink to this headline">¶</a></h2>
+<h2>Configuration and tuning<a class="headerlink" href="#configuration-and-tuning" title="Permalink to this heading">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>All background configuration parameters also affect background noise maps.</p>
@@ -147,7 +148,7 @@ The <code class="docutils literal notranslate"><span class="pre">background-valu
 It is unset by default.</p>
 </section>
 <section id="computing-cost">
-<h2>Computing cost<a class="headerlink" href="#computing-cost" title="Permalink to this headline">¶</a></h2>
+<h2>Computing cost<a class="headerlink" href="#computing-cost" title="Permalink to this heading">¶</a></h2>
 <p>The background estimation operation is generally <abbr title="Input/Output">I/O</abbr>-bound, unless the image file already resides in the disk cache.</p>
 </section>
 </section>

@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -97,16 +98,16 @@
            <div itemprop="articleBody">
              
   <section id="model-fitting">
-<span id="chap-model"></span><h1>Model fitting<a class="headerlink" href="#model-fitting" title="Permalink to this headline">¶</a></h1>
+<span id="chap-model"></span><h1>Model fitting<a class="headerlink" href="#model-fitting" title="Permalink to this heading">¶</a></h1>
 <section id="fitting-procedure">
-<h2>Fitting procedure<a class="headerlink" href="#fitting-procedure" title="Permalink to this headline">¶</a></h2>
+<h2>Fitting procedure<a class="headerlink" href="#fitting-procedure" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">SourceXtractor++</strong> can fit models to the images of detected objects. The fit is performed by minimizing the loss function</p>
 <div class="math notranslate nohighlight" id="equation-loss-func">
 <span class="eqno">(3)<a class="headerlink" href="#equation-loss-func" title="Permalink to this equation">¶</a></span>\[\lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}\right)\right)^2 + \sum_j \left(\frac{f_j(\boldsymbol{q}) - \mu_j}{s_j}\right)^2\]</div>
 <p>with respect to components of the model parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{q}\)</span>. <span class="math notranslate nohighlight">\(\boldsymbol{q}\)</span> comprises parameters describing the shape of the model and the model central coordinates <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>.</p>
 </section>
 <section id="modified-least-squares">
-<h2>Modified least squares<a class="headerlink" href="#modified-least-squares" title="Permalink to this headline">¶</a></h2>
+<h2>Modified least squares<a class="headerlink" href="#modified-least-squares" title="Permalink to this heading">¶</a></h2>
 <p>The first term in <a class="reference internal" href="#equation-loss-func">(3)</a> is a modified <a class="reference external" href="http://en.wikipedia.org/wiki/Least_squares#Weighted_least_squares">weighted sum of squares</a> that aims at minimizing the residuals of the fit. <span class="math notranslate nohighlight">\(p_i\)</span>, <span class="math notranslate nohighlight">\(\tilde{m}_i(\boldsymbol{q})\)</span> and <span class="math notranslate nohighlight">\(\sigma_i\)</span> are respectively the pixel value above the background, the value of the resampled model, and the pixel value uncertainty at image pixel <span class="math notranslate nohighlight">\(i\)</span>.
 <span class="math notranslate nohighlight">\(g(u)\)</span> is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (<a class="reference internal" href="#fig-robustgalfit"><span class="std std-numref">Fig. 4</span></a>):</p>
 <div class="math notranslate nohighlight" id="equation-modified-lsq">
@@ -133,14 +134,14 @@ In practice, choosing <span class="math notranslate nohighlight">\(u_0 = \kappa 
 We adopt a Lánczos-4 function <span id="id1">[<a class="reference internal" href="references.html#id10" title="C. E. Duchon, 1979. Lanczos Filtering in One and Two Dimensions. Journal of Applied Meteorology, 18:1016-1022.">11</a>]</span> as interpolant.</p>
 </section>
 <section id="configuring-model-fitting">
-<h2>Configuring model-fitting<a class="headerlink" href="#configuring-model-fitting" title="Permalink to this headline">¶</a></h2>
+<h2>Configuring model-fitting<a class="headerlink" href="#configuring-model-fitting" title="Permalink to this heading">¶</a></h2>
 <p>The model-fitting process can be precisely defined and tuned in the <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">measurement configuration Python script</span></a>.</p>
 </section>
 <section id="model-parameters">
-<h2>Model parameters<a class="headerlink" href="#model-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>Model parameters<a class="headerlink" href="#model-parameters" title="Permalink to this heading">¶</a></h2>
 <p>In <strong class="program">SourceXtractor++</strong>, any of the model parameters <span class="math notranslate nohighlight">\(q_j\)</span> may be a constant parameter, a free parameter, or a dependent parameter.</p>
 <section id="constant-parameters">
-<h3>Constant parameters<a class="headerlink" href="#constant-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Constant parameters<a class="headerlink" href="#constant-parameters" title="Permalink to this heading">¶</a></h3>
 <p>In the model fitting configuration, constant parameters are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ConstantParameter" title="config.model_fitting.ConstantParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConstantParameter()</span></code></a> construct:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">ConstantParameter</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
@@ -151,7 +152,7 @@ We adopt a Lánczos-4 function <span id="id1">[<a class="reference internal" hre
 </div>
 </section>
 <section id="free-parameters">
-<h3>Free parameters<a class="headerlink" href="#free-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Free parameters<a class="headerlink" href="#free-parameters" title="Permalink to this heading">¶</a></h3>
 <p>Free parameters are adjusted by minimizing <span class="math notranslate nohighlight">\(\lambda(\boldsymbol{q})\)</span> in <a class="reference internal" href="#equation-loss-func">(3)</a>. They are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.FreeParameter" title="config.model_fitting.FreeParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FreeParameter()</span></code></a> construct. The free parameter initial value follows the same rules as the constant parameter value: it may be defined as a simple number supplied by the user, e.g.:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="nb">range</span><span class="p">)</span>
 </pre></div>
@@ -169,7 +170,7 @@ In <strong class="program">SourceXtractor++</strong>, this domain restriction is
 <p>The “model” variable <span class="math notranslate nohighlight">\(q_j\)</span> is bounded by the lower limit <span class="math notranslate nohighlight">\(q^\mathsf{(min)}_j\)</span> and the upper limit <span class="math notranslate nohighlight">\(q^\mathsf{(max)}_j\)</span> by construction.
 The “engine” variable <span class="math notranslate nohighlight">\(Q_j\)</span> can take any value, and is actually the parameter that is being adjusted in the fit, although it does not have any physical meaning.</p>
 <section id="parameter-range">
-<h4>Parameter range<a class="headerlink" href="#parameter-range" title="Permalink to this headline">¶</a></h4>
+<h4>Parameter range<a class="headerlink" href="#parameter-range" title="Permalink to this heading">¶</a></h4>
 <p>The <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Range" title="config.model_fitting.Range"><code class="xref py py-class docutils literal notranslate"><span class="pre">Range()</span></code></a> construct is used to set <span class="math notranslate nohighlight">\(q^\mathsf{(min)}_j\)</span>, <span class="math notranslate nohighlight">\(q^\mathsf{(max)}_j\)</span>, and <span class="math notranslate nohighlight">\(f_j()\)</span>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">range</span> <span class="o">=</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">)</span>
 </pre></div>
@@ -237,7 +238,7 @@ Exponential ranges are better suited to strictly positive parameters with a larg
 <p>In practice, we find this approach to ease convergence and to be much more reliable than a box constrained algorithm <span id="id2">[<a class="reference internal" href="references.html#id16" title="C. Kanzow, N. Yamashita, and M. Fukushima, 2004. Levenberg-Marquardt methods with strong local convergence properties for solving nonlinear equations with convex constraints. Journal of Computational and Applied Mathematics, 172(2):375-397.">12</a>]</span>.</p>
 </section>
 <section id="predefined-free-parameters">
-<h4>Predefined free parameters<a class="headerlink" href="#predefined-free-parameters" title="Permalink to this headline">¶</a></h4>
+<h4>Predefined free parameters<a class="headerlink" href="#predefined-free-parameters" title="Permalink to this heading">¶</a></h4>
 <p><strong class="program">SourceXtractor++</strong> comes with two pre-defined free parameters for easily initializing positions (<a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_pos_parameters" title="config.model_fitting.get_pos_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_pos_parameters()</span></code></a>) and fluxes (<a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_flux_parameter" title="config.model_fitting.get_flux_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_flux_parameter()</span></code></a>):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_pos_parameters</span><span class="p">():</span>
   <span class="k">return</span> <span class="p">(</span>
@@ -257,7 +258,7 @@ Exponential ranges are better suited to strictly positive parameters with a larg
 </section>
 </section>
 <section id="dependent-parameters">
-<span id="dependent-def"></span><h3>Dependent parameters<a class="headerlink" href="#dependent-parameters" title="Permalink to this headline">¶</a></h3>
+<span id="dependent-def"></span><h3>Dependent parameters<a class="headerlink" href="#dependent-parameters" title="Permalink to this heading">¶</a></h3>
 <p>It is often useful to define dependencies between parameters. Dependent parameters are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.DependentParameter" title="config.model_fitting.DependentParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependentParameter()</span></code></a> construct.
 For instance, one may wish to adjust the sizes of two components of a model in parallel:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size1</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="n">Range</span><span class="p">((</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
@@ -273,7 +274,7 @@ For instance, one may wish to adjust the sizes of two components of a model in p
 </section>
 </section>
 <section id="models">
-<span id="models-def"></span><h2>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h2>
+<span id="models-def"></span><h2>Models<a class="headerlink" href="#models" title="Permalink to this heading">¶</a></h2>
 <p>The full models <span class="math notranslate nohighlight">\(\boldsymbol{m}(\boldsymbol{q})\)</span> are defined as a sum of one or several 2D functions.
 These model components are added using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.add_model" title="config.model_fitting.add_model"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_model()</span></code></a> function. For instance, for adding a point source model component one may insert</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">add_model</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">PointSourceModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux</span><span class="p">))</span>
@@ -321,7 +322,7 @@ It can be a good fit to <a class="reference external" href="https://en.wikipedia
 </div></blockquote>
 </section>
 <section id="regularization">
-<h2>Regularization<a class="headerlink" href="#regularization" title="Permalink to this headline">¶</a></h2>
+<h2>Regularization<a class="headerlink" href="#regularization" title="Permalink to this heading">¶</a></h2>
 <p>Although minimizing the (modified) weighted sum of least squares gives a solution that fits best the data, it does not necessarily correspond to the most probable solution given what we know about celestial objects.
 The discrepancy is particularly significant in very faint (<abbr title="Signal-to-Noise Ratio">SNR</abbr> <span class="math notranslate nohighlight">\(\le 20\)</span>) and barely resolved galaxies.
 For instance, there is a tendency to overestimate the elongation of such galaxies, known as the “noise bias” in the weak-lensing community <span id="id5">[<a class="reference internal" href="references.html#id12" title="C. M. Hirata, R. Mandelbaum, U. Seljak, J. Guzik, N. Padmanabhan, C. Blake, J. Brinkmann, T. Budávari, A. Connolly, I. Csabai, R. Scranton, and A. S. Szalay, 2004. Galaxy-galaxy weak lensing in the Sloan Digital Sky Survey: intrinsic alignments and shear calibration errors. MNRAS, 353:529-549.">15</a>, <a class="reference internal" href="references.html#id19" title="P. Melchior and M. Viola, 2012. Means of confusion: how pixel noise affects shear estimates for weak gravitational lensing. MNRAS, 424:2757-2769.">16</a>, <a class="reference internal" href="references.html#id23" title="A. Refregier, T. Kacprzak, A. Amara, S. Bridle, and B. Rowe, 2012. Noise bias in weak lensing shape measurements. MNRAS, 425:1951-1957.">17</a>, <a class="reference internal" href="references.html#id15" title="T. Kacprzak, J. Zuntz, B. Rowe, S. Bridle, A. Refregier, A. Amara, L. Voigt, and M. Hirsch, 2012. Measurement and calibration of noise bias in weak lensing galaxy shape estimation. MNRAS, 427:2711-2722.">18</a>]</span>.
@@ -333,7 +334,7 @@ This penalty term acts as a Gaussian prior on the selected (free or dependent) p
 </pre></div>
 </div>
 <section id="non-gaussian-priors">
-<h3>Non-Gaussian priors<a class="headerlink" href="#non-gaussian-priors" title="Permalink to this headline">¶</a></h3>
+<h3>Non-Gaussian priors<a class="headerlink" href="#non-gaussian-priors" title="Permalink to this heading">¶</a></h3>
 <p>Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values, but not both).
 In that case a change of variable must be applied.
 This is easily accomplished using a <a class="reference internal" href="#dependent-def"><span class="std std-ref">dependent parameter</span></a>.
@@ -361,7 +362,7 @@ For example, to penalize <a class="reference external" href="https://en.wikipedi
 </div>
 </section>
 <section id="combinations-of-parameters">
-<h3>Combinations of parameters<a class="headerlink" href="#combinations-of-parameters" title="Permalink to this headline">¶</a></h3>
+<h3>Combinations of parameters<a class="headerlink" href="#combinations-of-parameters" title="Permalink to this heading">¶</a></h3>
 <p>Priors are also useful for penalizing some values taken by specific combinations of parameters.
 For example, the following code applied to images taken in the <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(r\)</span> bands sets a Gaussian prior on the color index <span class="math notranslate nohighlight">\(g - r\)</span> of the detected point sources (centered on <span class="math notranslate nohighlight">\(g - r  = 0.5\)</span>, with standard deviation 0.3):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
@@ -391,7 +392,7 @@ For example, the following code applied to images taken in the <span class="math
 </section>
 </section>
 <section id="minimization">
-<span id="model-minimization-def"></span><h2>Minimization<a class="headerlink" href="#minimization" title="Permalink to this headline">¶</a></h2>
+<span id="model-minimization-def"></span><h2>Minimization<a class="headerlink" href="#minimization" title="Permalink to this heading">¶</a></h2>
 <p>Minimization of the loss function <span class="math notranslate nohighlight">\(\lambda(\boldsymbol{q})\)</span> is carried out using the <a class="reference external" href="http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm">Levenberg-Marquardt algorithm</a>.
 Two Levenberg-Marquardt engines are supported in the current version of <strong class="program">SourceXtractor++</strong>: the <a class="reference external" href="http://users.ics.forth.gr/~lourakis/levmar"><strong class="program">LevMar</strong></a> library <span id="id6">[<a class="reference internal" href="references.html#id40" title="M.I.A. Lourakis, 2004. Levmar: levenberg-marquardt nonlinear least squares algorithms in C/C++.">19</a>]</span>, and the <a class="reference external" href="https://www.gnu.org/software/gsl"><strong class="program">GSL</strong></a> implementation.
 <strong class="program">LevMar</strong> approximates the Jacobian matrix of the model from finite differences using Broyden’s <span id="id7">[<a class="reference internal" href="references.html#id6" title="C. Broyden, 1965. Mathematics of Computation, 19:577-593.">20</a>]</span> rank one updates, which results in less evaluations of the model and <span class="math notranslate nohighlight">\(\approx\)</span> 30% faster processing.

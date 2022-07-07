@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -87,7 +88,7 @@
            <div itemprop="articleBody">
              
   <section id="flagging">
-<span id="chap-flagging"></span><h1>Flagging<a class="headerlink" href="#flagging" title="Permalink to this headline">¶</a></h1>
+<span id="chap-flagging"></span><h1>Flagging<a class="headerlink" href="#flagging" title="Permalink to this heading">¶</a></h1>
 <p>Flags are binary attributes of the detected sources.
 They are set to indicate, e.g., that a source is saturated or that it has been deblended.
 Flags are grouped in columns in the <strong class="program">SourceXtractor++</strong> output catalog.
@@ -96,7 +97,7 @@ Many properties produce flag columns:
 AperturePhotometry (<span class="param">aperture_flags</span>), AutoPhotometry (<span class="param">auto_flags</span>), FlexibleModelFitting (<span class="param">fmf_flags</span>), …
 For example, the <span class="param">source_flags</span> column is produced by the SourceFlags property; a saturated detection close to an image boundary will have <span class="param">source_flags</span> = 4+8 = 12 in decimal.</p>
 <section id="external-flags">
-<span id="isoflags-def"></span><h2>External flags<a class="headerlink" href="#external-flags" title="Permalink to this headline">¶</a></h2>
+<span id="isoflags-def"></span><h2>External flags<a class="headerlink" href="#external-flags" title="Permalink to this heading">¶</a></h2>
 <p>External flags  are derived from <a class="reference internal" href="Input.html#chap-inputflagmaps"><span class="std std-ref">Flag-maps</span></a>. Flag maps are images in (unsigned) integer format having the same size as the detection image, where each integer represents a set of flag bits as a sum of powers of 2.</p>
 <p>Flag images are specified as arguments to the <code class="docutils literal notranslate"><span class="pre">--flag-image-*</span></code> option(s), where the <code class="docutils literal notranslate"><span class="pre">*</span></code> represents an arbitrary character or string; for instance: <code class="docutils literal notranslate"><span class="pre">--flag-image-cosmic</span> <span class="pre">cosmic.flag.fits</span></code>.</p>
 <p>Different combinations of flags can be applied within the isophotal footprint that defines objects, to produce a unique integer that will be written to the catalog.
