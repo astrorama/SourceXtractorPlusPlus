@@ -24,6 +24,7 @@
 
 #include "Table/AsciiReader.h"
 #include "Table/FitsReader.h"
+#include "Table/CastVisitor.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
@@ -219,22 +220,24 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
 std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
     const Euclid::Table::Table& table, const std::vector<int>& columns,
     const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system) {
+  using Euclid::Table::CastVisitor;
+
   std::vector<CatalogEntry> catalog;
   for (auto& row : table) {
     // our internal pixel coordinates are zero-based
 
     ImageCoordinate coord;
     if (coordinate_system != nullptr) {
-      auto world_coord = WorldCoordinate {
-        boost::get<double>(row[columns.at(0)]),
-        boost::get<double>(row[columns.at(1)])
+      auto world_coord = WorldCoordinate{
+          boost::apply_visitor(CastVisitor<double>{}, row[columns.at(0)]),
+          boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]),
       };
 
       coord = coordinate_system->worldToImage(world_coord);
     } else {
-      coord = ImageCoordinate {
-        boost::get<double>(row[columns.at(0)]) - 1.0,
-        boost::get<double>(row[columns.at(1)]) - 1.0
+      coord = ImageCoordinate{
+          boost::apply_visitor(CastVisitor<double>{}, row[columns.at(0)]) - 1.0,
+          boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]) - 1.0,
       };
     }
     catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
