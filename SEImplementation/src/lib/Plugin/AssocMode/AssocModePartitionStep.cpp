@@ -20,15 +20,15 @@
 
 namespace SourceXtractor {
 
-AssocModePartitionStep::AssocModePartitionStep(bool match_required) : m_match_required(match_required) {
-}
+AssocModePartitionStep::AssocModePartitionStep(bool match_required) : m_match_required(match_required) {}
 
-std::vector<std::shared_ptr<SourceInterface>> AssocModePartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
+std::vector<std::unique_ptr<SourceInterface>>
+AssocModePartitionStep::partition(std::unique_ptr<SourceInterface> source) const {
+  std::vector<std::unique_ptr<SourceInterface>> sources;
   if (source->getProperty<AssocMode>().getMatch() ^ !m_match_required) {
-    return { source };
-  } else {
-    return {};
+    sources.emplace_back(std::move(source));
   }
+  return sources;
 }
 
 } // SourceXtractor namespace

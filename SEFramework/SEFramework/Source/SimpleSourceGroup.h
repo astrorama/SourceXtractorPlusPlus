@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SimpleSourceGroup.h
  * @author nikoapos
  */
@@ -37,45 +37,45 @@ namespace SourceXtractor {
 
 
 class SimpleSourceGroup : public SourceGroupInterface {
-  
+
 public:
-  
+
   virtual ~SimpleSourceGroup() = default;
 
   iterator begin() override;
-  
+
   iterator end() override;
-  
-  const_iterator cbegin() override;
-  
-  const_iterator cend() override;
-  
+
+  const_iterator cbegin() const override;
+
+  const_iterator cend() const override;
+
   const_iterator begin() const override;
-  
+
   const_iterator end() const override;
-  
-  void addSource(std::shared_ptr<SourceInterface> source) override;
-  
+
+  void addSource(std::unique_ptr<SourceInterface> source) override;
+
   iterator removeSource(iterator pos) override;
-  
+
   unsigned int size() const override;
 
-  void merge(const SourceGroupInterface& other) override;
-  
+  void merge(SourceGroupInterface&& other) override;
+
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 
 protected:
-  
+
   const Property& getProperty(const PropertyId& property_id) const override;
 
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
-  
+
 private:
-  
+
   std::list<SourceWrapper> m_sources;
   PropertyHolder m_property_holder;
-  
+
 }; /* End of SimpleSourceGroup class */
 
 } /* namespace SourceXtractor */

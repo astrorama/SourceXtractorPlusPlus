@@ -70,13 +70,13 @@ void Cleaning::deblend(SourceGroupInterface& group) const {
       for (auto merging_pair : merging_map) {
         if (merging_pair.second.size() > 0) {
           auto new_source = mergeSources(*merging_pair.first, merging_pair.second);
-          group.addSource(new_source);
+          group.addSource(std::move(new_source));
           group.removeSource(merging_pair.first);
         }
       }
     } else if (remaining_sources.size() == 1) {
       auto new_source = mergeSources(*remaining_sources[0], sources_to_clean);
-      group.addSource(new_source);
+      group.addSource(std::move(new_source));
       group.removeSource(remaining_sources[0]);
     }
 
@@ -144,7 +144,7 @@ SourceGroupInterface::iterator Cleaning::findMostInfluentialSource(
   return most_influential_source;
 }
 
-std::shared_ptr<SourceInterface> Cleaning::mergeSources(SourceInterface& parent,
+std::unique_ptr<SourceInterface> Cleaning::mergeSources(SourceInterface& parent,
     const std::vector<SourceGroupInterface::iterator> children) const {
 
   // Start with a copy of the pixel list of the parent

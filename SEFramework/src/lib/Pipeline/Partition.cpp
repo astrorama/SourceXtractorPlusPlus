@@ -28,19 +28,21 @@ Partition::Partition(std::vector<std::shared_ptr<PartitionStep>> steps)
   : m_steps(std::move(steps)) {
 }
 
-void Partition::handleMessage(const std::shared_ptr<SourceInterface>& source) {
+void Partition::receiveSource(std::unique_ptr<SourceInterface> input_source) {
   // The input of the current step
-  std::vector<std::shared_ptr<SourceInterface>> step_input_sources { source };
+  std::vector<std::unique_ptr<SourceInterface>> step_input_sources;
+  step_input_sources.emplace_back(std::move(input_source));
 
   // Applies all the steps
   for (const auto& step : m_steps) {
-    std::vector<std::shared_ptr<SourceInterface>> step_output_sources;
+    std::vector<std::unique_ptr<SourceInterface>> step_output_sources;
     // For each Source in pour input list
-    for (const auto& source : step_input_sources) {
+    for (auto& source : step_input_sources) {
       // applies the current step
-      const auto partition_output = step->partition(source);
+      auto partition_output = step->partition(std::move(source));
       // then merges the result
-      step_output_sources.insert(step_output_sources.end(), partition_output.begin(), partition_output.end());
+      step_output_sources.insert(step_output_sources.end(), std::make_move_iterator(partition_output.begin()),
+                                 std::make_move_iterator(partition_output.end()));
     }
 
     // the output of that step is then used as the input of the next
@@ -48,9 +50,12 @@ void Partition::handleMessage(const std::shared_ptr<SourceInterface>& source) {
   }
 
   // Observers are then notified of the output of the last step
-  for (const auto& source : step_input_sources) {
-    notifyObservers(source);
+  for (auto& source : step_input_sources) {
+    sendSource(std::move(source));
   }
+}
+void Partition::receiveProcessSignal(const ProcessSourcesEvent& event) {
+  sendProcessSignal(event);
 }
 
 } // SEFramework namespace

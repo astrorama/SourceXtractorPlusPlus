@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,21 +27,23 @@ static unsigned int extractSourceId(const SourceInterface &i) {
 Sorter::Sorter(): m_output_next{1} {
 }
 
-void Sorter::handleMessage(const std::shared_ptr<SourceGroupInterface> &message) {
+void Sorter::receiveSource(std::unique_ptr<SourceGroupInterface> message) {
   std::vector<unsigned int> source_ids(message->size());
   std::transform(message->cbegin(), message->cend(), source_ids.begin(), extractSourceId);
   std::sort(source_ids.begin(), source_ids.end());
 
   auto first_source_id = source_ids.front();
-  m_output_buffer.emplace(first_source_id, message);
+  m_output_buffer.emplace(first_source_id, std::move(message));
 
   while (!m_output_buffer.empty() && m_output_buffer.begin()->first == m_output_next) {
     auto &next_group = m_output_buffer.begin()->second;
     m_output_next += next_group->size();
-    notifyObservers(next_group);
+    sendSource(std::move(next_group));
     m_output_buffer.erase(m_output_buffer.begin());
   }
 }
-
+void Sorter::receiveProcessSignal(const ProcessSourcesEvent& event) {
+  sendProcessSignal(event);
+}
 
 } // end SourceXtractor

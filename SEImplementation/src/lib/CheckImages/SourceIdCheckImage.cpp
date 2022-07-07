@@ -30,12 +30,12 @@
 
 namespace SourceXtractor {
 
-void SourceIdCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+void SourceIdCheckImage::handleMessage(const SourceGroupInterface& group) {
+  auto hdu_index = group.cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
   auto check_image = CheckImages::getInstance().getPartitionImage(hdu_index);
   if (check_image != nullptr) {
-    for (auto& source : *group) {
-      auto coordinates = source.getProperty<PixelCoordinateList>();
+    for (auto& source : group) {
+      const auto& coordinates = source.getProperty<PixelCoordinateList>();
 
       // get the ID for each (multithresholded) source
       const auto& source_id = source.getProperty<SourceID>().getId();

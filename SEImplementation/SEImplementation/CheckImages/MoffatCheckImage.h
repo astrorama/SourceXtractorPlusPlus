@@ -30,12 +30,12 @@
 
 namespace SourceXtractor {
 
-class MoffatCheckImage : public Observer<std::shared_ptr<SourceGroupInterface>> {
+class MoffatCheckImage : public Observer<SourceGroupInterface> {
 public:
 
   MoffatCheckImage() {}
 
-  virtual void handleMessage(const std::shared_ptr<SourceGroupInterface>& group);
+  void handleMessage(const SourceGroupInterface& group) override;
 };
 
 

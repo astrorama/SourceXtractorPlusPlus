@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,21 +24,18 @@
 #include <fstream>
 
 #include <boost/regex.hpp>
-using boost::regex;
-using boost::regex_match;
-using boost::smatch;
-
 #include <boost/algorithm/string.hpp>
 
 #include "ElementsKernel/Exception.h"
-
 #include "Configuration/ConfigManager.h"
-
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/FITS/FitsReader.h"
-
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include "SEImplementation/Configuration/SegmentationConfig.h"
+
+using boost::regex;
+using boost::regex_match;
+using boost::smatch;
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -116,9 +113,6 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
   if (m_selected_algorithm == Algorithm::ML && m_onnx_model_path == "") {
     throw Elements::Exception() << "Machine learning segmentation requested but no ONNX model was provided";
   }
-}
-
-void SegmentationConfig::initialize(const UserValues&) {
 }
 
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::getDefaultFilter() const {
@@ -208,7 +202,7 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
   LoadState state = LoadState::STATE_START;
   bool normalize = false;
   std::vector<SeFloat> kernel_data;
-  unsigned int kernel_width = 0;
+  size_t kernel_width = 0;
 
   while (file.good()) {
     std::string line;
@@ -238,6 +232,9 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadASCIIF
   }
 
   // compute the dimensions and create the kernel
+  if (kernel_width == 0) {
+    throw Elements::Exception() << "Malformed segmentation filter: width is 0";
+  }
   auto kernel_height = kernel_data.size() / kernel_width;
   auto convolution_kernel = VectorImage<SeFloat>::create(kernel_width, kernel_height, kernel_data);
 

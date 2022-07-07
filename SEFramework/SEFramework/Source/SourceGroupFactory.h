@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SourceGroupFactory.h
  * @author nikoapos
  */
@@ -38,7 +38,7 @@ class SourceGroupFactory {
 public:
   virtual ~SourceGroupFactory() = default;
 
-  virtual std::shared_ptr<SourceGroupInterface> createSourceGroup() const = 0;
+  virtual std::unique_ptr<SourceGroupInterface> createSourceGroup() const = 0;
 };
 
 }

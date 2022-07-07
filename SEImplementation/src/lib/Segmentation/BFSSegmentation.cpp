@@ -103,7 +103,7 @@ void BFSSegmentation::labelSource(PixelCoordinate pc,
   auto source = m_source_factory->createSource();
   source->setProperty<PixelCoordinateList>(source_pixels);
   source->setProperty<SourceId>();
-  listener.publishSource(source);
+  listener.publishSource(std::move(source));
 }
 
 std::vector<BFSSegmentation::Tile> BFSSegmentation::getTiles(const DetectionImage& image) const {

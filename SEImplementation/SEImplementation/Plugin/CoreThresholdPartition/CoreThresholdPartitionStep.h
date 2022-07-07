@@ -42,7 +42,7 @@ public:
   /// Constructor
   CoreThresholdPartitionStep(double snr_level, unsigned int min_pixel_count);
 
-  std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
+  std::vector<std::unique_ptr<SourceInterface>> partition(std::unique_ptr<SourceInterface> source) const override;
 
 
 private:

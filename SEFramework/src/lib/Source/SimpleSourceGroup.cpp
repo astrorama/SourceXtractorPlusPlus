@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file SimpleSourceGroup.cpp
  * @author nikoapos
  */
@@ -31,11 +31,11 @@ SimpleSourceGroup::iterator SimpleSourceGroup::end() {
   return m_sources.end();
 }
 
-SimpleSourceGroup::const_iterator SimpleSourceGroup::cbegin() {
+SimpleSourceGroup::const_iterator SimpleSourceGroup::cbegin() const {
   return m_sources.cbegin();
 }
 
-SimpleSourceGroup::const_iterator SimpleSourceGroup::cend() {
+SimpleSourceGroup::const_iterator SimpleSourceGroup::cend() const {
   return m_sources.cend();
 }
 
@@ -47,8 +47,8 @@ SimpleSourceGroup::const_iterator SimpleSourceGroup::end() const {
   return m_sources.cend();
 }
 
-void SimpleSourceGroup::addSource(std::shared_ptr<SourceInterface> source) {
-  m_sources.emplace_back(SourceWrapper(source));
+void SimpleSourceGroup::addSource(std::unique_ptr<SourceInterface> source) {
+  m_sources.emplace_back(SourceWrapper(std::move(source)));
 }
 
 SourceGroupInterface::iterator SimpleSourceGroup::removeSource(iterator pos) {
@@ -56,11 +56,12 @@ SourceGroupInterface::iterator SimpleSourceGroup::removeSource(iterator pos) {
   return next_iter;
 }
 
-void SimpleSourceGroup::merge(const SourceGroupInterface& other) {
-  auto& other_group = dynamic_cast<const SimpleSourceGroup&>(other);
+void SimpleSourceGroup::merge(SourceGroupInterface&& other) {
+  auto& other_group = dynamic_cast<SimpleSourceGroup&>(other);
   for (auto& source : other_group.m_sources) {
-    this->m_sources.emplace_back(source);
+    this->m_sources.emplace_back(std::move(source));
   }
+  other_group.m_sources.clear();
   m_property_holder.clear();
 }
 

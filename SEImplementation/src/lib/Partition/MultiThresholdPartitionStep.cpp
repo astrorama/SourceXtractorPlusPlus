@@ -130,8 +130,8 @@ private:
   SeFloat m_threshold;
 };
 
-std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::partition(
-    std::shared_ptr<SourceInterface> original_source) const {
+std::vector<std::unique_ptr<SourceInterface>> MultiThresholdPartitionStep::partition(
+    std::unique_ptr<SourceInterface> original_source) const {
 
   auto parent_source_id = original_source->getProperty<SourceId>().getSourceId();
 
@@ -224,9 +224,10 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     }
   }
 
-  std::vector<std::shared_ptr<SourceInterface>> sources;
+  std::vector<std::unique_ptr<SourceInterface>> sources;
   if (source_nodes.empty()) {
-    return { original_source }; // no split, just forward the source unchanged
+    sources.emplace_back(std::move(original_source)); // no split, just forward the source unchanged
+    return sources;
   }
 
   for (auto source_node : source_nodes) {
@@ -240,7 +241,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
     new_source->setProperty<PixelCoordinateList>(source_node->getPixels());
     new_source->setProperty<DetectionFrame>(detection_frame.getEncapsulatedFrame());
 
-    sources.push_back(new_source);
+    sources.push_back(std::move(new_source));
   }
 
   auto new_sources = reassignPixels(sources, pixel_coords, thumbnail_image, source_nodes, offset);
@@ -253,8 +254,8 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::parti
   return new_sources;
 }
 
-std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reassignPixels(
-    const std::vector<std::shared_ptr<SourceInterface>>& sources,
+std::vector<std::unique_ptr<SourceInterface>> MultiThresholdPartitionStep::reassignPixels(
+    const std::vector<std::unique_ptr<SourceInterface>>& sources,
     const std::vector<PixelCoordinate>& pixel_coords,
     std::shared_ptr<VectorImage<DetectionImage::PixelType>> image,
     const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes,
@@ -331,7 +332,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
 
   int total_pixels = 0;
 
-  std::vector<std::shared_ptr<SourceInterface>> new_sources;
+  std::vector<std::unique_ptr<SourceInterface>> new_sources;
   for (auto source_node : source_nodes) {
     // remove pixels in the new sources from the image
     for (auto& pixel : source_node->getPixels()) {
@@ -345,7 +346,7 @@ std::vector<std::shared_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
 
     new_source->setProperty<PixelCoordinateList>(pixels);
 
-    new_sources.push_back(new_source);
+    new_sources.push_back(std::move(new_source));
   }
 
   return new_sources;

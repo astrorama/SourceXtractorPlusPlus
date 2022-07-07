@@ -51,8 +51,8 @@ typedef Observable<bool> DoneObservable;
 class ProgressMediator: public ProgressObservable, public DoneObservable {
 public:
   typedef Observer<SegmentationProgress> segmentation_observer_t;
-  typedef Observer<std::shared_ptr<SourceInterface>> source_observer_t;
-  typedef Observer<std::shared_ptr<SourceGroupInterface>> group_observer_t;
+  typedef Observer<SourceInterface>      source_observer_t;
+  typedef Observer<SourceGroupInterface> group_observer_t;
 
   ~ProgressMediator() = default;
 
