@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -91,7 +92,7 @@
            <div itemprop="articleBody">
              
   <section id="configuration">
-<span id="chap-config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<span id="chap-config"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this heading">¶</a></h1>
 <p>There are two types of configuration settings: those dedicated purely to measurements, and those related to the source extraction process and to global operations of <strong class="program">SourceXtractor++</strong>.
 Measurement settings can be rather complex and require a <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">Python configuration script</span></a> (see the <a class="reference internal" href="Measurements.html#chap-measurements"><span class="std std-ref">Measurement section</span></a>).
 Global configuration settings may be changed using command-line options (prefixed with a <code class="docutils literal notranslate"><span class="pre">--</span></code>), however a configuration file is often more convenient for storing settings that do not change from run to run.</p>
@@ -101,26 +102,26 @@ Global configuration settings may be changed using command-line options (prefixe
 Example: <code class="docutils literal notranslate"><span class="pre">--config-file=foo.conf</span></code> may be abbreviated as <code class="docutils literal notranslate"><span class="pre">--conf=foo.conf</span></code>.</p>
 </div>
 <section id="the-configuration-file">
-<span id="chap-config-file"></span><h2>The configuration file<a class="headerlink" href="#the-configuration-file" title="Permalink to this headline">¶</a></h2>
+<span id="chap-config-file"></span><h2>The configuration file<a class="headerlink" href="#the-configuration-file" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">SourceXtractor++</strong> searches for the configuration file at the beginning of a run, starting from system repositories (which makes it possible to apply specific, system-wide configuration settings), to the current repository. Each time it is run, <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus"><strong class="program">SourceXtractor++</strong></a> looks for a configuration file. The name of a dedicated configuration files is given with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sourcextractor++ --config-file sepp.config
 </pre></div>
 </div>
 <section id="creating-a-configuration-file">
-<h3>Creating a configuration file<a class="headerlink" href="#creating-a-configuration-file" title="Permalink to this headline">¶</a></h3>
+<h3>Creating a configuration file<a class="headerlink" href="#creating-a-configuration-file" title="Permalink to this heading">¶</a></h3>
 <p><a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus"><strong class="program">SourceXtractor++</strong></a> dumps all parameters with their default values into a configuration files with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ sourcextractor++ --dump-default-config &gt; my_sepp.config
 </pre></div>
 </div>
 </section>
 <section id="format-of-the-configuration-file">
-<h3>Format of the configuration file<a class="headerlink" href="#format-of-the-configuration-file" title="Permalink to this headline">¶</a></h3>
+<h3>Format of the configuration file<a class="headerlink" href="#format-of-the-configuration-file" title="Permalink to this heading">¶</a></h3>
 <p>Configuration instructions follow the <code class="docutils literal notranslate"><span class="pre">&lt;option&gt;</span> <span class="pre">=</span> <span class="pre">&lt;value&gt;</span></code> format.
 There must be no more than one <code class="docutils literal notranslate"><span class="pre">&lt;option&gt;</span> <span class="pre">=</span> <span class="pre">&lt;value&gt;</span></code> instance per line.
 Comments must be preceded with a <code class="docutils literal notranslate"><span class="pre">#</span></code>. Boolean parameters are set/unset with 1/0 such as: <code class="docutils literal notranslate"><span class="pre">output-flush-unsorted=1</span></code>, and the individual parameters of a parameter list are separted with a “,” such as <code class="docutils literal notranslate"><span class="pre">output-properties=SourceIDs,PixelCentroid,WorldCentroid</span></code></p>
 </section>
 <section id="configuration-parameter-list">
-<span id="param-list"></span><h3>Configuration parameter list<a class="headerlink" href="#configuration-parameter-list" title="Permalink to this headline">¶</a></h3>
+<span id="param-list"></span><h3>Configuration parameter list<a class="headerlink" href="#configuration-parameter-list" title="Permalink to this heading">¶</a></h3>
 <p>Here is a complete list of all the configuration parameters known to <strong class="program">SourceXtractor++</strong>.
 Please refer to the next sections for a detailed description of their meaning.</p>
 <table class="docutils align-default">

@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -96,7 +97,7 @@
            <div itemprop="articleBody">
              
   <section id="measuring">
-<span id="chap-measurements"></span><h1>Measuring<a class="headerlink" href="#measuring" title="Permalink to this headline">¶</a></h1>
+<span id="chap-measurements"></span><h1>Measuring<a class="headerlink" href="#measuring" title="Permalink to this heading">¶</a></h1>
 <p>Once sources have been detected and deblended, they enter the measurement phase.</p>
 <p><strong class="program">SourceXtractor++</strong> performs three categories of measurements: isophotal, aperture, and model-fitting.</p>
 <p id="isophotal-measurements"><strong>Isophotal measurements</strong> are done <em>on the detection image</em> only.
@@ -118,7 +119,7 @@ They are close to optimum from the point-of-view of <abbr title="Signal-to-Noise
 <strong class="program">SourceXtractor++</strong> can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
 The main inconvenient of model-fitting is that it is much slower than aperture photometry.</p>
 <section id="the-measurement-configuration-script">
-<span id="chap-configuration-script"></span><h2>The measurement configuration script<a class="headerlink" href="#the-measurement-configuration-script" title="Permalink to this headline">¶</a></h2>
+<span id="chap-configuration-script"></span><h2>The measurement configuration script<a class="headerlink" href="#the-measurement-configuration-script" title="Permalink to this heading">¶</a></h2>
 <p>Measurement settings, as well as <a class="reference internal" href="#groups"><span class="std std-ref">grouping procedures</span></a> and catalog outputs must be defined in a configuration script that uses the <a class="reference external" href="https://python.org">Python language</a>: the measurement configuration script.
 The script filename is set with the <code class="docutils literal notranslate"><span class="pre">python-config-file</span></code> configuration option.
 Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
@@ -132,7 +133,7 @@ Thanks to its flexibility, the Python language makes it possible to set up arbit
 <p>The measurement configuration script is excusively meant to be executed by the <strong class="program">SourceXtractor++</strong> built-in Python interpreter, and cannot be run on its own.</p>
 </div>
 <section id="measurement-images">
-<h3>Measurement images<a class="headerlink" href="#measurement-images" title="Permalink to this headline">¶</a></h3>
+<h3>Measurement images<a class="headerlink" href="#measurement-images" title="Permalink to this heading">¶</a></h3>
 <p>Measurement images are scientific images stored as <a class="reference external" href="http://fits.gsfc.nasa.gov"><abbr title="Flexible Image Transport System">FITS</abbr></a> files and used only for measurements.
 Every measurement image can be associated a <abbr title="Point Spread Function">PSF</abbr> model (<strong class="program">PSFEx</strong>’s <code class="file docutils literal notranslate"><span class="pre">.psf</span></code> file), and a weight map.
 The <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.load_fits_image" title="config.measurement_images.load_fits_image"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code></a> function creates a measurement image from a <abbr title="Flexible Image Transport System">FITS</abbr> image filename; for example:</p>
@@ -148,14 +149,14 @@ The following will print the list of measurement images on screen (more precisel
 However before addressing this point we need to introduce the concept of <a class="reference internal" href="#groups"><span class="std std-ref">grouping</span></a>.</p>
 </section>
 <section id="grouping-and-splitting">
-<span id="groups"></span><h3>Grouping and splitting<a class="headerlink" href="#grouping-and-splitting" title="Permalink to this headline">¶</a></h3>
+<span id="groups"></span><h3>Grouping and splitting<a class="headerlink" href="#grouping-and-splitting" title="Permalink to this heading">¶</a></h3>
 <p><strong class="program">SourceXtractor++</strong> measures the properties of sources from instances spread across multiple exposures.
 Each exposure has its own context defined by a specific combination of filter, instrument, epoch, etc.
 Depending on science goals, one may choose to group images by time of observation (e.g., to build light curves), filter (for regular photometry), …
 This is the purpose of <strong class="program">SourceXtractor++</strong>’s grouping (and splitting) mechanisms.</p>
 <p>There are two types of groups: image groups and measurement groups.</p>
 <section id="image-groups">
-<span id="id1"></span><h4>Image groups<a class="headerlink" href="#image-groups" title="Permalink to this headline">¶</a></h4>
+<span id="id1"></span><h4>Image groups<a class="headerlink" href="#image-groups" title="Permalink to this heading">¶</a></h4>
 <p>Image groups offer a convenient way to load many images, and group them according to specific criteria.
 The most efficient way to instantiate an image group is through the <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.load_fits_images" title="config.measurement_images.load_fits_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_images()</span></code></a> function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">imagegroup</span> <span class="o">=</span> <span class="n">load_fits_images</span><span class="p">([</span><span class="s2">&quot;image_01.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;image_02.fits&quot;</span><span class="p">])</span>
@@ -183,7 +184,7 @@ It is possible to add images or another group to a pre-existing image group usin
 </div>
 </section>
 <section id="splitting">
-<h4>Splitting<a class="headerlink" href="#splitting" title="Permalink to this headline">¶</a></h4>
+<h4>Splitting<a class="headerlink" href="#splitting" title="Permalink to this heading">¶</a></h4>
 <p>Now, within an image group one may want to create subgroups based on, e.g., band pass filters or epochs.
 This is easily accomplished using the <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.ImageGroup.split" title="config.measurement_images.ImageGroup.split"><code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code></a> method.
 Splitting may be done according to a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword with the <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.ByKeyword" title="config.measurement_images.ByKeyword"><code class="xref py py-class docutils literal notranslate"><span class="pre">ByKeyword()</span></code></a> callable.
@@ -203,7 +204,7 @@ For instance, the following command groups images by year of observation, ignori
 </div>
 </section>
 <section id="accessing-subgroups">
-<h4>Accessing subgroups<a class="headerlink" href="#accessing-subgroups" title="Permalink to this headline">¶</a></h4>
+<h4>Accessing subgroups<a class="headerlink" href="#accessing-subgroups" title="Permalink to this heading">¶</a></h4>
 <p>Image subgroups are custom <a class="reference external" href="https://en.wikipedia.org/wiki/Associative_array">maps</a>.
 One can access individual subgroups much like a <a class="reference external" href="https://docs.python.org/3/tutorial/datastructures.html#dictionaries">Python dictionary</a>.
 In the first <a class="reference internal" href="#bypattern"><span class="std std-ref">group splitting example above</span></a>, the subgroup of images from year 2007 (if they exists) is simply  <span class="param">imagegroup[‘2007’]</span>, and looping through all subgroups is as simple as:</p>
@@ -213,7 +214,7 @@ In the first <a class="reference internal" href="#bypattern"><span class="std st
 </div>
 </section>
 <section id="measurement-groups">
-<span id="id2"></span><h4>Measurement groups<a class="headerlink" href="#measurement-groups" title="Permalink to this headline">¶</a></h4>
+<span id="id2"></span><h4>Measurement groups<a class="headerlink" href="#measurement-groups" title="Permalink to this heading">¶</a></h4>
 <p>Measurements are applied to measurement groups and subgroups.
 Measurement groups are similar to image groups, although they maintain additional information and their image and subgroup content cannot be updated.
 A measurement group (<a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.MeasurementGroup" title="config.measurement_images.MeasurementGroup"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasurementGroup</span></code></a>) is instanciated from a completed image groups, e.g.,</p>
@@ -225,7 +226,7 @@ A measurement group (<a class="reference internal" href="config_api/measurement_
 </section>
 </section>
 <section id="measurements">
-<h2>Measurements<a class="headerlink" href="#measurements" title="Permalink to this headline">¶</a></h2>
+<h2>Measurements<a class="headerlink" href="#measurements" title="Permalink to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Position.html">Isophotal measurements</a><ul>

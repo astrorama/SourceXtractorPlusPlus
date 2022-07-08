@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -92,7 +93,7 @@
            <div itemprop="articleBody">
              
   <section id="weighting">
-<span id="chap-weighting"></span><h1>Weighting<a class="headerlink" href="#weighting" title="Permalink to this headline">¶</a></h1>
+<span id="chap-weighting"></span><h1>Weighting<a class="headerlink" href="#weighting" title="Permalink to this heading">¶</a></h1>
 <p>The noise level in astronomical images is often fairly constant, that is, constant values for the gain, the background noise and the detection thresholds can be used over the whole frame.
 Unfortunately in some cases, like strongly vignetted or composited images, this approximation is no longer good enough.
 This leads to detecting clusters of detected noise peaks in the noisiest parts of the image, or missing obvious objects in the most sensitive ones.
@@ -103,7 +104,7 @@ We employ the generic term <em>weight map</em> because these maps can also be in
 <p>The variance format was adopted as it linearizes most of the operations done over weight maps (see below).
 However noise covariances between pixels are ignored.</p>
 <section id="effect-of-weighting">
-<h2>Effect of weighting<a class="headerlink" href="#effect-of-weighting" title="Permalink to this headline">¶</a></h2>
+<h2>Effect of weighting<a class="headerlink" href="#effect-of-weighting" title="Permalink to this heading">¶</a></h2>
 <p>Weight-maps modify the working of <strong class="program">SourceXtractor++</strong> in the several ways:</p>
 <ul class="simple">
 <li><p>The detection threshold <span class="math notranslate nohighlight">\(t\)</span> above the local sky background in the detection image is adjusted for each pixel <span class="math notranslate nohighlight">\(i\)</span> with variance <span class="math notranslate nohighlight">\(\sigma^2_i\)</span>: <span class="math notranslate nohighlight">\(t_i=\)</span><code class="docutils literal notranslate"><span class="pre">detection-threshold</span></code><span class="math notranslate nohighlight">\(\times\sqrt{\sigma^2_i}\)</span>, where <code class="docutils literal notranslate"><span class="pre">detection-threshold</span></code> is expressed in units of standard deviations of the background noise.
@@ -125,9 +126,9 @@ It is therefore recommended to deactivate the weight-map rescaling when working 
 </div>
 </section>
 <section id="weight-map-formats">
-<span id="weight-map-format"></span><h2>Weight-map formats<a class="headerlink" href="#weight-map-formats" title="Permalink to this headline">¶</a></h2>
+<span id="weight-map-format"></span><h2>Weight-map formats<a class="headerlink" href="#weight-map-formats" title="Permalink to this heading">¶</a></h2>
 <section id="detection-weight-map">
-<h3>Detection weight-map<a class="headerlink" href="#detection-weight-map" title="Permalink to this headline">¶</a></h3>
+<h3>Detection weight-map<a class="headerlink" href="#detection-weight-map" title="Permalink to this heading">¶</a></h3>
 <p><strong class="program">SourceXtractor++</strong> reads and converts to its internal variance format several types of weight-maps.
 The detection weight-map can either be read from a FITS file specified by the <code class="docutils literal notranslate"><span class="pre">--weight-image</span></code> command line option, or computed internally.
 The type of detection weight-map must be selected using the <code class="docutils literal notranslate"><span class="pre">--weight-type</span></code> command-line option.
@@ -158,7 +159,7 @@ The resulting low-resolution variance map is then bicubic-spline-interpolated on
 </ul>
 </section>
 <section id="measurement-weight-map">
-<h3>Measurement weight-map<a class="headerlink" href="#measurement-weight-map" title="Permalink to this headline">¶</a></h3>
+<h3>Measurement weight-map<a class="headerlink" href="#measurement-weight-map" title="Permalink to this heading">¶</a></h3>
 <p>Measurement weight-maps are managed identically to detection weight-maps, except that configuration must be done through the <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.load_fits_image" title="config.measurement_images.load_fits_image"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code></a> command options in the <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">measurement configuration script</span></a>, instead of command line options.</p>
 <dl class="footnote brackets">
 <dt class="label" id="backfilter"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
