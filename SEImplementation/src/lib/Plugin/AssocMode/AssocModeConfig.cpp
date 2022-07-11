@@ -173,7 +173,7 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
     throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
   }
 
-  auto copy_columns = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
+  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
 
   AssocCoordType assoc_coord_type = AssocCoordType::PIXEL;
   if (args.find(ASSOC_COORD_TYPE) != args.end()) {
@@ -200,9 +200,9 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       for (size_t i = 0; i < getDependency<DetectionImageConfig>().getExtensionsNb(); i++) {
         if (assoc_coord_type == AssocCoordType::WORLD) {
           auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-          m_catalogs.emplace_back(readTable(table, columns, copy_columns, coordinate_system));
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, coordinate_system));
         } else {
-          m_catalogs.emplace_back(readTable(table, columns, copy_columns, nullptr));
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
         }
       }
 
