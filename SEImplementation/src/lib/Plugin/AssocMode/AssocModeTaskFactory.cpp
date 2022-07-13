@@ -15,36 +15,34 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-
-#include <SEImplementation/Plugin/AssocMode/AssocMode.h>
+#include "SEImplementation/Plugin/AssocMode/AssocModeTaskFactory.h"
+#include "SEFramework/Property/PropertyId.h"
+#include "SEFramework/Task/Task.h"
+#include "SEImplementation/Plugin/AssocMode/AssocMode.h"
+#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEImplementation/Plugin/AssocMode/AssocModeTask.h"
+#include <NdArray/NdArray.h>
 #include <iostream>
 #include <sstream>
 
-#include "SEFramework/Property/PropertyId.h"
-#include "SEFramework/Task/Task.h"
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeTask.h"
-#include "SEImplementation/Plugin/AssocMode/AssocModeTaskFactory.h"
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
-
-
 namespace SourceXtractor {
 
-AssocModeTaskFactory::AssocModeTaskFactory(): m_assoc_mode(AssocModeConfig::AssocMode::UNKNOWN), m_assoc_radius(0.) {}
+AssocModeTaskFactory::AssocModeTaskFactory() : m_assoc_mode(AssocModeConfig::AssocMode::UNKNOWN), m_assoc_radius(0.) {}
 
-void AssocModeTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager &manager) const {
+void AssocModeTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<AssocModeConfig>();
 }
 
-void AssocModeTaskFactory::configure(Euclid::Configuration::ConfigManager &manager) {
+void AssocModeTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
   auto config = manager.getConfiguration<AssocModeConfig>();
 
-  m_catalogs = config.getCatalogs();
-  m_assoc_radius = config.getAssocRadius();
-  m_assoc_mode = config.getAssocMode();
+  m_catalogs               = config.getCatalogs();
+  m_assoc_radius           = config.getAssocRadius();
+  m_assoc_mode             = config.getAssocMode();
+  m_add_property_instances = !config.getColumnsIdx().empty();
 }
 
-std::shared_ptr<Task> AssocModeTaskFactory::createTask(const PropertyId &property_id) const {
+std::shared_ptr<Task> AssocModeTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == typeid(AssocMode)) {
     return std::make_shared<AssocModeTask>(m_catalogs, m_assoc_mode, m_assoc_radius);
   } else {
@@ -52,4 +50,14 @@ std::shared_ptr<Task> AssocModeTaskFactory::createTask(const PropertyId &propert
   }
 }
 
+void AssocModeTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
+  using Euclid::NdArray::NdArray;
+
+  if (!m_add_property_instances) {
+    return;
+  }
+  registry.registerColumnConverter<AssocMode, NdArray<SeFloat>>(
+      "assoc_values", [](const AssocMode& prop) { return prop.getAssocValues(); }, "", "Assoc catalog values");
 }
+
+}  // namespace SourceXtractor

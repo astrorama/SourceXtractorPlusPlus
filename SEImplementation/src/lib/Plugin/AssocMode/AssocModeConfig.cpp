@@ -173,7 +173,7 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
     throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
   }
 
-  auto copy_columns = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
+  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
 
   AssocCoordType assoc_coord_type = AssocCoordType::PIXEL;
   if (args.find(ASSOC_COORD_TYPE) != args.end()) {
@@ -191,7 +191,7 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       std::shared_ptr<Euclid::Table::TableReader> reader;
       try {
         reader = std::make_shared<Euclid::Table::FitsReader>(filename);
-      } catch(...) {
+      } catch (...) {
         // If FITS not successful try reading as ascii
         reader = std::make_shared<Euclid::Table::AsciiReader>(filename);
       }
@@ -200,12 +200,13 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       for (size_t i = 0; i < getDependency<DetectionImageConfig>().getExtensionsNb(); i++) {
         if (assoc_coord_type == AssocCoordType::WORLD) {
           auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-          m_catalogs.emplace_back(readTable(table, columns, copy_columns, coordinate_system));
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, coordinate_system));
         } else {
-          m_catalogs.emplace_back(readTable(table, columns, copy_columns, nullptr));
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
         }
       }
-
+    } catch (const std::exception& e) {
+      throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename << " (" << e.what() << ")";
     } catch(...) {
       throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
     }
@@ -245,6 +246,9 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
       catalog.back().weight = boost::get<double>(row[columns.at(2)]);
     }
     for (auto column : copy_columns) {
+      if (column >= static_cast<int>(row.size())) {
+        throw Elements::Exception() << "Column index " << column << " is out of bounds";
+      }
       if (row[column].type() == typeid(int)) {
         catalog.back().assoc_columns.emplace_back(boost::get<int>(row[column]));
       } else if (row[column].type() == typeid(double)) {

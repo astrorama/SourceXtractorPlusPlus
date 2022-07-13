@@ -75,6 +75,10 @@ public:
     return m_catalogs;
   }
 
+  const std::vector<int>& getColumnsIdx() const {
+    return m_columns_idx;
+  }
+
 private:
   void readConfig(const UserValues& args);
   void readCatalogs(const UserValues& args);
@@ -86,6 +90,7 @@ private:
   double m_assoc_radius;
 
   std::vector<std::vector<CatalogEntry>> m_catalogs;
+  std::vector<int> m_columns_idx;
 };
 
 } /* namespace SourceXtractor */
