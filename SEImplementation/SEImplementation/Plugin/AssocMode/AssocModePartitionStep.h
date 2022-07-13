@@ -38,7 +38,7 @@ public:
   /// Constructor
   explicit AssocModePartitionStep(bool match_required);
 
-  std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const override;
+  std::vector<std::unique_ptr<SourceInterface>> partition(std::unique_ptr<SourceInterface> source) const override;
 
 
 private:

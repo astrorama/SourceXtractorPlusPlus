@@ -40,7 +40,7 @@ class SourceFactory {
 public:
   virtual ~SourceFactory() = default;
 
-  virtual std::shared_ptr<SourceInterface> createSource() const = 0;
+  virtual std::unique_ptr<SourceInterface> createSource() const = 0;
 };
 
 }

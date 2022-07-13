@@ -9,3 +9,5 @@ __pycache__
 /.settings/
 .pydevproject
 /packages
+/doc/build/
+/build/

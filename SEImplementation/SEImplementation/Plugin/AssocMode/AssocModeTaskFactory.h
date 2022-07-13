@@ -38,13 +38,15 @@ public:
 
   // TaskFactory implementation
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  void                  registerPropertyInstances(OutputRegistry& registry) override;
 
 private:
   std::vector<std::pair<std::string, unsigned int>> m_auto_names;
 
   AssocModeConfig::AssocMode m_assoc_mode;
   double m_assoc_radius;
-  std::vector<AssocModeConfig::CatalogEntry> m_catalog;
+  std::vector<std::vector<AssocModeConfig::CatalogEntry>> m_catalogs;
+  bool m_add_property_instances = false;
 };
 
 }

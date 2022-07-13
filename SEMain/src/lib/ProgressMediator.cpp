@@ -47,28 +47,28 @@ private:
   std::mutex& m_mutex;
 };
 
-class ProgressMediator::SourceCounter : public Observer<std::shared_ptr<SourceInterface>> {
+class ProgressMediator::SourceCounter : public Observer<SourceInterface> {
 public:
-  SourceCounter(ProgressMediator& progress_listener, std::atomic_int& counter) :
-    m_progress_listener(progress_listener), m_counter(counter) {}
+  SourceCounter(ProgressMediator& progress_listener, std::atomic_int& counter)
+      : m_progress_listener(progress_listener), m_counter(counter) {}
 
-  void handleMessage(const std::shared_ptr<SourceInterface>&) override {
+  void handleMessage(const SourceInterface&) override {
     ++m_counter;
     m_progress_listener.update();
   }
 
 private:
   ProgressMediator& m_progress_listener;
-  std::atomic_int& m_counter;
+  std::atomic_int&  m_counter;
 };
 
-class ProgressMediator::GroupCounter : public Observer<std::shared_ptr<SourceGroupInterface>> {
+class ProgressMediator::GroupCounter : public Observer<SourceGroupInterface> {
 public:
-  GroupCounter(ProgressMediator& progress_listener, std::atomic_int& counter) :
-    m_progress_listener(progress_listener), m_counter(counter) {}
+  GroupCounter(ProgressMediator& progress_listener, std::atomic_int& counter)
+      : m_progress_listener(progress_listener), m_counter(counter) {}
 
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& group) override {
-    m_counter += group->size();
+  void handleMessage(const SourceGroupInterface& group) override {
+    m_counter += group.size();
     m_progress_listener.update();
   }
 

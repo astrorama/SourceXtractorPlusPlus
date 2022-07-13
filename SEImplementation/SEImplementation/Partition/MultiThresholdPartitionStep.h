@@ -52,11 +52,11 @@ public:
 
   virtual ~MultiThresholdPartitionStep() = default;
 
-  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const;
+  virtual std::vector<std::unique_ptr<SourceInterface>> partition(std::unique_ptr<SourceInterface> source) const;
 
 private:
-  std::vector<std::shared_ptr<SourceInterface>> reassignPixels(
-      const std::vector<std::shared_ptr<SourceInterface>>& sources,
+  std::vector<std::unique_ptr<SourceInterface>> reassignPixels(
+      const std::vector<std::unique_ptr<SourceInterface>>& sources,
       const std::vector<PixelCoordinate>& pixel_coords,
       std::shared_ptr<VectorImage<DetectionImage::PixelType>> image,
       const std::vector<std::shared_ptr<MultiThresholdNode>>& source_nodes,

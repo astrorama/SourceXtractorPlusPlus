@@ -31,12 +31,13 @@ SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criter
         : m_grouping_criteria(grouping_criteria), m_group_factory(group_factory), m_hard_limit(hard_limit) {
 }
 
-void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& source) {
+void SourceGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
   // Pointer which points to the group of the source
-  std::shared_ptr<SourceGroupInterface> matched_group = nullptr;
-  
-  std::vector<std::list<std::shared_ptr<SourceGroupInterface>>::iterator> groups_to_remove {};
-  
+  SourceGroupInterface* matched_group = nullptr;
+
+  auto source_ptr = source.get();
+  std::vector<std::list<std::unique_ptr<SourceGroupInterface>>::iterator> groups_to_remove {};
+
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
 
     if (m_hard_limit > 0) {
@@ -53,37 +54,37 @@ void SourceGrouping::handleMessage(const std::shared_ptr<SourceInterface>& sourc
     // Search if the source meets the grouping criteria with any of the sources in the group
     bool in_group = false;
     for (auto& s : **group_it) {
-      if (m_grouping_criteria->shouldGroup(*source, s)) {
+      if (m_grouping_criteria->shouldGroup(*source_ptr, s)) {
         in_group = true;
         break; // No need to check the rest of the group sources
       }
     }
-    
+
     if (in_group) {
       if (matched_group == nullptr) {
-        matched_group = *group_it;
-        matched_group->addSource(source);
+        matched_group = group_it->get();
+        matched_group->addSource(std::move(source));
       } else {
-        matched_group->merge(**group_it);
+        matched_group->merge(std::move(**group_it));
         groups_to_remove.emplace_back(group_it);
       }
     }
   }
-  
+
   // If there was no group the source should be grouped in, we create a new one
   if (matched_group == nullptr) {
-    matched_group = m_group_factory->createSourceGroup();
-    matched_group->addSource(source);
-    m_source_groups.emplace_back(matched_group);
+    auto new_group = m_group_factory->createSourceGroup();
+    new_group->addSource(std::move(source));
+    m_source_groups.emplace_back(std::move(new_group));
   }
-  
+
   for (auto& group_it : groups_to_remove) {
     m_source_groups.erase(group_it);
   }
 }
 
-void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
-  std::vector<std::list<std::shared_ptr<SourceGroupInterface>>::iterator> groups_to_process;
+void SourceGrouping::receiveProcessSignal(const ProcessSourcesEvent& process_event) {
+  std::vector<std::list<std::unique_ptr<SourceGroupInterface>>::iterator> groups_to_process;
 
   // We iterate through all the SourceGroups we have
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
@@ -99,7 +100,7 @@ void SourceGrouping::handleMessage(const ProcessSourcesEvent& process_event) {
   // For each SourceGroup that we put in groups_to_process,
   for (auto& group : groups_to_process) {
     // we remove it from our list of stored SourceGroups and notify our observers
-    notifyObservers(*group);
+    sendSource(std::move(*group));
     m_source_groups.erase(group);
   }
 }

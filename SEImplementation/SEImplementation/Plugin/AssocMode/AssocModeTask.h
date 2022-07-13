@@ -37,12 +37,12 @@ public:
   /// Destructor
   virtual ~AssocModeTask() = default;
 
-  AssocModeTask(const std::vector<AssocModeConfig::CatalogEntry>& catalog, AssocModeConfig::AssocMode assoc_type, double radius);
+  AssocModeTask(const std::vector<std::vector<AssocModeConfig::CatalogEntry>>& catalogs, AssocModeConfig::AssocMode assoc_type, double radius);
 
   void computeProperties(SourceInterface& source) const override;
 
 private:
-  KdTree<AssocModeConfig::CatalogEntry> m_catalog;
+  std::vector<KdTree<AssocModeConfig::CatalogEntry>> m_catalogs;
   AssocModeConfig::AssocMode m_assoc_mode;
   double m_radius;
 };
