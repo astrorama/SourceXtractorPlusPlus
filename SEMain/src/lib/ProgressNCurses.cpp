@@ -37,19 +37,23 @@ using Euclid::make_unique;
 namespace SourceXtractor {
 
 // Signal handlers
-static struct sigaction sigterm_action, sigstop_action, sigcont_action, sigwich_action;
+static struct sigaction                sigterm_action;
+static struct sigaction                sigstop_action;
+static struct sigaction                sigcont_action;
+static struct sigaction                sigwich_action;
 static std::map<int, struct sigaction> prev_signal;
 
 // Used for sending signals to the UI thread
 static int signal_fds[2];
 
 // Used by the UI thread to notify that is is done
-static struct ncurses_done {
+struct ncurses_done_t {
   sem_t m_semaphore;
-  ncurses_done() {
+  ncurses_done_t() {
     sem_init(&m_semaphore, 0, 1);
   }
-} ncurses_done;
+};
+static ncurses_done_t ncurses_done;
 
 // Forward declaration of signal handlers
 static void handleTerminatingSignal(int s);
@@ -126,8 +130,8 @@ public:
 
     // Tell readline to leave the terminal be
     rl_catch_signals = 0;
-    rl_deprep_term_function = NULL;
-    rl_prep_term_function = NULL;
+    rl_deprep_term_function = nullptr;
+    rl_prep_term_function = nullptr;
 
     // It seems like the readline in MacOSX is not the "real" readline, but a compatibility
     // layer which misses some things, like the following:
@@ -296,18 +300,23 @@ static void handleResizeSignal(int s) {
  */
 class LogWidget {
 private:
-  WINDOW *m_pad, *m_scroll;
+  WINDOW* m_pad;
+  WINDOW* m_scroll;
   // Screen coordinates!
-  int m_display_height, m_display_width;
-  int m_display_y, m_display_x;
+  int m_display_height;
+  int m_display_width;
+  int m_display_y;
+  int m_display_x;
   // Number of total lines being written so far
-  int m_written_lines;
+  int m_written_lines = 0;
   // Last line being *displayed*
-  int m_active_line;
+  int m_active_line = 0;
   // Colors
-  int m_scroll_bar_color, m_scroll_ind_color;
+  int m_scroll_bar_color;
+  int m_scroll_ind_color;
 
-  static const int BUFFER_INCREASE_STEP_SIZE = 10, BUFFER_MAX_SIZE = 16384;
+  static const int BUFFER_INCREASE_STEP_SIZE = 10;
+  static const int BUFFER_MAX_SIZE           = 16384;
 
 public:
 
@@ -330,7 +339,7 @@ public:
     : m_pad(newpad(BUFFER_INCREASE_STEP_SIZE, display_width)),
       m_scroll(newpad(display_height, 1)),
       m_display_height(display_height), m_display_width(display_width), m_display_y(display_y), m_display_x(display_x),
-      m_written_lines(0), m_active_line(0), m_scroll_bar_color(bar_color), m_scroll_ind_color(ind_color) {
+      m_scroll_bar_color(bar_color), m_scroll_ind_color(ind_color) {
     scrollok(m_pad, TRUE);
   }
 
@@ -341,6 +350,9 @@ public:
     delwin(m_pad);
     delwin(m_scroll);
   }
+
+  LogWidget(const LogWidget&)                  = delete;
+  const LogWidget& operator=(const LogWidget&) = delete;
 
   /**
    * Write into the widget
@@ -359,7 +371,8 @@ public:
         }
       }
       waddch(m_pad, *data);
-      ++data, --nchars;
+      ++data;
+      --nchars;
     }
     drawLog();
     drawScroll();
@@ -418,6 +431,8 @@ public:
       case KEY_PPAGE:
         scrollText(-LINES);
         break;
+      default:
+        break;
     }
   }
 
@@ -451,9 +466,10 @@ private:
     int max_selectable_line = m_written_lines;
     int min_selectable_line = std::min(m_written_lines, m_display_height);
     int displayed_line_offset = m_active_line - min_selectable_line;
-    float p = std::max(0.f, std::min(1.f, displayed_line_offset / float(max_selectable_line - min_selectable_line)));
+    float p = std::max(0.f, std::min(1.f, static_cast<float>(displayed_line_offset) /
+                                              static_cast<float>(max_selectable_line - min_selectable_line)));
 
-    int scroll_marker_pos = p * (m_display_height - 1);
+    auto scroll_marker_pos = static_cast<int>(p * static_cast<float>(m_display_height - 1));
     for (int i = 0; i < m_display_height; ++i) {
       if (i == scroll_marker_pos)
         waddch(m_scroll, ACS_CKBOARD | COLOR_PAIR(m_scroll_ind_color));
@@ -501,9 +517,7 @@ public:
    *    Color for the progress bar
    */
   ProgressWidget(int height, int width, int y, int x, short done_color, short progress_color)
-    : m_window(newwin(height, width, y, x)), m_started(std::chrono::steady_clock::now()),
-      m_done_color(done_color), m_progress_color(progress_color) {
-  }
+      : m_window(newwin(height, width, y, x)), m_done_color(done_color), m_progress_color(progress_color) {}
 
   /**
    * Destructor
@@ -558,7 +572,7 @@ public:
     value_position++; // Plus space
 
     // Width of the bar is the with of the windows - a space - two brackets []
-    size_t bar_width = getmaxx(m_window) - 2 - value_position;
+    int bar_width = getmaxx(m_window) - 2 - static_cast<int>(value_position);
 
     // Elapsed
     auto now = std::chrono::steady_clock::now();
@@ -570,12 +584,12 @@ public:
     // Now, print the actual progress
     int line = 0;
     for (auto& entry : info) {
-      drawProgressLine(value_position, bar_width, line, entry.m_label, entry.m_total, entry.m_done);
+      drawProgressLine(static_cast<int>(value_position), bar_width, line, entry.m_label, entry.m_total, entry.m_done);
       ++line;
     }
 
     // Elapsed time
-    drawElapsed(value_position, elapsed, line);
+    drawElapsed(static_cast<int>(value_position), elapsed, line);
 
     // Flush
     wnoutrefresh(m_window);
@@ -620,7 +634,7 @@ private:
     }
 
     // Otherwise, report progress as a bar
-    float ratio = done / static_cast<float>(total);
+    float ratio = static_cast<float>(done) / static_cast<float>(total);
     // This can happens sometimes, as a measurement could be notified before the deblending, for instance
     if (ratio > 1)
       ratio = 1.;
@@ -640,7 +654,7 @@ private:
 
     // Completed
     auto bar_content = bar.str();
-    int completed = bar_content.size() * ratio;
+    auto completed = static_cast<int>(static_cast<float>(bar_content.size()) * ratio);
 
     wattron(m_window, COLOR_PAIR(m_done_color));
     waddstr(m_window, bar_content.substr(0, completed).c_str());
@@ -656,8 +670,9 @@ private:
   }
 
   WINDOW *m_window;
-  std::chrono::steady_clock::time_point m_started;
-  short m_done_color, m_progress_color;
+  std::chrono::steady_clock::time_point m_started = std::chrono::steady_clock::now();
+  short m_done_color;
+  short m_progress_color;
 };
 
 /**
@@ -677,15 +692,18 @@ private:
   std::mutex m_progress_info_mutex;
 
   // stderr intercept
-  int m_stderr_original, m_stderr_pipe;
-  FILE *m_stderr;
+  int   m_stderr_original;
+  int   m_stderr_pipe;
+  FILE* m_stderr;
   // stdout intercept
-  int m_stdout_original, m_stdout_pipe;
+  int m_stdout_original;
+  int m_stdout_pipe;
 
   // Used to recover log into the standard output
   std::vector<std::string> m_log_text;
 
-  std::atomic_bool m_trigger_resize, m_exit_loop;
+  std::atomic_bool m_trigger_resize{false};
+  std::atomic_bool m_exit_loop{false};
 
   /**
    * Main UI thread. All (almost) ncurses handling should be done here, as it is not thread safe
@@ -716,7 +734,7 @@ private:
   void handleSignal(const struct pollfd& poll_fd, LogWidget& logWidget) {
     if (poll_fd.revents & POLLIN) {
       int signal_no;
-      if (read(signal_fds[0], &signal_no, sizeof(signal_no)) > 0 && signal_no == SIGWINCH) {
+      if (read(signal_fds[0], &signal_no, sizeof(signal_no)) == sizeof(signal_no) && signal_no == SIGWINCH) {
         m_trigger_resize = true;
         endwin();
         refresh();
@@ -730,7 +748,7 @@ private:
     }
   }
 
-  void pipeToLog(const struct pollfd& poll_fd, int pipe, LogWidget& out) {
+  void pipeToLog(const struct pollfd& poll_fd, int pipe, LogWidget& out) const {
     if (poll_fd.revents & POLLIN) {
       ssize_t nbytes;
       char buf[64];
@@ -785,8 +803,8 @@ private:
       // Resize widgets if needed
       if (m_trigger_resize) {
         std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
-        progressWidget.move(LINES - m_progress_info.size() - 1, 0);
-        progressWidget.resize(m_progress_info.size() + 1, COLS);
+        progressWidget.move(static_cast<int>(LINES - m_progress_info.size() - 1), 0);
+        progressWidget.resize(static_cast<int>(m_progress_info.size() + 1), COLS);
         logWidget.resize(LINES - progressWidget.getHeight(), COLS);
         m_trigger_resize = false;
       }
@@ -821,7 +839,7 @@ public:
    * @note
    *    Intercepts stdout and stderr and starts up the UI thread
    */
-  Dashboard(): m_trigger_resize(false) {
+  Dashboard() {
     m_stderr_pipe = interceptFileDescriptor(STDERR_FILENO, &m_stderr_original);
     m_stdout_pipe = interceptFileDescriptor(STDOUT_FILENO, &m_stdout_original);
     int new_stderr_fd = dup(m_stderr_original);
@@ -861,7 +879,7 @@ public:
    */
   void update(const std::list<ProgressInfo>& info) {
     std::lock_guard<std::mutex> p_lock(m_progress_info_mutex);
-    m_trigger_resize = (m_progress_info.size() != info.size()) | m_trigger_resize;
+    m_trigger_resize = (m_progress_info.size() != info.size()) || m_trigger_resize;
     m_progress_info = info;
   }
 };
@@ -870,8 +888,7 @@ ProgressNCurses::ProgressNCurses() {
   m_dashboard = make_unique<Dashboard>();
 }
 
-ProgressNCurses::~ProgressNCurses() {
-}
+ProgressNCurses::~ProgressNCurses() = default;
 
 bool ProgressNCurses::isTerminalCapable() {
   return isatty(STDERR_FILENO);
