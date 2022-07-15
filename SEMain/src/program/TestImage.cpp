@@ -79,10 +79,10 @@ const double gal_dev_min_i0 = 100000;
 const double gal_dev_max_i0 = 100001;
 
 struct TestImageSource {
-  double x = 0, y = 0;
-  double exp_flux = 0, exp_rad = 0, exp_aspect = 1, exp_rot = 0;
-  double dev_flux = 1, dev_rad = 0, dev_aspect = 1, dev_rot = 0;
-  double point_flux = 1;
+  double x, y;
+  double exp_flux, exp_rad, exp_aspect, exp_rot;
+  double dev_flux, dev_rad, dev_aspect, dev_rot;
+  double point_flux;
 };
 
 //
@@ -442,7 +442,7 @@ public:
 
       //std::cout << source_type << "\n";
 
-      TestImageSource source;
+      TestImageSource source{0.};
       if (source_type == 200) {
         double magnitude, bt, exp_angle_degree, dev_angle_degree;
 
