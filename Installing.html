@@ -16,6 +16,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -91,30 +92,30 @@
            <div itemprop="articleBody">
              
   <section id="installing-the-software">
-<h1>Installing the software<a class="headerlink" href="#installing-the-software" title="Permalink to this headline">¶</a></h1>
+<h1>Installing the software<a class="headerlink" href="#installing-the-software" title="Permalink to this heading">¶</a></h1>
 <section id="hardware-requirements">
-<h2>Hardware requirements<a class="headerlink" href="#hardware-requirements" title="Permalink to this headline">¶</a></h2>
+<h2>Hardware requirements<a class="headerlink" href="#hardware-requirements" title="Permalink to this heading">¶</a></h2>
 <section id="terminal">
-<h3>Terminal<a class="headerlink" href="#terminal" title="Permalink to this headline">¶</a></h3>
+<h3>Terminal<a class="headerlink" href="#terminal" title="Permalink to this heading">¶</a></h3>
 <p><strong class="program">SourceXtractor++</strong> runs in (ANSI) text-mode from a shell.
 A graphical environment is not necessary to operate the software.</p>
 </section>
 <section id="memory">
-<h3>Memory<a class="headerlink" href="#memory" title="Permalink to this headline">¶</a></h3>
+<h3>Memory<a class="headerlink" href="#memory" title="Permalink to this heading">¶</a></h3>
 <p>Memory requirements depend mostly on the number of images to be analyzed.
 A rule of thumb is that <strong class="program">SourceXtractor++</strong> requires about 100MB of resident memory per input frame.
 Extra-memory is taken advantage of through caching of pixel data.</p>
 </section>
 <section id="cpus">
-<h3>CPUs<a class="headerlink" href="#cpus" title="Permalink to this headline">¶</a></h3>
+<h3>CPUs<a class="headerlink" href="#cpus" title="Permalink to this heading">¶</a></h3>
 <p><strong class="program">SourceXtractor++</strong>’s measurement pipeline is multithreaded and can take advantage of multiple CPU cores.
-As of version 0.13, <strong class="program">SourceXtractor++</strong> scales reasonably well up to 8 cores.</p>
+As of version 0.16, <strong class="program">SourceXtractor++</strong> scales reasonably well up to 30 cores.</p>
 </section>
 </section>
 <section id="obtaining-sourcextractor">
-<h2>Obtaining <strong class="program">SourceXtractor++</strong><a class="headerlink" href="#obtaining-sourcextractor" title="Permalink to this headline">¶</a></h2>
+<h2>Obtaining <strong class="program">SourceXtractor++</strong><a class="headerlink" href="#obtaining-sourcextractor" title="Permalink to this heading">¶</a></h2>
 <section id="from-fedora-or-epel-repositories-rawhide-release-svg">
-<h3>From Fedora or EPEL repositories <a class="reference external" href="https://src.fedoraproject.org/rpms/sourcextractor++"><img alt="Fedora package" src="https://img.shields.io/fedora/v/sourcextractor++/rawhide" /></a><a class="headerlink" href="#from-fedora-or-epel-repositories-rawhide-release-svg" title="Permalink to this headline">¶</a></h3>
+<h3>From Fedora or EPEL repositories <a class="reference external" href="https://src.fedoraproject.org/rpms/sourcextractor++"><img alt="Fedora package" src="https://img.shields.io/fedora/v/sourcextractor++/rawhide" /></a><a class="headerlink" href="#from-fedora-or-epel-repositories-rawhide-release-svg" title="Permalink to this heading">¶</a></h3>
 </section>
 <p><strong class="program">SourceXtractor++</strong> is available in <a class="reference external" href="https://src.fedoraproject.org/rpms/sourcextractor++">Fedora</a>
 30 and greater, and in EPEL 7 as well. On those platforms, you can use your
@@ -123,7 +124,7 @@ package manager to install in the usual way:</p>
 </pre></div>
 </div>
 <section id="from-anaconda-cloud-anaconda-release-svg">
-<h3>From Anaconda Cloud <a class="reference external" href="https://anaconda.org/astrorama/sourcextractor"><img alt="Conda" src="https://img.shields.io/conda/vn/astrorama/sourcextractor" /></a><a class="headerlink" href="#from-anaconda-cloud-anaconda-release-svg" title="Permalink to this headline">¶</a></h3>
+<h3>From Anaconda Cloud <a class="reference external" href="https://anaconda.org/astrorama/sourcextractor"><img alt="Conda" src="https://img.shields.io/conda/vn/astrorama/sourcextractor" /></a><a class="headerlink" href="#from-anaconda-cloud-anaconda-release-svg" title="Permalink to this heading">¶</a></h3>
 </section>
 <p><strong class="program">SourceXtractor++</strong> is also available for Linux and MacOS via Anaconda cloud.
 You can install it as follows:</p>
@@ -141,7 +142,7 @@ conda configuration:</p>
 <a class="reference external" href="https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html">environment</a>
 to avoid dependency conflicts.</p>
 <section id="from-sources-github-release-svg">
-<h3>From Sources <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest"><img alt="GitHub tag (latest SemVer)" src="https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus" /></a><a class="headerlink" href="#from-sources-github-release-svg" title="Permalink to this headline">¶</a></h3>
+<h3>From Sources <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest"><img alt="GitHub tag (latest SemVer)" src="https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus" /></a><a class="headerlink" href="#from-sources-github-release-svg" title="Permalink to this heading">¶</a></h3>
 </section>
 <p>The source package may be downloaded from the official <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus">GitHub repository</a>.
 Links to binary packages for a selection of operating systems are also available at the URL above.</p>
@@ -161,19 +162,25 @@ They are also available in Fedora and EPEL as <code class="docutils literal notr
 </ul>
 <p>The following packages are optional:</p>
 <ul class="simple">
+<li><p><a class="reference external" href="https://www.gnu.org/software/gsl"><strong class="program">GSL</strong></a> (model fitting engine)</p></li>
+<li><p><a class="reference external" href="http://users.ics.forth.gr/~lourakis/levmar"><strong class="program">LevMar</strong></a> (model fitting engine)</p></li>
 <li><p><a class="reference external" href="https://tiswww.case.edu/php/chet/readline/rltop.html">Readline</a></p></li>
 <li><p><a class="reference external" href="https://invisible-island.net/ncurses/">Ncurses</a> (progress bar display)</p></li>
-<li><p><a class="reference external" href="http://users.ics.forth.gr/~lourakis/levmar"><strong class="program">LevMar</strong></a> (model fitting engine)</p></li>
-<li><p><a class="reference external" href="https://www.gnu.org/software/gsl"><strong class="program">GSL</strong></a> (model fitting engine)</p></li>
+<li><p><a class="reference external" href="https://onnxruntime.ai/">ONNXRunTime</a> (AI-based features)</p></li>
 </ul>
 <p>All or most of these packages are available in the main Linux distributions.
-You will also need the <code class="docutils literal notranslate"><span class="pre">-devel</span></code> version of the packages if you compile <strong class="program">SourceXtractor++</strong> from the source.</p>
+You will also need the development version (<code class="docutils literal notranslate"><span class="pre">-devel</span></code> or <code class="docutils literal notranslate"><span class="pre">-dev</span></code>) of the packages if you compile <strong class="program">SourceXtractor++</strong> from the source, plus the following packages:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/google/googletest">GMock</a></p></li>
+<li><p><a class="reference external" href="https://github.com/google/googletest">GTest</a></p></li>
+<li><p><a class="reference external" href="https://pytest.org">Pytest</a></p></li>
+</ul>
 <p>If you have installed Elements and Alexandria from your distribution repository (right now, only in Fedora), you can skip the following section.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> dnf install elements-devel elements-alexandria-devel
 </pre></div>
 </div>
 <p>Elements is a C++ and CMake framework. It is capable of managing the dependencies
-of the projects that are based on it, as long as it knows where to find them.
+of projects based on CMake as long as it knows where to find them.
 By convention, this location usually is <code class="docutils literal notranslate"><span class="pre">~/Work/Projects</span></code>, but you can choose
 any other.</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
