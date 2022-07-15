@@ -147,7 +147,7 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   parameter_manager.getEngineValues(param_values.begin());
 
   // Create a vector for getting the information of the minimization
-  std::array<double, 10> info;
+  std::array<double, 10> info = {0};
 
   std::vector<double> covariance_matrix (parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
 
@@ -204,8 +204,8 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   }
 
   summary.status_flag = getStatusFlag(info, res);
-  summary.engine_stop_reason = info[6];
-  summary.iteration_no = info[5];
+  summary.engine_stop_reason = static_cast<int>(info[6]);
+  summary.iteration_no = static_cast<int>(info[5]);
   summary.underlying_framework_info = info;
   summary.duration                  = elapsed.count();
   return summary;
