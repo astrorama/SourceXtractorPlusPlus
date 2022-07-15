@@ -1,14 +1,32 @@
 .. |ADU| replace:: :abbr:`ADU (Analog-to-Digital Unit)`
 .. _ADU: https://en.wikipedia.org/wiki/Analog-to-digital_converter
 
+.. |Alexandria| replace:: :program:`Alexandria`
+.. _Alexandria: http://github.com/astrorama/Alexandria
+
+.. |anaconda_release_png| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor.png
+  :height: 1em
+  :alt: Conda
+  :target: https://anaconda.org/astrorama/sourcextractor
+
+.. |anaconda_release_svg| image:: https://img.shields.io/conda/vn/astrorama/sourcextractor
+  :alt: Conda
+  :target: https://anaconda.org/astrorama/sourcextractor
+
 .. |ATLAS| replace:: :program:`ATLAS`
 .. _ATLAS: http://math-atlas.sourceforge.net
+
+.. |CCD| replace:: :abbr:`Charge-Coupled Device`
+.. _CCD: https://en.wikipedia.org/wiki/Charge-coupled_device
 
 .. |DAOPHOT| replace:: :program:`DAOPHOT`
 .. _DAOPHOT: http://ascl.net/phpBB3/viewtopic.php?t=23410
 
 .. |.dmg| replace:: :file:`.dmg`
 .. _.dmg: https://en.wikipedia.org/wiki/Apple_Disk_Image
+
+.. |Elements| replace:: :program:`Elements`
+.. _Elements: http://github.com/astrorama/Elements
 
 .. |FFTw| replace:: :program:`FFTw`
 .. _FFTw: http://www.fftw.org
@@ -22,8 +40,20 @@
 .. |fv| replace:: :program:`fv`
 .. _fv: http://heasarc.gsfc.nasa.gov/ftools/fv/
 
+.. |github_release_png| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus.png
+  :height: 1em
+  :alt: GitHub tag (latest SemVer)
+  :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
+
+.. |github_release_svg| image:: https://img.shields.io/github/v/tag/astrorama/SourceXtractorPlusPlus
+  :alt: GitHub tag (latest SemVer)
+  :target: https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest
+
 .. |GitHub| replace:: GitHub
 .. _GitHub: https://github.com
+
+.. |GSL| replace:: :program:`GSL`
+.. _GSL: https://www.gnu.org/software/gsl
 
 .. |Intel| replace:: Intel\ :sup:`®`\ 
 .. _Intel: http://intel.com
@@ -55,6 +85,15 @@
 .. |QSO| replace:: :abbr:`QSO (Quasi-Stellar Object)`
 .. _QSO: https://en.wikipedia.org/wiki/Quasar
 
+.. |rawhide_release_png|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide.png
+  :height: 1em
+  :alt: Fedora package
+  :target: https://src.fedoraproject.org/rpms/sourcextractor++
+
+.. |rawhide_release_svg|  image:: https://img.shields.io/fedora/v/sourcextractor++/rawhide
+  :alt: Fedora package
+  :target: https://src.fedoraproject.org/rpms/sourcextractor++
+
 .. |RPM| replace:: :program:`RPM`
 .. _RPM: http://www.rpm.org
 
@@ -64,8 +103,14 @@
 .. |SCAMP| replace:: :program:`SCAMP`
 .. _SCAMP: http://astromatic.net/software/scamp
 
-.. |SExtractor++| replace:: :program:`SExtractor++`
-.. _SExtractor++: http://astromatic.net/software/sextractor
+.. |SExtractor| replace:: :program:`SExtractor`
+.. _SExtractor: http://astromatic.net/software/sextractor
+
+.. |SourceXtractor++| replace:: :program:`SourceXtractor++`
+.. _SourceXtractor++: https://github.com/astrorama/SourceXtractorPlusPlus
+
+.. |SE++| replace:: :program:`SourceXtractor++`
+.. _SE++: https://github.com/astrorama/SourceXtractorPlusPlus
 
 .. |SkyMaker| replace:: :program:`SkyMaker`
 .. _SkyMaker: http://astromatic.net/software/skymaker
@@ -90,9 +135,6 @@
 
 .. |WCS| replace:: WCS
 .. _WCS: http://www.atnf.csiro.au/people/mcalabre/WCS/index.html
-
-.. |WCSLIB| replace:: :program:`WCSLIB`
-.. _WCSLIB: http://www.atnf.csiro.au/people/mcalabre/WCS/wcslib
 
 .. |WeightWatcher| replace:: :program:`WeightWatcher`
 .. _WeightWatcher: http://astromatic.net/software/weightwatcher

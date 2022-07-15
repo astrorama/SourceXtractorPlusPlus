@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,28 +24,25 @@
 #ifndef _SEFRAMEWORK_PIPELINE_OUTPUT_H_
 #define _SEFRAMEWORK_PIPELINE_OUTPUT_H_
 
-#include "SEUtils/Observable.h"
-#include "SEFramework/Source/SourceInterface.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
+#include "SEFramework/Source/SourceInterface.h"
 
 namespace SourceXtractor {
 
-class Output :
-    public Observer<std::shared_ptr<SourceInterface>>,
-    public Observer<std::shared_ptr<SourceGroupInterface>> {
+class Output : public PipelineReceiver<SourceGroupInterface> {
 
 public:
-
   virtual ~Output() = default;
 
-  void handleMessage(const std::shared_ptr<SourceInterface>& source) override {
-    outputSource(*source);
-  }
-
-  void handleMessage(const std::shared_ptr<SourceGroupInterface>& source_group) override {
+  void receiveSource(std::unique_ptr<SourceGroupInterface> source_group) override {
     for (auto& source : *source_group) {
       outputSource(source);
     }
+  }
+
+  void receiveProcessSignal(const ProcessSourcesEvent&) override {
+    // pass
   }
 
   virtual void outputSource(const SourceInterface& source) = 0;

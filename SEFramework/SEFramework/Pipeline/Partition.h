@@ -23,7 +23,7 @@
 #ifndef _SEFRAMEWORK_PIPELINE_PARTITION_H
 #define _SEFRAMEWORK_PIPELINE_PARTITION_H
 
-#include "SEUtils/Observable.h"
+#include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceInterface.h"
 
 namespace SourceXtractor {
@@ -36,13 +36,12 @@ namespace SourceXtractor {
  */
 class PartitionStep {
 public:
-
   /**
    * @brief Destructor
    */
   virtual ~PartitionStep() = default;
 
-  virtual std::vector<std::shared_ptr<SourceInterface>> partition(std::shared_ptr<SourceInterface> source) const = 0;
+  virtual std::vector<std::unique_ptr<SourceInterface>> partition(std::unique_ptr<SourceInterface> source) const = 0;
 };
 
 /**
@@ -54,10 +53,9 @@ public:
  * notified to the Observers one by one.
  *
  */
-class Partition : public Observer<std::shared_ptr<SourceInterface>>, public Observable<std::shared_ptr<SourceInterface>> {
+class Partition : public PipelineReceiver<SourceInterface>, public PipelineEmitter<SourceInterface> {
 
 public:
-
   /**
    * @brief Destructor
    */
@@ -66,8 +64,8 @@ public:
   /// Constructor - takes a vector of PartitionSteps to be applied in order
   explicit Partition(std::vector<std::shared_ptr<PartitionStep>> steps);
 
-  /// Handles a Source (applies PartitionSteps) and notifies the Observers for every Source in the final result
-  void handleMessage(const std::shared_ptr<SourceInterface>& source) override;
+  void receiveSource(std::unique_ptr<SourceInterface> source) override;
+  void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:
   std::vector<std::shared_ptr<PartitionStep>> m_steps;
@@ -75,6 +73,5 @@ private:
 }; /* End of Partition class */
 
 } /* namespace SourceXtractor */
-
 
 #endif

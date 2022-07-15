@@ -42,15 +42,6 @@ void AssocModePlugin::registerPlugin(PluginAPI& plugin_api) {
     "Assoc match"
   );
 
-  plugin_api.getOutputRegistry().registerColumnConverter<AssocMode, NdArray<SeFloat>>(
-    "assoc_values",
-    [](const AssocMode &prop) {
-      return prop.getAssocValues();
-    },
-    "",
-    "Assoc catalog values"
-  );
-
   plugin_api.getOutputRegistry().enableOutput<AssocMode>("AssocMode");
 }
 

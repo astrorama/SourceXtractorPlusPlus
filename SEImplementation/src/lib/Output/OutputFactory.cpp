@@ -32,7 +32,6 @@
 #include "SEImplementation/Output/AsciiOutput.h"
 #include "SEImplementation/Output/FitsOutput.h"
 #include "SEImplementation/Output/LdacOutput.h"
-
 #include "SEImplementation/Output/OutputFactory.h"
 
 using Euclid::make_unique;

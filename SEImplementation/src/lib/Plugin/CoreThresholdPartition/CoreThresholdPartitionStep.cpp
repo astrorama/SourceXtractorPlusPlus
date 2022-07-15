@@ -31,7 +31,7 @@ CoreThresholdPartitionStep::CoreThresholdPartitionStep(double snr_level, unsigne
     m_snr_level(snr_level), m_min_pixel_count(min_pixel_count) {
 }
 
-std::vector<std::shared_ptr<SourceInterface>> CoreThresholdPartitionStep::partition(std::shared_ptr<SourceInterface> source) const {
+std::vector<std::unique_ptr<SourceInterface>> CoreThresholdPartitionStep::partition(std::unique_ptr<SourceInterface> source) const {
   long int n_snr_level(0);
 
   // get the SNR image
@@ -44,11 +44,11 @@ std::vector<std::shared_ptr<SourceInterface>> CoreThresholdPartitionStep::partit
       n_snr_level += 1;
 
   // check whether the pixel # is above the threshold
-  if (n_snr_level < m_min_pixel_count) {
-    return {};
-  } else {
-    return { source };
+  std::vector<std::unique_ptr<SourceInterface>> sources;
+  if (n_snr_level >= m_min_pixel_count) {
+    sources.emplace_back(std::move(source));
   }
+  return sources;
 }
 
 } // SEImplementation namespace

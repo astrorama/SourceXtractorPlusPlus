@@ -32,6 +32,7 @@
 #include "SEImplementation/Plugin/Jacobian/JacobianTask.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEUtils/TestUtils.h"
+#include <AlexandriaKernel/memory_tools.h>
 
 using namespace SourceXtractor;
 
@@ -98,7 +99,7 @@ BOOST_AUTO_TEST_SUITE (JacobianGroupTask_test)
 BOOST_AUTO_TEST_CASE (JacobianIdentity_test) {
   auto jacobian_task = JacobianGroupTask(0);
 
-  auto source = std::make_shared<SimpleSource>();
+  auto source = Euclid::make_unique<SimpleSource>();
   auto measurement_coord_system = std::make_shared<NoopCoordinateSystem>();
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
   source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
@@ -110,7 +111,7 @@ BOOST_AUTO_TEST_CASE (JacobianIdentity_test) {
   BOOST_CHECK_EQUAL(150, measurement_center.m_y);
 
   SimpleSourceGroup group;
-  group.addSource(source);
+  group.addSource(std::move(source));
 
   group.setProperty<DetectionFrameGroupStamp>(
     ConstantImage<SeFloat>::create(100, 100, 0), nullptr, PixelCoordinate{100, 100}, nullptr
@@ -133,7 +134,7 @@ BOOST_AUTO_TEST_CASE (JacobianIdentity_test) {
 BOOST_AUTO_TEST_CASE (JacobianScale_test) {
   auto jacobian_task = JacobianGroupTask(0);
 
-  auto source = std::make_shared<SimpleSource>();
+  auto source = Euclid::make_unique<SimpleSource>();
   auto measurement_coord_system = std::make_shared<ScaleCoordinateSystem>(2);
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
   source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
@@ -145,7 +146,7 @@ BOOST_AUTO_TEST_CASE (JacobianScale_test) {
   BOOST_CHECK_EQUAL(300, measurement_center.m_y);
 
   SimpleSourceGroup group;
-  group.addSource(source);
+  group.addSource(std::move(source));
 
   group.setProperty<DetectionFrameGroupStamp>(
     ConstantImage<SeFloat>::create(100, 100, 0), nullptr, PixelCoordinate{100, 100}, nullptr
@@ -168,7 +169,7 @@ BOOST_AUTO_TEST_CASE (JacobianScale_test) {
 BOOST_AUTO_TEST_CASE (JacobianShear_test) {
   auto jacobian_task = JacobianGroupTask(0);
 
-  auto source = std::make_shared<SimpleSource>();
+  auto source = Euclid::make_unique<SimpleSource>();
   auto measurement_coord_system = std::make_shared<ShearCoordinates>();
   auto detection_coord_system = std::make_shared<NoopCoordinateSystem>();
   source->setProperty<MeasurementFrameCoordinates>(measurement_coord_system);
@@ -180,7 +181,7 @@ BOOST_AUTO_TEST_CASE (JacobianShear_test) {
   BOOST_CHECK_EQUAL(150, measurement_center.m_y);
 
   SimpleSourceGroup group;
-  group.addSource(source);
+  group.addSource(std::move(source));
 
   group.setProperty<DetectionFrameGroupStamp>(
     ConstantImage<SeFloat>::create(100, 100, 0), nullptr, PixelCoordinate{100, 100}, nullptr

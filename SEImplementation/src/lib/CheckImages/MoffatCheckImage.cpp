@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,13 +37,13 @@ namespace SourceXtractor {
 
 using namespace ModelFitting;
 
-void MoffatCheckImage::handleMessage(const std::shared_ptr<SourceGroupInterface>& group) {
-  auto hdu_index = group->cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
+void MoffatCheckImage::handleMessage(const SourceGroupInterface& group) {
+  auto hdu_index = group.cbegin()->getProperty<DetectionFrameInfo>().getHduIndex();
   auto check_image = CheckImages::getInstance().getMoffatImage(hdu_index);
   ImageAccessor<SeFloat> check_accessor(check_image);
 
   if (check_image != nullptr) {
-    for (auto& source : *group) {
+    for (auto& source : group) {
       auto& model = source.getProperty<MoffatModelEvaluator>();
 
       if (model.getIterations() == 0) {

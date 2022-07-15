@@ -68,7 +68,7 @@ public:
     auto source = m_source_factory->createSource();
     source->setProperty<PixelCoordinateList>(pixel_group.pixel_list);
     source->setProperty<SourceId>();
-    m_listener.publishSource(source);
+    m_listener.publishSource(std::move(source));
   }
 
   void notifyProgress(int line, int total) override {

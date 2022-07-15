@@ -50,7 +50,7 @@ private:
   SourceGroupInterface::iterator findMostInfluentialSource(
       SourceInterface& source, const std::vector<SourceGroupInterface::iterator>& candidates) const;
 
-  std::shared_ptr<SourceInterface> mergeSources(SourceInterface& parent,
+  std::unique_ptr<SourceInterface> mergeSources(SourceInterface& parent,
       const std::vector<SourceGroupInterface::iterator> children) const;
 
   std::shared_ptr<SourceFactory> m_source_factory;

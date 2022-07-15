@@ -51,7 +51,7 @@ Prefetcher::~Prefetcher() {
     wait();
 }
 
-void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) {
+void Prefetcher::receiveSource(std::unique_ptr<SourceInterface> message) {
   m_semaphore.acquire();
 
   intptr_t source_addr = reinterpret_cast<intptr_t>(message.get());
@@ -61,16 +61,20 @@ void Prefetcher::handleMessage(const std::shared_ptr<SourceInterface>& message) 
   }
 
   // Pre-fetch in separate threads
-  m_thread_pool->submit([this, source_addr, message]() {
+  auto lambda = [this, source_addr, message = std::move(message)]() mutable {
     for (auto& prop : m_prefetch_set) {
       message->getProperty(prop);
     }
     {
       std::lock_guard<std::mutex> lock(m_queue_mutex);
-      m_finished_sources.emplace(source_addr, message);
+      m_finished_sources.emplace(source_addr, std::move(message));
     }
     m_new_output.notify_one();
-  });
+  };
+  auto lambda_copyable = [lambda = std::make_shared<decltype(lambda)>(std::move(lambda))](){
+    (*lambda)();
+  };
+  m_thread_pool->submit(lambda_copyable);
 }
 
 void Prefetcher::requestProperty(const PropertyId& property_id) {
@@ -99,7 +103,7 @@ void Prefetcher::outputLoop() {
         logger.debug() << "ProcessSourceEvent released";
         {
           ReverseLock<decltype(output_lock)> release_lock(output_lock);
-          Observable<ProcessSourcesEvent>::notifyObservers(event);
+          sendProcessSignal(event);
         }
         m_received.pop_front();
         continue;
@@ -115,7 +119,7 @@ void Prefetcher::outputLoop() {
       logger.debug() << "Source " << next.m_source_addr << " sent downstream";
       {
         ReverseLock<decltype(output_lock)> release_lock(output_lock);
-        Observable<std::shared_ptr<SourceInterface>>::notifyObservers(processed->second);
+        sendSource(std::move(processed->second));
       }
       m_finished_sources.erase(processed);
       m_received.pop_front();
@@ -129,7 +133,7 @@ void Prefetcher::outputLoop() {
   logger.debug() << "Stopping prefetcher output loop";
 }
 
-void Prefetcher::handleMessage(const ProcessSourcesEvent& message) {
+void Prefetcher::receiveProcessSignal(const ProcessSourcesEvent& message) {
   {
     std::lock_guard<std::mutex> output_lock(m_queue_mutex);
     m_received.emplace_back(EventType::PROCESS_SOURCE);
@@ -163,6 +167,5 @@ void Prefetcher::synchronize() {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }
-
 
 } // end of namespace SourceXtractor
