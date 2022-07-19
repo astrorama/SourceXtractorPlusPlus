@@ -259,50 +259,47 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   {
 
-  // renders an image of the model for a single source with the final parameters
-  std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models {};
-  std::vector<PointModel> point_models {};
-  source_model->createModels(extended_models, point_models);
-  FrameModel<NullPsf<VectorImageType>, VectorImageType> frame_model_after {
-    1, (size_t) source_stamp.getWidth(), (size_t) source_stamp.getHeight(), std::move(constant_models), std::move(point_models),
-        std::move(extended_models)
-  };
-  auto final_image = frame_model_after.getImage();
+    // renders an image of the model for a single source with the final parameters
+    std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models{};
+    std::vector<PointModel> point_models{};
+    std::vector<ConstantModel> constant_models{};
+    source_model->createModels(extended_models, point_models);
+    FrameModel<NullPsf<VectorImageType>, VectorImageType> frame_model_after{1,
+                                                                            (size_t)source_stamp.getWidth(),
+                                                                            (size_t)source_stamp.getHeight(),
+                                                                            std::move(constant_models),
+                                                                            std::move(point_models),
+                                                                            std::move(extended_models)};
+    auto                                                  final_image = frame_model_after.getImage();
 
-  // integrates the flux for that source
-  double total_flux = 0;
-  for (int y=0; y < source_stamp.getHeight(); y++) {
-    for (int x=0; x < source_stamp.getWidth(); x++) {
-      PixelCoordinate pixel(x, y);
-      pixel += stamp_top_left;
+    // integrates the flux for that source
+    double total_flux = 0;
+    for (int y = 0; y < source_stamp.getHeight(); y++) {
+      for (int x = 0; x < source_stamp.getWidth(); x++) {
+        PixelCoordinate pixel(x, y);
+        pixel += stamp_top_left;
 
-      // build final stamp
-      final_stamp->setValue(x, y, final_stamp->getValue(x, y) + final_image->getValue(x, y));
+        // build final stamp
+        final_stamp->setValue(x, y, final_stamp->getValue(x, y) + final_image->getValue(x, y));
 
-      total_flux += final_image->getValue(x, y);
+        total_flux += final_image->getValue(x, y);
+      }
     }
-  }
 
-  auto coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+    auto coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
-  SeFloat x = stamp_top_left.m_x + source_model->x->getValue() - 0.5f;
-  SeFloat y = stamp_top_left.m_y + source_model->y->getValue() - 0.5f;
+    SeFloat x = stamp_top_left.m_x + source_model->x->getValue() - 0.5f;
+    SeFloat y = stamp_top_left.m_y + source_model->y->getValue() - 0.5f;
 
-  source.setProperty<MoffatModelFitting>(
-      x, y,
+    source.setProperty<MoffatModelFitting>(
+        x, y,
 
-      source_model->moffat_i0->getValue(),
-      source_model->moffat_index->getValue(),
-      source_model->minkowski_exponent->getValue(),
-      source_model->flat_top_offset->getValue(),
-      source_model->m_size,
-      source_model->moffat_x_scale->getValue(),
-      source_model->moffat_y_scale->getValue(),
-      source_model->moffat_rotation->getValue(),
+        source_model->moffat_i0->getValue(), source_model->moffat_index->getValue(),
+        source_model->minkowski_exponent->getValue(), source_model->flat_top_offset->getValue(), source_model->m_size,
+        source_model->moffat_x_scale->getValue(), source_model->moffat_y_scale->getValue(),
+        source_model->moffat_rotation->getValue(),
 
-      iterations
-  );
-
+        iterations);
   }
 }
 

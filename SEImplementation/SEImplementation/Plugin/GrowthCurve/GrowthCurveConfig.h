@@ -40,9 +40,9 @@ public:
   }
 
 public:
-  int m_nsamples;
+  int m_nsamples = 0;
 };
 
-} // end of namespace SourceXtractor
+}  // end of namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVECONFIG_H_ */
