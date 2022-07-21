@@ -46,10 +46,27 @@ sudo dnf install sourcextractor++
 They can be installed adding a `.repo` file under `/etc/yum.repos.d` with the following content:
 
 ```ini
+# Stable and tagged versions
+# This is the recommended way to install sourcextractor++
 [Astrorama]
 name=Astrorama
-baseurl=http://repository.astro.unige.ch/euclid/devel/stable/fedora/$releasever/$basearch
+baseurl=http://repository.astro.unige.ch/euclid/fedora/$releasever/$basearch
 enabled=1
+gpgcheck=0
+
+# Enable this to get the stable (untagged) version
+[Astrorama-Stable]
+name=Astrorama Stable
+baseurl=http://repository.astro.unige.ch/euclid/devel/stable/fedora/$releasever/$basearch
+enabled=0
+gpgcheck=0
+
+# Enable this to get the development version
+# Use with care!
+[Astrorama-Develop]
+name=Astrorama Develop
+baseurl=http://repository.astro.unige.ch/euclid/devel/develop/fedora/$releasever/$basearch
+enabled=0
 gpgcheck=0
 ```
 
