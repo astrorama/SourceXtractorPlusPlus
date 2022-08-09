@@ -442,7 +442,7 @@ public:
 
       //std::cout << source_type << "\n";
 
-      TestImageSource source;
+      TestImageSource source{0.};
       if (source_type == 200) {
         double magnitude, bt, exp_angle_degree, dev_angle_degree;
 
