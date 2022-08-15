@@ -177,7 +177,7 @@ public:
     m_output_properties.emplace(alias_name, typeid(PropertyType));
   }
 
-  std::set<std::string> getOutputPropertyNames() {
+  std::set<std::string> getOutputPropertyNames() const {
     std::set<std::string> result {};
     for (auto& pair : m_output_properties) {
       result.emplace(pair.first);

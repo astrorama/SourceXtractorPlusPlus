@@ -50,6 +50,10 @@ PythonInterpreter& PythonInterpreter::getSingleton() {
 }
 
 PythonInterpreter::PythonInterpreter() : m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
+  // We may be called *from* Python!
+  if (Py_IsInitialized()) {
+    return;
+  }
   // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
   // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
   // the default one) and restore it after initializing the interpreter
@@ -121,10 +125,14 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
   }
 }
 
-void PythonInterpreter::setupContext() {
+void PythonInterpreter::setupContext(boost::python::object config) {
   Pyston::GILLocker locker;
   try {
-    m_measurement_config = py::import("sourcextractor.config.measurement_config").attr("global_measurement_config");
+    if (config) {
+      m_measurement_config = config;
+    } else {
+      m_measurement_config = py::import("sourcextractor.config.measurement_config").attr("global_measurement_config");
+    }
   } catch (const py::error_already_set& e) {
     throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }

@@ -41,7 +41,7 @@ public:
   
   void runFile(const std::string& filename, const std::vector<std::string>& argv);
 
-  void setupContext();
+  void setupContext(boost::python::object config = {});
 
   virtual ~PythonInterpreter();
   
