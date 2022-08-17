@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -75,8 +76,6 @@ public:
   std::map<int, std::vector<int>> getFrameModelsMap();
 
   std::map<std::string, boost::python::object> getModelFittingParams();
-
-  std::vector<boost::python::object> getMeasurementGroups();
 
   void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
 

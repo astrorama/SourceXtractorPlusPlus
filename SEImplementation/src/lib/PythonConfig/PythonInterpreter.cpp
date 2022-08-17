@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,7 +58,9 @@ PythonInterpreter::PythonInterpreter(): m_out_wrapper(stdout_logger), m_err_wrap
 
   PyImport_AppendInittab("pyston", PYSTON_MODULE_INIT);
   Py_Initialize();
+#if PY_VERSION_HEX < 3090000
   PyEval_InitThreads();
+#endif
   PyEval_SaveThread();
 
   sigaction(SIGINT, &sigint_handler, nullptr);
@@ -334,23 +337,6 @@ std::map<std::string, boost::python::object> PythonInterpreter::getModelFittingP
     result.emplace(std::make_pair(id, par));
   }
   return result;
-}
-
-std::vector<boost::python::object> PythonInterpreter::getMeasurementGroups() {
-  Pyston::GILLocker locker;
-
-  try {
-    py::object model_fitting_module = py::import("sourcextractor.config.measurement_images");
-    py::list groups = py::extract<py::list>(model_fitting_module.attr("MeasurementGroup").attr("_all_groups"));
-    std::vector <boost::python::object> result;
-    for (int i = 0; i < py::len(groups); ++i) {
-      result.emplace_back(groups[i]);
-    }
-    return result;
-  }
-  catch (const py::error_already_set &e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
-  }
 }
 
 void PythonInterpreter::setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system) {

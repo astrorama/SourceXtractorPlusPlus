@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+# Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
 #
 # This library is free software; you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -755,8 +755,6 @@ class MeasurementGroup(object):
     image_group : ImageGroup
     """
 
-    _all_groups = list()
-
     def __init__(self, image_group, is_subgroup=False):
         """
         Constructor.
@@ -766,9 +764,7 @@ class MeasurementGroup(object):
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n,g in image_group]
-        if not is_subgroup:
-            MeasurementGroup._all_groups.append(self)
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in image_group]
 
     def __iter__(self):
         """
