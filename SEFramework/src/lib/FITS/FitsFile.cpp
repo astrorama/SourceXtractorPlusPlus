@@ -180,10 +180,10 @@ void FitsFile::loadInfo() {
 
     if (hdu_type == IMAGE_HDU) {
       int  bitpix, naxis;
-      long naxes[2] = {1, 1};
+      long naxes[3] = {1, 1, 1};
 
-      fits_get_img_param(ptr, 2, &bitpix, &naxis, naxes, &status);
-      if (status == 0 && naxis == 2) {
+      fits_get_img_param(ptr, 3, &bitpix, &naxis, naxes, &status);
+      if (status == 0 && (naxis == 2 || naxis == 3)) {
         m_image_hdus.emplace_back(hdu_number);
       }
     }
@@ -291,5 +291,40 @@ void FitsFile::loadHeadFile() {
     }
   }
 }
+
+std::vector<int> FitsFile::getDimensions(int hdu) const {
+  int status = 0;
+
+  // save current HDU
+  int original_hdu = 0;
+  fits_get_hdu_num(m_fits_ptr.get(), &original_hdu);
+
+  // got to requested HDU
+  int hdu_type = 0;
+  fits_movabs_hdu(m_fits_ptr.get(), hdu, &hdu_type, &status);
+
+  // get dimensions
+  long naxes[3] = {1, 1, 1};
+  int bitpix, naxis;
+
+  fits_get_img_param(m_fits_ptr.get(), 3, &bitpix, &naxis, naxes, &status);
+  if (status != 0 || (naxis != 2 && naxis != 3)) {
+    throw Elements::Exception()
+        << "Can't find 2D image or data cube in FITS file: " << m_path << "[" << hdu << "]";
+  }
+
+  std::vector<int> dims;
+  dims.push_back(naxes[0]);
+  dims.push_back(naxes[1]);
+  if (naxis == 3) {
+    dims.push_back(naxes[2]);
+  }
+
+  // go back to saved HDU
+  fits_movabs_hdu(m_fits_ptr.get(), original_hdu, &hdu_type, &status);
+
+  return dims;
+}
+
 
 }  // namespace SourceXtractor

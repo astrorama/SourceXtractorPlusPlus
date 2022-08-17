@@ -75,7 +75,11 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
       .def_readwrite("constant_background_value", &PyMeasurementImage::constant_background_value)
       .def_readwrite("image_hdu", &PyMeasurementImage::image_hdu)
       .def_readwrite("psf_hdu", &PyMeasurementImage::psf_hdu)
-      .def_readwrite("weight_hdu", &PyMeasurementImage::weight_hdu);
+      .def_readwrite("weight_hdu", &PyMeasurementImage::weight_hdu)
+      .def_readwrite("is_data_cube", &PyMeasurementImage::is_data_cube)
+      .def_readwrite("image_layer", &PyMeasurementImage::image_layer)
+      .def_readwrite("weight_layer", &PyMeasurementImage::weight_layer)
+      ;
 
   bp::class_<PyId>("Id", bp::init<>())
     .def_readonly("id", &PyId::id);
@@ -125,7 +129,9 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
   bp::class_<PyFitsFile>("FitsFile", "A FITS file opened by SourceXtractor++", bp::init<const std::string&>())
     .def_readonly("filename", &PyFitsFile::getFilename)
     .def_readonly("image_hdus", &PyFitsFile::getImageHdus)
-    .def("get_headers", &PyFitsFile::getHeaders, "get headers for hdu");
+    .def("get_headers", &PyFitsFile::getHeaders, "get headers for hdu")
+    .def("get_dimensions", &PyFitsFile::getDimensions, "get dimensions for hdu");
+
 }
 
 } // namespace SourceXtractor

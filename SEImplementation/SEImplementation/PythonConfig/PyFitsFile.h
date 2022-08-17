@@ -40,6 +40,7 @@ public:
   std::vector<int> getImageHdus() const;
 
   std::map<std::string, std::string> getHeaders(int hdu) const;
+  std::vector<int> getDimensions(int hdu) const;
 
 private:
   std::string m_filename;
