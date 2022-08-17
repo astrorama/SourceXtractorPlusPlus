@@ -42,6 +42,33 @@
 namespace SourceXtractor {
 
 namespace {
+
+ImageTile::ImageType convertImageType(int bitpix) {
+  ImageTile::ImageType image_type;
+
+  switch (bitpix) {
+  case FLOAT_IMG:
+    image_type = ImageTile::FloatImage;
+    break;
+  case DOUBLE_IMG:
+    image_type = ImageTile::DoubleImage;
+    break;
+  case LONG_IMG:
+    image_type = ImageTile::IntImage;
+    break;
+  case ULONG_IMG:
+    image_type = ImageTile::UIntImage;
+    break;
+  case LONGLONG_IMG:
+    image_type = ImageTile::LongLongImage;
+    break;
+  default:
+    throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
+  }
+
+  return image_type;
+}
+
 }
 
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
@@ -75,25 +102,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   m_depth = naxis >= 3 ? naxes[2] : 1;
 
   if (image_type < 0) {
-    switch (bitpix) {
-    case FLOAT_IMG:
-      m_image_type = ImageTile::FloatImage;
-      break;
-    case DOUBLE_IMG:
-      m_image_type = ImageTile::DoubleImage;
-      break;
-    case LONG_IMG:
-      m_image_type = ImageTile::IntImage;
-      break;
-    case ULONG_IMG:
-      m_image_type = ImageTile::UIntImage;
-      break;
-    case LONGLONG_IMG:
-      m_image_type = ImageTile::LongLongImage;
-      break;
-    default:
-      throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
-    }
+    m_image_type = convertImageType(bitpix);
   }
   else {
     m_image_type = image_type;
