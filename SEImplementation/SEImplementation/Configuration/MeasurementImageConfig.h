@@ -61,6 +61,10 @@ public:
     int m_image_hdu;
     int m_psf_hdu;
     int m_weight_hdu;
+
+    bool m_is_data_cube;
+    int m_image_layer;
+    int m_weight_layer;
   };
 
   explicit MeasurementImageConfig(long manager_id);

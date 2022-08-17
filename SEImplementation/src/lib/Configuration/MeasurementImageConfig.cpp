@@ -119,6 +119,9 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
   auto weight_image_source =
       std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu+1, ImageTile::FloatImage);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
+  if (py_image.is_data_cube) {
+    weight_image_source->setLayer(py_image.weight_layer);
+  }
 
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
       << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling;
@@ -189,9 +192,17 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_path = py_image.file;
       info.m_psf_path = py_image.psf_file;
 
+      info.m_is_data_cube = py_image.is_data_cube;
+      info.m_image_layer = py_image.image_layer;
+      info.m_weight_layer = py_image.weight_layer;
 
       auto fits_image_source =
           std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu+1, ImageTile::FloatImage);
+
+      if (py_image.is_data_cube) {
+        fits_image_source->setLayer(py_image.image_layer);
+      }
+
       info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
       info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 

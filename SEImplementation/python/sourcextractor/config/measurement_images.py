@@ -209,6 +209,37 @@ class MeasurementImage(cpp.MeasurementImage):
             self.meta['WEIGHT_FILENAME'], self.weight_hdu)
 
 
+class DataCubeSlice(MeasurementImage):
+    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
+                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
+                 flux_scale=None, flux_scale_keyword='FLXSCALE',
+                 weight_type='none', weight_absolute=False, weight_scaling=1.,
+                 weight_threshold=None, constant_background=None,
+                 image_hdu=0, psf_hdu=None, weight_hdu=None,
+                 image_layer=0, weight_layer=0):
+
+        super(DataCubeSlice, self).__init__(fits_file, psf_file, weight_file, gain,
+                 gain_keyword, saturation, saturation_keyword,
+                 flux_scale, flux_scale_keyword,
+                 weight_type, weight_absolute, weight_scaling,
+                 weight_threshold, constant_background,
+                 image_hdu, psf_hdu, weight_hdu)
+
+        self.is_data_cube = True
+        self.image_layer = image_layer
+        self.weight_layer = weight_layer
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            Human readable representation for the object
+        """
+        return 'DataCubeSlice {}: {} / {} / {}, PSF: {} / {}, Weight: {} / {} / {}'.format(
+            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.image_layer, self.meta['PSF_FILENAME'], self.psf_hdu,
+            self.meta['WEIGHT_FILENAME'], self.weight_hdu, self.weight_layer)
+
 def print_measurement_images(file=sys.stderr):
     """
     Print a human-readable representation of the configured measurement images.
@@ -436,6 +467,90 @@ class ImageGroup(object):
         string = StringIO()
         self.print(show_images=True, file=string)
         return string.getvalue()
+
+def load_fits_data_cube(image, psf=None, weight=None, image_cube_hdu=-1, weight_cube_hdu=-1, **kwargs):
+    """Creates an image group with the images of a data cube.
+    
+    weight can be a matching datacube, multi-hdu or list of individual images  
+    psf can be a multi-hdu or list of individual images to be matched
+    
+    In any case, they are matched in order and HDUs not containing images are ignored.
+
+    :param image: The filename of the FITS file containing the image datacube
+    :param psf: psf file or list of psf files
+    :param weight: FITS file contianing a weight datacube, a MEF contianing the weights
+         or a list of such files
+    :param image_cube_hdu: hdu containing the image datacube, default = first HDU containing image data
+    :param weight_cube_hdu: hdu containing the weight datacube, default = first HDU containing image data
+
+    :return: A ImageGroup representing the images
+    """
+    
+    image_cube_file = FitsFile(image)
+    
+    if image_cube_hdu < 0:
+        cube_hdu = image_cube_file.hdu_list[0]
+    else:
+        cube_hdu = image_cube_hdu
+        
+    dims = image_cube_file.get_dimensions(cube_hdu)
+    if len(dims) != 3:
+            raise ValueError("Not a data cube!")
+    cube_size = dims[2] 
+    image_layer_list = range(cube_size)
+    
+    # handles the PSFs
+    if isinstance(psf, list):
+        if len(psf) != cube_size:
+            raise ValueError("The number of psf files must match the number of images!")
+        psf_file_list = psf
+        psf_hdu_list = [0] * cube_size
+    else:
+        psf_file_list = [psf] * cube_size
+        psf_hdu_list = range(cube_size)
+    
+    # handles the weight maps
+    if isinstance(weight, list):
+        if len(weight) != cube_size:
+            raise ValueError("The number of weight files must match the number of images!")
+        weight_file_list = weight
+        weight_hdu_list = [0] * cube_size
+        weight_layer_list = [0] * cube_size
+    elif weight is None:
+        weight_file_list = [None] * cube_size
+        weight_hdu_list = [0] * cube_size
+        weight_layer_list = [0] * cube_size
+    else:
+        weight_fits_file = FitsFile(weight)
+        if weight_cube_hdu < 0:
+            weight_hdu = weight_fits_file.hdu_list[0]
+        else:
+            weight_hdu = weight_cube_hdu
+
+        weight_dims = weight_fits_file.get_dimensions(weight_hdu)
+        if len(weight_dims) == 3:
+            # handle weight as data cube
+            if dims[2] != cube_size:
+                raise ValueError("The weight map cube doesn't match the image cube")
+            
+            weight_file_list = [weight_fits_file] * cube_size
+            weight_hdu_list = [weight_hdu] * cube_size
+            weight_layer_list = range(cube_size)
+        else:
+            # weight is a FITS without a datacube, assume MEF
+            weight_file_list = [weight_hdu_list] * cube_size
+            weight_hdu_list = weight_hdu_list.hdu_list
+            weight_layer_list = [0] * cube_size
+
+    image_list = []
+    for psf_file, psf_hdu, weight_file, weight_hdu, image_layer, weight_layer in zip(
+            psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list, image_layer_list, weight_layer_list):
+        image_list.append(DataCubeSlice(image_cube_file, psf_file, weight_file,
+                                   image_hdu=cube_hdu, psf_hdu=psf_hdu, weight_hdu=weight_hdu,
+                                   image_layer=image_layer, weight_layer=weight_layer,
+                                   **kwargs))
+
+    return ImageGroup(images=image_list)
 
 def load_fits_image(image, psf=None, weight=None, **kwargs):
     """Creates an image group with the images of a (possibly multi-HDU) single FITS file.

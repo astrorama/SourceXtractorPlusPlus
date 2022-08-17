@@ -81,6 +81,13 @@ public:
     return m_height;
   }
 
+  /// Returns the depth of the image in pixels
+  int getDepth() const {
+    return m_depth;
+  }
+
+  void setLayer(int layer);
+
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
   void saveTile(ImageTile& tile) override;
@@ -124,7 +131,10 @@ private:
 
   int m_width;
   int m_height;
+  int m_depth;
   ImageTile::ImageType m_image_type;
+
+  int m_current_layer;
 };
 
 }
