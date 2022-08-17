@@ -34,23 +34,53 @@
 namespace SourceXtractor {
 
 class OutputRegistry {
-
 public:
-
   template <typename PropertyType, typename OutType>
   using ColumnConverter = std::function<OutType(const PropertyType&)>;
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
 
+  class ColumnFromSource {
+  public:
+    template <typename PropertyType, typename OutType>
+    explicit ColumnFromSource(ColumnConverter<PropertyType, OutType> converter) {
+      m_convert_func = [converter](const SourceInterface& source, std::size_t i) {
+        return converter(source.getProperty<PropertyType>(i));
+      };
+    }
+    Euclid::Table::Row::cell_type operator()(const SourceInterface& source) const {
+      return m_convert_func(source, index);
+    }
+    std::size_t index = 0;
+
+  private:
+    std::function<Euclid::Table::Row::cell_type(const SourceInterface&, std::size_t index)> m_convert_func;
+  };
+
+  struct ColInfo {
+    std::string unit;
+    std::string description;
+  };
+
+public:
   template <typename PropertyType, typename OutType>
   void registerColumnConverter(std::string column_name, ColumnConverter<PropertyType, OutType> converter,
                                std::string column_unit="", std::string column_description="") {
     m_property_to_names_map[typeid(PropertyType)].emplace_back(column_name);
+    m_name_to_property_map.emplace(column_name, typeid(PropertyType));
     std::type_index conv_out_type = typeid(OutType);
     ColumnFromSource conv_func {converter};
     m_name_to_converter_map.emplace(column_name,
                                     std::pair<std::type_index, ColumnFromSource>(conv_out_type, conv_func));
     m_name_to_col_info_map.emplace(column_name, ColInfo{column_unit, column_description});
+  }
+
+  std::type_index getPropertyForColumn(const std::string& column_name) const {
+    return m_name_to_property_map.at(column_name);
+  }
+
+  const std::pair<std::type_index, ColumnFromSource>& getColumnConverter(const std::string& column_name) const {
+    return m_name_to_converter_map.at(column_name);
   }
 
   /**
@@ -159,33 +189,11 @@ public:
   void printPropertyColumnMap(const std::vector<std::string>& properties={});
 
 private:
-
-  class ColumnFromSource {
-  public:
-    template <typename PropertyType, typename OutType>
-    explicit ColumnFromSource(ColumnConverter<PropertyType, OutType> converter) {
-      m_convert_func = [converter](const SourceInterface& source, std::size_t i){
-        return converter(source.getProperty<PropertyType>(i));
-      };
-    }
-    Euclid::Table::Row::cell_type operator()(const SourceInterface& source) {
-      return m_convert_func(source, index);
-    }
-    std::size_t index = 0;
-  private:
-    std::function<Euclid::Table::Row::cell_type(const SourceInterface&, std::size_t index)> m_convert_func;
-  };
-
-  struct ColInfo {
-    std::string unit;
-    std::string description;
-  };
-
-  std::map<std::type_index, std::vector<std::string>> m_property_to_names_map {};
-  std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map {};
-  std::map<std::string, ColInfo> m_name_to_col_info_map {};
-  std::multimap<std::string, std::type_index> m_output_properties {};
-
+  std::map<std::type_index, std::vector<std::string>>                 m_property_to_names_map{};
+  std::map<std::string, std::type_index>                              m_name_to_property_map{};
+  std::map<std::string, std::pair<std::type_index, ColumnFromSource>> m_name_to_converter_map{};
+  std::map<std::string, ColInfo>                                      m_name_to_col_info_map{};
+  std::multimap<std::string, std::type_index>                         m_output_properties{};
 };
 
 } /* namespace SourceXtractor */
