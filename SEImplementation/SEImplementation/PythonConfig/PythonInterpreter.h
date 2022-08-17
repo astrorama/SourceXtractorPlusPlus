@@ -39,8 +39,6 @@ public:
   
   static PythonInterpreter& getSingleton();
   
-  void runCode(const std::string& code);
-  
   void runFile(const std::string& filename, const std::vector<std::string>& argv);
 
   virtual ~PythonInterpreter();
@@ -77,12 +75,15 @@ public:
 
   std::map<std::string, boost::python::object> getModelFittingParams();
 
-  void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
-
 private:
   
   PythonInterpreter();
+
+  std::map<int, boost::python::object> getMapFromDict(const char* object_name,
+                                                      const char* dict_name);
+
   PyOutputWrapper m_out_wrapper, m_err_wrapper;
+  boost::python::object m_measurement_config;
 };
 
 } // end of namespace SourceXtractor
