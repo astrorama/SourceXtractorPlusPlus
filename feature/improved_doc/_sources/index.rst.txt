@@ -18,6 +18,7 @@ Contents
    Installing
    Using
    Processing
+   Association
    Measurements
    ConfigAPI
    Troubles
