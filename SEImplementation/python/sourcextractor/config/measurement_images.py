@@ -538,7 +538,7 @@ def load_fits_data_cube(image, psf=None, weight=None, image_cube_hdu=-1, weight_
             weight_layer_list = range(cube_size)
         else:
             # weight is a FITS without a datacube, assume MEF
-            weight_file_list = [weight_hdu_list] * cube_size
+            weight_file_list = [weight_fits_file] * cube_size
             weight_hdu_list = weight_hdu_list.hdu_list
             weight_layer_list = [0] * cube_size
 
