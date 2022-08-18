@@ -21,7 +21,8 @@ from typing import List, Union
 import _SourceXtractorPy as cpp
 
 from .measurement_config import global_measurement_config
-from .measurement_images import MeasurementGroup, MeasurementImage
+from .measurement_images import ImageGroup, MeasurementGroup, MeasurementImage
+from .model_fitting import ModelBase
 
 Aperture = cpp.Aperture
 
@@ -70,6 +71,7 @@ def add_aperture_photometry(target: Union[MeasurementImage, MeasurementGroup],
     >>>     all_apertures.extend(add_aperture_photometry(img, [5, 10, 20]))
     >>> add_output_column('aperture', all_apertures)
     """
+    global_measurement_config.add_measurement_image(target)
     return global_measurement_config.add_aperture_photometry(target, apertures)
 
 
@@ -195,7 +197,8 @@ def add_prior(param, value, sigma):
     global_measurement_config.model_fitting.add_prior(param, value, sigma)
 
 
-def add_model(group, model):
+def add_model(group: ImageGroup, model: ModelBase):
+    global_measurement_config.add_measurement_image(group)
     global_measurement_config.model_fitting.add_model(group, model)
 
 

@@ -59,6 +59,14 @@ class MeasurementConfig:
     def model_fitting(self):
         return self._model_fitting
 
+    def add_measurement_image(self, image: Union[ImageGroup, MeasurementImage, MeasurementGroup]):
+        if isinstance(image, MeasurementImage):
+            if image.id not in self._measurement_images:
+                self._measurement_images[image.id] = image
+        else:
+            for member in image:
+                self.add_measurement_image(member)
+
     def load_fits_image(self, image: str, psf: str = None, weight: str = None, **kwargs):
         """
         Creates an image group with the images of a (possibly multi-HDU) single FITS file.
