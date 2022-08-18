@@ -34,4 +34,20 @@ You may do so in any reasonable manner, but not in any way that suggests the lic
 
 **No additional restrictions** — *You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits*.
 
+References and Acknowledgment
+-----------------------------
+
+While we are working on several refereed papers describing SourceXtractor++ and its software architecture, the software package can be referenced with two ADASS conference proceedings:
+
+* `Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P. ; Kümmel, M.: 2020ASPC..527..461B <https://ui.adsabs.harvard.edu/abs/2020ASPC..527..461B/abstract>`_
+* `Kümmel, M. ; Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P.: 2020ASPC..527...29K <https://ui.adsabs.harvard.edu/abs/2020ASPC..527...29K/abstract>`_
+
+The ressources for the SourceXtractor++ development are mostly provided by funding from the Euclid satellite project via the various national agencies. For Euclid Consortium papers it is sufficient to point to the SourceXtractor++ webpage and add the standard EC acknowledgement text.
+
+For scientific publication which are non EC papers we would be greatful if the following acknowledgment could be added:
+
+.. code-block:: console
+
+  This research made use of {\tt SourceXtractor++}\footnote{https://github.com/astrorama/SourceXtractorPlusPlus}, 
+  an open source software package developed for the Euclid satellite project.
 

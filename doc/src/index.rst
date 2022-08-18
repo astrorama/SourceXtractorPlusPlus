@@ -20,6 +20,7 @@ Contents
    Processing
    Measurements
    ConfigAPI
+   Troubles
    references
 
 Indices and tables
