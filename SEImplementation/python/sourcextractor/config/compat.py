@@ -16,19 +16,16 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
-from typing import List, Union
 
 import _SourceXtractorPy as cpp
 
 from .measurement_config import global_measurement_config
-from .measurement_images import ImageGroup, MeasurementGroup, MeasurementImage
-from .model_fitting import ModelBase
+from .measurement_images import ImageGroup, MeasurementGroup
 
 Aperture = cpp.Aperture
 
 
-def add_aperture_photometry(target: Union[MeasurementImage, MeasurementGroup],
-                            apertures: Union[float, List[float]]):
+def add_aperture_photometry(target, apertures):
     """
     Flux measurement from the image above the background inside a circular aperture.
 
@@ -197,7 +194,7 @@ def add_prior(param, value, sigma):
     global_measurement_config.model_fitting.add_prior(param, value, sigma)
 
 
-def add_model(group: ImageGroup, model: ModelBase):
+def add_model(group, model):
     global_measurement_config.add_measurement_image(group)
     global_measurement_config.model_fitting.add_model(group, model)
 

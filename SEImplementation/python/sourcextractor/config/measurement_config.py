@@ -15,9 +15,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from __future__ import division, print_function
 
 import sys
-from typing import List, Union
 
 import _SourceXtractorPy as cpp
 
@@ -59,7 +59,7 @@ class MeasurementConfig:
     def model_fitting(self):
         return self._model_fitting
 
-    def add_measurement_image(self, image: Union[ImageGroup, MeasurementImage, MeasurementGroup]):
+    def add_measurement_image(self, image):
         if isinstance(image, MeasurementImage):
             if image.id not in self._measurement_images:
                 self._measurement_images[image.id] = image
@@ -67,7 +67,7 @@ class MeasurementConfig:
             for member in image:
                 self.add_measurement_image(member)
 
-    def load_fits_image(self, image: str, psf: str = None, weight: str = None, **kwargs):
+    def load_fits_image(self, image, psf=None, weight=None, **kwargs):
         """
         Creates an image group with the images of a (possibly multi-HDU) single FITS file.
 
@@ -277,8 +277,7 @@ class MeasurementConfig:
             print('       PSF: {}'.format(im.psf_file), file=file)
             print('    Weight: {}'.format(im.weight_file), file=file)
 
-    def add_aperture_photometry(self, target: Union[MeasurementImage, MeasurementGroup],
-                                apertures: Union[float, List[float]]):
+    def add_aperture_photometry(self, target, apertures):
         """
         Flux measurement from the image above the background inside a circular aperture.
 
@@ -367,7 +366,7 @@ class MeasurementConfig:
             for n, ids in self._aperture_columns:
                 print('    {} : {}'.format(n, ids), file=file)
 
-    def add_output_column(self, name: str, params: List):
+    def add_output_column(self, name, params):
         """
         Add a new set of columns to the output catalog.
 
