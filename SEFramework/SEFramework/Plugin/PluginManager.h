@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,18 +54,16 @@ class Plugin;
 class PluginManager : public PluginAPI {
 public:
 
-  virtual ~PluginManager() = default;
+  ~PluginManager() override = default;
 
   PluginManager(std::shared_ptr<TaskFactoryRegistry> task_factory_registry,
                 std::shared_ptr<OutputRegistry> output_registry,
-                long config_manager_id,
                 std::string plugin_path,
                 std::vector<std::string> plugin_list) :
         m_plugin_path(plugin_path),
-        m_plugin_list(plugin_list),
-        m_task_factory_registry(task_factory_registry),
-        m_output_registry(output_registry),
-        m_config_manager_id(config_manager_id) {}
+        m_plugin_list(std::move(plugin_list)),
+        m_task_factory_registry(std::move(task_factory_registry)),
+        m_output_registry(std::move(output_registry)) {}
 
   /// loads all the available plugins. Both those linked at compile-time and those loaded at run-time
   void loadPlugins();
@@ -76,10 +75,6 @@ public:
 
   OutputRegistry& getOutputRegistry() const override {
     return *m_output_registry;
-  }
-
-  Euclid::Configuration::ConfigManager& getConfigManager() const override {
-    return Euclid::Configuration::ConfigManager::getInstance(m_config_manager_id);
   }
 
   /// registers a plugin, this is used to register plugins linked at compile-time
@@ -94,7 +89,6 @@ private:
 
   std::shared_ptr<TaskFactoryRegistry> m_task_factory_registry;
   std::shared_ptr<OutputRegistry> m_output_registry;
-  long m_config_manager_id;
 
 #if USE_BOOST_DLL
   /// @details

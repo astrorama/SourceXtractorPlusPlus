@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -159,18 +160,6 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
 
 void MeasurementImageConfig::initialize(const UserValues&) {
   auto images = getDependency<PythonConfig>().getInterpreter().getMeasurementImages();
-  auto groups = getDependency<PythonConfig>().getInterpreter().getMeasurementGroups();
-
-  // Delegate into Python to log the measurement configuration
-  boost::char_separator<char> line_sep{"\n"};
-  for (auto &g : groups) {
-    Pyston::GILLocker locker;
-    std::string group_str = py::extract<std::string>(g.attr("__str__")());
-    boost::tokenizer<decltype(line_sep)> tok(group_str, line_sep);
-    for (auto &l : tok) {
-      logger.info() << l;
-    }
-  }
 
   if (images.size() > 0) {
     for (auto& p : images) {
