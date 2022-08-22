@@ -23,6 +23,7 @@
 #include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
+#include <SEImplementation/Plugin/AssocMode/AssocMode.h>
 
 namespace SourceXtractor {
 
@@ -39,6 +40,7 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
   auto centroid = source.getProperty<PixelCentroid>();
   auto iso_flux = source.getProperty<IsophotalFlux>();
   auto shape = source.getProperty<ShapeParameters>();
+  auto assoc = source.getProperty<AssocMode>();
 
   double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
 
@@ -48,6 +50,19 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
   emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
   emplace(std::make_pair("angle", shape.getEllipseTheta()));
   emplace(std::make_pair("aspect_ratio", aspect_guess));
+
+  emplace(std::make_pair("assoc_match", assoc.getMatch()));
+  if (assoc.getMatch()) {
+    emplace(std::make_pair("assoc_size", (int64_t) assoc.getAssocValues().shape()[0]));
+    int i=0;
+    for (auto assoc_value : assoc.getAssocValues()) {
+      std::stringstream label;
+      label << "assoc_value_" << i;
+      emplace(std::make_pair(label.str(), assoc_value));
+      i++;
+    }
+
+  }
 }
 
 }
