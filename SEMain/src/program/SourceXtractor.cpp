@@ -1,4 +1,5 @@
-/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -174,7 +175,7 @@ class SEMain : public Elements::Program {
 public:
 
   SEMain(const std::string& plugin_path, const std::vector<std::string>& plugin_list)
-          : plugin_manager { task_factory_registry, output_registry, config_manager_id, plugin_path, plugin_list } {
+          : plugin_manager { task_factory_registry, output_registry, plugin_path, plugin_list } {
   }
 
   /// Return the options that the underyling configuration register accepts

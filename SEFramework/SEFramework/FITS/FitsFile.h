@@ -53,6 +53,7 @@ public:
   const std::vector<int>& getImageHdus() const;
 
   std::map<std::string, MetadataEntry>& getHDUHeaders(int hdu);
+  std::vector<int> getDimensions(int hdu) const;
 
   void refresh();
 

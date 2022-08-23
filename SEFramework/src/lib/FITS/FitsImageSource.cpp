@@ -42,6 +42,33 @@
 namespace SourceXtractor {
 
 namespace {
+
+ImageTile::ImageType convertImageType(int bitpix) {
+  ImageTile::ImageType image_type;
+
+  switch (bitpix) {
+  case FLOAT_IMG:
+    image_type = ImageTile::FloatImage;
+    break;
+  case DOUBLE_IMG:
+    image_type = ImageTile::DoubleImage;
+    break;
+  case LONG_IMG:
+    image_type = ImageTile::IntImage;
+    break;
+  case ULONG_IMG:
+    image_type = ImageTile::UIntImage;
+    break;
+  case LONGLONG_IMG:
+    image_type = ImageTile::LongLongImage;
+    break;
+  default:
+    throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
+  }
+
+  return image_type;
+}
+
 }
 
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
@@ -50,7 +77,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
     : m_filename(filename), m_handler(manager->getFileHandler(filename)), m_hdu_number(hdu_number) {
   int status = 0;
   int bitpix, naxis;
-  long naxes[2] = {1, 1};
+  long naxes[3] = {1, 1, 1};
 
   auto acc = m_handler->getAccessor<FitsFile>();
   auto fptr = acc->m_fd.getFitsFilePtr();
@@ -65,33 +92,17 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   }
 
   fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
-  if (status != 0 || naxis != 2) {
-    throw Elements::Exception() << "Can't find 2D image in FITS file: " << filename << "[" << m_hdu_number << "]";
+  if (status != 0 || (naxis != 2 && naxis != 3)) {
+    throw Elements::Exception()
+        << "Can't find 2D image or data cube in FITS file: " << filename << "[" << m_hdu_number << "]";
   }
 
   m_width = naxes[0];
   m_height = naxes[1];
+  m_depth = naxis >= 3 ? naxes[2] : 1;
 
   if (image_type < 0) {
-    switch (bitpix) {
-    case FLOAT_IMG:
-      m_image_type = ImageTile::FloatImage;
-      break;
-    case DOUBLE_IMG:
-      m_image_type = ImageTile::DoubleImage;
-      break;
-    case LONG_IMG:
-      m_image_type = ImageTile::IntImage;
-      break;
-    case ULONG_IMG:
-      m_image_type = ImageTile::UIntImage;
-      break;
-    case LONGLONG_IMG:
-      m_image_type = ImageTile::LongLongImage;
-      break;
-    default:
-      throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
-    }
+    m_image_type = convertImageType(bitpix);
   }
   else {
     m_image_type = image_type;
@@ -189,9 +200,9 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
   auto tile = ImageTile::create(m_image_type, x, y, width, height,
                                 std::const_pointer_cast<ImageSource>(shared_from_this()));
 
-  long first_pixel[2] = {x + 1, y + 1};
-  long last_pixel[2] = {x + width, y + height};
-  long increment[2] = {1, 1};
+  long first_pixel[3] = {x + 1, y + 1, m_current_layer+1};
+  long last_pixel[3] = {x + width, y + height, m_current_layer+1};
+  long increment[3] = {1, 1, 1};
   int status = 0;
 
   fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
@@ -239,6 +250,12 @@ void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
   }
 }
 
+void FitsImageSource::setLayer(int layer) {
+  if (layer < 0 && layer >= m_depth) {
+    throw Elements::Exception() << "Trying to access an inexistent data cube layer (" << layer << ") in " << m_filename;
+  }
+  m_current_layer = layer;
+}
 
 std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;

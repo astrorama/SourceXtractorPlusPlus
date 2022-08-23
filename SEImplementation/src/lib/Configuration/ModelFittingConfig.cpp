@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -78,7 +79,7 @@ struct FunctionFromPython<double(const SourceInterface&)> {
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return [wrapped](const SourceInterface& o) -> double {
@@ -102,7 +103,7 @@ struct FunctionFromPython<double(const Pyston::Context&, const std::vector<doubl
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return wrapped;
@@ -125,7 +126,7 @@ struct FunctionFromPython<double(double, const SourceInterface&)> {
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return [wrapped](double a, const SourceInterface& o) -> double {
@@ -232,9 +233,9 @@ void ModelFittingConfig::initializeInner() {
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
     auto py_func = p.second.attr("func");
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
-    py::list param_ids = py::extract<py::list>(p.second.attr("params"));
-    for (int i = 0; i < py::len(param_ids); ++i) {
-      int id = py::extract<int>(param_ids[i]);
+    py::list dependees = py::extract<py::list>(p.second.attr("params"));
+    for (int i = 0; i < py::len(dependees); ++i) {
+      int id = py::extract<int>(dependees[i].attr("id"));
       params.push_back(m_parameters[id]);
     }
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+# Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
 #
 # This library is free software; you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -15,19 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from .measurement_images import (load_fits_images, print_measurement_images, load_fits_image,
-                                 ImageGroup, ByKeyword, ByPattern, MeasurementImage,
-                                 MeasurementGroup, FitsFile)
-from .model_fitting import (RangeType, Range, Unbounded, print_parameters, ConstantParameter,
-                            FreeParameter, DependentParameter,get_pos_parameters,
-                            FluxParameterType, get_flux_parameter, add_model,
-                            ConstantModel, PointSourceModel, SersicModel, ExponentialModel,
-                            DeVaucouleursModel, ComputeGraphModel, print_model_fitting_info, add_prior, set_max_iterations,
-                            pixel_to_world_coordinate, radius_to_wc_angle, get_separation_angle, get_position_angle,
-                            get_world_position_parameters, get_world_parameters,
-                            set_modified_chi_squared_scale, set_engine, use_iterative_fitting, set_meta_iterations,
-                            set_deblend_factor, set_meta_iteration_stop)
 
-from .aperture import *
-from .output import (add_output_column, print_output_columns)
 from .argv import *
+from .compat import *
+from .measurement_images import (ByKeyword, ByPattern, FitsFile, ImageGroup, MeasurementGroup,
+                                 MeasurementImage, DataCubeSlice)
+from .model_fitting import (ComputeGraphModel, ConstantModel, ConstantParameter, DeVaucouleursModel,
+                            DependentParameter, ExponentialModel, FluxParameterType, FreeParameter,
+                            PointSourceModel, Range, RangeType, SersicModel, Unbounded,
+                            get_flux_parameter, get_pos_parameters, get_position_angle,
+                            get_separation_angle, get_world_parameters,
+                            get_world_position_parameters, pixel_to_world_coordinate,
+                            print_model_fitting_info, radius_to_wc_angle, ModelFitting)
