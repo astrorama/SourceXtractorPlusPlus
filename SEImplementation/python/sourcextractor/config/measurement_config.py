@@ -83,7 +83,11 @@ class MeasurementConfig:
         """
 
         image_hdu_list = FitsFile(image)
-        image_hdu_idx = image_hdu_list.hdu_list
+        if "image_hdu" in kwargs.keys():
+            image_hdu_idx = [kwargs["image_hdu"]]
+            del kwargs["image_hdu"]
+        else:    
+            image_hdu_idx = image_hdu_list.hdu_list
 
         # handles the PSFs
         if isinstance(psf, list):
@@ -92,8 +96,12 @@ class MeasurementConfig:
             psf_list = psf
             psf_hdu_idx = [0] * len(psf_list)
         else:
+            if "psf_hdu" in kwargs.keys():
+                psf_hdu_idx = [kwargs["psf_hdu"]] * len(image_hdu_idx) 
+                del kwargs["psf_hdu"]
+            else:    
+                psf_hdu_idx = range(len(image_hdu_idx))
             psf_list = [psf] * len(image_hdu_idx)
-            psf_hdu_idx = range(len(image_hdu_idx))
 
         # handles the weight maps
         if isinstance(weight, list):
@@ -106,7 +114,11 @@ class MeasurementConfig:
             weight_hdu_idx = [0] * len(weight_list)
         else:
             weight_hdu_list = FitsFile(weight)
-            weight_hdu_idx = weight_hdu_list.hdu_list
+            if "weight_hdu" in kwargs.keys():
+                weight_hdu_idx = [kwargs["weight_hdu"]] * len(image_hdu_idx)
+                del kwargs["weight_hdu"]
+            else:    
+                weight_hdu_idx = weight_hdu_list.hdu_list
             weight_list = [weight_hdu_list] * len(image_hdu_idx)
 
         image_list = []
