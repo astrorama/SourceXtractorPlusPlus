@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model fitting &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration API Reference" href="ConfigAPI.html" />
+    <link rel="prev" title="Aperture photometry" href="Photom.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Measurements.html">Measuring</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Measurements.html#the-measurement-configuration-script">The measurement configuration script</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Measurements.html#measurements">Measurements</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Position.html">Isophotal measurements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Photom.html">Aperture photometry</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Model fitting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fitting-procedure">Fitting procedure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#modified-least-squares">Modified least squares</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuring-model-fitting">Configuring model-fitting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-parameters">Model parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models">Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#regularization">Regularization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#minimization">Minimization</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="Measurements.html">Measuring</a> &raquo;</li>
+      <li>Model fitting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="model-fitting">
+<span id="chap-model"></span><h1>Model fitting<a class="headerlink" href="#model-fitting" title="Permalink to this heading">¶</a></h1>
+<section id="fitting-procedure">
+<h2>Fitting procedure<a class="headerlink" href="#fitting-procedure" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">SourceXtractor++</strong> can fit models to the images of detected objects. The fit is performed by minimizing the loss function</p>
+<div class="math notranslate nohighlight" id="equation-loss-func">
+<span class="eqno">(3)<a class="headerlink" href="#equation-loss-func" title="Permalink to this equation">¶</a></span>\[\lambda(\boldsymbol{q}) = \sum_i \left(g\left(\frac{p_i - \tilde{m}_i(\boldsymbol{q})}{\sigma_i}; \kappa\right)\right)^2 + \sum_j \left(\frac{f_j(\boldsymbol{q}) - \mu_j}{s_j}\right)^2\]</div>
+<p>with respect to components of the model parameter vector <span class="math notranslate nohighlight">\(\boldsymbol{q}\)</span>. <span class="math notranslate nohighlight">\(\boldsymbol{q}\)</span> comprises parameters describing the shape of the model and the model central coordinates <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span>.</p>
+</section>
+<section id="modified-least-squares">
+<h2>Modified least squares<a class="headerlink" href="#modified-least-squares" title="Permalink to this heading">¶</a></h2>
+<p>The first term in <a class="reference internal" href="#equation-loss-func">(3)</a> is a modified <a class="reference external" href="http://en.wikipedia.org/wiki/Least_squares#Weighted_least_squares">weighted sum of squares</a> that aims at minimizing the residuals of the fit. <span class="math notranslate nohighlight">\(p_i\)</span>, <span class="math notranslate nohighlight">\(\tilde{m}_i(\boldsymbol{q})\)</span> and <span class="math notranslate nohighlight">\(\sigma_i\)</span> are respectively the pixel value above the background, the value of the resampled model, and the pixel value uncertainty at image pixel <span class="math notranslate nohighlight">\(i\)</span>.
+<span class="math notranslate nohighlight">\(g(u; \kappa)\)</span> is a derivable monotonous function that reduces the influence of large deviations from the model, such as the contamination by neighbors (<a class="reference internal" href="#fig-robustgalfit"><span class="std std-numref">Fig. 4</span></a>):</p>
+<div class="math notranslate nohighlight" id="equation-modified-lsq">
+<span class="eqno">(4)<a class="headerlink" href="#equation-modified-lsq" title="Permalink to this equation">¶</a></span>\[g(u; \kappa) = \kappa\,\mathrm{arsinh}\,\frac{u}{\kappa}.\]</div>
+<p><span class="math notranslate nohighlight">\(\kappa\)</span> sets the level below which <span class="math notranslate nohighlight">\(g(u)\approx u\)</span>.
+In practice, choosing <span class="math notranslate nohighlight">\(\kappa = 10\)</span> makes the first term in <a class="reference internal" href="#equation-loss-func">(3)</a> behave like a traditional weighted sum of squares for residuals close to the noise level.</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>The cost function in <a class="reference internal" href="#equation-loss-func">(3)</a> is optimized for noise distributions with a Gaussian core and makes model-fitting in <strong class="program">SourceXtractor++</strong> appropriate only for image noise with a <abbr title="Probability Density Function">pdf</abbr> symmetrical around the mean.</p>
+</div>
+<figure class="align-center" id="id8" style="width: 100%">
+<span id="fig-robustgalfit"></span><img alt="_images/robustgalfit.png" src="_images/robustgalfit.png" />
+<figcaption>
+<p><span class="caption-number">Fig. 4 </span><span class="caption-text">Effect of the modified least squares loss function on fitting a model to a galaxy with a bright neighbor. <em>Left</em>: the original image; <em>Middle</em>: residuals of the model fitting with a regular least squares (<span class="math notranslate nohighlight">\(\kappa = +\infty\)</span>); <em>Right</em>: modified least squares with <span class="math notranslate nohighlight">\(\kappa = 10\)</span>.</span><a class="headerlink" href="#id8" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<p>The vector <span class="math notranslate nohighlight">\(\tilde{\boldsymbol{m}}(\boldsymbol{q})\)</span> is obtained by convolving the high resolution model <span class="math notranslate nohighlight">\(\boldsymbol{m}(\boldsymbol{q})\)</span> with the local PSF model <span class="math notranslate nohighlight">\(\boldsymbol{\phi}\)</span> and applying a resampling operator <span class="math notranslate nohighlight">\(\mathbf{R}(\boldsymbol{x})\)</span> to generate the final model raster at position <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> at the nominal image resolution:</p>
+<div class="math notranslate nohighlight" id="equation-model-convolution">
+<span class="eqno">(5)<a class="headerlink" href="#equation-model-convolution" title="Permalink to this equation">¶</a></span>\[\tilde{\boldsymbol{m}}(\boldsymbol{q}) = \mathbf{R}(\boldsymbol{x}) (\boldsymbol{m}(\boldsymbol{q})*\boldsymbol{\phi}).\]</div>
+<p><span class="math notranslate nohighlight">\(\mathbf{R}(\boldsymbol{x})\)</span> depends on the pixel coordinates <span class="math notranslate nohighlight">\(\boldsymbol{x}\)</span> of the model centroid:</p>
+<div class="math notranslate nohighlight" id="equation-model-resampling">
+<span class="eqno">(6)<a class="headerlink" href="#equation-model-resampling" title="Permalink to this equation">¶</a></span>\[\mathbf{R}_{ij}(\boldsymbol{x}) =  h\left(\boldsymbol{x}_j - \eta.(\boldsymbol{x}_i - \boldsymbol{x})\right),\]</div>
+<p>where <span class="math notranslate nohighlight">\(h\)</span> is a 2-dimensional interpolant (interpolating function), <span class="math notranslate nohighlight">\(\boldsymbol{x}_i\)</span> is the coordinate vector of image pixel <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(\boldsymbol{x}_j\)</span> the coordinate vector of model sample <span class="math notranslate nohighlight">\(j\)</span>, and <span class="math notranslate nohighlight">\(\eta\)</span> is the image-to-model sampling step ratio (sampling factor) which is by default defined by the PSF model sampling.
+We adopt a Lánczos-4 function <span id="id1">[<a class="reference internal" href="references.html#id10" title="C. E. Duchon, 1979. Lanczos Filtering in One and Two Dimensions. Journal of Applied Meteorology, 18:1016-1022.">11</a>]</span> as interpolant.</p>
+</section>
+<section id="configuring-model-fitting">
+<h2>Configuring model-fitting<a class="headerlink" href="#configuring-model-fitting" title="Permalink to this heading">¶</a></h2>
+<p>The model-fitting process can be precisely defined and tuned in the <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">measurement configuration Python script</span></a>.</p>
+</section>
+<section id="model-parameters">
+<h2>Model parameters<a class="headerlink" href="#model-parameters" title="Permalink to this heading">¶</a></h2>
+<p>In <strong class="program">SourceXtractor++</strong>, any of the model parameters <span class="math notranslate nohighlight">\(q_j\)</span> may be a constant parameter, a free parameter, or a dependent parameter.</p>
+<section id="constant-parameters">
+<h3>Constant parameters<a class="headerlink" href="#constant-parameters" title="Permalink to this heading">¶</a></h3>
+<p>In the model fitting configuration, constant parameters are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ConstantParameter" title="config.model_fitting.ConstantParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConstantParameter()</span></code></a> construct:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">ConstantParameter</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>One can also use a <a class="reference external" href="https://en.wikipedia.org/wiki/Anonymous_function">lambda expression</a> based on actual measurements for the current object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">ConstantParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">())</span>
+</pre></div>
+</div>
+</section>
+<section id="free-parameters">
+<h3>Free parameters<a class="headerlink" href="#free-parameters" title="Permalink to this heading">¶</a></h3>
+<p>Free parameters are adjusted by minimizing <span class="math notranslate nohighlight">\(\lambda(\boldsymbol{q})\)</span> in <a class="reference internal" href="#equation-loss-func">(3)</a>. They are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.FreeParameter" title="config.model_fitting.FreeParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">FreeParameter()</span></code></a> construct. The free parameter initial value follows the same rules as the constant parameter value: it may be defined as a simple number supplied by the user, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="mi">42</span><span class="p">,</span> <span class="nb">range</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>or as a lambda expression, such as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="nb">range</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Many model parameters are valid only over a restricted domain.
+Fluxes, for instance, cannot be negative.
+The purpose of the range argument is to define the boundaries of the domain.
+In <strong class="program">SourceXtractor++</strong>, this domain restriction is achieved through a change of variables, applied individually to every model parameter:</p>
+<div class="math notranslate nohighlight" id="equation-change-of-variables">
+<span class="eqno">(7)<a class="headerlink" href="#equation-change-of-variables" title="Permalink to this equation">¶</a></span>\[q_j = f_j(q^\mathsf{(min)}_j, q^\mathsf{(max)}_j, Q_j).\]</div>
+<p>The “model” variable <span class="math notranslate nohighlight">\(q_j\)</span> is bounded by the lower limit <span class="math notranslate nohighlight">\(q^\mathsf{(min)}_j\)</span> and the upper limit <span class="math notranslate nohighlight">\(q^\mathsf{(max)}_j\)</span> by construction.
+The “engine” variable <span class="math notranslate nohighlight">\(Q_j\)</span> can take any value, and is actually the parameter that is being adjusted in the fit, although it does not have any physical meaning.</p>
+<section id="parameter-range">
+<h4>Parameter range<a class="headerlink" href="#parameter-range" title="Permalink to this heading">¶</a></h4>
+<p>The <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Range" title="config.model_fitting.Range"><code class="xref py py-class docutils literal notranslate"><span class="pre">Range()</span></code></a> construct is used to set <span class="math notranslate nohighlight">\(q^\mathsf{(min)}_j\)</span>, <span class="math notranslate nohighlight">\(q^\mathsf{(max)}_j\)</span>, and <span class="math notranslate nohighlight">\(f_j()\)</span>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">range</span> <span class="o">=</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The first argument is a <a class="reference external" href="https://docs.python.org/tutorial/datastructures.html#tuples-and-sequences">tuple</a> of 2 numbers specifying the lower and upper limits of the range.
+The range type defines <span class="math notranslate nohighlight">\(f_j()\)</span>.
+Currently supported range types are linear (<span class="param">RangeType.LINEAR</span>) and exponential (<span class="param">RangeType.EXPONENTIAL</span>).
+Linear ranges are appropriate for parameters such as positions or shape indices.
+Exponential ranges are better suited to strictly positive parameters with a large dynamic range, such as fluxes and aspect ratios:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">range</span> <span class="o">=</span> <span class="n">Range</span><span class="p">((</span><span class="mf">0.01</span><span class="p">,</span><span class="mi">100</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The relation between model and engine parameters is plotted <a class="reference internal" href="#fig-rangetypes"><span class="std std-numref">Fig. 5</span></a> for both examples.
+<a class="reference internal" href="#change-of-variable-table"><span class="std std-numref">Table 1</span></a> details the formula applied for currently supported range types.</p>
+<figure class="align-center" id="id9" style="width: 100%">
+<span id="fig-rangetypes"></span><img alt="_images/rangetypes.svg" src="_images/rangetypes.svg" /><figcaption>
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Engine vs model parameters. <em>Left:</em> example of a linear range (x position parameter in the range <span class="math notranslate nohighlight">\(]-1, 1[\)</span>). <em>Right</em>: example of an exponential range (aspect ratio parameter in the range <span class="math notranslate nohighlight">\(]0.01,100[\)</span>). Note the logarithmic scale of the abcissa in the second example.</span><a class="headerlink" href="#id9" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<span id="change-of-variable-table"></span><table class="docutils align-default" id="id10">
+<caption><span class="caption-number">Table 1 </span><span class="caption-text">Types of changes of variables applied to model parameters</span><a class="headerlink" href="#id10" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Model <span class="math notranslate nohighlight">\(\stackrel{f^{-1}}{\to}\)</span> Engine</p></th>
+<th class="head"><p>Engine <span class="math notranslate nohighlight">\(\stackrel{f}{\to}\)</span> Model</p></th>
+<th class="head"><p>Examples</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Unbounded (linear)</p></td>
+<td><p><span class="math notranslate nohighlight">\(Q_j = q_j\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(q_j = Q_j\)</span></p></td>
+<td><div class="line-block">
+<div class="line">Position angles</div>
+<div class="line"><br /></div>
+</div>
+</td>
+</tr>
+<tr class="row-odd"><td><p><span class="param">RangeType.LINEAR</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Q_j = \ln \frac{q_j - q^\mathsf{(min)}_j}{q^\mathsf{(max)}_j - q_j}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(q_j = \frac{q^\mathsf{(max)}_j - q^\mathsf{(min)}_j}{1 + \exp -Q_j} + q^\mathsf{(min)}_j\)</span></p></td>
+<td><div class="line-block">
+<div class="line">positions</div>
+<div class="line">Sersic index</div>
+</div>
+</td>
+</tr>
+<tr class="row-even"><td><p><span class="param">RangeType.EXPONENTIAL</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(Q_j = \ln \frac{\ln q_j - \ln q^\mathsf{(min)}_j}{\ln q^\mathsf{(max)}_j - \ln q_j}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(q_j = q^\mathsf{(min)}_j \frac{\ln q^\mathsf{(max)}_j - \ln q^\mathsf{(min)}_j}{1 + \exp -Q_j}\)</span></p></td>
+<td><div class="line-block">
+<div class="line">fluxes</div>
+<div class="line">aspect ratios</div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>In practice, we find this approach to ease convergence and to be much more reliable than a box constrained algorithm <span id="id2">[<a class="reference internal" href="references.html#id16" title="C. Kanzow, N. Yamashita, and M. Fukushima, 2004. Levenberg-Marquardt methods with strong local convergence properties for solving nonlinear equations with convex constraints. Journal of Computational and Applied Mathematics, 172(2):375-397.">12</a>]</span>.</p>
+</section>
+<section id="predefined-free-parameters">
+<h4>Predefined free parameters<a class="headerlink" href="#predefined-free-parameters" title="Permalink to this heading">¶</a></h4>
+<p><strong class="program">SourceXtractor++</strong> comes with two pre-defined free parameters for easily initializing positions (<a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_pos_parameters" title="config.model_fitting.get_pos_parameters"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_pos_parameters()</span></code></a>) and fluxes (<a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_flux_parameter" title="config.model_fitting.get_flux_parameter"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_flux_parameter()</span></code></a>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_pos_parameters</span><span class="p">():</span>
+  <span class="k">return</span> <span class="p">(</span>
+      <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get_centroid_x</span><span class="p">(),</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span><span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span><span class="o">-</span><span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="n">v</span><span class="o">+</span><span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">()),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">)),</span>
+      <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get_centroid_y</span><span class="p">(),</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span><span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span><span class="o">-</span><span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="n">v</span><span class="o">+</span><span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">()),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
+  <span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">get_flux_parameter</span><span class="p">(</span><span class="nb">type</span><span class="o">=</span><span class="n">FluxParameterType</span><span class="o">.</span><span class="n">ISO</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+  <span class="n">func_map</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="n">FluxParameterType</span><span class="o">.</span><span class="n">ISO</span> <span class="p">:</span> <span class="s1">&#39;get_iso_flux&#39;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">func_map</span><span class="p">[</span><span class="nb">type</span><span class="p">])()</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span><span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="mf">1E-3</span><span class="p">,</span> <span class="n">v</span> <span class="o">*</span> <span class="mf">1E3</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Note the use of lambda functions in the first argument to <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Range" title="config.model_fitting.Range"><code class="xref py py-class docutils literal notranslate"><span class="pre">Range()</span></code></a>.</p>
+</section>
+</section>
+<section id="dependent-parameters">
+<span id="dependent-def"></span><h3>Dependent parameters<a class="headerlink" href="#dependent-parameters" title="Permalink to this heading">¶</a></h3>
+<p>It is often useful to define dependencies between parameters. Dependent parameters are declared using the <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.DependentParameter" title="config.model_fitting.DependentParameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">DependentParameter()</span></code></a> construct.
+For instance, one may wish to adjust the sizes of two components of a model in parallel:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">size1</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">o</span><span class="o">.</span><span class="n">get_radius</span><span class="p">(),</span> <span class="n">Range</span><span class="p">((</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">100.0</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
+<span class="n">size2</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="mf">1.2</span> <span class="o">*</span> <span class="n">s</span><span class="p">,</span> <span class="n">size1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Parameter dependencies are useful for computing new output columns from fitted parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">MAG_ZEROPOINT</span> <span class="o">=</span> <span class="mf">33.568</span>
+<span class="n">mag</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="n">MAG_ZEROPOINT</span><span class="p">,</span> <span class="n">flux</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Parameter dependencies may also be used to apply changes of variables for setting complex priors, as we shall see in the next section.</p>
+</section>
+</section>
+<section id="models">
+<span id="models-def"></span><h2>Models<a class="headerlink" href="#models" title="Permalink to this heading">¶</a></h2>
+<p>The full models <span class="math notranslate nohighlight">\(\boldsymbol{m}(\boldsymbol{q})\)</span> are defined as a sum of one or several 2D functions.
+These model components are added using the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_model()</span></code> function. For instance, for adding a point source model component one may insert</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">add_model</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">PointSourceModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Composite models (e.g., a galaxy bulge plus a disk component) may be generated by inserting multiple <code class="xref py py-func docutils literal notranslate"><span class="pre">add_model()</span></code> with the same <a class="reference internal" href="Measurements.html#measurement-groups"><span class="std std-ref">measurement group</span></a>.
+Model components need not be <a class="reference external" href="https://en.wikipedia.org/wiki/Coaxial">coaxial</a>.</p>
+<p><strong class="program">SourceXtractor++</strong> currently supports the following models.</p>
+<blockquote>
+<div><p><strong>Constant</strong>: <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ConstantModel" title="config.model_fitting.ConstantModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConstantModel</span></code></a></p>
+<blockquote>
+<div><p>This is the simplest model, which applies a constant <span class="param">offset</span> to the image:</p>
+<div class="math notranslate nohighlight" id="equation-constantmodel">
+<span class="eqno">(8)<a class="headerlink" href="#equation-constantmodel" title="Permalink to this equation">¶</a></span>\[\boldsymbol{m}_{\tt Constant} = m_0\]</div>
+</div></blockquote>
+<p><strong>Point source</strong>: <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.PointSourceModel" title="config.model_fitting.PointSourceModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">PointSourceModel</span></code></a></p>
+<blockquote>
+<div><p>The point source model is appropriate for representing unresolved sources such as stars.
+It is a scaled <a class="reference external" href="https://en.wikipedia.org/wiki/Dirac_delta_function">delta function</a>, and as such depends only on a coordinate vector <span class="math notranslate nohighlight">\(\boldsymbol{r} =  (x, y)\)</span> and a flux <span class="math notranslate nohighlight">\(m_0\)</span>.</p>
+<div class="math notranslate nohighlight" id="equation-pointsourcemodel">
+<span class="eqno">(9)<a class="headerlink" href="#equation-pointsourcemodel" title="Permalink to this equation">¶</a></span>\[\boldsymbol{m}_{\tt POINTSOURCE}(\boldsymbol{r}) = m_0 \delta(\boldsymbol{r})\]</div>
+</div></blockquote>
+<p><strong>Sérsic</strong>: <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.SersicModel" title="config.model_fitting.SersicModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">SersicModel</span></code></a></p>
+<blockquote>
+<div><p>The Sérsic model has an elliptical shape with aspect ratio <span class="math notranslate nohighlight">\(\rho\)</span> and position angle <span class="math notranslate nohighlight">\(\theta\)</span>, and a <a class="reference external" href="https://en.wikipedia.org/wiki/Sersic_profile">Sérsic profile</a> <span id="id3">[<a class="reference internal" href="references.html#id38" title="J. L. Sérsic. Atlas de Galaxias Australes. Cordoba, Argentina: Observatorio Astronomico, 1968, 1968.">13</a>]</span> with effective radius <span class="math notranslate nohighlight">\(R_e\)</span> and Sérsic index <span class="math notranslate nohighlight">\(n\)</span>:</p>
+<div class="math notranslate nohighlight" id="equation-sersicmodel">
+<span class="eqno">(10)<a class="headerlink" href="#equation-sersicmodel" title="Permalink to this equation">¶</a></span>\[m_{\tt Sersic}(r) = m_0 \exp \left(- b(n)\,\left({R\over R_e}\right)^{1/n}\right),\]</div>
+<p>where <span class="math notranslate nohighlight">\(b(n)\)</span> is the solution to</p>
+<div class="math notranslate nohighlight" id="equation-bofn">
+<span class="eqno">(11)<a class="headerlink" href="#equation-bofn" title="Permalink to this equation">¶</a></span>\[2 \gamma[2\,n,b(n)] = \Gamma(2\,n)\]</div>
+<p>An accurate approximation for the solution to <span class="math notranslate nohighlight">\(b(n)\)</span> in <a class="reference internal" href="#equation-bofn">(11)</a> is <span id="id4">[<a class="reference internal" href="references.html#id8" title="L. Ciotti and G. Bertin, 1999. Analytical properties of the R^(1/m) law. A&amp;A, 352:447-451.">14</a>]</span>:</p>
+<div class="math notranslate nohighlight">
+\[b(n) = 2\,n - {1\over3} + {4\over 405\,n} + {46\over 25515\,n^2} + {131\over 1148175\,n^3}\]</div>
+</div></blockquote>
+<p><strong>Exponential</strong>: <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ExponentialModel" title="config.model_fitting.ExponentialModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">ExponentialModel</span></code></a></p>
+<blockquote>
+<div><p>The exponential model is a Sérsic model with fixed <span class="math notranslate nohighlight">\(n=1\)</span>.
+It is generally appropriate for describing <a class="reference external" href="https://en.wikipedia.org/wiki/Galactic_disc">galaxy disks</a>.</p>
+</div></blockquote>
+<p><strong>de Vaucouleurs</strong>: <a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.DeVaucouleursModel" title="config.model_fitting.DeVaucouleursModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">DeVaucouleursModel</span></code></a></p>
+<blockquote>
+<div><p>The <a class="reference external" href="https://en.wikipedia.org/wiki/De_Vaucouleurs%27_law">de Vaucouleurs</a> model is a Sérsic model with fixed <span class="math notranslate nohighlight">\(n=4\)</span>.
+It can be a good fit to <a class="reference external" href="https://en.wikipedia.org/wiki/Elliptical_galaxy">elliptical galaxies</a> and <a class="reference external" href="https://en.wikipedia.org/wiki/Bulge_(astronomy)">galaxy bulges</a>.</p>
+</div></blockquote>
+</div></blockquote>
+</section>
+<section id="regularization">
+<h2>Regularization<a class="headerlink" href="#regularization" title="Permalink to this heading">¶</a></h2>
+<p>Although minimizing the (modified) weighted sum of least squares gives a solution that fits best the data, it does not necessarily correspond to the most probable solution given what we know about celestial objects.
+The discrepancy is particularly significant in very faint (<abbr title="Signal-to-Noise Ratio">SNR</abbr> <span class="math notranslate nohighlight">\(\le 20\)</span>) and barely resolved galaxies.
+For instance, there is a tendency to overestimate the elongation of such galaxies, known as the “noise bias” in the weak-lensing community <span id="id5">[<a class="reference internal" href="references.html#id12" title="C. M. Hirata, R. Mandelbaum, U. Seljak, J. Guzik, N. Padmanabhan, C. Blake, J. Brinkmann, T. Budávari, A. Connolly, I. Csabai, R. Scranton, and A. S. Szalay, 2004. Galaxy-galaxy weak lensing in the Sloan Digital Sky Survey: intrinsic alignments and shear calibration errors. MNRAS, 353:529-549.">15</a>, <a class="reference internal" href="references.html#id19" title="P. Melchior and M. Viola, 2012. Means of confusion: how pixel noise affects shear estimates for weak gravitational lensing. MNRAS, 424:2757-2769.">16</a>, <a class="reference internal" href="references.html#id23" title="A. Refregier, T. Kacprzak, A. Amara, S. Bridle, and B. Rowe, 2012. Noise bias in weak lensing shape measurements. MNRAS, 425:1951-1957.">17</a>, <a class="reference internal" href="references.html#id15" title="T. Kacprzak, J. Zuntz, B. Rowe, S. Bridle, A. Refregier, A. Amara, L. Voigt, and M. Hirsch, 2012. Measurement and calibration of noise bias in weak lensing galaxy shape estimation. MNRAS, 427:2711-2722.">18</a>]</span>.
+The second term in <a class="reference internal" href="#equation-loss-func">(3)</a> implements a simple <a class="reference external" href="https://en.wikipedia.org/wiki/Tikhonov_regularization">Tikhonov regularization</a> scheme to mitigate this issue.
+This penalty term acts as a Gaussian prior on the selected (free or dependent) parameters.</p>
+<p>Priors are inserted using the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_prior()</span></code> function. For instance, one can put a Gaussian prior on the flux, centered on the initial isophotal guess from the detection image, with a 10% standard deviation:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flux</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
+<span class="n">add_prior</span><span class="p">(</span><span class="n">flux</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">get_iso_flux</span><span class="p">(),</span> <span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">o</span><span class="o">.</span><span class="n">get_iso_flux</span><span class="p">())</span>
+</pre></div>
+</div>
+<section id="non-gaussian-priors">
+<h3>Non-Gaussian priors<a class="headerlink" href="#non-gaussian-priors" title="Permalink to this heading">¶</a></h3>
+<p>Sometimes a Gaussian prior is unsuited to some parameters (e.g., to disfavor excessively low or high values, but not both).
+In that case a change of variable must be applied.
+This is easily accomplished using a <a class="reference internal" href="#dependent-def"><span class="std std-ref">dependent parameter</span></a>.
+For example, to penalize <a class="reference external" href="https://en.wikipedia.org/wiki/Sersic_profile">Sérsic index</a> values <span class="math notranslate nohighlight">\(n\)</span> above <span class="math notranslate nohighlight">\(n_0\)</span>, one can apply the change of variable:</p>
+<div class="math notranslate nohighlight" id="equation-change-of-prior">
+<span class="eqno">(12)<a class="headerlink" href="#equation-change-of-prior" title="Permalink to this equation">¶</a></span>\[N = e^{n - n_0},\]</div>
+<p>which can be implemented as (assuming <span class="math notranslate nohighlight">\(n_0=4\)</span> and a Gaussian prior on <span class="math notranslate nohighlight">\(N\)</span> centered on 0 with unit standard deviation):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="n">Freeparameter</span><span class="p">(</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
+<span class="n">n0</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">nc</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">nt</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">nt</span> <span class="o">-</span> <span class="n">n0</span><span class="p">),</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">add_prior</span><span class="p">(</span><span class="n">nc</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#fig-sersicpriors"><span class="std std-numref">Fig. 6</span></a> shows the resulting prior on <span class="math notranslate nohighlight">\(n\)</span> , and its regularizing effect on the solution.</p>
+<figure class="align-center" id="id11" style="width: 100%">
+<span id="fig-sersicpriors"></span><img alt="_images/sersicpriors.svg" src="_images/sersicpriors.svg" /><figcaption>
+<p><span class="caption-number">Fig. 6 </span><span class="caption-text">Effect of a non-Gaussian prior generated through a change of variable (see text).
+<em>Left:</em> Effective prior on the Sérsic index.
+<em>Right</em>: Distribution of Sérsic indices obtained for Sérsic fits on noisy data before (blue) and after (green) applying the prior.</span><a class="headerlink" href="#id11" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>Although any function valid over the parameter range could in principle be used for the change of variable, only functions producing <a class="reference external" href="https://en.wikipedia.org/wiki/Concave_function">concave</a> priors are likely to play nice with the current minimization algorithm and lead to consistent results.</p>
+</div>
+</section>
+<section id="combinations-of-parameters">
+<h3>Combinations of parameters<a class="headerlink" href="#combinations-of-parameters" title="Permalink to this heading">¶</a></h3>
+<p>Priors are also useful for penalizing some values taken by specific combinations of parameters.
+For example, the following code applied to images taken in the <span class="math notranslate nohighlight">\(g\)</span> and <span class="math notranslate nohighlight">\(r\)</span> bands sets a Gaussian prior on the color index <span class="math notranslate nohighlight">\(g - r\)</span> of the detected point sources (centered on <span class="math notranslate nohighlight">\(g - r  = 0.5\)</span>, with standard deviation 0.3):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
+<span class="n">MAG_ZEROPOINT</span> <span class="o">=</span> <span class="mf">32.19</span>
+<span class="n">flux_g</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
+<span class="n">flux_r</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
+<span class="n">mag_g</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="n">MAG_ZEROPOINT</span><span class="p">,</span> <span class="n">flux_g</span><span class="p">)</span>
+<span class="n">mag_r</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="o">-</span><span class="mf">2.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="n">MAG_ZEROPOINT</span><span class="p">,</span> <span class="n">flux_r</span><span class="p">)</span>
+<span class="n">col</span> <span class="o">=</span> <span class="n">DependentParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">g</span><span class="p">,</span><span class="n">r</span><span class="p">:</span> <span class="n">g</span> <span class="o">-</span> <span class="n">r</span><span class="p">,</span> <span class="n">mag_g</span><span class="p">,</span> <span class="n">mag_r</span><span class="p">)</span>
+<span class="n">add_prior</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">group_g</span> <span class="o">=</span> <span class="n">mesgroup</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]</span>
+<span class="n">group_r</span> <span class="o">=</span> <span class="n">mesgroup</span><span class="p">[</span><span class="s1">&#39;r&#39;</span><span class="p">]</span>
+<span class="n">add_model</span><span class="p">(</span><span class="n">group_g</span><span class="p">,</span> <span class="n">PointSourceModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux_g</span><span class="p">))</span>
+<span class="n">add_model</span><span class="p">(</span><span class="n">group_r</span><span class="p">,</span> <span class="n">PointSourceModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux_r</span><span class="p">))</span>
+<span class="n">add_output_column</span><span class="p">(</span><span class="s1">&#39;mag_g&#39;</span><span class="p">,</span> <span class="n">mag_g</span><span class="p">)</span>
+<span class="n">add_output_column</span><span class="p">(</span><span class="s1">&#39;mag_r&#39;</span><span class="p">,</span> <span class="n">mag_r</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="#fig-colorprior"><span class="std std-numref">Fig. 7</span></a> shows the impact of the prior on the color-magnitude diagram.</p>
+<figure class="align-center" id="id12" style="width: 100%">
+<span id="fig-colorprior"></span><img alt="_images/colorprior.svg" src="_images/colorprior.svg" /><figcaption>
+<p><span class="caption-number">Fig. 7 </span><span class="caption-text">Effect of a Gaussian prior (centered on 0.5 mag with standard deviation 0.3 mag) on <span class="math notranslate nohighlight">\(g - r\)</span> source color measurements.</span><a class="headerlink" href="#id12" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="minimization">
+<span id="model-minimization-def"></span><h2>Minimization<a class="headerlink" href="#minimization" title="Permalink to this heading">¶</a></h2>
+<p>Minimization of the loss function <span class="math notranslate nohighlight">\(\lambda(\boldsymbol{q})\)</span> is carried out using the <a class="reference external" href="http://en.wikipedia.org/wiki/Levenberg%E2%80%93Marquardt_algorithm">Levenberg-Marquardt algorithm</a>.
+Two Levenberg-Marquardt engines are supported in the current version of <strong class="program">SourceXtractor++</strong>: the <a class="reference external" href="http://users.ics.forth.gr/~lourakis/levmar"><strong class="program">LevMar</strong></a> library <span id="id6">[<a class="reference internal" href="references.html#id40" title="M.I.A. Lourakis, 2004. Levmar: levenberg-marquardt nonlinear least squares algorithms in C/C++.">19</a>]</span>, and the <a class="reference external" href="https://www.gnu.org/software/gsl"><strong class="program">GSL</strong></a> implementation.
+<strong class="program">LevMar</strong> approximates the Jacobian matrix of the model from finite differences using Broyden’s <span id="id7">[<a class="reference internal" href="references.html#id6" title="C. Broyden, 1965. Mathematics of Computation, 19:577-593.">20</a>]</span> rank one updates, which results in less evaluations of the model and <span class="math notranslate nohighlight">\(\approx\)</span> 30% faster processing.
+The default engine is <code class="docutils literal notranslate"><span class="pre">levmar</span></code>, but can be switched to <code class="docutils literal notranslate"><span class="pre">gsl</span></code> if preferred using the <code class="xref py py-func docutils literal notranslate"><span class="pre">set_engine()</span></code> function, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">set_engine</span><span class="p">(</span><span class="s1">&#39;gsl&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The fit is done inside a disk which diameter is scaled to include the isophotal footprint of the object, plus the FWHM of the PSF, plus a 20 % margin.</p>
+<p><span class="math notranslate nohighlight">\(1\,\sigma\)</span> uncertainty estimates are provided for most measurement parameters; they are obtained from the full covariance matrix of the fit, which is itself computed by inverting the approximate <a class="reference external" href="https://en.wikipedia.org/wiki/Hessian_matrix">Hessian matrix</a> of <span class="math notranslate nohighlight">\(\lambda(\boldsymbol{q})\)</span> at the solution.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Photom.html" class="btn btn-neutral float-left" title="Aperture photometry" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ConfigAPI.html" class="btn btn-neutral float-right" title="Configuration API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
