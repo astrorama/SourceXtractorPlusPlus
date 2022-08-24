@@ -53,6 +53,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#no-sources-detected">NO SOURCES DETECTED</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#problems-with-temporary-disk-space">Problems with temporary disk space</a></li>
 </ul>
 </li>
@@ -84,6 +85,36 @@
              
   <section id="troubleshooting">
 <h1>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this heading">¶</a></h1>
+<section id="no-sources-detected">
+<h2>NO SOURCES DETECTED<a class="headerlink" href="#no-sources-detected" title="Permalink to this heading">¶</a></h2>
+<p>If you unexpectedly find <cite>NO SOURCES DETECTED</cite> on your data, you should check your weight parameters, specifically:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">Weight image:</span>
+<span class="go">  --weight-image arg                    Path to a fits format image to be used</span>
+<span class="go">                                        as weight image.</span>
+<span class="go">  --weight-type arg (=none)             Weight image type [none|background|rms|</span>
+<span class="go">                                        variance|weight].</span>
+<span class="go">  --weight-threshold arg                Threshold for pixels to be considered</span>
+<span class="go">                                        bad pixels. In same units as weight</span>
+<span class="go">                                        map.</span>
+<span class="go">  --weight-absolute arg (=0)            Is the weight map provided as absolute</span>
+<span class="go">                                        values or relative to background.</span>
+<span class="go">  --weight-scaling arg (=1)             Weight map scaling factor.</span>
+</pre></div>
+</div>
+<p>What can happen is that inconsistent parameters are provided for <cite>–weight-image</cite>, <cite>–weight-type</cite>
+and <cite>–weight-threshold</cite>. The <cite>weight-threshold</cite> is adjusted to the <cite>weight-type</cite> which means for the types
+<cite>rms</cite> and <cite>variance</cite> you want to block large values in the <cite>weight-image</cite> by providing a large <cite>weight-threshold</cite>,
+but for the type <cite>weight</cite> the idea is to block the low values with a small <cite>weight-threshold</cite>. If you mix this up
+all pixels in the detection image might be masked and you end up with no sources.</p>
+<p>With <cite>weight-scaling</cite> you provide a scaling factor for the entire weight image, which means <cite>–weight-scaling=0</cite>
+blocks all pixels in the detection image and an unfavourable value may lower the SNR in the detection image such that
+no sources can be found.</p>
+<p>The safest way to find objetcs is indeed using <cite>–weight-type=background</cite> which determines the
+entire SNR for the detection directly from the detection image. With a <cite>–weight-image</cite> and the correct
+<cite>–weight-type</cite> (the defaults for <cite>–weight-type</cite> are set to block nothing) the <cite>–weight-absolute arg=0</cite>
+switches on the automatic scaling of the <cite>weight-image</cite> with the median rms determined from the detection
+image, which usually brings the SNR for detection into a reliable range for detecting objects.</p>
+</section>
 <section id="problems-with-temporary-disk-space">
 <h2>Problems with temporary disk space<a class="headerlink" href="#problems-with-temporary-disk-space" title="Permalink to this heading">¶</a></h2>
 <p><strong class="program">SourceXtractor++</strong> attempts to store all intermediate products (images and so on) in RAM.
