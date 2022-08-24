@@ -82,49 +82,49 @@ class MeasurementConfig:
         :return: A ImageGroup representing the images
         """
 
-        image_hdu_list = FitsFile(image)
+        image_file = FitsFile(image)
         if "image_hdu" in kwargs.keys():
-            image_hdu_idx = [kwargs["image_hdu"]]
+            image_hdu_list = [kwargs["image_hdu"]]
             del kwargs["image_hdu"]
         else:    
-            image_hdu_idx = image_hdu_list.hdu_list
+            image_hdu_list = image_file.hdu_list
 
         # handles the PSFs
         if isinstance(psf, list):
-            if len(psf) != len(image_hdu_idx):
+            if len(psf) != len(image_hdu_list):
                 raise ValueError("The number of psf files must match the number of images!")
-            psf_list = psf
-            psf_hdu_idx = [0] * len(psf_list)
+            psf_file_list = psf
+            psf_hdu_list = [0] * len(psf_file_list)
         else:
             if "psf_hdu" in kwargs.keys():
-                psf_hdu_idx = [kwargs["psf_hdu"]] * len(image_hdu_idx) 
+                psf_hdu_list = [kwargs["psf_hdu"]] * len(image_hdu_list) 
                 del kwargs["psf_hdu"]
             else:    
-                psf_hdu_idx = range(len(image_hdu_idx))
-            psf_list = [psf] * len(image_hdu_idx)
+                psf_hdu_list = range(len(image_hdu_list))
+            psf_file_list = [psf] * len(image_hdu_list)
 
         # handles the weight maps
         if isinstance(weight, list):
-            if len(weight) != len(image_hdu_idx):
+            if len(weight) != len(image_hdu_list):
                 raise ValueError("The number of weight files must match the number of images!")
-            weight_list = weight
-            weight_hdu_idx = [0] * len(weight_list)
+            weight_file_list = weight
+            weight_hdu_list = [0] * len(weight_file_list)
         elif weight is None:
-            weight_list = [None] * len(image_hdu_idx)
-            weight_hdu_idx = [0] * len(weight_list)
+            weight_file_list = [None] * len(image_hdu_list)
+            weight_hdu_list = [0] * len(weight_file_list)
         else:
-            weight_hdu_list = FitsFile(weight)
+            weight_file = FitsFile(weight)
             if "weight_hdu" in kwargs.keys():
-                weight_hdu_idx = [kwargs["weight_hdu"]] * len(image_hdu_idx)
+                weight_hdu_list = [kwargs["weight_hdu"]] * len(image_hdu_list)
                 del kwargs["weight_hdu"]
             else:    
-                weight_hdu_idx = weight_hdu_list.hdu_list
-            weight_list = [weight_hdu_list] * len(image_hdu_idx)
+                weight_hdu_list = weight_file.hdu_list
+            weight_file_list = [weight_file] * len(image_hdu_list)
 
         image_list = []
         for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
-                image_hdu_idx, psf_list, psf_hdu_idx, weight_list, weight_hdu_idx):
-            image_list.append(MeasurementImage(image_hdu_list, psf_file, weight_file,
+                image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list):
+            image_list.append(MeasurementImage(image_file, psf_file, weight_file,
                                                image_hdu=hdu, psf_hdu=psf_hdu,
                                                weight_hdu=weight_hdu,
                                                **kwargs))
