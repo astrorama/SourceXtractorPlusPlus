@@ -2,6 +2,9 @@
 
 .. include:: global.rst
 
+.. index::
+      single: association mode
+
 Asociation Mode
 ===============
 
