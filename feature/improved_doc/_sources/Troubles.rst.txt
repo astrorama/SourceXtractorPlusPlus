@@ -3,9 +3,8 @@
 .. include:: global.rst
 
 .. index::
-   single: troubleshooting
-   single: NO SOURCES DETECTED
-
+   single: Troubleshooting
+ 
 Troubleshooting
 ===============
 
