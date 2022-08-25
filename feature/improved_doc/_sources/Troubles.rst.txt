@@ -2,8 +2,15 @@
 
 .. include:: global.rst
 
+.. index::
+   single: troubleshooting
+   single: NO SOURCES DETECTED
+
 Troubleshooting
 ===============
+
+.. index::
+   single: NO SOURCES DETECTED
 
 NO SOURCES DETECTED
 -------------------
@@ -40,6 +47,9 @@ entire SNR for the detection directly from the detection image. With a `--weight
 switches on the automatic scaling of the `weight-image` with the median rms determined from the detection
 image, which usually brings the SNR for detection into a reliable range for detecting objects.
 
+
+.. index::
+   single: temporary disk space
 
 Problems with temporary disk space
 ----------------------------------
