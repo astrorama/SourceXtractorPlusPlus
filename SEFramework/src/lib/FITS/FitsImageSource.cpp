@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -74,7 +75,10 @@ ImageTile::ImageType convertImageType(int bitpix) {
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
                                  ImageTile::ImageType image_type,
                                  std::shared_ptr<FileManager> manager)
-    : m_filename(filename), m_handler(manager->getFileHandler(filename)), m_hdu_number(hdu_number) {
+    : m_filename(filename)
+    , m_file_manager(std::move(manager))
+    , m_handler(m_file_manager->getFileHandler(filename))
+    , m_hdu_number(hdu_number) {
   int status = 0;
   int bitpix, naxis;
   long naxes[3] = {1, 1, 1};
@@ -109,14 +113,12 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   }
 }
 
-
-FitsImageSource::FitsImageSource(const std::string& filename, int width, int height,
-                                 ImageTile::ImageType image_type,
-                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append,
-                                 bool empty_primary,
+FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
+                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append, bool empty_primary,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
-    , m_handler(manager->getFileHandler(filename))
+    , m_file_manager(std::move(manager))
+    , m_handler(m_file_manager->getFileHandler(filename))
     , m_width(width)
     , m_height(height)
     , m_image_type(image_type) {
@@ -189,7 +191,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
   // after we created the file
 
   m_handler = nullptr;
-  m_handler = manager->getFileHandler(filename);
+  m_handler = m_file_manager->getFileHandler(filename);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
