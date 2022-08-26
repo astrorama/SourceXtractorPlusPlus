@@ -114,9 +114,9 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
-  const std::map<std::string, MetadataEntry> getMetadata() const override;
+  const std::map<std::string, MetadataEntry>& getMetadata() const override;
 
-  void setMetadata(std::string key, MetadataEntry value) override;
+  void setMetadata(const std::string& key, const MetadataEntry& value) override;
 
 private:
   void switchHdu(fitsfile *fptr, int hdu_number) const;

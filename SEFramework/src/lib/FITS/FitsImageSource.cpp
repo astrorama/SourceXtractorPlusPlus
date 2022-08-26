@@ -22,25 +22,24 @@
  *      Author: mschefer
  */
 
-#include <iomanip>
+#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/FITS/FitsFile.h"
+#include "SEUtils/VariantCast.h"
+#include <AlexandriaKernel/memory_tools.h>
+#include <ElementsKernel/Exception.h>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/regex.hpp>
 #include <fstream>
+#include <iomanip>
 #include <numeric>
 #include <string>
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/regex.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/trim.hpp>
-
-#include <ElementsKernel/Exception.h>
-
-#include "SEFramework/FITS/FitsFile.h"
-#include "SEUtils/VariantCast.h"
-
-#include "SEFramework/FITS/FitsImageSource.h"
-
 namespace SourceXtractor {
+
+using Euclid::make_unique;
 
 namespace {
 
@@ -137,7 +136,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
 
     assert(fptr != nullptr);
 
-    if (empty_primary &&  acc->m_fd.getImageHdus().size() == 0) {
+    if (empty_primary &&  acc->m_fd.getImageHdus().empty()) {
       fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
       if (status != 0) {
         throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
@@ -156,7 +155,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
 
     if (coord_system) {
       auto headers = coord_system->getFitsHeaders();
-      for (auto& h : headers) {
+      for (const auto& h : headers) {
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;
 
@@ -264,8 +263,8 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   std::string records;
 
   auto& headers = getMetadata();
-  for (auto record : headers) {
-    auto key = record.first;
+  for (const auto& record : headers) {
+    const auto& key = record.first;
 
     std::string record_string(key);
     if (record_string.size() > 8) {
@@ -299,17 +298,17 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   record_string += std::string(80 - record_string.size(), ' ');
   records += record_string;
 
-  std::unique_ptr<std::vector<char>> buffer(new std::vector<char>(records.begin(), records.end()));
+  auto buffer = make_unique<std::vector<char>>(records.begin(), records.end());
   buffer->emplace_back(0);
   return buffer;
 }
 
-const std::map<std::string, MetadataEntry> FitsImageSource::getMetadata() const {
+const std::map<std::string, MetadataEntry>& FitsImageSource::getMetadata() const {
   auto acc = m_handler->getAccessor<FitsFile>();
   return acc->m_fd.getHDUHeaders(m_hdu_number);
 }
 
-void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
+void FitsImageSource::setMetadata(const std::string& key, const MetadataEntry& value) {
   auto acc  = m_handler->getAccessor<FitsFile>();
   auto fptr = acc->m_fd.getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
