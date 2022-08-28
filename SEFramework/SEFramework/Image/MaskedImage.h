@@ -46,7 +46,7 @@ class MaskedImage : public Image<T> {
 private:
   MaskedImage(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<M>>& mask,
               T replacement, M mask_flag) : m_image{image}, m_mask{mask}, m_replacement{replacement},
-                                            m_mask_flag{mask_flag}, m_n_masked{0}, m_n_unmasked{0} {
+                                            m_mask_flag{mask_flag}, m_n_masked{0}, m_n_total{0} {
   }
 
   std::shared_ptr<Image<T>> m_image;
@@ -56,7 +56,7 @@ private:
   Operator<M> m_operator;
 
   mutable std::size_t m_n_masked;
-  mutable std::size_t m_n_unmasked;
+  mutable std::size_t m_n_total;
 
 public:
   virtual ~MaskedImage() = default;
@@ -82,10 +82,14 @@ public:
   }
 
   std::string getRepr() const final {
-    char char_fract[8];
-    // determine the percentage of masked pixels
-    std::snprintf(char_fract, 7, "%.1f%", 100.0*this->getNMasked()/(m_image->getWidth()*m_image->getHeight()));
-    return std::string("Masked(" + m_image->getRepr() + ") with "+std::string(char_fract)+" masked pixels");
+    if (m_n_total == (m_image->getWidth()*m_image->getHeight())){
+	char char_fract[8];
+	// determine the percentage of masked pixels
+	std::snprintf(char_fract, 7, "%.1f%", 100.0*this->getNMasked()/(m_image->getWidth()*m_image->getHeight()));
+	return std::string("Masked(" + m_image->getRepr() + ") with "+std::string(char_fract)+" weight image masked pixels;");
+    }
+    else
+      return std::string("Masked(" + m_image->getRepr() + ")");
   }
 
   int getWidth() const final {
@@ -100,23 +104,21 @@ public:
     return m_n_masked;
   }
 
-  std::size_t getNUnMasked() const {
-    return m_n_unmasked;
+  std::size_t getNTotal() const {
+    return m_n_total;
   }
 
   std::shared_ptr<ImageChunk<T>> getChunk(int x, int y, int width, int height) const final {
     auto chunk = UniversalImageChunk<T>::create(std::move(*m_image->getChunk(x, y, width, height)));
     auto mask_chunk = m_mask->getChunk(x, y, width, height);
     for (int iy = 0; iy < height; ++iy) {
-      for (int ix = 0; ix < width; ++ix) {
-        if (m_operator(mask_chunk->getValue(ix, iy), m_mask_flag)){
-          chunk->setValue(ix, iy, m_replacement);
-          m_n_masked+=1;
-        }
-        else {
-          m_n_unmasked+=1;
-        }
-      }
+	for (int ix = 0; ix < width; ++ix) {
+	    m_n_total += 1;
+	    if (m_operator(mask_chunk->getValue(ix, iy), m_mask_flag)){
+		chunk->setValue(ix, iy, m_replacement);
+		m_n_masked+=1;
+	    }
+	}
     }
     return chunk;
   }
