@@ -30,7 +30,7 @@ If you unexpectedly find `NO SOURCES DETECTED` on your data, you should check yo
                                            values or relative to background.
      --weight-scaling arg (=1)             Weight map scaling factor.
 
-What can happen is that inconsistent parameters are provided for `--weight-image`, `--weight-type`
+What can happen is that :index:`inconsistent` parameters are provided for `--weight-image`, `--weight-type`
 and `--weight-threshold`. The `weight-threshold` is adjusted to the `weight-type` which means for the types
 `rms` and `variance` you want to block large values in the `weight-image` by providing a large `weight-threshold`,
 but for the type `weight` the idea is to block the low values with a small `weight-threshold`. If you mix this up
