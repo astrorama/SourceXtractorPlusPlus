@@ -1,4 +1,5 @@
-/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,6 +23,9 @@
 
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
+#include "AlexandriaKernel/memory_tools.h"
+
+using Euclid::make_unique;
 
 namespace SourceXtractor {
 
@@ -107,6 +111,16 @@ void SourceGroupWithOnDemandProperties::clearGroupProperties() {
 
 unsigned int SourceGroupWithOnDemandProperties::size() const {
   return m_sources.size();
+}
+
+std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::clone() const {
+  auto cloned = make_unique<SourceGroupWithOnDemandProperties>(m_task_provider);
+  for (const auto& source : m_sources) {
+    auto& entangled_source = dynamic_cast<EntangledSource&>(source.getRef());
+    cloned->m_sources.emplace_back(Euclid::make_unique<EntangledSource>(entangled_source.m_source, *cloned));
+  }
+  cloned->m_property_holder.update(this->m_property_holder);
+  return cloned;
 }
 
 } // SourceXtractor namespace

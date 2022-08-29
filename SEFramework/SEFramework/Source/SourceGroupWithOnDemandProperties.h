@@ -1,4 +1,5 @@
-/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -70,6 +71,8 @@ public:
 
   unsigned int size() const override;
 
+  std::unique_ptr<SourceInterface> clone() const override;
+
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
 
@@ -104,6 +107,8 @@ public:
 
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
+  std::unique_ptr<SourceInterface> clone() const override;
+
   bool operator<(const EntangledSource& other) const;
 
 private:
@@ -114,7 +119,7 @@ private:
 
   friend void SourceGroupWithOnDemandProperties::clearGroupProperties();
   friend void SourceGroupWithOnDemandProperties::merge(SourceGroupInterface&&);
-
+  friend std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::clone() const;
 };
 
 } /* namespace SourceXtractor */

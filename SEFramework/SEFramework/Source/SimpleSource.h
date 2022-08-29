@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,6 +54,12 @@ public:
 
   /// Constructor
   SimpleSource() {}
+
+  std::unique_ptr<SourceInterface> clone() const override {
+    auto cloned = std::make_unique<SimpleSource>();
+    cloned->m_property_holder.update(m_property_holder);
+    return std::move(cloned);
+  }
 
   // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For

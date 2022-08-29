@@ -1,4 +1,5 @@
-/** Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,6 +21,9 @@
  */
 
 #include "SEFramework/Source/SimpleSourceGroup.h"
+#include "AlexandriaKernel/memory_tools.h"
+
+using Euclid::make_unique;
 
 namespace SourceXtractor {
 
@@ -77,4 +81,13 @@ unsigned int SimpleSourceGroup::size() const {
   return m_sources.size();
 }
 
-} // SourceXtractor namespace
+std::unique_ptr<SourceInterface> SimpleSourceGroup::clone() const {
+  auto cloned = make_unique<SimpleSourceGroup>();
+  for (const auto& src : m_sources) {
+    cloned->addSource(src.getRef().clone());
+  }
+  cloned->m_property_holder.update(m_property_holder);
+  return cloned;
+}
+
+}  // namespace SourceXtractor
