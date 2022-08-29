@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -78,6 +79,10 @@ const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(
 
 void SourceGroupWithOnDemandProperties::EntangledSource::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
+}
+
+std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::EntangledSource::clone() const {
+  throw Elements::Exception("Can not clone an entangled source");
 }
 
 bool SourceGroupWithOnDemandProperties::EntangledSource::operator<(const EntangledSource& other) const {

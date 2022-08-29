@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -50,8 +51,6 @@ public:
   virtual ~SourceWithOnDemandProperties() = default;
 
   // removes copy/move constructors and assignment operators
-
-  SourceWithOnDemandProperties(const SourceWithOnDemandProperties&) = delete;
   SourceWithOnDemandProperties& operator=(const SourceWithOnDemandProperties&) = delete;
   SourceWithOnDemandProperties(SourceWithOnDemandProperties&&) = delete;
   SourceWithOnDemandProperties& operator=(SourceWithOnDemandProperties&&) = delete;
@@ -65,6 +64,8 @@ public:
   // done by the using statements below.
   using SourceInterface::getProperty;
   using SourceInterface::setProperty;
+
+  std::unique_ptr<SourceInterface> clone() const override;
   
 protected:
   
@@ -73,6 +74,8 @@ protected:
   void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
+  SourceWithOnDemandProperties(const SourceWithOnDemandProperties& other);
+
   std::shared_ptr<const TaskProvider> m_task_provider;
   PropertyHolder m_property_holder;
 }; /* End of Source class */

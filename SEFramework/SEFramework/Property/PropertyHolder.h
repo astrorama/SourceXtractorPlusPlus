@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -64,12 +65,14 @@ public:
 
   /// Returns true if the property is set
   bool isPropertySet(const PropertyId& property_id) const;
-  
+
   void clear();
+
+  void update(const PropertyHolder& other);
 
 private:
 
-  std::unordered_map<PropertyId, std::unique_ptr<Property>> m_properties;
+  std::unordered_map<PropertyId, std::shared_ptr<Property>> m_properties;
 
 }; /* End of ObjectWithProperties class */
 
