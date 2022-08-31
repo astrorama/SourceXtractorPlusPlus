@@ -60,7 +60,7 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
 
   emplace(std::make_pair("assoc_match", assoc.getMatch()));
   if (assoc.getMatch()) {
-    emplace(std::make_pair("assoc_size", (int64_t) assoc.getAssocValues().shape()[0]));
+    emplace(std::make_pair("assoc_size", (double) assoc.getAssocValues().shape()[0]));
     int i=0;
     for (auto assoc_value : assoc.getAssocValues()) {
       std::stringstream label;
