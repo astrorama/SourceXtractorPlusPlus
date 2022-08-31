@@ -283,10 +283,11 @@ void FlexibleModelFittingTask::computeProperties(SourceGroupInterface& group) co
 
       for (auto parameter : m_parameters) {
         bool is_dependent_parameter = std::dynamic_pointer_cast<FlexibleModelFittingDependentParameter>(parameter).get();
+        bool is_constant_parameter = std::dynamic_pointer_cast<FlexibleModelFittingConstantParameter>(parameter).get();
         bool accessed_by_modelfitting = parameter_manager.isParamAccessed(source, parameter);
         auto modelfitting_parameter = parameter_manager.getParameter(source, parameter);
 
-        if (is_dependent_parameter || accessed_by_modelfitting) {
+        if (is_constant_parameter || is_dependent_parameter || accessed_by_modelfitting) {
           parameter_values[parameter->getId()] = modelfitting_parameter->getValue();
           parameter_sigmas[parameter->getId()] = parameter->getSigma(parameter_manager, source, solution.parameter_sigmas);
         }
