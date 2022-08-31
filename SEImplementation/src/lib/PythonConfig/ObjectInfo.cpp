@@ -34,6 +34,13 @@ ObjectInfo::ObjectInfo() {
   emplace(std::make_pair("radius", 0.));
   emplace(std::make_pair("angle", 0.));
   emplace(std::make_pair("aspect_ratio", 0.));
+  emplace(std::make_pair("assoc_match", false));
+  emplace(std::make_pair("assoc_size", 0.));
+  for (int i=0; i<99; i++) {
+    std::stringstream label;
+    label << "assoc_value_" << i;
+    emplace(std::make_pair(label.str(), 0.));
+  }
 }
 
 ObjectInfo::ObjectInfo(const SourceInterface& source) {
