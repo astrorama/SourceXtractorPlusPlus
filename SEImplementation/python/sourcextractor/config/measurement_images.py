@@ -109,6 +109,14 @@ class MeasurementImage(cpp.MeasurementImage):
         For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
     """
 
+    def _set_checked(self, attr_name, value):
+        try:
+            setattr(self, attr_name, value)
+        except Exception:
+            expected_type = type(getattr(self, attr_name))
+            raise TypeError(
+                f'Expecting {expected_type.__name__} for {attr_name}, got {type(value).__name__}')
+
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
@@ -146,53 +154,53 @@ class MeasurementImage(cpp.MeasurementImage):
         self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
-            self.gain = gain
+            self._set_checked('gain', gain)
         elif gain_keyword in self.meta:
             self.gain = float(self.meta[gain_keyword])
         else:
             self.gain = 0.
 
         if saturation is not None:
-            self.saturation = saturation
+            self._set_checked('saturation', saturation)
         elif saturation_keyword in self.meta:
             self.saturation = float(self.meta[saturation_keyword])
         else:
             self.saturation = 0.
 
         if flux_scale is not None:
-            self.flux_scale = flux_scale
+            self._set_checked('flux_scale', flux_scale)
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 1.
 
-        self.weight_type = weight_type
-        self.weight_absolute = weight_absolute
-        self.weight_scaling = weight_scaling
+        self._set_checked('weight_type', weight_type)
+        self._set_checked('weight_absolute', weight_absolute)
+        self._set_checked('weight_scaling', weight_scaling)
         if weight_threshold is None:
             self.has_weight_threshold = False
         else:
             self.has_weight_threshold = True
-            self.weight_threshold = weight_threshold
+            self._set_checked('weight_threshold', weight_threshold)
 
         if constant_background is not None:
             self.is_background_constant = True
-            self.constant_background_value = constant_background
+            self._set_checked('constant_background_value', constant_background)
         else:
             self.is_background_constant = False
             self.constant_background_value = -1
 
-        self.image_hdu = image_hdu
+        self._set_checked('image_hdu', image_hdu)
 
         if psf_hdu is None:
-            self.psf_hdu = image_hdu
+            self._set_checked('psf_hdu', image_hdu)
         else:
-            self.psf_hdu = psf_hdu
+            self._set_checked('psf_hdu', psf_hdu)
 
         if weight_hdu is None:
-            self.weight_hdu = image_hdu
+            self._set_checked('weight_hdu', image_hdu)
         else:
-            self.weight_hdu = weight_hdu
+            self._set_checked('weight_hdu', weight_hdu)
 
     def __str__(self):
         """
