@@ -114,8 +114,8 @@ class MeasurementImage(cpp.MeasurementImage):
             setattr(self, attr_name, value)
         except Exception:
             expected_type = type(getattr(self, attr_name))
-            raise TypeError(
-                f'Expecting {expected_type.__name__} for {attr_name}, got {type(value).__name__}')
+            raise TypeError('Expecting {} for {}, got {}'.format(expected_type.__name__, attr_name,
+                                                                 type(value).__name__))
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
