@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,29 +22,25 @@
  *      Author: mschefer
  */
 
-#include <mutex>
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include <boost/algorithm/string/trim.hpp>
-
 #include <fitsio.h>
-
-#include <wcslib/wcs.h>
-#include <wcslib/wcshdr.h>
-#include <wcslib/wcsfix.h>
-#include <wcslib/wcsprintf.h>
-#include <wcslib/getwcstab.h>
+#include <mutex>
 #include <wcslib/dis.h>
+#include <wcslib/wcs.h>
+#include <wcslib/wcsfix.h>
+#include <wcslib/wcshdr.h>
+#include <wcslib/wcsprintf.h>
 
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
-
-#include "SEFramework/CoordinateSystem/WCS.h"
 
 namespace SourceXtractor {
 
 static auto logger = Elements::Logging::getLogger("WCS");
 
-decltype(&lincpy) safe_lincpy = &lincpy;
+decltype(&wcssub) safe_wcssub = &wcssub;
 
 /**
  * Translate the return code from wcspih to an elements exception
@@ -82,7 +79,6 @@ static void wcsRaiseOnTransformError(wcsprm *wcs, int ret_code) {
     if (wcs->lin.disseq) {
       wcsLogErr(wcs->lin.disseq->err);
     }
-    linfree(&wcs->lin);
     throw InvalidCoordinatesException() << wcs_errmsg[ret_code];
   }
 }
@@ -149,13 +145,12 @@ static void wcsReportWarnings(const char *err_buffer) {
  * rely on global variables for determining the allocation sizes. For those versions, this is called
  * instead, wrapping the call with a mutex.
  */
-static int wrapped_lincpy(int alloc, const struct linprm *linsrc, struct linprm *lindst) {
-  static std::mutex lincpy_mutex;
-  std::lock_guard<std::mutex> lock(lincpy_mutex);
+static int wrapped_wcssub(int alloc, const struct wcsprm* wcssrc, int* nsub, int axes[], struct wcsprm* wcsdst) {
+  static std::mutex           cpy_mutex;
+  std::lock_guard<std::mutex> lock(cpy_mutex);
 
-  return lincpy(alloc, linsrc, lindst);
+  return wcssub(alloc, wcssrc, nsub, axes, wcsdst);
 }
-
 
 WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
   int number_of_records = 0;
@@ -216,7 +211,7 @@ void WCS::init(char* headers, int number_of_records) {
   if (wcsver[0] < 5 || (wcsver[0] == 5 && wcsver[1] < 18)) {
     logger.info() << "wcslib " << wcsver[0] << "." << wcsver[1]
                   << " is not fully thread safe, using wrapped lincpy call!";
-    safe_lincpy = &wrapped_lincpy;
+    safe_wcssub = &wrapped_wcssub;
   }
 }
 
@@ -225,11 +220,10 @@ WCS::~WCS() {
 }
 
 WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
-  // wcsprm is in/out, since its member lin is modified by wcsp2s
-  wcsprm wcs_copy = *m_wcs;
-  wcs_copy.lin.flag = -1;
-  safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
-  linset(&wcs_copy.lin);
+  // wcsprm is in/out
+  wcsprm wcs_copy;
+  wcs_copy.flag = -1;
+  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, &wcs_copy);
 
   // +1 as fits standard coordinates start at 1
   double pc_array[2] {image_coordinate.m_x + 1, image_coordinate.m_y + 1};
@@ -239,20 +233,18 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
-  linfree(&wcs_copy.lin);
+  wcsfree(&wcs_copy);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
 
 ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
-  // wcsprm is in/out, since its member lin is modified by wcss2p
-  wcsprm wcs_copy = *m_wcs;
-  wcs_copy.lin.flag = -1;
-  safe_lincpy(true, &m_wcs->lin, &wcs_copy.lin);
-  linset(&wcs_copy.lin);
+  // wcsprm is in/out
+  wcsprm wcs_copy;
+  wcs_copy.flag = -1;
+  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, &wcs_copy);
 
   double pc_array[2] {0, 0};
   double ic_array[2] {0, 0};
@@ -262,7 +254,7 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   int status = 0;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
-  linfree(&wcs_copy.lin);
+  wcsfree(&wcs_copy);
 
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
