@@ -63,7 +63,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'SourceXtractor++'
 filename = 'sourcextractor'
-copyright = '2019,2020 GenevaU/LMU/CNRS/SorbonneU'
+copyright = '2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU'
 author = 'SourceXtractor++ team'
 
 # The version info for the project you're documenting, acts as replacement for
