@@ -38,11 +38,9 @@ You may do so in any reasonable manner, but not in any way that suggests the lic
 Discussion group for |SourceXtractor++| users
 ---------------------------------------------
 
-In order to facilitaet an active disucssion among SourceXtractor++ users we have created
-a `users group <https://groups.google.com/g/sourcextractor_plusplus>`_. We encourage all users to directly
-join the group (if a google account is at hand) or to ask us to add you as member
+In order to facilitate active discussiond among SourceXtractor++ users a `users group <https://groups.google.com/g/sourcextractor_plusplus>`_
+has been created. We encourage all users to directly join the group (if a google account is at hand) or to ask us to add you as member
 (just open an issue on the `github page <https://astrorama.github.io/SourceXtractorPlusPlus/>`_).
-
 
 References and Acknowledgment
 -----------------------------

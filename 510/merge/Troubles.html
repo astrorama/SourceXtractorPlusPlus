@@ -102,37 +102,37 @@
 </pre></div>
 </div>
 <p>What can happen is that <span class="target" id="index-2"></span>inconsistent parameters are provided for <cite>–weight-image</cite>, <cite>–weight-type</cite>
-and <cite>–weight-threshold</cite>. The <cite>weight-threshold</cite> is adjusted to the <cite>weight-type</cite> which means for the types
-<cite>rms</cite> and <cite>variance</cite> you want to block large values in the <cite>weight-image</cite> by providing a large <cite>weight-threshold</cite>,
-but for the type <cite>weight</cite> the idea is to block the low values with a small <cite>weight-threshold</cite>. If you mix this up
-all pixels in the detection image might be masked and you end up with no sources.</p>
-<p>With <cite>weight-scaling</cite> you provide a scaling factor for the entire weight image, which means <cite>–weight-scaling=0</cite>
-blocks all pixels in the detection image and an unfavourable value may lower the SNR in the detection image such that
-no sources can be found.</p>
+and <cite>–weight-threshold</cite>. The <cite>weight-threshold</cite> is adjusted to the <cite>weight-type</cite>. This means that for the
+<cite>rms</cite> and <cite>variance</cite> types one wants to mask out large values in the <cite>weight-image</cite> by providing a large <cite>weight-threshold</cite>.
+but for the <cite>weight</cite> type the low values should be masked out with a small <cite>weight-threshold</cite>. Mixing this up
+will result in all pixels in the detection image being masked out and no sources detected.</p>
+<p>With <cite>weight-scaling</cite> one provides a scaling factor for the entire weight image. For instance <cite>–weight-scaling=0</cite>
+masks out all pixels in the detection image and an inappropriate value may lower the SNR in the detection image to the point
+that no sources can be found.</p>
 <p>The safest way to find objetcs is indeed using <cite>–weight-type=background</cite> which determines the
-entire SNR for the detection directly from the detection image. With a <cite>–weight-image</cite> and the correct
-<cite>–weight-type</cite> (the defaults for <cite>–weight-type</cite> are set to block nothing) the <cite>–weight-absolute arg=0</cite>
-switches on the automatic scaling of the <cite>weight-image</cite> with the median rms determined from the detection
+noise amplitude and therefore the entire SNR for the detection directly from the detection image. With a <cite>–weight-image</cite>
+and the correct <cite>–weight-type</cite> (the defaults for <cite>–weight-type</cite> are set to mask out nothing),
+<cite>–weight-absolute arg=0</cite> switches on automatic scaling of the <cite>weight-image</cite> with the median rms determined from the detection
 image, which usually brings the SNR for detection into a reliable range for detecting objects.</p>
 </section>
 <section id="problems-with-temporary-disk-space">
 <span id="index-3"></span><h2>Problems with temporary disk space<a class="headerlink" href="#problems-with-temporary-disk-space" title="Permalink to this heading">¶</a></h2>
-<p><strong class="program">SourceXtractor++</strong> attempts to store all intermediate products (images and so on) in RAM.
-If there is not enough RAM or not enough RAM was offered to <strong class="program">SourceXtractor++</strong> (parameter <cite>tile-memory-limit</cite>),
-the temporary disk space of the operating system is being used. Depending on the situation (data size, available disk space)
-there could be not enough space on the temporary disk, which results in an error such as:</p>
+<p><strong class="program">SourceXtractor++</strong> attempts to store all intermediate products (images and so on) in memory.
+If not enough memory is available or provided to <strong class="program">SourceXtractor++</strong> (with the <cite>tile-memory-limit</cite> option),
+disk space is put to contribution through temporary files. Depending on the situation (data size, available disk space)
+there could be no space left for these temporary files, resulting in errors such as:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">2022-08-18T14:15:48CEST SourceXtractor ERROR : Failed to process the frame!</span>
 <span class="go">Couldn&#39;t allocate space for new FITS file: /tmp/80122.1.euclid.test/_tmp_ml_segd1f9bb.fits status: 106</span>
 </pre></div>
 </div>
 <p>The solution is to extend the available temporary disk space. This can be done by extending the corresponding partition
-or directing the temporary disk to a partition with suffucient disk space with:</p>
+or directing the operating system to use a partition with sufficient disk space with:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">mkdir $HOME/tmp</span>
 <span class="go">export TMPDIR=$HOME/tmp</span>
 </pre></div>
 </div>
 <p>Note that right now <strong class="program">SourceXtractor++</strong> does <strong>not</strong> have a parameter to directly specify the directory to store
-temporary data!</p>
+temporary data.</p>
 </section>
 </section>
 
