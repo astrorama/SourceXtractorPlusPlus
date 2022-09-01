@@ -91,7 +91,7 @@ While we are working on several refereed papers describing SourceXtractor++ and 
 - [Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P. ; Kümmel, M.: 2020ASPC..527..461B](https://ui.adsabs.harvard.edu/abs/2020ASPC..527..461B/abstract)
 - [Kümmel, M. ; Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P.: 2020ASPC..527...29K](https://ui.adsabs.harvard.edu/abs/2020ASPC..527...29K/abstract) 
 
-The resources for the SourceXtractor++ development are mostly provided by funding from the [Euclid satellite project](https://www.euclid-ec.org/) via the various national agencies.
+Resources for the SourceXtractor++ development are in most part provided by funding from the [Euclid satellite project](https://www.euclid-ec.org/) via the various national agencies.
 For Euclid Consortium papers it is sufficient to point to the [SourceXtractor++ webpage](https://github.com/astrorama/SourceXtractorPlusPlus) and add
 the standard EC acknowledgement text.
 
