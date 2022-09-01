@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,25 +22,24 @@
  *      Author: mschefer
  */
 
-#include <iomanip>
+#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/FITS/FitsFile.h"
+#include "SEUtils/VariantCast.h"
+#include <AlexandriaKernel/memory_tools.h>
+#include <ElementsKernel/Exception.h>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/algorithm/string/trim.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/regex.hpp>
 #include <fstream>
+#include <iomanip>
 #include <numeric>
 #include <string>
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
-#include <boost/regex.hpp>
-#include <boost/algorithm/string/case_conv.hpp>
-#include <boost/algorithm/string/trim.hpp>
-
-#include <ElementsKernel/Exception.h>
-
-#include "SEFramework/FITS/FitsFile.h"
-#include "SEUtils/VariantCast.h"
-
-#include "SEFramework/FITS/FitsImageSource.h"
-
 namespace SourceXtractor {
+
+using Euclid::make_unique;
 
 namespace {
 
@@ -74,7 +74,10 @@ ImageTile::ImageType convertImageType(int bitpix) {
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
                                  ImageTile::ImageType image_type,
                                  std::shared_ptr<FileManager> manager)
-    : m_filename(filename), m_handler(manager->getFileHandler(filename)), m_hdu_number(hdu_number) {
+    : m_filename(filename)
+    , m_file_manager(std::move(manager))
+    , m_handler(m_file_manager->getFileHandler(filename))
+    , m_hdu_number(hdu_number) {
   int status = 0;
   int bitpix, naxis;
   long naxes[3] = {1, 1, 1};
@@ -109,14 +112,12 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   }
 }
 
-
-FitsImageSource::FitsImageSource(const std::string& filename, int width, int height,
-                                 ImageTile::ImageType image_type,
-                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append,
-                                 bool empty_primary,
+FitsImageSource::FitsImageSource(const std::string& filename, int width, int height, ImageTile::ImageType image_type,
+                                 const std::shared_ptr<CoordinateSystem> coord_system, bool append, bool empty_primary,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
-    , m_handler(manager->getFileHandler(filename))
+    , m_file_manager(std::move(manager))
+    , m_handler(m_file_manager->getFileHandler(filename))
     , m_width(width)
     , m_height(height)
     , m_image_type(image_type) {
@@ -135,7 +136,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
 
     assert(fptr != nullptr);
 
-    if (empty_primary &&  acc->m_fd.getImageHdus().size() == 0) {
+    if (empty_primary &&  acc->m_fd.getImageHdus().empty()) {
       fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
       if (status != 0) {
         throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
@@ -154,7 +155,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
 
     if (coord_system) {
       auto headers = coord_system->getFitsHeaders();
-      for (auto& h : headers) {
+      for (const auto& h : headers) {
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;
 
@@ -189,7 +190,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
   // after we created the file
 
   m_handler = nullptr;
-  m_handler = manager->getFileHandler(filename);
+  m_handler = m_file_manager->getFileHandler(filename);
 }
 
 std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width, int height) const {
@@ -262,8 +263,8 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   std::string records;
 
   auto& headers = getMetadata();
-  for (auto record : headers) {
-    auto key = record.first;
+  for (const auto& record : headers) {
+    const auto& key = record.first;
 
     std::string record_string(key);
     if (record_string.size() > 8) {
@@ -297,17 +298,17 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   record_string += std::string(80 - record_string.size(), ' ');
   records += record_string;
 
-  std::unique_ptr<std::vector<char>> buffer(new std::vector<char>(records.begin(), records.end()));
+  auto buffer = make_unique<std::vector<char>>(records.begin(), records.end());
   buffer->emplace_back(0);
   return buffer;
 }
 
-const std::map<std::string, MetadataEntry> FitsImageSource::getMetadata() const {
+const std::map<std::string, MetadataEntry>& FitsImageSource::getMetadata() const {
   auto acc = m_handler->getAccessor<FitsFile>();
   return acc->m_fd.getHDUHeaders(m_hdu_number);
 }
 
-void FitsImageSource::setMetadata(std::string key, MetadataEntry value) {
+void FitsImageSource::setMetadata(const std::string& key, const MetadataEntry& value) {
   auto acc  = m_handler->getAccessor<FitsFile>();
   auto fptr = acc->m_fd.getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);

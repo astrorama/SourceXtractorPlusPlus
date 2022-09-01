@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -113,9 +114,9 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
-  const std::map<std::string, MetadataEntry> getMetadata() const override;
+  const std::map<std::string, MetadataEntry>& getMetadata() const override;
 
-  void setMetadata(std::string key, MetadataEntry value) override;
+  void setMetadata(const std::string& key, const MetadataEntry& value) override;
 
 private:
   void switchHdu(fitsfile *fptr, int hdu_number) const;
@@ -125,6 +126,7 @@ private:
   int getImageType() const;
 
   std::string m_filename;
+  std::shared_ptr<FileManager> m_file_manager;
   std::shared_ptr<FileHandler> m_handler;
 
   int m_hdu_number;
