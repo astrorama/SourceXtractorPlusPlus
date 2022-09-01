@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Input files &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Output" href="Output.html" />
+    <link rel="prev" title="Using SourceXtractor++" href="Using.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Using.html">Using SourceXtractor++</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Input files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#detection-and-measurement-images">Detection and measurement images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#weight-maps">Weight-maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flag-maps">Flag-maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#psf-models">PSF models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Output.html">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Config.html">Configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="Using.html">Using SourceXtractor++</a> &raquo;</li>
+      <li>Input files</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="input-files">
+<span id="input"></span><h1>Input files<a class="headerlink" href="#input-files" title="Permalink to this heading">¶</a></h1>
+<p><strong class="program">SourceXtractor++</strong> accepts images stored in <a class="reference external" href="http://fits.gsfc.nasa.gov"><abbr title="Flexible Image Transport System">FITS</abbr></a> <span id="id1">[<a class="reference internal" href="references.html#id28" title="D. C. Wells, E. W. Greisen, and R. H. Harten, 1981. FITS - a Flexible Image Transport System. A&amp;AS, 44:363.">2</a>]</span>.
+Contrary to the original <strong class="program">SExtractor</strong>, <strong class="program">SourceXtractor++</strong> relies on the <a class="reference external" href="https://heasarc.gsfc.nasa.gov/fitsio/">FITSIO library</a>
+and is therefore compatible with all standard variants of <abbr title="Flexible Image Transport System">FITS</abbr>, including compressed images.
+Both “Basic FITS” (one single header and one single body) and <a class="reference external" href="http://www.stsci.edu/hst/HST_overview/documents/datahandbook/intro_ch23.html"><abbr title="Multi-Extension FITS">MEF</abbr></a> files are recognized.
+Binary <strong class="program">SourceXtractor++</strong> catalogs produced from <abbr title="Multi-Extension FITS">MEF</abbr> images are <abbr title="Multi-Extension FITS">MEF</abbr> files themselves.
+If the catalog output format is set to ASCII, all catalogs from the individual extensions are concatenated in one big file.</p>
+<p>Currently, only the first data-plane of multichannel images with <span class="math notranslate nohighlight">\({\rm NAXIS} &gt; 2\)</span>, is loaded.</p>
+<p>In <strong class="program">SourceXtractor++</strong>, as in all similar programs, <abbr title="Flexible Image Transport System">FITS</abbr> axis #1 is traditionally referred to as the <em>x</em> axis, and <abbr title="Flexible Image Transport System">FITS</abbr> axis #2 as the <em>y</em> axis.</p>
+<section id="detection-and-measurement-images">
+<h2>Detection and measurement images<a class="headerlink" href="#detection-and-measurement-images" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">SourceXtractor++</strong> distinguishes between two kinds of science images, detection and measurement images ():</p>
+<ul class="simple">
+<li><p><strong>The detection image</strong> is where the sources are extracted.
+Rough estimates of position and shapes are obtained from the detection image; they define the photometric apertures and initial guesses for model-fitting parameters that will be applied to the measurement images.
+Currently there can be only one detection image per run, and sources are detected from a single channel.</p></li>
+<li><p><strong>Measurement images are where the sources are measured</strong>.
+There can be hundreds (or even more) of them.
+They need not share the same pixel grid or have the same size as the detection image, which they may only partially overlap.
+However if the pixel grid is different, both detection and measurement image headers must contain valid <a class="reference external" href="http://www.atnf.csiro.au/people/mcalabre/WCS/index.html">WCS</a> information <span id="id2">[<a class="reference internal" href="references.html#id11" title="E. W. Greisen and M. R. Calabretta, 2002. Representations of world coordinates in FITS. A&amp;A, 395:1061-1075.">3</a>, <a class="reference internal" href="references.html#id7" title="M. R. Calabretta and E. W. Greisen, 2002. Representations of celestial coordinates in FITS. A&amp;A, 395:1077-1122.">4</a>]</span>.
+<strong class="program">SourceXtractor++</strong> uses that information to precisely match celestial positions and areas on all images.
+A scaling parameter for pixel values can be applied to any measurement image independently, provided either as a <code class="docutils literal notranslate"><span class="pre">flux_scale</span></code> optional argument to <code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code> in the Python measurement configuration file, or as the value of a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword (<span class="param">FLXSCALE</span> by default).
+Note that sources need not be detectable at all on measurement images for the software to work.</p></li>
+</ul>
+<figure class="align-center" id="id3" style="width: 100%">
+<span id="fig-detandmeas"></span><img alt="_images/detandmeas.svg" src="_images/detandmeas.svg" /><figcaption>
+<p><span class="caption-number">Fig. 1 </span><span class="caption-text">Detection and measurement images (see text). The concept of measurement groups is detailed in the <a class="reference internal" href="Measurements.html#groups"><span class="std std-ref">grouping and splitting section</span></a>.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+<section id="weight-maps">
+<h2>Weight-maps<a class="headerlink" href="#weight-maps" title="Permalink to this heading">¶</a></h2>
+<p>Both detection and measurement images can have their own weight-maps.
+Weight-maps are companion images that indicate how “noisy” every science pixel is, in terms of variance.
+The <strong class="program">SourceXtractor++</strong> <code class="docutils literal notranslate"><span class="pre">--weight-image</span></code> command line option and the <code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code> measurement configuration script command may be used to specify the names of the input detection and measurement weight-maps, respectively.
+See the <a class="reference internal" href="Weighting.html#chap-weighting"><span class="std std-ref">Weighting section</span></a> for details.</p>
+</section>
+<section id="flag-maps">
+<span id="chap-inputflagmaps"></span><h2>Flag-maps<a class="headerlink" href="#flag-maps" title="Permalink to this heading">¶</a></h2>
+<p>Flag maps are images in integer format having the same dimensions as the science images, with pixel values that can be used to flag some pixels (for instance, “bad” or noisy pixels).
+Flag map usage is described in the <a class="reference internal" href="Flagging.html#chap-flagging"><span class="std std-ref">flagging section</span></a>.</p>
+</section>
+<section id="psf-models">
+<h2>PSF models<a class="headerlink" href="#psf-models" title="Permalink to this heading">¶</a></h2>
+<p>PSF models are required by the <a class="reference internal" href="Model.html#chap-model"><span class="std std-ref">model-fitting module</span></a>.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Point_spread_function"><abbr title="Point Spread Function">PSF</abbr></a> model files must be provided as FITS binary tables in the <a class="reference external" href="https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description">PSFEx format</a>.
+There must be one PSF model per measurement image.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Using.html" class="btn btn-neutral float-left" title="Using SourceXtractor++" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Output.html" class="btn btn-neutral float-right" title="Output" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
