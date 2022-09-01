@@ -63,9 +63,12 @@ class MeasurementConfig:
         if isinstance(image, MeasurementImage):
             if image.id not in self._measurement_images:
                 self._measurement_images[image.id] = image
-        else:
+        elif image.is_leaf():
             for member in image:
                 self.add_measurement_image(member)
+        else:
+            for _, subgroup in image:
+                self.add_measurement_image(subgroup)
 
     def load_fits_image(self, image, psf=None, weight=None, **kwargs):
         """
