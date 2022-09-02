@@ -40,7 +40,7 @@ static const std::string OUTPUT_FILE {"output-catalog-filename"};
 static const std::string OUTPUT_FILE_FORMAT {"output-catalog-format"};
 static const std::string OUTPUT_PROPERTIES {"output-properties"};
 static const std::string OUTPUT_FLUSH_SIZE {"output-flush-size"};
-static const std::string OUTPUT_UNSORTED {"output-flush-unsorted"};
+static const std::string OUTPUT_SORTED {"output-flush-sorted"};
 
 static std::map<std::string, OutputConfig::OutputFileFormat> format_map{
   {"ASCII",     OutputConfig::OutputFileFormat::ASCII},
@@ -62,8 +62,8 @@ std::map<std::string, Configuration::OptionDescriptionList> OutputConfig::getPro
           "The output properties to add in the output catalog"},
       {OUTPUT_FLUSH_SIZE.c_str(), po::value<int>()->default_value(100),
          "Write to the catalog after this number of sources have been processed (0 means once at the end)"},
-      {OUTPUT_UNSORTED.c_str(), po::bool_switch(),
-         "Write finished sources to the catalog without waiting for previously detected unfinished sources"}
+      {OUTPUT_SORTED.c_str(), po::value<bool>()->default_value(true),
+         "Delay the output of some sources to ensure a deterministic order"}
   }}};
 }
 
@@ -89,7 +89,7 @@ void OutputConfig::initialize(const UserValues& args) {
   int flush_size = args.at(OUTPUT_FLUSH_SIZE).as<int>();
   m_flush_size = (flush_size >= 0) ? flush_size : 0;
 
-  m_unsorted = args.at(OUTPUT_UNSORTED).as<bool>();
+  m_unsorted = !args.at(OUTPUT_SORTED).as<bool>();
 }
 
 std::string OutputConfig::getOutputFile() {
