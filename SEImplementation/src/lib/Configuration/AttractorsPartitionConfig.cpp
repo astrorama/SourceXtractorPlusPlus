@@ -40,7 +40,7 @@ AttractorsPartitionConfig::AttractorsPartitionConfig(long manager_id) : Configur
 
 auto AttractorsPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return { {"Extraction", {
-      {USE_ATTRACTORS_PARTITION.c_str(), po::bool_switch(),
+      {USE_ATTRACTORS_PARTITION.c_str(), po::value<bool>()->default_value(false),
               "Enables the use of attractors for partitioning"}
   }}};
 }
