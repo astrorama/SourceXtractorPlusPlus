@@ -99,7 +99,7 @@ class SourceGroupWithOnDemandProperties::EntangledSource : public SourceInterfac
 
 public:
 
-  EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group);
+  EntangledSource(std::unique_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group);
 
   virtual ~EntangledSource() = default;
 
@@ -114,7 +114,7 @@ public:
 private:
 
   PropertyHolder m_property_holder;
-  std::shared_ptr<SourceInterface> m_source;
+  std::unique_ptr<SourceInterface> m_source;
   SourceGroupWithOnDemandProperties& m_group;
 
   friend void SourceGroupWithOnDemandProperties::clearGroupProperties();

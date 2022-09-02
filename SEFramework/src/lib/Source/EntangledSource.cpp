@@ -25,16 +25,16 @@
 
 namespace SourceXtractor {
 
-SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group)
-        : m_source(source), m_group(group) {
+SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::unique_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group)
+        : m_source(std::move(source)), m_group(group) {
   // Normally, it should not be possible that the given source is of type
   // EntangledSource, because the entangled sources of a group can only be
   // accessed via the iterator as references. Nevertheless, to be sure that
   // future changes will not change the behavior, we do a check to the given
   // source and if it is an EntangledSource we use its encapsulated source instead.
-  auto entangled_ptr = std::dynamic_pointer_cast<EntangledSource>(m_source);
+  auto entangled_ptr = dynamic_cast<EntangledSource*>(m_source.get());
   if (entangled_ptr != nullptr) {
-    m_source = entangled_ptr->m_source;
+    m_source = std::move(entangled_ptr->m_source);
   }
 }
 

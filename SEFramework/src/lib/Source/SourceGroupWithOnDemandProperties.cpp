@@ -117,7 +117,7 @@ std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::clone() cons
   auto cloned = make_unique<SourceGroupWithOnDemandProperties>(m_task_provider);
   for (const auto& source : m_sources) {
     auto& entangled_source = dynamic_cast<EntangledSource&>(source.getRef());
-    cloned->m_sources.emplace_back(Euclid::make_unique<EntangledSource>(entangled_source.m_source, *cloned));
+    cloned->m_sources.emplace_back(Euclid::make_unique<EntangledSource>(entangled_source.m_source->clone(), *cloned));
   }
   cloned->m_property_holder.update(this->m_property_holder);
   return cloned;
