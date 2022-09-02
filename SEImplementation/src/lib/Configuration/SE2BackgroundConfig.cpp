@@ -34,7 +34,6 @@ static Elements::Logging logger = Elements::Logging::getLogger("BackgroundConfig
 
 static const std::string CELLSIZE_VALUE {"background-cell-size" };
 static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-size" };
-static const std::string LEGACY_BACKGROUND {"background-legacy"};
 
 SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
   Configuration(manager_id), m_cell_size(), m_smoothing_box() {
