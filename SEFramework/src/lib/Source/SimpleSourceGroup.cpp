@@ -22,6 +22,7 @@
 
 #include "SEFramework/Source/SimpleSourceGroup.h"
 #include "AlexandriaKernel/memory_tools.h"
+#include <algorithm>
 
 using Euclid::make_unique;
 
@@ -73,7 +74,7 @@ const Property& SimpleSourceGroup::getProperty(const PropertyId& property_id) co
   return m_property_holder.getProperty(property_id);
 }
 
-void SimpleSourceGroup::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SimpleSourceGroup::setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
@@ -88,6 +89,12 @@ std::unique_ptr<SourceInterface> SimpleSourceGroup::clone() const {
   }
   cloned->m_property_holder.update(m_property_holder);
   return std::unique_ptr<SourceInterface>(std::move(cloned));
+}
+
+void SimpleSourceGroup::visitProperties(const PropertyVisitor& visitor) {
+  std::for_each(
+      m_property_holder.begin(), m_property_holder.end(),
+      [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
 }
 
 }  // namespace SourceXtractor

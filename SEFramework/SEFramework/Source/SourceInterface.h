@@ -47,6 +47,7 @@ namespace SourceXtractor {
 class SourceInterface {
 
 public:
+  using PropertyVisitor = std::function<void(const PropertyId&, const std::shared_ptr<Property>&)>;
 
   /**
    * @brief Destructor
@@ -74,10 +75,15 @@ public:
     setIndexedProperty<PropertyType>(0, std::forward<Args>(args)...);
   }
 
+  /// Call PropertyVisitor once per *set* property. On demand properties are ignored if not yet computed.
+  /// Concrete implementations must call the visitor from lower to higher preference (i.e. group properties before
+  /// individual source properties), so in case of conflict the higher priority property can take precedence.
+  virtual void visitProperties(const PropertyVisitor&) = 0;
+
   /// Returns a reference to the requested property. The property may be computed if needed
   /// Throws a PropertyNotFoundException if the property cannot be provided.
   virtual const Property& getProperty(const PropertyId& property_id) const = 0;
-  virtual void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) = 0;
+  virtual void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) = 0;
 
   virtual std::unique_ptr<SourceInterface> clone() const = 0;
 

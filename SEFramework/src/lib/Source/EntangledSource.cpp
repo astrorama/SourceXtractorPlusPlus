@@ -77,7 +77,8 @@ const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(
 
 } // end of getProperty()
 
-void SourceGroupWithOnDemandProperties::EntangledSource::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SourceGroupWithOnDemandProperties::EntangledSource::setProperty(std::shared_ptr<Property> property,
+                                                                     const PropertyId&         property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
 

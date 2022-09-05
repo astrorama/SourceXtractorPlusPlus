@@ -56,8 +56,12 @@ public:
       return m_source->getProperty(property_id);
     }
 
-    void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
+    void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) override {
       m_source->setProperty(std::move(property), property_id);
+    }
+
+    void visitProperties(const PropertyVisitor& visitor) override {
+      m_source->visitProperties(visitor);
     }
 
     std::unique_ptr<SourceInterface> clone() const override {

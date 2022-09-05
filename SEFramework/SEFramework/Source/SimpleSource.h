@@ -62,6 +62,12 @@ public:
     return std::move(cloned);
   }
 
+  void visitProperties(const PropertyVisitor& visitor) override {
+    std::for_each(
+        m_property_holder.begin(), m_property_holder.end(),
+        [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
+  }
+
   // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For
   // this reason it is necessary to re-introduce the templated methods, which is
@@ -76,7 +82,7 @@ protected:
     return m_property_holder.getProperty(property_id);
   }
 
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override {
+  void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) override {
     m_property_holder.setProperty(std::move(property), property_id);
   }
 

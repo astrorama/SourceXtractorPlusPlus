@@ -98,7 +98,7 @@ const Property& SourceGroupWithOnDemandProperties::getProperty(const PropertyId&
   throw PropertyNotFoundException(property_id);
 }
 
-void SourceGroupWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SourceGroupWithOnDemandProperties::setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) {
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
@@ -121,6 +121,20 @@ std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::clone() cons
   }
   cloned->m_property_holder.update(this->m_property_holder);
   return std::unique_ptr<SourceInterface>(std::move(cloned));
+}
+
+void SourceGroupWithOnDemandProperties::EntangledSource::visitProperties(const PropertyVisitor& visitor) {
+  m_group.visitProperties(visitor);
+  m_source->visitProperties(visitor);
+  std::for_each(
+      m_property_holder.begin(), m_property_holder.end(),
+      [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
+}
+
+void SourceGroupWithOnDemandProperties::visitProperties(const PropertyVisitor& visitor) {
+  std::for_each(
+      m_property_holder.begin(), m_property_holder.end(),
+      [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
 }
 
 } // SourceXtractor namespace

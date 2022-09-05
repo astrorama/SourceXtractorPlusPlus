@@ -52,7 +52,9 @@ public:
   using SourceInterface::setProperty;
 
   MOCK_CONST_METHOD1(getProperty, Property& (const PropertyId& property_id));
-  void setProperty(std::unique_ptr<Property>, const PropertyId& ) {}
+  void setProperty(std::shared_ptr<Property>, const PropertyId& ) {}
+
+  void visitProperties(const PropertyVisitor&) override {}
 
   std::unique_ptr<SourceInterface> clone() const override {
     return nullptr;
