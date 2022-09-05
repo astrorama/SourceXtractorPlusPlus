@@ -71,6 +71,8 @@ public:
 
   unsigned int size() const override;
 
+  void visitProperties(const PropertyVisitor& visitor) override;
+
   std::unique_ptr<SourceInterface> clone() const override;
 
   using SourceInterface::getProperty;
@@ -80,7 +82,7 @@ protected:
 
   const Property& getProperty(const PropertyId& property_id) const override;
 
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+  void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
 
@@ -105,7 +107,9 @@ public:
 
   const Property& getProperty(const PropertyId& property_id) const override;
 
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+  void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) override;
+
+  void visitProperties(const PropertyVisitor& visitor) override;
 
   std::unique_ptr<SourceInterface> clone() const override;
 

@@ -38,7 +38,7 @@ const Property& PropertyHolder::getProperty(const PropertyId& property_id) const
   }
 }
 
-void PropertyHolder::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void PropertyHolder::setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) {
   m_properties[property_id] = std::move(property);
 }
 

@@ -58,6 +58,8 @@ public:
   /// Constructor
   explicit SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider);
 
+  void visitProperties(const PropertyVisitor& visitor) override;
+
   // Note : Because the get/setProperty() methods of the SourceInterface are
   // templated, the overrides of the non-templated versions will hide them. For
   // this reason it is necessary to re-introduce the templated methods, which is
@@ -71,7 +73,7 @@ protected:
   
   // Implementation of SourceInterface
   const Property& getProperty(const PropertyId& property_id) const override;
-  void setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) override;
+  void setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) override;
 
 private:
   SourceWithOnDemandProperties(const SourceWithOnDemandProperties& other);

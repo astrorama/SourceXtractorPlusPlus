@@ -54,7 +54,7 @@ const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& prop
   throw PropertyNotFoundException(property_id);
 }
 
-void SourceWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SourceWithOnDemandProperties::setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) {
   // just forward to the ObjectWithProperties implementation
   m_property_holder.setProperty(std::move(property), property_id);
 }
@@ -63,6 +63,11 @@ std::unique_ptr<SourceInterface> SourceWithOnDemandProperties::clone() const {
   return std::unique_ptr<SourceInterface>(new SourceWithOnDemandProperties(*this));
 }
 
+void SourceWithOnDemandProperties::visitProperties(const PropertyVisitor& visitor) {
+  std::for_each(
+      m_property_holder.begin(), m_property_holder.end(),
+      [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
+}
 
 } // SEFramework namespace
 
