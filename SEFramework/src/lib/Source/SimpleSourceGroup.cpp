@@ -87,7 +87,7 @@ std::unique_ptr<SourceInterface> SimpleSourceGroup::clone() const {
     cloned->addSource(src.getRef().clone());
   }
   cloned->m_property_holder.update(m_property_holder);
-  return cloned;
+  return std::unique_ptr<SourceInterface>(std::move(cloned));
 }
 
 }  // namespace SourceXtractor

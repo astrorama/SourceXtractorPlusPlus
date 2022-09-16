@@ -120,7 +120,7 @@ std::unique_ptr<SourceInterface> SourceGroupWithOnDemandProperties::clone() cons
     cloned->m_sources.emplace_back(Euclid::make_unique<EntangledSource>(entangled_source.m_source->clone(), *cloned));
   }
   cloned->m_property_holder.update(this->m_property_holder);
-  return cloned;
+  return std::unique_ptr<SourceInterface>(std::move(cloned));
 }
 
 } // SourceXtractor namespace
