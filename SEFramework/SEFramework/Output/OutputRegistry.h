@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -183,6 +184,10 @@ public:
     }
     return result;
   }
+
+  std::set<std::string> getColumns(const std::string& property) const;
+
+  std::set<std::string> getColumns(const PropertyId& property) const;
 
   SourceToRowConverter getSourceToRowConverter(const std::vector<std::string>& enabled_optional);
 
