@@ -96,6 +96,7 @@ elements_add_library(SEImplementation
             src/lib/Image/*.cpp
             ${COMMON_SRC}
             src/lib/Prefetcher/*.cpp
+            src/lib/Property/*.cpp
             ${PLUGIN_SRC}
             ${SE_PYTHON_SRC}
             LINK_LIBRARIES
