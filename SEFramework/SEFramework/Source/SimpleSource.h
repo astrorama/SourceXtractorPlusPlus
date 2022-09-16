@@ -25,8 +25,9 @@
 #ifndef _SEFRAMEWORK_SOURCE_SIMPLESOURCE_H_
 #define _SEFRAMEWORK_SOURCE_SIMPLESOURCE_H_
 
-#include "SEFramework/Source/SourceInterface.h"
+#include "AlexandriaKernel/memory_tools.h"
 #include "SEFramework/Property/PropertyHolder.h"
+#include "SEFramework/Source/SourceInterface.h"
 
 namespace SourceXtractor {
 
@@ -56,7 +57,7 @@ public:
   SimpleSource() {}
 
   std::unique_ptr<SourceInterface> clone() const override {
-    auto cloned = std::make_unique<SimpleSource>();
+    auto cloned = Euclid::make_unique<SimpleSource>();
     cloned->m_property_holder.update(m_property_holder);
     return std::move(cloned);
   }
