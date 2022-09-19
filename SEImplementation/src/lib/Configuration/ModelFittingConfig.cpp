@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -152,8 +152,9 @@ void ModelFittingConfig::initialize(const UserValues&) {
   Pyston::GILLocker locker;
   try {
     initializeInner();
-  }
-  catch (py::error_already_set &e) {
+  } catch (Pyston::Exception& e) {
+    throw e.log(log4cpp::Priority::ERROR, logger);
+  } catch (py::error_already_set& e) {
     throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
