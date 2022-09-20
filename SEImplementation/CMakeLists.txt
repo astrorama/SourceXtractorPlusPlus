@@ -223,7 +223,6 @@ elements_add_unit_test(AssocMode_test tests/src/Plugin/AssocMode/AssocMode_test.
 #  elements_install_python_modules()
 #  elements_install_scripts()
 #===============================================================================
-elements_install_python_modules()
 
 #===============================================================================
 # Add the elements_install_conf_files macro
