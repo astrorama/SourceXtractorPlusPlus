@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -94,7 +94,7 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
     PySys_SetArgv(argv.size() + 1, py_argv);
 
     // Import ourselves so the conversions are registered
-    py::import("_SourceXtractorPy");
+    py::import("_SEPythonConfig");
 
     // Setup stdout and stderr
     PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());

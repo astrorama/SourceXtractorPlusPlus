@@ -111,7 +111,7 @@ elements_add_library(SEImplementation
 #===============================================================================
 # SEImplementation has a part that needs to be reachable from Python.
 #===============================================================================
-elements_add_python_module(SourceXtractorPy
+elements_add_python_module(SEPythonConfig
 		src/lib/PythonConfig/PythonModule.cpp
 		LINK_LIBRARIES SEImplementation
 		INCLUDE_DIRS ${Boost_INCLUDE_DIR} ${PYTHON_INCLUDE_DIRS}
