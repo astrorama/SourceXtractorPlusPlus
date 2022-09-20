@@ -65,9 +65,11 @@ elements_depends_on_subdirs(SEImplementation)
 #  elements_install_scripts()
 #===============================================================================
 elements_install_python_modules()
+elements_install_scripts()
 
 #===============================================================================
 # Add the elements_install_conf_files macro
 # Examples:
 #          elements_install_conf_files()
 #===============================================================================
+elements_install_conf_files()
