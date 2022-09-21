@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -74,12 +75,14 @@ public:
   /**
    * @return A copy of the metadata set
    */
-  virtual const std::map<std::string, MetadataEntry> getMetadata() const { return {}; };
+  virtual const std::map<std::string, MetadataEntry>& getMetadata() const { return m_metadata; }
 
-  virtual void setMetadata(std::string /*key*/, MetadataEntry /*value*/) {}
+  virtual void setMetadata(const std::string& key, const MetadataEntry& value) {
+    m_metadata[key] = value;
+  }
 
 private:
-
+  std::map<std::string, MetadataEntry> m_metadata;
 };
 
 }  // namespace SourceXtractor

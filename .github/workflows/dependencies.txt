@@ -4,8 +4,8 @@ $PYTHON-pytest
 $PYTHON-sphinx
 CCfits-devel
 blas-devel
-boost-$PYTHON-devel
-boost-devel
+$BOOST-$PYTHON-devel
+$BOOST-devel
 doxygen
 fftw-devel
 gmock-devel

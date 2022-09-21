@@ -34,7 +34,6 @@ static Elements::Logging logger = Elements::Logging::getLogger("BackgroundConfig
 
 static const std::string CELLSIZE_VALUE {"background-cell-size" };
 static const std::string SMOOTHINGBOX_VALUE {"smoothing-box-size" };
-static const std::string LEGACY_BACKGROUND {"background-legacy"};
 
 SE2BackgroundConfig::SE2BackgroundConfig(long manager_id) :
   Configuration(manager_id), m_cell_size(), m_smoothing_box() {
@@ -45,9 +44,7 @@ std::map<std::string, Configuration::OptionDescriptionList> SE2BackgroundConfig:
       {CELLSIZE_VALUE.c_str(), po::value<std::string>()->default_value(std::string("64")),
           "Background mesh cell size to determine a value."},
       {SMOOTHINGBOX_VALUE.c_str(), po::value<std::string>()->default_value(std::string("3")),
-          "Background median filter size"},
-      {LEGACY_BACKGROUND.c_str(), po::bool_switch(),
-          "Deprecated, kept for compatibility"}
+          "Background median filter size"}
   }}};
 }
 
@@ -70,10 +67,6 @@ void SE2BackgroundConfig::initialize(const UserValues& args) {
   }
   if (std::find_if(m_smoothing_box.begin(), m_smoothing_box.end(), less_0) != m_smoothing_box.end()) {
     throw Elements::Exception() << "There are value(s) < 0 in smoothing-box-size: " << smoothing_box_str;
-  }
-  if (args.find(LEGACY_BACKGROUND) != args.end()) {
-    logger.warn() << "The option "
-                  << LEGACY_BACKGROUND << " is deprecated and has no effect starting at version 0.17";
   }
 }
 
