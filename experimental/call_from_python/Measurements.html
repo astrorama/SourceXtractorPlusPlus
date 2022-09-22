@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Measuring &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Isophotal measurements" href="Position.html" />
+    <link rel="prev" title="Asociation Mode" href="Association.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Measuring</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-measurement-configuration-script">The measurement configuration script</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#measurement-images">Measurement images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grouping-and-splitting">Grouping and splitting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#image-groups">Image groups</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#splitting">Splitting</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#accessing-subgroups">Accessing subgroups</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#measurement-groups">Measurement groups</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#measurements">Measurements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Position.html">Isophotal measurements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Photom.html">Aperture photometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html">Model fitting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Measuring</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="measuring">
+<span id="chap-measurements"></span><h1>Measuring<a class="headerlink" href="#measuring" title="Permalink to this heading">¶</a></h1>
+<p>Once sources have been detected and deblended, they enter the measurement phase.</p>
+<p><strong class="program">SourceXtractor++</strong> performs three categories of measurements: isophotal, aperture, and model-fitting.</p>
+<p id="isophotal-measurements"><strong>Isophotal measurements</strong> are done <em>on the detection image</em> only.
+They exclusively take into account object pixels with values exceeding the detection threshold.
+They run quick and are reasonably immune to light contamination by neighbors.
+However as such they generally only provide heavily biased estimates of physical quantities, especially for fluxes.
+Therefore their usage should be restricted to rough estimation and to make first guesses.
+Isophotal measurements do not require any specific configuration.
+They depend only on detection, deblending and background-subtraction settings.</p>
+<p id="aperture-measurements"><strong>Aperture measurements</strong> are done on the measurement images.
+They involve pixels within geometric apertures, such as disks and ellipses.
+The size and shape of the apertures may be fixed, or adaptive to every object.
+Aperture measurements are largely sub-optimal from the point-of-view of <a class="reference external" href="https://en.wikipedia.org/wiki/Signal-to-noise_ratio"><abbr title="Signal-to-Noise Ratio">SNR</abbr></a>.
+However they are generally tolerant to object shape variations, and offer a good control of measurement biases.
+They can be very sensitive to contamination by the light of neighbors, although this can be mitigated (see ??)</p>
+<p id="model-measurements"><strong>Model-fitting measurements</strong> are performed on the measurement images.
+They are close to optimum from the point-of-view of <abbr title="Signal-to-Noise Ratio">SNR</abbr>, but they require accurate PSF models (one per image).
+<a class="reference external" href="https://en.wikipedia.org/wiki/Point_spread_function"><abbr title="Point Spread Function">PSF</abbr></a> models can be computed using the <a class="reference external" href="http://astromatic.net/software/psfex"><strong class="program">PSFEx</strong></a> package.
+<strong class="program">SourceXtractor++</strong> can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
+The main inconvenient of model-fitting is that it is much slower than aperture photometry.</p>
+<section id="the-measurement-configuration-script">
+<span id="chap-configuration-script"></span><h2>The measurement configuration script<a class="headerlink" href="#the-measurement-configuration-script" title="Permalink to this heading">¶</a></h2>
+<p>Measurement settings, as well as <a class="reference internal" href="#groups"><span class="std std-ref">grouping procedures</span></a> and catalog outputs must be defined in a configuration script that uses the <a class="reference external" href="https://python.org">Python language</a>: the measurement configuration script.
+The script filename is set with the <code class="docutils literal notranslate"><span class="pre">python-config-file</span></code> configuration option.
+Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
+<strong class="program">SourceXtractor++</strong>’s configuration library classes and functions must be imported at the beginning of the script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">sourcextractor.config</span> <span class="kn">import</span> <span class="o">*</span>
+</pre></div>
+</div>
+<p>The same goes for other Python libraries that might be needed for the current configuration, such as <a class="reference external" href="https://docs.python.org/library/glob.html">glob</a> for filename expansion, <a class="reference external" href="https://docs.python.org/library/math.html">math</a> or <a class="reference external" href="https://numpy.org/">NumPy</a> for numerical computations, …</p>
+<div class="admonition caution">
+<p class="admonition-title">Caution</p>
+<p>The measurement configuration script is excusively meant to be executed by the <strong class="program">SourceXtractor++</strong> built-in Python interpreter, and cannot be run on its own.</p>
+</div>
+<section id="measurement-images">
+<h3>Measurement images<a class="headerlink" href="#measurement-images" title="Permalink to this heading">¶</a></h3>
+<p>Measurement images are scientific images stored as <a class="reference external" href="http://fits.gsfc.nasa.gov"><abbr title="Flexible Image Transport System">FITS</abbr></a> files and used only for measurements.
+Every measurement image can be associated a <abbr title="Point Spread Function">PSF</abbr> model (<strong class="program">PSFEx</strong>’s <code class="file docutils literal notranslate"><span class="pre">.psf</span></code> file), and a weight map.
+The <code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code> function creates a measurement image from a <abbr title="Flexible Image Transport System">FITS</abbr> image filename; for example:</p>
+<div class="highlight-python notranslate" id="chap-load-fits-image"><div class="highlight"><pre><span></span><span class="n">mesimage</span> <span class="o">=</span> <span class="n">load_fits_image</span><span class="p">(</span><span class="s2">&quot;image.fits&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The list of currently loaded measurement images can be displayed using the <code class="xref py py-func docutils literal notranslate"><span class="pre">print_measurement_images()</span></code> function.
+The following will print the list of measurement images on screen (more precisely, on the <a class="reference external" href="https://en.wikipedia.org/wiki/Standard_streams#Standard_error_(stderr)">stderr</a> channel):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">print_measurement_images</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In practice, one will generally want to load several images with a single instruction, not one by one.
+However before addressing this point we need to introduce the concept of <a class="reference internal" href="#groups"><span class="std std-ref">grouping</span></a>.</p>
+</section>
+<section id="grouping-and-splitting">
+<span id="groups"></span><h3>Grouping and splitting<a class="headerlink" href="#grouping-and-splitting" title="Permalink to this heading">¶</a></h3>
+<p><strong class="program">SourceXtractor++</strong> measures the properties of sources from instances spread across multiple exposures.
+Each exposure has its own context defined by a specific combination of filter, instrument, epoch, etc.
+Depending on science goals, one may choose to group images by time of observation (e.g., to build light curves), filter (for regular photometry), …
+This is the purpose of <strong class="program">SourceXtractor++</strong>’s grouping (and splitting) mechanisms.</p>
+<p>There are two types of groups: image groups and measurement groups.</p>
+<section id="image-groups">
+<span id="id1"></span><h4>Image groups<a class="headerlink" href="#image-groups" title="Permalink to this heading">¶</a></h4>
+<p>Image groups offer a convenient way to load many images, and group them according to specific criteria.
+The most efficient way to instantiate an image group is through the <code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_images()</span></code> function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">imagegroup</span> <span class="o">=</span> <span class="n">load_fits_images</span><span class="p">([</span><span class="s2">&quot;image_01.fits&quot;</span><span class="p">,</span> <span class="s2">&quot;image_02.fits&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In practice, the easier way to load large series of images, <abbr title="Point Spread Function">PSF</abbr> models and weight maps is through filename expansion and sorting, for instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">imagegroup</span> <span class="o">=</span> <span class="n">load_fits_images</span><span class="p">(</span>
+    <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;image_??.fits&quot;</span><span class="p">)),</span>
+    <span class="n">psfs</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;image_??.psf&quot;</span><span class="p">)),</span>
+    <span class="n">weights</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="s2">&quot;image_??.weight.fits&quot;</span><span class="p">)),</span>
+    <span class="n">weight_type</span><span class="o">=</span><span class="s1">&#39;weight&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>All non-empty lists must contain the same number of items.
+It is possible to add images or another group to a pre-existing image group using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">add_images()</span></code> method, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">anotherimage</span> <span class="o">=</span> <span class="n">load_fits_image</span><span class="p">(</span>
+    <span class="s2">&quot;anotherimage.fits&quot;</span><span class="p">,</span>
+    <span class="n">psf</span><span class="o">=</span><span class="s2">&quot;anotherimage.psf&quot;</span><span class="p">,</span>
+    <span class="n">weight</span><span class="o">=</span><span class="s2">&quot;anotherimage.weight.fits&quot;</span><span class="p">,</span>
+    <span class="n">weight_type</span><span class="o">=</span><span class="s1">&#39;weight&#39;</span>
+<span class="p">)</span>
+<span class="n">imagegroup</span><span class="o">.</span><span class="n">add_images</span><span class="p">(</span><span class="n">anotherimage</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="splitting">
+<h4>Splitting<a class="headerlink" href="#splitting" title="Permalink to this heading">¶</a></h4>
+<p>Now, within an image group one may want to create subgroups based on, e.g., band pass filters or epochs.
+This is easily accomplished using the <code class="xref py py-meth docutils literal notranslate"><span class="pre">split()</span></code> method.
+Splitting may be done according to a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword with the <code class="xref py py-class docutils literal notranslate"><span class="pre">ByKeyword()</span></code> callable.
+For instance, to generate subgroups each with a different filter (assuming all image headers contain the <span class="param">FILTER</span> keyword):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">imagegroup</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">ByKeyword</span><span class="p">(</span><span class="s1">&#39;FILTER&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">ByPattern()</span></code> also checks for a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword, with the difference that a <a class="reference external" href="https://en.wikipedia.org/wiki/Regular_expression">regular expression</a> provided by the user is applied to the keyword value.
+The first matching group acts as the grouping key, which means that a ‘capturing group (within parentheses) &lt;<a class="reference external" href="https://www.regular-expressions.info/brackets.html">https://www.regular-expressions.info/brackets.html</a>&gt;’_ must be present in the regular expression.
+For instance, the following command groups images by year of observation, ignoring the rest of the date:</p>
+<div class="highlight-python notranslate" id="bypattern"><div class="highlight"><pre><span></span><span class="n">imagegroup</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">ByPattern</span><span class="p">(</span><span class="s1">&#39;DATE-OBS&#39;</span><span class="p">,</span> <span class="s2">&quot;^(\d{4})&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Subgroups can themselves be split into subgroups, at any level.</p>
+</div>
+</section>
+<section id="accessing-subgroups">
+<h4>Accessing subgroups<a class="headerlink" href="#accessing-subgroups" title="Permalink to this heading">¶</a></h4>
+<p>Image subgroups are custom <a class="reference external" href="https://en.wikipedia.org/wiki/Associative_array">maps</a>.
+One can access individual subgroups much like a <a class="reference external" href="https://docs.python.org/3/tutorial/datastructures.html#dictionaries">Python dictionary</a>.
+In the first <a class="reference internal" href="#bypattern"><span class="std std-ref">group splitting example above</span></a>, the subgroup of images from year 2007 (if they exists) is simply  <span class="param">imagegroup[‘2007’]</span>, and looping through all subgroups is as simple as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">year</span><span class="p">,</span> <span class="n">subgroup</span> <span class="ow">in</span> <span class="n">imagegroup</span><span class="p">:</span>
+  <span class="k">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span> <span class="n">subgroup</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="measurement-groups">
+<span id="id2"></span><h4>Measurement groups<a class="headerlink" href="#measurement-groups" title="Permalink to this heading">¶</a></h4>
+<p>Measurements are applied to measurement groups and subgroups.
+Measurement groups are similar to image groups, although they maintain additional information and their image and subgroup content cannot be updated.
+A measurement group (<code class="xref py py-class docutils literal notranslate"><span class="pre">MeasurementGroup</span></code>) is instanciated from a completed image groups, e.g.,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">mesgroup</span> <span class="o">=</span> <span class="n">MeasurementGroup</span><span class="p">(</span><span class="n">imagegroup</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Like image subgroups, measurement subgroups are custom maps and can be managed in a similar way.</p>
+</section>
+</section>
+</section>
+<section id="measurements">
+<h2>Measurements<a class="headerlink" href="#measurements" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Position.html">Isophotal measurements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Position.html#position-and-shape">Position and shape</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Position.html#photometry">Photometry</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Photom.html">Aperture photometry</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Photom.html#fixed-aperture-flux">Fixed-aperture flux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Photom.html#automatic-aperture-flux">Automatic aperture flux</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Model.html">Model fitting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#fitting-procedure">Fitting procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#modified-least-squares">Modified least squares</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#configuring-model-fitting">Configuring model-fitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#model-parameters">Model parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Model.html#constant-parameters">Constant parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html#free-parameters">Free parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html#dependent-parameters">Dependent parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#regularization">Regularization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Model.html#non-gaussian-priors">Non-Gaussian priors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html#combinations-of-parameters">Combinations of parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Model.html#minimization">Minimization</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Association.html" class="btn btn-neutral float-left" title="Asociation Mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Position.html" class="btn btn-neutral float-right" title="Isophotal measurements" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
