@@ -139,7 +139,12 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
       .def("__call__", &FitsOutput::call)
       .def("get", &FitsOutput::get);
 
-  PyObject* pyston  = PyInit_pyston();
+#if PY_MAJOR_VERSION >= 3
+  PyObject* pyston = PyInit_pyston();
+#else
+  initpyston();
+  PyObject* pyston = PyImport_ImportModule("_SEPythonConfig");
+#endif
   PyObject* modules = PyImport_GetModuleDict();
   PyDict_SetItemString(modules, "pyston", pyston);
   Py_DECREF(pyston);

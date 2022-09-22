@@ -40,13 +40,16 @@ struct AttachedSource {
   ContextPtr                       m_context;
   SourceXtractor::SourceInterface* m_source_ptr = nullptr;
 
+  AttachedSource(ContextPtr context, SourceXtractor::SourceInterface* source_ptr)
+      : m_context(std::move(context)), m_source_ptr(source_ptr) {}
+
   boost::python::object attribute(const std::string& key) const;
   DetachedSource        detach() const;
 };
 
 struct OwnedSource : public AttachedSource {
   OwnedSource(ContextPtr context, std::unique_ptr<SourceXtractor::SourceInterface> source)
-      : AttachedSource{std::move(context), source.get()}, m_owned_source(std::move(source)) {}
+      : AttachedSource(std::move(context), source.get()), m_owned_source(std::move(source)) {}
 
   std::string repr() const;
 
@@ -54,7 +57,7 @@ struct OwnedSource : public AttachedSource {
 };
 
 struct EntangledSource : public AttachedSource {
-  explicit EntangledSource(ContextPtr context) : AttachedSource{std::move(context)} {};
+  explicit EntangledSource(ContextPtr context) : AttachedSource(std::move(context), nullptr) {}
 
   std::string repr() const;
 };

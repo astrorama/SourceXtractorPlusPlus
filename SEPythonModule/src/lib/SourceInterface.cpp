@@ -46,7 +46,7 @@ struct CellToPythonVisitor : public boost::static_visitor<py::object> {
 
   template <typename T>
   py::object operator()(const std::vector<T>& vector,
-                        std::enable_if_t<!std::is_same<T, bool>::value>* = nullptr) const {
+                        typename std::enable_if<!std::is_same<T, bool>::value>::type* = nullptr) const {
     auto array = np::zeros(py::make_tuple(vector.size()), np::dtype::get_builtin<T>());
     std::memcpy(array.get_data(), vector.data(), vector.size() * sizeof(T));
     return array;
@@ -76,7 +76,9 @@ struct CellToPythonVisitor : public boost::static_visitor<py::object> {
   }
 
   template <typename From>
-  py::object operator()(From&& v, typename std::enable_if_t<std::is_pod<std::decay_t<From>>::value>* = nullptr) const {
+  py::object
+  operator()(From&& v,
+             typename std::enable_if<std::is_pod<typename std::decay<From>::type>::value>::type* = nullptr) const {
     return py::object(v);
   }
 };
