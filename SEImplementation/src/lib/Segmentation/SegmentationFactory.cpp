@@ -31,12 +31,13 @@
 #include "SEImplementation/Segmentation/BackgroundConvolution.h"
 #include "SEImplementation/Segmentation/LutzSegmentation.h"
 #include "SEImplementation/Segmentation/BFSSegmentation.h"
-#include "SEImplementation/Segmentation/SegmentationFactory.h"
+#include "SEImplementation/Segmentation/AssocSegmentation.h"
 
 #ifdef WITH_ML_SEGMENTATION
 #include "SEImplementation/Segmentation/MLSegmentation.h"
 #endif
 
+#include "SEImplementation/Segmentation/SegmentationFactory.h"
 
 using namespace Euclid::Configuration;
 
@@ -48,7 +49,11 @@ SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_prov
 }
 
 void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+  manager.registerConfiguration<AssocModeConfig>();
   manager.registerConfiguration<SegmentationConfig>();
+//
+//  manager.registerDependency<AttractorsPartitionConfig, MinAreaPartitionConfig>();
+//  declareDependency<PartitionStepConfig>();
 }
 
 void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manager) {
@@ -59,6 +64,9 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
   m_bfs_max_delta = segmentation_config.getBfsMaxDelta();
   m_model_path = segmentation_config.getOnnxModelPath();
   m_ml_threshold = segmentation_config.getMLThreashold();
+
+  auto assoc_config = manager.getConfiguration<AssocModeConfig>();
+  m_catalogs = assoc_config.getCatalogs();
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
@@ -80,6 +88,10 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
           std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_model_path, m_ml_threshold);
       break;
 #endif
+    case SegmentationConfig::Algorithm::ASSOC:
+      segmentation->setLabelling<AssocSegmentation>(
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+      break;
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
       throw Elements::Exception("Unknown segmentation algorithm.");
