@@ -18,6 +18,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -57,7 +58,71 @@
 <li class="toctree-l2"><a class="reference internal" href="output.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="measurement_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ComputeGraphModel"><code class="docutils literal notranslate"><span class="pre">ComputeGraphModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ComputeGraphModel.to_string"><code class="docutils literal notranslate"><span class="pre">ComputeGraphModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ConstantModel"><code class="docutils literal notranslate"><span class="pre">ConstantModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ConstantModel.to_string"><code class="docutils literal notranslate"><span class="pre">ConstantModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ConstantParameter"><code class="docutils literal notranslate"><span class="pre">ConstantParameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ConstantParameter.get_value"><code class="docutils literal notranslate"><span class="pre">ConstantParameter.get_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.CoordinateModelBase"><code class="docutils literal notranslate"><span class="pre">CoordinateModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.DeVaucouleursModel"><code class="docutils literal notranslate"><span class="pre">DeVaucouleursModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.DeVaucouleursModel.to_string"><code class="docutils literal notranslate"><span class="pre">DeVaucouleursModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.DependentParameter"><code class="docutils literal notranslate"><span class="pre">DependentParameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ExponentialModel"><code class="docutils literal notranslate"><span class="pre">ExponentialModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ExponentialModel.to_string"><code class="docutils literal notranslate"><span class="pre">ExponentialModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.FluxParameterType"><code class="docutils literal notranslate"><span class="pre">FluxParameterType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.FreeParameter"><code class="docutils literal notranslate"><span class="pre">FreeParameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.FreeParameter.get_init_value"><code class="docutils literal notranslate"><span class="pre">FreeParameter.get_init_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.FreeParameter.get_range"><code class="docutils literal notranslate"><span class="pre">FreeParameter.get_range()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ModelBase"><code class="docutils literal notranslate"><span class="pre">ModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ParameterBase"><code class="docutils literal notranslate"><span class="pre">ParameterBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.PointSourceModel"><code class="docutils literal notranslate"><span class="pre">PointSourceModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.PointSourceModel.to_string"><code class="docutils literal notranslate"><span class="pre">PointSourceModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Prior"><code class="docutils literal notranslate"><span class="pre">Prior</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_max"><code class="docutils literal notranslate"><span class="pre">Range.get_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_min"><code class="docutils literal notranslate"><span class="pre">Range.get_min()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_type"><code class="docutils literal notranslate"><span class="pre">Range.get_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.RangeType"><code class="docutils literal notranslate"><span class="pre">RangeType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.SersicModel"><code class="docutils literal notranslate"><span class="pre">SersicModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.SersicModel.to_string"><code class="docutils literal notranslate"><span class="pre">SersicModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.SersicModelBase"><code class="docutils literal notranslate"><span class="pre">SersicModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Unbounded"><code class="docutils literal notranslate"><span class="pre">Unbounded</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Unbounded.get_normalization_factor"><code class="docutils literal notranslate"><span class="pre">Unbounded.get_normalization_factor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.WorldCoordinate"><code class="docutils literal notranslate"><span class="pre">WorldCoordinate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_flux_parameter"><code class="docutils literal notranslate"><span class="pre">get_flux_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_pos_parameters"><code class="docutils literal notranslate"><span class="pre">get_pos_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_position_angle"><code class="docutils literal notranslate"><span class="pre">get_position_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_separation_angle"><code class="docutils literal notranslate"><span class="pre">get_separation_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_sky_coord"><code class="docutils literal notranslate"><span class="pre">get_sky_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_world_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_world_position_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_position_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.pixel_to_world_coordinate"><code class="docutils literal notranslate"><span class="pre">pixel_to_world_coordinate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.print_model_fitting_info"><code class="docutils literal notranslate"><span class="pre">print_model_fitting_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.radius_to_wc_angle"><code class="docutils literal notranslate"><span class="pre">radius_to_wc_angle()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../Troubles.html">Troubleshooting</a></li>
@@ -98,11 +163,11 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>models</strong> (<em>string</em><em> or </em><em>list of strings</em><em>, </em><em>corresponding to path to Onnx format models</em><em>,</em>) – (specifying more than one allows using the most efficient model based on render size.)</p></li>
+<li><p><strong>models</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>corresponding to path to Onnx format models</em><em>,</em>) – (specifying more than one allows using the most efficient model based on render size.)</p></li>
 <li><p><strong>x_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – X coordinate (in the detection image)</p></li>
 <li><p><strong>y_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Y coordinate (in the detection image)</p></li>
 <li><p><strong>flux</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Total flux</p></li>
-<li><p><strong>params</strong> (<em>Dictionary of String and ParameterBase</em><em> or </em><em>float</em>) – Dictionary of custom parameters for the ONNX model</p></li>
+<li><p><strong>params</strong> (<em>Dictionary</em><em> of </em><em>String and ParameterBase</em><em> or </em><em>float</em>) – Dictionary of custom parameters for the ONNX model</p></li>
 </ul>
 </dd>
 </dl>
@@ -236,7 +301,7 @@ FreeParameter, ConstantParameter, or other DependentParameter</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>func</strong> (<em>callable</em>) – A callable that will be called with all the parameters specified in this constructor each time a new
 evaluation is needed.</p></li>
-<li><p><strong>params</strong> (<em>list of ParameterBase</em>) – List of parameters on which this DependentParameter depends.</p></li>
+<li><p><strong>params</strong> (<em>list</em><em> of </em><a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a>) – List of parameters on which this DependentParameter depends.</p></li>
 </ul>
 </dd>
 </dl>
@@ -298,7 +363,7 @@ Right now, only isophotal is supported.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>init_value</strong> (<em>float</em><em> or </em><em>callable that receives a source</em><em>, </em><em>and returns a float</em>) – Initial value for the parameter.</p></li>
-<li><p><strong>range</strong> (<em>instance of Range</em><em> or </em><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded"><em>Unbounded</em></a>) – Defines if this parameter is unbounded or bounded, and how.</p></li>
+<li><p><strong>range</strong> (<em>instance</em><em> of </em><a class="reference internal" href="#config.model_fitting.Range" title="config.model_fitting.Range"><em>Range</em></a><em> or </em><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded"><em>Unbounded</em></a>) – Defines if this parameter is unbounded or bounded, and how.</p></li>
 </ul>
 </dd>
 </dl>
@@ -699,7 +764,7 @@ in image coordinates than in world coordinates</p></li>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flux</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">get_pos_parameters</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="mf">.01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">angle</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_model</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ExponentialModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">angle</span><span class="p">))</span>

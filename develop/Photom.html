@@ -18,6 +18,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -98,9 +99,9 @@
 <span id="photometry"></span><h1>Aperture photometry<a class="headerlink" href="#aperture-photometry" title="Permalink to this heading">¶</a></h1>
 <p>Besides <a class="reference internal" href="Position.html#flux-iso-def"><span class="std std-ref">isophotal</span></a>, <abbr title="Point Spread Function">PSF</abbr> and <a class="reference internal" href="Model.html#models-def"><span class="std std-ref">model-fitting</span></a> flux estimates, <strong class="program">SourceXtractor++</strong> can currently perform two types of aperture flux measurements: <a class="reference internal" href="#flux-aper-def"><span class="std std-ref">fixed-aperture</span></a> and <a class="reference internal" href="#flux-auto-def"><span class="std std-ref">adaptive-aperture</span></a>.</p>
 <p>Both types are applied to the measurement image(s). In <strong class="program">SourceXtractor++</strong> runs with only a detection image it is necessary to define the detection image as measurement in a python configuration files such as:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">sourcextractor.config</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">sourcextractor.config</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="n">top</span> <span class="o">=</span> <span class="n">load_fits_image</span><span class="p">(</span>
    <span class="s1">&#39;../EUC_MER_BGSUB-MOSAIC-VIS_TILE79171-SM.fits&#39;</span><span class="p">,</span>
