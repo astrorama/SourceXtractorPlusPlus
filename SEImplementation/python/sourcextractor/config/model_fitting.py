@@ -715,7 +715,7 @@ class DeVaucouleursModel(SersicModelBase):
 
 class ComputeGraphModel(CoordinateModelBase):
     """
-    ComputeGraphModel model 
+    ComputeGraphModel model
 
     Parameters
     ----------
@@ -1043,6 +1043,11 @@ class ModelFitting:
                     self.frame_models_dict[x.id] = []
                 self.frame_models_dict[x.id].append(model.id)
 
+    def _is_param_known(self, param):
+        return param.id in self.constant_parameter_dict or \
+               param.id in self.free_parameter_dict or \
+               param.id in self.dependent_parameter_dict
+
     def _register_parameter(self, attr):
         if isinstance(attr, ConstantParameter):
             self.constant_parameter_dict[attr.id] = attr
@@ -1107,6 +1112,8 @@ class ModelFitting:
         """
         prior = Prior(param, value, sigma)
         self.prior_dict[prior.id] = prior
+        if not self._is_param_known(param):
+            self._register_parameter(param)
 
     def print_parameters(self, file=sys.stderr):
         """
