@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SourceXtractor++ User Manual &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="Introduction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="#" class="icon icon-home"> SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+      <li>SourceXtractor++ User Manual</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="sourcextractor-user-manual">
+<h1>SourceXtractor++ User Manual<a class="headerlink" href="#sourcextractor-user-manual" title="Permalink to this heading">¶</a></h1>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this heading">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="License.html#code">Code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="License.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="License.html#discussion-group-for-sourcextractor-users">Discussion group for <strong class="program">SourceXtractor++</strong> users</a></li>
+<li class="toctree-l2"><a class="reference internal" href="License.html#references-and-acknowledgment">References and Acknowledgment</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Installing.html#hardware-requirements">Hardware requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#terminal">Terminal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#memory">Memory</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#cpus">CPUs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Installing.html#obtaining-sourcextractor">Obtaining <strong class="program">SourceXtractor++</strong></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#from-fedora-or-epel-repositories-rawhide-release-svg">From Fedora or EPEL repositories </a></li>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#from-anaconda-cloud-anaconda-release-svg">From Anaconda Cloud </a></li>
+<li class="toctree-l3"><a class="reference internal" href="Installing.html#from-sources-github-release-svg">From Sources </a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Input.html">Input files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Input.html#detection-and-measurement-images">Detection and measurement images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Input.html#weight-maps">Weight-maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Input.html#flag-maps">Flag-maps</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Input.html#psf-models">PSF models</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Output.html">Output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Output.html#catalog">Catalog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Output.html#output-properties">Output properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Output.html#diagnostic-files">Diagnostic files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Config.html">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Config.html#the-configuration-file">The configuration file</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Background.html">Modeling the background</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Background.html#background-estimation">Background estimation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Background.html#background-map">Background map</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Background.html#configuration-and-tuning">Configuration and tuning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Background.html#computing-cost">Computing cost</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Weighting.html">Weighting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Weighting.html#effect-of-weighting">Effect of weighting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Weighting.html#weight-map-formats">Weight-map formats</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Flagging.html">Flagging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Flagging.html#external-flags">External flags</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Measurements.html#the-measurement-configuration-script">The measurement configuration script</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Measurements.html#measurement-images">Measurement images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Measurements.html#grouping-and-splitting">Grouping and splitting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Measurements.html#measurements">Measurements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="Position.html">Isophotal measurements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Photom.html">Aperture photometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html">Model fitting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config_api/argv.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argv</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config_api/argv.html#config.argv.Arguments"><code class="docutils literal notranslate"><span class="pre">Arguments</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/argv.html#config.argv.FileList"><code class="docutils literal notranslate"><span class="pre">FileList</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config_api/output.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_api/measurement_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.ByKeyword"><code class="docutils literal notranslate"><span class="pre">ByKeyword</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.ByPattern"><code class="docutils literal notranslate"><span class="pre">ByPattern</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.DataCubeSlice"><code class="docutils literal notranslate"><span class="pre">DataCubeSlice</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.FitsFile"><code class="docutils literal notranslate"><span class="pre">FitsFile</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.ImageGroup"><code class="docutils literal notranslate"><span class="pre">ImageGroup</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.MeasurementGroup"><code class="docutils literal notranslate"><span class="pre">MeasurementGroup</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.MeasurementImage"><code class="docutils literal notranslate"><span class="pre">MeasurementImage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="config_api/aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="config_api/model_fitting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ComputeGraphModel"><code class="docutils literal notranslate"><span class="pre">ComputeGraphModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ConstantModel"><code class="docutils literal notranslate"><span class="pre">ConstantModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ConstantParameter"><code class="docutils literal notranslate"><span class="pre">ConstantParameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.CoordinateModelBase"><code class="docutils literal notranslate"><span class="pre">CoordinateModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.DeVaucouleursModel"><code class="docutils literal notranslate"><span class="pre">DeVaucouleursModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.DependentParameter"><code class="docutils literal notranslate"><span class="pre">DependentParameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ExponentialModel"><code class="docutils literal notranslate"><span class="pre">ExponentialModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.FluxParameterType"><code class="docutils literal notranslate"><span class="pre">FluxParameterType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.FreeParameter"><code class="docutils literal notranslate"><span class="pre">FreeParameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ModelBase"><code class="docutils literal notranslate"><span class="pre">ModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.ParameterBase"><code class="docutils literal notranslate"><span class="pre">ParameterBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.PointSourceModel"><code class="docutils literal notranslate"><span class="pre">PointSourceModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Prior"><code class="docutils literal notranslate"><span class="pre">Prior</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.RangeType"><code class="docutils literal notranslate"><span class="pre">RangeType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.SersicModel"><code class="docutils literal notranslate"><span class="pre">SersicModel</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.SersicModelBase"><code class="docutils literal notranslate"><span class="pre">SersicModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.Unbounded"><code class="docutils literal notranslate"><span class="pre">Unbounded</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.WorldCoordinate"><code class="docutils literal notranslate"><span class="pre">WorldCoordinate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_flux_parameter"><code class="docutils literal notranslate"><span class="pre">get_flux_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_pos_parameters"><code class="docutils literal notranslate"><span class="pre">get_pos_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_position_angle"><code class="docutils literal notranslate"><span class="pre">get_position_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_separation_angle"><code class="docutils literal notranslate"><span class="pre">get_separation_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_sky_coord"><code class="docutils literal notranslate"><span class="pre">get_sky_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_world_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.get_world_position_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_position_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.pixel_to_world_coordinate"><code class="docutils literal notranslate"><span class="pre">pixel_to_world_coordinate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.print_model_fitting_info"><code class="docutils literal notranslate"><span class="pre">print_model_fitting_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="config_api/model_fitting.html#config.model_fitting.radius_to_wc_angle"><code class="docutils literal notranslate"><span class="pre">radius_to_wc_angle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Troubles.html#no-sources-detected">NO SOURCES DETECTED</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Troubles.html#problems-with-temporary-disk-space">Problems with temporary disk space</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+</div>
+</section>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Introduction.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
