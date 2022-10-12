@@ -422,7 +422,9 @@ class ModelBase(cpp.Id):
     """
     Base class for all models.
     """
-    pass
+    
+    def get_params(self):
+        return []
 
 
 class CoordinateModelBase(ModelBase):
@@ -447,6 +449,10 @@ class CoordinateModelBase(ModelBase):
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
         self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
+        
+    def get_params(self):
+        return [self.x_coord, self.y_coord, self.flux]
+
 
 
 class PointSourceModel(CoordinateModelBase):
@@ -524,6 +530,9 @@ class ConstantModel(ModelBase):
             return 'ConstantModel[value={}]'.format(self.value)
         else:
             return 'ConstantModel[value={}]'.format(self.value.id)
+        
+        def get_params(self):
+            return [self.value]
 
 
 class SersicModelBase(CoordinateModelBase):
@@ -559,6 +568,8 @@ class SersicModelBase(CoordinateModelBase):
             aspect_ratio)
         self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
 
+    def get_params(self):
+        return CoordinateModelBase.get_params(self) + [self.effective_radius, self.aspect_ratio, self.angle]
 
 class SersicModel(SersicModelBase):
     """
@@ -611,6 +622,9 @@ class SersicModel(SersicModelBase):
             return 'Sersic[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
                 self.aspect_ratio.id, self.angle.id, self.n.id)
+
+    def get_params(self):
+        return SersicModelBase.get_params(self) + [self.n]
 
 
 class ExponentialModel(SersicModelBase):
@@ -783,6 +797,10 @@ class ComputeGraphModel(CoordinateModelBase):
             return 'ComputeGraph[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
                 self.aspect_ratio.id, self.angle.id)
+
+    def get_params(self):
+        return (CoordinateModelBase.get_params(self) + [self.scale, self.aspect_ratio, self.angle] +
+            list(self.params.values()))
 
 
 class WorldCoordinate:
@@ -1059,9 +1077,8 @@ class ModelFitting:
                 self._register_parameter(param)
 
     def _populate_parameters(self, model):
-        for attr_name in dir(model):
-            attr = getattr(model, attr_name)
-            self._register_parameter(attr)
+        for param in model.get_params():
+            self._register_parameter(param)
 
     def _register_model(self, model):
         if isinstance(model, ConstantModel):
