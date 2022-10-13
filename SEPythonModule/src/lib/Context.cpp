@@ -24,6 +24,7 @@
 #include "SEFramework/Task/TaskFactoryRegistry.h"
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEImplementation/Configuration/DetectionFrameConfig.h"
+#include "SEImplementation/Configuration/MultiThreadingConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Grouping/GroupingFactory.h"
@@ -98,6 +99,9 @@ Context::Context(const py::dict& global_config, const py::object& measurement_co
   m_task_factory_registry->configure(*m_config_manager);
   m_measurement_factory->configure(*m_config_manager);
   m_output_factory->configure(*m_config_manager);
+
+  // Get the thread pool
+  m_thread_pool = m_config_manager->getConfiguration<se::MultiThreadingConfig>().getThreadPool();
 
   // Register the output properties
   m_task_factory_registry->registerPropertyInstances(*m_output_registry);

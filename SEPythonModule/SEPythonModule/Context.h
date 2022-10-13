@@ -19,6 +19,7 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_CONTEXT_H
 #define SOURCEXTRACTORPLUSPLUS_CONTEXT_H
 
+#include <AlexandriaKernel/ThreadPool.h>
 #include <Table/Row.h>
 #include <boost/optional.hpp>
 #include <boost/python/dict.hpp>
@@ -73,6 +74,7 @@ public:
   std::shared_ptr<SourceXtractor::MeasurementFactory>                       m_measurement_factory;
   std::shared_ptr<SourceXtractor::OutputFactory>                            m_output_factory;
   std::function<Euclid::Table::Row(const SourceXtractor::SourceInterface&)> m_source_to_row;
+  std::shared_ptr<Euclid::ThreadPool>                                       m_thread_pool;
 
   static void                            enter(const std::shared_ptr<Context>&);
   static void                            exit(const std::shared_ptr<Context>&, const boost::python::object& exc_type,
