@@ -18,6 +18,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -197,7 +198,7 @@ For instance, to generate subgroups each with a different filter (assuming all i
 <p><code class="xref py py-class docutils literal notranslate"><span class="pre">ByPattern()</span></code> also checks for a <abbr title="Flexible Image Transport System">FITS</abbr> header keyword, with the difference that a <a class="reference external" href="https://en.wikipedia.org/wiki/Regular_expression">regular expression</a> provided by the user is applied to the keyword value.
 The first matching group acts as the grouping key, which means that a ‘capturing group (within parentheses) &lt;<a class="reference external" href="https://www.regular-expressions.info/brackets.html">https://www.regular-expressions.info/brackets.html</a>&gt;’_ must be present in the regular expression.
 For instance, the following command groups images by year of observation, ignoring the rest of the date:</p>
-<div class="highlight-python notranslate" id="bypattern"><div class="highlight"><pre><span></span><span class="n">imagegroup</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">ByPattern</span><span class="p">(</span><span class="s1">&#39;DATE-OBS&#39;</span><span class="p">,</span> <span class="s2">&quot;^(\d{4})&quot;</span><span class="p">))</span>
+<div class="highlight-python notranslate" id="bypattern"><div class="highlight"><pre><span></span><span class="n">imagegroup</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">ByPattern</span><span class="p">(</span><span class="s1">&#39;DATE-OBS&#39;</span><span class="p">,</span> <span class="s2">&quot;^(\d</span><span class="si">{4}</span><span class="s2">)&quot;</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -211,7 +212,7 @@ For instance, the following command groups images by year of observation, ignori
 One can access individual subgroups much like a <a class="reference external" href="https://docs.python.org/3/tutorial/datastructures.html#dictionaries">Python dictionary</a>.
 In the first <a class="reference internal" href="#bypattern"><span class="std std-ref">group splitting example above</span></a>, the subgroup of images from year 2007 (if they exists) is simply  <span class="param">imagegroup[‘2007’]</span>, and looping through all subgroups is as simple as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">year</span><span class="p">,</span> <span class="n">subgroup</span> <span class="ow">in</span> <span class="n">imagegroup</span><span class="p">:</span>
-  <span class="k">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span> <span class="n">subgroup</span><span class="p">)</span>
+  <span class="nb">print</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">),</span> <span class="n">subgroup</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
