@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -68,6 +69,7 @@ private:
 
   std::condition_variable m_new_output;
   std::list<std::pair<int, std::unique_ptr<SourceGroupInterface>>> m_output_queue;
+  std::list<std::pair<int, ProcessSourcesEvent>>                   m_event_queue;
   std::mutex m_output_queue_mutex;
   Euclid::Semaphore m_semaphore;
 };

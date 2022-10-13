@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -127,17 +128,26 @@ void MultithreadedMeasurement::outputThreadLoop() {
 
     // Process the output queue
     while (!m_output_queue.empty()) {
-      sendSource(std::move(m_output_queue.front().second));
+      auto next_source = std::move(m_output_queue.front());
       m_output_queue.pop_front();
+
+      // Flush events received before this source
+      while (!m_event_queue.empty() && m_event_queue.front().first <= next_source.first) {
+        sendProcessSignal(m_event_queue.front().second);
+        m_event_queue.pop_front();
+      }
+
+      // Flush source
+      sendSource(std::move(next_source.second));
     }
 
-    if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 &&
-        m_output_queue.empty()) {
+    if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 && m_output_queue.empty()) {
       break;
     }
   }
 }
 
 void MultithreadedMeasurement::receiveProcessSignal(const ProcessSourcesEvent& event) {
-  sendProcessSignal(event);
+  std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+  m_event_queue.emplace_back(m_group_counter, event);
 }
