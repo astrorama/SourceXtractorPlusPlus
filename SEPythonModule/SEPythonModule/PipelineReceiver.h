@@ -19,10 +19,11 @@
 #ifndef SOURCEXTRACTORPLUSPLUS_PIPELINERECEIVER_H
 #define SOURCEXTRACTORPLUSPLUS_PIPELINERECEIVER_H
 
-#include "Pyston/GIL.h"
 #include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Pipeline/SourceGrouping.h"
 #include "SEPythonModule/SourceInterface.h"
+#include <Pyston/Exceptions.h>
+#include <Pyston/GIL.h>
 #include <boost/python/object.hpp>
 
 namespace SourceXPy {
@@ -51,12 +52,20 @@ public:
 
   void receiveSource(std::unique_ptr<SourceXtractor::SourceInterface> source) override {
     Pyston::GILLocker gil;
-    m_callback(std::make_shared<OwnedSource>(m_context, std::move(source)));
+    try {
+      m_callback(std::make_shared<OwnedSource>(m_context, std::move(source)));
+    } catch (const boost::python::error_already_set&) {
+      throw Pyston::Exception();
+    }
   }
 
   void receiveProcessSignal(const SourceXtractor::ProcessSourcesEvent& event) override {
     Pyston::GILLocker gil;
-    m_callback(ProcessSourcesEvent{event});
+    try {
+      m_callback(ProcessSourcesEvent{event});
+    } catch (const boost::python::error_already_set&) {
+      throw Pyston::Exception();
+    }
   }
 
 private:
@@ -73,12 +82,20 @@ public:
 
   void receiveSource(std::unique_ptr<SourceXtractor::SourceGroupInterface> source) override {
     Pyston::GILLocker gil;
-    m_callback(std::make_shared<SourceGroup>(SourceGroup{std::move(source), m_context}));
+    try {
+      m_callback(std::make_shared<SourceGroup>(SourceGroup{std::move(source), m_context}));
+    } catch (const boost::python::error_already_set&) {
+      throw Pyston::Exception();
+    }
   }
 
   void receiveProcessSignal(const SourceXtractor::ProcessSourcesEvent& event) override {
     Pyston::GILLocker gil;
-    m_callback(ProcessSourcesEvent{event});
+    try {
+      m_callback(ProcessSourcesEvent{event});
+    } catch (const boost::python::error_already_set&) {
+      throw Pyston::Exception();
+    }
   }
 
 private:
