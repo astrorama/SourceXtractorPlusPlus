@@ -87,15 +87,12 @@ class StoreStamps:
         """
         Supports being called with a single Source, or with a Group of sources
         """
-        match type(obj):
-            case pipeline.Source:
-                self.__store_stamp(obj)
-            case pipeline.Group:
-                [self.__store_stamp(source) for source in obj]
-            case pipeline.ProcessSourcesEvent:
-                pass
-            case _:
-                print(f'Unknown {type(obj)}')
+        if isinstance(obj, pipeline.Source):
+            self.__store_stamp(obj)
+        elif isinstance(obj, pipeline.Group):
+            [self.__store_stamp(source) for source in obj]
+        elif not isinstance(obj, pipeline.ProcessSourcesEvent):
+            print(f'Unknown {type(obj)}')
         self.__next(obj)
 
 
