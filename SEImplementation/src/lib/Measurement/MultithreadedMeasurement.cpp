@@ -80,6 +80,10 @@ void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterfac
   // Put the new SourceGroup into the input queue
   auto order_number = m_group_counter;
   auto lambda       = [this, order_number, source_group = std::move(source_group)]() mutable {
+    // Flush the queue without measurements on cancel
+    if (m_cancel) {
+      return;
+    }
     // Trigger measurements
     for (const auto& source : *source_group) {
       m_source_to_row(source);
@@ -114,7 +118,7 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement* meas
 void MultithreadedMeasurement::outputThreadLoop() {
   int next_id = 0;
 
-  while (m_thread_pool->activeThreads() > 0) {
+  while (m_thread_pool->activeThreads() > 0 && !m_cancel) {
     std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
     // Wait for something in the output queue

@@ -46,6 +46,7 @@ public:
       , m_group_counter(0)
       , m_input_done(false)
       , m_abort_raised(false)
+      , m_cancel(false)
       , m_semaphore(max_queue_size) {}
 
   ~MultithreadedMeasurement() override;
@@ -56,6 +57,10 @@ public:
   void startThreads() override;
   void stopThreads() override;
   void synchronizeThreads() override;
+
+  void cancel() override {
+    m_cancel = true;
+  }
 
 private:
   using QueuePair = std::pair<int, std::unique_ptr<SourceGroupInterface>>;
@@ -70,7 +75,7 @@ private:
   std::unique_ptr<std::thread>        m_output_thread;
 
   int              m_group_counter;
-  std::atomic_bool m_input_done, m_abort_raised;
+  std::atomic_bool m_input_done, m_abort_raised, m_cancel;
 
   std::condition_variable                         m_new_output;
   OutputQueue                                     m_output_queue;
