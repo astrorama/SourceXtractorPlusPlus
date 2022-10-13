@@ -43,7 +43,7 @@ public:
 
   void call(const boost::python::object& obj);
 
-  void get();
+  void get(std::chrono::microseconds timeout);
 
 private:
   ContextPtr                              m_context;

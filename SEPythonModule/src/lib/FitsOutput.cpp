@@ -69,9 +69,18 @@ void FitsOutput::call(const boost::python::object& obj) {
   py::throw_error_already_set();
 }
 
-void FitsOutput::get() {
-  Pyston::SaveThread save_thread;
-  m_semaphore.acquire();
+void FitsOutput::get(std::chrono::microseconds timeout) {
+  static constexpr std::chrono::seconds try_wait(1);
+  Pyston::SaveThread                    save_thread;
+  while (!m_semaphore.try_acquire_for(try_wait)) {
+    m_context->m_thread_pool->checkForException(true);
+    timeout -= try_wait;
+    if (timeout <= std::chrono::microseconds::zero()) {
+      PyErr_SetString(PyExc_TimeoutError, "sourcextractor timed-out");
+      py::throw_error_already_set();
+    }
+  }
+  m_context->m_thread_pool->checkForException(true);
 }
 
 }  // namespace SourceXPy

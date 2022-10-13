@@ -32,12 +32,17 @@
 #include <boost/python/module.hpp>
 #include <boost/python/numpy.hpp>
 #include <boost/python/register_ptr_to_python.hpp>
+#include <datetime.h>
 
 using namespace SourceXPy;
 namespace py = boost::python;
 namespace np = boost::python::numpy;
 
 namespace {
+
+/**
+ * Pickle detached sources
+ */
 struct PickleDetachedSource : public py::pickle_suite {
   static py::tuple getinitargs(const DetachedSource&) {
     return py::make_tuple();
@@ -51,11 +56,62 @@ struct PickleDetachedSource : public py::pickle_suite {
     source.m_attributes = py::extract<py::dict>(state[0]);
   }
 };
+
+/**
+ * Convert std::chrono::duration to datetime.timedelta
+ */
+struct timedelta_from_std_duration {
+  timedelta_from_std_duration() {
+    py::to_python_converter<const std::chrono::microseconds, timedelta_from_std_duration>();
+  }
+
+  static PyObject* convert(std::chrono::microseconds us) {
+    auto seconds = std::chrono::duration_cast<std::chrono::seconds>(us);
+    us -= seconds;
+    auto hours = std::chrono::duration_cast<std::chrono::hours>(seconds);
+    seconds -= hours;
+    return PyDelta_FromDSU(hours.count() / 24, seconds.count(), us.count());
+  }
+};
+
+/**
+ * Convert datetime.timedelta to std::chrono::duration
+ */
+struct std_duration_from_timedelta {
+  std_duration_from_timedelta() {
+    py::converter::registry::push_back(&convertible, &construct, py::type_id<std::chrono::microseconds>());
+  }
+
+  static void* convertible(PyObject* obj_ptr) {
+    if (PyDelta_Check(obj_ptr)) {
+      return obj_ptr;
+    }
+    return nullptr;
+  }
+
+  static void construct(PyObject* obj_ptr, py::converter::rvalue_from_python_stage1_data* data) {
+    auto timedelta    = reinterpret_cast<PyDateTime_Delta*>(obj_ptr);
+    auto days         = std::chrono::hours(PyDateTime_DELTA_GET_DAYS(timedelta) * 24);
+    auto seconds      = std::chrono::seconds(PyDateTime_DELTA_GET_SECONDS(timedelta));
+    auto microseconds = std::chrono::microseconds(PyDateTime_DELTA_GET_MICROSECONDS(timedelta));
+    auto duration     = days + seconds + microseconds;
+
+    auto storage =
+        (reinterpret_cast<py::converter::rvalue_from_python_storage<std::chrono::microseconds>*>(data))->storage.bytes;
+    new (storage) std::chrono::microseconds(duration);
+    data->convertible = storage;
+  }
+};
+
 }  // namespace
 
 BOOST_PYTHON_MODULE(_SEPythonModule) {
   np::initialize();
   py::object None;
+
+  PyDateTime_IMPORT;
+  std_duration_from_timedelta();
+  timedelta_from_std_duration();
 
   py::class_<Context, boost::noncopyable>(
       "Context", py::init<py::dict, py::object>((py::arg("config"), py::arg("measurement_config") = py::object())))
@@ -131,13 +187,13 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
       "NumpyOutput", py::init<std::shared_ptr<Context>>((py::arg("Context") = None)))
       .def("__repr__", &NumpyOutput::repr)
       .def("__call__", &NumpyOutput::call)
-      .def("get", &NumpyOutput::getTable);
+      .def("get", &NumpyOutput::getTable, (py::arg("timeout") = std::chrono::microseconds::max()));
 
   py::class_<FitsOutput, py::bases<GroupReceiverIfce>, boost::noncopyable>(
       "FitsOutput", py::init<std::shared_ptr<Context>>((py::arg("Context") = None)))
       .def("__repr__", &FitsOutput::repr)
       .def("__call__", &FitsOutput::call)
-      .def("get", &FitsOutput::get);
+      .def("get", &FitsOutput::get, (py::arg("timeout") = std::chrono::microseconds::max()));
 
 #if PY_MAJOR_VERSION >= 3
   PyObject* pyston = PyInit_pyston();

@@ -40,7 +40,7 @@ public:
 
   void call(const boost::python::object& obj);
 
-  boost::python::object getTable();
+  boost::python::object getTable(std::chrono::microseconds timeout);
 
 private:
   ContextPtr                                                                m_context;

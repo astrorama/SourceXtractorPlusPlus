@@ -30,7 +30,11 @@ Measurement::Measurement(ContextPtr context) : m_context(std::move(context)) {
 }
 
 Measurement::~Measurement() {
-  m_measurement->stopThreads();
+  try {
+    m_measurement->stopThreads();
+  } catch (...) {
+    // Must not throw from a destructor
+  }
 }
 
 std::string Measurement::repr() const {
