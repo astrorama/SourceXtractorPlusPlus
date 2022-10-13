@@ -20,6 +20,7 @@ import itertools
 import os.path
 from argparse import ArgumentParser
 from configparser import ConfigParser
+from datetime import timedelta
 from typing import Any, Dict
 
 import h5py
@@ -108,6 +109,7 @@ def run_sourcextractor(config: Dict[str, Any], output_path: str, stamps: bool):
         Output = pipeline.FitsOutput
         config['output-catalog-filename'] = output_path
 
+    timeout = config.pop('timeout', timedelta(days=365))
     snr_filter = SNRFilter(float(config.pop('snr', 5)))
     with pipeline.Context(config):
         stages = [pipeline.Segmentation(), pipeline.Partition(), snr_filter, pipeline.Grouping(), pipeline.Deblending()]
@@ -115,7 +117,7 @@ def run_sourcextractor(config: Dict[str, Any], output_path: str, stamps: bool):
             stages.append(StoreStamps(h5))
         stages.extend([pipeline.Measurement(), Output()])
         pipe = pipeline.Pipeline(stages)
-        result = pipe().get()
+        result = pipe().get(timeout=timeout)
         print(f'Dropped {len(snr_filter.dropped)} sources')
 
     if h5 is not None:

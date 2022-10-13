@@ -76,6 +76,7 @@ py::object NumpyOutput::getTable(std::chrono::microseconds timeout) {
       m_context->m_thread_pool->checkForException(true);
       timeout -= try_wait;
       if (timeout <= std::chrono::microseconds::zero()) {
+        Pyston::GILLocker gil;
         PyErr_SetString(PyExc_TimeoutError, "sourcextractor timed-out");
         py::throw_error_already_set();
       }

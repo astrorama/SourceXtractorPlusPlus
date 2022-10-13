@@ -31,6 +31,7 @@ Measurement::Measurement(ContextPtr context) : m_context(std::move(context)) {
 
 Measurement::~Measurement() {
   try {
+    m_measurement->cancel();
     m_measurement->stopThreads();
   } catch (...) {
     // Must not throw from a destructor
