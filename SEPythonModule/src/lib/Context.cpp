@@ -124,6 +124,10 @@ py::dict Context::get_properties() const {
   return properties;
 }
 
+void Context::check_exception() const {
+  m_thread_pool->checkForException(true);
+}
+
 void Context::enter(const std::shared_ptr<Context>& context) {
   s_context = context;
 }

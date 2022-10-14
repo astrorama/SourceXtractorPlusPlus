@@ -116,6 +116,7 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
   py::class_<Context, boost::noncopyable>(
       "Context", py::init<py::dict, py::object>((py::arg("config"), py::arg("measurement_config") = py::object())))
       .def("get_properties", &Context::get_properties)
+      .def("check_exception", &Context::check_exception)
       .def("__enter__", &Context::enter)
       .def("__exit__", &Context::exit);
   py::register_ptr_to_python<std::shared_ptr<Context>>();

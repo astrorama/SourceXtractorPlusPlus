@@ -76,6 +76,9 @@ public:
   std::function<Euclid::Table::Row(const SourceXtractor::SourceInterface&)> m_source_to_row;
   std::shared_ptr<Euclid::ThreadPool>                                       m_thread_pool;
 
+  /// Rethrow an exception if a worker thread failed
+  void check_exception() const;
+
   static void                            enter(const std::shared_ptr<Context>&);
   static void                            exit(const std::shared_ptr<Context>&, const boost::python::object& exc_type,
                                               const boost::python::object& exc_value, const boost::python::object& traceback);
