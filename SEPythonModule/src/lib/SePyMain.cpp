@@ -91,7 +91,7 @@ struct std_duration_from_timedelta {
 
   static void construct(PyObject* obj_ptr, py::converter::rvalue_from_python_stage1_data* data) {
     auto timedelta    = reinterpret_cast<PyDateTime_Delta*>(obj_ptr);
-    auto days         = std::chrono::hours(PyDateTime_DELTA_GET_DAYS(timedelta) * 24);
+    auto days         = std::chrono::hours(PyDateTime_DELTA_GET_DAYS(timedelta) * 24l);
     auto seconds      = std::chrono::seconds(PyDateTime_DELTA_GET_SECONDS(timedelta));
     auto microseconds = std::chrono::microseconds(PyDateTime_DELTA_GET_MICROSECONDS(timedelta));
     auto duration     = days + seconds + microseconds;
