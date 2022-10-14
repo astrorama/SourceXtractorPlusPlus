@@ -65,7 +65,7 @@ public:
 private:
   using QueuePair = std::pair<int, std::unique_ptr<SourceGroupInterface>>;
   // We want O(1) for the *lowest* value (received order)
-  using OutputQueue = std::priority_queue<QueuePair, std::vector<QueuePair>, std::greater<>>;
+  using OutputQueue = std::priority_queue<QueuePair, std::vector<QueuePair>, std::greater<QueuePair>>;
 
   static void outputThreadStatic(MultithreadedMeasurement* measurement);
   void        outputThreadLoop();
