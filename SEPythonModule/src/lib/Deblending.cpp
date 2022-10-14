@@ -23,6 +23,7 @@
 #include <boost/python/extract.hpp>
 
 namespace py = boost::python;
+namespace se = SourceXtractor;
 
 namespace SourceXPy {
 
@@ -56,9 +57,9 @@ void Deblending::call(const py::object& obj) const {
     m_deblending->receiveSource(std::move(cloned_group_ptr));
     return;
   }
-  py::extract<ProcessSourcesEvent> event_wrapper(obj);
+  py::extract<se::ProcessSourcesEvent> event_wrapper(obj);
   if (event_wrapper.check()) {
-    const auto&        event = event_wrapper().m_event;
+    const auto&        event = event_wrapper();
     Pyston::SaveThread save_thread;
     m_deblending->receiveProcessSignal(event);
     return;

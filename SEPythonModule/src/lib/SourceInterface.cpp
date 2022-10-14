@@ -18,9 +18,11 @@
 
 #include "SEPythonModule/SourceInterface.h"
 #include "SEFramework/Output/OutputRegistry.h"
+#include "SEFramework/Property/DetectionFrame.h"
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Source/SourceGroupWithOnDemandPropertiesFactory.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
 #include "SEImplementation/Property/SourceId.h"
 #include <ElementsKernel/Logging.h>
@@ -34,7 +36,10 @@ namespace SourceXPy {
 namespace py = boost::python;
 namespace np = boost::python::numpy;
 using Euclid::NdArray::NdArray;
+using SourceXtractor::DetectionFrame;
+using SourceXtractor::DetectionFrameConfig;
 using SourceXtractor::GroupInfo;
+using SourceXtractor::PixelCoordinateList;
 using SourceXtractor::PropertyId;
 using SourceXtractor::SourceId;
 
@@ -189,6 +194,37 @@ std::shared_ptr<EntangledSource> SourceGroup::Iterator::next() {
   m_holder->m_source_ptr = &m_i->getRef();
   ++m_i;
   return m_holder;
+}
+
+namespace {
+
+PixelCoordinateList PixelCoordinateFromTuple(const boost::python::tuple& tuple) {
+  const np::ndarray                            xs = py::extract<np::ndarray>(tuple[0]);
+  const np::ndarray                            ys = py::extract<np::ndarray>(tuple[1]);
+  std::vector<SourceXtractor::PixelCoordinate> coordinates(py::len(xs));
+
+  for (std::size_t i = 0; i < coordinates.size(); ++i) {
+    coordinates[i].m_x = py::extract<int>(xs[i]);
+    coordinates[i].m_y = py::extract<int>(ys[i]);
+  }
+
+  return PixelCoordinateList{std::move(coordinates)};
+}
+
+}  // namespace
+
+std::shared_ptr<OwnedSource> OwnedSource::create(const std::shared_ptr<Context>& context, int detection_frame_idx,
+                                                 int detection_id, const boost::python::tuple& pixels) {
+  const auto& detection_frames =
+      context->m_config_manager->getConfiguration<DetectionFrameConfig>().getDetectionFrames();
+  const auto& detection_frame = detection_frames.at(detection_frame_idx);
+
+  auto source_ptr = context->m_source_factory->createSource();
+  source_ptr->setProperty<DetectionFrame>(detection_frame);
+  source_ptr->setProperty<SourceId>(detection_id);
+  source_ptr->setProperty<PixelCoordinateList>(PixelCoordinateFromTuple(pixels));
+
+  return std::make_shared<OwnedSource>(context, std::move(source_ptr));
 }
 
 }  // namespace SourceXPy

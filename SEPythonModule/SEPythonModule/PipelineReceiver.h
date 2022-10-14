@@ -31,16 +31,13 @@ namespace SourceXPy {
 using SourceReceiverIfce = SourceXtractor::PipelineReceiver<SourceXtractor::SourceInterface>;
 using GroupReceiverIfce  = SourceXtractor::PipelineReceiver<SourceXtractor::SourceGroupInterface>;
 
-class ProcessSourcesEvent {
-public:
-  SourceXtractor::ProcessSourcesEvent m_event;
-
-  std::string repr() const;
-};
+std::string ProcessSourcesEventRepr(const SourceXtractor::ProcessSourcesEvent&);
 
 class AllFramesDone : public SourceXtractor::SelectionCriteria {
 public:
   bool mustBeProcessed(const SourceXtractor::SourceInterface& source) const override;
+
+  static SourceXtractor::ProcessSourcesEvent create();
 };
 
 class PipelineSourceReceiver : public SourceReceiverIfce {
@@ -62,7 +59,7 @@ public:
   void receiveProcessSignal(const SourceXtractor::ProcessSourcesEvent& event) override {
     Pyston::GILLocker gil;
     try {
-      m_callback(ProcessSourcesEvent{event});
+      m_callback(event);
     } catch (const boost::python::error_already_set&) {
       throw Pyston::Exception();
     }
@@ -92,7 +89,7 @@ public:
   void receiveProcessSignal(const SourceXtractor::ProcessSourcesEvent& event) override {
     Pyston::GILLocker gil;
     try {
-      m_callback(ProcessSourcesEvent{event});
+      m_callback(event);
     } catch (const boost::python::error_already_set&) {
       throw Pyston::Exception();
     }

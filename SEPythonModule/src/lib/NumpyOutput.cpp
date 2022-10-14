@@ -61,7 +61,7 @@ void NumpyOutput::call(const py::object& obj) {
     boost::transform(*group_ptr, std::back_inserter(m_rows), m_source_to_row);
     return;
   }
-  py::extract<ProcessSourcesEvent> event_wrapper(obj);
+  py::extract<se::ProcessSourcesEvent> event_wrapper(obj);
   if (!event_wrapper.check()) {
     PyErr_SetString(PyExc_TypeError, "NumpyOutput: Unexpected python object received");
     py::throw_error_already_set();

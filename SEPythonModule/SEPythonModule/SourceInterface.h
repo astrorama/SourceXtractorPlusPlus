@@ -21,7 +21,9 @@
 
 #include "SEFramework/Source/SourceGroupInterface.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEPythonModule/Context.h"
+#include <boost/python/dict.hpp>
 #include <boost/python/object.hpp>
 #include <memory>
 #include <string>
@@ -54,6 +56,9 @@ struct OwnedSource : public AttachedSource {
   std::string repr() const;
 
   std::unique_ptr<SourceXtractor::SourceInterface> m_owned_source;
+
+  static std::shared_ptr<OwnedSource> create(const std::shared_ptr<Context>& context, int detection_frame_idx,
+                                             int detection_id, const boost::python::tuple& pixels);
 };
 
 struct EntangledSource : public AttachedSource {

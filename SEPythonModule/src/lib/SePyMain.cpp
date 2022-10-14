@@ -37,6 +37,7 @@
 using namespace SourceXPy;
 namespace py = boost::python;
 namespace np = boost::python::numpy;
+namespace se = SourceXtractor;
 
 namespace {
 
@@ -129,7 +130,9 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
 
   py::class_<AttachedSource, boost::noncopyable>("Source", py::no_init)
       .def("__getattr__", &AttachedSource::attribute)
-      .def("detach", &AttachedSource::detach);
+      .def("detach", &AttachedSource::detach)
+      .def("create", &OwnedSource::create, py::args("context", "detection_frame", "detection_id", "pixel_coordinates"))
+      .staticmethod("create");
   py::register_ptr_to_python<std::shared_ptr<AttachedSource>>();
 
   py::class_<OwnedSource, py::bases<AttachedSource>, boost::noncopyable>("OwnedSource", py::no_init)
@@ -150,7 +153,7 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
       .def("__iter__", &SourceGroup::iter);
   py::register_ptr_to_python<std::shared_ptr<SourceGroup>>();
 
-  py::class_<ProcessSourcesEvent>("ProcessSourcesEvent", py::no_init).def("__repr__", &ProcessSourcesEvent::repr);
+  py::class_<se::ProcessSourcesEvent>("ProcessSourcesEvent", py::no_init).def("__repr__", &ProcessSourcesEventRepr);
 
   py::class_<SourceReceiverIfce, boost::noncopyable>("SourceReceiver", py::no_init);
   py::class_<GroupReceiverIfce, boost::noncopyable>("GroupReceiverIfce", py::no_init);
@@ -196,6 +199,10 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
       .def("__call__", &FitsOutput::call)
       .def("get", &FitsOutput::get, (py::arg("timeout") = std::chrono::microseconds::max()));
 
+  // For custom segmentation
+  py::def("AllFramesDone", &AllFramesDone::create);
+
+  // Import pyston into the interpreter so it is importable without tweaking PYTHONPATH
 #if PY_MAJOR_VERSION >= 3
   PyObject* pyston = PyInit_pyston();
 #else

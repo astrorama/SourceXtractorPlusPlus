@@ -28,11 +28,10 @@
 namespace SourceXPy {
 
 namespace py = boost::python;
-namespace se = SourceXtractor;
 
 using SourceXtractor::DetectionFrameConfig;
 using SourceXtractor::DetectionImageFrame;
-using SourceXtractor::SelectAllCriteria;
+using SourceXtractor::ProcessSourcesEvent;
 
 Segmentation::Segmentation(ContextPtr context) : m_context(std::move(context)) {
   m_segmentation = m_context->m_segmentation_factory->createSegmentation();
@@ -58,21 +57,7 @@ void Segmentation::call() const {
   const auto&        frames           = detection_config.getDetectionFrames();
   boost::for_each(frames,
                   [this](const std::shared_ptr<DetectionImageFrame>& frame) { m_segmentation->processFrame(frame); });
-  m_next_stage->receiveProcessSignal(se::ProcessSourcesEvent(std::make_shared<AllFramesDone>()));
-}
-
-std::string ProcessSourcesEvent::repr() const {
-  auto& ptr = m_event.m_selection_criteria;
-  if (std::dynamic_pointer_cast<SelectAllCriteria>(ptr)) {
-    return "SelectAllCriteria";
-  } else if (std::dynamic_pointer_cast<AllFramesDone>(ptr)) {
-    return "AllFramesDone";
-  }
-  return "LineSelectionCriteria";
-}
-
-bool AllFramesDone::mustBeProcessed(const SourceXtractor::SourceInterface&) const {
-  return true;
+  m_next_stage->receiveProcessSignal(ProcessSourcesEvent(std::make_shared<AllFramesDone>()));
 }
 
 }  // namespace SourceXPy
