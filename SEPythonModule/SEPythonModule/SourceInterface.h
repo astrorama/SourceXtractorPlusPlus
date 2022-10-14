@@ -30,6 +30,10 @@
 
 namespace SourceXPy {
 
+/**
+ * A DetachedSource is "outside" sourcextractor++'s pipeline, so it does not keep any
+ * reference to internal properties such as the detection frame
+ */
 struct DetachedSource {
   boost::python::dict m_attributes;
 
@@ -38,6 +42,9 @@ struct DetachedSource {
   boost::python::object attribute(const std::string& key) const;
 };
 
+/**
+ * An AttachedSource is bound to sourcextractor++'s pipeline. It can not be serialized.
+ */
 struct AttachedSource {
   ContextPtr                       m_context;
   SourceXtractor::SourceInterface* m_source_ptr = nullptr;
@@ -49,6 +56,13 @@ struct AttachedSource {
   DetachedSource        detach() const;
 };
 
+/**
+ * An OwnedSource is fully owned by the pipeline stage that receives it.
+ * It is still attached to the pipeline, but it is safe to keep a reference to it from Python
+ * @warning This is only true since the pipelines clone the sources that come from Python, which is an inefficiency.
+ *          If acceptable, m_owned_source could be moved away, m_source_ptr set to nullptr, and let any later call
+ *          catch this nullptr situation if the caller kept a reference without explicitly cloning.
+ */
 struct OwnedSource : public AttachedSource {
   OwnedSource(ContextPtr context, std::unique_ptr<SourceXtractor::SourceInterface> source)
       : AttachedSource(std::move(context), source.get()), m_owned_source(std::move(source)) {}
@@ -61,12 +75,25 @@ struct OwnedSource : public AttachedSource {
                                              int detection_id, const boost::python::tuple& pixels);
 };
 
+/**
+ * An EntangledSource lifetime is bound to its containing SourceGroup. When iterating a SourceGroup,
+ * only the current EntangledSource is safe to use. i.e.
+ *
+ * sources = []
+ * for source in group:
+ *      print(source)           # Safe
+ *      sources.append(source)  # Unsafe
+ * print(sources)               # Unsafe
+ */
 struct EntangledSource : public AttachedSource {
   explicit EntangledSource(ContextPtr context) : AttachedSource(std::move(context), nullptr) {}
 
   std::string repr() const;
 };
 
+/**
+ * A SourceGroup is always owned by the called pipeline stage
+ */
 struct SourceGroup {
   struct Iterator {
     SourceXtractor::SourceGroupInterface::const_iterator m_i;
