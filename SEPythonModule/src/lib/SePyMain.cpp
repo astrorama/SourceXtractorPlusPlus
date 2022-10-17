@@ -104,6 +104,10 @@ struct std_duration_from_timedelta {
   }
 };
 
+void translate_pyston_exc(const Pyston::Exception& exc) {
+  exc.restore();
+}
+
 }  // namespace
 
 BOOST_PYTHON_MODULE(_SEPythonModule) {
@@ -205,6 +209,9 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
 
   // For custom segmentation
   py::def("AllFramesDone", &AllFramesDone::create);
+
+  // Pyston::Exception wrap Python errors, so unwrap them at the Python boundary
+  py::register_exception_translator<Pyston::Exception>(&translate_pyston_exc);
 
   // Import pyston into the interpreter so it is importable without tweaking PYTHONPATH
 #if PY_MAJOR_VERSION >= 3
