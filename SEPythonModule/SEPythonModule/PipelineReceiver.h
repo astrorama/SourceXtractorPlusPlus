@@ -33,6 +33,8 @@ using GroupReceiverIfce  = SourceXtractor::PipelineReceiver<SourceXtractor::Sour
 
 std::string ProcessSourcesEventRepr(const SourceXtractor::ProcessSourcesEvent&);
 
+bool ProcessSourcesEventMustProcess(const SourceXtractor::ProcessSourcesEvent&, const AttachedSource&);
+
 class AllFramesDone : public SourceXtractor::SelectionCriteria {
 public:
   bool mustBeProcessed(const SourceXtractor::SourceInterface& source) const override;

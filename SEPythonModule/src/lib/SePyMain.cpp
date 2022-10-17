@@ -150,10 +150,14 @@ BOOST_PYTHON_MODULE(_SEPythonModule) {
       .def("__repr__", &SourceGroup::repr)
       .def("__getattr__", &SourceGroup::attribute)
       .def("__len__", &SourceGroup::size)
-      .def("__iter__", &SourceGroup::iter);
+      .def("__iter__", &SourceGroup::iter)
+      .def("create", &SourceGroup::create)
+      .staticmethod("create");
   py::register_ptr_to_python<std::shared_ptr<SourceGroup>>();
 
-  py::class_<se::ProcessSourcesEvent>("ProcessSourcesEvent", py::no_init).def("__repr__", &ProcessSourcesEventRepr);
+  py::class_<se::ProcessSourcesEvent>("ProcessSourcesEvent", py::no_init)
+      .def("__repr__", &ProcessSourcesEventRepr)
+      .def("must_process", &ProcessSourcesEventMustProcess);
 
   py::class_<SourceReceiverIfce, boost::noncopyable>("SourceReceiver", py::no_init);
   py::class_<GroupReceiverIfce, boost::noncopyable>("GroupReceiverIfce", py::no_init);

@@ -24,6 +24,7 @@
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEPythonModule/Context.h"
 #include <boost/python/dict.hpp>
+#include <boost/python/list.hpp>
 #include <boost/python/object.hpp>
 #include <memory>
 #include <string>
@@ -111,6 +112,8 @@ struct SourceGroup {
   size_t                size() const;
   boost::python::object attribute(const std::string& key) const;
   Iterator              iter() const;
+
+  static std::shared_ptr<SourceGroup> create(const std::shared_ptr<Context>& context, boost::python::list& sources);
 };
 
 }  // namespace SourceXPy

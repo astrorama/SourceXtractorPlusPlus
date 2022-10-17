@@ -32,6 +32,10 @@ std::string ProcessSourcesEventRepr(const se::ProcessSourcesEvent& event) {
   return "LineSelectionCriteria";
 }
 
+bool ProcessSourcesEventMustProcess(const SourceXtractor::ProcessSourcesEvent& event, const AttachedSource& source) {
+  return event.m_selection_criteria->mustBeProcessed(*source.m_source_ptr);
+}
+
 bool AllFramesDone::mustBeProcessed(const se::SourceInterface&) const {
   return true;
 }

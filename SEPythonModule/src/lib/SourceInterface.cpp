@@ -114,9 +114,7 @@ py::object AttachedSource::attribute(const std::string& key) const {
     PropertyId property_id(property_type_index, 0);
     m_source_ptr->getProperty(property_id);
   } catch (const std::out_of_range&) {
-    std::stringstream err_str("Source has no attribute ");
-    err_str << key;
-    PyErr_SetString(PyExc_AttributeError, err_str.str().c_str());
+    PyErr_SetString(PyExc_AttributeError, key.c_str());
     py::throw_error_already_set();
   }
   // Convert
@@ -225,6 +223,21 @@ std::shared_ptr<OwnedSource> OwnedSource::create(const std::shared_ptr<Context>&
   source_ptr->setProperty<PixelCoordinateList>(PixelCoordinateFromTuple(pixels));
 
   return std::make_shared<OwnedSource>(context, std::move(source_ptr));
+}
+
+std::shared_ptr<SourceGroup> SourceGroup::create(const std::shared_ptr<Context>& context,
+                                                 boost::python::list&            sources) {
+  auto group_ptr = context->m_group_factory->createSourceGroup();
+
+  auto n_sources = len(sources);
+  for (ssize_t i = 0; i < n_sources; ++i) {
+    const auto& source = py::extract<std::shared_ptr<OwnedSource>>(sources[i]);
+    // TODO: Do not clone?
+    group_ptr->addSource(source()->m_owned_source->clone());
+  }
+
+  sources.attr("clear")();
+  return std::make_shared<SourceGroup>(SourceGroup{std::move(group_ptr), context});
 }
 
 }  // namespace SourceXPy
