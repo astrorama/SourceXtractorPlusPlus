@@ -26,6 +26,7 @@
 #include "SEImplementation/Configuration/DetectionFrameConfig.h"
 #include "SEImplementation/Configuration/MultiThreadingConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
+#include "SEImplementation/Configuration/PythonConfig.h"
 #include "SEImplementation/Deblending/DeblendingFactory.h"
 #include "SEImplementation/Grouping/GroupingFactory.h"
 #include "SEImplementation/Measurement/MeasurementFactory.h"
@@ -88,8 +89,10 @@ Context::Context(const py::dict& global_config, const py::object& measurement_co
   config_wrapper.fromPython(global_config);
   auto options = config_wrapper.getOptions();
 
-  // Override the python object to use for the measurement configuration
-  options["python-config-object"].value() = boost::any(measurement_config);
+  // Override the python object to use for the measurement configuration and disable output capture
+  options["python-config-object"].value()  = boost::any(measurement_config);
+  options["python-capture-output"].value() = boost::any(false);
+
   m_config_manager->initialize(options);
 
   m_segmentation_factory->configure(*m_config_manager);

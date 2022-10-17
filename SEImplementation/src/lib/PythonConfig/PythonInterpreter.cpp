@@ -51,23 +51,31 @@ PythonInterpreter& PythonInterpreter::getSingleton() {
 
 PythonInterpreter::PythonInterpreter() : m_out_wrapper(stdout_logger), m_err_wrapper(stderr_logger) {
   // We may be called *from* Python!
-  if (Py_IsInitialized()) {
-    return;
-  }
-  // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
-  // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
-  // the default one) and restore it after initializing the interpreter
-  struct sigaction sigint_handler;
-  sigaction(SIGINT, nullptr, &sigint_handler);
+  if (!Py_IsInitialized()) {
+    struct sigaction sigint_handler;
 
-  PyImport_AppendInittab("pyston", PYSTON_MODULE_INIT);
-  Py_Initialize();
+    // Python sets its own signal handler for SIGINT (Ctrl+C), so it can throw a KeyboardInterrupt
+    // Here we are not interested on this behaviour, so we get whatever handler we've got (normally
+    // the default one) and restore it after initializing the interpreter
+    sigaction(SIGINT, nullptr, &sigint_handler);
+
+    // Make pyston importable
+    PyImport_AppendInittab("pyston", PYSTON_MODULE_INIT);
+
+    // Initialize Python
+    Py_Initialize();
 #if PY_VERSION_HEX < 3090000
-  PyEval_InitThreads();
+    PyEval_InitThreads();
 #endif
-  PyEval_SaveThread();
+    PyEval_SaveThread();
 
-  sigaction(SIGINT, &sigint_handler, nullptr);
+    // Restore SIGINT handler
+    sigaction(SIGINT, &sigint_handler, nullptr);
+  }
+
+  // Import ourselves so the conversions are registered
+  Pyston::GILLocker locker;
+  py::import("_SEPythonConfig");
 }
 
 PythonInterpreter::~PythonInterpreter() {
@@ -97,13 +105,6 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
     }
     PySys_SetArgv(argv.size() + 1, py_argv);
 
-    // Import ourselves so the conversions are registered
-    py::import("_SEPythonConfig");
-
-    // Setup stdout and stderr
-    PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());
-    PySys_SetObject("stderr", py::object(boost::ref(m_err_wrapper)).ptr());
-
     // Run the file
     py::object main_module = py::import("__main__");
     py::setattr(main_module, "__file__", py::object(filename));
@@ -123,6 +124,12 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
   } catch (const std::system_error& e) {
     throw Elements::Exception() << e.what() << ": " << e.code().message();
   }
+}
+
+void PythonInterpreter::captureOutput() {
+  Pyston::GILLocker locker;
+  PySys_SetObject("stdout", py::object(boost::ref(m_out_wrapper)).ptr());
+  PySys_SetObject("stderr", py::object(boost::ref(m_err_wrapper)).ptr());
 }
 
 void PythonInterpreter::setupContext(boost::python::object config) {

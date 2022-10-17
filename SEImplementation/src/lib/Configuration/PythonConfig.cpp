@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
@@ -31,7 +31,9 @@ namespace {
 
 const std::string PYTHON_CONFIG_FILE{"python-config-file"};
 const std::string PYTHON_ARGV{"python-arg"};
+// These are internal and not exposed to the configuration manager
 const std::string PYTHON_CONFIG_OBJ{"python-config-object"};
+const std::string PYTHON_CAPTURE_OUTPUT{"python-capture-output"};
 
 }  // namespace
 
@@ -58,13 +60,19 @@ void PythonConfig::preInitialize(const UserValues& args) {
   } else if (!filename.empty() && !fs::exists(filename)) {
     throw Elements::Exception() << "Python configuration file " << filename << " does not exist";
   }
+
+  auto py_capture_output = args.find(PYTHON_CAPTURE_OUTPUT);
+  if (py_capture_output != args.end()) {
+    m_capture_output = py_capture_output->second.as<bool>();
+  }
 }
 
 void PythonConfig::initialize(const UserValues& args) {
   auto& singleton = PythonInterpreter::getSingleton();
-  if (m_measurement_config) {
-    singleton.setupContext(m_measurement_config);
-  } else {
+  if (m_capture_output) {
+    singleton.captureOutput();
+  }
+  if (!m_measurement_config) {
     auto filename = args.find(PYTHON_CONFIG_FILE)->second.as<std::string>();
     if (!filename.empty()) {
       std::vector<std::string> argv;
