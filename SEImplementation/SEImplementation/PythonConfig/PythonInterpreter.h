@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -38,9 +39,9 @@ public:
   
   static PythonInterpreter& getSingleton();
   
-  void runCode(const std::string& code);
-  
   void runFile(const std::string& filename, const std::vector<std::string>& argv);
+
+  void setupContext();
 
   virtual ~PythonInterpreter();
   
@@ -76,14 +77,15 @@ public:
 
   std::map<std::string, boost::python::object> getModelFittingParams();
 
-  std::vector<boost::python::object> getMeasurementGroups();
-
-  void setCoordinateSystem(std::shared_ptr<CoordinateSystem> coordinate_system);
-
 private:
   
   PythonInterpreter();
+
+  std::map<int, boost::python::object> getMapFromDict(const char* object_name,
+                                                      const char* dict_name);
+
   PyOutputWrapper m_out_wrapper, m_err_wrapper;
+  boost::python::object m_measurement_config;
 };
 
 } // end of namespace SourceXtractor

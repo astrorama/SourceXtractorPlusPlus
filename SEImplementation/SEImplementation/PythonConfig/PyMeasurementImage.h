@@ -50,6 +50,10 @@ public:
   int image_hdu;
   int psf_hdu;
   int weight_hdu;
+
+  bool is_data_cube;
+  int image_layer;
+  int weight_layer;
 };
 
 }

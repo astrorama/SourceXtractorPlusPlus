@@ -46,10 +46,27 @@ sudo dnf install sourcextractor++
 They can be installed adding a `.repo` file under `/etc/yum.repos.d` with the following content:
 
 ```ini
+# Stable and tagged versions
+# This is the recommended way to install sourcextractor++
 [Astrorama]
 name=Astrorama
-baseurl=http://repository.astro.unige.ch/euclid/devel/stable/fedora/$releasever/$basearch
+baseurl=http://repository.astro.unige.ch/euclid/fedora/$releasever/$basearch
 enabled=1
+gpgcheck=0
+
+# Enable this to get the stable (untagged) version
+[Astrorama-Stable]
+name=Astrorama Stable
+baseurl=http://repository.astro.unige.ch/euclid/devel/stable/fedora/$releasever/$basearch
+enabled=0
+gpgcheck=0
+
+# Enable this to get the development version
+# Use with care!
+[Astrorama-Develop]
+name=Astrorama Develop
+baseurl=http://repository.astro.unige.ch/euclid/devel/develop/fedora/$releasever/$basearch
+enabled=0
 gpgcheck=0
 ```
 
@@ -59,6 +76,14 @@ And install with
 dnf install SourceXtractorPlusPlus
 ```
 
+## Discussion group for SourceXtractor++ users
+
+In order to facilitaet an active disucssion among SourceXtractor++ users we have created
+a [users group](https://groups.google.com/g/sourcextractor_plusplus). We encourage all users to directly
+join the group (if a google account is at hand) or to ask us to add you as member
+(open an issue on the [github page](https://astrorama.github.io/SourceXtractorPlusPlus/).
+
+
 ## References and Acknowledgment
 
 While we are working on several refereed papers describing SourceXtractor++ and its software architecture, the software package can be referenced with two ADASS conference proceedings:
@@ -66,7 +91,7 @@ While we are working on several refereed papers describing SourceXtractor++ and 
 - [Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P. ; Kümmel, M.: 2020ASPC..527..461B](https://ui.adsabs.harvard.edu/abs/2020ASPC..527..461B/abstract)
 - [Kümmel, M. ; Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P.: 2020ASPC..527...29K](https://ui.adsabs.harvard.edu/abs/2020ASPC..527...29K/abstract) 
 
-The ressources for the SourceXtractor++ development are mostly provided by funding from the Euclid satellite project via the various national agencies.
+Resources for the SourceXtractor++ development are in most part provided by funding from the [Euclid satellite project](https://www.euclid-ec.org/) via the various national agencies.
 For Euclid Consortium papers it is sufficient to point to the [SourceXtractor++ webpage](https://github.com/astrorama/SourceXtractorPlusPlus) and add
 the standard EC acknowledgement text.
 

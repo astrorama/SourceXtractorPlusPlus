@@ -50,7 +50,7 @@ std::map<std::string, Configuration::OptionDescriptionList> CoreThresholdPartiti
   return {{"Core threshold partitioning", {
       {CORE_THRESHOLD.c_str(), po::value<double>()->default_value(0.0), "The core threshold level"},
       {CORE_MINAREA.c_str(), po::value<int>()->default_value(0), "The minimum pixel area for partitioning"},
-      {CORE_THRESH_USE.c_str(), po::bool_switch(), "Activate core threshold partitioning"}
+      {CORE_THRESH_USE.c_str(), po::value<bool>()->default_value(false), "Activate core threshold partitioning"}
   }}};
 }
 
@@ -65,8 +65,7 @@ void CoreThresholdPartitionConfig::initialize(const UserValues &args) {
     throw Elements::Exception() << "Invalid " << CORE_MINAREA << " value: " << m_core_minarea;
   }
 
-  if (m_core_threshold > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()){
-
+  if (m_core_threshold > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()) {
     double core_threshold = m_core_threshold;
     int core_minarea      = m_core_minarea;
     getDependency<PartitionStepConfig>().addPartitionStepCreator([core_threshold, core_minarea](std::shared_ptr<SourceFactory>)

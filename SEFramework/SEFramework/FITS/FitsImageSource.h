@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -81,6 +82,13 @@ public:
     return m_height;
   }
 
+  /// Returns the depth of the image in pixels
+  int getDepth() const {
+    return m_depth;
+  }
+
+  void setLayer(int layer);
+
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
   void saveTile(ImageTile& tile) override;
@@ -106,9 +114,9 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
-  const std::map<std::string, MetadataEntry> getMetadata() const override;
+  const std::map<std::string, MetadataEntry>& getMetadata() const override;
 
-  void setMetadata(std::string key, MetadataEntry value) override;
+  void setMetadata(const std::string& key, const MetadataEntry& value) override;
 
 private:
   void switchHdu(fitsfile *fptr, int hdu_number) const;
@@ -118,13 +126,17 @@ private:
   int getImageType() const;
 
   std::string m_filename;
+  std::shared_ptr<FileManager> m_file_manager;
   std::shared_ptr<FileHandler> m_handler;
 
   int m_hdu_number;
 
   int m_width;
   int m_height;
+  int m_depth;
   ImageTile::ImageType m_image_type;
+
+  int m_current_layer;
 };
 
 }

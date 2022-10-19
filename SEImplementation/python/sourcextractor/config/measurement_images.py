@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+# Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
 #
 # This library is free software; you can redistribute it and/or modify it under
 # the terms of the GNU Lesser General Public License as published by the Free
@@ -29,8 +29,6 @@ else:
     from io import StringIO
 
 
-measurement_images = {}
-
 class FitsFile(cpp.FitsFile):
     def __init__(self, filename):
         super(FitsFile, self).__init__(str(filename))
@@ -52,6 +50,7 @@ class FitsFile(cpp.FitsFile):
             pass
 
         return d
+
 
 class MeasurementImage(cpp.MeasurementImage):
     """
@@ -110,12 +109,20 @@ class MeasurementImage(cpp.MeasurementImage):
         For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
     """
 
+    def _set_checked(self, attr_name, value):
+        try:
+            setattr(self, attr_name, value)
+        except Exception:
+            expected_type = type(getattr(self, attr_name))
+            raise TypeError('Expecting {} for {}, got {}'.format(expected_type.__name__, attr_name,
+                                                                 type(value).__name__))
+
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='none', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None 
+                 image_hdu=0, psf_hdu=None, weight_hdu=None
                  ):
         """
         Constructor.
@@ -134,7 +141,8 @@ class MeasurementImage(cpp.MeasurementImage):
                                                os.path.abspath(psf_file) if psf_file else '',
                                                os.path.abspath(weight_file) if weight_file else '')
 
-        if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (psf_hdu is not None and psf_hdu < 0):
+        if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (
+                psf_hdu is not None and psf_hdu < 0):
             raise ValueError('HDU indices start at 0')
 
         self.meta = {
@@ -146,56 +154,53 @@ class MeasurementImage(cpp.MeasurementImage):
         self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
-            self.gain = gain
+            self._set_checked('gain', gain)
         elif gain_keyword in self.meta:
             self.gain = float(self.meta[gain_keyword])
         else:
             self.gain = 0.
 
         if saturation is not None:
-            self.saturation = saturation
+            self._set_checked('saturation', saturation)
         elif saturation_keyword in self.meta:
             self.saturation = float(self.meta[saturation_keyword])
         else:
             self.saturation = 0.
 
         if flux_scale is not None:
-            self.flux_scale = flux_scale
+            self._set_checked('flux_scale', flux_scale)
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 1.
-        
-        self.weight_type = weight_type
-        self.weight_absolute = weight_absolute
-        self.weight_scaling = weight_scaling
+
+        self._set_checked('weight_type', weight_type)
+        self._set_checked('weight_absolute', weight_absolute)
+        self._set_checked('weight_scaling', weight_scaling)
         if weight_threshold is None:
             self.has_weight_threshold = False
         else:
             self.has_weight_threshold = True
-            self.weight_threshold = weight_threshold
-            
+            self._set_checked('weight_threshold', weight_threshold)
+
         if constant_background is not None:
             self.is_background_constant = True
-            self.constant_background_value = constant_background
+            self._set_checked('constant_background_value', constant_background)
         else:
             self.is_background_constant = False
             self.constant_background_value = -1
-            
-        self.image_hdu = image_hdu
+
+        self._set_checked('image_hdu', image_hdu)
 
         if psf_hdu is None:
-            self.psf_hdu = image_hdu
+            self._set_checked('psf_hdu', image_hdu)
         else:
-            self.psf_hdu = psf_hdu
-            
-        if weight_hdu is None:
-            self.weight_hdu = image_hdu
-        else:
-            self.weight_hdu = weight_hdu
+            self._set_checked('psf_hdu', psf_hdu)
 
-        global measurement_images
-        measurement_images[self.id] = self
+        if weight_hdu is None:
+            self._set_checked('weight_hdu', image_hdu)
+        else:
+            self._set_checked('weight_hdu', weight_hdu)
 
     def __str__(self):
         """
@@ -205,26 +210,41 @@ class MeasurementImage(cpp.MeasurementImage):
             Human readable representation for the object
         """
         return 'Image {}: {} / {}, PSF: {} / {}, Weight: {} / {}'.format(
-            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.meta['PSF_FILENAME'], self.psf_hdu,
+            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.meta['PSF_FILENAME'],
+            self.psf_hdu,
             self.meta['WEIGHT_FILENAME'], self.weight_hdu)
 
 
-def print_measurement_images(file=sys.stderr):
-    """
-    Print a human-readable representation of the configured measurement images.
+class DataCubeSlice(MeasurementImage):
+    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
+                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
+                 flux_scale=None, flux_scale_keyword='FLXSCALE',
+                 weight_type='none', weight_absolute=False, weight_scaling=1.,
+                 weight_threshold=None, constant_background=None,
+                 image_hdu=0, psf_hdu=None, weight_hdu=None,
+                 image_layer=0, weight_layer=0):
+        super(DataCubeSlice, self).__init__(fits_file, psf_file, weight_file, gain,
+                                            gain_keyword, saturation, saturation_keyword,
+                                            flux_scale, flux_scale_keyword,
+                                            weight_type, weight_absolute, weight_scaling,
+                                            weight_threshold, constant_background,
+                                            image_hdu, psf_hdu, weight_hdu)
 
-    Parameters
-    ----------
-    file : file object
-        Where to print the representation. Defaults to sys.stderr
-    """
-    print('Measurement images:', file=file)
-    for i in measurement_images:
-        im = measurement_images[i]
-        print('Image {}'.format(i), file=file)
-        print('      File: {}'.format(im.file), file=file)
-        print('       PSF: {}'.format(im.psf_file), file=file)
-        print('    Weight: {}'.format(im.weight_file), file=file)
+        self.is_data_cube = True
+        self.image_layer = image_layer
+        self.weight_layer = weight_layer
+
+    def __str__(self):
+        """
+        Returns
+        -------
+        str
+            Human readable representation for the object
+        """
+        return 'DataCubeSlice {}: {} / {} / {}, PSF: {} / {}, Weight: {} / {} / {}'.format(
+            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.image_layer,
+            self.meta['PSF_FILENAME'], self.psf_hdu,
+            self.meta['WEIGHT_FILENAME'], self.weight_hdu, self.weight_layer)
 
 
 class ImageGroup(object):
@@ -312,7 +332,7 @@ class ImageGroup(object):
             If some images have not been grouped by the callable.
         """
         if self.__subgroups:
-            #if we are already subgrouped, apply the split to the subgroups
+            # if we are already subgrouped, apply the split to the subgroups
             for _, sub_group in self.__subgroups:
                 sub_group.split(grouping_method)
         else:
@@ -421,7 +441,9 @@ class ImageGroup(object):
                 for im in self.__images:
                     print('{}  {}'.format(prefix, im), file=file)
         else:
-            print('{}Image sub-groups: {}'.format(prefix, ','.join(str(x) for x, _ in self.__subgroups)), file=file)
+            print('{}Image sub-groups: {}'.format(prefix,
+                                                  ','.join(str(x) for x, _ in self.__subgroups)),
+                  file=file)
             for name, group in self.__subgroups:
                 print('{}  {}:'.format(prefix, name), file=file)
                 group.print(prefix + '    ', show_images, file)
@@ -437,103 +459,6 @@ class ImageGroup(object):
         self.print(show_images=True, file=string)
         return string.getvalue()
 
-def load_fits_image(image, psf=None, weight=None, **kwargs):
-    """Creates an image group with the images of a (possibly multi-HDU) single FITS file.
-    
-    If image is multi-hdu, psf and weight can either be multi hdu or lists of individual files.
- 
-    In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.
- 
-    :param image: The filename of the FITS file containing the image(s)
-    :param psf: psf file or list of psf files
-    :param weight: FITS file for the weight image or a list of such files
-
-    :return: A ImageGroup representing the images
-    """
-
-    image_hdu_list = FitsFile(image)
-    image_hdu_idx = image_hdu_list.hdu_list
-     
-    # handles the PSFs
-    if isinstance(psf, list):
-        if len(psf) != len(image_hdu_idx):
-            raise ValueError("The number of psf files must match the number of images!")
-        psf_list = psf
-        psf_hdu_idx = [0] * len(psf_list)
-    else:
-        psf_list = [psf] * len(image_hdu_idx)
-        psf_hdu_idx = range(len(image_hdu_idx))
-         
-    # handles the weight maps
-    if isinstance(weight, list):
-        if len(weight) != len(image_hdu_idx):
-            raise ValueError("The number of weight files must match the number of images!")
-        weight_list = weight
-        weight_hdu_idx = [0] * len(weight_list)
-    elif weight is None:
-        weight_list = [None] * len(image_hdu_idx)
-        weight_hdu_idx = [0] * len(weight_list)
-    else:
-        weight_hdu_list = FitsFile(weight)
-        weight_hdu_idx = weight_hdu_list.hdu_list
-        weight_list = [weight_hdu_list] * len(image_hdu_idx)
-
-    image_list = []
-    for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
-            image_hdu_idx, psf_list, psf_hdu_idx, weight_list, weight_hdu_idx):
-        image_list.append(MeasurementImage(image_hdu_list, psf_file, weight_file,
-                                           image_hdu=hdu, psf_hdu=psf_hdu, weight_hdu=weight_hdu, **kwargs))
-
-    return ImageGroup(images=image_list)
-
-def load_fits_images(images, psfs=None, weights=None, **kwargs):
-    """Creates an image group for the given images.
- 
-    Parameters
-    ----------
-    images : list of str
-        A list of relative paths to the images FITS files. Can also be single string in which case,
-         this function acts like load_fits_image 
-    psfs : list of str
-        A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
-    weights : list of str
-        A list of relative paths to the weight files (optional). It must match the length of image_list or be None.
- 
-    Returns
-    -------
-    ImageGroup
-        A ImageGroup representing the images
- 
-    Raises
-    ------
-    ValueError
-        In case of mismatched list of files
-    """
-
-    if isinstance(images, list):
-        if len(images) == 0:
-            raise ValueError("An empty list passed to load_fits_images")
-
-        psfs = psfs or [None] * len(images)
-        weights = weights or [None] * len(images)
-
-        if not isinstance(psfs, list) or len(psfs) != len(images):
-            raise ValueError("The number of image files and psf files must match!")
-  
-        if not isinstance(weights, list) or len(weights) != len(images):
-            raise ValueError("The number of image files and weight files must match!")
-
-        groups = []
-        for f, p, w in zip(images, psfs, weights):
-            groups.append(load_fits_image(f, p, w, **kwargs))
-
-        image_list = []
-        for g in groups:
-            image_list += g
-              
-        return ImageGroup(images=image_list)
-    else:
-        load_fits_image(images, psfs, weights, **kwargs)
 
 class ByKeyword(object):
     """
@@ -640,8 +565,6 @@ class MeasurementGroup(object):
     image_group : ImageGroup
     """
 
-    _all_groups = list()
-
     def __init__(self, image_group, is_subgroup=False):
         """
         Constructor.
@@ -651,9 +574,7 @@ class MeasurementGroup(object):
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
         else:
-            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n,g in image_group]
-        if not is_subgroup:
-            MeasurementGroup._all_groups.append(self)
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in image_group]
 
     def __iter__(self):
         """
@@ -684,7 +605,7 @@ class MeasurementGroup(object):
         KeyError
             If we can't find what we want
         """
-        
+
         if self.__subgroups:
             try:
                 return next(x for x in self.__subgroups if x[0] == index)[1]

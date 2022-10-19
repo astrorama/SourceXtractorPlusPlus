@@ -22,7 +22,7 @@
 
 namespace SourceXtractor {
 
-class GrowthCurveTaskFactory: public TaskFactory {
+class GrowthCurveTaskFactory : public TaskFactory {
 public:
   GrowthCurveTaskFactory() = default;
 
@@ -35,11 +35,11 @@ public:
   void configure(Euclid::Configuration::ConfigManager& manager) override;
 
 private:
-  int m_nsamples;
-  bool m_use_symmetry;
+  int                   m_nsamples     = 0;
+  bool                  m_use_symmetry = false;
   std::vector<unsigned> m_images;
 };
 
-} // end of namespace SourceXtractor
+}  // end of namespace SourceXtractor
 
 #endif /* _SEIMPLEMENTATION_PLUGIN_GROWTHCURVE_GROWTHCURVETASKFACTORY_H_ */

@@ -35,6 +35,11 @@ std::vector<int> PyFitsFile::getImageHdus() const {
   return v;
 }
 
+std::vector<int> PyFitsFile::getDimensions(int hdu) const {
+  return m_file->getDimensions(hdu+1);
+}
+
+
 std::map<std::string, std::string> PyFitsFile::getHeaders(int hdu) const {
   const auto& headers = m_file->getHDUHeaders(hdu+1);
   std::map<std::string, std::string> headers_str;

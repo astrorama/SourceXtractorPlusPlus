@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -78,7 +79,7 @@ struct FunctionFromPython<double(const SourceInterface&)> {
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return [wrapped](const SourceInterface& o) -> double {
@@ -102,7 +103,7 @@ struct FunctionFromPython<double(const Pyston::Context&, const std::vector<doubl
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return wrapped;
@@ -125,7 +126,7 @@ struct FunctionFromPython<double(double, const SourceInterface&)> {
       logger.info() << readable << " compiled";
       Pyston::GraphvizGenerator gv(readable);
       wrapped.getTree()->visit(gv);
-      logger.info() << gv.str();
+      logger.debug() << gv.str();
     }
 
     return [wrapped](double a, const SourceInterface& o) -> double {
@@ -151,8 +152,9 @@ void ModelFittingConfig::initialize(const UserValues&) {
   Pyston::GILLocker locker;
   try {
     initializeInner();
-  }
-  catch (py::error_already_set &e) {
+  } catch (Pyston::Exception& e) {
+    throw e.log(log4cpp::Priority::ERROR, logger);
+  } catch (py::error_already_set& e) {
     throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
   }
 }
@@ -232,10 +234,10 @@ void ModelFittingConfig::initializeInner() {
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDependentParameters()) {
     auto py_func = p.second.attr("func");
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> params {};
-    py::list param_ids = py::extract<py::list>(p.second.attr("params"));
-    for (int i = 0; i < py::len(param_ids); ++i) {
-      int id = py::extract<int>(param_ids[i]);
-      params.push_back(m_parameters[id]);
+    py::list dependees = py::extract<py::list>(p.second.attr("params"));
+    for (int i = 0; i < py::len(dependees); ++i) {
+      int id = py::extract<int>(dependees[i].attr("id"));
+      params.push_back(m_parameters.at(id));
     }
 
     auto dependent = FunctionFromPython<double(const Pyston::Context&, const std::vector<double>&)>
@@ -253,7 +255,7 @@ void ModelFittingConfig::initializeInner() {
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantModels()) {
     int value_id = py::extract<int>(p.second.attr("value").attr("id"));
-    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(m_parameters[value_id]);
+    m_models[p.first] = std::make_shared<FlexibleModelFittingConstantModel>(m_parameters.at(value_id));
   }
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPointSourceModels()) {
@@ -261,7 +263,7 @@ void ModelFittingConfig::initializeInner() {
     int y_coord_id = py::extract<int>(p.second.attr("y_coord").attr("id"));
     int flux_id = py::extract<int>(p.second.attr("flux").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingPointModel>(
-        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id]);
+        m_parameters.at(x_coord_id), m_parameters.at(y_coord_id), m_parameters.at(flux_id));
   }
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getSersicModels()) {
@@ -273,9 +275,9 @@ void ModelFittingConfig::initializeInner() {
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     int n_id = py::extract<int>(p.second.attr("n").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingSersicModel>(
-        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id], m_parameters[n_id],
-        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id],
-        m_parameters[angle_id]);
+        m_parameters.at(x_coord_id), m_parameters.at(y_coord_id), m_parameters.at(flux_id), m_parameters.at(n_id),
+        m_parameters.at(effective_radius_id), m_parameters.at(aspect_ratio_id),
+        m_parameters.at(angle_id));
   }
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getExponentialModels()) {
@@ -285,9 +287,9 @@ void ModelFittingConfig::initializeInner() {
     int effective_radius_id = py::extract<int>(p.second.attr("effective_radius").attr("id"));
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
-    m_models[p.first] = std::make_shared<FlexibleModelFittingExponentialModel>(
-        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
-        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+    m_models[p.first]       = std::make_shared<FlexibleModelFittingExponentialModel>(
+        m_parameters.at(x_coord_id), m_parameters.at(y_coord_id), m_parameters.at(flux_id),
+        m_parameters.at(effective_radius_id), m_parameters.at(aspect_ratio_id), m_parameters.at(angle_id));
   }
 
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getDeVaucouleursModels()) {
@@ -298,8 +300,8 @@ void ModelFittingConfig::initializeInner() {
     int aspect_ratio_id = py::extract<int>(p.second.attr("aspect_ratio").attr("id"));
     int angle_id = py::extract<int>(p.second.attr("angle").attr("id"));
     m_models[p.first] = std::make_shared<FlexibleModelFittingDevaucouleursModel>(
-        m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
-        m_parameters[effective_radius_id], m_parameters[aspect_ratio_id], m_parameters[angle_id]);
+        m_parameters.at(x_coord_id), m_parameters.at(y_coord_id), m_parameters.at(flux_id),
+        m_parameters.at(effective_radius_id), m_parameters.at(aspect_ratio_id), m_parameters.at(angle_id));
   }
 
 #ifdef WITH_ONNX_MODELS
@@ -316,7 +318,7 @@ void ModelFittingConfig::initializeInner() {
     py::list names = parameters.keys();
     for (int i = 0; i < py::len(names); ++i) {
       std::string name = py::extract<std::string>(names[i]);
-      params[name] = m_parameters[py::extract<int>(parameters[names[i]].attr("id"))];
+      params[name] = m_parameters.at(py::extract<int>(parameters[names[i]].attr("id")));
     }
 
     std::vector<std::shared_ptr<OnnxModel>> onnx_models;
@@ -335,8 +337,8 @@ void ModelFittingConfig::initializeInner() {
     }
 
     m_models[p.first] = std::make_shared<FlexibleModelFittingOnnxModel>(
-        onnx_models, m_parameters[x_coord_id], m_parameters[y_coord_id], m_parameters[flux_id],
-        m_parameters[aspect_ratio_id], m_parameters[angle_id], m_parameters[scale_id], params);
+        onnx_models, m_parameters.at(x_coord_id), m_parameters.at(y_coord_id), m_parameters.at(flux_id),
+        m_parameters.at(aspect_ratio_id), m_parameters.at(angle_id), m_parameters.at(scale_id), params);
   }
 #else
   if (getDependency<PythonConfig>().getInterpreter().getOnnxModels().size() > 0) {
@@ -355,7 +357,7 @@ void ModelFittingConfig::initializeInner() {
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getPriors()) {
     auto& prior = p.second;
     int param_id = py::extract<int>(prior.attr("param"));
-    auto param = m_parameters[param_id];
+    auto param = m_parameters.at(param_id);
 
     auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
       "Prior mean", expr_builder, prior.attr("value")

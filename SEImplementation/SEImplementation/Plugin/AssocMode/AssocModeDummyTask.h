@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,39 +15,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef _SEIMPLEMENTATION_PYFITSFILE_H
-#define _SEIMPLEMENTATION_PYFITSFILE_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEDUMMYTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEDUMMYTASK_H_
 
-#include <string>
-#include <boost/python/list.hpp>
-#include "SEFramework/FITS/FitsFile.h"
-#include "SEImplementation/PythonConfig/PyId.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
 
-class PyFitsFile {
-
+class AssocModeDummyTask : public SourceTask {
 public:
+  /// Destructor
+  virtual ~AssocModeDummyTask() = default;
 
-  explicit PyFitsFile(const std::string& filename);
+  AssocModeDummyTask() = default;
 
-  virtual ~PyFitsFile() = default;
-
-  std::string getFilename() const {
-    return m_filename;
+  void computeProperties(SourceInterface& source) const override  {
+    source.setProperty<AssocMode>();
   }
-
-  std::vector<int> getImageHdus() const;
-
-  std::map<std::string, std::string> getHeaders(int hdu) const;
-  std::vector<int> getDimensions(int hdu) const;
-
-private:
-  std::string m_filename;
-  std::shared_ptr<FitsFile> m_file;
 };
 
 }
 
-#endif // _SEIMPLEMENTATION_PYFITSFILE_H
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_ASSOCMODE_ASSOCMODEDUMMYTASK_H_ */

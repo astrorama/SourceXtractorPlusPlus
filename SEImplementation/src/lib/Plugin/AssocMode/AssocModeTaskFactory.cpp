@@ -21,6 +21,7 @@
 #include "SEImplementation/Plugin/AssocMode/AssocMode.h"
 #include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
 #include "SEImplementation/Plugin/AssocMode/AssocModeTask.h"
+#include "SEImplementation/Plugin/AssocMode/AssocModeDummyTask.h"
 #include <NdArray/NdArray.h>
 #include <iostream>
 #include <sstream>
@@ -44,7 +45,11 @@ void AssocModeTaskFactory::configure(Euclid::Configuration::ConfigManager& manag
 
 std::shared_ptr<Task> AssocModeTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == typeid(AssocMode)) {
-    return std::make_shared<AssocModeTask>(m_catalogs, m_assoc_mode, m_assoc_radius);
+    if (m_catalogs.empty()) {
+      return std::make_shared<AssocModeDummyTask>();
+    } else {
+      return std::make_shared<AssocModeTask>(m_catalogs, m_assoc_mode, m_assoc_radius);
+    }
   } else {
     return nullptr;
   }

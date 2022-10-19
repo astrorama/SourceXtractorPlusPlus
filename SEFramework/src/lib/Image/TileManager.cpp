@@ -44,7 +44,11 @@ TileManager::TileManager() : m_tile_width(256), m_tile_height(256),
 }
 
 TileManager::~TileManager() {
-  saveAllTiles();
+  try {
+    saveAllTiles();
+  } catch (const std::exception& e) {
+    s_tile_logger.error() << "Error while saving tiles at destruction: " << e.what();
+  }
 }
 
 void TileManager::setOptions(int tile_width, int tile_height, int max_memory) {

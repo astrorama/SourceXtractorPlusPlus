@@ -25,7 +25,7 @@ namespace SourceXtractor {
 
 const static std::string GROWTH_NSAMPLES{"flux-growth-samples"};
 
-GrowthCurveConfig::GrowthCurveConfig(long managerId) : Configuration(managerId), m_nsamples{0} {}
+GrowthCurveConfig::GrowthCurveConfig(long managerId) : Configuration(managerId) {}
 
 auto GrowthCurveConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
   return {{"Growth curve", {

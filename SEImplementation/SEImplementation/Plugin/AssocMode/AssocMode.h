@@ -40,6 +40,9 @@ public:
    */
   virtual ~AssocMode() = default;
 
+  AssocMode() : m_has_assoc(false), m_assoc_data(std::vector<size_t>({0})) {
+  }
+
   AssocMode(bool has_assoc, const std::vector<double>& assoc_data) :
     m_has_assoc(has_assoc), m_assoc_data(std::vector<size_t>({assoc_data.size()})) {
     for (size_t i=0; i<assoc_data.size(); i++) {

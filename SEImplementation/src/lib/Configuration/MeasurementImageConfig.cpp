@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/*
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -119,6 +120,9 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
   auto weight_image_source =
       std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu+1, ImageTile::FloatImage);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
+  if (py_image.is_data_cube) {
+    weight_image_source->setLayer(py_image.weight_layer);
+  }
 
   logger.debug() << "w: " << weight_map->getWidth() << " h: " << weight_map->getHeight()
       << " t: " << py_image.weight_type << " s: " << py_image.weight_scaling;
@@ -156,18 +160,6 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
 
 void MeasurementImageConfig::initialize(const UserValues&) {
   auto images = getDependency<PythonConfig>().getInterpreter().getMeasurementImages();
-  auto groups = getDependency<PythonConfig>().getInterpreter().getMeasurementGroups();
-
-  // Delegate into Python to log the measurement configuration
-  boost::char_separator<char> line_sep{"\n"};
-  for (auto &g : groups) {
-    Pyston::GILLocker locker;
-    std::string group_str = py::extract<std::string>(g.attr("__str__")());
-    boost::tokenizer<decltype(line_sep)> tok(group_str, line_sep);
-    for (auto &l : tok) {
-      logger.info() << l;
-    }
-  }
 
   if (images.size() > 0) {
     for (auto& p : images) {
@@ -189,9 +181,17 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_path = py_image.file;
       info.m_psf_path = py_image.psf_file;
 
+      info.m_is_data_cube = py_image.is_data_cube;
+      info.m_image_layer = py_image.image_layer;
+      info.m_weight_layer = py_image.weight_layer;
 
       auto fits_image_source =
           std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu+1, ImageTile::FloatImage);
+
+      if (py_image.is_data_cube) {
+        fits_image_source->setLayer(py_image.image_layer);
+      }
+
       info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
       info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
 
