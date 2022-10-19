@@ -18,6 +18,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -63,8 +64,10 @@
 <li class="toctree-l2"><a class="reference internal" href="Flagging.html">Flagging</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
 </ul>
 
@@ -160,7 +163,7 @@ The resulting low-resolution variance map is then bicubic-spline-interpolated on
 </section>
 <section id="measurement-weight-map">
 <h3>Measurement weight-map<a class="headerlink" href="#measurement-weight-map" title="Permalink to this heading">¶</a></h3>
-<p>Measurement weight-maps are managed identically to detection weight-maps, except that configuration must be done through the <a class="reference internal" href="config_api/measurement_images.html#config.measurement_images.load_fits_image" title="config.measurement_images.load_fits_image"><code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code></a> command options in the <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">measurement configuration script</span></a>, instead of command line options.</p>
+<p>Measurement weight-maps are managed identically to detection weight-maps, except that configuration must be done through the <code class="xref py py-func docutils literal notranslate"><span class="pre">load_fits_image()</span></code> command options in the <a class="reference internal" href="Measurements.html#chap-configuration-script"><span class="std std-ref">measurement configuration script</span></a>, instead of command line options.</p>
 <dl class="footnote brackets">
 <dt class="label" id="backfilter"><span class="brackets"><a class="fn-backref" href="#id1">1</a></span></dt>
 <dd><p>The <a class="reference internal" href="Background.html#chap-backfilter"><span class="std std-ref">background map filtering procedure</span></a> is also applied to the variance map.</p>
@@ -181,7 +184,7 @@ The resulting low-resolution variance map is then bicubic-spline-interpolated on
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
   </div>
 
    

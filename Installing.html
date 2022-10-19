@@ -18,6 +18,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -63,8 +64,10 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
 </ul>
 
@@ -120,7 +123,7 @@ As of version 0.16, <strong class="program">SourceXtractor++</strong> scales rea
 <p><strong class="program">SourceXtractor++</strong> is available in <a class="reference external" href="https://src.fedoraproject.org/rpms/sourcextractor++">Fedora</a>
 30 and greater, and in EPEL 7 as well. On those platforms, you can use your
 package manager to install in the usual way:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> dnf install sourcextractor++
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>dnf install sourcextractor++
 </pre></div>
 </div>
 <section id="from-anaconda-cloud-anaconda-release-svg">
@@ -128,14 +131,14 @@ package manager to install in the usual way:</p>
 </section>
 <p><strong class="program">SourceXtractor++</strong> is also available for Linux and MacOS via Anaconda cloud.
 You can install it as follows:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> conda install -c conda-forge -c astrorama sourcextractor
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>conda install -c conda-forge -c astrorama sourcextractor
 </pre></div>
 </div>
 <p>Or you can, of course, add permanently the <code class="docutils literal notranslate"><span class="pre">astrorama</span></code> channel to your
 conda configuration:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> conda config --add channels conda-forge
-<span class="gp">$</span> conda config --add channels astrorama
-<span class="gp">$</span> conda install sourcextractor
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>conda config --add channels conda-forge
+<span class="gp">$ </span>conda config --add channels astrorama
+<span class="gp">$ </span>conda install sourcextractor
 </pre></div>
 </div>
 <p>It is recommended to install <strong class="program">SourceXtractor++</strong> into its own
@@ -176,48 +179,48 @@ You will also need the development version (<code class="docutils literal notran
 <li><p><a class="reference external" href="https://pytest.org">Pytest</a></p></li>
 </ul>
 <p>If you have installed Elements and Alexandria from your distribution repository (right now, only in Fedora), you can skip the following section.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">#</span> dnf install elements-devel elements-alexandria-devel
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp"># </span>dnf install elements-devel elements-alexandria-devel
 </pre></div>
 </div>
 <p>Elements is a C++ and CMake framework. It is capable of managing the dependencies
 of projects based on CMake as long as it knows where to find them.
 By convention, this location usually is <code class="docutils literal notranslate"><span class="pre">~/Work/Projects</span></code>, but you can choose
 any other.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
-<span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$CMAKE_PROJECT_PATH</span>/Elements/cmake
-<span class="gp">$</span> mkdir -p <span class="nv">$CMAKE_PROJECT_PATH</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
+<span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$CMAKE_PROJECT_PATH</span>/Elements/cmake
+<span class="gp">$ </span>mkdir -p <span class="nv">$CMAKE_PROJECT_PATH</span>
 </pre></div>
 </div>
 <p>Since Python 2 has been deprecated since the 1st of January 2020, it is recommended to tell Elements and other projects to use Python 3 instead.
 You can also disable the build of documentation with <code class="docutils literal notranslate"><span class="pre">-DUSE_SPHINX=OFF</span></code>.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKEFLAGS</span><span class="o">=</span><span class="s2">&quot;-DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF&quot;</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKEFLAGS</span><span class="o">=</span><span class="s2">&quot;-DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF&quot;</span>
 </pre></div>
 </div>
 <p>You can always add for convenience these environment variables to your
 <code class="docutils literal notranslate"><span class="pre">.bashrc</span></code>, or the one corresponding to your shell.</p>
 <p>Elements can handle multiple versions of a given project, or with just one.
 For the later, it suffices to clone the project into <code class="docutils literal notranslate"><span class="pre">$CMAKE_PROJECT_PATH</span></code>.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> <span class="nv">$CMAKE_PROJECT_PATH</span>
-<span class="gp">$</span> git clone https://github.com/astrorama/Elements.git --branch <span class="m">5</span>.10
-<span class="gp">$</span> <span class="nb">cd</span> Elements
-<span class="gp">$</span> make install -j <span class="c1"># -j uses multiple cores</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">cd</span> <span class="nv">$CMAKE_PROJECT_PATH</span>
+<span class="gp">$ </span>git clone https://github.com/astrorama/Elements.git --branch <span class="m">5</span>.10
+<span class="gp">$ </span><span class="nb">cd</span> Elements
+<span class="gp">$ </span>make install -j <span class="c1"># -j uses multiple cores</span>
 </pre></div>
 </div>
 <p>Similarly for Alexandria:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> <span class="nv">$CMAKE_PROJECT_PATH</span>
-<span class="gp">$</span> git clone https://github.com/astrorama/Alexandria.git --branch <span class="m">2</span>.15
-<span class="gp">$</span> <span class="nb">cd</span> Alexandria
-<span class="gp">$</span> make install -j
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">cd</span> <span class="nv">$CMAKE_PROJECT_PATH</span>
+<span class="gp">$ </span>git clone https://github.com/astrorama/Alexandria.git --branch <span class="m">2</span>.15
+<span class="gp">$ </span><span class="nb">cd</span> Alexandria
+<span class="gp">$ </span>make install -j
 </pre></div>
 </div>
 <p>If you have compiled and installed Elements and Alexandria as described on the above section, make sure you are using the proper environment.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
-<span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$CMAKE_PROJECT_PATH</span>/Elements/cmake
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKE_PROJECT_PATH</span><span class="o">=</span>~/Work/Projects
+<span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKE_PREFIX_PATH</span><span class="o">=</span><span class="nv">$CMAKE_PROJECT_PATH</span>/Elements/cmake
 </pre></div>
 </div>
 <p>For system-wide installs, this step is not necessary.</p>
 <p>Configure the project flags if you have not yet done it:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">export</span> <span class="nv">CMAKEFLAGS</span><span class="o">=</span><span class="s2">&quot;-DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF&quot;</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">export</span> <span class="nv">CMAKEFLAGS</span><span class="o">=</span><span class="s2">&quot;-DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF&quot;</span>
 </pre></div>
 </div>
 <p>As a reminder, that tells <strong class="program">SourceXtractor++</strong> to compile with Python 3, and not
@@ -225,22 +228,22 @@ to build the documentation.
 <strong class="program">SourceXtractor++</strong> can be built with Python 2, but this is strongly discouraged.</p>
 <p>The sources can be obtained either from the <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus/releases/latest">releases</a> as a compressed archive, or cloned with <code class="docutils literal notranslate"><span class="pre">git</span></code> the usual way.</p>
 <p>If you download an archived version, you need to uncompress it:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> unzip SourceXtractorPlusPlus-&lt;version&gt;.zip
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>unzip SourceXtractorPlusPlus-&lt;version&gt;.zip
 </pre></div>
 </div>
 <p>A new directory called <code class="file docutils literal notranslate"><span class="pre">SourceXtractorPlusPlus-&lt;version&gt;</span></code> should now appear
 at the current location on your disk.</p>
 <p>If you opt for cloning the repository, make sure you are pointing to the latest commit in the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> git pull
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>git pull
 </pre></div>
 </div>
 <p>Either way, enter the directory you have just created, and build the software.</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> <span class="nb">cd</span> SourceXtractorPlusPlus
-<span class="gp">$</span> make -j4
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span><span class="nb">cd</span> SourceXtractorPlusPlus
+<span class="gp">$ </span>make -j4
 </pre></div>
 </div>
 <p>After the binaries are now compiled and available, <strong class="program">SourceXtractor++</strong> can be run with:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$</span> ~/Work/Projects/SourceXtractorPlusPlus/build/run sextractor++ --help
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>~/Work/Projects/SourceXtractorPlusPlus/build/run sextractor++ --help
 </pre></div>
 </div>
 </section>
@@ -257,7 +260,7 @@ at the current location on your disk.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
   </div>
 
    

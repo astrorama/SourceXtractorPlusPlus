@@ -18,11 +18,12 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
         <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Bibliography" href="../references.html" />
+    <link rel="next" title="Troubleshooting" href="../Troubles.html" />
     <link rel="prev" title="aperture" href="aperture.html" /> 
 </head>
 
@@ -50,15 +51,81 @@
 <li class="toctree-l1"><a class="reference internal" href="../Installing.html">Installing the software</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Using.html">Using SourceXtractor++</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Measurements.html">Measuring</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../ConfigAPI.html">Configuration API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="argv.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argv</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="output.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="measurement_images.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ComputeGraphModel"><code class="docutils literal notranslate"><span class="pre">ComputeGraphModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ComputeGraphModel.to_string"><code class="docutils literal notranslate"><span class="pre">ComputeGraphModel.to_string()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ConstantModel"><code class="docutils literal notranslate"><span class="pre">ConstantModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ConstantModel.to_string"><code class="docutils literal notranslate"><span class="pre">ConstantModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ConstantParameter"><code class="docutils literal notranslate"><span class="pre">ConstantParameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ConstantParameter.get_value"><code class="docutils literal notranslate"><span class="pre">ConstantParameter.get_value()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.CoordinateModelBase"><code class="docutils literal notranslate"><span class="pre">CoordinateModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.DeVaucouleursModel"><code class="docutils literal notranslate"><span class="pre">DeVaucouleursModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.DeVaucouleursModel.to_string"><code class="docutils literal notranslate"><span class="pre">DeVaucouleursModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.DependentParameter"><code class="docutils literal notranslate"><span class="pre">DependentParameter</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ExponentialModel"><code class="docutils literal notranslate"><span class="pre">ExponentialModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.ExponentialModel.to_string"><code class="docutils literal notranslate"><span class="pre">ExponentialModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.FluxParameterType"><code class="docutils literal notranslate"><span class="pre">FluxParameterType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.FreeParameter"><code class="docutils literal notranslate"><span class="pre">FreeParameter</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.FreeParameter.get_init_value"><code class="docutils literal notranslate"><span class="pre">FreeParameter.get_init_value()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.FreeParameter.get_range"><code class="docutils literal notranslate"><span class="pre">FreeParameter.get_range()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ModelBase"><code class="docutils literal notranslate"><span class="pre">ModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.ParameterBase"><code class="docutils literal notranslate"><span class="pre">ParameterBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.PointSourceModel"><code class="docutils literal notranslate"><span class="pre">PointSourceModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.PointSourceModel.to_string"><code class="docutils literal notranslate"><span class="pre">PointSourceModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Prior"><code class="docutils literal notranslate"><span class="pre">Prior</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Range"><code class="docutils literal notranslate"><span class="pre">Range</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_max"><code class="docutils literal notranslate"><span class="pre">Range.get_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_min"><code class="docutils literal notranslate"><span class="pre">Range.get_min()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Range.get_type"><code class="docutils literal notranslate"><span class="pre">Range.get_type()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.RangeType"><code class="docutils literal notranslate"><span class="pre">RangeType</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.SersicModel"><code class="docutils literal notranslate"><span class="pre">SersicModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.SersicModel.to_string"><code class="docutils literal notranslate"><span class="pre">SersicModel.to_string()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.SersicModelBase"><code class="docutils literal notranslate"><span class="pre">SersicModelBase</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.Unbounded"><code class="docutils literal notranslate"><span class="pre">Unbounded</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.model_fitting.Unbounded.get_normalization_factor"><code class="docutils literal notranslate"><span class="pre">Unbounded.get_normalization_factor()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.WorldCoordinate"><code class="docutils literal notranslate"><span class="pre">WorldCoordinate</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_flux_parameter"><code class="docutils literal notranslate"><span class="pre">get_flux_parameter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_pos_parameters"><code class="docutils literal notranslate"><span class="pre">get_pos_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_position_angle"><code class="docutils literal notranslate"><span class="pre">get_position_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_separation_angle"><code class="docutils literal notranslate"><span class="pre">get_separation_angle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_sky_coord"><code class="docutils literal notranslate"><span class="pre">get_sky_coord()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_world_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.get_world_position_parameters"><code class="docutils literal notranslate"><span class="pre">get_world_position_parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.pixel_to_world_coordinate"><code class="docutils literal notranslate"><span class="pre">pixel_to_world_coordinate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.print_model_fitting_info"><code class="docutils literal notranslate"><span class="pre">print_model_fitting_info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.model_fitting.radius_to_wc_angle"><code class="docutils literal notranslate"><span class="pre">radius_to_wc_angle()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">Bibliography</a></li>
 </ul>
 
@@ -96,11 +163,11 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>models</strong> (<em>string</em><em> or </em><em>list of strings</em><em>, </em><em>corresponding to path to Onnx format models</em><em>,</em>) – (specifying more than one allows using the most efficient model based on render size.)</p></li>
+<li><p><strong>models</strong> (<em>string</em><em> or </em><em>list</em><em> of </em><em>strings</em><em>, </em><em>corresponding to path to Onnx format models</em><em>,</em>) – (specifying more than one allows using the most efficient model based on render size.)</p></li>
 <li><p><strong>x_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – X coordinate (in the detection image)</p></li>
 <li><p><strong>y_coord</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Y coordinate (in the detection image)</p></li>
 <li><p><strong>flux</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a><em> or </em><em>float</em>) – Total flux</p></li>
-<li><p><strong>params</strong> (<em>Dictionary of String and ParameterBase</em><em> or </em><em>float</em>) – Dictionary of custom parameters for the ONNX model</p></li>
+<li><p><strong>params</strong> (<em>Dictionary</em><em> of </em><em>String and ParameterBase</em><em> or </em><em>float</em>) – Dictionary of custom parameters for the ONNX model</p></li>
 </ul>
 </dd>
 </dl>
@@ -234,7 +301,7 @@ FreeParameter, ConstantParameter, or other DependentParameter</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>func</strong> (<em>callable</em>) – A callable that will be called with all the parameters specified in this constructor each time a new
 evaluation is needed.</p></li>
-<li><p><strong>params</strong> (<em>list of ParameterBase</em>) – List of parameters on which this DependentParameter depends.</p></li>
+<li><p><strong>params</strong> (<em>list</em><em> of </em><a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a>) – List of parameters on which this DependentParameter depends.</p></li>
 </ul>
 </dd>
 </dl>
@@ -296,7 +363,7 @@ Right now, only isophotal is supported.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>init_value</strong> (<em>float</em><em> or </em><em>callable that receives a source</em><em>, </em><em>and returns a float</em>) – Initial value for the parameter.</p></li>
-<li><p><strong>range</strong> (<em>instance of Range</em><em> or </em><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded"><em>Unbounded</em></a>) – Defines if this parameter is unbounded or bounded, and how.</p></li>
+<li><p><strong>range</strong> (<em>instance</em><em> of </em><a class="reference internal" href="#config.model_fitting.Range" title="config.model_fitting.Range"><em>Range</em></a><em> or </em><a class="reference internal" href="#config.model_fitting.Unbounded" title="config.model_fitting.Unbounded"><em>Unbounded</em></a>) – Defines if this parameter is unbounded or bounded, and how.</p></li>
 </ul>
 </dd>
 </dl>
@@ -575,35 +642,6 @@ The world value which will be normalized to 1 in engine coordinates</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.add_model">
-<span class="sig-name descname"><span class="pre">add_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.add_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a model to be fitted to the given group.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>group</strong> (<a class="reference internal" href="measurement_images.html#config.measurement_images.MeasurementGroup" title="config.measurement_images.MeasurementGroup"><em>MeasurementGroup</em></a>) – </p></li>
-<li><p><strong>model</strong> (<a class="reference internal" href="#config.model_fitting.ModelBase" title="config.model_fitting.ModelBase"><em>ModelBase</em></a>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.add_prior">
-<span class="sig-name descname"><span class="pre">add_prior</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">param</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.add_prior" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a prior to the given parameter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>param</strong> (<a class="reference internal" href="#config.model_fitting.ParameterBase" title="config.model_fitting.ParameterBase"><em>ParameterBase</em></a>) – </p></li>
-<li><p><strong>value</strong> (<em>float</em><em> or </em><em>callable that receives a source and returns a float</em>) – Mean of the Gaussian</p></li>
-<li><p><strong>sigma</strong> (<em>float</em><em> or </em><em>callable that receives a source and returns a float</em>) – Standard deviation of the Gaussian</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="config.model_fitting.get_flux_parameter">
 <span class="sig-name descname"><span class="pre">get_flux_parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.get_flux_parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convenience function for the flux parameter.</p>
@@ -726,7 +764,7 @@ in image coordinates than in world coordinates</p></li>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">flux</span> <span class="o">=</span> <span class="n">get_flux_parameter</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">get_pos_parameters</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="o">.</span><span class="mi">01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">radius</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">Range</span><span class="p">(</span><span class="k">lambda</span> <span class="n">v</span><span class="p">,</span> <span class="n">o</span><span class="p">:</span> <span class="p">(</span><span class="mf">.01</span> <span class="o">*</span> <span class="n">v</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">v</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">EXPONENTIAL</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">angle</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">o</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">angle</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ratio</span> <span class="o">=</span> <span class="n">FreeParameter</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">Range</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">RangeType</span><span class="o">.</span><span class="n">LINEAR</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">add_model</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="n">ExponentialModel</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">flux</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">angle</span><span class="p">))</span>
@@ -801,17 +839,6 @@ from image (X, Y) coordinates.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.print_parameters">
-<span class="sig-name descname"><span class="pre">print_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.print_parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print a human-readable representation of the configured model fitting parameters.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="config.model_fitting.radius_to_wc_angle">
 <span class="sig-name descname"><span class="pre">radius_to_wc_angle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rad</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.radius_to_wc_angle" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transform a radius in pixels on the detection image to a radius in sky coordinates.</p>
@@ -829,69 +856,6 @@ from image (X, Y) coordinates.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_deblend_factor">
-<span class="sig-name descname"><span class="pre">set_deblend_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">deblend_factor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_deblend_factor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_engine">
-<span class="sig-name descname"><span class="pre">set_engine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">engine</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_engine" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>engine</strong> (<em>str</em>) – Minimization engine for the model fitting : levmar or gsl</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_max_iterations">
-<span class="sig-name descname"><span class="pre">set_max_iterations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_max_iterations" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>iterations</strong> (<em>int</em>) – Max number of iterations for the model fitting.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_meta_iteration_stop">
-<span class="sig-name descname"><span class="pre">set_meta_iteration_stop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meta_iteration_stop</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_meta_iteration_stop" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_meta_iterations">
-<span class="sig-name descname"><span class="pre">set_meta_iterations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meta_iterations</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_meta_iterations" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>meta_iterations</strong> (<em>int</em>) – number of meta iterations on the whole group (when using iterative model fitting)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.set_modified_chi_squared_scale">
-<span class="sig-name descname"><span class="pre">set_modified_chi_squared_scale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.set_modified_chi_squared_scale" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>scale</strong> (<em>float</em>) – Sets u0, as used by the modified chi squared residual comparator, a function that reduces the effect of large
-deviations.
-Refer to the SourceXtractor++ documentation for a better explanation of how residuals are computed and how
-this value affects the model fitting.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.model_fitting.use_iterative_fitting">
-<span class="sig-name descname"><span class="pre">use_iterative_fitting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_iterative_fitting</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.model_fitting.use_iterative_fitting" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>use_iterative_fitting</strong> (<em>boolean</em>) – use iterative model fitting or legacy</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 
@@ -899,13 +863,13 @@ this value affects the model fitting.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="aperture.html" class="btn btn-neutral float-left" title="aperture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../references.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../Troubles.html" class="btn btn-neutral float-right" title="Troubleshooting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
   </div>
 
    

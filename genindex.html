@@ -17,6 +17,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" /> 
@@ -46,8 +47,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
 </ul>
 
@@ -86,8 +89,8 @@
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
  | <a href="#I"><strong>I</strong></a>
- | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -99,21 +102,15 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/aperture.html#config.aperture.add_aperture_photometry">add_aperture_photometry() (in module config.aperture)</a>
-</li>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup.add_images">add_images() (ImageGroup method)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.add_model">add_model() (in module config.model_fitting)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/output.html#config.output.add_output_column">add_output_column() (in module config.output)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.add_prior">add_prior() (in module config.model_fitting)</a>
 </li>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup.add_subgroup">add_subgroup() (ImageGroup method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/argv.html#config.argv.Arguments">Arguments (class in config.argv)</a>
+</li>
+      <li><a href="Association.html#index-0">association mode</a>
 </li>
   </ul></td>
 </tr></table>
@@ -135,13 +132,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/model_fitting.html#config.model_fitting.ComputeGraphModel">ComputeGraphModel (class in config.model_fitting)</a>
 </li>
-      <li>
-    config.aperture
-
-      <ul>
-        <li><a href="config_api/aperture.html#module-config.aperture">module</a>
-</li>
-      </ul></li>
       <li>
     config.argv
 
@@ -165,13 +155,6 @@
         <li><a href="config_api/model_fitting.html#module-config.model_fitting">module</a>
 </li>
       </ul></li>
-      <li>
-    config.output
-
-      <ul>
-        <li><a href="config_api/output.html#module-config.output">module</a>
-</li>
-      </ul></li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.ConstantModel">ConstantModel (class in config.model_fitting)</a>
 </li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.ConstantParameter">ConstantParameter (class in config.model_fitting)</a>
@@ -184,10 +167,12 @@
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.DependentParameter">DependentParameter (class in config.model_fitting)</a>
+      <li><a href="config_api/measurement_images.html#config.measurement_images.DataCubeSlice">DataCubeSlice (class in config.measurement_images)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="config_api/model_fitting.html#config.model_fitting.DependentParameter">DependentParameter (class in config.model_fitting)</a>
+</li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.DeVaucouleursModel">DeVaucouleursModel (class in config.model_fitting)</a>
 </li>
   </ul></td>
@@ -258,6 +243,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup">ImageGroup (class in config.measurement_images)</a>
 </li>
+      <li><a href="Troubles.html#index-2">inconsistent</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup.is_leaf">is_leaf() (ImageGroup method)</a>
@@ -266,18 +253,6 @@
         <li><a href="config_api/measurement_images.html#config.measurement_images.MeasurementGroup.is_leaf">(MeasurementGroup method)</a>
 </li>
       </ul></li>
-  </ul></td>
-</tr></table>
-
-<h2 id="L">L</h2>
-<table style="width: 100%" class="indextable genindextable"><tr>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/measurement_images.html#config.measurement_images.load_fits_image">load_fits_image() (in module config.measurement_images)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/measurement_images.html#config.measurement_images.load_fits_images">load_fits_images() (in module config.measurement_images)</a>
-</li>
   </ul></td>
 </tr></table>
 
@@ -290,21 +265,27 @@
 </li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.ModelBase">ModelBase (class in config.model_fitting)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     module
 
       <ul>
-        <li><a href="config_api/aperture.html#module-config.aperture">config.aperture</a>
-</li>
         <li><a href="config_api/argv.html#module-config.argv">config.argv</a>
 </li>
         <li><a href="config_api/measurement_images.html#module-config.measurement_images">config.measurement_images</a>
 </li>
         <li><a href="config_api/model_fitting.html#module-config.model_fitting">config.model_fitting</a>
 </li>
-        <li><a href="config_api/output.html#module-config.output">config.output</a>
-</li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Troubles.html#index-1">NO SOURCES DETECTED</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -317,21 +298,15 @@
 </li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.PointSourceModel">PointSourceModel (class in config.model_fitting)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup.print">print() (ImageGroup method)</a>
 
       <ul>
         <li><a href="config_api/measurement_images.html#config.measurement_images.MeasurementGroup.print">(MeasurementGroup method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/measurement_images.html#config.measurement_images.print_measurement_images">print_measurement_images() (in module config.measurement_images)</a>
-</li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.print_model_fitting_info">print_model_fitting_info() (in module config.model_fitting)</a>
-</li>
-      <li><a href="config_api/output.html#config.output.print_output_columns">print_output_columns() (in module config.output)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.print_parameters">print_parameters() (in module config.model_fitting)</a>
 </li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.Prior">Prior (class in config.model_fitting)</a>
 </li>
@@ -357,21 +332,9 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/model_fitting.html#config.model_fitting.SersicModel">SersicModel (class in config.model_fitting)</a>
 </li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.SersicModelBase">SersicModelBase (class in config.model_fitting)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_deblend_factor">set_deblend_factor() (in module config.model_fitting)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_engine">set_engine() (in module config.model_fitting)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_max_iterations">set_max_iterations() (in module config.model_fitting)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_meta_iteration_stop">set_meta_iteration_stop() (in module config.model_fitting)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_meta_iterations">set_meta_iterations() (in module config.model_fitting)</a>
-</li>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.set_modified_chi_squared_scale">set_modified_chi_squared_scale() (in module config.model_fitting)</a>
+      <li><a href="config_api/model_fitting.html#config.model_fitting.SersicModelBase">SersicModelBase (class in config.model_fitting)</a>
 </li>
       <li><a href="config_api/measurement_images.html#config.measurement_images.ImageGroup.split">split() (ImageGroup method)</a>
 </li>
@@ -381,6 +344,8 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Troubles.html#index-3">temporary disk space</a>
+</li>
       <li><a href="config_api/model_fitting.html#config.model_fitting.ComputeGraphModel.to_string">to_string() (ComputeGraphModel method)</a>
 
       <ul>
@@ -396,16 +361,16 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Troubles.html#index-0">Troubleshooting</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="config_api/model_fitting.html#config.model_fitting.Unbounded">Unbounded (class in config.model_fitting)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="config_api/model_fitting.html#config.model_fitting.use_iterative_fitting">use_iterative_fitting() (in module config.model_fitting)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -427,7 +392,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
   </div>
 
    

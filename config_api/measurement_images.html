@@ -18,6 +18,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -49,15 +50,37 @@
 <li class="toctree-l1"><a class="reference internal" href="../Installing.html">Installing the software</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Using.html">Using SourceXtractor++</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../Measurements.html">Measuring</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../ConfigAPI.html">Configuration API Reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="argv.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">argv</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="output.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">output</span></code></a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">measurement_images</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.ByKeyword"><code class="docutils literal notranslate"><span class="pre">ByKeyword</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.ByPattern"><code class="docutils literal notranslate"><span class="pre">ByPattern</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.DataCubeSlice"><code class="docutils literal notranslate"><span class="pre">DataCubeSlice</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.FitsFile"><code class="docutils literal notranslate"><span class="pre">FitsFile</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.ImageGroup"><code class="docutils literal notranslate"><span class="pre">ImageGroup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.ImageGroup.add_images"><code class="docutils literal notranslate"><span class="pre">ImageGroup.add_images()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.ImageGroup.add_subgroup"><code class="docutils literal notranslate"><span class="pre">ImageGroup.add_subgroup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.ImageGroup.is_leaf"><code class="docutils literal notranslate"><span class="pre">ImageGroup.is_leaf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.ImageGroup.print"><code class="docutils literal notranslate"><span class="pre">ImageGroup.print()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.ImageGroup.split"><code class="docutils literal notranslate"><span class="pre">ImageGroup.split()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.MeasurementGroup"><code class="docutils literal notranslate"><span class="pre">MeasurementGroup</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.MeasurementGroup.is_leaf"><code class="docutils literal notranslate"><span class="pre">MeasurementGroup.is_leaf()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#config.measurement_images.MeasurementGroup.print"><code class="docutils literal notranslate"><span class="pre">MeasurementGroup.print()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#config.measurement_images.MeasurementImage"><code class="docutils literal notranslate"><span class="pre">MeasurementImage</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="aperture.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aperture</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="model_fitting.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">model_fitting</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../references.html">Bibliography</a></li>
 </ul>
 
@@ -121,6 +144,12 @@ expression and using the first matching group as key.</p>
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="#config.measurement_images.ImageGroup.split" title="config.measurement_images.ImageGroup.split"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImageGroup.split</span></code></a></p>
 </div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="config.measurement_images.DataCubeSlice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">DataCubeSlice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.DataCubeSlice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#config.measurement_images.MeasurementImage" title="config.measurement_images.MeasurementImage"><code class="xref py py-class docutils literal notranslate"><span class="pre">MeasurementImage</span></code></a></p>
 </dd></dl>
 
 <dl class="py class">
@@ -324,65 +353,6 @@ to variance units.</p>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="config.measurement_images.load_fits_image">
-<span class="sig-name descname"><span class="pre">load_fits_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psf</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.load_fits_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an image group with the images of a (possibly multi-HDU) single FITS file.</p>
-<p>If image is multi-hdu, psf and weight can either be multi hdu or lists of individual files.</p>
-<p>In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>image</strong> – The filename of the FITS file containing the image(s)</p></li>
-<li><p><strong>psf</strong> – psf file or list of psf files</p></li>
-<li><p><strong>weight</strong> – FITS file for the weight image or a list of such files</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A ImageGroup representing the images</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.measurement_images.load_fits_images">
-<span class="sig-name descname"><span class="pre">load_fits_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psfs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.load_fits_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an image group for the given images.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>images</strong> (<em>list of str</em>) – <dl class="simple">
-<dt>A list of relative paths to the images FITS files. Can also be single string in which case,</dt><dd><p>this function acts like load_fits_image</p>
-</dd>
-</dl>
-</p></li>
-<li><p><strong>psfs</strong> (<em>list of str</em>) – A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.</p></li>
-<li><p><strong>weights</strong> (<em>list of str</em>) – A list of relative paths to the weight files (optional). It must match the length of image_list or be None.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>A ImageGroup representing the images</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#config.measurement_images.ImageGroup" title="config.measurement_images.ImageGroup">ImageGroup</a></p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – In case of mismatched list of files</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="config.measurement_images.print_measurement_images">
-<span class="sig-name descname"><span class="pre">print_measurement_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file=&lt;_io.TextIOWrapper</span> <span class="pre">name='&lt;stderr&gt;'</span> <span class="pre">mode='w'</span> <span class="pre">encoding='utf-8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#config.measurement_images.print_measurement_images" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print a human-readable representation of the configured measurement images.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>file</strong> (<em>file object</em>) – Where to print the representation. Defaults to sys.stderr</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 
 
@@ -396,7 +366,7 @@ to variance units.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2019,2020 GenevaU/LMU/CNRS/SorbonneU.</p>
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
   </div>
 
    
