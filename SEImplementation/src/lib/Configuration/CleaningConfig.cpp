@@ -42,7 +42,7 @@ CleaningConfig::CleaningConfig(long manager_id) : Configuration(manager_id) {
 
 std::map<std::string, Configuration::OptionDescriptionList> CleaningConfig::getProgramOptions() {
   return { {"Cleaning", {
-      {USE_CLEANING.c_str(), po::bool_switch(),
+      {USE_CLEANING.c_str(), po::value<bool>()->default_value(false),
          "Enables the cleaning of sources (removes false detections near bright objects)"},
       {CLEANING_MINAREA.c_str(), po::value<int>()->default_value(3), "min. # of pixels above threshold"}
   }}};

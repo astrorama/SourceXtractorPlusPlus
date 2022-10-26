@@ -45,7 +45,7 @@ namespace SourceXtractor {
 static Elements::Logging segConfigLogger = Elements::Logging::getLogger("Config");
 
 static const std::string SEGMENTATION_ALGORITHM {"segmentation-algorithm" };
-static const std::string SEGMENTATION_DISABLE_FILTERING {"segmentation-disable-filtering" };
+static const std::string SEGMENTATION_USE_FILTERING {"segmentation-use-filtering" };
 static const std::string SEGMENTATION_FILTER {"segmentation-filter" };
 static const std::string SEGMENTATION_LUTZ_WINDOW_SIZE {"segmentation-lutz-window-size" };
 static const std::string SEGMENTATION_BFS_MAX_DELTA {"segmentation-bfs-max-delta" };
@@ -61,8 +61,8 @@ std::map<std::string, Configuration::OptionDescriptionList> SegmentationConfig::
   return { {"Detection image", {
       {SEGMENTATION_ALGORITHM.c_str(), po::value<std::string>()->default_value("LUTZ"),
           "Segmentation algorithm to be used (LUTZ, TILES or ML (a ONNX-format model must be provided))"},
-      {SEGMENTATION_DISABLE_FILTERING.c_str(), po::bool_switch(),
-          "Disables filtering"},
+      {SEGMENTATION_USE_FILTERING.c_str(), po::value<bool>()->default_value(true),
+          "Is filtering used"},
       {SEGMENTATION_FILTER.c_str(), po::value<std::string>()->default_value(""),
           "Loads a filter"},
       {SEGMENTATION_LUTZ_WINDOW_SIZE.c_str(), po::value<int>()->default_value(0),
@@ -94,9 +94,7 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     throw Elements::Exception() << "Unknown segmentation algorithm : " << algorithm_name;
   }
 
-  if (args.at(SEGMENTATION_DISABLE_FILTERING).as<bool>()) {
-    m_filter = nullptr;
-  } else {
+  if (args.at(SEGMENTATION_USE_FILTERING).as<bool>()) {
     auto filter_filename = args.at(SEGMENTATION_FILTER).as<std::string>();
     if (filter_filename != "") {
       m_filter = loadFilter(filter_filename);
@@ -105,6 +103,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     } else {
       m_filter = getDefaultFilter();
     }
+  } else {
+    m_filter = nullptr;
   }
 
   m_lutz_window_size = args.at(SEGMENTATION_LUTZ_WINDOW_SIZE).as<int>();

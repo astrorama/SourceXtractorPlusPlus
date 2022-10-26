@@ -23,7 +23,7 @@ namespace SourceXtractor {
 namespace po = boost::program_options;
 
 static const std::string PROGRESS_MIN_INTERVAL{"progress-min-interval"};
-static const std::string PROGRESS_BAR_DISABLED{"progress-bar-disable"};
+static const std::string PROGRESS_BAR {"progress-bar"};
 
 ProgressReporterFactory::ProgressReporterFactory() : m_min_interval{std::chrono::seconds(5)},
                                                      m_disable_progress_bar{false} {}
@@ -31,13 +31,13 @@ ProgressReporterFactory::ProgressReporterFactory() : m_min_interval{std::chrono:
 void ProgressReporterFactory::addOptions(boost::program_options::options_description& options) const {
   options.add_options() (PROGRESS_MIN_INTERVAL.c_str(), po::value<int>()->default_value(5),
      "Minimal interval to wait before printing a new log entry with the progress report");
-  options.add_options() (PROGRESS_BAR_DISABLED.c_str(), po::bool_switch(),
-          "Disable progress bar display");
+  options.add_options() (PROGRESS_BAR.c_str(), po::value<bool>()->default_value(true),
+          "Show/Hide progress bar display");
 }
 
 void ProgressReporterFactory::configure(const std::map<std::string, boost::program_options::variable_value> &args) {
   m_min_interval = std::chrono::seconds(args.at(PROGRESS_MIN_INTERVAL).as<int>());
-  m_disable_progress_bar = args.at(PROGRESS_BAR_DISABLED).as<bool>();
+  m_disable_progress_bar = !args.at(PROGRESS_BAR).as<bool>();
   // If the output is written to stdout, we can't use the terminal for the fancy ncurses interface
   if (args.at("output-catalog-filename").as<std::string>().empty()) {
     m_disable_progress_bar = true;

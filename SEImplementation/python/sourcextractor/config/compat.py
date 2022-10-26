@@ -59,7 +59,7 @@ def load_fits_images(images, psfs=None, weights=None, **kwargs):
 
 
 @_compat_doc_helper(copy_doc_from=MeasurementConfig.load_fits_data_cube)
-def load_fits_data_cube(self, image, psf=None, weight=None, image_cube_hdu=-1,
+def load_fits_data_cube(image, psf=None, weight=None, image_cube_hdu=-1,
                         weight_cube_hdu=-1, **kwargs):
     return global_measurement_config.load_fits_data_cube(image, psf, weight, image_cube_hdu,
                                                          weight_cube_hdu, **kwargs)
