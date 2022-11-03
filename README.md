@@ -80,9 +80,9 @@ dnf install SourceXtractorPlusPlus
 
 ## Discussion group for SourceXtractor++ users
 
-In order to facilitaet an active disucssion among SourceXtractor++ users we have created
+In order to facilitate an active discussion among SourceXtractor++ users we have created
 a [users group](https://groups.google.com/g/sourcextractor_plusplus). We encourage all users to directly
-join the group (if a google account is at hand) or to ask us to add you as member
+join the group (if a google account is at hand) or to ask us to add you as a member
 (open an issue on the [github page](https://astrorama.github.io/SourceXtractorPlusPlus/).
 
 
