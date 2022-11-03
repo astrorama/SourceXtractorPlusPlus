@@ -78,6 +78,11 @@ And install with
 dnf install SourceXtractorPlusPlus
 ```
 
+## Test Data Set
+
+A test data set covering various data reduction scenarios is available [here](https://cloud.physik.lmu.de/index.php/s/3K4KemBsw5y9yqd).
+I contains the input data, all relevant configuration files, the SourceXtractor++ commands and the expected output results for a reference.
+
 ## Discussion group for SourceXtractor++ users
 
 In order to facilitate an active discussion among SourceXtractor++ users we have created
