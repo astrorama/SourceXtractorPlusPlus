@@ -126,7 +126,10 @@ void FitsFile::open() {
       m_fits_ptr.reset(ptr);
     }
     if (status != 0) {
-      throw Elements::Exception() << "Can't open FITS file: " << m_path << " status: " << status;
+      char error_message[32];
+      fits_get_errstatus(status, error_message);
+      throw Elements::Exception()
+          << "Can't open FITS file: " << m_path << " status: " << status << " = " << error_message;
     }
   }
   assert(ptr->Fptr->open_count == 1);
@@ -144,7 +147,10 @@ void FitsFile::refresh() {
 
   fits_open_image(&ptr, m_path.native().c_str(), m_is_writeable ? READWRITE : READONLY, &status);
   if (status != 0) {
-    throw Elements::Exception() << "Can't close and reopen FITS file: " << m_path << " status: " << status;
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception()
+        << "Can't close and reopen FITS file: " << m_path << " status: " << status << " = " << error_message;
   }
   assert(ptr->Fptr->open_count == 1);
   m_fits_ptr.reset(ptr);
@@ -165,7 +171,10 @@ void FitsFile::loadInfo() {
   m_image_hdus.clear();
   int number_of_hdus = 0;
   if (fits_get_num_hdus(ptr, &number_of_hdus, &status) < 0) {
-    throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_path;
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Can't get the number of HDUs in FITS file: " << m_path
+        << " status: " << status << " = " << error_message;
   }
   m_headers.clear();
   m_headers.resize(number_of_hdus);
@@ -175,7 +184,10 @@ void FitsFile::loadInfo() {
   for (int hdu_number = 1; hdu_number <= number_of_hdus; ++hdu_number) {
     fits_movabs_hdu(ptr, hdu_number, &hdu_type, &status);
     if (status != 0) {
-      throw Elements::Exception() << "Can't switch HDUs while opening: " << m_path;
+      char error_message[32];
+      fits_get_errstatus(status, error_message);
+      throw Elements::Exception() << "Can't switch HDUs while opening: " << m_path
+          << " status: " << status << " = " << error_message;
     }
 
     if (hdu_type == IMAGE_HDU) {
@@ -309,8 +321,11 @@ std::vector<int> FitsFile::getDimensions(int hdu) const {
 
   fits_get_img_param(m_fits_ptr.get(), 3, &bitpix, &naxis, naxes, &status);
   if (status != 0 || (naxis != 2 && naxis != 3)) {
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
     throw Elements::Exception()
-        << "Can't find 2D image or data cube in FITS file: " << m_path << "[" << hdu << "]";
+        << "Can't find 2D image or data cube in FITS file: " << m_path << "[" << hdu << "]"
+        << " status: " << status << " = " << error_message;
   }
 
   std::vector<int> dims;
