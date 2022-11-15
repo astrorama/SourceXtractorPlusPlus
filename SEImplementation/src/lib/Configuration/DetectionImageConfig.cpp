@@ -97,7 +97,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
           continue;
         } else {
           if (m_extensions.size() == 0) {
-            throw Elements::Exception() << "Can't find 2D image in FITS file: " << m_detection_image_path;
+            throw;
           }
           break;
         }
