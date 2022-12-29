@@ -62,7 +62,29 @@ Flag map usage is described in the :ref:`flagging section <chap_flagging>`.
 PSF models
 ~~~~~~~~~~
 
-PSF models are required by the :ref:`model-fitting module <chap_model>`.
-|PSF|_ model files must be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
-There must be one PSF model per measurement image.
+PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |SourceXtractor++| accepts several |PSF|_ formats:
+
+* using no PSF at all is specified with ``.., psf="nopsf",..`` in the configuration files (ASCII or python);
+* a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels correspond to one pixel in the measurement image);
+* a variable PSF can be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
+* a variable PSF can be provided in a **stacked PSF format**. In this FITS format:
+** the first extension is a primary extension without data;
+** the second extension is an image extension named ``PSF_IMAGE`` containing, aligned in a grid, the PSF data for the various regions in the measurement image;
+** the third extension is a table extension with the mandatory columns:
+*** ``X_CENTER``: the central x-position of a grid PSF;
+*** ``Y_CENTER``: the central y-position of a grid PSF;
+*** ``X``: the x-position center of the area for the corresponding grid PSF;
+*** ``Y``: the x-position center of the area for the corresponding grid PSF;
+*** ``RA`` and ``DEC``: the sky positions for ```X``` and ```Y```;
+
+
+One PSF model must be assigned for every measurement image!.
+
+.. _fig_psf_data:
+
+.. figure:: figures/psf_data.*
+   :figwidth: 100%
+   :align: center
+
+   The PSF data in the second extension of a stacked image PSF.
 
