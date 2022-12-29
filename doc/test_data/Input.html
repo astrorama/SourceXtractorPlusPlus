@@ -147,8 +147,8 @@ Flag map usage is described in the <a class="reference internal" href="Flagging.
 <li><p>a variable PSF can be provided in a <strong>stacked PSF format</strong>. In this FITS format:</p>
 <ul>
 <li><p>the first extension is a primary extension without data;</p></li>
-<li><p>the second extension is an image extension named <code class="docutils literal notranslate"><span class="pre">PSF_IMAGE</span></code> containing, aligned in a grid,
-the PSF data for the various regions in the measurement image;</p></li>
+<li><p>the second extension is an image extension named <code class="docutils literal notranslate"><span class="pre">PSF_IMAGE</span></code> containing, aligned in a grid (see Figure 2 _fig_psf_data &lt;_fig_psf_data&gt;),
+the PSF data for the various regions in the measurement image. The required keyword <code class="docutils literal notranslate"><span class="pre">`STMPSIZE`</span></code> gives the size of the PSF stamp, the keyword <code class="docutils literal notranslate"><span class="pre">`SAMPLING`</span></code> its sampling;</p></li>
 <li><p>the third extension is a table extension with the mandatory columns:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">X_CENTER</span></code> : the central x-position of a grid PSF;</p></li>

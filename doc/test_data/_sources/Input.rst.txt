@@ -70,8 +70,8 @@ PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |S
 * a variable PSF can be provided in a **stacked PSF format**. In this FITS format:
 
   * the first extension is a primary extension without data;
-  * the second extension is an image extension named ``PSF_IMAGE`` containing, aligned in a grid,
-    the PSF data for the various regions in the measurement image;
+  * the second extension is an image extension named ``PSF_IMAGE`` containing, aligned in a grid (see Figure 2 _fig_psf_data <_fig_psf_data>),
+    the PSF data for the various regions in the measurement image. The required keyword ```STMPSIZE``` gives the size of the PSF stamp, the keyword ```SAMPLING``` its sampling;
   * the third extension is a table extension with the mandatory columns:
 
     * ``X_CENTER`` : the central x-position of a grid PSF;
