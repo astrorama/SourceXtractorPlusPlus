@@ -156,7 +156,7 @@ void WeightImageConfig::initialize(const UserValues& args) {
             continue;
           } else {
             if (m_weight_images.size() == 0) {
-              throw Elements::Exception() << "Can't find 2D image in FITS file: " << weight_image_filename;
+              throw;
             }
             break;
           }
