@@ -68,9 +68,11 @@ PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |S
 * a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels correspond to one pixel in the measurement image);
 * a variable PSF can be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
 * a variable PSF can be provided in a **stacked PSF format**. In this FITS format:
+
 ** the first extension is a primary extension without data;
 ** the second extension is an image extension named ``PSF_IMAGE`` containing, aligned in a grid, the PSF data for the various regions in the measurement image;
 ** the third extension is a table extension with the mandatory columns:
+
 *** ``X_CENTER``: the central x-position of a grid PSF;
 *** ``Y_CENTER``: the central y-position of a grid PSF;
 *** ``X``: the x-position center of the area for the corresponding grid PSF;
