@@ -142,8 +142,11 @@ Flag map usage is described in the <a class="reference internal" href="Flagging.
 <p>PSF models must be specified in the <a class="reference internal" href="Model.html#chap-model"><span class="std std-ref">model-fitting module</span></a>. <strong class="program">SourceXtractor++</strong> accepts several <a class="reference external" href="https://en.wikipedia.org/wiki/Point_spread_function"><abbr title="Point Spread Function">PSF</abbr></a> formats:</p>
 <ul class="simple">
 <li><p>using no PSF at all is specified with <code class="docutils literal notranslate"><span class="pre">..,</span> <span class="pre">psf=&quot;nopsf&quot;,..</span></code> in the configuration files (ASCII or python);</p></li>
-<li><p>a constant PSF can be given with a FITS image, and the keyword <code class="docutils literal notranslate"><span class="pre">SAMPLING</span></code> provides the sampling of the PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels correspond to one pixel in the measurement image);</p></li>
-<li><p>a variable PSF can be provided as FITS binary tables in the <a class="reference external" href="https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description">PSFEx format</a>.</p></li>
+<li><p>a constant PSF can be given with a FITS image, and the keyword <code class="docutils literal notranslate"><span class="pre">SAMPLING</span></code> provides the sampling of the
+PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels
+correspond to one pixel in the measurement image);</p></li>
+<li><p>a variable PSF can be provided as FITS binary tables in the
+<a class="reference external" href="https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description">PSFEx format</a>.</p></li>
 <li><p>a variable PSF can be provided in a <strong>stacked PSF format</strong>. In this FITS format:</p>
 <ul>
 <li><p>the first extension is a primary extension without data;</p></li>
@@ -159,6 +162,8 @@ The required keyword <code class="docutils literal notranslate"><span class="pre
 <li><p><code class="docutils literal notranslate"><span class="pre">RA</span></code> and <code class="docutils literal notranslate"><span class="pre">DEC</span></code> : the sky positions for <code class="docutils literal notranslate"><span class="pre">`X`</span></code> and <code class="docutils literal notranslate"><span class="pre">`Y`</span></code> ;</p></li>
 </ul>
 </li>
+<li><p>for a source at x_1,y_1 the relevant grid PSF is selected by minimizing the distances to <code class="docutils literal notranslate"><span class="pre">`X`</span></code> , <code class="docutils literal notranslate"><span class="pre">`Y`</span></code> , then the PSF stamp
+is extracted using the values in the columns <code class="docutils literal notranslate"><span class="pre">X_CENTER`</span></code> , <code class="docutils literal notranslate"><span class="pre">`Y_CENTER`</span></code> and the keyword <code class="docutils literal notranslate"><span class="pre">`STMPSIZE`</span></code></p></li>
 </ul>
 </li>
 </ul>
@@ -170,7 +175,7 @@ The required keyword <code class="docutils literal notranslate"><span class="pre
 </figure>
 <figure class="align-center" id="id5" style="width: 100%">
 <span id="fig-psf-table"></span><img alt="_images/psf_table.svg" src="_images/psf_table.svg" /><figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">The PSF data in the second extension of a stacked image PSF.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
+<p><span class="caption-number">Fig. 3 </span><span class="caption-text">The content of the table in a stacked PSF.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>

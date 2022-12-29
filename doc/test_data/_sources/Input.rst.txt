@@ -65,8 +65,11 @@ PSF models
 PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |SourceXtractor++| accepts several |PSF|_ formats:
 
 * using no PSF at all is specified with ``.., psf="nopsf",..`` in the configuration files (ASCII or python);
-* a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels correspond to one pixel in the measurement image);
-* a variable PSF can be provided as FITS binary tables in the `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
+* a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the 
+  PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels
+  correspond to one pixel in the measurement image);
+* a variable PSF can be provided as FITS binary tables in the
+  `PSFEx format <https://psfex.readthedocs.io/en/latest/Appendices.html#psf-file-format-description>`_.
 * a variable PSF can be provided in a **stacked PSF format**. In this FITS format:
 
   * the first extension is a primary extension without data;
@@ -81,6 +84,8 @@ PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |S
     * ``Y`` : the x-position center of the area for the corresponding grid PSF;
     * ``RA`` and ``DEC`` : the sky positions for ```X``` and ```Y``` ;
 
+  * for a source at x_1,y_1 the relevant grid PSF is selected by minimizing the distances to ```X``` , ```Y``` , then the PSF stamp
+    is extracted using the values in the columns ``X_CENTER``` , ```Y_CENTER``` and the keyword ```STMPSIZE``` 
 
 One PSF model must be assigned for every measurement image!.
 
@@ -98,5 +103,5 @@ One PSF model must be assigned for every measurement image!.
    :figwidth: 100%
    :align: center
 
-   The PSF data in the second extension of a stacked image PSF.
+   The content of the table in a stacked PSF. 
 
