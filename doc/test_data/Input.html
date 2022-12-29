@@ -167,7 +167,9 @@ is extracted using the values in the columns <code class="docutils literal notra
 </ul>
 </li>
 </ul>
-<p>One PSF model must be assigned for every measurement image!.</p>
+<p>One PSF model must be assigned for every measurement image!. In the ASCII configuration file it is possible to define a
+Gaussian PSF with the parameters <code class="docutils literal notranslate"><span class="pre">`--psf-fwhm`</span></code> and <code class="docutils literal notranslate"><span class="pre">`--psf-pixel-sampling`</span></code>. If defined, this Gaussian PSF is being used
+for all measurement images that have not en explicit PSF defined in the oython configuration.</p>
 <figure class="align-center" id="id4" style="width: 100%">
 <span id="fig-psf-data"></span><img alt="_images/psf_data.svg" src="_images/psf_data.svg" /><figcaption>
 <p><span class="caption-number">Fig. 2 </span><span class="caption-text">The PSF data in the second extension of a stacked image PSF.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>

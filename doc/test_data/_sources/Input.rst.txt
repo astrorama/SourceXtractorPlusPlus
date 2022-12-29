@@ -87,7 +87,9 @@ PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |S
   * for a source at x_1,y_1 the relevant grid PSF is selected by minimizing the distances to ```X``` , ```Y``` , then the PSF stamp
     is extracted using the values in the columns ``X_CENTER``` , ```Y_CENTER``` and the keyword ```STMPSIZE``` 
 
-One PSF model must be assigned for every measurement image!.
+One PSF model must be assigned for every measurement image!. In the ASCII configuration file it is possible to define a
+Gaussian PSF with the parameters ```--psf-fwhm``` and ```--psf-pixel-sampling```. If defined, this Gaussian PSF is being used 
+for all measurement images that have not en explicit PSF defined in the oython configuration.
 
 .. _fig_psf_data:
 
