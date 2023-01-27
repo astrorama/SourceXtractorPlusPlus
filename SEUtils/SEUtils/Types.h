@@ -30,6 +30,7 @@ using SeFloat32 = float;
 using SeFloat64 = double;
 
 using SeFloat = SeFloat32;
+using SeDouble = SeFloat64;
 
 }
 
