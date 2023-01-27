@@ -36,9 +36,9 @@ conda activate sourcex-dev
 
 We recommend always using an explicit version number as there is no guarantee that `conda` will install the latest version otherwise.
 
-## Fedora / CentOS
+## Fedora
 
-SourceXtractor++ is shipped directly in Fedora and CentOS. It can be installed simply as follows:
+SourceXtractor++ is shipped directly in Fedora. It can be installed simply as follows:
 
 ```bash
 sudo dnf install sourcextractor++
