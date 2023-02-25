@@ -25,6 +25,7 @@
 #define _SEFRAMEWORK_SEFRAMEWORK_APERTURE_TRANSFORMEDAPERTURE_H
 
 #include "Aperture.h"
+#include <array>
 
 namespace SourceXtractor {
 

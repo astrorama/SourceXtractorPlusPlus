@@ -25,6 +25,7 @@
 
 #include <list>
 #include <memory>
+#include <set>
 
 #include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceGroupFactory.h"
