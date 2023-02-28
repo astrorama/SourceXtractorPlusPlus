@@ -128,26 +128,26 @@ static void setupEnvironment(void) {
 }
 
 /**
- * MKL blas implementation use multithreading by default, which
+ * MKL Blas and OpenBlas implementation use multithreading by default, which
  * tends to play badly with sourcextractor++ own multithreading.
- * We disable multithreading here *unless* explicitly enabled by the user via
- * environment variables
+ * We disable multithreading here *always* as enabling multithreading causes bugs
  */
 static void disableBlasMultithreading() {
-  bool omp_env_present = getenv("OMP_NUM_THREADS") || getenv("OMP_DYNAMIC");
-  bool mkl_env_present = getenv("MKL_NUM_THREADS") || getenv("MKL_DYNAMIC");
-  if (!omp_env_present && !mkl_env_present) {
-    // Despite the documentation, the methods following C ABI are capitalized
-    void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
-    void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
-    if (set_num_threads) {
-      logger.debug() << "Disabling multithreading";
-      set_num_threads(1);
-    }
-    if (set_dynamic) {
-      logger.debug() << "Disabling dynamic multithreading";
-      set_dynamic(0);
-    }
+  // Despite the documentation, the methods following C ABI are capitalized
+  void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
+  void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
+  void (*openblas_set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "openblas_set_num_threads"));
+  if (set_num_threads) {
+    logger.debug() << "Disabling multithreading";
+    set_num_threads(1);
+  }
+  if (openblas_set_num_threads) {
+    logger.debug() << "Disabling OpenBLAS multithreading";
+    openblas_set_num_threads(1);
+  }
+  if (set_dynamic) {
+    logger.debug() << "Disabling dynamic multithreading";
+    set_dynamic(0);
   }
 }
 
