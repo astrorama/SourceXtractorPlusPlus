@@ -96,8 +96,11 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
 
   fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
   if (status != 0 || (naxis != 2 && naxis != 3)) {
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
     throw Elements::Exception()
-        << "Can't find 2D image or data cube in FITS file: " << filename << "[" << m_hdu_number << "]";
+        << "Can't find 2D image or data cube in FITS file: " << filename << "[" << m_hdu_number << "]"
+        << " status: " << status << " = " << error_message;
   }
 
   m_width = naxes[0];
@@ -139,7 +142,10 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     if (empty_primary &&  acc->m_fd.getImageHdus().empty()) {
       fits_create_img(fptr, FLOAT_IMG, 0, nullptr, &status);
       if (status != 0) {
-        throw Elements::Exception() << "Can't create empty hdu: " << filename << " status: " << status;
+        char error_message[32];
+        fits_get_errstatus(status, error_message);
+        throw Elements::Exception() << "Can't create empty hdu: " << filename
+            << " status: " << status << " = " << error_message;
       }
     }
 
@@ -147,7 +153,10 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     fits_create_img(fptr, getImageType(), 2, naxes, &status);
 
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
-      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename << " status: " << status;
+      char error_message[32];
+      fits_get_errstatus(status, error_message);
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename
+          << " status: " << status << " = " << error_message;
     }
 
     int hdutype = 0;
@@ -164,9 +173,10 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
 
         fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
         if (status != 0) {
-          char err_txt[31];
-          fits_get_errstatus(status, err_txt);
-          throw Elements::Exception() << "Couldn't write the WCS headers (" << err_txt << "): " << str << " status: " << status;
+          char error_message[32];
+          fits_get_errstatus(status, error_message);
+          throw Elements::Exception() << "Couldn't write the WCS headers: " << filename
+              << " status: " << status << " = " << error_message;
         }
       }
     }
@@ -178,7 +188,10 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     }
 
     if (status != 0) {
-      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename << " status: " << status;
+      char error_message[32];
+      fits_get_errstatus(status, error_message);
+      throw Elements::Exception() << "Couldn't allocate space for new FITS file: " << filename
+          << " status: " << status << " = " << error_message;
     }
 
     acc->m_fd.refresh(); // make sure changes to the file structure are taken into account
@@ -209,7 +222,10 @@ std::shared_ptr<ImageTile> FitsImageSource::getImageTile(int x, int y, int width
   fits_read_subset(fptr, getDataType(), first_pixel, last_pixel, increment,
                    nullptr, tile->getDataPtr(), nullptr, &status);
   if (status != 0) {
-    throw Elements::Exception() << "Error reading image tile from FITS file.";
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Error reading image tile from FITS file."
+      << " status: " << status << " = " << error_message;
   }
 
   return tile;
@@ -231,7 +247,10 @@ void FitsImageSource::saveTile(ImageTile& tile) {
 
   fits_write_subset(fptr, getDataType(), first_pixel, last_pixel, tile.getDataPtr(), &status);
   if (status != 0) {
-    throw Elements::Exception() << "Error saving image tile to FITS file.";
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Error saving image tile to FITS file."
+        << " status: " << status << " = " << error_message;
   }
   fits_flush_buffer(fptr, 0, &status);
 }
@@ -243,8 +262,10 @@ void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
   fits_movabs_hdu(fptr, hdu_number, &hdu_type, &status);
 
   if (status != 0) {
-    throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file "
-                                << m_filename;
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file " << m_filename
+        << " status: " << status << " = " << error_message;
   }
   if (hdu_type != IMAGE_HDU) {
     throw Elements::Exception() << "Trying to access non-image HDU in file " << m_filename;
@@ -324,9 +345,10 @@ void FitsImageSource::setMetadata(const std::string& key, const MetadataEntry& v
   fits_update_card(fptr, padded_key.str().c_str(), str.c_str(), &status);
 
   if (status != 0) {
-    char err_txt[31];
-    fits_get_errstatus(status, err_txt);
-    throw Elements::Exception() << "Couldn't write the metadata (" << err_txt << "): " << str;
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Couldn't write the metadata: " << str
+      << " status: " << status << " = " << error_message;
   }
 
   // update the metadata
