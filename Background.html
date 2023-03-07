@@ -32,14 +32,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> SourceXtractor++
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SourceXtractor++
           </a>
               <div class="version">
                 1.0.0
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -64,6 +68,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TestData.html">Test Data Set</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
@@ -82,9 +87,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="Processing.html">Processing</a> &raquo;</li>
-      <li>Modeling the background</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Processing.html">Processing</a></li>
+      <li class="breadcrumb-item active">Modeling the background</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -109,11 +114,11 @@ The background estimator is a combination of <span class="math notranslate nohig
 <p>Using simulated images, the expression above was found more accurate with clipped distributions :cite:1996AAS_117_393B than the usual approximation (e.g., <span id="id3">[<a class="reference internal" href="references.html#id37" title="A. Stuart and K. Ord. Kendall's Advanced Theory of Statistics: Volume 1: Distribution Theory. Number vol. 1 ;vol. 1994 in Kendall's Advanced Theory of Statistics. Wiley, 2009. ISBN 9780340614303. URL: https://books.google.fr/books?id=tW18thQWJQIC.">7</a>]</span>):</p>
 <div class="math notranslate nohighlight" id="equation-ksbackmode">
 <span class="eqno">(2)<a class="headerlink" href="#equation-ksbackmode" title="Permalink to this equation">¶</a></span>\[\mbox{Mode} = 3 \times \mbox{Median} - 2 \times \mbox{Mean}.\]</div>
-<p><a class="reference internal" href="#fig-modevsmean"><span class="std std-numref">Fig. 3</span></a> shows that the mode estimation in <a class="reference internal" href="#equation-sexbackmode">(1)</a> is considerably less affected by source crowding than a simple clipped mean <span id="id4">[<a class="reference internal" href="references.html#id14" title="J. F. Jarvis and J. A. Tyson, 1981. FOCAS - Faint Object Classification and Analysis System. AJ, 86:476-495.">8</a>, <a class="reference internal" href="references.html#id13" title="L. Infante, 1987. A faint object processing software - Description and testing. A&amp;A, 183:177-184.">9</a>]</span> but it is <span class="math notranslate nohighlight">\(\approx 30\%\)</span> noisier.
+<p><a class="reference internal" href="#fig-modevsmean"><span class="std std-numref">Fig. 5</span></a> shows that the mode estimation in <a class="reference internal" href="#equation-sexbackmode">(1)</a> is considerably less affected by source crowding than a simple clipped mean <span id="id4">[<a class="reference internal" href="references.html#id14" title="J. F. Jarvis and J. A. Tyson, 1981. FOCAS - Faint Object Classification and Analysis System. AJ, 86:476-495.">8</a>, <a class="reference internal" href="references.html#id13" title="L. Infante, 1987. A faint object processing software - Description and testing. A&amp;A, 183:177-184.">9</a>]</span> but it is <span class="math notranslate nohighlight">\(\approx 30\%\)</span> noisier.
 Obviously <a class="reference internal" href="#equation-sexbackmode">(1)</a> is not valid for any distribution; <strong class="program">SourceXtractor++</strong> falls back to a simple median for estimating the local background value if the mode and the median disagree by more than 30%.</p>
 <figure class="align-center" id="id5" style="width: 100%">
 <span id="fig-modevsmean"></span><img alt="_images/modevsmean.svg" src="_images/modevsmean.svg" /><figcaption>
-<p><span class="caption-number">Fig. 3 </span><span class="caption-text">Simulations of 32×32 pixels background cells contamined by random Gaussian profiles.
+<p><span class="caption-number">Fig. 5 </span><span class="caption-text">Simulations of 32×32 pixels background cells contamined by random Gaussian profiles.
 The true background lies at 0 ADUs.
 While being a bit noisier, the clipped “mode” gives a more robust estimate than the clipped mean in crowded regions.</span><a class="headerlink" href="#id5" title="Permalink to this image">¶</a></p>
 </figcaption>
