@@ -36,9 +36,9 @@ conda activate sourcex-dev
 
 We recommend always using an explicit version number as there is no guarantee that `conda` will install the latest version otherwise.
 
-## Fedora / CentOS
+## Fedora
 
-SourceXtractor++ is shipped directly in Fedora and CentOS. It can be installed simply as follows:
+SourceXtractor++ is shipped directly in Fedora. It can be installed simply as follows:
 
 ```bash
 sudo dnf install sourcextractor++
@@ -81,7 +81,8 @@ dnf install SourceXtractorPlusPlus
 ## Test Data Set
 
 A test data set covering various data reduction scenarios is available [here](https://cloud.physik.lmu.de/index.php/s/3K4KemBsw5y9yqd).
-I contains the input data, all relevant configuration files, the SourceXtractor++ commands and the expected output results for a reference.
+It contains the input data, all relevant configuration files, the SourceXtractor++ commands and the expected output results for a reference.
+The test data set is described as a [pre-print](http://arxiv.org/abs/2212.02428) for the corresponding conference proceedings.
 
 ## Discussion group for SourceXtractor++ users
 

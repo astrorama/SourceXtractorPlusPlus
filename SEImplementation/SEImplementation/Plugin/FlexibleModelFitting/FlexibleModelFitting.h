@@ -68,7 +68,7 @@ public:
     return m_stop_reason;
   }
 
-  SeFloat getReducedChiSquared() const {
+  SeDouble getReducedChiSquared() const {
     return m_chi_squared;
   }
 
@@ -76,11 +76,11 @@ public:
     return m_flags;
   }
 
-  SeFloat getParameterValue(int index) const {
+  SeDouble getParameterValue(int index) const {
     return m_parameter_values.at(index);
   }
 
-  SeFloat getParameterSigma(int index) const {
+  SeDouble getParameterSigma(int index) const {
     return m_parameter_sigmas.at(index);
   }
 
