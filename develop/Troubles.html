@@ -174,11 +174,11 @@ This can happen in already multi-threaded applications such as <strong class="pr
 switched off (<cite>–thread-count=0</cite>), meaning that <strong class="program">SourceXtractor++</strong> does not dump at least beyound a couple of dozen measurements in.</p>
 <p>A solution is to switch off the multi-threading of all lower level libraries by setting the following environmental variables
 <em>before the call</em> to <strong class="program">SourceXtractor++</strong>:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">    export MKL_NUM_THREADS=1</span>
-<span class="go">    export NUMEXPR_NUM_THREADS=1</span>
-<span class="go">    export OMP_NUM_THREADS=1</span>
-<span class="go">    export OPENBLAS_NUM_THREADS=1</span>
-<span class="go">    export VECLIB_MAXIMUM_THREADS=1</span>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">export MKL_NUM_THREADS=1</span>
+<span class="go">export NUMEXPR_NUM_THREADS=1</span>
+<span class="go">export OMP_NUM_THREADS=1</span>
+<span class="go">export OPENBLAS_NUM_THREADS=1</span>
+<span class="go">export VECLIB_MAXIMUM_THREADS=1</span>
 <span class="go">export NTHREADS=1</span>
 <span class="go">sourcextractor++ --conf ...</span>
 </pre></div>

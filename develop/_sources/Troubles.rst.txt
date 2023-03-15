@@ -124,7 +124,7 @@ A solution is to switch off the multi-threading of all lower level libraries by 
 	export OMP_NUM_THREADS=1
 	export OPENBLAS_NUM_THREADS=1
 	export VECLIB_MAXIMUM_THREADS=1
-    export NTHREADS=1
-    sourcextractor++ --conf ...
+	export NTHREADS=1
+	sourcextractor++ --conf ...
 
 
