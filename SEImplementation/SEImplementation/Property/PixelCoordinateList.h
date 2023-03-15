@@ -22,9 +22,11 @@
 #ifndef _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
 #define _SEIMPLEMENTATION_PIXELCOORDINATELIST_H
 
-#include <algorithm>
 #include "SEUtils/PixelCoordinate.h"
 #include "SEFramework/Property/Property.h"
+
+#include <algorithm>
+#include <vector>
 
 namespace SourceXtractor {
 

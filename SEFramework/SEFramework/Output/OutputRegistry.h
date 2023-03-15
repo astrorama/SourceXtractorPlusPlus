@@ -23,10 +23,11 @@
 #define _SEFRAMEWORK_OUTPUTREGISTRY_H
 
 #include <functional>
-#include <vector>
-#include <string>
 #include <map>
+#include <set>
+#include <string>
 #include <typeindex>
+#include <vector>
 
 #include "Table/Row.h"
 #include "SEFramework/Source/SourceInterface.h"

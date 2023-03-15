@@ -23,6 +23,7 @@
 #ifndef _SEFRAMEWORK_IMAGE_IMAGE_H
 #define _SEFRAMEWORK_IMAGE_IMAGE_H
 
+#include <cstdint>
 #include <memory>
 
 #include "SEUtils/Types.h"

@@ -22,9 +22,10 @@
  */
 
 
-#include <atomic>
 #include "SEImplementation/Plugin/GroupInfo/GroupInfo.h"
 #include "SEImplementation/Plugin/GroupInfo/GroupInfoTask.h"
+#include <atomic>
+#include <cstdint>
 
 namespace SourceXtractor {
 

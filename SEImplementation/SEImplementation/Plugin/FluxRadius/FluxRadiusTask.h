@@ -20,6 +20,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Task/SourceTask.h"
+#include <vector>
 
 namespace SourceXtractor {
 
