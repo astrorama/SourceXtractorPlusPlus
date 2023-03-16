@@ -81,8 +81,8 @@ temporary data.
 |SourceXtractor++| stops shortly after the first measurements are done
 ----------------------------------------------------------------------
 
-It might happen that |SourceXtractor++| stops or dumps off when the first measurements are due or when the first measurements have been done.
-The log file then ends with:
+It might happen that |SourceXtractor++| stops or dumps off when the first measurements are due or when the first few measurements have been done.
+The log file then ends similar to this example:
 
 .. code-block:: console
 
@@ -127,4 +127,7 @@ A solution is to switch off the multi-threading of all lower level libraries by 
 	export NTHREADS=1
 	sourcextractor++ --conf ...
 
-
+This switches off the multi-threading in the lower level libraries and should prevent the race conditions. In version 0.20 we
+are trying to make these settings inside |SourceXtractor++|
+(see `here <https://gitlab.euclid-sgs.uk/EuclidLibs/SourceXtractorPlusPlus/-/blob/develop/SEMain/src/program/SourceXtractor.cpp#L136>`_),
+however we are not sure whether this will work in all situations and modes.
