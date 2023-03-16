@@ -143,8 +143,8 @@ temporary data.</p>
 </section>
 <section id="sourcextractor-stops-shortly-after-the-first-measurements-are-done">
 <span id="index-4"></span><h2><strong class="program">SourceXtractor++</strong> stops shortly after the first measurements are done<a class="headerlink" href="#sourcextractor-stops-shortly-after-the-first-measurements-are-done" title="Permalink to this heading">¶</a></h2>
-<p>It might happen that <strong class="program">SourceXtractor++</strong> stops or dumps off when the first measurements are due or when the first measurements have been done.
-The log file then ends with:</p>
+<p>It might happen that <strong class="program">SourceXtractor++</strong> stops or dumps off when the first measurements are due or when the first few measurements have been done.
+The log file then ends similar to this example:</p>
 <div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">2023-02-09T16:06:50CET Progress  INFO : Segmentation: 487 / 7200 (6.76%)</span>
 <span class="go">2023-02-09T16:06:50CET Progress  INFO : Detected: 1200</span>
 <span class="go">2023-02-09T16:06:50CET Progress  INFO : Deblended: 0</span>
@@ -183,6 +183,10 @@ switched off (<cite>–thread-count=0</cite>), meaning that <strong class="progr
 <span class="go">sourcextractor++ --conf ...</span>
 </pre></div>
 </div>
+<p>This switches off the multi-threading in the lower level libraries and should prevent the race conditions. In version 0.20 we
+are trying to make these settings inside <strong class="program">SourceXtractor++</strong>
+(see <a class="reference external" href="https://gitlab.euclid-sgs.uk/EuclidLibs/SourceXtractorPlusPlus/-/blob/develop/SEMain/src/program/SourceXtractor.cpp#L136">here</a>),
+however we are not sure whether this will work in all situations and modes.</p>
 </section>
 </section>
 
