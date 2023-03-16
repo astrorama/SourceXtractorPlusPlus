@@ -16,6 +16,8 @@
  */
 
 #include <algorithm>
+#include <functional>
+
 #include <NdArray/NdArray.h>
 #include <SEFramework/Image/Image.h>
 #include "SEImplementation/Plugin/FluxRadius/FluxRadius.h"
@@ -50,7 +52,7 @@ void FluxRadiusTask::computeProperties(SourceInterface& source) const {
       // strictly increasing, so we search for the first bin where the accumulated flux is
       // >= the target flux, and interpolate with the previous one
       auto next = std::find_if(std::begin(growth_curve), std::end(growth_curve),
-                               std::bind2nd(std::greater_equal<double>(), target_flux));
+                               std::bind(std::greater_equal<double>(), std::placeholders::_1, target_flux));
       if (next == std::end(growth_curve)) {
         --next;
       }

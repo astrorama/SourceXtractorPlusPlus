@@ -21,6 +21,7 @@
  */
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
+#include <vector>
 
 
 namespace SourceXtractor {

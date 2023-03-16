@@ -24,10 +24,12 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDTASK_H_
 #define _SEIMPLEMENTATION_PLUGIN_SOURCEIDS_SOURCEIDTASK_H_
 
-#include <atomic>
 #include "SEFramework/Task/SourceTask.h"
 #include "SEImplementation/Property/SourceId.h"
 #include "SEImplementation/Plugin/SourceIDs/SourceID.h"
+
+#include <atomic>
+#include <cstdint>
 
 namespace SourceXtractor {
 

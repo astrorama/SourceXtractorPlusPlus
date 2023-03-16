@@ -25,6 +25,7 @@
 
 #include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceInterface.h"
+#include <vector>
 
 namespace SourceXtractor {
 

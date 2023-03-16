@@ -25,10 +25,12 @@
 #ifndef _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 
-#include <boost/variant.hpp>
-
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageTile.h"
+
+#include <boost/variant.hpp>
+#include <map>
+
 
 namespace SourceXtractor {
 
