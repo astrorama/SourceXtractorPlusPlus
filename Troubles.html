@@ -61,6 +61,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Troubleshooting</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#no-sources-detected">NO SOURCES DETECTED</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#problems-with-temporary-disk-space">Problems with temporary disk space</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sourcextractor-stops-shortly-after-the-first-measurements-are-done"><strong class="program">SourceXtractor++</strong> stops shortly after the first measurements are done</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
@@ -139,6 +140,53 @@ or directing the operating system to use a partition with sufficient disk space 
 </div>
 <p>Note that right now <strong class="program">SourceXtractor++</strong> does <strong>not</strong> have a parameter to directly specify the directory to store
 temporary data.</p>
+</section>
+<section id="sourcextractor-stops-shortly-after-the-first-measurements-are-done">
+<span id="index-4"></span><h2><strong class="program">SourceXtractor++</strong> stops shortly after the first measurements are done<a class="headerlink" href="#sourcextractor-stops-shortly-after-the-first-measurements-are-done" title="Permalink to this heading">¶</a></h2>
+<p>It might happen that <strong class="program">SourceXtractor++</strong> stops or dumps off when the first measurements are due or when the first few measurements have been done.
+The log file then ends similar to this example:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">2023-02-09T16:06:50CET Progress  INFO : Segmentation: 487 / 7200 (6.76%)</span>
+<span class="go">2023-02-09T16:06:50CET Progress  INFO : Detected: 1200</span>
+<span class="go">2023-02-09T16:06:50CET Progress  INFO : Deblended: 0</span>
+<span class="go">2023-02-09T16:06:50CET Progress  INFO : Measured: 0</span>
+<span class="go">2023-02-09T16:06:50CET Progress  INFO : Elapsed: 00:01:36</span>
+<span class="go">2023-02-09T16:06:58CET Progress  INFO : Segmentation: 502 / 7200 (6.97%)</span>
+<span class="go">2023-02-09T16:06:58CET Progress  INFO : Detected: 1234</span>
+<span class="go">2023-02-09T16:06:58CET Progress  INFO : Deblended: 1</span>
+<span class="go">2023-02-09T16:06:58CET Progress  INFO : Measured: 1 / 1 (100.00%)</span>
+<span class="go">2023-02-09T16:06:58CET Progress  INFO : Elapsed: 00:01:43</span>
+<span class="go">2023-02-09T16:07:04CET Progress  INFO : Segmentation: 502 / 7200 (6.97%)</span>
+<span class="go">2023-02-09T16:07:04CET Progress  INFO : Detected: 1235</span>
+<span class="go">2023-02-09T16:07:04CET Progress  INFO : Deblended: 4</span>
+<span class="go">2023-02-09T16:07:04CET Progress  INFO : Measured: 4 / 4 (100.00%)</span>
+<span class="go">2023-02-09T16:07:04CET Progress  INFO : Elapsed: 00:01:50</span>
+<span class="go">2023-02-09T16:07:09CET Progress  INFO : Segmentation: 504 / 7200 (7.00%)</span>
+<span class="go">2023-02-09T16:07:09CET Progress  INFO : Detected: 1240</span>
+<span class="go">2023-02-09T16:07:09CET Progress  INFO : Deblended: 7</span>
+<span class="go">2023-02-09T16:07:09CET Progress  INFO : Measured: 7 / 7 (100.00%)</span>
+<span class="go">2023-02-09T16:07:09CET Progress  INFO : Elapsed: 00:01:55</span>
+</pre></div>
+</div>
+<p>A possible cause could be a race condition created  by the concurrent calls to lower level libraries such as openMP or openBLAS.
+This can happen in already multi-threaded applications such as <strong class="program">SourceXtractor++</strong>
+(see <a class="reference external" href="https://github.com/xianyi/OpenBLAS/wiki/faq#multi-threaded">here</a> for details).</p>
+<p>A confirmation that the dump is caused by a race condition in lower level libraries is if <strong class="program">SourceXtractor++</strong> runs with multi-threading
+switched off (<cite>–thread-count=0</cite>), meaning that <strong class="program">SourceXtractor++</strong> does not dump at least beyound a couple of dozen measurements in.</p>
+<p>A solution is to switch off the multi-threading of all lower level libraries by setting the following environmental variables
+<em>before the call</em> to <strong class="program">SourceXtractor++</strong>:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">export MKL_NUM_THREADS=1</span>
+<span class="go">export NUMEXPR_NUM_THREADS=1</span>
+<span class="go">export OMP_NUM_THREADS=1</span>
+<span class="go">export OPENBLAS_NUM_THREADS=1</span>
+<span class="go">export VECLIB_MAXIMUM_THREADS=1</span>
+<span class="go">export NTHREADS=1</span>
+<span class="go">sourcextractor++ --conf ...</span>
+</pre></div>
+</div>
+<p>This switches off the multi-threading in the lower level libraries and should prevent the race conditions. In version 0.20 we
+are trying to make these settings inside <strong class="program">SourceXtractor++</strong>
+(see <a class="reference external" href="https://gitlab.euclid-sgs.uk/EuclidLibs/SourceXtractorPlusPlus/-/blob/develop/SEMain/src/program/SourceXtractor.cpp#L136">here</a>),
+however we are not sure whether this will work in all situations and modes.</p>
 </section>
 </section>
 
