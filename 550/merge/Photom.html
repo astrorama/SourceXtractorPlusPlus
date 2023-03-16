@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aperture photometry &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/graphviz.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/custom.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Model fitting" href="Model.html" />
+    <link rel="prev" title="Isophotal measurements" href="Position.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Measurements.html">Measuring</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Measurements.html#the-measurement-configuration-script">The measurement configuration script</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Measurements.html#measurements">Measurements</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Position.html">Isophotal measurements</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Aperture photometry</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#fixed-aperture-flux">Fixed-aperture flux</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#automatic-aperture-flux">Automatic aperture flux</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html">Model fitting</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="TestData.html">Test Data Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Measurements.html">Measuring</a></li>
+      <li class="breadcrumb-item active">Aperture photometry</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="aperture-photometry">
+<span id="photometry"></span><h1>Aperture photometry<a class="headerlink" href="#aperture-photometry" title="Permalink to this heading">¶</a></h1>
+<p>Besides <a class="reference internal" href="Position.html#flux-iso-def"><span class="std std-ref">isophotal</span></a>, <abbr title="Point Spread Function">PSF</abbr> and <a class="reference internal" href="Model.html#models-def"><span class="std std-ref">model-fitting</span></a> flux estimates, <strong class="program">SourceXtractor++</strong> can currently perform two types of aperture flux measurements: <a class="reference internal" href="#flux-aper-def"><span class="std std-ref">fixed-aperture</span></a> and <a class="reference internal" href="#flux-auto-def"><span class="std std-ref">adaptive-aperture</span></a>.</p>
+<p>Both types are applied to the measurement image(s). In <strong class="program">SourceXtractor++</strong> runs with only a detection image it is necessary to define the detection image as measurement in a python configuration files such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sourcextractor.config</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">top</span> <span class="o">=</span> <span class="n">load_fits_image</span><span class="p">(</span>
+   <span class="s1">&#39;../EUC_MER_BGSUB-MOSAIC-VIS_TILE79171-SM.fits&#39;</span><span class="p">,</span>
+   <span class="n">weight</span><span class="o">=</span><span class="s1">&#39;../EUC_MER_MOSAIC-VIS-RMS_TILE79171-SM.fits&#39;</span><span class="p">,</span>
+   <span class="n">weight_type</span><span class="o">=</span><span class="s1">&#39;rms&#39;</span><span class="p">,</span>
+   <span class="n">constant_background</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+   <span class="n">weight_absolute</span><span class="o">=</span><span class="mi">1</span>
+<span class="p">)</span>
+
+<span class="n">mesgroup</span> <span class="o">=</span> <span class="n">MeasurementGroup</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+
+<span class="n">all_apertures</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">img</span> <span class="ow">in</span> <span class="n">mesgroup</span><span class="p">:</span>
+   <span class="n">all_apertures</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">add_aperture_photometry</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="mi">10</span> <span class="p">)</span> <span class="p">)</span>
+<span class="n">add_output_column</span><span class="p">(</span><span class="s1">&#39;aperture&#39;</span><span class="p">,</span> <span class="n">all_apertures</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="fixed-aperture-flux">
+<span id="flux-aper-def"></span><h2>Fixed-aperture flux<a class="headerlink" href="#fixed-aperture-flux" title="Permalink to this heading">¶</a></h2>
+<p id="flux-auto-def">The fixed aperture flux measurements are requested with <code class="docutils literal notranslate"><span class="pre">output-properties=...,AperturePhotometry,...</span></code>. The diameter of the aperture is specified in the python configuration file (see above) with <code class="docutils literal notranslate"><span class="pre">all_apertures.extend(add_aperture_photometry(img,&lt;diameter</span> <span class="pre">[pix]&gt;))</span></code>. It is possible to give a vector with several diameters <code class="docutils literal notranslate"><span class="pre">[diam_1,</span> <span class="pre">diam_2,</span> <span class="pre">diam_3,</span> <span class="pre">...]</span></code>.</p>
+<p>It is also necessary to append the aperture measurements to the output with a given column name such as <code class="docutils literal notranslate"><span class="pre">add_output_column('aperture',</span> <span class="pre">all_apertures)</span></code>. The measurements have the dimension <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">m</span></code> for each object with <code class="docutils literal notranslate"><span class="pre">n</span></code> the number of measurement images and <code class="docutils literal notranslate"><span class="pre">m</span></code> the number of diameters.</p>
+<p>The fixed aperture checkimage is specified with <code class="docutils literal notranslate"><span class="pre">check-image-aperture=&lt;name.fits&gt;</span></code> and provides a visual impression of the apertures for each measurement image.</p>
+</section>
+<section id="automatic-aperture-flux">
+<h2>Automatic aperture flux<a class="headerlink" href="#automatic-aperture-flux" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">SourceXtractor++</strong>’s automatic aperture photometry routine derives from Kron’s “first moment” algorithm <span id="id1">[<a class="reference internal" href="references.html#id17" title="R. G. Kron, 1980. Photometry of a complete sample of faint galaxies. ApJS, 43:305-325.">10</a>]</span>:</p>
+<p><span id="id2">[<a class="reference internal" href="references.html#id17" title="R. G. Kron, 1980. Photometry of a complete sample of faint galaxies. ApJS, 43:305-325.">10</a>]</span> and <span id="id3">[<a class="reference internal" href="references.html#id13" title="L. Infante, 1987. A faint object processing software - Description and testing. A&amp;A, 183:177-184.">9</a>]</span> have shown that for stars and galaxy profiles convolved with Gaussian seeing, <span class="math notranslate nohighlight">\(\ge 90\%\)</span> of the flux is expected to lie inside a circular aperture of radius <span class="math notranslate nohighlight">\(k r_{\rm Kron}\)</span> with <span class="math notranslate nohighlight">\(k = 2\)</span>, almost independently of the magnitude.
+Experiments have shown <span id="id4">[<a class="reference internal" href="references.html#id2" title="E. Bertin and S. Arnouts, 1996. SExtractor: Software for source extraction. A&amp;AS, 117:393-404.">1</a>]</span> that this conclusion remains unchanged if one replaces the circular aperture with the “Kron elliptical aperture” <span class="math notranslate nohighlight">\({\cal K}\)</span> with reduced pseudo-radius <span class="math notranslate nohighlight">\(k r_{\rm Kron}\)</span>.</p>
+<p>Automatic aperture flux measurements are requested with <code class="docutils literal notranslate"><span class="pre">output-properties=...,AutoPhotometry,...</span></code>. The scale factor <span class="math notranslate nohighlight">\(k\)</span> for the Kron radius <span class="math notranslate nohighlight">\(r_{\rm Kron}\)</span> and the minimal Kron radius <span class="math notranslate nohighlight">\(r_{\rm Kron, min}\)</span> can be adjusted with the parameters <code class="docutils literal notranslate"><span class="pre">auto-kron-factor=</span></code> and <code class="docutils literal notranslate"><span class="pre">auto-kron-min-radius=</span></code>, respectively. The measurements have the dimension <code class="docutils literal notranslate"><span class="pre">n</span></code> for each object with <code class="docutils literal notranslate"><span class="pre">n</span></code> the number of measurement images.</p>
+<p>The automatic aperture checkimage is specified with <code class="docutils literal notranslate"><span class="pre">check-image-auto-aperture=&lt;name.fits&gt;</span></code> and provides a visual impression of the automatic apertures for each measurement image.</p>
+<span class="target" id="background-def"></span></section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Position.html" class="btn btn-neutral float-left" title="Isophotal measurements" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Model.html" class="btn btn-neutral float-right" title="Model fitting" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
