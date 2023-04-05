@@ -24,9 +24,11 @@
 #ifndef _SEFRAMEWORK_IMAGE_IMAGECHUNK_H_
 #define _SEFRAMEWORK_IMAGE_IMAGECHUNK_H_
 
-#include <cassert>
-
 #include "SEFramework/Image/Image.h"
+
+#include <cassert>
+#include <vector>
+
 
 namespace SourceXtractor {
 

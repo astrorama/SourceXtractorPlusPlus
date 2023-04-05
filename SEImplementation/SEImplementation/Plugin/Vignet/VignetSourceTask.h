@@ -26,6 +26,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_VIGNETSOURCETASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
+#include <array>
 
 namespace SourceXtractor {
 class VignetSourceTask : public SourceTask {
