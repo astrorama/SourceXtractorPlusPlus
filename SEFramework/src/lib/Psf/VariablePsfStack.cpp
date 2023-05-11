@@ -139,10 +139,14 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector
 
   // get the first and last pixels for the PSF to be extracted
   // NOTE: CCfits has 1-based indices, also the last index is *included* in the reading
-  std::vector<long> first_vertex = {m_gridx_values[index_min_distance] - m_grid_offset,
-                                    m_gridy_values[index_min_distance] - m_grid_offset};
-  std::vector<long> last_vertex  = {first_vertex[0] + m_psf_size - 1, first_vertex[1] + m_psf_size - 1};
-  std::vector<long> stride       = {1, 1};
+  // NOTE: the +0.5 forces a correct cast/ceiling
+  std::vector<long> first_vertex{long(m_gridx_values[index_min_distance]+.5) - long(m_grid_offset),  long(m_gridy_values[index_min_distance]+.5) - long(m_grid_offset)};
+  stack_logger.debug() << "First vertex: ( " << first_vertex[0] << ", " << first_vertex[1] << ") First vertex alternative: " <<
+      m_gridx_values[index_min_distance]-m_grid_offset << " " << m_gridy_values[index_min_distance]-m_grid_offset <<
+      " grid offset:" << m_grid_offset;
+
+  std::vector<long> last_vertex{first_vertex[0] + long(m_psf_size) - 1, first_vertex[1] +long( m_psf_size) - 1};
+  std::vector<long> stride{1, 1};
 
   // read out the image
   std::valarray<SeFloat> stamp_data;
@@ -150,6 +154,8 @@ std::shared_ptr<VectorImage<SeFloat>> VariablePsfStack::getPsf(const std::vector
     std::lock_guard<std::mutex> lock(m_mutex);
     m_pFits->extension(1).read(stamp_data, first_vertex, last_vertex, stride);
   }
+
+  //stack_logger.info() << "DDD ( " << first_vertex[0] << ", " << first_vertex[1] << ") --> ( " << last_vertex[0] << ", " << last_vertex[1] << "): " << stamp_data.size();
 
   // create and return the psf image
   return VectorImage<SeFloat>::create(m_psf_size, m_psf_size, std::begin(stamp_data), std::end(stamp_data));
