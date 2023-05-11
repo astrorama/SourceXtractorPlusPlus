@@ -103,8 +103,8 @@ private:
   std::vector<SeFloat> m_dec_values;
   std::vector<SeFloat> m_x_values;
   std::vector<SeFloat> m_y_values;
-  std::vector<int>     m_gridx_values;
-  std::vector<int>     m_gridy_values;
+  std::vector<double>  m_gridx_values;
+  std::vector<double>  m_gridy_values;
 
   std::vector<std::string> m_components = {"X_IMAGE", "Y_IMAGE"};
 
