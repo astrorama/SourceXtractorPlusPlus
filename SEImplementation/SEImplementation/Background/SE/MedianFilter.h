@@ -20,6 +20,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/WriteableImage.h"
+#include <array>
 
 namespace SourceXtractor {
 

@@ -23,6 +23,7 @@
 #define _SEFRAMEWORK_SOURCEGROUPINTERFACE_H
 
 #include "SEFramework/Source/SourceInterface.h"
+#include <list>
 
 namespace SourceXtractor {
 

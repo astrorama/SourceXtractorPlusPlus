@@ -23,8 +23,9 @@
 #ifndef _SEFRAMEWORK_SOURCE_SOURCEGROUP_H
 #define _SEFRAMEWORK_SOURCE_SOURCEGROUP_H
 
-#include <set>
+#include <list>
 #include <iterator>
+#include <set>
 #include <type_traits>
 
 #include "SEFramework/Source/SourceInterface.h"
