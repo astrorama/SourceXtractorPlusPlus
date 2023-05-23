@@ -31,11 +31,11 @@ using namespace SourceXtractor;
 struct AssocModeFixture {
   SimpleSource source;
   std::vector<std::vector<AssocModeConfig::CatalogEntry>> catalog { {
-    { {110, 100}, 1.0, {2.0, 3.0} },
-    { {50, 50}, 1.0, {2.0, 3.0} },
-    { {50, 60}, 0.5, {4.0, 5.0} },
-    { {60, 60}, 3.0, {6.0, 7.0} },
-    { {60, 50}, 2.0, {8.0, 9.0} }
+    { {110, 100}, {}, 1.0, {2.0, 3.0} },
+    { {50, 50}, {}, 1.0, {2.0, 3.0} },
+    { {50, 60}, {}, 0.5, {4.0, 5.0} },
+    { {60, 60}, {}, 3.0, {6.0, 7.0} },
+    { {60, 50}, {}, 2.0, {8.0, 9.0} }
   } };
 
   AssocModeFixture() {
@@ -166,17 +166,17 @@ BOOST_FIXTURE_TEST_CASE(CheckLargeCatalog, AssocModeFixture) {
 
   for (int i=0; i<10000; i++) {
     large_catalog.emplace_back(AssocModeConfig::CatalogEntry { {boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng),
-      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng)}, 1.0, {1.0}});
+      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng)}, {}, 1.0, {1.0}});
   }
   BOOST_CHECK_EQUAL(large_catalog.size(), 10000);
 
   for (int i=0; i<15000; i++) {
     large_catalog.emplace_back(AssocModeConfig::CatalogEntry { {boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng),
-      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng) + 1000}, 1.0, {1.0}});
+      boost::random::uniform_real_distribution<>(-100.0, 100.0)(rng) + 1000}, {}, 1.0, {1.0}});
   }
   BOOST_CHECK_EQUAL(large_catalog.size(), 25000);
 
-  large_catalog.emplace_back(AssocModeConfig::CatalogEntry { { 55.0, 55.0 }, 1.0, {0.0}});
+  large_catalog.emplace_back(AssocModeConfig::CatalogEntry { { 55.0, 55.0 }, {}, 1.0, {0.0}});
   BOOST_CHECK_EQUAL(large_catalog.size(), 25001);
 
 

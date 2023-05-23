@@ -15,11 +15,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+
+#include "SEImplementation/Property/PixelCoordinateList.h"
+#include "SEImplementation/Property/SourceId.h"
+#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/AssocMode/AssocMode.h"
+#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
+
 #include "SEImplementation/Segmentation/AssocSegmentation.h"
 
 namespace SourceXtractor {
 
 void AssocSegmentation::labelImage(Segmentation::LabellingListener& listener, std::shared_ptr<const DetectionImageFrame> frame) {
+  for (auto source_coordinate : m_source_list) {
+    auto source = m_source_factory->createSource();
+    source->setProperty<SourceId>();
+    source->setProperty<WorldCentroid>(source_coordinate.world_coord.m_alpha, source_coordinate.world_coord.m_delta);
+    source->setProperty<AssocMode>(true, source_coordinate.assoc_columns);
+
+    listener.publishSource(std::move(source));
+  }
 }
 
 }

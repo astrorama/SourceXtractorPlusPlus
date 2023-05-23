@@ -14,38 +14,32 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MeasurementFrameRectangleTaskFactory.h
- *
- *  Created on: Sep 24, 2018
- *      Author: Alejandro Alvarez Ayllon
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_
 
-
-#include "SEFramework/Task/TaskFactory.h"
+#include "SEFramework/Property/Property.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
 
-class MeasurementFrameRectangleTaskFactory : public TaskFactory {
+class ReferenceCoordinates : public Property {
 
 public:
+  virtual ~ReferenceCoordinates() = default;
 
-  virtual ~MeasurementFrameRectangleTaskFactory() = default;
+  explicit ReferenceCoordinates(std::shared_ptr<CoordinateSystem> coordinate_system)
+      : m_coordinate_system(coordinate_system) {}
 
-  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
-
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  const std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
+    return m_coordinate_system;
+  }
 
 private:
-  bool m_no_detection_image = false;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
 };
 
-} // end SourceXtractor
+}
 
-
-#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_ */

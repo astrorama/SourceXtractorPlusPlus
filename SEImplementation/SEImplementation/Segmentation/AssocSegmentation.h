@@ -8,8 +8,12 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATION_ASSOCSEGMENTATION_H_
 #define _SEIMPLEMENTATION_SEGMENTATION_ASSOCSEGMENTATION_H_
 
+#include "SEUtils/PixelCoordinate.h"
+
 #include "SEFramework/Source/SourceFactory.h"
 #include "SEFramework/Pipeline/Segmentation.h"
+
+#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
 
 namespace SourceXtractor {
 
@@ -23,7 +27,8 @@ public:
 
   virtual ~AssocSegmentation() = default;
 
-  AssocSegmentation(std::shared_ptr<SourceFactory> source_factory) : m_source_factory(source_factory) {
+  AssocSegmentation(std::shared_ptr<SourceFactory> source_factory, std::vector<AssocModeConfig::CatalogEntry> source_list)
+      : m_source_factory(source_factory), m_source_list(source_list) {
     assert(source_factory != nullptr);
   }
 
@@ -31,7 +36,7 @@ public:
 
 private:
   std::shared_ptr<SourceFactory> m_source_factory;
-
+  std::vector<AssocModeConfig::CatalogEntry> m_source_list;
 };
 
 }

@@ -51,9 +51,6 @@ SegmentationFactory::SegmentationFactory(std::shared_ptr<TaskProvider> task_prov
 void SegmentationFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<AssocModeConfig>();
   manager.registerConfiguration<SegmentationConfig>();
-//
-//  manager.registerDependency<AttractorsPartitionConfig, MinAreaPartitionConfig>();
-//  declareDependency<PartitionStepConfig>();
 }
 
 void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manager) {
@@ -70,7 +67,6 @@ void SegmentationFactory::configure(Euclid::Configuration::ConfigManager& manage
 }
 
 std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
-
   auto segmentation = std::make_shared<Segmentation>(m_filter);
   switch (m_algorithm) {
     case SegmentationConfig::Algorithm::LUTZ:
@@ -89,9 +85,11 @@ std::shared_ptr<Segmentation> SegmentationFactory::createSegmentation() const {
       break;
 #endif
     case SegmentationConfig::Algorithm::ASSOC:
+    {
       segmentation->setLabelling<AssocSegmentation>(
-          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider));
+          std::make_shared<SourceWithOnDemandPropertiesFactory>(m_task_provider), m_catalogs.at(0));
       break;
+    }
     case SegmentationConfig::Algorithm::UNKNOWN:
     default:
       throw Elements::Exception("Unknown segmentation algorithm.");

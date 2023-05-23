@@ -44,9 +44,10 @@ public:
   }
 
   void configure(Euclid::Configuration::ConfigManager& manager) override {
+    // !!!!! Disabled for test! TEST ONLY
     m_steps = manager.getConfiguration<PartitionStepConfig>().getSteps(m_source_factory);
   }
-  
+
   std::shared_ptr<Partition> getPartition() const {
     return std::make_shared<Partition>(m_steps);
   }

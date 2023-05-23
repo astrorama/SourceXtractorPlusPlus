@@ -14,32 +14,26 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/**
- * @file src/lib/Pipeline/Segmentation.cpp
- * @date 09/07/16
- * @author mschefer
- */
 
-#include "SEFramework/Pipeline/Segmentation.h"
+
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTask.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTaskFactory.h"
+
+using namespace Euclid::Configuration;
 
 namespace SourceXtractor {
 
-Segmentation::Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> image_processing)
-    : m_filter_image_processing(image_processing) {
-}
-
-void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) const {
-  if (m_filter_image_processing != nullptr && frame != nullptr) {
-    frame->setFilter(m_filter_image_processing);
+std::shared_ptr<Task> ReferenceCoordinatesTaskFactory::createTask(const PropertyId& property_id) const {
+  if (property_id.getTypeId() == PropertyId::create<ReferenceCoordinates>().getTypeId()) {
+    return std::make_shared<ReferenceCoordinatesTask>(property_id.getIndex());
+  } else {
+    return nullptr;
   }
-
-  if (m_labelling != nullptr) {
-    LabellingListener listener(*this, frame);
-    m_labelling->labelImage(listener, frame);
-  }
-
-  // Flush source grouping buffer
-  sendProcessSignal(ProcessSourcesEvent(std::make_shared<SelectAllCriteria>()));
 }
 
-}
+} // SEImplementation namespace
+
+
+
+

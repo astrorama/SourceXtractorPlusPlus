@@ -21,6 +21,8 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
+#include <iostream>
+
 #include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
@@ -34,9 +36,13 @@
 namespace SourceXtractor {
 
 void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
+  std::cout << "G**\n";
   auto measurement_frame_coordinates = group.begin()->getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  std::cout << "1**\n";
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
+  std::cout << "2**\n";
   auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  std::cout << "##\n";
 
   double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
   double y = detection_group_stamp.getTopLeft().m_y + detection_group_stamp.getStamp().getHeight() / 2.0;
@@ -53,9 +59,13 @@ void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
 }
 
 void JacobianSourceTask::computeProperties(SourceInterface &source) const {
+  std::cout << "**\n";
   auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  std::cout << "1**\n";
   auto& detection_boundaries = source.getProperty<PixelBoundaries>();
+  std::cout << "2**\n";
   auto detection_frame_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  std::cout << "##\n";
 
   double x = detection_boundaries.getMin().m_x + detection_boundaries.getWidth() / 2.0;
   double y = detection_boundaries.getMin().m_y + detection_boundaries.getHeight() / 2.0;

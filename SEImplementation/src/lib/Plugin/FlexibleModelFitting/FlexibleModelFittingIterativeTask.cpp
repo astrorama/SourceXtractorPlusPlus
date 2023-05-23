@@ -26,11 +26,13 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 #include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
-#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
@@ -147,9 +149,10 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
-  auto ref_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
+  std::cout << "--\n";
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
 
   // The model fitting module expects to get a PSF with a pixel scale, but we have the pixel sampling step size

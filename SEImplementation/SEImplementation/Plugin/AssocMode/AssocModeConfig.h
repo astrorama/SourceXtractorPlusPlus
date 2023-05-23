@@ -52,6 +52,7 @@ public:
 
   struct CatalogEntry {
     ImageCoordinate     coord;
+    WorldCoordinate     world_coord;
     double              weight;
     std::vector<double> assoc_columns;
   };

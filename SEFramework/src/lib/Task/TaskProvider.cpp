@@ -40,13 +40,18 @@ std::shared_ptr<const Task> TaskProvider::getTask(const PropertyId& property_id)
     return iterTask->second;
   } else if (m_task_factory_registry != nullptr) {
     // Use the TaskFactoryRegistry to get the correct factory for the requested property_id
-    auto& task_factory = m_task_factory_registry->getFactory(property_id.getTypeId());
-    auto task = task_factory.createTask(property_id);
+    try {
+      auto& task_factory = m_task_factory_registry->getFactory(property_id.getTypeId());
+      auto task = task_factory.createTask(property_id);
 
-    // Put it in the cache
-    const_cast<TaskProvider&>(*this).m_tasks[property_id] = task;
+      // Put it in the cache
+      const_cast<TaskProvider&>(*this).m_tasks[property_id] = task;
 
-    return task;
+      return task;
+    }
+    catch (...) {
+      return nullptr;
+    }
   } else {
     return nullptr;
   }

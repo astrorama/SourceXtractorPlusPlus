@@ -14,38 +14,38 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MeasurementFrameRectangleTaskFactory.h
- *
- *  Created on: Sep 24, 2018
- *      Author: Alejandro Alvarez Ayllon
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_
 
-
-#include "SEFramework/Task/TaskFactory.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
 
-class MeasurementFrameRectangleTaskFactory : public TaskFactory {
-
+/**
+ * @class ReferenceCoordinatesTask
+  * @brief
+*
+ */
+class ReferenceCoordinatesTask : public SourceTask {
 public:
 
-  virtual ~MeasurementFrameRectangleTaskFactory() = default;
+  /**
+   * @brief Destructor
+   */
+  virtual ~ReferenceCoordinatesTask() = default;
 
-  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+  /// Constructor
+  explicit ReferenceCoordinatesTask(unsigned int instance) : m_instance(instance) {}
 
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void computeProperties(SourceInterface& source) const override;
 
 private:
-  bool m_no_detection_image = false;
+  unsigned int m_instance;
 
-};
+}; /* End of ReferenceCoordinatesTask class */
 
-} // end SourceXtractor
+}
 
 
-#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_ */

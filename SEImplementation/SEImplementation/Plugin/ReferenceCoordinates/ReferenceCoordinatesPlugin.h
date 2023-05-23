@@ -14,38 +14,30 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MeasurementFrameRectangleTaskFactory.h
- *
- *  Created on: Sep 24, 2018
- *      Author: Alejandro Alvarez Ayllon
- */
 
-#ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
-#define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_
 
-
-#include "SEFramework/Task/TaskFactory.h"
+#include "SEFramework/Plugin/Plugin.h"
 
 namespace SourceXtractor {
 
-class MeasurementFrameRectangleTaskFactory : public TaskFactory {
+class ReferenceCoordinatesPlugin : public Plugin {
 
 public:
 
-  virtual ~MeasurementFrameRectangleTaskFactory() = default;
+  /**
+   * @brief Destructor
+   */
+  virtual ~ReferenceCoordinatesPlugin() = default;
 
-  std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
-
-  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
-  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
 
 private:
-  bool m_no_detection_image = false;
 
-};
+}; /* End of ReferenceCoordinatesPlugin class */
 
-} // end SourceXtractor
+}
 
-
-#endif // _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLETASKFACTORY_H_
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_ */

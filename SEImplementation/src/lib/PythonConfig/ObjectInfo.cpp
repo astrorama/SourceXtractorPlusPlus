@@ -44,20 +44,23 @@ ObjectInfo::ObjectInfo() {
 }
 
 ObjectInfo::ObjectInfo(const SourceInterface& source) {
-  auto centroid = source.getProperty<PixelCentroid>();
-  auto iso_flux = source.getProperty<IsophotalFlux>();
-  auto shape = source.getProperty<ShapeParameters>();
+
+  // FIXME Those are disabled for TEST ONLY
+
+//  auto centroid = source.getProperty<PixelCentroid>();
+//  auto iso_flux = source.getProperty<IsophotalFlux>();
+//  auto shape = source.getProperty<ShapeParameters>();
+//
+//  double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
+//
+//  emplace(std::make_pair("centroid_x", centroid.getCentroidX() + 1.0));
+//  emplace(std::make_pair("centroid_y", centroid.getCentroidY() + 1.0));
+//  emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
+//  emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
+//  emplace(std::make_pair("angle", shape.getEllipseTheta()));
+//  emplace(std::make_pair("aspect_ratio", aspect_guess));
+
   auto assoc = source.getProperty<AssocMode>();
-
-  double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
-
-  emplace(std::make_pair("centroid_x", centroid.getCentroidX() + 1.0));
-  emplace(std::make_pair("centroid_y", centroid.getCentroidY() + 1.0));
-  emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
-  emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
-  emplace(std::make_pair("angle", shape.getEllipseTheta()));
-  emplace(std::make_pair("aspect_ratio", aspect_guess));
-
   emplace(std::make_pair("assoc_match", assoc.getMatch()));
   if (assoc.getMatch()) {
     emplace(std::make_pair("assoc_size", (double) assoc.getAssocValues().shape()[0]));

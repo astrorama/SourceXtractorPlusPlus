@@ -197,12 +197,17 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       }
       auto table = reader->read();
 
-      for (size_t i = 0; i < getDependency<DetectionImageConfig>().getExtensionsNb(); i++) {
-        if (assoc_coord_type == AssocCoordType::WORLD) {
-          auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, coordinate_system));
-        } else {
-          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
+      size_t exts_nb = getDependency<DetectionImageConfig>().getExtensionsNb();
+      if (exts_nb ==0) {
+        m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
+      } else {
+        for (size_t i = 0; i < exts_nb; i++) {
+          if (assoc_coord_type == AssocCoordType::WORLD) {
+            auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
+            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, coordinate_system));
+          } else {
+            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
+          }
         }
       }
     } catch (const std::exception& e) {
@@ -228,8 +233,9 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
     // our internal pixel coordinates are zero-based
 
     ImageCoordinate coord;
+    WorldCoordinate world_coord;
     if (coordinate_system != nullptr) {
-      auto world_coord = WorldCoordinate{
+      world_coord = WorldCoordinate{
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(0)]),
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]),
       };
@@ -241,7 +247,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]) - 1.0,
       };
     }
-    catalog.emplace_back(CatalogEntry { coord, 1.0, {} });
+    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {} });
     if (columns.size() == 3 && columns.at(2) >= 0) {
       catalog.back().weight = boost::get<double>(row[columns.at(2)]);
     }
