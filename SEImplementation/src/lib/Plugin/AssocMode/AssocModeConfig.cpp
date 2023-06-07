@@ -185,6 +185,15 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
     }
   }
 
+  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() > 1) {
+    logger.warn() <<
+        "Using Assoc catalog matching in pixel coordinates with multiple detection images";
+  }
+
+  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() < 1) {
+    throw Elements::Exception() << "Using Assoc catalog matching in pixel coordinates without a detection images";
+  }
+
   if (args.find(ASSOC_CATALOG) != args.end()) {
     auto filename = args.at(ASSOC_CATALOG).as<std::string>();
     try {
@@ -199,14 +208,15 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
 
       size_t exts_nb = getDependency<DetectionImageConfig>().getExtensionsNb();
       if (exts_nb ==0) {
-        m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
+        // No detection image
+        m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true));
       } else {
         for (size_t i = 0; i < exts_nb; i++) {
+          auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
           if (assoc_coord_type == AssocCoordType::WORLD) {
-            auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, coordinate_system));
+            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true, coordinate_system));
           } else {
-            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, nullptr));
+            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, false, coordinate_system));
           }
         }
       }
@@ -216,36 +226,35 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
     }
   }
-
-  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() > 1) {
-    logger.warn() <<
-        "Using Assoc catalog matching in pixel coordinates with multiple detection images";
-  }
 }
 
 std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
     const Euclid::Table::Table& table, const std::vector<int>& columns,
-    const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system) {
+    const std::vector<int>& copy_columns, bool use_world, std::shared_ptr<CoordinateSystem> coordinate_system) {
   using Euclid::Table::CastVisitor;
 
   std::vector<CatalogEntry> catalog;
   for (auto& row : table) {
-    // our internal pixel coordinates are zero-based
 
     ImageCoordinate coord;
     WorldCoordinate world_coord;
-    if (coordinate_system != nullptr) {
-      world_coord = WorldCoordinate{
+    if (use_world) {
+      world_coord = WorldCoordinate {
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(0)]),
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]),
       };
-
-      coord = coordinate_system->worldToImage(world_coord);
+      if (coordinate_system != nullptr) {
+        coord = coordinate_system->worldToImage(world_coord);
+      }
     } else {
-      coord = ImageCoordinate{
+      coord = ImageCoordinate {
+          // our internal pixel coordinates are zero-based
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(0)]) - 1.0,
           boost::apply_visitor(CastVisitor<double>{}, row[columns.at(1)]) - 1.0,
       };
+      if (coordinate_system != nullptr) {
+        world_coord = coordinate_system->imageToWorld(coord);
+      }
     }
     catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {} });
     if (columns.size() == 3 && columns.at(2) >= 0) {
@@ -263,7 +272,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
         catalog.back().assoc_columns.emplace_back(boost::get<int64_t>(row[column]));
       } else if (row[column].type() == typeid(SeFloat)) {
         catalog.back().assoc_columns.emplace_back(boost::get<SeFloat>(row[column]));
-      } else{
+      } else {
         throw Elements::Exception() << "Wrong type in assoc column (must be a numeric type)";
       }
     }

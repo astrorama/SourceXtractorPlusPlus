@@ -143,8 +143,10 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
       [](double eff_radius) { return 1.678 / eff_radius; },
       manager.getParameter(source, m_effective_radius));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+//  auto& boundaries = source.getProperty<PixelBoundaries>();
+//  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+// FIXME tmp only
+  int size = 50;
 
   extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
       2.0, i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
@@ -183,8 +185,10 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
       [](double eff_radius) { return 7.669 / pow(eff_radius, .25); },
       manager.getParameter(source, m_effective_radius));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+//  auto& boundaries = source.getProperty<PixelBoundaries>();
+//  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+  // FIXME tmp only
+  int size = 50;
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
@@ -230,8 +234,10 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
       manager.getParameter(source, m_effective_radius), manager.getParameter(source, m_sersic_index));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+//  auto& boundaries = source.getProperty<PixelBoundaries>();
+//  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+  // FIXME tmp only
+  int size = 50;
 
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
@@ -276,8 +282,10 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
         return scale * ratio;
       }, manager.getParameter(source, m_scale), manager.getParameter(source, m_aspect_ratio));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+//  auto& boundaries = source.getProperty<PixelBoundaries>();
+//  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
+  // FIXME tmp only
+  int size = 50;
 
   std::map<std::string, std::shared_ptr<BasicParameter>> params;
   for (auto it : m_params) {

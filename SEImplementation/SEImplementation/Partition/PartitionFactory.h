@@ -44,7 +44,6 @@ public:
   }
 
   void configure(Euclid::Configuration::ConfigManager& manager) override {
-    // !!!!! Disabled for test! TEST ONLY
     m_steps = manager.getConfiguration<PartitionStepConfig>().getSteps(m_source_factory);
   }
 

@@ -85,7 +85,7 @@ private:
   void readCatalogs(const UserValues& args);
 
   std::vector<CatalogEntry> readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
-      const std::vector<int>& copy_columns, std::shared_ptr<CoordinateSystem> coordinate_system);
+      const std::vector<int>& copy_columns, bool use_world, std::shared_ptr<CoordinateSystem> coordinate_system=nullptr);
 
   AssocMode m_assoc_mode;
   double m_assoc_radius;

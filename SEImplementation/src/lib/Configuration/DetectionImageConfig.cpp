@@ -71,9 +71,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   // unusable unless we also specify --detection-image, which is not very intuitive.
   // For this reason, we check for its existence here
 
-  // FIXME tmp trying to see what happens if we don't require this
   if (args.find(DETECTION_IMAGE) == args.end()) {
-    //throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
+    // Running without a detection image
     return;
   }
 

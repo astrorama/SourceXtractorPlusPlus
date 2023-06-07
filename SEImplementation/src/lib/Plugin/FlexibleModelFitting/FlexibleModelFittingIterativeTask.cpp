@@ -152,7 +152,6 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
-  std::cout << "--\n";
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
 
   // The model fitting module expects to get a PSF with a pixel scale, but we have the pixel sampling step size

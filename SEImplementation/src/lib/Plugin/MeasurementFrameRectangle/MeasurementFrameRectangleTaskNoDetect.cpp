@@ -33,21 +33,22 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
   const auto& world_centroid = source.getProperty<WorldCentroid>();
 
-  WorldCoordinate coord(world_centroid.getCentroidAlpha(), world_centroid.getCentroidDelta());
+  auto coord = world_centroid.getCentroid();
 
   bool bad_coordinates = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    // FIXME: current no size
-    coord1 = measurement_frame_coordinates->worldToImage(coord);
-    coord2 = measurement_frame_coordinates->worldToImage(coord);
-    coord3 = measurement_frame_coordinates->worldToImage(coord);
-    coord4 = measurement_frame_coordinates->worldToImage(coord);
+    // FIXME: hard coded size for test
+    int sz = 20;
+    auto c = measurement_frame_coordinates->worldToImage(coord);
+    coord1 = ImageCoordinate(c.m_x - sz, c.m_y - sz);
+    coord2 = ImageCoordinate(c.m_x + sz, c.m_y - sz);
+    coord3 = ImageCoordinate(c.m_x - sz, c.m_y + sz);
+    coord4 = ImageCoordinate(c.m_x + sz, c.m_y + sz);
   }
   catch (const InvalidCoordinatesException&) {
     bad_coordinates = true;
   }
-
 
   // Determine the min/max coordinates
   auto min_x = std::min(coord1.m_x, std::min(coord2.m_x, std::min(coord3.m_x, coord4.m_x)));
