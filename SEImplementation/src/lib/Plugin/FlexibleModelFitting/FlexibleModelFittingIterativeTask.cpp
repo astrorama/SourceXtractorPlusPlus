@@ -164,9 +164,10 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   std::vector<PointModel> point_models;
   std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
 
+  double model_size = std::max(stamp_rect.getWidth(), stamp_rect.getHeight());
   for (auto model : frame->getModels()) {
-    model->addForSource(manager, source, constant_models, point_models, extended_models, jacobian, ref_coordinates,
-        frame_coordinates, stamp_rect.getTopLeft());
+    model->addForSource(manager, source, constant_models, point_models, extended_models, model_size,
+        jacobian, ref_coordinates, frame_coordinates, stamp_rect.getTopLeft());
   }
 
   // Full frame model with all sources
