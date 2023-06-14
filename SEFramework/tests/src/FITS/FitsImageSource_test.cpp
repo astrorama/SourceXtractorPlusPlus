@@ -160,6 +160,27 @@ BOOST_FIXTURE_TEST_CASE(open_write_close_append, FitsImageSourceFixture) {
   }
 }
 
+BOOST_FIXTURE_TEST_CASE(write_fits_headers, FitsImageSourceFixture) {
+  // Test creating a FITS file, writing a custom fits header, then reopening it and reading that header
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native(),
+        100, 100, ImageTile::FloatImage, nullptr, false, true);
+    image_source->setMetadata("TEST", MetadataEntry {std::string("toto"), {}});
+  }
+
+  // We need to flush as we don't recognize reopening the same file as being the same ImageSource
+  // (we also need a flush at some point to prevent error due to elements deleting the tmp file before destructor)
+  TileManager::getInstance()->flush();
+
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
+
+    auto metadata = image_source->getMetadata();
+    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["TEST"].m_value), "toto");
+  }
+}
+
+
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE_END()
