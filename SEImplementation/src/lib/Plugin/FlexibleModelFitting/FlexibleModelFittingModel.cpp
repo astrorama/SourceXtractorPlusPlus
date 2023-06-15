@@ -129,10 +129,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
   auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
-//  ManualParameter x_scale(1); // we don't scale the x coordinate
   auto i0 = createDependentParameter(
      [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.35513 * radius * radius * aspect); },
      manager.getParameter(source, m_flux), manager.getParameter(source, m_effective_radius),
@@ -227,11 +225,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
       manager.getParameter(source, m_effective_radius), manager.getParameter(source, m_sersic_index));
 
-//  auto& boundaries = source.getProperty<PixelBoundaries>();
-//  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-  // FIXME tmp only
-  int size = 50;
-
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * model_base_size);
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
       manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
