@@ -30,14 +30,14 @@ OnnxModel::OnnxModel(const std::string& model_path) {
   for (size_t i=0; i<m_session->GetInputCount(); i++) {
     auto input_type = m_session->GetInputTypeInfo(i);
 
-    m_input_names.emplace_back(m_session->GetInputName(i, allocator));
+    m_input_names.emplace_back(m_session->GetInputNameAllocated(i, allocator).get());
     m_input_shapes.emplace_back(input_type.GetTensorTypeAndShapeInfo().GetShape());
     m_input_types.emplace_back(input_type.GetTensorTypeAndShapeInfo().GetElementType());
   }
 
-  m_output_name = m_session->GetOutputName(0, allocator);
-  m_domain_name = m_session->GetModelMetadata().GetDomain(allocator);
-  m_graph_name = m_session->GetModelMetadata().GetGraphName(allocator);
+  m_output_name = m_session->GetOutputNameAllocated(0, allocator).get();
+  m_domain_name = m_session->GetModelMetadata().GetDomainAllocated(allocator).get();
+  m_graph_name = m_session->GetModelMetadata().GetGraphNameAllocated(allocator).get();
 
   auto output_type = m_session->GetOutputTypeInfo(0);
 
