@@ -55,6 +55,8 @@ public:
     WorldCoordinate     world_coord;
     double              weight;
     std::vector<double> assoc_columns;
+    double              source_radius_pixels;
+
   };
 
 
@@ -89,6 +91,8 @@ private:
 
   AssocMode m_assoc_mode;
   double m_assoc_radius;
+  double m_default_pixel_size;
+  int m_pixel_size_column;
 
   std::vector<std::vector<CatalogEntry>> m_catalogs;
   std::vector<int> m_columns_idx;

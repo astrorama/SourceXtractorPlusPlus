@@ -22,6 +22,7 @@
 #include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
+#include <SEImplementation/Plugin/AssocMode/AssocMode.h>
 
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskNoDetect.h>
@@ -32,14 +33,14 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
   const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
   const auto& world_centroid = source.getProperty<WorldCentroid>();
+  const auto& assoc_mode = source.getProperty<AssocMode>();
 
   auto coord = world_centroid.getCentroid();
 
   bool bad_coordinates = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    // FIXME: hard coded size for test
-    int sz = 20;
+    int sz = assoc_mode.getRefFramePixelRadius();
     auto c = measurement_frame_coordinates->worldToImage(coord);
     coord1 = ImageCoordinate(c.m_x - sz, c.m_y - sz);
     coord2 = ImageCoordinate(c.m_x + sz, c.m_y - sz);

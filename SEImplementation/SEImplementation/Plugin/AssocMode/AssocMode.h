@@ -40,11 +40,12 @@ public:
    */
   virtual ~AssocMode() = default;
 
-  AssocMode() : m_has_assoc(false), m_assoc_data(std::vector<size_t>({0})) {
+  AssocMode() : m_has_assoc(false), m_assoc_data(std::vector<size_t>({0})), m_ref_frame_pixel_radius(1) {
   }
 
-  AssocMode(bool has_assoc, const std::vector<double>& assoc_data) :
-    m_has_assoc(has_assoc), m_assoc_data(std::vector<size_t>({assoc_data.size()})) {
+  AssocMode(bool has_assoc, const std::vector<double>& assoc_data, double ref_frame_pixel_radius=0.0) :
+      m_has_assoc(has_assoc), m_assoc_data(std::vector<size_t>({assoc_data.size()})),
+      m_ref_frame_pixel_radius(ref_frame_pixel_radius) {
     for (size_t i=0; i<assoc_data.size(); i++) {
       m_assoc_data.at(i) = assoc_data[i];
     }
@@ -58,10 +59,15 @@ public:
     return m_assoc_data;
   }
 
+  double getRefFramePixelRadius() const {
+    return m_ref_frame_pixel_radius;
+  }
+
 private:
   bool m_has_assoc;
 
   NdArray<SeFloat> m_assoc_data;
+  double m_ref_frame_pixel_radius;
 };
 
 } /* namespace SourceXtractor */

@@ -53,6 +53,8 @@ static const std::string ASSOC_FILTER { "assoc-filter" };
 static const std::string ASSOC_COPY { "assoc-copy" };
 static const std::string ASSOC_COLUMNS { "assoc-columns" };
 static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
+static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" };
+static const std::string ASSOC_DEFAULT_PIXEL_SIZE { "assoc-default-pixel-size" };
 
 namespace {
 
@@ -101,7 +103,8 @@ std::vector<int> parseColumnList(const std::string& arg) {
 
 }
 
-AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN), m_assoc_radius(0.) {
+AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN),
+    m_assoc_radius(0.), m_default_pixel_size(10), m_pixel_size_column(-1) {
   declareDependency<DetectionImageConfig>();
   declareDependency<PartitionStepConfig>();
   ConfigManager::getInstance(manager_id).registerDependency<AssocModeConfig, MultiThresholdPartitionConfig>();
@@ -123,6 +126,10 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
           "List of columns indices in the assoc catalog to copy on match (the index of the first column is 1). "},
       {ASSOC_COORD_TYPE.c_str(), po::value<std::string>()->default_value("PIXEL"),
           "Assoc coordinates type: PIXEL, WORLD"},
+      {ASSOC_SOURCE_SIZES.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the source sizes"},
+      {ASSOC_DEFAULT_PIXEL_SIZE.c_str(), po::value<double>()->default_value(5.0),
+          "Default source size"},
   }}};
 }
 
@@ -162,6 +169,8 @@ void AssocModeConfig::readConfig(const UserValues& args) {
   }
 
   m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
+  m_default_pixel_size = args.at(ASSOC_DEFAULT_PIXEL_SIZE).as<double>();
+  m_pixel_size_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
 }
 
 void AssocModeConfig::readCatalogs(const UserValues& args) {
@@ -207,7 +216,7 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       auto table = reader->read();
 
       size_t exts_nb = getDependency<DetectionImageConfig>().getExtensionsNb();
-      if (exts_nb ==0) {
+      if (exts_nb == 0) {
         // No detection image
         m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true));
       } else {
@@ -256,7 +265,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
         world_coord = coordinate_system->imageToWorld(coord);
       }
     }
-    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {} });
+    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0 });
     if (columns.size() == 3 && columns.at(2) >= 0) {
       catalog.back().weight = boost::get<double>(row[columns.at(2)]);
     }
@@ -275,6 +284,13 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
       } else {
         throw Elements::Exception() << "Wrong type in assoc column (must be a numeric type)";
       }
+    }
+
+    if (m_pixel_size_column >= 0) {
+      catalog.back().source_radius_pixels = boost::get<double>(row[m_pixel_size_column]);
+      std::cout << catalog.back().source_radius_pixels << "\n";
+    } else {
+      catalog.back().source_radius_pixels = m_default_pixel_size;
     }
   }
   return catalog;
