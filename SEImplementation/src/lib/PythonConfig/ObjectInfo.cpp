@@ -55,7 +55,7 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
   try {
     auto iso_flux = source.getProperty<IsophotalFlux>();
     emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
-  } catch (...) { //FIXME
+  } catch (PropertyNotFoundException&) {
   }
 
   try {
@@ -65,7 +65,7 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
     emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
     emplace(std::make_pair("angle", shape.getEllipseTheta()));
     emplace(std::make_pair("aspect_ratio", aspect_guess));
-  } catch (...) { //FIXME
+  } catch (PropertyNotFoundException&) {
   }
 
   auto assoc = source.getProperty<AssocMode>();

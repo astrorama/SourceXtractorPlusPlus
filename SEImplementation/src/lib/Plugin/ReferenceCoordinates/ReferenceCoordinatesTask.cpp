@@ -31,7 +31,7 @@ void ReferenceCoordinatesTask::computeProperties(SourceInterface& source) const 
   try {
     ref_coords = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
   }
-  catch (...) { // FIXME exception type
+  catch (PropertyNotFoundException&) {
     ref_coords = source.getProperty<MeasurementFrameCoordinates>(0).getCoordinateSystem();
   }
 
