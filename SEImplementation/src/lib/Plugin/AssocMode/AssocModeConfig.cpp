@@ -41,11 +41,6 @@ namespace SourceXtractor {
 
 static Elements::Logging logger = Elements::Logging::getLogger("AssocModeConfig");
 
-enum class AssocCoordType {
-  PIXEL,
-  WORLD
-};
-
 static const std::string ASSOC_CATALOG { "assoc-catalog" };
 static const std::string ASSOC_MODE { "assoc-mode" };
 static const std::string ASSOC_RADIUS { "assoc-radius" };
@@ -76,9 +71,9 @@ const std::map<std::string, AssocModeConfig::AssocFilter> assoc_filter_table {
   std::make_pair("UNMATCHED", AssocModeConfig::AssocFilter::UNMATCHED)
 };
 
-const std::map<std::string, AssocCoordType> assoc_coord_type_table {
-  std::make_pair("PIXEL", AssocCoordType::PIXEL),
-  std::make_pair("WORLD", AssocCoordType::WORLD)
+const std::map<std::string, AssocModeConfig::AssocCoordType> assoc_coord_type_table {
+  std::make_pair("PIXEL", AssocModeConfig::AssocCoordType::PIXEL),
+  std::make_pair("WORLD", AssocModeConfig::AssocCoordType::WORLD)
 };
 
 std::vector<int> parseColumnList(const std::string& arg) {
@@ -134,8 +129,16 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
 }
 
 void AssocModeConfig::initialize(const UserValues& args) {
+  // read configuration from command line arguments
   readConfig(args);
-  readCatalogs(args);
+
+  // sanity check that the configuration is coherent
+  checkConfig();
+
+  // read the catalogs
+  if (m_filename != "") {
+    readCatalogs(m_filename, m_columns, m_assoc_coord_type);
+  }
 }
 
 void AssocModeConfig::readConfig(const UserValues& args) {
@@ -168,22 +171,40 @@ void AssocModeConfig::readConfig(const UserValues& args) {
     }
   }
 
+  m_columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
+  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
+
   m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
   m_default_pixel_size = args.at(ASSOC_DEFAULT_PIXEL_SIZE).as<double>();
   m_pixel_size_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
+
+  if (args.find(ASSOC_CATALOG) != args.end()) {
+    m_filename = args.at(ASSOC_CATALOG).as<std::string>();
+  }
+
+  m_assoc_coord_type = getCoordinateType(args);
 }
 
-void AssocModeConfig::readCatalogs(const UserValues& args) {
-  auto columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
-  if (columns.size() < 2) {
+void AssocModeConfig::checkConfig() {
+  if (m_columns.size() < 2) {
     throw Elements::Exception() << "At least 2 columns must be specified for x,y coordinates in the assoc catalog";
   }
-  if (columns.size() > 3) {
+  if (m_columns.size() > 3) {
     throw Elements::Exception() << "Maximum 3 columns for x, y and weight must be specified in the assoc catalog";
   }
 
-  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
+  if (m_assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() > 1) {
+    logger.warn() <<
+        "Using Assoc catalog matching in pixel coordinates with multiple detection images";
+  }
 
+  if (m_assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() < 1) {
+    throw Elements::Exception() << "Using Assoc catalog matching in pixel coordinates without a detection images";
+  }
+
+}
+
+AssocModeConfig::AssocCoordType AssocModeConfig::getCoordinateType(const UserValues& args) const {
   AssocCoordType assoc_coord_type = AssocCoordType::PIXEL;
   if (args.find(ASSOC_COORD_TYPE) != args.end()) {
     auto assoc_coord_type_str = boost::to_upper_copy(args.at(ASSOC_COORD_TYPE).as<std::string>());
@@ -193,47 +214,39 @@ void AssocModeConfig::readCatalogs(const UserValues& args) {
       throw Elements::Exception() << "Invalid association coordinate type: " << assoc_coord_type_str;
     }
   }
+  return assoc_coord_type;
+}
 
-  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() > 1) {
-    logger.warn() <<
-        "Using Assoc catalog matching in pixel coordinates with multiple detection images";
-  }
-
-  if (assoc_coord_type == AssocCoordType::PIXEL && getDependency<DetectionImageConfig>().getExtensionsNb() < 1) {
-    throw Elements::Exception() << "Using Assoc catalog matching in pixel coordinates without a detection images";
-  }
-
-  if (args.find(ASSOC_CATALOG) != args.end()) {
-    auto filename = args.at(ASSOC_CATALOG).as<std::string>();
+void AssocModeConfig::readCatalogs(const std::string& filename,
+    const std::vector<int>& columns, AssocCoordType assoc_coord_type) {
+  try {
+    std::shared_ptr<Euclid::Table::TableReader> reader;
     try {
-      std::shared_ptr<Euclid::Table::TableReader> reader;
-      try {
-        reader = std::make_shared<Euclid::Table::FitsReader>(filename);
-      } catch (...) {
-        // If FITS not successful try reading as ascii
-        reader = std::make_shared<Euclid::Table::AsciiReader>(filename);
-      }
-      auto table = reader->read();
+      reader = std::make_shared<Euclid::Table::FitsReader>(filename);
+    } catch (...) {
+      // If FITS not successful try reading as ascii
+      reader = std::make_shared<Euclid::Table::AsciiReader>(filename);
+    }
+    auto table = reader->read();
 
-      size_t exts_nb = getDependency<DetectionImageConfig>().getExtensionsNb();
-      if (exts_nb == 0) {
-        // No detection image
-        m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true));
-      } else {
-        for (size_t i = 0; i < exts_nb; i++) {
-          auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
-          if (assoc_coord_type == AssocCoordType::WORLD) {
-            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true, coordinate_system));
-          } else {
-            m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, false, coordinate_system));
-          }
+    size_t exts_nb = getDependency<DetectionImageConfig>().getExtensionsNb();
+    if (exts_nb == 0) {
+      // No detection image
+      m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true));
+    } else {
+      for (size_t i = 0; i < exts_nb; i++) {
+        auto coordinate_system = getDependency<DetectionImageConfig>().getCoordinateSystem(i);
+        if (assoc_coord_type == AssocCoordType::WORLD) {
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, true, coordinate_system));
+        } else {
+          m_catalogs.emplace_back(readTable(table, columns, m_columns_idx, false, coordinate_system));
         }
       }
-    } catch (const std::exception& e) {
-      throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename << " (" << e.what() << ")";
-    } catch(...) {
-      throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
     }
+  } catch (const std::exception& e) {
+    throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename << " (" << e.what() << ")";
+  } catch(...) {
+    throw Elements::Exception() << "Can't either open or read assoc catalog: " << filename;
   }
 }
 
@@ -288,7 +301,6 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
 
     if (m_pixel_size_column >= 0) {
       catalog.back().source_radius_pixels = boost::get<double>(row[m_pixel_size_column]);
-      std::cout << catalog.back().source_radius_pixels << "\n";
     } else {
       catalog.back().source_radius_pixels = m_default_pixel_size;
     }

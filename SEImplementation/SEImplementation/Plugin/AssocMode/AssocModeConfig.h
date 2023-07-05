@@ -50,6 +50,11 @@ public:
     UNMATCHED
   };
 
+  enum class AssocCoordType {
+    PIXEL,
+    WORLD
+  };
+
   struct CatalogEntry {
     ImageCoordinate     coord;
     WorldCoordinate     world_coord;
@@ -58,7 +63,6 @@ public:
     double              source_radius_pixels;
 
   };
-
 
   explicit AssocModeConfig(long manager_id);
   virtual ~AssocModeConfig() = default;
@@ -84,7 +88,9 @@ public:
 
 private:
   void readConfig(const UserValues& args);
-  void readCatalogs(const UserValues& args);
+  void checkConfig();
+  void readCatalogs(const std::string& filename, const std::vector<int>& columns, AssocCoordType assoc_coord_type);
+  AssocCoordType getCoordinateType(const UserValues& args) const;
 
   std::vector<CatalogEntry> readTable(const Euclid::Table::Table& table, const std::vector<int>& columns,
       const std::vector<int>& copy_columns, bool use_world, std::shared_ptr<CoordinateSystem> coordinate_system=nullptr);
@@ -95,7 +101,12 @@ private:
   int m_pixel_size_column;
 
   std::vector<std::vector<CatalogEntry>> m_catalogs;
+  std::vector<int> m_columns;
   std::vector<int> m_columns_idx;
+
+  std::string m_filename;
+
+  AssocCoordType m_assoc_coord_type;
 };
 
 } /* namespace SourceXtractor */
