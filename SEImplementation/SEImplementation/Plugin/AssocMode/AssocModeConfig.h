@@ -56,12 +56,12 @@ public:
   };
 
   struct CatalogEntry {
-    ImageCoordinate     coord;
-    WorldCoordinate     world_coord;
-    double              weight;
+    ImageCoordinate coord;
+    WorldCoordinate world_coord;
+    double weight;
     std::vector<double> assoc_columns;
-    double              source_radius_pixels;
-
+    double source_radius_pixels;
+    unsigned int group_id;
   };
 
   explicit AssocModeConfig(long manager_id);
@@ -99,6 +99,7 @@ private:
   double m_assoc_radius;
   double m_default_pixel_size;
   int m_pixel_size_column;
+  int m_group_id_column;
 
   std::vector<std::vector<CatalogEntry>> m_catalogs;
   std::vector<int> m_columns;

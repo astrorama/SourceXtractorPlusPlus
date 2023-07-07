@@ -42,6 +42,7 @@ static const std::string GROUPING_ALGORITHM_NONE {"NONE" };
 static const std::string GROUPING_ALGORITHM_OVERLAP {"OVERLAP" };
 static const std::string GROUPING_ALGORITHM_SPLIT {"SPLIT" };
 static const std::string GROUPING_ALGORITHM_MOFFAT {"MOFFAT" };
+static const std::string GROUPING_ALGORITHM_ASSOC {"ASSOC" };
 
 GroupingConfig::GroupingConfig(long manager_id)
     : Configuration(manager_id),
@@ -71,6 +72,8 @@ void GroupingConfig::initialize(const UserValues& args) {
     m_selected_algorithm = Algorithm::SPLIT_SOURCES;
   } else if (algorithm_name == GROUPING_ALGORITHM_MOFFAT) {
     m_selected_algorithm = Algorithm::MOFFAT;
+  } else if (algorithm_name == GROUPING_ALGORITHM_ASSOC) {
+    m_selected_algorithm = Algorithm::ASSOC;
   } else {
     throw Elements::Exception() << "Unknown grouping algorithm : " << algorithm_name;
   }

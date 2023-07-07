@@ -50,6 +50,7 @@ static const std::string ASSOC_COLUMNS { "assoc-columns" };
 static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
 static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" };
 static const std::string ASSOC_DEFAULT_PIXEL_SIZE { "assoc-default-pixel-size" };
+static const std::string ASSOC_GROUP_ID { "assoc-group-id" };
 
 namespace {
 
@@ -99,7 +100,7 @@ std::vector<int> parseColumnList(const std::string& arg) {
 }
 
 AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN),
-    m_assoc_radius(0.), m_default_pixel_size(10), m_pixel_size_column(-1) {
+    m_assoc_radius(0.), m_default_pixel_size(10), m_pixel_size_column(-1), m_group_id_column(-1) {
   declareDependency<DetectionImageConfig>();
   declareDependency<PartitionStepConfig>();
   ConfigManager::getInstance(manager_id).registerDependency<AssocModeConfig, MultiThresholdPartitionConfig>();
@@ -122,9 +123,11 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
       {ASSOC_COORD_TYPE.c_str(), po::value<std::string>()->default_value("PIXEL"),
           "Assoc coordinates type: PIXEL, WORLD"},
       {ASSOC_SOURCE_SIZES.c_str(), po::value<int>()->default_value(-1),
-          "Column containing the source sizes"},
+          "Column containing the source sizes (in reference frame pixels)"},
       {ASSOC_DEFAULT_PIXEL_SIZE.c_str(), po::value<double>()->default_value(5.0),
-          "Default source size"},
+          "Default source size (in reference frame pixels)"},
+      {ASSOC_GROUP_ID.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the group id"},
   }}};
 }
 
@@ -177,6 +180,7 @@ void AssocModeConfig::readConfig(const UserValues& args) {
   m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
   m_default_pixel_size = args.at(ASSOC_DEFAULT_PIXEL_SIZE).as<double>();
   m_pixel_size_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
+  m_group_id_column = args.at(ASSOC_GROUP_ID).as<int>() - 1; // config uses 1 as first column
 
   if (args.find(ASSOC_CATALOG) != args.end()) {
     m_filename = args.at(ASSOC_CATALOG).as<std::string>();
@@ -278,7 +282,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
         world_coord = coordinate_system->imageToWorld(coord);
       }
     }
-    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0 });
+    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0, 0 });
     if (columns.size() == 3 && columns.at(2) >= 0) {
       catalog.back().weight = boost::get<double>(row[columns.at(2)]);
     }
@@ -297,6 +301,10 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
       } else {
         throw Elements::Exception() << "Wrong type in assoc column (must be a numeric type)";
       }
+    }
+
+    if (m_group_id_column >= 0) {
+      catalog.back().group_id = boost::get<int64_t>(row[m_group_id_column]);
     }
 
     if (m_pixel_size_column >= 0) {
