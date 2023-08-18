@@ -51,6 +51,8 @@ static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
 static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" };
 static const std::string ASSOC_DEFAULT_PIXEL_SIZE { "assoc-default-pixel-size" };
 static const std::string ASSOC_GROUP_ID { "assoc-group-id" };
+static const std::string ASSOC_CONFIG { "assoc-config" };
+static const std::string ASSOC_TEST { "assoc-test" };
 
 namespace {
 
@@ -128,12 +130,24 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
           "Default source size (in reference frame pixels)"},
       {ASSOC_GROUP_ID.c_str(), po::value<int>()->default_value(-1),
           "Column containing the group id"},
+      {ASSOC_CONFIG.c_str(), po::value<std::string>(),
+          "Text file containing the assoc columns configuration"},
+      {ASSOC_TEST.c_str(), po::bool_switch(),
+          "Prints the assoc configuration and quits"},
   }}};
 }
 
 void AssocModeConfig::initialize(const UserValues& args) {
   // read configuration from command line arguments
-  readConfig(args);
+  readCommonConfig(args);
+
+  // read columns from columns config file
+  if (args.find(ASSOC_CONFIG) != args.end()) {
+    auto assoc_config_filename = args.at(ASSOC_CONFIG).as<std::string>();
+    readConfigFromFile(assoc_config_filename);
+  } else {
+    readConfigFromParams(args);
+  }
 
   // sanity check that the configuration is coherent
   checkConfig();
@@ -142,9 +156,14 @@ void AssocModeConfig::initialize(const UserValues& args) {
   if (m_filename != "") {
     readCatalogs(m_filename, m_columns, m_assoc_coord_type);
   }
+
+  if (args.at(ASSOC_TEST).as<bool>()) {
+    printConfig();
+    throw Elements::Exception() << "Exiting by user request";
+  }
 }
 
-void AssocModeConfig::readConfig(const UserValues& args) {
+void AssocModeConfig::readCommonConfig(const UserValues& args) {
   auto filter = boost::to_upper_copy(args.at(ASSOC_FILTER).as<std::string>());
   if (assoc_filter_table.find(filter) != assoc_filter_table.end()) {
     auto assoc_filter = assoc_filter_table.at(filter);
@@ -174,19 +193,76 @@ void AssocModeConfig::readConfig(const UserValues& args) {
     }
   }
 
-  m_columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
-  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
-
   m_assoc_radius = args.at(ASSOC_RADIUS).as<double>();
   m_default_pixel_size = args.at(ASSOC_DEFAULT_PIXEL_SIZE).as<double>();
-  m_pixel_size_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
-  m_group_id_column = args.at(ASSOC_GROUP_ID).as<int>() - 1; // config uses 1 as first column
 
   if (args.find(ASSOC_CATALOG) != args.end()) {
     m_filename = args.at(ASSOC_CATALOG).as<std::string>();
   }
+}
+
+void AssocModeConfig::readConfigFromParams(const UserValues& args) {
+  m_columns =  parseColumnList(args.at(ASSOC_COLUMNS).as<std::string>());
+  m_columns_idx = parseColumnList(args.at(ASSOC_COPY).as<std::string>());
+
+  m_pixel_size_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
+  m_group_id_column = args.at(ASSOC_GROUP_ID).as<int>() - 1; // config uses 1 as first column
 
   m_assoc_coord_type = getCoordinateType(args);
+}
+
+void AssocModeConfig::readConfigFromFile(const std::string& filename) {
+  m_assoc_columns = parseConfigFile(filename);
+
+  if (m_assoc_columns.find("X") != m_assoc_columns.end() && m_assoc_columns.find("Y") != m_assoc_columns.end()) {
+    m_assoc_coord_type = AssocCoordType::PIXEL;
+
+    m_columns.push_back(m_assoc_columns.at("X"));
+    m_assoc_columns.erase("X");
+    m_columns.push_back(m_assoc_columns.at("Y"));
+    m_assoc_columns.erase("Y");
+
+    if (m_assoc_columns.find("RA") != m_assoc_columns.end() ||
+          m_assoc_columns.find("DEC") != m_assoc_columns.end()) {
+      throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
+    }
+  } else if (m_assoc_columns.find("RA") != m_assoc_columns.end() &&
+      m_assoc_columns.find("DEC") != m_assoc_columns.end()) {
+
+    m_assoc_coord_type = AssocCoordType::WORLD;
+
+    m_columns.push_back(m_assoc_columns.at("RA"));
+    m_assoc_columns.erase("RA");
+    m_columns.push_back(m_assoc_columns.at("DEC"));
+    m_assoc_columns.erase("DEC");
+
+    if (m_assoc_columns.find("X") != m_assoc_columns.end() ||
+          m_assoc_columns.find("Y") != m_assoc_columns.end()) {
+      throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
+    }
+  } else {
+    throw Elements::Exception() << "Missing X/Y or RA/DEC coordinates in assoc config file";
+  }
+
+  if (m_assoc_columns.find("WEIGHT") != m_assoc_columns.end()) {
+    m_columns.push_back(m_assoc_columns.at("WEIGHT"));
+    m_assoc_columns.erase("WEIGHT");
+  }
+
+  if (m_assoc_columns.find("PIXEL_SIZE") != m_assoc_columns.end()) {
+    m_pixel_size_column = m_assoc_columns.at("PIXEL_SIZE");
+    m_assoc_columns.erase("PIXEL_SIZE");
+  }
+
+  if (m_assoc_columns.find("GROUP_ID") != m_assoc_columns.end()) {
+    m_group_id_column = m_assoc_columns.at("GROUP_ID");
+    m_assoc_columns.erase("GROUP_ID");
+  }
+
+  for (auto& column_info : m_assoc_columns) {
+    m_custom_column_names.push_back(column_info.first);
+    m_columns_idx.push_back(column_info.second);
+  }
 }
 
 void AssocModeConfig::checkConfig() {
@@ -284,7 +360,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
     }
     catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0, 0 });
     if (columns.size() == 3 && columns.at(2) >= 0) {
-      catalog.back().weight = boost::get<double>(row[columns.at(2)]);
+      catalog.back().weight = boost::apply_visitor(CastVisitor<double>{}, row[columns.at(2)]);
     }
     for (auto column : copy_columns) {
       if (column >= static_cast<int>(row.size())) {
@@ -304,11 +380,11 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
     }
 
     if (m_group_id_column >= 0) {
-      catalog.back().group_id = boost::get<int64_t>(row[m_group_id_column]);
+      catalog.back().group_id = boost::apply_visitor(CastVisitor<int64_t>{}, row[m_group_id_column]);
     }
 
     if (m_pixel_size_column >= 0) {
-      catalog.back().source_radius_pixels = boost::get<double>(row[m_pixel_size_column]);
+      catalog.back().source_radius_pixels = boost::apply_visitor(CastVisitor<double>{}, row[m_pixel_size_column]);
     } else {
       catalog.back().source_radius_pixels = m_default_pixel_size;
     }
@@ -316,6 +392,103 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
   return catalog;
 }
 
+std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std::string& filename) {
+    std::map<std::string, unsigned int> columns;
 
+    std::ifstream config_file(filename);
+    if (!config_file.is_open()) {
+        throw Elements::Exception() << "Can't either open or read assoc config file: " << filename;
+    }
+
+    std::string line;
+    int current_column_nb = 1; // column indices start at 1
+    while (std::getline(config_file, line)) {
+      boost::trim(line);
+      // Skip lines starting with '#'
+      if (line.empty() || line[0] == '#') {
+          continue;
+      }
+
+      std::string name;
+      int number;
+      // Find the position of the '=' character
+      auto equal_sign_pos = line.find('=');
+      if (equal_sign_pos != std::string::npos) {
+          name = line.substr(0, equal_sign_pos);
+          std::string number_string = line.substr(equal_sign_pos + 1);
+          std::istringstream iss(number_string);
+          iss >> number;
+          number--;
+          current_column_nb = number + 1;
+      } else {
+          name = line;
+          number = current_column_nb++;
+      }
+      boost::trim(name);
+
+      // Store the parsed information into the vector
+      columns[name] = number;
+    }
+
+    config_file.close();
+    return columns;
 }
 
+void AssocModeConfig::printConfig() {
+  std::cout << "Assoc catalog configuration" << std::endl;
+
+  auto& catalog = m_catalogs.at(0);
+
+  if (m_assoc_coord_type == AssocModeConfig::AssocCoordType::PIXEL) {
+    std::cout << "X" << "\t";
+    std::cout << "Y" << "\t";
+  } else {
+    std::cout << "RA" << "\t";
+    std::cout << "DEC" << "\t";
+  }
+  if (m_columns.size() >= 3) {
+    std::cout << "WEIGHT" << "\t";
+  }
+  if (m_pixel_size_column >= 0) {
+    std::cout << "PIXEL_SIZE" << "\t";
+  }
+  if (m_group_id_column >= 0) {
+    std::cout << "GROUP_ID" << "\t";
+  }
+
+  for (const auto& name : m_custom_column_names) {
+    std::cout << name << "\t";
+  }
+  std::cout << std::endl;
+
+  int lines = 0;
+  for (const auto& entry : catalog) {
+    if (m_assoc_coord_type == AssocModeConfig::AssocCoordType::PIXEL) {
+      std::cout << entry.coord.m_x << "\t";
+      std::cout << entry.coord.m_y << "\t";
+    } else {
+      std::cout << entry.world_coord.m_alpha << "\t";
+      std::cout << entry.world_coord.m_delta << "\t";
+    }
+    if (m_columns.size() >= 3) {
+      std::cout << entry.weight << "\t";
+    }
+    if (m_pixel_size_column >= 0) {
+      std::cout << entry.source_radius_pixels << "\t";
+    }
+    if (m_group_id_column >= 0) {
+      std::cout << entry.group_id << "\t";
+    }
+    for (auto& column : entry.assoc_columns) {
+      std::cout << column << "\t";
+    }
+    std::cout << std::endl;
+
+    if (++lines >= 10) {
+      break;
+    }
+  }
+}
+
+
+}

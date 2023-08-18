@@ -28,7 +28,7 @@
 
 namespace SourceXtractor {
 
-ObjectInfo::ObjectInfo() {
+ObjectInfo::ObjectInfo(const AssocModeConfig& config) {
   emplace(std::make_pair("centroid_x", 0.));
   emplace(std::make_pair("centroid_y", 0.));
   emplace(std::make_pair("isophotal_flux", 0.));
@@ -44,7 +44,7 @@ ObjectInfo::ObjectInfo() {
   }
 }
 
-ObjectInfo::ObjectInfo(const SourceInterface& source) {
+ObjectInfo::ObjectInfo(const SourceInterface& source, const AssocModeConfig& config) {
   auto world_centroid = source.getProperty<WorldCentroid>().getCentroid();
   auto reference_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto centroid = reference_coordinates->worldToImage(world_centroid);
