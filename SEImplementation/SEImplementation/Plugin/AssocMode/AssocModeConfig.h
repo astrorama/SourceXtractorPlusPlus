@@ -55,11 +55,6 @@ public:
     WORLD
   };
 
-  struct ColumnsConfig {
-    std::map<std::string, unsigned int>  m_assoc_columns;
-    std::vector<std::string> m_column_order;
-  };
-
   struct CatalogEntry {
     ImageCoordinate coord;
     WorldCoordinate world_coord;
@@ -89,6 +84,10 @@ public:
 
   const std::vector<int>& getColumnsIdx() const {
     return m_columns_idx;
+  }
+
+  std::vector<std::string> getColumnsNames() const {
+    return m_custom_column_names;
   }
 
 private:

@@ -29,6 +29,7 @@
 namespace SourceXtractor {
 
 ObjectInfo::ObjectInfo(const AssocModeConfig& config) {
+
   emplace(std::make_pair("centroid_x", 0.));
   emplace(std::make_pair("centroid_y", 0.));
   emplace(std::make_pair("isophotal_flux", 0.));
@@ -40,6 +41,12 @@ ObjectInfo::ObjectInfo(const AssocModeConfig& config) {
   for (int i=0; i<100; i++) {
     std::stringstream label;
     label << "assoc_value_" << i;
+    emplace(std::make_pair(label.str(), 0.));
+  }
+
+  for (auto name : config.getColumnsNames()) {
+    std::stringstream label;
+    label << "assoc_" << name;
     emplace(std::make_pair(label.str(), 0.));
   }
 }
@@ -77,6 +84,10 @@ ObjectInfo::ObjectInfo(const SourceInterface& source, const AssocModeConfig& con
       std::stringstream label;
       label << "assoc_value_" << i;
       emplace(std::make_pair(label.str(), assoc_value));
+
+      std::stringstream labelNamed;
+      labelNamed << "assoc_" << config.getColumnsNames().at(i);
+      emplace(std::make_pair(labelNamed.str(), assoc_value));
       i++;
     }
 
