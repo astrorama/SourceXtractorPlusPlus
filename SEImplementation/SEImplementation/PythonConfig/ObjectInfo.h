@@ -27,16 +27,19 @@
 #include <SEFramework/Source/SourceInterface.h>
 #include <Pyston/Graph/Node.h>
 
+#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+
 namespace SourceXtractor {
 
 class ObjectInfo : public Pyston::AttributeSet {
 
 public:
-  ObjectInfo();
+  explicit ObjectInfo(const AssocModeConfig& config);
 
-  explicit ObjectInfo(const SourceInterface& source);
+  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
 
   virtual ~ObjectInfo() = default;
+
 };
 
 } // end of namespace SourceXtractor

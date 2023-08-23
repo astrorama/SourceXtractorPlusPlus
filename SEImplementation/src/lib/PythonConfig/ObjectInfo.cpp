@@ -28,7 +28,8 @@
 
 namespace SourceXtractor {
 
-ObjectInfo::ObjectInfo() {
+ObjectInfo::ObjectInfo(const AssocModeConfig& config) {
+
   emplace(std::make_pair("centroid_x", 0.));
   emplace(std::make_pair("centroid_y", 0.));
   emplace(std::make_pair("isophotal_flux", 0.));
@@ -42,9 +43,15 @@ ObjectInfo::ObjectInfo() {
     label << "assoc_value_" << i;
     emplace(std::make_pair(label.str(), 0.));
   }
+
+  for (auto name : config.getColumnsNames()) {
+    std::stringstream label;
+    label << "assoc_" << name;
+    emplace(std::make_pair(label.str(), 0.));
+  }
 }
 
-ObjectInfo::ObjectInfo(const SourceInterface& source) {
+ObjectInfo::ObjectInfo(const SourceInterface& source, const AssocModeConfig& config) {
   auto world_centroid = source.getProperty<WorldCentroid>().getCentroid();
   auto reference_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto centroid = reference_coordinates->worldToImage(world_centroid);
@@ -77,6 +84,10 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
       std::stringstream label;
       label << "assoc_value_" << i;
       emplace(std::make_pair(label.str(), assoc_value));
+
+      std::stringstream labelNamed;
+      labelNamed << "assoc_" << config.getColumnsNames().at(i);
+      emplace(std::make_pair(labelNamed.str(), assoc_value));
       i++;
     }
 

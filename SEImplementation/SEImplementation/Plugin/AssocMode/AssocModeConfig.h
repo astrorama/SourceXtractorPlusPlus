@@ -86,9 +86,18 @@ public:
     return m_columns_idx;
   }
 
+  std::vector<std::string> getColumnsNames() const {
+    return m_custom_column_names;
+  }
+
 private:
-  void readConfig(const UserValues& args);
+  void readCommonConfig(const UserValues& args);
+  void readConfigFromParams(const UserValues& args);
+  void readConfigFromFile(const std::string& filename);
+  std::map<std::string, unsigned int> parseConfigFile(const std::string& filename);
+
   void checkConfig();
+  void printConfig();
   void readCatalogs(const std::string& filename, const std::vector<int>& columns, AssocCoordType assoc_coord_type);
   AssocCoordType getCoordinateType(const UserValues& args) const;
 
@@ -104,7 +113,9 @@ private:
   std::vector<std::vector<CatalogEntry>> m_catalogs;
   std::vector<int> m_columns;
   std::vector<int> m_columns_idx;
+  std::vector<std::string> m_custom_column_names;
 
+  std::map<std::string, unsigned int>  m_assoc_columns;
   std::string m_filename;
 
   AssocCoordType m_assoc_coord_type;
