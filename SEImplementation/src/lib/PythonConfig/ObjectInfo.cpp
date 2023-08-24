@@ -85,12 +85,14 @@ ObjectInfo::ObjectInfo(const SourceInterface& source, const AssocModeConfig& con
       label << "assoc_value_" << i;
       emplace(std::make_pair(label.str(), assoc_value));
 
-      std::stringstream labelNamed;
-      labelNamed << "assoc_" << config.getColumnsNames().at(i);
-      emplace(std::make_pair(labelNamed.str(), assoc_value));
+      if (config.getColumnsNames().size() > 0) {
+        std::stringstream labelNamed;
+        labelNamed << "assoc_" << config.getColumnsNames().at(i);
+        emplace(std::make_pair(labelNamed.str(), assoc_value));
+      }
+
       i++;
     }
-
   }
 }
 

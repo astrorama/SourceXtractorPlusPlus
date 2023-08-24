@@ -17,6 +17,7 @@
 
 #include <map>
 #include <boost/algorithm/string.hpp>
+#include <fstream>
 
 #include <CCfits/CCfits>
 
