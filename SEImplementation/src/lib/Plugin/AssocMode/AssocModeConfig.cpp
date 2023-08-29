@@ -215,49 +215,49 @@ void AssocModeConfig::readConfigFromParams(const UserValues& args) {
 void AssocModeConfig::readConfigFromFile(const std::string& filename) {
   m_assoc_columns = parseConfigFile(filename);
 
-  if (m_assoc_columns.find("X") != m_assoc_columns.end() && m_assoc_columns.find("Y") != m_assoc_columns.end()) {
+  if (m_assoc_columns.find("x") != m_assoc_columns.end() && m_assoc_columns.find("y") != m_assoc_columns.end()) {
     m_assoc_coord_type = AssocCoordType::PIXEL;
 
-    m_columns.push_back(m_assoc_columns.at("X"));
-    m_assoc_columns.erase("X");
-    m_columns.push_back(m_assoc_columns.at("Y"));
-    m_assoc_columns.erase("Y");
+    m_columns.push_back(m_assoc_columns.at("x"));
+    m_assoc_columns.erase("x");
+    m_columns.push_back(m_assoc_columns.at("y"));
+    m_assoc_columns.erase("y");
 
-    if (m_assoc_columns.find("RA") != m_assoc_columns.end() ||
-          m_assoc_columns.find("DEC") != m_assoc_columns.end()) {
+    if (m_assoc_columns.find("ra") != m_assoc_columns.end() ||
+          m_assoc_columns.find("dec") != m_assoc_columns.end()) {
       throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
     }
-  } else if (m_assoc_columns.find("RA") != m_assoc_columns.end() &&
-      m_assoc_columns.find("DEC") != m_assoc_columns.end()) {
+  } else if (m_assoc_columns.find("ra") != m_assoc_columns.end() &&
+      m_assoc_columns.find("dec") != m_assoc_columns.end()) {
 
     m_assoc_coord_type = AssocCoordType::WORLD;
 
-    m_columns.push_back(m_assoc_columns.at("RA"));
-    m_assoc_columns.erase("RA");
-    m_columns.push_back(m_assoc_columns.at("DEC"));
-    m_assoc_columns.erase("DEC");
+    m_columns.push_back(m_assoc_columns.at("ra"));
+    m_assoc_columns.erase("ra");
+    m_columns.push_back(m_assoc_columns.at("dec"));
+    m_assoc_columns.erase("dec");
 
-    if (m_assoc_columns.find("X") != m_assoc_columns.end() ||
-          m_assoc_columns.find("Y") != m_assoc_columns.end()) {
+    if (m_assoc_columns.find("x") != m_assoc_columns.end() ||
+          m_assoc_columns.find("y") != m_assoc_columns.end()) {
       throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
     }
   } else {
     throw Elements::Exception() << "Missing X/Y or RA/DEC coordinates in assoc config file";
   }
 
-  if (m_assoc_columns.find("WEIGHT") != m_assoc_columns.end()) {
-    m_columns.push_back(m_assoc_columns.at("WEIGHT"));
-    m_assoc_columns.erase("WEIGHT");
+  if (m_assoc_columns.find("weight") != m_assoc_columns.end()) {
+    m_columns.push_back(m_assoc_columns.at("weight"));
+    m_assoc_columns.erase("weight");
   }
 
-  if (m_assoc_columns.find("PIXEL_SIZE") != m_assoc_columns.end()) {
-    m_pixel_size_column = m_assoc_columns.at("PIXEL_SIZE");
-    m_assoc_columns.erase("PIXEL_SIZE");
+  if (m_assoc_columns.find("pixel_size") != m_assoc_columns.end()) {
+    m_pixel_size_column = m_assoc_columns.at("pixel_size");
+    m_assoc_columns.erase("pixel_size");
   }
 
-  if (m_assoc_columns.find("GROUP_ID") != m_assoc_columns.end()) {
-    m_group_id_column = m_assoc_columns.at("GROUP_ID");
-    m_assoc_columns.erase("GROUP_ID");
+  if (m_assoc_columns.find("group_id") != m_assoc_columns.end()) {
+    m_group_id_column = m_assoc_columns.at("group_id");
+    m_assoc_columns.erase("group_id");
   }
 
   for (auto& column_info : m_assoc_columns) {
@@ -396,6 +396,10 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
 std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std::string& filename) {
     std::map<std::string, unsigned int> columns;
 
+    const std::vector<std::string> reserved_names {
+      "x", "y", "ra", "dec", "weight", "group_id", "source_radius_pixel"
+    };
+
     std::ifstream config_file(filename);
     if (!config_file.is_open()) {
         throw Elements::Exception() << "Can't either open or read assoc config file: " << filename;
@@ -426,6 +430,11 @@ std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std:
           number = current_column_nb++;
       }
       boost::trim(name);
+
+      if (std::find(reserved_names.begin(), reserved_names.end(), boost::to_lower_copy(name)) != reserved_names.end()) {
+        boost::to_lower(name);
+      }
+
 
       // Store the parsed information into the vector
       columns[name] = number;
