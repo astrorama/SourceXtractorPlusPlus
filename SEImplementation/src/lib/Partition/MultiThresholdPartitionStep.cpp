@@ -46,6 +46,8 @@ namespace {
   boost::random::mt19937 rng { ((unsigned int) time(NULL)) };
 }
 
+static Elements::Logging logger = Elements::Logging::getLogger("MultiThresholdPartition");
+
 class MultiThresholdNode : public std::enable_shared_from_this<MultiThresholdNode> {
 public:
 
@@ -313,14 +315,19 @@ std::vector<std::unique_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
       }
 
       if (probabilities.back() > 1.0e-31) {
-        auto drand = double(probabilities.back()) * boost::random::uniform_01<double>()(rng);
+	auto drand = double(probabilities.back());
+	if (m_random_diffuse)
+	  drand *= boost::random::uniform_01<double>()(rng);
+        //auto drand = double(probabilities.back()) * boost::random::uniform_01<double>()(rng);
+        //logger.info() << "Random numper: " << drand;
+	//auto drand = double(probabilities.back());
 
         unsigned int i=0;
         for (; i<probabilities.size() && drand >= probabilities[i]; i++);
         if (i < source_nodes.size()) {
-          source_nodes[i]->addPixel(pixel);
+            source_nodes[i]->addPixel(pixel);
         } else {
-          std::cout << i << " oops " << drand << " " << probabilities.back() << std::endl;
+            std::cout << i << " oops " << drand << " " << probabilities.back() << std::endl;
         }
 
       } else {
@@ -353,8 +360,8 @@ std::vector<std::unique_ptr<SourceInterface>> MultiThresholdPartitionStep::reass
 }
 
 MultiThresholdPartitionStep::MultiThresholdPartitionStep(std::shared_ptr<SourceFactory> source_factory, SeFloat contrast,
-    unsigned int thresholds_nb, unsigned int min_deblend_area) :
-  m_source_factory(source_factory), m_contrast(contrast), m_thresholds_nb(thresholds_nb),
+    unsigned int thresholds_nb, unsigned int min_deblend_area, bool random_diffuse) :
+  m_source_factory(source_factory), m_contrast(contrast), m_thresholds_nb(thresholds_nb), m_random_diffuse(random_diffuse),
   m_min_deblend_area(min_deblend_area) {}
 
 } // namespace

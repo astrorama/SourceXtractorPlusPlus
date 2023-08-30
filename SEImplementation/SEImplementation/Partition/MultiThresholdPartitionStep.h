@@ -48,7 +48,7 @@ class MultiThresholdPartitionStep : public PartitionStep {
 public:
 
   MultiThresholdPartitionStep(std::shared_ptr<SourceFactory> source_factory, SeFloat contrast,
-      unsigned int thresholds_nb, unsigned int min_deblend_area);
+      unsigned int thresholds_nb, unsigned int min_deblend_area, bool random_diffuse);
 
   virtual ~MultiThresholdPartitionStep() = default;
 
@@ -67,6 +67,7 @@ private:
   SeFloat m_contrast;
   unsigned int m_thresholds_nb;
   unsigned int m_min_deblend_area;
+  bool m_random_diffuse;
 };
 
 

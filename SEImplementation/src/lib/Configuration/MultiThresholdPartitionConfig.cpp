@@ -34,6 +34,7 @@ namespace SourceXtractor {
 
 static const std::string MTHRESH_USE {"partition-multithreshold"};
 static const std::string MTHRESH_THRESHOLDS_NB {"partition-threshold-count"};
+static const std::string MTHRESH_RANDOM_DIFFUSE {"partition-threshold-random"};
 static const std::string MTHRESH_MIN_AREA {"partition-minimum-area"};
 static const std::string MTHRESH_MIN_CONTRAST {"partition-minimum-contrast"};
 
@@ -47,6 +48,7 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
   return { {"Multi-thresholding", {
       {MTHRESH_USE.c_str(), po::value<bool>()->default_value(true), "activates/deactivates multithreshold partitioning"},
       {MTHRESH_THRESHOLDS_NB.c_str(), po::value<int>()->default_value(32), "# of thresholds"},
+      {MTHRESH_RANDOM_DIFFUSE.c_str(), po::value<bool>()->default_value(true), "use random confusion in multithreshold partitioning"},
       {MTHRESH_MIN_AREA.c_str(), po::value<int>()->default_value(3), "min area in pixels to consider partitioning"},
       {MTHRESH_MIN_CONTRAST.c_str(), po::value<double>()->default_value(0.005), "min contrast of for partitioning"}
   }}};
@@ -55,6 +57,7 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
 void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
   if (args.at(MTHRESH_USE).as<bool>()) {
     auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<int>();
+    auto random_diffuse = args.at(MTHRESH_RANDOM_DIFFUSE).as<bool>();
     auto min_area = args.at(MTHRESH_MIN_AREA).as<int>();
     auto min_contrast = args.at(MTHRESH_MIN_CONTRAST).as<double>();
 
@@ -67,7 +70,7 @@ void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
 
     getDependency<PartitionStepConfig>().addPartitionStepCreator(
       [=](std::shared_ptr<SourceFactory> source_factory) {
-        return std::make_shared<MultiThresholdPartitionStep>(source_factory, min_contrast, threshold_nb, min_area);
+        return std::make_shared<MultiThresholdPartitionStep>(source_factory, min_contrast, threshold_nb, min_area, random_diffuse);
       }
     );
   }
