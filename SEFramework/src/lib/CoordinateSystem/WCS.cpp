@@ -79,7 +79,9 @@ static void wcsRaiseOnTransformError(wcsprm *wcs, int ret_code) {
     if (wcs->lin.disseq) {
       wcsLogErr(wcs->lin.disseq->err);
     }
+    //logger.info() << "Trowing error!";
     throw InvalidCoordinatesException() << wcs_errmsg[ret_code];
+    //logger.info() << "After throw!";
   }
 }
 
@@ -233,8 +235,15 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   double phi, theta;
 
   int status = 0;
+  //std::fstream _outfile("wcs_projectionII.txt", std::ios::out);
+  //_outfile << "wcsp2s_in " << std::flush;
+  //logger.debug() << "before wcsp2s";
   int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  //if (ret_val != WCSERR_SUCCESS)
+  //  logger.info() << "Bad imageToWorld";
   wcsRaiseOnTransformError(&wcs_copy, ret_val);
+  //_outfile << "wcsp2s_out " << std::flush;
+  //logger.debug() << "after wcsp2s",
   wcsfree(&wcs_copy);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
@@ -252,10 +261,23 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   double phi, theta;
 
   int status = 0;
+  //std::fstream _outfile;
+  //logger.debug() << "wcss2p_in";
+  //_outfile.open("wcs_projection.txt", std::ios::app);
+  //if (!_outfile)
+  //std::fstream _outfile("wcs_projectionI.txt", std::ios::out);
+  //_outfile << "wcss2p_in " << std::flush;
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
-  wcsRaiseOnTransformError(&wcs_copy, ret_val);
+  if (ret_val != WCSERR_SUCCESS) {
+    logger.warn() << "Bad worldToImage from RA/Dec: " << wc_array[0] << "/" << wc_array[1];
+    pc_array[0] = - std::numeric_limits<double>::infinity();;
+    pc_array[1] = - std::numeric_limits<double>::infinity();;
+  }
+  //wcsRaiseOnTransformError(&wcs_copy, ret_val);
+  //logger.debug() << "after wcss2p";
+  //_outfile << "wcss2p_out " << std::flush;
   wcsfree(&wcs_copy);
-
+  //_outfile.close();
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
 
