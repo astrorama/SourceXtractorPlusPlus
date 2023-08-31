@@ -87,7 +87,9 @@ public:
     m_detection_frame(detection_frame) {}
 
   void publishSource(std::unique_ptr<SourceInterface> source) const {
-    source->setProperty<DetectionFrame>(m_detection_frame);
+    if (m_detection_frame) {
+      source->setProperty<DetectionFrame>(m_detection_frame);
+    }
     m_segmentation.sendSource(std::move(source));
   }
 

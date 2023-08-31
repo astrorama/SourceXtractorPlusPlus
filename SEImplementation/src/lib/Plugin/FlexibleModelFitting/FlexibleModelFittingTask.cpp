@@ -44,6 +44,7 @@
 #include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
 #include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 
 
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
@@ -133,7 +134,7 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   auto frame_coordinates =
     group.begin()->getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates =
-    group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+    group.begin()->getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto stamp_rect = group.getProperty<MeasurementFrameGroupRectangle>(frame_index);
   auto psf_property = group.getProperty<PsfProperty>(frame_index);
@@ -153,10 +154,11 @@ FrameModel<ImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> Flex
   std::vector<PointModel> point_models;
   std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
 
+  double model_size = std::max(stamp_rect.getWidth(), stamp_rect.getHeight());
   for (auto& source : group) {
     for (auto model : frame->getModels()) {
-      model->addForSource(manager, source, constant_models, point_models, extended_models, jacobian, ref_coordinates, frame_coordinates,
-                          stamp_rect.getTopLeft());
+      model->addForSource(manager, source, constant_models, point_models, extended_models, model_size,
+          jacobian, ref_coordinates, frame_coordinates, stamp_rect.getTopLeft());
     }
   }
 

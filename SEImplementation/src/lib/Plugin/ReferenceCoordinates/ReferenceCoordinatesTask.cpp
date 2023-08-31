@@ -14,35 +14,29 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTask.h"
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+void ReferenceCoordinatesTask::computeProperties(SourceInterface& source) const {
 
-public:
-  explicit ObjectInfo(const AssocModeConfig& config);
+  std::shared_ptr<CoordinateSystem> ref_coords;
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
+  // Either detection or first measurement image
+  try {
+    ref_coords = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  }
+  catch (PropertyNotFoundException&) {
+    ref_coords = source.getProperty<MeasurementFrameCoordinates>(0).getCoordinateSystem();
+  }
 
-  virtual ~ObjectInfo() = default;
+  source.setProperty<ReferenceCoordinates>(ref_coords);
+}
 
-};
-
-} // end of namespace SourceXtractor
-
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
+} // SEImplementation namespace
 

@@ -20,14 +20,16 @@
  */
 
 #include <SEImplementation/PythonConfig/ObjectInfo.h>
-#include <SEImplementation/Plugin/PixelCentroid/PixelCentroid.h>
+#include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
+#include <SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h>
 #include <SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h>
 #include <SEImplementation/Plugin/ShapeParameters/ShapeParameters.h>
 #include <SEImplementation/Plugin/AssocMode/AssocMode.h>
 
 namespace SourceXtractor {
 
-ObjectInfo::ObjectInfo() {
+ObjectInfo::ObjectInfo(const AssocModeConfig& config) {
+
   emplace(std::make_pair("centroid_x", 0.));
   emplace(std::make_pair("centroid_y", 0.));
   emplace(std::make_pair("isophotal_flux", 0.));
@@ -41,23 +43,39 @@ ObjectInfo::ObjectInfo() {
     label << "assoc_value_" << i;
     emplace(std::make_pair(label.str(), 0.));
   }
+
+  for (auto name : config.getColumnsNames()) {
+    std::stringstream label;
+    label << "assoc_" << name;
+    emplace(std::make_pair(label.str(), 0.));
+  }
 }
 
-ObjectInfo::ObjectInfo(const SourceInterface& source) {
-  auto centroid = source.getProperty<PixelCentroid>();
-  auto iso_flux = source.getProperty<IsophotalFlux>();
-  auto shape = source.getProperty<ShapeParameters>();
+ObjectInfo::ObjectInfo(const SourceInterface& source, const AssocModeConfig& config) {
+  auto world_centroid = source.getProperty<WorldCentroid>().getCentroid();
+  auto reference_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
+  auto centroid = reference_coordinates->worldToImage(world_centroid);
+
+  emplace(std::make_pair("centroid_x", centroid.m_x + 1.0));
+  emplace(std::make_pair("centroid_y", centroid.m_y + 1.0));
+
+  try {
+    auto iso_flux = source.getProperty<IsophotalFlux>();
+    emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
+  } catch (PropertyNotFoundException&) {
+  }
+
+  try {
+    auto shape = source.getProperty<ShapeParameters>();
+    double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
+
+    emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
+    emplace(std::make_pair("angle", shape.getEllipseTheta()));
+    emplace(std::make_pair("aspect_ratio", aspect_guess));
+  } catch (PropertyNotFoundException&) {
+  }
+
   auto assoc = source.getProperty<AssocMode>();
-
-  double aspect_guess = std::max<double>(shape.getEllipseB() / shape.getEllipseA(), 0.01);
-
-  emplace(std::make_pair("centroid_x", centroid.getCentroidX() + 1.0));
-  emplace(std::make_pair("centroid_y", centroid.getCentroidY() + 1.0));
-  emplace(std::make_pair("isophotal_flux", std::max<double>(iso_flux.getFlux(), 0.0001)));
-  emplace(std::make_pair("radius", std::max<double>(shape.getEllipseA() / 2.0, 0.01)));
-  emplace(std::make_pair("angle", shape.getEllipseTheta()));
-  emplace(std::make_pair("aspect_ratio", aspect_guess));
-
   emplace(std::make_pair("assoc_match", assoc.getMatch()));
   if (assoc.getMatch()) {
     emplace(std::make_pair("assoc_size", (double) assoc.getAssocValues().shape()[0]));
@@ -66,9 +84,15 @@ ObjectInfo::ObjectInfo(const SourceInterface& source) {
       std::stringstream label;
       label << "assoc_value_" << i;
       emplace(std::make_pair(label.str(), assoc_value));
+
+      if (config.getColumnsNames().size() > 0) {
+        std::stringstream labelNamed;
+        labelNamed << "assoc_" << config.getColumnsNames().at(i);
+        emplace(std::make_pair(labelNamed.str(), assoc_value));
+      }
+
       i++;
     }
-
   }
 }
 

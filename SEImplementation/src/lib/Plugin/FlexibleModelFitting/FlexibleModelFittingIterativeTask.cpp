@@ -26,11 +26,13 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 #include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
-#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
@@ -147,7 +149,7 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
-  auto ref_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
@@ -162,9 +164,10 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   std::vector<PointModel> point_models;
   std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
 
+  double model_size = std::max(stamp_rect.getWidth(), stamp_rect.getHeight());
   for (auto model : frame->getModels()) {
-    model->addForSource(manager, source, constant_models, point_models, extended_models, jacobian, ref_coordinates,
-        frame_coordinates, stamp_rect.getTopLeft());
+    model->addForSource(manager, source, constant_models, point_models, extended_models, model_size,
+        jacobian, ref_coordinates, frame_coordinates, stamp_rect.getTopLeft());
   }
 
   // Full frame model with all sources

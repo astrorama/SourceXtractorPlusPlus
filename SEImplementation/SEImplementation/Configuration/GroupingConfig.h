@@ -41,6 +41,7 @@ public:
     OVERLAPPING,
     SPLIT_SOURCES,
     MOFFAT,
+    ASSOC,
   };
 
   /**

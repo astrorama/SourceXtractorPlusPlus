@@ -82,6 +82,8 @@ void SegmentationConfig::preInitialize(const UserValues& args) {
     m_selected_algorithm = Algorithm::LUTZ;
   } else if (algorithm_name == "BFS") {
     m_selected_algorithm = Algorithm::BFS;
+  } else if (algorithm_name == "ASSOC") {
+    m_selected_algorithm = Algorithm::ASSOC;
   } else if (algorithm_name == "ML") {
 #ifdef WITH_ML_SEGMENTATION
     m_selected_algorithm = Algorithm::ML;

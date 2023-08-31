@@ -422,19 +422,45 @@ public:
 
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
-
     size_t prev_writen_rows = 0;
-    size_t frame_number = 0;
-    for (auto& detection_frame : detection_frames) {
-      frame_number++;
+
+    if (detection_frames.size() > 0) {
+      size_t frame_number = 0;
+      for (auto& detection_frame : detection_frames) {
+        frame_number++;
+        try {
+          // Process the image
+          logger.info() << "Processing frame "
+              << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
+          segmentation->processFrame(detection_frame);
+        }
+        catch (const std::exception &e) {
+          logger.error() << "Failed to process the frame! " << e.what();
+          measurement->stopThreads();
+          return Elements::ExitCode::NOT_OK;
+        }
+
+        if (prefetcher) {
+          prefetcher->synchronize();
+        }
+        measurement->synchronizeThreads();
+
+        size_t nb_writen_rows = output->flush();
+        output->nextPart();
+
+        logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+
+        prev_writen_rows = nb_writen_rows;
+      }
+    } else {
+      // Running detection-less
       try {
-        // Process the image
-        logger.info() << "Processing frame "
-            << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
-        segmentation->processFrame(detection_frame);
+        // Process the catalog
+        logger.info() << "Processing assoc catalog (no detection image)\n";
+        segmentation->processFrame(nullptr);
       }
       catch (const std::exception &e) {
-        logger.error() << "Failed to process the frame! " << e.what();
+        logger.error() << "Failed to process the assoc catalog!\n" << e.what();
         measurement->stopThreads();
         return Elements::ExitCode::NOT_OK;
       }
@@ -447,7 +473,7 @@ public:
       size_t nb_writen_rows = output->flush();
       output->nextPart();
 
-      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in catalog, " << nb_writen_rows << " total";
 
       prev_writen_rows = nb_writen_rows;
     }

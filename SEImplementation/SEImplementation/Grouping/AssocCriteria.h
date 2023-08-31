@@ -1,4 +1,4 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2023 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,35 +14,26 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#ifndef SEIMPLEMENTATION_SEIMPLEMENTATION_GROUPING_ASSOCCRITERIA_H_
+#define SEIMPLEMENTATION_SEIMPLEMENTATION_GROUPING_ASSOCCRITERIA_H_
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEFramework/Pipeline/SourceGrouping.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+/**
+ * @class AssocCriteria
+ * @brief Groups sources based on the Assoc catalog
+ *
+ */
 
+class AssocCriteria : public GroupingCriteria {
 public:
-  explicit ObjectInfo(const AssocModeConfig& config);
-
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
-
-  virtual ~ObjectInfo() = default;
-
+  bool shouldGroup(const SourceInterface& first, const SourceInterface& second) const override;
 };
 
-} // end of namespace SourceXtractor
 
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
+} /* namespace SourceXtractor */
 
+#endif /* SEIMPLEMENTATION_SEIMPLEMENTATION_GROUPING_ASSOCCRITERIA_H_ */
