@@ -14,35 +14,38 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEFramework/Task/SourceTask.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
-
+/**
+ * @class ReferenceCoordinatesTask
+  * @brief
+*
+ */
+class ReferenceCoordinatesTask : public SourceTask {
 public:
-  explicit ObjectInfo(const AssocModeConfig& config);
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
+  /**
+   * @brief Destructor
+   */
+  virtual ~ReferenceCoordinatesTask() = default;
 
-  virtual ~ObjectInfo() = default;
+  /// Constructor
+  explicit ReferenceCoordinatesTask(unsigned int instance) : m_instance(instance) {}
 
-};
+  void computeProperties(SourceInterface& source) const override;
 
-} // end of namespace SourceXtractor
+private:
+  unsigned int m_instance;
 
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
+}; /* End of ReferenceCoordinatesTask class */
 
+}
+
+
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_ */

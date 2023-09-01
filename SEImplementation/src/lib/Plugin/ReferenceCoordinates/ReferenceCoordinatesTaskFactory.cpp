@@ -14,35 +14,26 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTask.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTaskFactory.h"
 
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+using namespace Euclid::Configuration;
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+std::shared_ptr<Task> ReferenceCoordinatesTaskFactory::createTask(const PropertyId& property_id) const {
+  if (property_id.getTypeId() == PropertyId::create<ReferenceCoordinates>().getTypeId()) {
+    return std::make_shared<ReferenceCoordinatesTask>(property_id.getIndex());
+  } else {
+    return nullptr;
+  }
+}
 
-public:
-  explicit ObjectInfo(const AssocModeConfig& config);
+} // SEImplementation namespace
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
 
-  virtual ~ObjectInfo() = default;
 
-};
-
-} // end of namespace SourceXtractor
-
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
 

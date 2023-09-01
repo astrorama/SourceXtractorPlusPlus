@@ -14,35 +14,30 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEFramework/Plugin/Plugin.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+class ReferenceCoordinatesPlugin : public Plugin {
 
 public:
-  explicit ObjectInfo(const AssocModeConfig& config);
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
+  /**
+   * @brief Destructor
+   */
+  virtual ~ReferenceCoordinatesPlugin() = default;
 
-  virtual ~ObjectInfo() = default;
+  void registerPlugin(PluginAPI& plugin_api) override;
+  std::string getIdString() const override;
 
-};
+private:
 
-} // end of namespace SourceXtractor
+}; /* End of ReferenceCoordinatesPlugin class */
 
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
+}
 
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESPLUGIN_H_ */
