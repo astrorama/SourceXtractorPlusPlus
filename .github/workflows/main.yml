@@ -82,6 +82,7 @@ jobs:
 # Run tests #
 #############
   litmus-test:
+    if: ${{ always() }}
     needs: [ build, get_fedora_releases ]
     runs-on: ubuntu-latest
     strategy:
