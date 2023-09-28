@@ -23,8 +23,11 @@
 
 #include <iostream>
 
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
+
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTask.h"
+#include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskNoDetect.h"
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskFactory.h"
 
 
@@ -32,7 +35,21 @@ namespace SourceXtractor {
 
 std::shared_ptr<Task> MeasurementFrameRectangleTaskFactory::createTask(const PropertyId& property_id) const {
   auto instance = property_id.getIndex();
-  return std::make_shared<MeasurementFrameRectangleTask>(instance);
+  if (m_no_detection_image) {
+    return std::make_shared<MeasurementFrameRectangleTaskNoDetect>(instance);
+  } else {
+    return std::make_shared<MeasurementFrameRectangleTask>(instance);
+  }
+
 }
+
+void MeasurementFrameRectangleTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+  manager.registerConfiguration<DetectionFrameConfig>();
+}
+
+void MeasurementFrameRectangleTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  m_no_detection_image = manager.getConfiguration<DetectionFrameConfig>().getDetectionFrames().size() == 0;
+}
+
 
 } // SEImplementation namespace

@@ -70,8 +70,10 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   // Normally we would define this one as required, but then --list-output-properties would be
   // unusable unless we also specify --detection-image, which is not very intuitive.
   // For this reason, we check for its existence here
+
   if (args.find(DETECTION_IMAGE) == args.end()) {
-    throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
+    // Running without a detection image
+    return;
   }
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();

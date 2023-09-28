@@ -44,8 +44,6 @@
 
 #include "SEImplementation/Image/ImageInterfaceTraits.h"
 
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
-
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 
@@ -73,7 +71,8 @@ static const double MODEL_SIZE_FACTOR = 1.2;
 
 // Note about pixel coordinates:
 
-// The model fitting is made in pixel coordinates of the detection image
+// The model fitting is made in pixel coordinates of the detection image, or if no detection image is used,
+// pixel coordinate of the "reference" image, which is usually the first measurement image
 
 // Internally we use a coordinate system with (0,0) at the center of the first pixel. But for compatibility with
 // SExtractor 2, all pixel coordinates visible to the end user need to follow the FITS convention of (1,1) being the
@@ -90,11 +89,10 @@ void FlexibleModelFittingPointModel::addForSource(FlexibleModelFittingParameterM
                                          std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                                          std::vector<ModelFitting::PointModel>& point_models,
                                          std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>&,
+                                         double /* model_base_size */,
                                          std::tuple<double, double, double, double> /*jacobian*/,
                                          std::shared_ptr<CoordinateSystem> reference_coordinates,
                                          std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const  {
-
-  //auto pixel_x = std::make_shared<DependentParameter<std::shared_ptr<BasicParameter>, std::shared_ptr<BasicParameter>>>(
 
   auto pixel_x = createDependentParameter(
       [reference_coordinates, coordinates, offset](double x, double y) {
@@ -115,6 +113,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
                           std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          double model_base_size,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -130,10 +129,8 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
         return coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x-1, y-1))).m_y - offset.m_y + 0.5;
       }, manager.getParameter(source, m_x), manager.getParameter(source, m_y));
 
-  //auto n = std::make_shared<ManualParameter>(1); // Sersic index for exponential
   auto x_scale = std::make_shared<ManualParameter>(1); // we don't scale the x coordinate
 
-//  ManualParameter x_scale(1); // we don't scale the x coordinate
   auto i0 = createDependentParameter(
      [](double flux, double radius, double aspect) { return flux / (2 * M_PI * 0.35513 * radius * radius * aspect); },
      manager.getParameter(source, m_flux), manager.getParameter(source, m_effective_radius),
@@ -143,9 +140,7 @@ void FlexibleModelFittingExponentialModel::addForSource(FlexibleModelFittingPara
       [](double eff_radius) { return 1.678 / eff_radius; },
       manager.getParameter(source, m_effective_radius));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * model_base_size);
   extended_models.emplace_back(std::make_shared<CompactExponentialModel<ImageInterfaceTypePtr>>(
       2.0, i0, k, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
@@ -156,6 +151,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
                           std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          double model_base_size,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -183,9 +179,7 @@ void FlexibleModelFittingDevaucouleursModel::addForSource(FlexibleModelFittingPa
       [](double eff_radius) { return 7.669 / pow(eff_radius, .25); },
       manager.getParameter(source, m_effective_radius));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * model_base_size);
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, n, x_scale, manager.getParameter(source, m_aspect_ratio), manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
@@ -206,6 +200,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
                           std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          double model_base_size,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -230,9 +225,7 @@ void FlexibleModelFittingSersicModel::addForSource(FlexibleModelFittingParameter
       [](double eff_radius, double n) { return computeBn(n) / pow(eff_radius, 1.0 / n); },
       manager.getParameter(source, m_effective_radius), manager.getParameter(source, m_sersic_index));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * model_base_size);
   extended_models.emplace_back(std::make_shared<CompactSersicModel<ImageInterfaceTypePtr>>(
       3.0, i0, k, manager.getParameter(source, m_sersic_index), x_scale, manager.getParameter(source, m_aspect_ratio),
       manager.getParameter(source, m_angle), size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), jacobian));
@@ -243,6 +236,7 @@ void FlexibleModelFittingConstantModel::addForSource(FlexibleModelFittingParamet
                           std::vector<ModelFitting::ConstantModel>& constant_models,
                           std::vector<ModelFitting::PointModel>& /* point_models */,
                           std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>&,
+                          double /* model_base_size */,
                           std::tuple<double, double, double, double> /* jacobian */,
                           std::shared_ptr<CoordinateSystem> /* reference_coordinates */,
                           std::shared_ptr<CoordinateSystem> /* coordinates */, PixelCoordinate /* offset */) const {
@@ -256,6 +250,7 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
                           std::vector<ModelFitting::ConstantModel>& /* constant_models */,
                           std::vector<ModelFitting::PointModel>& /*point_models*/,
                           std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>& extended_models,
+                          double model_base_size,
                           std::tuple<double, double, double, double> jacobian,
                           std::shared_ptr<CoordinateSystem> reference_coordinates,
                           std::shared_ptr<CoordinateSystem> coordinates, PixelCoordinate offset) const {
@@ -276,14 +271,12 @@ void FlexibleModelFittingOnnxModel::addForSource(FlexibleModelFittingParameterMa
         return scale * ratio;
       }, manager.getParameter(source, m_scale), manager.getParameter(source, m_aspect_ratio));
 
-  auto& boundaries = source.getProperty<PixelBoundaries>();
-  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * std::max(boundaries.getWidth(), boundaries.getHeight()));
-
   std::map<std::string, std::shared_ptr<BasicParameter>> params;
   for (auto it : m_params) {
     params[it.first] = manager.getParameter(source, it.second);
   }
 
+  int size = std::max(MODEL_MIN_SIZE, MODEL_SIZE_FACTOR * model_base_size);
   extended_models.emplace_back(std::make_shared<OnnxCompactModel<ImageInterfaceTypePtr>>(m_models,
       manager.getParameter(source, m_scale), y_scale, manager.getParameter(source, m_angle),
       size, size, pixel_x, pixel_y, manager.getParameter(source, m_flux), params, jacobian));

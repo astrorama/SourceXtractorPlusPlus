@@ -22,21 +22,17 @@
  */
 
 #include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
-#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 
-#include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroid.h"
 #include "SEImplementation/Plugin/MeasurementFramePixelCentroid/MeasurementFramePixelCentroidTask.h"
 
 namespace SourceXtractor {
 
 void MeasurementFramePixelCentroidTask::computeProperties(SourceInterface& source) const {
-  auto detection_coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
   auto measurement_coordinate_system = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
-  auto pixel_centroid = source.getProperty<PixelCentroid>();
-
-  ImageCoordinate detection_image_coordinate(pixel_centroid.getCentroidX(), pixel_centroid.getCentroidY());
-  auto world_coordinate = detection_coordinate_system->imageToWorld(detection_image_coordinate);
+  auto world_centroid = source.getProperty<WorldCentroid>();
+  auto world_coordinate = world_centroid.getCentroid();
 
   try {
     auto measurement_image_coordinate = measurement_coordinate_system->worldToImage(world_coordinate);

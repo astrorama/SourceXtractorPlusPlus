@@ -14,48 +14,38 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * MeasurementFrameRectangleTask.cpp
- *
- *  Created on: Sep 24, 2018
- *      Author: Alejandro Alvarez Ayllon
- */
+
 #include <iostream>
 
 #include <SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h>
 #include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>
 #include <SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h>
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
+#include <SEImplementation/Plugin/AssocMode/AssocMode.h>
 
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
-#include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTask.h>
+#include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskNoDetect.h>
 
 namespace SourceXtractor {
 
-void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) const {
-  auto& detection_group_stamp = source.getProperty<PixelBoundaries>();
+void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& source) const {
   auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
-  auto detection_frame_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
-
   const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const auto& world_centroid = source.getProperty<WorldCentroid>();
+  const auto& assoc_mode = source.getProperty<AssocMode>();
 
-  // Get the coordinates of the detection frame group stamp
-  auto stamp_top_left = detection_group_stamp.getMin();
-  auto width = detection_group_stamp.getWidth();
-  auto height = detection_group_stamp.getHeight();
+  auto coord = world_centroid.getCentroid();
 
-  // Transform the 4 corner coordinates from detection image
-  ImageCoordinate coord1, coord2, coord3, coord4;
   bool bad_coordinates = false;
+  ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    coord1 = measurement_frame_coordinates->worldToImage(
-        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y)));
-    coord2 = measurement_frame_coordinates->worldToImage(
-        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x + width, stamp_top_left.m_y)));
-    coord3 = measurement_frame_coordinates->worldToImage(
-        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x + width, stamp_top_left.m_y + height)));
-    coord4 = measurement_frame_coordinates->worldToImage(
-        detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y + height)));
+    int sz = assoc_mode.getRefFramePixelRadius();
+    auto c = measurement_frame_coordinates->worldToImage(coord);
+    coord1 = ImageCoordinate(c.m_x - sz, c.m_y - sz);
+    coord2 = ImageCoordinate(c.m_x + sz, c.m_y - sz);
+    coord3 = ImageCoordinate(c.m_x - sz, c.m_y + sz);
+    coord4 = ImageCoordinate(c.m_x + sz, c.m_y + sz);
   }
   catch (const InvalidCoordinatesException&) {
     bad_coordinates = true;
