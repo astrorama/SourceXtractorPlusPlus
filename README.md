@@ -97,7 +97,7 @@ join the group (if a google account is at hand) or to ask us to add you as a mem
 While we are working on several refereed papers describing SourceXtractor++ and its software architecture, the software package can be referenced with two ADASS conference proceedings:
 
 - [Bertin, E.; Schefer, M. ; Apostolakos, N. ; Álvarez-Ayllón, A.; Dubath, P. ; Kümmel, M.: 2020ASPC..527..461B](https://ui.adsabs.harvard.edu/abs/2020ASPC..527..461B/abstract)
-- [Kümmel, M.; Álvarez-Ayllón, A.; Bertin, E.; Dubath, P.; Gavazzi, R.; Hartley, W.: 2022arXiv221202428K](https://ui.adsabs.harvard.edu/abs/2022arXiv221202428K/abstract) 
+- [Kümmel, M.; Álvarez-Ayllón, A.; Bertin, E.; Dubath, P.; Gavazzi, R.; Hartley, W.; Schefer, M.: 2022arXiv221202428K](https://ui.adsabs.harvard.edu/abs/2022arXiv221202428K/abstract) 
 
 Resources for the SourceXtractor++ development are in most part provided by funding from the [Euclid satellite project](https://www.euclid-ec.org/) via the various national agencies.
 For Euclid Consortium papers it is sufficient to point to the [SourceXtractor++ webpage](https://github.com/astrorama/SourceXtractorPlusPlus) and add
