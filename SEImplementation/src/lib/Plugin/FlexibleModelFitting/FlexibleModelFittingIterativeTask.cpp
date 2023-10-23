@@ -195,9 +195,11 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
       if (free_parameter != nullptr) {
-        initial_state.parameters_values[free_parameter->getId()] = free_parameter->getInitialValue(source);
+        initial_state.parameters_initial_values[free_parameter->getId()] =
+            initial_state.parameters_values[free_parameter->getId()] = free_parameter->getInitialValue(source);
       } else {
-        initial_state.parameters_values[parameter->getId()] = 0.0;
+        initial_state.parameters_initial_values[parameter->getId()] =
+            initial_state.parameters_values[parameter->getId()] = 0.0;
       }
       // Make sure we have a default value for sigmas in case we cannot do the fit
       initial_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
@@ -293,6 +295,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
           // Initial with the values from the current iteration run
           parameter_manager.addParameter(src, parameter,
               free_parameter->create(parameter_manager, engine_parameter_manager, src,
+                  state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                   state.source_states[index].parameters_values.at(free_parameter->getId())));
 
         } else {
@@ -337,6 +340,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
       // Initial with the values from the current iteration run
       parameter_manager.addParameter(source, parameter,
           free_parameter->create(parameter_manager, engine_parameter_manager, source,
+              state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
               state.source_states[index].parameters_values.at(free_parameter->getId())));
     } else {
       parameter_manager.addParameter(source, parameter,
@@ -573,6 +577,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         // Initialize with the values from the current iteration run
         parameter_manager.addParameter(src, parameter,
             free_parameter->create(parameter_manager, engine_parameter_manager, src,
+                state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                 state.source_states[index].parameters_values.at(free_parameter->getId())));
       } else {
         parameter_manager.addParameter(src, parameter,

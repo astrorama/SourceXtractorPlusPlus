@@ -91,9 +91,9 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source,
-                                                            double initial_value) const {
+                                                            double initial_value, double current_value) const {
   auto converter = m_converter_factory->getConverter(initial_value, source);
-  auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
+  auto parameter = std::make_shared<EngineParameter>(current_value, std::move(converter));
   engine_manager.registerParameter(parameter);
 
   return parameter;
