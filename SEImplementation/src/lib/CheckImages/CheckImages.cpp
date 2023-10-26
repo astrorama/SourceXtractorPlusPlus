@@ -86,8 +86,8 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
-  m_model_background_filename = config.getModelBackgroundFilename();
-  m_model_variance_filename = config.getModelVarianceFilename();
+  m_background_filename = config.getBackgroundFilename();
+  m_variance_filename = config.getVarianceFilename();
   m_segmentation_filename = config.getSegmentationFilename();
   m_partition_filename = config.getPartitionFilename();
   m_group_filename = config.getGroupFilename();
@@ -318,15 +318,15 @@ void CheckImages::saveImages() {
   auto detection_images_nb = m_coordinate_systems.size();
   for (size_t i = 0; i < detection_images_nb; i++) {
     // if possible, save the background image
-    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_model_background_filename != "") {
+    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_background_filename != "") {
       FitsWriter::writeFile(*m_background_images.at(i),
-          addNumberToFilename(m_model_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the variance image
-    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_model_variance_filename != "") {
+    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_variance_filename != "") {
       FitsWriter::writeFile(*m_variance_images.at(i),
-          addNumberToFilename(m_model_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the filtered image

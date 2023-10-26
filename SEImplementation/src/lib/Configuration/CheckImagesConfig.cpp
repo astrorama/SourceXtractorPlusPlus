@@ -33,8 +33,8 @@ namespace SourceXtractor {
 
 static const std::string CHECK_MODEL_FITTING { "check-image-model-fitting" };
 static const std::string CHECK_RESIDUAL { "check-image-residual" };
-static const std::string CHECK_MODEL_BACKGROUND { "check-image-background" };
-static const std::string CHECK_MODEL_VARIANCE { "check-image-variance" };
+static const std::string CHECK_BACKGROUND { "check-image-background" };
+static const std::string CHECK_VARIANCE { "check-image-variance" };
 static const std::string CHECK_SEGMENTATION { "check-image-segmentation" };
 static const std::string CHECK_PARTITION { "check-image-partition" };
 static const std::string CHECK_GROUPING { "check-image-grouping" };
@@ -57,9 +57,9 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
           "Path to save the model fitting check image"},
       {CHECK_RESIDUAL.c_str(), po::value<std::string>()->default_value(""),
           "Path to save the model fitting residual check image"},
-      {CHECK_MODEL_BACKGROUND.c_str(), po::value<std::string>()->default_value(""),
+      {CHECK_BACKGROUND.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the background check image"},
-      {CHECK_MODEL_VARIANCE.c_str(), po::value<std::string>()->default_value(""),
+      {CHECK_VARIANCE.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the variance check image"},
       {CHECK_SEGMENTATION.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the segmentation check image"},
@@ -90,8 +90,8 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
 void CheckImagesConfig::initialize(const UserValues& args) {
   m_model_fitting_filename = args.find(CHECK_MODEL_FITTING)->second.as<std::string>();
   m_model_fitting_residual_filename = args.find(CHECK_RESIDUAL)->second.as<std::string>();
-  m_model_background_filename = args.find(CHECK_MODEL_BACKGROUND)->second.as<std::string>();
-  m_model_variance_filename = args.find(CHECK_MODEL_VARIANCE)->second.as<std::string>();
+  m_background_filename = args.find(CHECK_BACKGROUND)->second.as<std::string>();
+  m_variance_filename = args.find(CHECK_VARIANCE)->second.as<std::string>();
   m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<std::string>();
   m_partition_filename = args.find(CHECK_PARTITION)->second.as<std::string>();
   m_group_filename = args.find(CHECK_GROUPING)->second.as<std::string>();

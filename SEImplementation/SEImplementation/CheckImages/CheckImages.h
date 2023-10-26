@@ -192,8 +192,8 @@ private:
 
   boost::filesystem::path m_model_fitting_image_filename;
   boost::filesystem::path m_residual_filename;
-  boost::filesystem::path m_model_background_filename;
-  boost::filesystem::path m_model_variance_filename;
+  boost::filesystem::path m_background_filename;
+  boost::filesystem::path m_variance_filename;
   boost::filesystem::path m_segmentation_filename;
   boost::filesystem::path m_partition_filename;
   boost::filesystem::path m_group_filename;

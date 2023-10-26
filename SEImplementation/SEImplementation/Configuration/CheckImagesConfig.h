@@ -49,12 +49,12 @@ public:
     return m_model_fitting_residual_filename;
   }
 
-  const std::string& getModelBackgroundFilename() const {
-    return m_model_background_filename;
+  const std::string& getBackgroundFilename() const {
+    return m_background_filename;
   }
 
-  const std::string& getModelVarianceFilename() const {
-    return m_model_variance_filename;
+  const std::string& getVarianceFilename() const {
+    return m_variance_filename;
   }
 
   const std::string& getSegmentationFilename() const {
@@ -105,8 +105,8 @@ private:
 
   std::string m_model_fitting_filename;
   std::string m_model_fitting_residual_filename;
-  std::string m_model_background_filename;
-  std::string m_model_variance_filename;
+  std::string m_background_filename;
+  std::string m_variance_filename;
   std::string m_segmentation_filename;
   std::string m_partition_filename;
   std::string m_group_filename;
