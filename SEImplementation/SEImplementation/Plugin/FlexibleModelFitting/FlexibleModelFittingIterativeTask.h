@@ -56,6 +56,7 @@ public:
 
 private:
   struct SourceState {
+    std::unordered_map<int, double> parameters_initial_values;
     std::unordered_map<int, double> parameters_values;
     std::unordered_map<int, double> parameters_sigmas;
     std::unordered_map<int, bool> parameters_fitted;

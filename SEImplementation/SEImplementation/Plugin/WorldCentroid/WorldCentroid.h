@@ -26,6 +26,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
 
@@ -43,6 +44,10 @@ public:
 
   SeDouble getCentroidDelta() const {
     return m_centroid_delta;
+  }
+
+  WorldCoordinate getCentroid() const {
+    return WorldCoordinate(m_centroid_alpha, m_centroid_delta);
   }
 
 private:

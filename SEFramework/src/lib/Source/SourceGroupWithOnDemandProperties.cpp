@@ -20,10 +20,14 @@
  * @author nikoapos
  */
 
+#include "ElementsKernel/Logging.h"
+
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("SourceGroupWithOnDemandProperties");
 
 SourceGroupWithOnDemandProperties::SourceGroupWithOnDemandProperties(std::shared_ptr<TaskProvider> task_provider)
         : m_task_provider(task_provider) {
@@ -83,11 +87,16 @@ const Property& SourceGroupWithOnDemandProperties::getProperty(const PropertyId&
     return m_property_holder.getProperty(property_id);
   }
 
-  // If not, get the task for that property, use it to compute the property then return it
-  auto task = m_task_provider->getTask<GroupTask>(property_id);
-  if (task) {
-    task->computeProperties(const_cast<SourceGroupWithOnDemandProperties&>(*this));
-    return m_property_holder.getProperty(property_id);
+  try {
+    // If not, get the task for that property, use it to compute the property then return it
+    auto task = m_task_provider->getTask<GroupTask>(property_id);
+    if (task) {
+      task->computeProperties(const_cast<SourceGroupWithOnDemandProperties&>(*this));
+      return m_property_holder.getProperty(property_id);
+    }
+  }
+  catch (Elements::Exception& e) {
+    logger.debug() << e.what();
   }
 
   // No task available to make that property, we throw an exception
