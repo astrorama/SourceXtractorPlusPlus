@@ -42,7 +42,8 @@ public:
     UNKNOWN,
     LUTZ,
     BFS,
-    ML
+    ML,
+    ASSOC
   };
 
   /**

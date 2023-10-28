@@ -26,11 +26,13 @@
 
 #include "SEImplementation/CheckImages/CheckImages.h"
 
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
+
 #include "SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h"
 #include "SEImplementation/Plugin/MeasurementFrameImages/MeasurementFrameImages.h"
 #include "SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h"
-#include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 #include "SEImplementation/Plugin/Jacobian/Jacobian.h"
 #include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
@@ -147,7 +149,7 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   int frame_index = frame->getFrameNb();
 
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
-  auto ref_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto psf_property = source.getProperty<SourcePsfProperty>(frame_index);
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
@@ -162,9 +164,10 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   std::vector<PointModel> point_models;
   std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models;
 
+  double model_size = std::max(stamp_rect.getWidth(), stamp_rect.getHeight());
   for (auto model : frame->getModels()) {
-    model->addForSource(manager, source, constant_models, point_models, extended_models, jacobian, ref_coordinates,
-        frame_coordinates, stamp_rect.getTopLeft());
+    model->addForSource(manager, source, constant_models, point_models, extended_models, model_size,
+        jacobian, ref_coordinates, frame_coordinates, stamp_rect.getTopLeft());
   }
 
   // Full frame model with all sources
@@ -192,9 +195,11 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
       if (free_parameter != nullptr) {
-        initial_state.parameters_values[free_parameter->getId()] = free_parameter->getInitialValue(source);
+        initial_state.parameters_initial_values[free_parameter->getId()] =
+            initial_state.parameters_values[free_parameter->getId()] = free_parameter->getInitialValue(source);
       } else {
-        initial_state.parameters_values[parameter->getId()] = 0.0;
+        initial_state.parameters_initial_values[parameter->getId()] =
+            initial_state.parameters_values[parameter->getId()] = 0.0;
       }
       // Make sure we have a default value for sigmas in case we cannot do the fit
       initial_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
@@ -290,6 +295,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
           // Initial with the values from the current iteration run
           parameter_manager.addParameter(src, parameter,
               free_parameter->create(parameter_manager, engine_parameter_manager, src,
+                  state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                   state.source_states[index].parameters_values.at(free_parameter->getId())));
 
         } else {
@@ -334,6 +340,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
       // Initial with the values from the current iteration run
       parameter_manager.addParameter(source, parameter,
           free_parameter->create(parameter_manager, engine_parameter_manager, source,
+              state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
               state.source_states[index].parameters_values.at(free_parameter->getId())));
     } else {
       parameter_manager.addParameter(source, parameter,
@@ -570,6 +577,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         // Initialize with the values from the current iteration run
         parameter_manager.addParameter(src, parameter,
             free_parameter->create(parameter_manager, engine_parameter_manager, src,
+                state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                 state.source_states[index].parameters_values.at(free_parameter->getId())));
       } else {
         parameter_manager.addParameter(src, parameter,

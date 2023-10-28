@@ -14,35 +14,18 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#include "SEImplementation/Grouping/AssocCriteria.h"
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEImplementation/Plugin/AssocMode/AssocMode.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+bool AssocCriteria::shouldGroup(const SourceInterface& first, const SourceInterface& second) const {
+  auto first_id = first.getProperty<AssocMode>().getGroupId();
+  auto second_id = second.getProperty<AssocMode>().getGroupId();
+  return first_id != 0 && first_id == second_id;
+}
 
-public:
-  explicit ObjectInfo(const AssocModeConfig& config);
-
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
-
-  virtual ~ObjectInfo() = default;
-
-};
-
-} // end of namespace SourceXtractor
-
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
+} // SourceXtractor namespace
 

@@ -29,7 +29,7 @@ Segmentation::Segmentation(std::shared_ptr<DetectionImageFrame::ImageFilter> ima
 }
 
 void Segmentation::processFrame(std::shared_ptr<DetectionImageFrame> frame) const {
-  if (m_filter_image_processing != nullptr) {
+  if (m_filter_image_processing != nullptr && frame != nullptr) {
     frame->setFilter(m_filter_image_processing);
   }
 

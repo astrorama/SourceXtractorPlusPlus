@@ -21,10 +21,11 @@
  *      Author: Alejandro Alvarez Ayllon
  */
 
-#include "SEImplementation/Plugin/PixelBoundaries/PixelBoundaries.h"
+#include <iostream>
+
 #include "SEImplementation/Plugin/DetectionFrameGroupStamp/DetectionFrameGroupStamp.h"
-#include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
-#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
+#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
 
 #include "SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h"
 
@@ -35,17 +36,17 @@ namespace SourceXtractor {
 
 void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
   auto measurement_frame_coordinates = group.begin()->getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  auto reference_coordinates = group.begin()->getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto& detection_group_stamp = group.getProperty<DetectionFrameGroupStamp>();
-  auto detection_frame_coordinates = group.begin()->getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
   double x = detection_group_stamp.getTopLeft().m_x + detection_group_stamp.getStamp().getWidth() / 2.0;
   double y = detection_group_stamp.getTopLeft().m_y + detection_group_stamp.getStamp().getHeight() / 2.0;
 
-  auto frame_origin = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y)));
+  auto frame_origin = measurement_frame_coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y)));
   auto frame_dx = measurement_frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x + 1.0, y)));
+    reference_coordinates->imageToWorld(ImageCoordinate(x + 1.0, y)));
   auto frame_dy = measurement_frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y + 1.0)));
+    reference_coordinates->imageToWorld(ImageCoordinate(x, y + 1.0)));
 
   group.setIndexedProperty<JacobianGroup>(m_instance,
                                           frame_dx.m_x - frame_origin.m_x, frame_dx.m_y - frame_origin.m_y,
@@ -54,17 +55,18 @@ void JacobianGroupTask::computeProperties(SourceGroupInterface &group) const {
 
 void JacobianSourceTask::computeProperties(SourceInterface &source) const {
   auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
-  auto& detection_boundaries = source.getProperty<PixelBoundaries>();
-  auto detection_frame_coordinates = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto reference_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
+  auto world_centroid = source.getProperty<WorldCentroid>().getCentroid();
 
-  double x = detection_boundaries.getMin().m_x + detection_boundaries.getWidth() / 2.0;
-  double y = detection_boundaries.getMin().m_y + detection_boundaries.getHeight() / 2.0;
+  auto reference_centroid = reference_coordinates->worldToImage(world_centroid);
+  double x = reference_centroid.m_x;
+  double y = reference_centroid.m_y;
 
-  auto frame_origin = measurement_frame_coordinates->worldToImage(detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y)));
+  auto frame_origin = measurement_frame_coordinates->worldToImage(reference_coordinates->imageToWorld(ImageCoordinate(x, y)));
   auto frame_dx = measurement_frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x + 1.0, y)));
+    reference_coordinates->imageToWorld(ImageCoordinate(x + 1.0, y)));
   auto frame_dy = measurement_frame_coordinates->worldToImage(
-    detection_frame_coordinates->imageToWorld(ImageCoordinate(x, y + 1.0)));
+    reference_coordinates->imageToWorld(ImageCoordinate(x, y + 1.0)));
 
   source.setIndexedProperty<JacobianSource>(m_instance,
                                             frame_dx.m_x - frame_origin.m_x, frame_dx.m_y - frame_origin.m_y,
