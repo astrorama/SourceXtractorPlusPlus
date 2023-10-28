@@ -6,4 +6,4 @@ find_package(ElementsProject)
 #---------------------------------------------------------------
 
 # Declare project name and version
-elements_project(SourceXtractorPlusPlus 0.20 USE Alexandria 2.30.2 DESCRIPTION "SourceXtractor++, the next generation SExtractor")
+elements_project(SourceXtractorPlusPlus 0.21 USE Alexandria 2.30.2 DESCRIPTION "SourceXtractor++, the next generation SExtractor")
