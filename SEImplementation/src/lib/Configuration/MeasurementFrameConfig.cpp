@@ -22,6 +22,7 @@
 
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
 
 #include "SEImplementation/Configuration/MeasurementFrameConfig.h"
 
@@ -82,6 +83,9 @@ void MeasurementFrameConfig::initialize(const UserValues&) {
     }
 
     m_measurement_frames[image_info.m_id] = measurement_frame;
+
+    CheckImages::getInstance().addMeasurementBackgroundCheckImage(image_info.m_id, measurement_frame->getBackgroundLevelMap());
+    CheckImages::getInstance().addMeasurementVarianceCheckImage(image_info.m_id, measurement_frame->getImage(FrameImageLayer::LayerVarianceMap));
   }
 
 }

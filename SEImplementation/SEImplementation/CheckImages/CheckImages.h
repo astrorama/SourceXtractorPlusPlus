@@ -125,8 +125,16 @@ public:
     m_background_images.emplace_back(background_image);
   }
 
+  void addMeasurementBackgroundCheckImage(size_t index, std::shared_ptr<Image<SeFloat>> background_image) {
+    m_measurement_background_images[index] = background_image;
+  }
+
   void addVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
     m_variance_images.emplace_back(variance_image);
+  }
+
+  void addMeasurementVarianceCheckImage(size_t index, std::shared_ptr<Image<SeFloat>> variance_image) {
+    m_measurement_variance_images[index] = variance_image;
   }
 
   void addFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
@@ -187,6 +195,9 @@ private:
   std::vector<std::shared_ptr<Image<SeFloat>>> m_snr_images;
   std::vector<std::shared_ptr<WeightImage>> m_variance_images;
 
+  std::map<unsigned int, std::shared_ptr<Image<SeFloat>>> m_measurement_background_images;
+  std::map<unsigned int, std::shared_ptr<WeightImage>> m_measurement_variance_images;
+
 
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
 
@@ -205,6 +216,9 @@ private:
   boost::filesystem::path m_moffat_filename;
   boost::filesystem::path m_psf_filename;
   boost::filesystem::path m_ml_detection_filename;
+
+  boost::filesystem::path m_measurement_background_filename;
+  boost::filesystem::path m_measurement_variance_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 

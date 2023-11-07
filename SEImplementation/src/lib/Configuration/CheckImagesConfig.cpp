@@ -45,6 +45,8 @@ static const std::string CHECK_AUTO_APERTURE { "check-image-auto-aperture" };
 static const std::string CHECK_APERTURE { "check-image-aperture" };
 static const std::string CHECK_PSF { "check-image-psf" };
 static const std::string CHECK_ML_DETECTION { "check-image-ml-detection" };
+static const std::string CHECK_MEASUREMENT_BACKGROUND { "check-image-measurement-background" };
+static const std::string CHECK_MEASUREMENT_VARIANCE { "check-image-measurement-variance" };
 
 static const std::string CHECK_MOFFAT { "debug-image-moffat" };
 
@@ -63,6 +65,10 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the variance check image"},
       {CHECK_SEGMENTATION.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the segmentation check image"},
+      {CHECK_MEASUREMENT_BACKGROUND.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the background check images for measurement images"},
+      {CHECK_MEASUREMENT_VARIANCE.c_str(), po::value<std::string>()->default_value(""),
+        "Path to save the variance check images for measurement images"},
       {CHECK_PARTITION.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the partition check image"},
       {CHECK_GROUPING.c_str(), po::value<std::string>()->default_value(""),
@@ -92,6 +98,8 @@ void CheckImagesConfig::initialize(const UserValues& args) {
   m_model_fitting_residual_filename = args.find(CHECK_RESIDUAL)->second.as<std::string>();
   m_background_filename = args.find(CHECK_BACKGROUND)->second.as<std::string>();
   m_variance_filename = args.find(CHECK_VARIANCE)->second.as<std::string>();
+  m_measurement_background_filename = args.find(CHECK_MEASUREMENT_BACKGROUND)->second.as<std::string>();
+  m_measurement_variance_filename = args.find(CHECK_MEASUREMENT_VARIANCE)->second.as<std::string>();
   m_segmentation_filename = args.find(CHECK_SEGMENTATION)->second.as<std::string>();
   m_partition_filename = args.find(CHECK_PARTITION)->second.as<std::string>();
   m_group_filename = args.find(CHECK_GROUPING)->second.as<std::string>();

@@ -100,6 +100,9 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_psf_filename = config.getPsfFilename();
   m_ml_detection_filename = config.getMLDetectionFilename();
 
+  m_measurement_background_filename = config.getMeasurementBackgroundFilename();
+  m_measurement_variance_filename = config.getMeasurementVarianceFilename();
+
   size_t detection_images_nb = manager.getConfiguration<DetectionImageConfig>().getExtensionsNb();
 
   m_check_image_ml_detection.resize(detection_images_nb);
@@ -348,7 +351,35 @@ void CheckImages::saveImages() {
     }
   }
 
-  // if possible, create and save the residual image
+  // if possible, save the measurement background images
+  if (m_measurement_background_filename != "") {
+    for (auto &ci : m_measurement_background_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto background_image = ci.second;
+      auto filename = m_measurement_background_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_background_filename.extension();
+      auto frame_filename = m_measurement_background_filename.parent_path() / filename;
+      FitsWriter::writeFile(*background_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, save the measurement variance images
+  if (m_measurement_variance_filename != "") {
+    for (auto &ci : m_measurement_variance_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto variance_image = ci.second;
+      auto filename = m_measurement_variance_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_variance_filename.extension();
+      auto frame_filename = m_measurement_variance_filename.parent_path() / filename;
+      FitsWriter::writeFile(*variance_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, create and save the residual images
   if (m_residual_filename != "") {
     for (auto &ci : m_check_image_model_fitting) {
       auto& frame_info = m_measurement_frames.at(ci.first);
