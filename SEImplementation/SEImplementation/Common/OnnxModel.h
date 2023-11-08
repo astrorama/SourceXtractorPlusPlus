@@ -9,6 +9,7 @@
 #define _SEIMPLEMENTATION_COMMON_ONNXMODEL_H_
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <vector>
 #include <list>
