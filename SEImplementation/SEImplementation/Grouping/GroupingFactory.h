@@ -34,8 +34,6 @@
 #include "SEImplementation/Grouping/MoffatCriteria.h"
 #include "SEImplementation/Grouping/AssocCriteria.h"
 
-#include "SEImplementation/Grouping/SplitSourcesGrouping.h"
-
 #include "SEImplementation/Configuration/GroupingConfig.h"
 
 namespace SourceXtractor {

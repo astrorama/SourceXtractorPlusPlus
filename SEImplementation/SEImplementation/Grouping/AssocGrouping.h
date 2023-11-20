@@ -15,17 +15,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef _SEIMPLEMENTATION_GROUPING_SPLITSOURCESGROUPING_H_
-#define _SEIMPLEMENTATION_GROUPING_SPLITSOURCESGROUPING_H_
+#ifndef _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_
+#define _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
 namespace SourceXtractor {
 
-class SplitSourcesGrouping : public SourceGroupingInterface {
+class AssocGrouping : public SourceGroupingInterface {
 public:
 
-  SplitSourcesGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit);
+  AssocGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit);
 
   std::set<PropertyId> requiredProperties() const override;
 
@@ -44,4 +44,7 @@ private:
 
 }
 
-#endif /* _SEIMPLEMENTATION_GROUPING_SPLITSOURCESGROUPING_H_ */
+
+
+
+#endif /* _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_ */

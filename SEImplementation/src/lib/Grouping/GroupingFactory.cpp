@@ -17,6 +17,9 @@
 
 #include "SEImplementation/Grouping/GroupingFactory.h"
 
+#include "SEImplementation/Grouping/SplitSourcesGrouping.h"
+#include "SEImplementation/Grouping/AssocGrouping.h"
+
 namespace SourceXtractor {
 
 GroupingFactory::GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
@@ -57,6 +60,8 @@ std::shared_ptr<SourceGroupingInterface> GroupingFactory::createGrouping() const
   switch (m_algorithm) {
     case GroupingConfig::Algorithm::SPLIT_SOURCES:
       return std::make_shared<SplitSourcesGrouping>(m_source_group_factory, m_hard_limit);
+    case GroupingConfig::Algorithm::ASSOC:
+      return std::make_shared<AssocGrouping>(m_source_group_factory, m_hard_limit);
     default:
       return std::make_shared<SourceGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit);
   }
