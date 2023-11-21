@@ -18,6 +18,8 @@
 #ifndef _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_
 #define _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_
 
+#include <map>
+
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
 namespace SourceXtractor {
@@ -43,8 +45,5 @@ private:
 };
 
 }
-
-
-
 
 #endif /* _SEIMPLEMENTATION_GROUPING_ASSOCGROUPING_H_ */
