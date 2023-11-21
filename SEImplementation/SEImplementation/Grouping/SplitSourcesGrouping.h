@@ -20,6 +20,8 @@
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
 
+#include <map>
+
 namespace SourceXtractor {
 
 class SplitSourcesGrouping : public SourceGroupingInterface {
