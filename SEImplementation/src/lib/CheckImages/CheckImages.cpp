@@ -86,8 +86,8 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
-  m_model_background_filename = config.getModelBackgroundFilename();
-  m_model_variance_filename = config.getModelVarianceFilename();
+  m_background_filename = config.getBackgroundFilename();
+  m_variance_filename = config.getVarianceFilename();
   m_segmentation_filename = config.getSegmentationFilename();
   m_partition_filename = config.getPartitionFilename();
   m_group_filename = config.getGroupFilename();
@@ -99,6 +99,9 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_moffat_filename = config.getMoffatFilename();
   m_psf_filename = config.getPsfFilename();
   m_ml_detection_filename = config.getMLDetectionFilename();
+
+  m_measurement_background_filename = config.getMeasurementBackgroundFilename();
+  m_measurement_variance_filename = config.getMeasurementVarianceFilename();
 
   size_t detection_images_nb = manager.getConfiguration<DetectionImageConfig>().getExtensionsNb();
 
@@ -318,15 +321,15 @@ void CheckImages::saveImages() {
   auto detection_images_nb = m_coordinate_systems.size();
   for (size_t i = 0; i < detection_images_nb; i++) {
     // if possible, save the background image
-    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_model_background_filename != "") {
+    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_background_filename != "") {
       FitsWriter::writeFile(*m_background_images.at(i),
-          addNumberToFilename(m_model_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the variance image
-    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_model_variance_filename != "") {
+    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_variance_filename != "") {
       FitsWriter::writeFile(*m_variance_images.at(i),
-          addNumberToFilename(m_model_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the filtered image
@@ -348,7 +351,35 @@ void CheckImages::saveImages() {
     }
   }
 
-  // if possible, create and save the residual image
+  // if possible, save the measurement background images
+  if (m_measurement_background_filename != "") {
+    for (auto &ci : m_measurement_background_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto background_image = ci.second;
+      auto filename = m_measurement_background_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_background_filename.extension();
+      auto frame_filename = m_measurement_background_filename.parent_path() / filename;
+      FitsWriter::writeFile(*background_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, save the measurement variance images
+  if (m_measurement_variance_filename != "") {
+    for (auto &ci : m_measurement_variance_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto variance_image = ci.second;
+      auto filename = m_measurement_variance_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_variance_filename.extension();
+      auto frame_filename = m_measurement_variance_filename.parent_path() / filename;
+      FitsWriter::writeFile(*variance_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, create and save the residual images
   if (m_residual_filename != "") {
     for (auto &ci : m_check_image_model_fitting) {
       auto& frame_info = m_measurement_frames.at(ci.first);
