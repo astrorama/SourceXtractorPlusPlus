@@ -1,0 +1,146 @@
+/** Copyright © 2021-2023 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+namespace SourceXtractor {
+
+template<typename T, size_t N>
+class QuadTree<T, N>::Node {
+public:
+  //virtual std::vector<T> findPointsWithinRadius(Coord coord, double radius) const = 0;
+  virtual ~Node() = default;
+
+  virtual void add(T&& data) = 0;
+
+};
+
+template<typename T, size_t N>
+class QuadTree<T, N>::Branch : public Node
+{
+public:
+  //virtual std::vector<T> findPointsWithinRadius(Coord coord, double radius) const = 0;
+  virtual ~Branch() = default;
+
+  Branch(Coord min_coord, Coord max_coord)
+    : m_min(min_coord), m_max(max_coord) {}
+
+  void add(T&& data) override {
+    auto c = Traits::getCoords(data);
+
+    auto quad = getQuadrant(c);
+    if (m_sub_trees[quad] == nullptr) {
+      m_sub_trees[quad] = std::make_shared<Leaf>();
+    }
+    m_sub_trees[quad].add(std::move(data));
+  }
+
+  size_t getQuadrant(Coord c) const {
+    size_t quadrant = 0;
+    if (c.x < (m_min.x + m_max.x) / 2.0) {
+      quadrant += 1;
+    }
+    if (c.y < (m_min.y + m_max.y) / 2.0) {
+      quadrant += 2;
+    }
+    return quadrant;
+  }
+
+  bool isFull() const override {
+    return false;
+  }
+
+  Coord getMin() const {
+    return m_min;
+  }
+
+  Coord getMax() const {
+    return m_min;
+  }
+
+private:
+  Coord m_min, m_max;
+  std::shared_ptr<Node> m_sub_trees[4];
+};
+
+template<typename T, size_t N>
+class QuadTree<T, N>::Leaf : public Node {
+public:
+  //virtual std::vector<T> findPointsWithinRadius(Coord coord, double radius) const = 0;
+
+  Leaf() {
+  }
+  virtual ~Leaf() = default;
+
+  void add(T&& data) override {
+    auto c = Traits::getCoord(data);
+
+    if (m_data.empty()) {
+      m_min.x = m_max.x = c.x;
+      m_min.y = m_max.y = c.y;
+    } else {
+      m_min.x = std::min(m_min.x, c.x);
+      m_min.y = std::min(m_min.y, c.y);
+      m_max.x = std::max(m_max.x, c.x);
+      m_max.y = std::max(m_max.y, c.y);
+    }
+
+    m_data.emplace_back(std::move(data));
+  }
+
+  std::shared_ptr<Branch> split() {
+    auto branch = std::make_shared<Branch>();
+  }
+
+  bool isFull() const override {
+    return m_data.size() < N;
+  }
+
+  size_t size() const {
+    return m_data.size();
+  }
+
+  Coord getMin() const {
+    return m_min;
+  }
+
+  Coord getMax() const {
+    return m_min;
+  }
+
+private:
+  Coord m_min, m_max;
+  std::vector<T> m_data;
+};
+
+template<typename T, size_t N>
+void QuadTree<T, N>::add(T&& data) {
+  if (m_root == nullptr) {
+    m_root = std::make_shared<Leaf>();
+  }
+
+  auto leaf = std::dynamic_pointer_cast<Leaf>(m_root);
+  if (leaf != nullptr && leaf.isFull()) {
+    auto leaf_min = leaf->getMin();
+    auto leaf_max = leaf->getMax();
+
+    leaf_max.x = leaf_max.y = std::max(leaf_max.x, leaf_max.y);
+    m_root = std::make_shared<Branch>(Coord {0,0}, leaf_max);
+  } else {
+    m_root.add(std::move(data));
+  }
+}
+
+}
