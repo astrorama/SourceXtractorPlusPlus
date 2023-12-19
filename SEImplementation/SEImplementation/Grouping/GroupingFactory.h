@@ -32,7 +32,7 @@
 #include "SEImplementation/Grouping/OverlappingBoundariesCriteria.h"
 #include "SEImplementation/Grouping/SplitSourcesCriteria.h"
 #include "SEImplementation/Grouping/MoffatCriteria.h"
-
+#include "SEImplementation/Grouping/AssocCriteria.h"
 
 #include "SEImplementation/Configuration/GroupingConfig.h"
 
@@ -65,6 +65,9 @@ public:
       break;
     case GroupingConfig::Algorithm::MOFFAT:
       m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
+      break;
+    case GroupingConfig::Algorithm::ASSOC:
+      m_grouping_criteria = std::make_shared<AssocCriteria>();
       break;
     }
     m_hard_limit = grouping_config.getHardLimit();

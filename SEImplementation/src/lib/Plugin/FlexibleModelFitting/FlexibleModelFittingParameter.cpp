@@ -45,7 +45,7 @@ namespace bmd = boost::math::tools;
 
 #include "SEUtils/NumericalDerivative.h"
 #include "SEFramework/Source/SourceInterface.h"
-#include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingConverterFactory.h"
@@ -91,9 +91,9 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source,
-                                                            double initial_value) const {
+                                                            double initial_value, double current_value) const {
   auto converter = m_converter_factory->getConverter(initial_value, source);
-  auto parameter = std::make_shared<EngineParameter>(initial_value, std::move(converter));
+  auto parameter = std::make_shared<EngineParameter>(current_value, std::move(converter));
   engine_manager.registerParameter(parameter);
 
   return parameter;
@@ -123,8 +123,8 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        const SourceInterface& source,
                                        FlexibleModelFittingDependentParameter::ValueFunc value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
-  auto coordinate_system = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
 
+  auto coordinate_system = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
     std::vector<double> materialized{params...};
     return value_calculator(coordinate_system, materialized);
@@ -184,7 +184,7 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
   assert(param_values.size() == m_parameters.size());
 
   std::vector<double> result(param_values.size());
-  auto cs = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
+  auto cs = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   for (unsigned int i = 0; i < result.size(); i++) {
 

@@ -19,6 +19,7 @@
  * @date 05/30/16
  * @author mschefer
  */
+#include <iostream>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
@@ -31,7 +32,8 @@ MinAreaPartitionStep::MinAreaPartitionStep(unsigned int min_pixel_count) : m_min
 std::vector<std::unique_ptr<SourceInterface>>
 MinAreaPartitionStep::partition(std::unique_ptr<SourceInterface> source) const {
   std::vector<std::unique_ptr<SourceInterface>> sources;
-  if (source->getProperty<PixelCoordinateList>().getCoordinateList().size() >= m_min_pixel_count) {
+  auto& pixel_coordinate_list = source->getProperty<PixelCoordinateList>();
+  if (pixel_coordinate_list.getCoordinateList().size() >= m_min_pixel_count) {
     sources.emplace_back(std::move(source));
   }
   return sources;

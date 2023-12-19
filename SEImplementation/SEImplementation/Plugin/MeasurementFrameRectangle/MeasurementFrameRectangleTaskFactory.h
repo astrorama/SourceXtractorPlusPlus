@@ -37,6 +37,12 @@ public:
 
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+
+private:
+  bool m_no_detection_image = false;
+
 };
 
 } // end SourceXtractor

@@ -14,35 +14,26 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#include "SEFramework/Plugin/StaticPlugin.h"
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTaskFactory.h"
+#include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesPlugin.h"
+#include "SEImplementation/Image/ImageInterfaceTraits.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+static StaticPlugin<ReferenceCoordinatesPlugin> measurement_frame_coordinates_plugin;
 
-public:
-  explicit ObjectInfo(const AssocModeConfig& config);
+void ReferenceCoordinatesPlugin::registerPlugin(PluginAPI& plugin_api) {
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<ReferenceCoordinatesTaskFactory, ReferenceCoordinates>();
+}
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
+std::string ReferenceCoordinatesPlugin::getIdString() const {
+  return "ReferenceCoordinates";
+}
 
-  virtual ~ObjectInfo() = default;
+}
 
-};
-
-} // end of namespace SourceXtractor
-
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
 

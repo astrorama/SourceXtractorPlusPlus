@@ -23,11 +23,14 @@
 #ifndef _SEIMPLEMENTATION_SEGMENTATIONFACTORY_H
 #define _SEIMPLEMENTATION_SEGMENTATIONFACTORY_H
 
-#include "SEImplementation/Configuration/SegmentationConfig.h"
 
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Configuration/Configurable.h"
 #include "SEFramework/Pipeline/Segmentation.h"
+
+#include "SEImplementation/Configuration/SegmentationConfig.h"
+#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+
 
 namespace SourceXtractor {
 
@@ -63,6 +66,8 @@ private:
 
   std::string m_model_path;
   double m_ml_threshold;
+
+  std::vector<std::vector<AssocModeConfig::CatalogEntry>> m_catalogs;
 
 }; /* End of SegmentationFactory class */
 

@@ -330,7 +330,7 @@ const std::map<std::string, MetadataEntry>& FitsImageSource::getMetadata() const
 }
 
 void FitsImageSource::setMetadata(const std::string& key, const MetadataEntry& value) {
-  auto acc  = m_handler->getAccessor<FitsFile>();
+  auto acc  = m_handler->getAccessor<FitsFile>(FileHandler::kWrite);
   auto fptr = acc->m_fd.getFitsFilePtr();
   switchHdu(fptr, m_hdu_number);
 

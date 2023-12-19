@@ -14,35 +14,32 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/*
- * @file ObjectInfo.h
- * @author Nikolaos Apostolakos <nikoapos@gmail.com>
- */
 
-#ifndef _SEIMPLEMENTATION_OBJECTINFO_H
-#define _SEIMPLEMENTATION_OBJECTINFO_H
+#ifndef _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_
+#define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_
 
-#include <functional>
-#include <SEUtils/Types.h>
-#include <SEFramework/Source/SourceInterface.h>
-#include <Pyston/Graph/Node.h>
-
-#include "SEImplementation/Plugin/AssocMode/AssocModeConfig.h"
+#include "SEFramework/Property/Property.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
 
-class ObjectInfo : public Pyston::AttributeSet {
+class ReferenceCoordinates : public Property {
 
 public:
-  explicit ObjectInfo(const AssocModeConfig& config);
+  virtual ~ReferenceCoordinates() = default;
 
-  ObjectInfo(const SourceInterface& source, const AssocModeConfig& config);
+  explicit ReferenceCoordinates(std::shared_ptr<CoordinateSystem> coordinate_system)
+      : m_coordinate_system(coordinate_system) {}
 
-  virtual ~ObjectInfo() = default;
+  const std::shared_ptr<CoordinateSystem> getCoordinateSystem() const {
+    return m_coordinate_system;
+  }
+
+private:
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
 };
 
-} // end of namespace SourceXtractor
+}
 
-#endif // _SEIMPLEMENTATION_OBJECTINFO_H
-
+#endif /* _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATES_H_ */

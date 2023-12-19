@@ -128,26 +128,26 @@ static void setupEnvironment(void) {
 }
 
 /**
- * MKL blas implementation use multithreading by default, which
+ * MKL Blas and OpenBlas implementation use multithreading by default, which
  * tends to play badly with sourcextractor++ own multithreading.
- * We disable multithreading here *unless* explicitly enabled by the user via
- * environment variables
+ * We disable multithreading here *always* as enabling multithreading causes bugs
  */
 static void disableBlasMultithreading() {
-  bool omp_env_present = getenv("OMP_NUM_THREADS") || getenv("OMP_DYNAMIC");
-  bool mkl_env_present = getenv("MKL_NUM_THREADS") || getenv("MKL_DYNAMIC");
-  if (!omp_env_present && !mkl_env_present) {
-    // Despite the documentation, the methods following C ABI are capitalized
-    void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
-    void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
-    if (set_num_threads) {
-      logger.debug() << "Disabling multithreading";
-      set_num_threads(1);
-    }
-    if (set_dynamic) {
-      logger.debug() << "Disabling dynamic multithreading";
-      set_dynamic(0);
-    }
+  // Despite the documentation, the methods following C ABI are capitalized
+  void (*set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Num_Threads"));
+  void (*set_dynamic)(int)     = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "MKL_Set_Dynamic"));
+  void (*openblas_set_num_threads)(int) = reinterpret_cast<void (*)(int)>(dlsym(RTLD_DEFAULT, "openblas_set_num_threads"));
+  if (set_num_threads) {
+    logger.debug() << "Disabling multithreading";
+    set_num_threads(1);
+  }
+  if (openblas_set_num_threads) {
+    logger.debug() << "Disabling OpenBLAS multithreading";
+    openblas_set_num_threads(1);
+  }
+  if (set_dynamic) {
+    logger.debug() << "Disabling dynamic multithreading";
+    set_dynamic(0);
   }
 }
 
@@ -422,19 +422,45 @@ public:
 
     // Perform measurements (multi-threaded part)
     measurement->startThreads();
-
     size_t prev_writen_rows = 0;
-    size_t frame_number = 0;
-    for (auto& detection_frame : detection_frames) {
-      frame_number++;
+
+    if (detection_frames.size() > 0) {
+      size_t frame_number = 0;
+      for (auto& detection_frame : detection_frames) {
+        frame_number++;
+        try {
+          // Process the image
+          logger.info() << "Processing frame "
+              << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
+          segmentation->processFrame(detection_frame);
+        }
+        catch (const std::exception &e) {
+          logger.error() << "Failed to process the frame! " << e.what();
+          measurement->stopThreads();
+          return Elements::ExitCode::NOT_OK;
+        }
+
+        if (prefetcher) {
+          prefetcher->synchronize();
+        }
+        measurement->synchronizeThreads();
+
+        size_t nb_writen_rows = output->flush();
+        output->nextPart();
+
+        logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+
+        prev_writen_rows = nb_writen_rows;
+      }
+    } else {
+      // Running detection-less
       try {
-        // Process the image
-        logger.info() << "Processing frame "
-            << frame_number << " / " << detection_frames.size() << " : " << detection_frame->getLabel();
-        segmentation->processFrame(detection_frame);
+        // Process the catalog
+        logger.info() << "Processing assoc catalog (no detection image)\n";
+        segmentation->processFrame(nullptr);
       }
       catch (const std::exception &e) {
-        logger.error() << "Failed to process the frame! " << e.what();
+        logger.error() << "Failed to process the assoc catalog!\n" << e.what();
         measurement->stopThreads();
         return Elements::ExitCode::NOT_OK;
       }
@@ -447,7 +473,7 @@ public:
       size_t nb_writen_rows = output->flush();
       output->nextPart();
 
-      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in frame, " << nb_writen_rows << " total";
+      logger.info() << (nb_writen_rows - prev_writen_rows) << " sources detected in catalog, " << nb_writen_rows << " total";
 
       prev_writen_rows = nb_writen_rows;
     }
