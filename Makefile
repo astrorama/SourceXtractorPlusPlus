@@ -38,7 +38,6 @@
 #         backward-compatibility target for the CMT generic Makefile. Tt
 #         ensures that the "all" target has been called before.
 #
-# :Author: Marco Clemencic
 # :Author: Hubert Degaudenzi
 #
 # .. [*] Targets defined by this Makefile.
@@ -58,5 +57,6 @@ else
   ELEMENTS_MAKE_LIB_FILE := $(firstword $(ELEMENTS_MAKE_LIB_LIST))
 endif
 
+$(info Using the $(ELEMENTS_MAKE_LIB_FILE) make library)
 include $(ELEMENTS_MAKE_LIB_FILE)
 
