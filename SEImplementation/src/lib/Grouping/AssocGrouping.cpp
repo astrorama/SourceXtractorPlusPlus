@@ -38,10 +38,17 @@ void AssocGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
     m_source_groups[source_id] = std::move(new_group);
   }
 
-  m_source_groups.at(source_id)->addSource(std::move(source));
+  if (m_source_groups.at(source_id)->size() >= m_hard_limit) {
+    // the stored group has reached the hard limit
+    // send the current group to processing
+    sendSource(std::move(m_source_groups.at(source_id)));
 
-  // TODO handle hard limit
-  //    if (m_hard_limit > 0) {
+    // and replace it with a new empty one
+    auto new_group = m_group_factory->createSourceGroup();
+    m_source_groups[source_id] = std::move(new_group);
+  }
+
+  m_source_groups.at(source_id)->addSource(std::move(source));
 }
 
 /// Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
