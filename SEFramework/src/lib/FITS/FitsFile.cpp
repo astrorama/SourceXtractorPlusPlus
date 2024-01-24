@@ -36,9 +36,13 @@
 #include <boost/regex.hpp>
 
 #include "ElementsKernel/Exception.h"
+#include "ElementsKernel/Logging.h"
+
 #include "SEFramework/FITS/FitsFile.h"
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("FitsFile");
 
 /**
  * Cast a string to a C++ type depending on the format of the content.
@@ -69,7 +73,8 @@ static typename MetadataEntry::value_t valueAutoCast(const std::string& value) {
   // We used to use boost::io::quoted here, but it seems that starting with 1.73 it
   // does not work well when the escape code and the delimiter are the same
   std::string unquoted;
-  bool        escape = false;
+  bool escape = false;
+
   unquoted.reserve(value.size());
   for (auto i = value.begin(); i != value.end(); ++i) {
     if (*i == '\'' && !escape) {
@@ -264,7 +269,7 @@ void FitsFile::loadHeadFile() {
     return;
   }
 
-  auto          hdu_iter = m_image_hdus.begin();
+  auto hdu_iter = m_image_hdus.begin();
   std::ifstream file;
 
   // open the file and check
@@ -273,6 +278,11 @@ void FitsFile::loadHeadFile() {
     throw Elements::Exception() << "Cannot load ascii header file: " << head_filename;
   }
 
+  logger.info() << "Loading .head file: " << head_filename << " for fits: " << m_path;
+
+  int headers_nb = 0;
+  int hdu_nb = 0;
+  bool is_new_hdu = true;
   while (file.good() && hdu_iter != m_image_hdus.end()) {
     int current_hdu = *hdu_iter;
 
@@ -287,6 +297,7 @@ void FitsFile::loadHeadFile() {
 
     if (boost::to_upper_copy(line) == "END") {
       current_hdu = *(++hdu_iter);
+      is_new_hdu = true;
     } else {
       static boost::regex regex("([^=]{1,8})=([^\\/]*)(\\/ (.*))?");
       boost::smatch       sub_matches;
@@ -298,9 +309,16 @@ void FitsFile::loadHeadFile() {
         boost::trim(value);
         boost::trim(comment);
         m_headers.at(current_hdu - 1)[keyword] = MetadataEntry{valueAutoCast(value), {{"comment", comment}}};
-        ;
+        headers_nb++;
+        if (is_new_hdu) {
+          hdu_nb++;
+          is_new_hdu = false;
+        }
       }
     }
+  }
+  if (headers_nb > 0) {
+    logger.info() << "Headers overriden: " << headers_nb << " in " << hdu_nb << " hdu(s)";
   }
 }
 
