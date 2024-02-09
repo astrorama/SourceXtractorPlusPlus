@@ -9,15 +9,27 @@
 #define _SEIMPLEMENTATION_GROUPING_MOFFATGROUPING_H_
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
+#include "SEUtils/QuadTree.h"
 
 #include <map>
+#include <vector>
+#include <functional>
 
 namespace SourceXtractor {
 
 class MoffatGrouping : public SourceGroupingInterface {
 public:
+  struct SourceInfo {
+    std::unique_ptr<SourceInterface> m_source;
+    double m_x, m_y;
+    size_t m_group_id;
+  };
 
-  MoffatGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit, float max_range);
+  using Group = std::vector<std::shared_ptr<SourceInfo>>;
+
+  MoffatGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
+      std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit, float max_range);
+  virtual ~MoffatGrouping() = default;
 
   std::set<PropertyId> requiredProperties() const override;
 
@@ -28,16 +40,14 @@ public:
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:
+  std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_group_factory;
-  std::map<unsigned int, std::unique_ptr<SourceGroupInterface>> m_source_groups;
   unsigned int m_hard_limit;
   float m_max_range;
 
-  struct GridCoord {
-    int x, y;
-  };
-
-  std::map<GridCoord, std::vector<std::unique_ptr<SourceGroupInterface>>> m_groups;
+  size_t m_group_counter;
+  std::map<unsigned int, std::shared_ptr<Group>> m_groups;
+  QuadTree<std::shared_ptr<SourceInfo>> m_tree;
 };
 
 }

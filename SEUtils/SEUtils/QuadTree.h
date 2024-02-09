@@ -8,17 +8,17 @@
 #ifndef _SEUTILS_QUADTREE_H_
 #define _SEUTILS_QUADTREE_H_
 
-
 #include <vector>
 #include <memory>
-#include <algorithm>
 
 namespace SourceXtractor {
 
-template <typename T, size_t N = 100>
-struct QuadTreeTraits;
+template <typename T>
+struct QuadTreeTraits {
+  static double getCoord(const T& t, size_t index);
+};
 
-template<typename T, size_t N = 100>
+template<typename T>
 class QuadTree {
 public:
   using Traits = QuadTreeTraits<T>;
@@ -27,19 +27,29 @@ public:
     double x, y;
   };
 
-  void add(T&& data);
+  QuadTree(size_t capacity=100);
+  QuadTree(const QuadTree& tree);
+
+  void add(const T& data);
+  void remove(const T& data);
+  std::vector<T> getPointsWithinRange(Coord c, double range) const;
 
 private:
-  class Node;
-  class Branch;
-  class Leaf;
+  void addLocally(const T& data);
+  void split();
+  void expand(Coord c);
+  size_t getQuadrant(Coord c) const;
+  bool isContained(Coord c) const;
 
-  std::shared_ptr<Node> m_root;
-};
+  Coord getQuadrantMin(size_t quadrant) const;
+  Coord getQuadrantMax(size_t quadrant) const;
 
-template <typename T, size_t N>
-struct QuadTreeTraits {
-  static typename QuadTree<T, N>::Coord getCoord(const T& t);
+  size_t m_capacity;
+
+  bool m_is_divided;
+  Coord m_min, m_max;
+  std::vector<T> m_data;
+  std::shared_ptr<QuadTree<T>> m_sub_trees[4];
 };
 
 }

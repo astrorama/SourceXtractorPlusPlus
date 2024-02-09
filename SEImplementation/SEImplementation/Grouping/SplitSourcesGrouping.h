@@ -28,6 +28,7 @@ class SplitSourcesGrouping : public SourceGroupingInterface {
 public:
 
   SplitSourcesGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit);
+  virtual ~SplitSourcesGrouping() = default;
 
   std::set<PropertyId> requiredProperties() const override;
 

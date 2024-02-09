@@ -19,6 +19,7 @@
 
 #include "SEImplementation/Grouping/SplitSourcesGrouping.h"
 #include "SEImplementation/Grouping/AssocGrouping.h"
+#include "SEImplementation/Grouping/MoffatGrouping.h"
 
 namespace SourceXtractor {
 
@@ -62,6 +63,10 @@ std::shared_ptr<SourceGroupingInterface> GroupingFactory::createGrouping() const
       return std::make_shared<SplitSourcesGrouping>(m_source_group_factory, m_hard_limit);
     case GroupingConfig::Algorithm::ASSOC:
       return std::make_shared<AssocGrouping>(m_source_group_factory, m_hard_limit);
+    case GroupingConfig::Algorithm::MOFFAT:
+      //m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
+      return std::make_shared<MoffatGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit, 500); // FIXME!!!!!!!!!!!!! hardcoded
+      break;
     default:
       return std::make_shared<SourceGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit);
   }

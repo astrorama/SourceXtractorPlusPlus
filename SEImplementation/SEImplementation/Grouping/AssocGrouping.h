@@ -28,6 +28,7 @@ class AssocGrouping : public SourceGroupingInterface {
 public:
 
   AssocGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit);
+  virtual ~AssocGrouping() = default;
 
   std::set<PropertyId> requiredProperties() const override;
 
