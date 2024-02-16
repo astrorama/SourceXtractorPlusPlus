@@ -109,6 +109,24 @@ void FlexibleModelFittingPlugin::registerPlugin(PluginAPI& plugin_api) {
             "Meta-iterations"
     );
 
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, std::vector<SeFloat>>(
+            "fmf_fitting_areas_x",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getFittingAreasX();
+            },
+            "",
+            "Fitting areas X"
+    );
+
+  plugin_api.getOutputRegistry().registerColumnConverter<FlexibleModelFitting, std::vector<SeFloat>>(
+            "fmf_fitting_areas_y",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getFittingAreasY();
+            },
+            "",
+            "Fitting areas Y"
+    );
+
   plugin_api.getOutputRegistry().enableOutput<FlexibleModelFitting>("FlexibleModelFitting");
 }
 
