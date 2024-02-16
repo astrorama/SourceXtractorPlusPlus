@@ -67,8 +67,8 @@ private:
     unsigned int stop_reason;
     std::vector<SeFloat> chi_squared_per_meta;
     std::vector<int> iterations_per_meta;
-    std::vector<SeFloat> fitting_aeras_x;
-    std::vector<SeFloat> fitting_aeras_y;
+    std::vector<SeFloat> fitting_areas_x;
+    std::vector<SeFloat> fitting_areas_y;
   };
 
   struct FittingState {
