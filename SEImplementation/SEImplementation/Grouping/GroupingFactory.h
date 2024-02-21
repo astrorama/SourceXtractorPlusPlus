@@ -59,6 +59,7 @@ private:
   std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_source_group_factory;
   unsigned int m_hard_limit;
+  double m_moffat_max_distance;
 };
 
 } /* namespace SourceXtractor */

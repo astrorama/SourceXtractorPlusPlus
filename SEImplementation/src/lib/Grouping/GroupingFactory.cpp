@@ -24,7 +24,8 @@
 namespace SourceXtractor {
 
 GroupingFactory::GroupingFactory(std::shared_ptr<SourceGroupFactory> source_group_factory)
-  : m_source_group_factory(source_group_factory), m_hard_limit(0) {}
+  : m_algorithm(GroupingConfig::Algorithm::NO_GROUPING), m_source_group_factory(source_group_factory),
+    m_hard_limit(0), m_moffat_max_distance(1000.0) {}
 
 void GroupingFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<GroupingConfig>();
@@ -33,6 +34,7 @@ void GroupingFactory::reportConfigDependencies(Euclid::Configuration::ConfigMana
 void GroupingFactory::configure(Euclid::Configuration::ConfigManager& manager)  {
   auto grouping_config = manager.getConfiguration<GroupingConfig>();
   m_algorithm = grouping_config.getAlgorithmOption();
+  m_moffat_max_distance = grouping_config.getMoffatMaxDistance();
   switch (m_algorithm) {
     case GroupingConfig::Algorithm::NO_GROUPING:
       m_grouping_criteria = std::make_shared<NoGroupingCriteria>();
@@ -44,7 +46,7 @@ void GroupingFactory::configure(Euclid::Configuration::ConfigManager& manager)  
       m_grouping_criteria = std::make_shared<SplitSourcesCriteria>();
       break;
     case GroupingConfig::Algorithm::MOFFAT:
-      m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
+      m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), m_moffat_max_distance);
       break;
     case GroupingConfig::Algorithm::ASSOC:
       m_grouping_criteria = std::make_shared<AssocCriteria>();
@@ -64,8 +66,8 @@ std::shared_ptr<SourceGroupingInterface> GroupingFactory::createGrouping() const
     case GroupingConfig::Algorithm::ASSOC:
       return std::make_shared<AssocGrouping>(m_source_group_factory, m_hard_limit);
     case GroupingConfig::Algorithm::MOFFAT:
-      //m_grouping_criteria = std::make_shared<MoffatCriteria>(grouping_config.getMoffatThreshold(), grouping_config.getMoffatMaxDistance());
-      return std::make_shared<MoffatGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit, 500); // FIXME!!!!!!!!!!!!! hardcoded
+      return std::make_shared<MoffatGrouping>(
+          m_grouping_criteria, m_source_group_factory, m_hard_limit, m_moffat_max_distance);
       break;
     default:
       return std::make_shared<SourceGrouping>(m_grouping_criteria, m_source_group_factory, m_hard_limit);

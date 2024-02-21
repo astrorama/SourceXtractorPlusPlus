@@ -1,4 +1,4 @@
-/** Copyright © 2021-2023 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019-2024 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -78,16 +78,31 @@ void QuadTree<T>::remove(const T& data) {
 
 template<typename T>
 std::vector<T> QuadTree<T>::getPointsWithinRange(Coord c, double range) const {
+  auto range_sq = range * range;
   if (m_is_divided) {
     std::vector<T> points;
     for (int i=0; i<4; i++) {
-      // FIXME only if overlap
-      auto subtree_points = m_sub_trees[i]->getPointsWithinRange(c, range);
-      points.insert(points.end(), subtree_points.begin(), subtree_points.end());
+      if (m_sub_trees[i] != nullptr) {
+        // compare range with distance to closest corner of subtree
+        auto dx_sq = std::min((c.x - m_sub_trees[i]->m_min.x) * (c.x - m_sub_trees[i]->m_min.x),
+            (c.x - m_sub_trees[i]->m_max.x) * (c.x - m_sub_trees[i]->m_max.x));
+        auto dy_sq = std::min((c.y - m_sub_trees[i]->m_min.y) * (c.y - m_sub_trees[i]->m_min.y),
+            (c.y - m_sub_trees[i]->m_max.y) * (c.y - m_sub_trees[i]->m_max.y));
+        if (dx_sq + dy_sq <= range_sq) {
+          auto subtree_points = m_sub_trees[i]->getPointsWithinRange(c, range);
+          points.insert(points.end(), subtree_points.begin(), subtree_points.end());
+        }
+      }
     }
     return points;
   } else {
-    return m_data;
+    std::vector<T> points;
+    std::copy_if(m_data.begin(), m_data.end(), std::back_inserter(points),
+        [c, range_sq](const T& point) {
+          auto pc = Coord { Traits::getCoord(point, 0), Traits::getCoord(point, 1) };
+          return (pc.x - c.x) * (pc.x - c.x) + (pc.y - c.y) * (pc.y - c.y) <= range_sq;
+        });
+     return points;
   }
 }
 
@@ -144,6 +159,11 @@ void QuadTree<T>::expand(Coord c) {
 
   auto quad = getQuadrant({ (clone->m_min.x + clone->m_max.x) / 2.0, (clone->m_min.y + clone->m_max.y) / 2.0 });
   m_sub_trees[quad] = clone;
+  for (size_t i=0; i<4; i++) {
+    if (i != quad) {
+      m_sub_trees[i] = nullptr;
+    }
+  }
 }
 
 template<typename T>
