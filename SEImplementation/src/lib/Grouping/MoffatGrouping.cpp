@@ -61,6 +61,7 @@ void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
 
   // Encapsulates the source unique_ptr
   auto& centroid = source->getProperty<PixelCentroid>();
+
   auto source_info = std::make_shared<SourceInfo>();
   source_info->m_source = std::move(source);
   source_info->m_x = centroid.getCentroidX();
@@ -68,6 +69,7 @@ void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
   source_info->m_group_id = m_group_counter++;
 
   auto group = std::make_shared<Group>();
+  group->push_back(source_info);
   m_groups[source_info->m_group_id] = group;
 
   // Find sources within range
@@ -87,6 +89,10 @@ void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
     // merge group
     group->insert(group->end(), m_groups.at(group_id)->begin(), m_groups.at(group_id)->end());
     m_groups.erase(group_id);
+  }
+
+  for (auto& s : *group) {
+    s->m_group_id = source_info->m_group_id;
   }
 
   // Add source to the Quad Tree
@@ -118,7 +124,7 @@ void MoffatGrouping::receiveProcessSignal(const ProcessSourcesEvent& event) {
       m_tree.remove(source_info);
     }
 
-    //sendSource(std::move(m_source_groups[group_id]));
+    sendSource(std::move(new_group));
     m_groups.erase(group_id);
   }
 }
