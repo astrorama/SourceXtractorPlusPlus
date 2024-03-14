@@ -38,7 +38,7 @@ void AssocGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
     m_source_groups[source_id] = std::move(new_group);
   }
 
-  if (m_source_groups.at(source_id)->size() >= m_hard_limit) {
+  if (m_hard_limit > 0 && m_source_groups.at(source_id)->size() >= m_hard_limit) {
     // the stored group has reached the hard limit
     // send the current group to processing
     sendSource(std::move(m_source_groups.at(source_id)));
