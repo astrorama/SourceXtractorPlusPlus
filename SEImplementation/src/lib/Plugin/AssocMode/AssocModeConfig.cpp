@@ -106,6 +106,8 @@ AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m
     m_assoc_radius(0.), m_default_pixel_size(10), m_pixel_size_column(-1), m_group_id_column(-1) {
   declareDependency<DetectionImageConfig>();
   declareDependency<PartitionStepConfig>();
+
+  // this is used to enforce the order the PartitionSteps are added and performed
   ConfigManager::getInstance(manager_id).registerDependency<AssocModeConfig, MultiThresholdPartitionConfig>();
 }
 
