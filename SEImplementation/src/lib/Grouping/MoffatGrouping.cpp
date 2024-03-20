@@ -86,9 +86,14 @@ void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
 
   // merge groups and keep the new group
   for (auto group_id : matching_groups) {
-    // merge group
-    group->insert(group->end(), m_groups.at(group_id)->begin(), m_groups.at(group_id)->end());
-    m_groups.erase(group_id);
+    if (m_hard_limit > 0 && m_groups.at(group_id)->size() + group->size() > m_hard_limit) {
+      // if we have a hard limit and the group is too large to merge, just process it
+      processGroup(group_id);
+    } else {
+      // merge group
+      group->insert(group->end(), m_groups.at(group_id)->begin(), m_groups.at(group_id)->end());
+      m_groups.erase(group_id);
+    }
   }
 
   for (auto& s : *group) {
@@ -116,17 +121,21 @@ void MoffatGrouping::receiveProcessSignal(const ProcessSourcesEvent& event) {
 
   // For each SourceGroup that we put in groups_to_process,
   for (auto group_id : groups_to_process) {
-    // we remove it from our list of stored SourceGroups and notify our observers
-    auto new_group = m_group_factory->createSourceGroup();
-
-    for (auto& source_info : *m_groups.at(group_id)) {
-      new_group->addSource(std::move(source_info->m_source));
-      m_tree.remove(source_info);
-    }
-
-    sendSource(std::move(new_group));
-    m_groups.erase(group_id);
+    processGroup(group_id);
   }
+}
+
+void MoffatGrouping::processGroup(unsigned int group_id) {
+  // we remove it from our list of stored SourceGroups and notify our observers
+  auto new_group = m_group_factory->createSourceGroup();
+
+  for (auto& source_info : *m_groups.at(group_id)) {
+    new_group->addSource(std::move(source_info->m_source));
+    m_tree.remove(source_info);
+  }
+
+  sendSource(std::move(new_group));
+  m_groups.erase(group_id);
 }
 
 } // SourceXtractor namespace

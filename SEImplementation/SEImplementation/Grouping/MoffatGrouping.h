@@ -50,6 +50,8 @@ public:
   void receiveProcessSignal(const ProcessSourcesEvent& event) override;
 
 private:
+  void processGroup(unsigned int group_id);
+
   std::shared_ptr<GroupingCriteria> m_grouping_criteria;
   std::shared_ptr<SourceGroupFactory> m_group_factory;
   unsigned int m_hard_limit;
