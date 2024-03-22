@@ -24,6 +24,8 @@
 #ifndef _SEIMPLEMENTATION_PARTITION_MULTITHRESHOLDPARTITIONSTEP_H_
 #define _SEIMPLEMENTATION_PARTITION_MULTITHRESHOLDPARTITIONSTEP_H_
 
+#include <boost/random.hpp>
+
 #include "SEUtils/Types.h"
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -48,7 +50,7 @@ class MultiThresholdPartitionStep : public PartitionStep {
 public:
 
   MultiThresholdPartitionStep(std::shared_ptr<SourceFactory> source_factory, SeFloat contrast,
-      unsigned int thresholds_nb, unsigned int min_deblend_area);
+      unsigned int thresholds_nb, unsigned int min_deblend_area, unsigned int seed);
 
   virtual ~MultiThresholdPartitionStep() = default;
 
@@ -67,6 +69,8 @@ private:
   SeFloat m_contrast;
   unsigned int m_thresholds_nb;
   unsigned int m_min_deblend_area;
+  unsigned int m_seed;
+  boost::random::mt19937 m_rng;
 };
 
 
