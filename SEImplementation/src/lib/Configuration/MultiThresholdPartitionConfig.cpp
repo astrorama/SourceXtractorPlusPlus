@@ -24,6 +24,7 @@
 #include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 
 #include "SEImplementation/Partition/MultiThresholdPartitionStep.h"
 
@@ -39,7 +40,9 @@ static const std::string MTHRESH_MIN_CONTRAST {"partition-minimum-contrast"};
 
 MultiThresholdPartitionConfig::MultiThresholdPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();
+  declareDependency<DetectionFrameConfig>();
 
+  // this is used to enforce the order the PartitionSteps are added and performed
   ConfigManager::getInstance(manager_id).registerDependency<MultiThresholdPartitionConfig, MinAreaPartitionConfig>();
 }
 
@@ -53,23 +56,26 @@ auto MultiThresholdPartitionConfig::getProgramOptions() -> std::map<std::string,
 }
 
 void MultiThresholdPartitionConfig::initialize(const UserValues& args) {
-  if (args.at(MTHRESH_USE).as<bool>()) {
-    auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<int>();
-    auto min_area = args.at(MTHRESH_MIN_AREA).as<int>();
-    auto min_contrast = args.at(MTHRESH_MIN_CONTRAST).as<double>();
+  // We can only use this if we have a detection image and it was on by default
+  if (getDependency<DetectionFrameConfig>().getDetectionFrames().size() > 0) {
+    if (args.at(MTHRESH_USE).as<bool>()) {
+      auto threshold_nb = args.at(MTHRESH_THRESHOLDS_NB).as<int>();
+      auto min_area = args.at(MTHRESH_MIN_AREA).as<int>();
+      auto min_contrast = args.at(MTHRESH_MIN_CONTRAST).as<double>();
 
-    if (min_area <= 0) {
-        throw Elements::Exception() << "Invalid " << MTHRESH_MIN_AREA << " value: " << min_area;
-    }
-    if (threshold_nb <= 0) {
-        throw Elements::Exception() << "Invalid " << MTHRESH_THRESHOLDS_NB << " value: " << threshold_nb;
-    }
-
-    getDependency<PartitionStepConfig>().addPartitionStepCreator(
-      [=](std::shared_ptr<SourceFactory> source_factory) {
-        return std::make_shared<MultiThresholdPartitionStep>(source_factory, min_contrast, threshold_nb, min_area);
+      if (min_area <= 0) {
+          throw Elements::Exception() << "Invalid " << MTHRESH_MIN_AREA << " value: " << min_area;
       }
-    );
+      if (threshold_nb <= 0) {
+          throw Elements::Exception() << "Invalid " << MTHRESH_THRESHOLDS_NB << " value: " << threshold_nb;
+      }
+
+      getDependency<PartitionStepConfig>().addPartitionStepCreator(
+        [=](std::shared_ptr<SourceFactory> source_factory) {
+          return std::make_shared<MultiThresholdPartitionStep>(source_factory, min_contrast, threshold_nb, min_area);
+        }
+      );
+    }
   }
 }
 
