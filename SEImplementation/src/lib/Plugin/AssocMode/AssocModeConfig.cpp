@@ -153,16 +153,16 @@ void AssocModeConfig::initialize(const UserValues& args) {
   }
 
   // sanity check that the configuration is coherent
-  checkConfig();
 
   // read the catalogs
   if (m_filename != "") {
+    checkConfig();
     readCatalogs(m_filename, m_columns, m_assoc_coord_type);
-  }
 
-  if (args.at(ASSOC_TEST).as<bool>()) {
-    printConfig();
-    throw Elements::Exception() << "Exiting by user request";
+    if (args.at(ASSOC_TEST).as<bool>()) {
+      printConfig();
+      throw Elements::Exception() << "Exiting by user request";
+    }
   }
 }
 

@@ -454,6 +454,14 @@ public:
       }
     } else {
       // Running detection-less
+
+      auto assoc_mode_config = config_manager.getConfiguration<AssocModeConfig>();
+      if (assoc_mode_config.getCatalogs().size() < 1) {
+        logger.error() << "No detection image and no assoc catalog";
+        measurement->stopThreads();
+        return Elements::ExitCode::NOT_OK;
+      }
+
       try {
         // Process the catalog
         logger.info() << "Processing assoc catalog (no detection image)\n";
