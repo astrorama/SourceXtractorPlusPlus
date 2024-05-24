@@ -4,5 +4,6 @@ $PYTHON-numpy
 $PYTHON-pip
 $PYTHON-psutil
 $PYTHON-pytest
+$PYTHON-lxml
 git
 git-lfs
