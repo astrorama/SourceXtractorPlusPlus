@@ -22,6 +22,7 @@
 #include "SEImplementation/Configuration/AttractorsPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 
 #include "SEImplementation/Partition/AttractorsPartitionStep.h"
 
@@ -34,8 +35,10 @@ static const std::string USE_ATTRACTORS_PARTITION {"use-attractors-partition"};
 
 AttractorsPartitionConfig::AttractorsPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();
-  ConfigManager::getInstance(manager_id).registerDependency<AttractorsPartitionConfig, MinAreaPartitionConfig>();
+  declareDependency<DetectionFrameConfig>();
 
+  // this is used to enforce the order the PartitionSteps are added and performed
+  ConfigManager::getInstance(manager_id).registerDependency<AttractorsPartitionConfig, MinAreaPartitionConfig>();
 }
 
 auto AttractorsPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
@@ -46,12 +49,14 @@ auto AttractorsPartitionConfig::getProgramOptions() -> std::map<std::string, Opt
 }
 
 void AttractorsPartitionConfig::initialize(const UserValues& args) {
-  if (args.at(USE_ATTRACTORS_PARTITION).as<bool>()) {
-    getDependency<PartitionStepConfig>().addPartitionStepCreator(
-            [](std::shared_ptr<SourceFactory> source_factory) {
-              return std::make_shared<AttractorsPartitionStep>(source_factory);
-            }
-    );
+  if (getDependency<DetectionFrameConfig>().getDetectionFrames().size() > 0) {
+    if (args.at(USE_ATTRACTORS_PARTITION).as<bool>()) {
+      getDependency<PartitionStepConfig>().addPartitionStepCreator(
+              [](std::shared_ptr<SourceFactory> source_factory) {
+                return std::make_shared<AttractorsPartitionStep>(source_factory);
+              }
+      );
+    }
   }
 }
 

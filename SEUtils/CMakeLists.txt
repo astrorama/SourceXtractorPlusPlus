@@ -63,6 +63,9 @@ elements_add_unit_test(NumericalDerivative_test tests/src/NumericalDerivative_te
 elements_add_unit_test(Misc_test tests/src/Misc_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
+elements_add_unit_test(QuadTree_test tests/src/QuadTree_test.cpp
+                     LINK_LIBRARIES SEUtils
+                     TYPE Boost)
 
 if(GMOCK_FOUND)
 elements_add_unit_test(Observable_test tests/src/Observable_test.cpp
