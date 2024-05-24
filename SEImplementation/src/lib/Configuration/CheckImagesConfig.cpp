@@ -87,7 +87,7 @@ std::map<std::string, Configuration::OptionDescriptionList> CheckImagesConfig::g
         "Path to save the PSF check image"},
       {CHECK_ML_DETECTION.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the ML detection check images"}
-  }}, {"Debug options (Use with caution!)", {
+      }}, {"Debug options (Use with caution!)", {
       {CHECK_MOFFAT.c_str(), po::value<std::string>()->default_value(""),
         "Path to save the moffat debug image (VERY SLOW)"}
   }}};
