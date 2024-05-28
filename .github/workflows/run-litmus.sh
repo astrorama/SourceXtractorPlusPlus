@@ -6,6 +6,8 @@ TARGET_BRANCH=${GITHUB_BASE_REF:-$GITHUB_REF}
 # In the case of pull requests, this is the origin branch
 ORIGIN_BRANCH=${GITHUB_HEAD_REF:-$GITHUB_REF}
 
+GIT_CLONE_PROTECTION_ACTIVE=false
+
 # Platform-specific configuration
 source /etc/os-release
 
