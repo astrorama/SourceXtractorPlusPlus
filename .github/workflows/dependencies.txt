@@ -2,6 +2,7 @@ $PYTHON-devel
 $PYTHON-numpy
 $PYTHON-pytest
 $PYTHON-sphinx
+$PYTHON-distutils
 CCfits-devel
 blas-devel
 $BOOST-$PYTHON-devel
