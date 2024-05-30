@@ -27,6 +27,7 @@
 #include <memory>
 #include <set>
 
+#include "SEFramework/Property/PropertyId.h"
 #include "SEFramework/Pipeline/PipelineStage.h"
 #include "SEFramework/Source/SourceGroupFactory.h"
 #include "SEFramework/Source/SourceGroupInterface.h"
@@ -81,6 +82,12 @@ public:
   virtual std::set<PropertyId> requiredProperties() const { return {}; }
 };
 
+class SourceGroupingInterface : public PipelineEmitter<SourceGroupInterface>, public PipelineReceiver<SourceInterface> {
+public:
+  /// Returns the set of required properties to compute the grouping
+  virtual std::set<PropertyId> requiredProperties() const = 0;
+};
+
 /**
  * @class SourceGrouping
  * @brief SourceGrouping takes Source, groups them together according to its GroupingCriteria and stores them.
@@ -88,7 +95,7 @@ public:
  *  sources they are grouped with as a SourceGroup.
  *
  */
-class SourceGrouping : public PipelineEmitter<SourceGroupInterface>, public PipelineReceiver<SourceInterface> {
+class SourceGrouping : public SourceGroupingInterface {
 public:
 
   /**
@@ -101,7 +108,7 @@ public:
                  unsigned int hard_limit);
 
   /// Returns the set of required properties to compute the grouping
-  std::set<PropertyId> requiredProperties() const;
+  std::set<PropertyId> requiredProperties() const override;
 
   /// Handles a new Source
   void receiveSource(std::unique_ptr<SourceInterface> source) override;

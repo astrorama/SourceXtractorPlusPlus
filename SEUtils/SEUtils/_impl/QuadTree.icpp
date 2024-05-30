@@ -1,0 +1,203 @@
+/** Copyright © 2019-2024 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ *
+ * This library is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Lesser General Public License as published by the Free
+ * Software Foundation; either version 3.0 of the License, or (at your option)
+ * any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+ */
+
+#include <cassert>
+#include <algorithm> // For std::find
+
+namespace SourceXtractor {
+
+template<typename T>
+QuadTree<T>::QuadTree(size_t capacity) : m_capacity(capacity), m_is_divided(false) {
+}
+
+template<typename T>
+QuadTree<T>::QuadTree(const QuadTree& tree) {
+  m_capacity = tree.m_capacity;
+  m_is_divided = tree.m_is_divided;
+  m_min = tree.m_min;
+  m_max = tree.m_max;
+  m_data = tree.m_data;
+  for (int i = 0; i<4; i++) {
+    m_sub_trees[i] = tree.m_sub_trees[i];
+  }
+}
+
+template<typename T>
+void QuadTree<T>::add(const T& data) {
+  if (m_is_divided) {
+    auto c = Coord { Traits::getCoord(data, 0), Traits::getCoord(data, 1) };
+
+    while (!isContained(c)) {
+      expand(c);
+    }
+
+    auto quad = getQuadrant(c);
+    if (m_sub_trees[quad] == nullptr) {
+      m_sub_trees[quad] = std::make_shared<QuadTree>(m_capacity);
+      m_sub_trees[quad]->m_min = getQuadrantMin(quad);
+      m_sub_trees[quad]->m_max = getQuadrantMax(quad);
+    }
+    m_sub_trees[quad]->add(data);
+  } else {
+    addLocally(data);
+    if (m_data.size() >= m_capacity) {
+      split();
+    }
+  }
+}
+
+template<typename T>
+void QuadTree<T>::remove(const T& data) {
+  if (m_is_divided) {
+    auto c = Coord { Traits::getCoord(data, 0), Traits::getCoord(data, 1) };
+    auto quad = getQuadrant(c);
+    if (m_sub_trees[quad] != nullptr) {
+      m_sub_trees[quad]->remove(data);
+    }
+  } else {
+    auto it = std::find(m_data.begin(), m_data.end(), data);
+    if (it != m_data.end()) {
+        m_data.erase(it);
+    }
+  }
+}
+
+template<typename T>
+std::vector<T> QuadTree<T>::getPointsWithinRange(Coord c, double range) const {
+  auto range_sq = range * range;
+  if (m_is_divided) {
+    std::vector<T> points;
+    for (int i=0; i<4; i++) {
+      if (m_sub_trees[i] != nullptr) {
+        // compare range with distance to closest corner of subtree
+        auto dx_sq = std::min((c.x - m_sub_trees[i]->m_min.x) * (c.x - m_sub_trees[i]->m_min.x),
+            (c.x - m_sub_trees[i]->m_max.x) * (c.x - m_sub_trees[i]->m_max.x));
+        auto dy_sq = std::min((c.y - m_sub_trees[i]->m_min.y) * (c.y - m_sub_trees[i]->m_min.y),
+            (c.y - m_sub_trees[i]->m_max.y) * (c.y - m_sub_trees[i]->m_max.y));
+        if (dx_sq + dy_sq <= range_sq) {
+          auto subtree_points = m_sub_trees[i]->getPointsWithinRange(c, range);
+          points.insert(points.end(), subtree_points.begin(), subtree_points.end());
+        }
+      }
+    }
+    return points;
+  } else {
+    std::vector<T> points;
+    std::copy_if(m_data.begin(), m_data.end(), std::back_inserter(points),
+        [c, range_sq](const T& point) {
+          auto pc = Coord { Traits::getCoord(point, 0), Traits::getCoord(point, 1) };
+          return (pc.x - c.x) * (pc.x - c.x) + (pc.y - c.y) * (pc.y - c.y) <= range_sq;
+        });
+     return points;
+  }
+}
+
+template<typename T>
+void QuadTree<T>::addLocally(const T& data) {
+  assert(!m_is_divided);
+
+  auto c = Coord { Traits::getCoord(data, 0), Traits::getCoord(data, 1) };
+
+  if (m_data.empty()) {
+    m_min.x = m_max.x = c.x;
+    m_min.y = m_max.y = c.y;
+  } else {
+    m_min.x = std::min(m_min.x, c.x);
+    m_min.y = std::min(m_min.y, c.y);
+    m_max.x = std::max(m_max.x, c.x);
+    m_max.y = std::max(m_max.y, c.y);
+  }
+
+  m_data.push_back(data);
+}
+
+template<typename T>
+void QuadTree<T>::split() {
+  assert(!m_is_divided);
+
+  m_is_divided = true;
+  // expands to a square
+  m_max.x = std::max(m_max.x, m_min.x + (m_max.y - m_min.y));
+  m_max.y = std::max(m_max.y, m_min.y + (m_max.x - m_min.x));
+
+  for (auto& d : m_data) {
+    add(d);
+  }
+  m_data.clear();
+}
+
+template<typename T>
+void QuadTree<T>::expand(Coord c) {
+  assert(m_is_divided && !isContained(c));
+
+  auto clone = std::make_shared<QuadTree<T>>(*this);
+
+  if (c.x < m_min.x) {
+    m_min.x -= (m_max.x - m_min.x);
+  } else {
+    m_max.x += (m_max.x - m_min.x);
+  }
+  if (c.y < m_min.y) {
+    m_min.y -= (m_max.y - m_min.y);
+  } else {
+    m_max.y += (m_max.y - m_min.y);
+  }
+
+  auto quad = getQuadrant({ (clone->m_min.x + clone->m_max.x) / 2.0, (clone->m_min.y + clone->m_max.y) / 2.0 });
+  m_sub_trees[quad] = clone;
+  for (size_t i=0; i<4; i++) {
+    if (i != quad) {
+      m_sub_trees[i] = nullptr;
+    }
+  }
+}
+
+template<typename T>
+size_t QuadTree<T>::getQuadrant(Coord c) const {
+  size_t quadrant = 0;
+  if (c.x >= (m_min.x + m_max.x) / 2.0) {
+    quadrant += 1;
+  }
+  if (c.y >= (m_min.y + m_max.y) / 2.0) {
+    quadrant += 2;
+  }
+  return quadrant;
+}
+
+template<typename T>
+bool QuadTree<T>::isContained(Coord c) const {
+  return c.x >= m_min.x && c.x <= m_max.x && c.y >= m_min.y && c.y <= m_max.y;
+}
+
+template<typename T>
+typename QuadTree<T>::Coord QuadTree<T>::getQuadrantMin(size_t quadrant) const {
+  return {
+    quadrant & 1 ? (m_max.x + m_min.x) / 2.0 : m_min.x,
+    quadrant & 2 ? (m_max.y + m_min.y) / 2.0 : m_min.y
+  };
+}
+
+template<typename T>
+typename QuadTree<T>::Coord QuadTree<T>::getQuadrantMax(size_t quadrant) const {
+  return {
+    quadrant & 1 ? m_max.x : (m_max.x + m_min.x) / 2.0,
+    quadrant & 2 ? m_max.y : (m_max.y + m_min.y) / 2.0
+  };
+}
+
+
+}

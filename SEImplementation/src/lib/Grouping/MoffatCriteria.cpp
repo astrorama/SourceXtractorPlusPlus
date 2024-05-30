@@ -43,7 +43,7 @@ bool MoffatCriteria::doesImpact(const SourceInterface& impactor, const SourceInt
 
   auto dx = centroid.getCentroidX() - other_centroid.getCentroidX();
   auto dy = centroid.getCentroidY() - other_centroid.getCentroidY();
-  if (dx*dx + dy*dy > m_max_distance * m_max_distance ) {
+  if (dx*dx + dy*dy > m_max_distance * m_max_distance) {
     return false;
   }
 
