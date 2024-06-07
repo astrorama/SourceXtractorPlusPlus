@@ -105,6 +105,9 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
     }
   } catch (PropertyNotFoundException& e) {
     // In no detection image mode we can't get flags from the detection image
+      for (size_t i = 0; i < m_apertures.size(); ++i) {
+        flags[i] |= additional_flags;
+      }
   }
 
   // set the source properties
