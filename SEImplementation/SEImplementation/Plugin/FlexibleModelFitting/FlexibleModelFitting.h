@@ -47,7 +47,9 @@ public:
                        std::unordered_map<int, double> parameter_sigmas,
                        std::vector<SeFloat> chi_squared_per_meta,
                        std::vector<int> iterations_per_meta,
-                       int meta_iterations) :
+                       int meta_iterations,
+                       std::vector<SeFloat> fitting_areas_x,
+                       std::vector<SeFloat> fitting_areas_y) :
     m_iterations(iterations),
     m_stop_reason(stop_reason),
     m_chi_squared(chi_squared),
@@ -57,7 +59,9 @@ public:
     m_parameter_sigmas(parameter_sigmas),
     m_chi_squared_per_meta(chi_squared_per_meta),
     m_iterations_per_meta(iterations_per_meta),
-    m_meta_iterations(meta_iterations)
+    m_meta_iterations(meta_iterations),
+    m_fitting_areas_x(fitting_areas_x),
+    m_fitting_areas_y(fitting_areas_y)
 {}
 
   unsigned int getIterations() const {
@@ -100,6 +104,14 @@ public:
     return m_meta_iterations;
   }
 
+  std::vector<SeFloat> getFittingAreasX() const {
+    return m_fitting_areas_x;
+  }
+
+  std::vector<SeFloat> getFittingAreasY() const {
+    return m_fitting_areas_y;
+  }
+
 private:
   unsigned int m_iterations, m_stop_reason;
   SeFloat m_chi_squared, m_duration;
@@ -110,6 +122,9 @@ private:
   std::vector<SeFloat> m_chi_squared_per_meta;
   std::vector<int> m_iterations_per_meta;
   int m_meta_iterations;
+
+  std::vector<SeFloat> m_fitting_areas_x;
+  std::vector<SeFloat> m_fitting_areas_y;
 };
 
 }

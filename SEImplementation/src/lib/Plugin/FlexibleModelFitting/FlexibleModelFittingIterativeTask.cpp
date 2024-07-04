@@ -204,6 +204,21 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
       // Make sure we have a default value for sigmas in case we cannot do the fit
       initial_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
     }
+
+    // Store fitting areas for later output
+    for (auto frame : m_frames) {
+      int frame_index = frame->getFrameNb();
+      // Validate that each frame covers the model fitting region
+      if (isFrameValid(source, frame_index)) {
+        auto stamp_rect = getFittingRect(source, frame_index);
+        initial_state.fitting_areas_x.push_back(stamp_rect.getWidth());
+        initial_state.fitting_areas_y.push_back(stamp_rect.getHeight());
+      } else {
+        initial_state.fitting_areas_x.push_back(-1.f);
+        initial_state.fitting_areas_y.push_back(-1.f);
+      }
+    }
+
     fitting_state.source_states.emplace_back(std::move(initial_state));
   }
 
@@ -263,7 +278,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
         source_state.reduced_chi_squared, source_state.duration, source_state.flags,
         source_state.parameters_values, source_state.parameters_sigmas,
         source_state.chi_squared_per_meta, source_state.iterations_per_meta,
-        meta_iterations);
+        meta_iterations, source_state.fitting_areas_x, source_state.fitting_areas_y);
 
     index++;
   }
