@@ -491,13 +491,6 @@ public:
     }
     measurement->stopThreads();
 
-    // Those check images can only be added AFTER the processing of the detection frames
-    for (auto& detection_frame : detection_frames) {
-      CheckImages::getInstance().addFilteredCheckImage(detection_frame->getFilteredImage());
-      CheckImages::getInstance().addThresholdedCheckImage(detection_frame->getThresholdedImage());
-      CheckImages::getInstance().addSnrCheckImage(detection_frame->getSnrImage());
-    }
-
     CheckImages::getInstance().saveImages();
     TileManager::getInstance()->flush();
     progress_mediator->done();

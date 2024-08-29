@@ -108,6 +108,9 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
     detection_frame->setHduIndex(i);
 
     CheckImages::getInstance().addVarianceCheckImage(detection_frame->getImage(FrameImageLayer::LayerVarianceMap));
+    CheckImages::getInstance().addFilteredCheckImage(detection_frame->getImage(FrameImageLayer::LayerFilteredImage));
+    CheckImages::getInstance().addThresholdedCheckImage(detection_frame->getImage(FrameImageLayer::LayerThresholdedImage));
+    CheckImages::getInstance().addSnrCheckImage(detection_frame->getImage(FrameImageLayer::LayerSignalToNoiseMap));
 
     m_frames.emplace_back(detection_frame);
   }
