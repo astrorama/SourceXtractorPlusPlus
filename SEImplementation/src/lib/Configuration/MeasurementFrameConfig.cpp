@@ -64,7 +64,7 @@ void MeasurementFrameConfig::initialize(const UserValues&) {
     }
 
     std::stringstream label;
-    label << boost::filesystem::basename(image_info.m_path) << "_" << image_info.m_image_hdu;
+    label << boost::filesystem::path(image_info.m_path).stem() << "_" << image_info.m_image_hdu;
     measurement_frame->setLabel(label.str());
 
     if (image_info.m_weight_image != nullptr) {

@@ -156,7 +156,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   const auto& frames = manager.getConfiguration<MeasurementFrameConfig>().getFrames();
   for (auto& info : measurement_images_info) {
     std::stringstream label;
-    label << boost::filesystem::basename(info.m_path) << "_" << info.m_image_hdu;
+    label << boost::filesystem::path(info.m_path).stem() << "_" << info.m_image_hdu;
     if (info.m_is_data_cube) {
       label << "_" << info.m_image_layer;
     }
