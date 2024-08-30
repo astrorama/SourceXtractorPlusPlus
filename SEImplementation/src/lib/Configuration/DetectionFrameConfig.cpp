@@ -62,7 +62,7 @@ void DetectionFrameConfig::initialize(const UserValues& ) {
     auto detection_frame = std::make_shared<DetectionImageFrame>(detection_image, weight_image,
         weight_threshold, detection_image_coordinate_system, detection_image_gain,
         detection_image_saturation, interpolation_gap);
-    detection_frame->setLabel(boost::filesystem::basename(detection_image_path));
+    detection_frame->setLabel(boost::filesystem::path(detection_image_path).stem().string());
 
     auto background_analyzer = getDependency<BackgroundAnalyzerFactory>().createBackgroundAnalyzer();
     auto background_model = background_analyzer->analyzeBackground(detection_frame->getOriginalImage(), weight_image,
