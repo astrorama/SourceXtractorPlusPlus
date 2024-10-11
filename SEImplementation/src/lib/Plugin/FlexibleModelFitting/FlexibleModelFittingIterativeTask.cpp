@@ -131,7 +131,7 @@ std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source,
       auto dy =  y - rect.getHeight() / 2.0;
       auto rad = std::min(rect.getWidth() / 2.0, rect.getHeight() / 2.0);
 
-      if (dx*dx + dy*dy > rad*rad && saturation > 0 && pixel_val > saturation) {
+      if (dx*dx + dy*dy > rad*rad || (saturation > 0 && pixel_val > saturation)) {
         weight->at(x, y) = 0;
       }
       else if (gain > 0.0 && pixel_val > 0.0) {
