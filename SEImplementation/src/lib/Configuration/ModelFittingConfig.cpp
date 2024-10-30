@@ -384,6 +384,7 @@ void ModelFittingConfig::initializeInner() {
   m_meta_iterations = py::extract<int>(parameters["meta_iterations"]);
   m_deblend_factor = py::extract<double>(parameters["deblend_factor"]);
   m_meta_iteration_stop = py::extract<double>(parameters["meta_iteration_stop"]);
+  m_window_type = static_cast<FlexibleModelFittingIterativeTask::WindowType>(static_cast<int>(py::extract<int>(parameters["window_type"])));
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

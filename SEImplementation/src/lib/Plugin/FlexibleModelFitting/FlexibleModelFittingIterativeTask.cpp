@@ -55,11 +55,16 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     int meta_iterations,
     double deblend_factor,
     double meta_iteration_stop,
-    size_t max_fit_size)
+    size_t max_fit_size,
+    WindowType window_type
+    )
     : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations),
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
-      m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors) {
+      m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
+      m_window_type(window_type) {
+
+  std::cout << "######## " << static_cast<int>(m_window_type);
 }
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
@@ -109,43 +114,6 @@ std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, i
   return image;
 }
 
-std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source, int frame_index) {
-  const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
-  auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
-  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
-  auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
-
-  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
-  SeFloat gain = frame_info.getGain();
-  SeFloat saturation = frame_info.getSaturation();
-
-  auto rect = getFittingRect(source, frame_index);
-  auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-
-  for (int y = 0; y < rect.getHeight(); y++) {
-    for (int x = 0; x < rect.getWidth(); x++) {
-      auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-
-      auto dx =  x - rect.getWidth() / 2.0;
-      auto dy =  y - rect.getHeight() / 2.0;
-      auto rad = std::min(rect.getWidth() / 2.0, rect.getHeight() / 2.0);
-
-      if (dx*dx + dy*dy > rad*rad || (saturation > 0 && pixel_val > saturation)) {
-        weight->at(x, y) = 0;
-      }
-      else if (gain > 0.0 && pixel_val > 0.0) {
-        weight->at(x, y) = sqrt(1.0 / (back_var + pixel_val / gain));
-      }
-      else {
-        weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
-      }
-    }
-  }
-
-  return weight;
-}
-
 FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
     std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling=1.0) {
@@ -184,6 +152,51 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
 
 }
 
+std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createWeightImage(
+    SourceInterface& source, int frame_index) const {
+  const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
+  auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
+  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
+  auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+
+  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
+  SeFloat gain = frame_info.getGain();
+  SeFloat saturation = frame_info.getSaturation();
+
+  auto rect = getFittingRect(source, frame_index);
+  auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
+
+  for (int y = 0; y < rect.getHeight(); y++) {
+    for (int x = 0; x < rect.getWidth(); x++) {
+      auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+
+      auto dx =  x - rect.getWidth() / 2.0;
+      auto dy =  y - rect.getHeight() / 2.0;
+      auto rad = std::min(rect.getWidth() / 2.0, rect.getHeight() / 2.0);
+
+      if (saturation > 0 && pixel_val > saturation) {
+        weight->at(x, y) = 0;
+      }
+      else if (gain > 0.0 && pixel_val > 0.0) {
+        weight->at(x, y) = sqrt(1.0 / (back_var + pixel_val / gain));
+      }
+      else {
+        weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
+      }
+
+      if (m_window_type == WindowType::DISK_MIN || m_window_type == WindowType::DISK_MAX ||
+          m_window_type == WindowType::DISK_AREA) {
+          if (dx*dx + dy*dy > rad*rad) {
+            weight->at(x, y) = 0;
+          }
+      }
+
+    }
+  }
+
+  return weight;
+}
 
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
   FittingState fitting_state;
@@ -616,15 +629,35 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, stamp_rect);
         auto final_stamp = frame_model.getImage();
 
-        auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
-        if (debug_image) {
-          ImageAccessor<SeFloat> debugAccessor(debug_image);
-          for (int x = 0; x < final_stamp->getWidth(); x++) {
-            for (int y = 0; y < final_stamp->getHeight(); y++) {
-              auto x_coord = stamp_rect.getTopLeft().m_x + x;
-              auto y_coord = stamp_rect.getTopLeft().m_y + y;
-              debug_image->setValue(x_coord, y_coord,
-                                    debugAccessor.getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+        auto weight_image = createWeightImage(src, frame_index);
+
+        {
+          auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
+          if (debug_image) {
+            ImageAccessor<SeFloat> debug_accessor(debug_image);
+            for (int x = 0; x < final_stamp->getWidth(); x++) {
+              for (int y = 0; y < final_stamp->getHeight(); y++) {
+                auto x_coord = stamp_rect.getTopLeft().m_x + x;
+                auto y_coord = stamp_rect.getTopLeft().m_y + y;
+                debug_image->setValue(x_coord, y_coord,
+                                      debug_accessor.getValue(x_coord, y_coord) + final_stamp->getValue(x, y));
+              }
+            }
+          }
+        }
+
+        {
+          auto window_image = CheckImages::getInstance().getFittingWindowImage(frame_index);
+          if (window_image) {
+            ImageAccessor<int> window_accessor(window_image);
+            for (int x = 0; x < final_stamp->getWidth(); x++) {
+              for (int y = 0; y < final_stamp->getHeight(); y++) {
+                auto x_coord = stamp_rect.getTopLeft().m_x + x;
+                auto y_coord = stamp_rect.getTopLeft().m_y + y;
+                if (weight_image->getValue(x, y) > 0.0) {
+                  window_image->setValue(x_coord, y_coord, window_accessor.getValue(x_coord, y_coord) + 1);
+                }
+              }
             }
           }
         }

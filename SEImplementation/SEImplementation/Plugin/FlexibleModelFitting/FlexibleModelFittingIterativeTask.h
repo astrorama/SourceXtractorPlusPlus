@@ -26,8 +26,7 @@
 
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Task/GroupTask.h"
-
-//#include "SEImplementation/Configuration/SamplingConfig.h"
+#include "SEFramework/Source/SourceFlags.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
@@ -38,6 +37,17 @@ namespace SourceXtractor {
 class FlexibleModelFittingIterativeTask : public GroupTask {
 
 public:
+  enum class WindowType {
+    RECTANGLE   = 0,
+    SQUARE_MIN  = 1,
+    SQUARE_MAX  = 2,
+    SQUARE_AREA = 3,
+    DISK_MIN    = 4,
+    DISK_MAX    = 5,
+    DISK_AREA   = 6,
+    ELLIPSE     = 7
+  };
+
   FlexibleModelFittingIterativeTask(const std::string &least_squares_engine,
       unsigned int max_iterations, double modified_chi_squared_scale,
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
@@ -47,7 +57,8 @@ public:
       int meta_iterations=3,
       double deblend_factor=1.0,
       double meta_iteration_stop=0.0001,
-      size_t max_fit_size=100
+      size_t max_fit_size=100,
+      WindowType window_type = WindowType::RECTANGLE
       );
 
   virtual ~FlexibleModelFittingIterativeTask();
@@ -78,6 +89,7 @@ private:
   std::shared_ptr<VectorImage<SeFloat>> createDeblendImage(
       SourceGroupInterface& group, SourceInterface& source, int source_index,
       std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const;
+  std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source, int frame_index) const;
 
   void fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void updateCheckImages(SourceGroupInterface& group, double pixel_scale, FittingState& state) const;
@@ -98,6 +110,7 @@ private:
       ModelFitting::LeastSquareSummary solution,
       int index, FittingState& state) const;
 
+
   // Task configuration
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;
@@ -111,6 +124,8 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
+
+  WindowType m_window_type { WindowType::RECTANGLE };
 };
 
 }

@@ -1034,6 +1034,15 @@ def get_world_parameters(x, y, radius, angle, ratio):
 
     return ra, dec, wc_rad, wc_angle, wc_ratio
 
+class WindowType(Enum):
+    RECTANGLE   = 0
+    SQUARE_MIN  = 1
+    SQUARE_MAX  = 2
+    SQUARE_AREA = 3
+    DISK_MIN    = 4
+    DISK_MAX    = 5
+    DISK_AREA   = 6
+    ELLIPSE     = 7
 
 class ModelFitting:
     def __init__(self):
@@ -1050,7 +1059,9 @@ class ModelFitting:
         self.onnx_model_dict = {}
         self.params_dict = {"max_iterations": 200, "modified_chi_squared_scale": 10, "engine": "",
                             "use_iterative_fitting": True, "meta_iterations": 5,
-                            "deblend_factor": 0.95, "meta_iteration_stop": 0.0001}
+                            "deblend_factor": 0.95, "meta_iteration_stop": 0.0001,
+                            "window_type": 0
+                            }
 
     def _set_model_to_frames(self, group, model):
         for x in group:
@@ -1217,6 +1228,9 @@ class ModelFitting:
 
         """
         self.params_dict["meta_iteration_stop"] = meta_iteration_stop
+        
+    def set_window_type(self, window_type):
+        self.params_dict["window_type"] = window_type
 
 
 def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stderr):

@@ -23,10 +23,14 @@
 #define _SEIMPLEMENTATION_CONFIGURATION_MODELFITTINGCONFIG_H
 
 #include <vector>
+
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingModel.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h>
 #include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h>
+
+#include <SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.h>
+
 #include <Configuration/Configuration.h>
 
 namespace SourceXtractor {
@@ -60,6 +64,7 @@ public:
   int getMetaIterations() const { return m_meta_iterations; }
   double getDeblendFactor() const { return m_deblend_factor; }
   double getMetaIterationStop() const { return m_meta_iteration_stop; }
+  FlexibleModelFittingIterativeTask::WindowType getWindowType() const { return m_window_type; }
 
 private:
   std::string m_least_squares_engine;
@@ -69,6 +74,8 @@ private:
   int m_meta_iterations { 3 };
   double m_deblend_factor { 1.0 };
   double m_meta_iteration_stop { 0.0001 };
+  FlexibleModelFittingIterativeTask::WindowType m_window_type
+      { FlexibleModelFittingIterativeTask::WindowType::RECTANGLE };
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;
