@@ -38,14 +38,14 @@ class FlexibleModelFittingIterativeTask : public GroupTask {
 
 public:
   enum class WindowType {
-    RECTANGLE   = 0,
-    SQUARE_MIN  = 1,
-    SQUARE_MAX  = 2,
-    SQUARE_AREA = 3,
-    DISK_MIN    = 4,
-    DISK_MAX    = 5,
-    DISK_AREA   = 6,
-    ELLIPSE     = 7
+    RECTANGLE   = 1,
+    SQUARE_MIN  = 2,
+    SQUARE_MAX  = 3,
+    SQUARE_AREA = 4,
+    DISK_MIN    = 5,
+    DISK_MAX    = 6,
+    DISK_AREA   = 7,
+    ELLIPSE     = 8
   };
 
   FlexibleModelFittingIterativeTask(const std::string &least_squares_engine,
