@@ -86,10 +86,13 @@ private:
     std::vector<SourceState> source_states;
   };
 
+  PixelRectangle getFittingRect(SourceInterface& source, int frame_index) const;
   std::shared_ptr<VectorImage<SeFloat>> createDeblendImage(
       SourceGroupInterface& group, SourceInterface& source, int source_index,
       std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const;
   std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source, int frame_index) const;
+  bool isFrameValid(SourceInterface& source, int frame_index) const;
+  std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, int frame_index) const;
 
   void fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const;
   void updateCheckImages(SourceGroupInterface& group, double pixel_scale, FittingState& state) const;

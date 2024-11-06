@@ -63,16 +63,12 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
       m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
       m_window_type(window_type) {
-
-  std::cout << "######## " << static_cast<int>(m_window_type);
 }
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
-namespace {
-
-PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
+PixelRectangle FlexibleModelFittingIterativeTask::getFittingRect(SourceInterface& source, int frame_index) const {
   auto fitting_rect = source.getProperty<MeasurementFrameRectangle>(frame_index).getRect();
 
   if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
@@ -89,6 +85,35 @@ PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
     min -= border;
     max += border;
 
+    if (m_window_type == WindowType::DISK_MIN || m_window_type == WindowType::SQUARE_MIN) {
+      if (max.m_x - min.m_x > max.m_y - min.m_y) {
+        min.m_x += ((max.m_x - min.m_x) - (max.m_y - min.m_y)) / 2;
+        max.m_x = min.m_x + (max.m_y - min.m_y);
+      } else {
+        min.m_y += ((max.m_y - min.m_y) - (max.m_x - min.m_x)) / 2;
+        max.m_y = min.m_y + (max.m_x - min.m_x);
+      }
+    }
+
+    if (m_window_type == WindowType::DISK_MAX || m_window_type == WindowType::SQUARE_MAX) {
+      if (max.m_x - min.m_x < max.m_y - min.m_y) {
+        min.m_x += ((max.m_x - min.m_x) - (max.m_y - min.m_y)) / 2;
+        max.m_x = min.m_x + (max.m_y - min.m_y);
+      } else {
+        min.m_y += ((max.m_y - min.m_y) - (max.m_x - min.m_x)) / 2;
+        max.m_y = min.m_y + (max.m_x - min.m_x);
+      }
+    }
+
+    if (m_window_type == WindowType::DISK_AREA || m_window_type == WindowType::SQUARE_AREA) {
+      int area = (max.m_x - min.m_x) * (max.m_y - min.m_y);
+      int size = int(sqrt(area));
+      min.m_x += ((max.m_x - min.m_x) - size) / 2;
+      max.m_x = min.m_x + size;
+      min.m_y += ((max.m_y - min.m_y) - size) / 2;
+      max.m_y = min.m_y + size;
+    }
+
     // clip to image size
     min.m_x = std::max(min.m_x, 0);
     min.m_y = std::max(min.m_y, 0);
@@ -99,12 +124,13 @@ PixelRectangle getFittingRect(SourceInterface& source, int frame_index) {
   }
 }
 
-bool isFrameValid(SourceInterface& source, int frame_index) {
+bool FlexibleModelFittingIterativeTask::isFrameValid(SourceInterface& source, int frame_index) const {
   auto stamp_rect = getFittingRect(source, frame_index);
   return stamp_rect.getWidth() > 0 && stamp_rect.getHeight() > 0;
 }
 
-std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, int frame_index) {
+std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createImageCopy(
+    SourceInterface& source, int frame_index) const {
   const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
   auto rect = getFittingRect(source, frame_index);
 
@@ -113,6 +139,8 @@ std::shared_ptr<VectorImage<SeFloat>> createImageCopy(SourceInterface& source, i
 
   return image;
 }
+
+namespace {
 
 FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
@@ -190,6 +218,12 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
           if (dx*dx + dy*dy > rad*rad) {
             weight->at(x, y) = 0;
           }
+      } else if (m_window_type == WindowType::ELLIPSE) {
+        auto w =  rect.getWidth() / 2.0;
+        auto h =  rect.getHeight() / 2.0;
+        if (dx / w * dx / w + dy / h * dy / h > 1) {
+          weight->at(x, y) = 0;
+        }
       }
 
     }
