@@ -1035,14 +1035,14 @@ def get_world_parameters(x, y, radius, angle, ratio):
     return ra, dec, wc_rad, wc_angle, wc_ratio
 
 class WindowType(Enum):
-    RECTANGLE   = 1
-    SQUARE_MIN  = 2
-    SQUARE_MAX  = 3
+    RECTANGLE = 1
+    SQUARE_MIN = 2
+    SQUARE_MAX = 3
     SQUARE_AREA = 4
-    DISK_MIN    = 5
-    DISK_MAX    = 6
-    DISK_AREA   = 7
-    ELLIPSE     = 8
+    DISK_MIN = 5
+    DISK_MAX = 6
+    DISK_AREA = 7
+    ELLIPSE = 8
 
 class ModelFitting:
     def __init__(self):
