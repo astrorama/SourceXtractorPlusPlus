@@ -62,10 +62,6 @@ public:
     return m_assoc_data;
   }
 
-//  double getRefFramePixelRadius() const {
-//    return m_ref_frame_pixel_radius;
-//  }
-//
   double getRefFramePixelWidth() const {
     return m_ref_frame_pixel_width;
   }

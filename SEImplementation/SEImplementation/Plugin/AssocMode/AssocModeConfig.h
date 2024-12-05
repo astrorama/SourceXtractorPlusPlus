@@ -61,7 +61,6 @@ public:
     double weight;
     std::vector<double> assoc_columns;
 
-//    double source_radius_pixels;
     double source_pixel_width;
     double source_pixel_height;
 

@@ -49,7 +49,9 @@ static const std::string ASSOC_FILTER { "assoc-filter" };
 static const std::string ASSOC_COPY { "assoc-copy" };
 static const std::string ASSOC_COLUMNS { "assoc-columns" };
 static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
-static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" }; // FIXME width/height
+static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" };
+static const std::string ASSOC_SOURCE_WIDTHS { "assoc-source-widths" };
+static const std::string ASSOC_SOURCE_HEIGHTS { "assoc-source-heights" };
 static const std::string ASSOC_DEFAULT_PIXEL_SIZE { "assoc-default-pixel-size" };
 static const std::string ASSOC_GROUP_ID { "assoc-group-id" };
 static const std::string ASSOC_CONFIG { "assoc-config" };
@@ -130,6 +132,10 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
           "Assoc coordinates type: PIXEL, WORLD"},
       {ASSOC_SOURCE_SIZES.c_str(), po::value<int>()->default_value(-1),
           "Column containing the source sizes (in reference frame pixels)"},
+      {ASSOC_SOURCE_WIDTHS.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the source widths (in reference frame pixels)"},
+      {ASSOC_SOURCE_HEIGHTS.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the source heights (in reference frame pixels)"},
       {ASSOC_DEFAULT_PIXEL_SIZE.c_str(), po::value<double>()->default_value(5.0),
           "Default source size (in reference frame pixels)"},
       {ASSOC_GROUP_ID.c_str(), po::value<int>()->default_value(-1),
@@ -211,6 +217,14 @@ void AssocModeConfig::readConfigFromParams(const UserValues& args) {
 
   m_pixel_width_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
   m_pixel_height_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
+
+  if (args.find(ASSOC_SOURCE_WIDTHS) != args.end()) {
+    m_pixel_width_column = args.at(ASSOC_SOURCE_WIDTHS).as<int>() - 1; // config uses 1 as first column
+  }
+  if (args.find(ASSOC_SOURCE_HEIGHTS) != args.end()) {
+    m_pixel_height_column = args.at(ASSOC_SOURCE_HEIGHTS).as<int>() - 1; // config uses 1 as first column
+  }
+
   m_group_id_column = args.at(ASSOC_GROUP_ID).as<int>() - 1; // config uses 1 as first column
 
   m_assoc_coord_type = getCoordinateType(args);
@@ -258,6 +272,16 @@ void AssocModeConfig::readConfigFromFile(const std::string& filename) {
     m_pixel_width_column = m_assoc_columns.at("pixel_size");
     m_pixel_height_column = m_assoc_columns.at("pixel_size");
     m_assoc_columns.erase("pixel_size");
+  }
+
+  if (m_assoc_columns.find("pixel_width") != m_assoc_columns.end()) {
+    m_pixel_width_column = m_assoc_columns.at("pixel_width");
+    m_assoc_columns.erase("pixel_width");
+  }
+
+  if (m_assoc_columns.find("pixel_height") != m_assoc_columns.end()) {
+    m_pixel_width_column = m_assoc_columns.at("pixel_height");
+    m_assoc_columns.erase("pixel_height");
   }
 
   if (m_assoc_columns.find("group_id") != m_assoc_columns.end()) {
@@ -405,7 +429,7 @@ std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std:
     std::map<std::string, unsigned int> columns;
 
     const std::vector<std::string> reserved_names {
-      "x", "y", "ra", "dec", "weight", "group_id", "source_radius_pixel"
+      "x", "y", "ra", "dec", "weight", "group_id", "pixel_size", "pixel_width", "pixel_height"
     };
 
     std::ifstream config_file(filename);
