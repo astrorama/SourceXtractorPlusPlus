@@ -1042,7 +1042,8 @@ class WindowType(Enum):
     DISK_MIN = 5
     DISK_MAX = 6
     DISK_AREA = 7
-    ELLIPSE = 8
+    ALIGNED_ELLIPSE = 8
+    ROTATED_ELLIPSE = 9
 
 class ModelFitting:
     def __init__(self):

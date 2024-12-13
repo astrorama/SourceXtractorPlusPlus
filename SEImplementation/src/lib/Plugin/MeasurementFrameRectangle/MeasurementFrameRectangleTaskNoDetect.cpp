@@ -40,7 +40,6 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   bool bad_coordinates = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    //int sz = assoc_mode.getRefFramePixelRadius();
     int w = assoc_mode.getRefFramePixelWidth() / 2.0;
     int h = assoc_mode.getRefFramePixelHeight() / 2.0;
 
