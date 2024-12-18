@@ -65,6 +65,7 @@ public:
   double getDeblendFactor() const { return m_deblend_factor; }
   double getMetaIterationStop() const { return m_meta_iteration_stop; }
   FlexibleModelFittingIterativeTask::WindowType getWindowType() const { return m_window_type; }
+  double getEllipseScale() const { return m_ellipse_scale; }
 
 private:
   std::string m_least_squares_engine;
@@ -76,6 +77,7 @@ private:
   double m_meta_iteration_stop { 0.0001 };
   FlexibleModelFittingIterativeTask::WindowType m_window_type
       { FlexibleModelFittingIterativeTask::WindowType::RECTANGLE };
+  double m_ellipse_scale { 3.0 };
   
   std::map<int, std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::map<int, std::shared_ptr<FlexibleModelFittingModel>> m_models;

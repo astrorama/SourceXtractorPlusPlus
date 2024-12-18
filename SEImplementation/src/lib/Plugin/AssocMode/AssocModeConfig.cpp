@@ -106,7 +106,7 @@ std::vector<int> parseColumnList(const std::string& arg) {
 
 AssocModeConfig::AssocModeConfig(long manager_id) : Configuration(manager_id), m_assoc_mode(AssocMode::UNKNOWN),
     m_assoc_radius(0.), m_default_pixel_size(10), m_pixel_width_column(-1), m_pixel_height_column(-1),
-    m_group_id_column(-1) {
+    m_group_id_column(-1), m_assoc_coord_type(AssocCoordType::PIXEL) {
   declareDependency<DetectionImageConfig>();
   declareDependency<PartitionStepConfig>();
 
@@ -388,7 +388,7 @@ std::vector<AssocModeConfig::CatalogEntry> AssocModeConfig::readTable(
         world_coord = coordinate_system->imageToWorld(coord);
       }
     }
-    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0, 0 });
+    catalog.emplace_back(CatalogEntry { coord, world_coord, 1.0, {}, 1.0, 1.0, 0 });
     if (columns.size() == 3 && columns.at(2) >= 0) {
       catalog.back().weight = boost::apply_visitor(CastVisitor<double>{}, row[columns.at(2)]);
     }

@@ -59,7 +59,8 @@ public:
       double deblend_factor=1.0,
       double meta_iteration_stop=0.0001,
       size_t max_fit_size=100,
-      WindowType window_type = WindowType::RECTANGLE
+      WindowType window_type = WindowType::RECTANGLE,
+      double ellipse_scale=3.0
       );
 
   virtual ~FlexibleModelFittingIterativeTask();
@@ -125,6 +126,8 @@ private:
   PixelRectangle getEllipseRect(FittingEllipse ellipse) const;
   FlexibleModelFittingIterativeTask::FittingEllipse transformEllipse(
       FittingEllipse ellipse, SourceInterface& source, int frame_index) const;
+  PixelRectangle clipFittingRect(PixelRectangle fitting_rect, SourceInterface& source, int frame_index) const;
+  PixelRectangle getUnclippedFittingRect(SourceInterface& source, int frame_index) const;
 
   // Task configuration
   std::string m_least_squares_engine;
@@ -141,7 +144,7 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
   WindowType m_window_type { WindowType::RECTANGLE };
-  double m_ellipse_window_scale = 3.0;
+  double m_ellipse_scale = 3.0;
 };
 
 }

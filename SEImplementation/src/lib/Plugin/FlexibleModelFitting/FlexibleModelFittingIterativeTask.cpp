@@ -59,39 +59,28 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     double deblend_factor,
     double meta_iteration_stop,
     size_t max_fit_size,
-    WindowType window_type
+    WindowType window_type,
+    double ellipse_scale
     )
     : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations),
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
       m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
-      m_window_type(window_type) {
+      m_window_type(window_type), m_ellipse_scale(ellipse_scale) {
 }
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
-PixelRectangle FlexibleModelFittingIterativeTask::getFittingRect(SourceInterface& source, int frame_index) const {
-  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
+PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
   auto fitting_rect = source.getProperty<MeasurementFrameRectangle>(frame_index).getRect();
 
   if (m_window_type == WindowType::ROTATED_ELLIPSE) {
     auto ellipse = getFittingEllipse(source, frame_index);
 
-    ellipse.m_a *= m_ellipse_window_scale;
-    ellipse.m_b *= m_ellipse_window_scale;
-    auto rect = getEllipseRect(ellipse);
-
-    auto min = rect.getTopLeft();
-    auto max = rect.getBottomRight();
-
-    // clip to image size
-    min.m_x = std::max(min.m_x, 0);
-    min.m_y = std::max(min.m_y, 0);
-    max.m_x = std::min(max.m_x, frame_info.getWidth() - 1);
-    max.m_y = std::min(max.m_y, frame_info.getHeight() - 1);
-
-    return PixelRectangle(min, max);
+    ellipse.m_a *= m_ellipse_scale;
+    ellipse.m_b *= m_ellipse_scale;
+    return getEllipseRect(ellipse);
   }
 
   if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
@@ -135,19 +124,32 @@ PixelRectangle FlexibleModelFittingIterativeTask::getFittingRect(SourceInterface
       max.m_y = min.m_y + size;
     }
 
-    // clip to image size
-    min.m_x = std::max(min.m_x, 0);
-    min.m_y = std::max(min.m_y, 0);
-    max.m_x = std::min(max.m_x, frame_info.getWidth() - 1);
-    max.m_y = std::min(max.m_y, frame_info.getHeight() - 1);
-
     return PixelRectangle(min, max);
   }
 }
 
+PixelRectangle FlexibleModelFittingIterativeTask::clipFittingRect(PixelRectangle fitting_rect,
+    SourceInterface& source, int frame_index) const {
+  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
+
+  auto min = fitting_rect.getTopLeft();
+  auto max = fitting_rect.getBottomRight();
+
+  // clip to image size
+  min.m_x = std::max(min.m_x, 0);
+  min.m_y = std::max(min.m_y, 0);
+  max.m_x = std::min(max.m_x, frame_info.getWidth() - 1);
+  max.m_y = std::min(max.m_y, frame_info.getHeight() - 1);
+
+  return PixelRectangle(min, max);
+}
+
+PixelRectangle FlexibleModelFittingIterativeTask::getFittingRect(SourceInterface& source, int frame_index) const {
+  return clipFittingRect(getUnclippedFittingRect(source, frame_index), source, frame_index);
+}
+
 FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeTask::getFittingEllipse(SourceInterface& source, int frame_index) const {
   auto source_shape = source.getProperty<ShapeParameters>();
-  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
   auto centroid = source.getProperty<PixelCentroid>();
 
   // Ellipse in detection frame
@@ -177,8 +179,8 @@ PixelRectangle FlexibleModelFittingIterativeTask::getEllipseRect(FittingEllipse 
   double b_sin = ellipse.m_b * std::abs(sin_theta);
   double b_cos = ellipse.m_b * std::abs(cos_theta);
 
-  double half_width = a_cos + b_sin;
-  double half_height = a_sin + b_cos;
+  double half_width = std::sqrt(a_cos*a_cos + b_sin*b_sin) + 1;
+  double half_height = std::sqrt(a_sin*a_sin + b_cos*b_cos) + 1;
 
   PixelCoordinate min_corner, max_corner;
   min_corner.m_x = ellipse.m_x - half_width;
@@ -290,6 +292,9 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createWeightImage(
     SourceInterface& source, int frame_index) const {
   const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
+  auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
+  auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
+
   auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
   auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
   auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
@@ -298,23 +303,34 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
   SeFloat gain = frame_info.getGain();
   SeFloat saturation = frame_info.getSaturation();
 
-  auto rect = getFittingRect(source, frame_index);
+  auto unclipped_rect = getUnclippedFittingRect(source, frame_index);
+  auto rect = clipFittingRect(unclipped_rect, source, frame_index);
   auto weight = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-
 
   // Precompute ellipse parameters
 
-  auto ellipse = getFittingEllipse(source, frame_index);
+  FittingEllipse ellipse;
+  auto rad = std::min(unclipped_rect.getWidth() / 2.0, unclipped_rect.getHeight() / 2.0) - 1.0;
 
-//  auto ellipse_rect = getEllipseRect(ellipse);
-//  double ellipse_scale = std::min<double>(rect.getWidth() / ellipse_rect.getWidth()
-//      , rect.getHeight() / ellipse_rect.getHeight());
+  if (m_window_type == WindowType::ROTATED_ELLIPSE) {
+    ellipse = getFittingEllipse(source, frame_index);
+  } else {
+    // we don't want to require the ShapeParameters property when not using ROTATED_ELLIPSE
+    auto centroid = source.getProperty<PixelCentroid>();
+    auto coord = frame_coordinates->worldToImage(
+        ref_coordinates->imageToWorld(ImageCoordinate(centroid.getCentroidX(),centroid.getCentroidY())));
+    ellipse.m_x = coord.m_x;
+    ellipse.m_y = coord.m_y;
+    ellipse.m_a = rad;
+    ellipse.m_b = rad;
+    ellipse.m_theta = 0;
+  }
 
   double cos_theta = std::cos(ellipse.m_theta);
   double sin_theta = std::sin(ellipse.m_theta);
 
-  double a_squared = ellipse.m_a * ellipse.m_a * m_ellipse_window_scale * m_ellipse_window_scale;
-  double b_squared = ellipse.m_b * ellipse.m_b * m_ellipse_window_scale * m_ellipse_window_scale;
+  double a_squared = ellipse.m_a * ellipse.m_a * m_ellipse_scale * m_ellipse_scale;
+  double b_squared = ellipse.m_b * ellipse.m_b * m_ellipse_scale * m_ellipse_scale;
 
   // Precompute components of the ellipse's quadratic form
   double A = (cos_theta * cos_theta) / a_squared + (sin_theta * sin_theta) / b_squared;
@@ -326,9 +342,8 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
       auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
 
-      auto dx = x - rect.getWidth() / 2.0;
-      auto dy = y - rect.getHeight() / 2.0;
-      auto rad = std::min(rect.getWidth() / 2.0, rect.getHeight() / 2.0);
+      auto dx = x + rect.getTopLeft().m_x - ellipse.m_x;
+      auto dy = y + rect.getTopLeft().m_y - ellipse.m_y;
 
       if (saturation > 0 && pixel_val > saturation) {
         weight->at(x, y) = 0;
@@ -344,15 +359,14 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
           weight->at(x, y) = 0;
         }
       } else if (m_window_type == WindowType::ALIGNED_ELLIPSE) {
-        auto w = rect.getWidth() / 2.0;
-        auto h = rect.getHeight() / 2.0;
+        auto w = unclipped_rect.getWidth() / 2.0;
+        auto h = unclipped_rect.getHeight() / 2.0;
         if (dx / w * dx / w + dy / h * dy / h > 1) {
           weight->at(x, y) = 0;
         }
       } else if (m_window_type == WindowType::ROTATED_ELLIPSE) {
         // Apply the quadratic form of the ellipse equation
         double value = A * dx * dx + B * dx * dy + C * dy * dy;
-        //std::cout << value << "\n";
         if (value > 1.0) {
           weight->at(x, y) = 0;
         }
@@ -483,7 +497,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   int index = 0;
   for (auto& src : group) {
     if (index != source_index) {
-     for (auto parameter : m_parameters) {
+      for (auto parameter : m_parameters) {
         auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
         if (free_parameter != nullptr) {
@@ -494,7 +508,6 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
               free_parameter->create(parameter_manager, engine_parameter_manager, src,
                   state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                   state.source_states[index].parameters_values.at(free_parameter->getId())));
-
         } else {
           parameter_manager.addParameter(src, parameter,
               parameter->create(parameter_manager, engine_parameter_manager, src));

@@ -386,6 +386,7 @@ void ModelFittingConfig::initializeInner() {
   m_meta_iteration_stop = py::extract<double>(parameters["meta_iteration_stop"]);
   m_window_type = static_cast<FlexibleModelFittingIterativeTask::WindowType>(
       py::extract<int>(parameters["window_type"].attr("value"))());
+  m_ellipse_scale = py::extract<double>(parameters["ellipse_scale"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

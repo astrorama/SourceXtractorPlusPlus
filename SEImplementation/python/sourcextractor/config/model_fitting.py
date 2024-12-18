@@ -1061,7 +1061,7 @@ class ModelFitting:
         self.params_dict = {"max_iterations": 200, "modified_chi_squared_scale": 10, "engine": "",
                             "use_iterative_fitting": True, "meta_iterations": 5,
                             "deblend_factor": 0.95, "meta_iteration_stop": 0.0001,
-                            "window_type": WindowType.RECTANGLE
+                            "window_type": WindowType.RECTANGLE, "ellipse_scale": 3.0
                             }
 
     def _set_model_to_frames(self, group, model):
@@ -1243,6 +1243,17 @@ class ModelFitting:
             raise TypeError("Window type must be a WindowType enum value!")
         
         self.params_dict["window_type"] = window_type
+
+    def set_ellipse_scale(self, ellipse_scale):
+        """
+        Parameters
+        ----------
+        
+        ellipse_scale : double
+            specify scaling of elliptic footprints 
+
+        """
+        self.params_dict["ellipse_scale"] = ellipse_scale
 
 
 def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stderr):
