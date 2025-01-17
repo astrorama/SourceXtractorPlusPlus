@@ -58,9 +58,13 @@ void SourcePsfTask::computeProperties(SourceXtractor::SourceInterface &source) c
     }
 
     auto psf = m_vpsf->getPsf(component_values);
-    // The result may not be normalized!
-    auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
-    auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
+    std::shared_ptr<VectorImage<SeFloat>> psf_normalized = psf;
+
+    if (m_normalize_psf) {
+      // The result may not be normalized!
+      auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
+      psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
+    }
     source.setIndexedProperty<SourcePsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
 
     // Check image

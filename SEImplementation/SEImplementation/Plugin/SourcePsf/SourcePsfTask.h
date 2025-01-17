@@ -37,6 +37,7 @@ public:
 private:
   unsigned m_instance;
   std::shared_ptr<Psf> m_vpsf;
+  bool m_normalize_psf { true };
 };
 
 } // end SourceXtractor

@@ -42,6 +42,7 @@ namespace SourceXtractor {
 static const std::string PSF_FILE{"psf-filename"};
 static const std::string PSF_FWHM {"psf-fwhm" };
 static const std::string PSF_PIXEL_SAMPLING {"psf-pixel-sampling" };
+static const std::string PSF_NORMALIZATION {"psf-normalization" };
 
 /*
  * Reading in a stacked PSF as it is being developed for co-added images in Euclid
@@ -231,7 +232,9 @@ std::map<std::string, Configuration::OptionDescriptionList> PsfPluginConfig::get
     {PSF_FWHM.c_str(), po::value<double>(),
        "Generate a gaussian PSF with the given full-width half-maximum (in pixels)"},
     {PSF_PIXEL_SAMPLING.c_str(), po::value<double>(),
-        "Generate a gaussian PSF with the given pixel sampling step size"}
+        "Generate a gaussian PSF with the given pixel sampling step size"},
+    {PSF_NORMALIZATION.c_str(), po::value<bool>()->default_value(true),
+        "Whether PSFs should be normalized"}
   }}};
 }
 
@@ -256,6 +259,7 @@ void PsfPluginConfig::initialize(const UserValues &args) {
     m_vpsf = generateGaussianPsf(args.find(PSF_FWHM)->second.as<double>(),
                                 args.find(PSF_PIXEL_SAMPLING)->second.as<double>());
   }
+  m_psf_normalization = args.find(PSF_NORMALIZATION)->second.as<bool>();
 }
 
 const std::shared_ptr<Psf>& PsfPluginConfig::getPsf() const {
