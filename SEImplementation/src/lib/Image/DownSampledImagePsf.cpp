@@ -30,8 +30,8 @@
 namespace SourceXtractor {
 
 DownSampledImagePsf::DownSampledImagePsf(
-    double pixel_scale, std::shared_ptr<VectorImage<SeFloat>> image, double down_scaling)
-    : m_down_scaling(down_scaling) {
+    double pixel_scale, std::shared_ptr<VectorImage<SeFloat>> image, double down_scaling, bool normalize_psf)
+    : m_down_scaling(down_scaling), m_normalize_psf(normalize_psf)  {
   if (image != nullptr) {
     using Traits = ::ModelFitting::ImageTraits<std::shared_ptr<VectorImage<SeFloat>>>;
 
@@ -52,9 +52,16 @@ DownSampledImagePsf::DownSampledImagePsf(
       Traits::addImageToImage(new_image, image, down_scaling, new_size / 2.0, new_size / 2.0);
 
       // renormalize psf
-      auto psf_sum = std::accumulate(new_image->getData().begin(), new_image->getData().end(), 0.);
-      for (auto& pixel : new_image->getData()) {
-        pixel /= psf_sum;
+      if (m_normalize_psf) {
+        auto psf_sum = std::accumulate(new_image->getData().begin(), new_image->getData().end(), 0.);
+        for (auto& pixel : new_image->getData()) {
+          pixel /= psf_sum;
+        }
+      } else {
+        double area_factor = 1.0 / (down_scaling * down_scaling);
+        for (auto& pixel : new_image->getData()) {
+          pixel *= area_factor;
+        }
       }
 
       m_psf = std::make_shared<ImagePsf>(pixel_scale / down_scaling, new_image);
