@@ -29,7 +29,6 @@
 #include <mutex>
 
 #include "AlexandriaKernel/memory_tools.h"
-#include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "ElementsKernel/PathSearch.h"
@@ -260,16 +259,16 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   {
 
     // renders an image of the model for a single source with the final parameters
-    std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> extended_models{};
-    std::vector<PointModel> point_models{};
-    std::vector<ConstantModel> constant_models{};
-    source_model->createModels(extended_models, point_models);
+    std::vector<std::shared_ptr<ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>> tmp_extended_models{};
+    std::vector<PointModel> tmp_point_models{};
+    std::vector<ConstantModel> tmp_constant_models{};
+    source_model->createModels(tmp_extended_models, tmp_point_models);
     FrameModel<NullPsf<VectorImageType>, VectorImageType> frame_model_after{1,
                                                                             (size_t)source_stamp.getWidth(),
                                                                             (size_t)source_stamp.getHeight(),
-                                                                            std::move(constant_models),
-                                                                            std::move(point_models),
-                                                                            std::move(extended_models)};
+                                                                            std::move(tmp_constant_models),
+                                                                            std::move(tmp_point_models),
+                                                                            std::move(tmp_extended_models)};
     auto                                                  final_image = frame_model_after.getImage();
 
     // integrates the flux for that source
