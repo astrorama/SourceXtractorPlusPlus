@@ -58,9 +58,11 @@ DownSampledImagePsf::DownSampledImagePsf(
           pixel /= psf_sum;
         }
       } else {
-        double area_factor = 1.0 / (down_scaling * down_scaling);
+        auto original_psf_sum = std::accumulate(image->getData().begin(), image->getData().end(), 0.);
+        auto new_psf_sum = std::accumulate(new_image->getData().begin(), new_image->getData().end(), 0.);
+
         for (auto& pixel : new_image->getData()) {
-          pixel *= area_factor;
+          pixel *= original_psf_sum / new_psf_sum;
         }
       }
 

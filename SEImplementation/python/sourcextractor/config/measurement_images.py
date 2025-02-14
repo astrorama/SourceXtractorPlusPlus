@@ -205,7 +205,6 @@ class MeasurementImage(cpp.MeasurementImage):
             self._set_checked('weight_hdu', weight_hdu)
             
         self.psf_renormalize = psf_renormalize
-        print(self.psf_renormalize)
 
     def __str__(self):
         """

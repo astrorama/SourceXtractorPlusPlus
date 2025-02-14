@@ -21,7 +21,6 @@
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
 #include "SEImplementation/Image/ImagePsf.h"
-#include "SEImplementation/Image/DownSampledImagePsf.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
 #include "SEImplementation/CheckImages/CheckImages.h"
@@ -51,6 +50,7 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
     std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
+    std::vector<bool> should_renormalize,
     double scale_factor,
     int meta_iterations,
     double deblend_factor,
@@ -59,8 +59,8 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     : m_least_squares_engine(least_squares_engine), m_max_iterations(max_iterations),
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
-      m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors) {
-}
+      m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
+      m_should_renormalize(should_renormalize) {}
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
@@ -142,9 +142,12 @@ std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source,
   return weight;
 }
 
-FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
+} // anonymous namespace
+
+FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>>
+FlexibleModelFittingIterativeTask::createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
-    std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling=1.0) {
+    std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling) const {
 
   int frame_index = frame->getFrameNb();
 
@@ -158,7 +161,8 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
   // It will be used to compute the rastering grid size, and after convolving with the PSF the result will be
   // downscaled before copied into the frame image.
   // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
-  auto source_psf = DownSampledImagePsf(psf_property.getPixelSampling(), psf_property.getPsf(), down_scaling);
+  auto source_psf = DownSampledImagePsf(psf_property.getPixelSampling(), psf_property.getPsf(),
+      down_scaling, m_should_renormalize[frame_index]);
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
@@ -177,9 +181,6 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
 
   return frame_model;
 }
-
-}
-
 
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
   FittingState fitting_state;
