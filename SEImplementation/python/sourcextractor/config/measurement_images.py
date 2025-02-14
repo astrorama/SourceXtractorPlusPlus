@@ -107,6 +107,8 @@ class MeasurementImage(cpp.MeasurementImage):
         For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu
     weight_hdu : int
         For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
+    psf_renormalize : bool
+        If True, the PSF will be renormalized to have a total flux of 1.0. Default True
     """
 
     def _set_checked(self, attr_name, value):
@@ -122,7 +124,7 @@ class MeasurementImage(cpp.MeasurementImage):
                  flux_scale=None, flux_scale_keyword='FLXSCALE',
                  weight_type='none', weight_absolute=False, weight_scaling=1.,
                  weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None
+                 image_hdu=0, psf_hdu=None, weight_hdu=None, psf_renormalize=True
                  ):
         """
         Constructor.
@@ -201,6 +203,9 @@ class MeasurementImage(cpp.MeasurementImage):
             self._set_checked('weight_hdu', image_hdu)
         else:
             self._set_checked('weight_hdu', weight_hdu)
+            
+        self.psf_renormalize = psf_renormalize
+        print(self.psf_renormalize)
 
     def __str__(self):
         """

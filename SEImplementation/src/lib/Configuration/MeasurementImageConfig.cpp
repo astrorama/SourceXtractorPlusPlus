@@ -220,6 +220,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_psf_hdu = py_image.psf_hdu + 1;
       info.m_weight_hdu = py_image.weight_hdu + 1;
 
+      info.m_psf_renormalize = py_image.psf_renormalize;
+
       m_image_infos.emplace_back(std::move(info));
     }
   } else {
@@ -252,10 +254,14 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       0, // id
 
-      1,1,1 // HDUs
+      1,1,1, // HDUs
+
+      false, // is_data_cube
+      0, // image_layer
+      0, // weight_layer
+
+      true // psf_renormalize
     });
-
-
   }
 }
 

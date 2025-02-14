@@ -45,13 +45,8 @@ public:
   static std::shared_ptr<Psf> readPsf(const std::string &filename, int hdu_number = 1);
   static std::shared_ptr<Psf> generateGaussianPsf(SeFloat fwhm, SeFloat pixel_sampling);
 
-  bool shouldNormalizePsf() const {
-    return m_psf_normalization;
-  }
-
 private:
   std::shared_ptr<Psf> m_vpsf;
-  bool m_psf_normalization { true };
 };
 
 } // end SourceXtractor

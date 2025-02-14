@@ -79,6 +79,7 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
       .def_readwrite("is_data_cube", &PyMeasurementImage::is_data_cube)
       .def_readwrite("image_layer", &PyMeasurementImage::image_layer)
       .def_readwrite("weight_layer", &PyMeasurementImage::weight_layer)
+      .def_readwrite("psf_renormalize", &PyMeasurementImage::psf_renormalize);
       ;
 
   bp::class_<PyId>("Id", bp::init<>())

@@ -37,7 +37,13 @@ public:
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
 
 private:
-  std::map<int, std::shared_ptr<Psf>> m_vpsf;
+
+  struct PsfInfo {
+    std::shared_ptr<Psf> m_psf;
+    bool m_normalize_psf;
+  };
+
+  std::map<int, PsfInfo> m_psf_infos;
 };
 
 } // end SourceXtractor
