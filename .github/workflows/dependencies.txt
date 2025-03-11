@@ -3,6 +3,7 @@ $PYTHON-numpy
 $PYTHON-pytest
 $PYTHON-sphinx
 $PYTHON-setuptools
+$PYTHON-dnf
 CCfits-devel
 blas-devel
 $BOOST-$PYTHON-devel
