@@ -32,6 +32,8 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"
 
+#include "SEImplementation/Image/DownSampledImagePsf.h"
+
 namespace SourceXtractor {
 
 class FlexibleModelFittingIterativeTask : public GroupTask {
@@ -54,6 +56,7 @@ public:
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
       std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
       std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
+      std::vector<bool> should_renormalize,
       double scale_factor=1.0,
       int meta_iterations=3,
       double deblend_factor=1.0,
@@ -129,6 +132,11 @@ private:
   PixelRectangle clipFittingRect(PixelRectangle fitting_rect, SourceInterface& source, int frame_index) const;
   PixelRectangle getUnclippedFittingRect(SourceInterface& source, int frame_index) const;
 
+  ModelFitting::FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFloat>>> createFrameModel(
+      SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
+      std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling=1.0) const;
+
+
   // Task configuration
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;
@@ -143,6 +151,7 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
+  std::vector<bool> m_should_renormalize;
   WindowType m_window_type { WindowType::RECTANGLE };
   double m_ellipse_scale = 3.0;
 };

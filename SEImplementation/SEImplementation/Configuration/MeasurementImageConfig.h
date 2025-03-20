@@ -65,6 +65,8 @@ public:
     bool m_is_data_cube;
     int m_image_layer;
     int m_weight_layer;
+
+    bool m_psf_renormalize;
   };
 
   explicit MeasurementImageConfig(long manager_id);

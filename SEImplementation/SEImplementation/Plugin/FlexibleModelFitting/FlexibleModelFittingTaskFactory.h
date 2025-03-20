@@ -62,6 +62,9 @@ private:
 
   double m_scale_factor {1.0};
   double m_max_fit_size {100};
+
+  // should we renormalize the PSF for each frame?
+  std::vector<bool> m_should_renormalize;
 };
 
 }
