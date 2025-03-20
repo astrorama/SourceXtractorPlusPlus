@@ -16,6 +16,8 @@
  */
 
 
+#include "SEImplementation/Configuration/DetectionImageConfig.h"
+
 #include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h"
 #include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTask.h"
 #include "SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinatesTaskFactory.h"
@@ -24,9 +26,20 @@ using namespace Euclid::Configuration;
 
 namespace SourceXtractor {
 
+void ReferenceCoordinatesTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
+  manager.registerConfiguration<DetectionImageConfig>();
+}
+
+void ReferenceCoordinatesTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
+  auto& detection_image_config = manager.getConfiguration<DetectionImageConfig>();
+  if (detection_image_config.isReferenceImage()) {
+    m_coordinate_system = detection_image_config.getCoordinateSystem();
+  }
+}
+
 std::shared_ptr<Task> ReferenceCoordinatesTaskFactory::createTask(const PropertyId& property_id) const {
   if (property_id.getTypeId() == PropertyId::create<ReferenceCoordinates>().getTypeId()) {
-    return std::make_shared<ReferenceCoordinatesTask>(property_id.getIndex());
+    return std::make_shared<ReferenceCoordinatesTask>(property_id.getIndex(), m_coordinate_system);
   } else {
     return nullptr;
   }

@@ -19,6 +19,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_REFERENCECOORDINATES_REFERENCECOORDINATESTASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
 
@@ -36,12 +37,15 @@ public:
   virtual ~ReferenceCoordinatesTask() = default;
 
   /// Constructor
-  explicit ReferenceCoordinatesTask(unsigned int instance) : m_instance(instance) {}
+  explicit ReferenceCoordinatesTask(unsigned int instance, std::shared_ptr<CoordinateSystem> coordinate_system)
+      : m_instance(instance), m_coordinate_system(coordinate_system) {
+  }
 
   void computeProperties(SourceInterface& source) const override;
 
 private:
   unsigned int m_instance;
+  std::shared_ptr<CoordinateSystem> m_coordinate_system;
 
 }; /* End of ReferenceCoordinatesTask class */
 
