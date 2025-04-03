@@ -36,6 +36,7 @@
 #include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
+#include "SEImplementation/Plugin/WorldCentroid/WorldCentroid.h"
 #include "SEImplementation/Plugin/ShapeParameters/ShapeParameters.h"
 
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
@@ -314,9 +315,8 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
     ellipse = getFittingEllipse(source, frame_index);
   } else {
     // we don't want to require the ShapeParameters property when not using ROTATED_ELLIPSE
-    auto centroid = source.getProperty<PixelCentroid>();
-    auto coord = frame_coordinates->worldToImage(
-        ref_coordinates->imageToWorld(ImageCoordinate(centroid.getCentroidX(),centroid.getCentroidY())));
+    auto centroid = source.getProperty<WorldCentroid>();
+    auto coord = frame_coordinates->worldToImage(centroid.getCentroid());
     ellipse.m_x = coord.m_x;
     ellipse.m_y = coord.m_y;
     ellipse.m_a = rad;
