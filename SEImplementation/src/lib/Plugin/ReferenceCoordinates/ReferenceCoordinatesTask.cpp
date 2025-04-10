@@ -32,7 +32,11 @@ void ReferenceCoordinatesTask::computeProperties(SourceInterface& source) const 
     ref_coords = source.getProperty<DetectionFrameCoordinates>().getCoordinateSystem();
   }
   catch (PropertyNotFoundException&) {
-    ref_coords = source.getProperty<MeasurementFrameCoordinates>(0).getCoordinateSystem();
+    if (m_coordinate_system) {
+      ref_coords = m_coordinate_system;
+    } else {
+      ref_coords = source.getProperty<MeasurementFrameCoordinates>(0).getCoordinateSystem();
+    }
   }
 
   source.setProperty<ReferenceCoordinates>(ref_coords);

@@ -27,7 +27,9 @@ class SourcePsfTask: public SourceTask {
 public:
   virtual ~SourcePsfTask() = default;
 
-  SourcePsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf);
+  SourcePsfTask(unsigned instance, const std::shared_ptr<Psf>& vpsf, bool normalize_psf = true)
+      : m_instance(instance), m_vpsf(vpsf), m_normalize_psf(normalize_psf) {
+  }
 
   void computeProperties(SourceInterface& source) const override;
 
@@ -37,6 +39,7 @@ public:
 private:
   unsigned m_instance;
   std::shared_ptr<Psf> m_vpsf;
+  bool m_normalize_psf { true };
 };
 
 } // end SourceXtractor

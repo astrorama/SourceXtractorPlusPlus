@@ -62,7 +62,7 @@ jobs:
         id: build
         uses: astrorama/actions/elements-build-rpm@v3.4
       - name: Upload RPM to GitHub
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}
           path: ${{ steps.build.outputs.rpm-dir }}/*.rpm
@@ -93,13 +93,13 @@ jobs:
     container: ${{ matrix.os-type }}:${{ matrix.os-version }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install dependencies
         uses: astrorama/actions/setup-dependencies@v3
         with:
           dependency-list: .github/workflows/test-dependencies.txt
       - name: Download RPM
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}
       - name: Install SourceXtractor++
@@ -107,7 +107,7 @@ jobs:
       - name: Run tests
         run: ./.github/workflows/run-litmus.sh
       - name: Upload reports and logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os-type }}${{ matrix.os-version }}-test-results
           path: /tmp/sourcex/
