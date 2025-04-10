@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>measurement_images &mdash; SourceXtractor++ 1.0.0 documentation</title>
-      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/graphviz.css" type="text/css" />
-      <link rel="stylesheet" href="../_static/css/custom.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -353,6 +355,7 @@ to variance units.</p>
 <li><p><strong>image_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the image. Default 0 (primary HDU)</p></li>
 <li><p><strong>psf_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu</p></li>
 <li><p><strong>weight_hdu</strong> (<em>int</em>) – For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu</p></li>
+<li><p><strong>psf_renormalize</strong> (<em>bool</em>) – If True, the PSF will be renormalized to have a total flux of 1.0. Default True</p></li>
 </ul>
 </dd>
 </dl>
