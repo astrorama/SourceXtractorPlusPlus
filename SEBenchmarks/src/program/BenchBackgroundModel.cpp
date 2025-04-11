@@ -80,7 +80,7 @@ private:
     if (i != args.end())
       return i->second.as<std::string>();
     auto input = boost::filesystem::path(m_detection_config.getDetectionImagePath());
-    auto basename = input.leaf();
+    auto basename = input.filename();
     while (!basename.extension().empty())
       basename = basename.stem();
     auto algo = args.at("algorithm").as<std::string>();
