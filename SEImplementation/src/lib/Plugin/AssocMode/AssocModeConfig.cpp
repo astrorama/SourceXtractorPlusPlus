@@ -218,10 +218,10 @@ void AssocModeConfig::readConfigFromParams(const UserValues& args) {
   m_pixel_width_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
   m_pixel_height_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
 
-  if (args.find(ASSOC_SOURCE_WIDTHS) != args.end()) {
+  if (args.find(ASSOC_SOURCE_WIDTHS) != args.end() && args.at(ASSOC_SOURCE_WIDTHS).as<int>() > 0) {
     m_pixel_width_column = args.at(ASSOC_SOURCE_WIDTHS).as<int>() - 1; // config uses 1 as first column
   }
-  if (args.find(ASSOC_SOURCE_HEIGHTS) != args.end()) {
+  if (args.find(ASSOC_SOURCE_HEIGHTS) != args.end() && args.at(ASSOC_SOURCE_HEIGHTS).as<int>() > 0) {
     m_pixel_height_column = args.at(ASSOC_SOURCE_HEIGHTS).as<int>() - 1; // config uses 1 as first column
   }
 
@@ -280,7 +280,7 @@ void AssocModeConfig::readConfigFromFile(const std::string& filename) {
   }
 
   if (m_assoc_columns.find("pixel_height") != m_assoc_columns.end()) {
-    m_pixel_width_column = m_assoc_columns.at("pixel_height");
+    m_pixel_height_column = m_assoc_columns.at("pixel_height");
     m_assoc_columns.erase("pixel_height");
   }
 
@@ -491,6 +491,7 @@ void AssocModeConfig::printConfig() {
   if (m_columns.size() >= 3) {
     std::cout << "WEIGHT" << "\t";
   }
+
   if (m_pixel_width_column >= 0) {
     std::cout << "PIXEL_WIDTH" << "\t";
   }
