@@ -55,7 +55,7 @@ jobs:
         id: package-version
         uses: astrorama/actions/elements-project@v3.4
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@v3.6
+        uses: astrorama/actions/setup-dependencies@v3.7
         with:
           dependency-list: .github/workflows/dependencies.txt
       - name: Build
@@ -95,7 +95,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install dependencies
-        uses: astrorama/actions/setup-dependencies@v3.6
+        uses: astrorama/actions/setup-dependencies@v3.7
         with:
           dependency-list: .github/workflows/test-dependencies.txt
       - name: Download RPM
