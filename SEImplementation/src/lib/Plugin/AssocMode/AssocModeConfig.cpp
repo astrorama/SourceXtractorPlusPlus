@@ -274,14 +274,14 @@ void AssocModeConfig::readConfigFromFile(const std::string& filename) {
     m_assoc_columns.erase("pixel_size");
   }
 
-  if (m_assoc_columns.find("pixel_width") != m_assoc_columns.end()) {
-    m_pixel_width_column = m_assoc_columns.at("pixel_width");
-    m_assoc_columns.erase("pixel_width");
+  if (m_assoc_columns.find("pixel_half_width") != m_assoc_columns.end()) {
+    m_pixel_width_column = m_assoc_columns.at("pixel_half_width");
+    m_assoc_columns.erase("pixel_half_width");
   }
 
-  if (m_assoc_columns.find("pixel_height") != m_assoc_columns.end()) {
-    m_pixel_height_column = m_assoc_columns.at("pixel_height");
-    m_assoc_columns.erase("pixel_height");
+  if (m_assoc_columns.find("pixel_half_height") != m_assoc_columns.end()) {
+    m_pixel_height_column = m_assoc_columns.at("pixel_half_height");
+    m_assoc_columns.erase("pixel_half_height");
   }
 
   if (m_assoc_columns.find("group_id") != m_assoc_columns.end()) {
@@ -429,7 +429,7 @@ std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std:
     std::map<std::string, unsigned int> columns;
 
     const std::vector<std::string> reserved_names {
-      "x", "y", "ra", "dec", "weight", "group_id", "pixel_size", "pixel_width", "pixel_height"
+      "x", "y", "ra", "dec", "weight", "group_id", "pixel_size", "pixel_half_width", "pixel_half_height"
     };
 
     std::ifstream config_file(filename);
@@ -493,10 +493,10 @@ void AssocModeConfig::printConfig() {
   }
 
   if (m_pixel_width_column >= 0) {
-    std::cout << "PIXEL_WIDTH" << "\t";
+    std::cout << "PIXEL_HALF_WIDTH" << "\t";
   }
   if (m_pixel_height_column >= 0) {
-    std::cout << "PIXEL_HEIGHT" << "\t";
+    std::cout << "PIXEL_HALF_HEIGHT" << "\t";
   }
   if (m_group_id_column >= 0) {
     std::cout << "GROUP_ID" << "\t";
