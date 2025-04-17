@@ -82,6 +82,16 @@ const std::map<std::string, AssocModeConfig::AssocCoordType> assoc_coord_type_ta
   std::make_pair("WORLD", AssocModeConfig::AssocCoordType::WORLD)
 };
 
+const std::string COLUMN_X = "x";
+const std::string COLUMN_Y = "y";
+const std::string COLUMN_RA = "ra";
+const std::string COLUMN_DEC = "dec";
+const std::string COLUMN_WEIGHT = "weight";
+const std::string COLUMN_GROUP_ID = "group_id";
+const std::string COLUMN_PIXEL_SIZE = "pixel_size";
+const std::string COLUMN_PIXEL_HALF_WIDTH = "pixel_half_width";
+const std::string COLUMN_PIXEL_HALF_HEIGHT = "pixel_half_height";
+
 std::vector<int> parseColumnList(const std::string& arg) {
   if (arg.size() > 0) {
     try {
@@ -233,60 +243,60 @@ void AssocModeConfig::readConfigFromParams(const UserValues& args) {
 void AssocModeConfig::readConfigFromFile(const std::string& filename) {
   m_assoc_columns = parseConfigFile(filename);
 
-  if (m_assoc_columns.find("x") != m_assoc_columns.end() && m_assoc_columns.find("y") != m_assoc_columns.end()) {
+  if (m_assoc_columns.find(COLUMN_X) != m_assoc_columns.end() && m_assoc_columns.find(COLUMN_Y) != m_assoc_columns.end()) {
     m_assoc_coord_type = AssocCoordType::PIXEL;
 
-    m_columns.push_back(m_assoc_columns.at("x"));
-    m_assoc_columns.erase("x");
-    m_columns.push_back(m_assoc_columns.at("y"));
-    m_assoc_columns.erase("y");
+    m_columns.push_back(m_assoc_columns.at(COLUMN_X));
+    m_assoc_columns.erase(COLUMN_X);
+    m_columns.push_back(m_assoc_columns.at(COLUMN_Y));
+    m_assoc_columns.erase(COLUMN_Y);
 
-    if (m_assoc_columns.find("ra") != m_assoc_columns.end() ||
-          m_assoc_columns.find("dec") != m_assoc_columns.end()) {
+    if (m_assoc_columns.find(COLUMN_RA) != m_assoc_columns.end() ||
+        m_assoc_columns.find(COLUMN_DEC) != m_assoc_columns.end()) {
       throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
     }
-  } else if (m_assoc_columns.find("ra") != m_assoc_columns.end() &&
-      m_assoc_columns.find("dec") != m_assoc_columns.end()) {
+  } else if (m_assoc_columns.find(COLUMN_RA) != m_assoc_columns.end() &&
+             m_assoc_columns.find(COLUMN_DEC) != m_assoc_columns.end()) {
 
     m_assoc_coord_type = AssocCoordType::WORLD;
 
-    m_columns.push_back(m_assoc_columns.at("ra"));
-    m_assoc_columns.erase("ra");
-    m_columns.push_back(m_assoc_columns.at("dec"));
-    m_assoc_columns.erase("dec");
+    m_columns.push_back(m_assoc_columns.at(COLUMN_RA));
+    m_assoc_columns.erase(COLUMN_RA);
+    m_columns.push_back(m_assoc_columns.at(COLUMN_DEC));
+    m_assoc_columns.erase(COLUMN_DEC);
 
-    if (m_assoc_columns.find("x") != m_assoc_columns.end() ||
-          m_assoc_columns.find("y") != m_assoc_columns.end()) {
+    if (m_assoc_columns.find(COLUMN_X) != m_assoc_columns.end() ||
+        m_assoc_columns.find(COLUMN_Y) != m_assoc_columns.end()) {
       throw Elements::Exception() << "Use either X/Y or RA/DEC coordinates in assoc config file but not both";
     }
   } else {
     throw Elements::Exception() << "Missing X/Y or RA/DEC coordinates in assoc config file";
   }
 
-  if (m_assoc_columns.find("weight") != m_assoc_columns.end()) {
-    m_columns.push_back(m_assoc_columns.at("weight"));
-    m_assoc_columns.erase("weight");
+  if (m_assoc_columns.find(COLUMN_WEIGHT) != m_assoc_columns.end()) {
+    m_columns.push_back(m_assoc_columns.at(COLUMN_WEIGHT));
+    m_assoc_columns.erase(COLUMN_WEIGHT);
   }
 
-  if (m_assoc_columns.find("pixel_size") != m_assoc_columns.end()) {
-    m_pixel_width_column = m_assoc_columns.at("pixel_size");
-    m_pixel_height_column = m_assoc_columns.at("pixel_size");
-    m_assoc_columns.erase("pixel_size");
+  if (m_assoc_columns.find(COLUMN_PIXEL_SIZE) != m_assoc_columns.end()) {
+    m_pixel_width_column = m_assoc_columns.at(COLUMN_PIXEL_SIZE);
+    m_pixel_height_column = m_assoc_columns.at(COLUMN_PIXEL_SIZE);
+    m_assoc_columns.erase(COLUMN_PIXEL_SIZE);
   }
 
-  if (m_assoc_columns.find("pixel_half_width") != m_assoc_columns.end()) {
-    m_pixel_width_column = m_assoc_columns.at("pixel_half_width");
-    m_assoc_columns.erase("pixel_half_width");
+  if (m_assoc_columns.find(COLUMN_PIXEL_HALF_WIDTH) != m_assoc_columns.end()) {
+    m_pixel_width_column = m_assoc_columns.at(COLUMN_PIXEL_HALF_WIDTH);
+    m_assoc_columns.erase(COLUMN_PIXEL_HALF_WIDTH);
   }
 
-  if (m_assoc_columns.find("pixel_half_height") != m_assoc_columns.end()) {
-    m_pixel_height_column = m_assoc_columns.at("pixel_half_height");
-    m_assoc_columns.erase("pixel_half_height");
+  if (m_assoc_columns.find(COLUMN_PIXEL_HALF_HEIGHT) != m_assoc_columns.end()) {
+    m_pixel_height_column = m_assoc_columns.at(COLUMN_PIXEL_HALF_HEIGHT);
+    m_assoc_columns.erase(COLUMN_PIXEL_HALF_HEIGHT);
   }
 
-  if (m_assoc_columns.find("group_id") != m_assoc_columns.end()) {
-    m_group_id_column = m_assoc_columns.at("group_id");
-    m_assoc_columns.erase("group_id");
+  if (m_assoc_columns.find(COLUMN_GROUP_ID) != m_assoc_columns.end()) {
+    m_group_id_column = m_assoc_columns.at(COLUMN_GROUP_ID);
+    m_assoc_columns.erase(COLUMN_GROUP_ID);
   }
 
   for (auto& column_info : m_assoc_columns) {
@@ -429,7 +439,8 @@ std::map<std::string, unsigned int>  AssocModeConfig::parseConfigFile(const std:
     std::map<std::string, unsigned int> columns;
 
     const std::vector<std::string> reserved_names {
-      "x", "y", "ra", "dec", "weight", "group_id", "pixel_size", "pixel_half_width", "pixel_half_height"
+      COLUMN_X, COLUMN_Y, COLUMN_RA, COLUMN_DEC, COLUMN_WEIGHT,
+      COLUMN_GROUP_ID, COLUMN_PIXEL_SIZE, COLUMN_PIXEL_HALF_WIDTH, COLUMN_PIXEL_HALF_HEIGHT
     };
 
     std::ifstream config_file(filename);
