@@ -40,8 +40,8 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   bool bad_coordinates = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    int w = assoc_mode.getRefFramePixelWidth() / 2.0;
-    int h = assoc_mode.getRefFramePixelHeight() / 2.0;
+    int w = assoc_mode.getRefFramePixelWidth();
+    int h = assoc_mode.getRefFramePixelHeight();
 
     auto c = measurement_frame_coordinates->worldToImage(coord);
     coord1 = ImageCoordinate(c.m_x - w, c.m_y - h);
