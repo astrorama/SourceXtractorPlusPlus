@@ -50,8 +50,8 @@ static const std::string ASSOC_COPY { "assoc-copy" };
 static const std::string ASSOC_COLUMNS { "assoc-columns" };
 static const std::string ASSOC_COORD_TYPE { "assoc-coord-type" };
 static const std::string ASSOC_SOURCE_SIZES { "assoc-source-sizes" };
-static const std::string ASSOC_SOURCE_WIDTHS { "assoc-source-widths" };
-static const std::string ASSOC_SOURCE_HEIGHTS { "assoc-source-heights" };
+static const std::string ASSOC_SOURCE_HALF_WIDTHS { "assoc-source-half-widths" };
+static const std::string ASSOC_SOURCE_HALF_HEIGHTS { "assoc-source-half-heights" };
 static const std::string ASSOC_DEFAULT_PIXEL_SIZE { "assoc-default-pixel-size" };
 static const std::string ASSOC_GROUP_ID { "assoc-group-id" };
 static const std::string ASSOC_CONFIG { "assoc-config" };
@@ -131,11 +131,11 @@ std::map<std::string, Configuration::OptionDescriptionList> AssocModeConfig::get
       {ASSOC_COORD_TYPE.c_str(), po::value<std::string>()->default_value("PIXEL"),
           "Assoc coordinates type: PIXEL, WORLD"},
       {ASSOC_SOURCE_SIZES.c_str(), po::value<int>()->default_value(-1),
-          "Column containing the source sizes (in reference frame pixels)"},
-      {ASSOC_SOURCE_WIDTHS.c_str(), po::value<int>()->default_value(-1),
-          "Column containing the source widths (in reference frame pixels)"},
-      {ASSOC_SOURCE_HEIGHTS.c_str(), po::value<int>()->default_value(-1),
-          "Column containing the source heights (in reference frame pixels)"},
+          "Column containing the source radius (in reference frame pixels)"},
+      {ASSOC_SOURCE_HALF_WIDTHS.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the source half width (in reference frame pixels)"},
+      {ASSOC_SOURCE_HALF_HEIGHTS.c_str(), po::value<int>()->default_value(-1),
+          "Column containing the source half height (in reference frame pixels)"},
       {ASSOC_DEFAULT_PIXEL_SIZE.c_str(), po::value<double>()->default_value(5.0),
           "Default source size (in reference frame pixels)"},
       {ASSOC_GROUP_ID.c_str(), po::value<int>()->default_value(-1),
@@ -218,11 +218,11 @@ void AssocModeConfig::readConfigFromParams(const UserValues& args) {
   m_pixel_width_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
   m_pixel_height_column = args.at(ASSOC_SOURCE_SIZES).as<int>() - 1; // config uses 1 as first column
 
-  if (args.find(ASSOC_SOURCE_WIDTHS) != args.end() && args.at(ASSOC_SOURCE_WIDTHS).as<int>() > 0) {
-    m_pixel_width_column = args.at(ASSOC_SOURCE_WIDTHS).as<int>() - 1; // config uses 1 as first column
+  if (args.find(ASSOC_SOURCE_HALF_WIDTHS) != args.end() && args.at(ASSOC_SOURCE_HALF_WIDTHS).as<int>() > 0) {
+    m_pixel_width_column = args.at(ASSOC_SOURCE_HALF_WIDTHS).as<int>() - 1; // config uses 1 as first column
   }
-  if (args.find(ASSOC_SOURCE_HEIGHTS) != args.end() && args.at(ASSOC_SOURCE_HEIGHTS).as<int>() > 0) {
-    m_pixel_height_column = args.at(ASSOC_SOURCE_HEIGHTS).as<int>() - 1; // config uses 1 as first column
+  if (args.find(ASSOC_SOURCE_HALF_HEIGHTS) != args.end() && args.at(ASSOC_SOURCE_HALF_HEIGHTS).as<int>() > 0) {
+    m_pixel_height_column = args.at(ASSOC_SOURCE_HALF_HEIGHTS).as<int>() - 1; // config uses 1 as first column
   }
 
   m_group_id_column = args.at(ASSOC_GROUP_ID).as<int>() - 1; // config uses 1 as first column
