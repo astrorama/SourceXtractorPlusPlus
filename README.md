@@ -17,13 +17,13 @@ Documentation: https://astrorama.github.io/SourceXtractorPlusPlus/
 SourceXtractor++ is available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
 
 ```bash
-conda install -c conda-forge -c astrorama sourcextractor==0.22
+conda install -c conda-forge -c astrorama sourcextractor==1.0.2
  ```
 
 We would recommend, however, to install it into its own environment.
 
 ```bash
-conda create -n sourcex -c astrorama -c conda-forge sourcextractor==0.22
+conda create -n sourcex -c astrorama -c conda-forge sourcextractor==1.0.2
 conda activate sourcex
  ```
 
@@ -44,7 +44,7 @@ SourceXtractor++ is shipped directly in Fedora. It can be installed simply as fo
 sudo dnf install sourcextractor++
 ```
 
-[We also build our own RPMs as part of our CI setup](http://repository.astro.unige.ch/euclid/devel/)
+[We also build our own RPMs as part of our CI setup](http://repository.astro.unige.ch/euclid/)
 They can be installed adding a `.repo` file under `/etc/yum.repos.d` with the following content:
 
 ```ini
