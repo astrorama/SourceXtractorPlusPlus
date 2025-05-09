@@ -115,7 +115,8 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
     std::string pycode((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
     py::exec(pycode.c_str(), main_namespace);
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occured while running the Python configuration script";
   } catch (const std::system_error& e) {
     throw Elements::Exception() << e.what() << ": " << e.code().message();
   }
@@ -126,7 +127,8 @@ void PythonInterpreter::setupContext() {
   try {
     m_measurement_config = py::import("sourcextractor.config.measurement_config").attr("global_measurement_config");
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occured while setting up the Python interpreter";
   }
 }
 
@@ -144,7 +146,8 @@ std::map<int, PyMeasurementImage> PythonInterpreter::getMeasurementImages() {
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving measurement images";
   }
 }
 
@@ -162,7 +165,8 @@ std::map<int, PyAperture> PythonInterpreter::getApertures() {
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving apertures";
   }
 }
 
@@ -192,7 +196,8 @@ std::vector<std::pair<std::string, std::vector<int>>> PythonInterpreter::getMode
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving model fitting output columns";
   }
 }
 
@@ -220,7 +225,8 @@ std::map<std::string, std::vector<int>> PythonInterpreter::getApertureOutputColu
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving aperture output columns";
   }
 }
 
@@ -241,7 +247,8 @@ std::map<int, boost::python::object> PythonInterpreter::getMapFromDict(const cha
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving map from dict";
   }
 }
 
@@ -302,7 +309,8 @@ std::map<int, std::vector<int>> PythonInterpreter::getFrameModelsMap() {
     }
     return result;
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occurred while retrieving frame models map";
   }
 }
 
