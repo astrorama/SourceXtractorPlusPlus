@@ -115,7 +115,8 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
     std::string pycode((std::istreambuf_iterator<char>(fs)), (std::istreambuf_iterator<char>()));
     py::exec(pycode.c_str(), main_namespace);
   } catch (const py::error_already_set& e) {
-    throw Pyston::Exception().log(log4cpp::Priority::ERROR, logger);
+    PyErr_Print();
+    throw Elements::Exception() << "An error occured while running the Python configuration script";
   } catch (const std::system_error& e) {
     throw Elements::Exception() << e.what() << ": " << e.code().message();
   }
