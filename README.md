@@ -17,13 +17,13 @@ Documentation: https://astrorama.github.io/SourceXtractorPlusPlus/
 SourceXtractor++ is available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
 
 ```bash
-conda install -c conda-forge -c astrorama sourcextractor==1.0.2
+conda install -c conda-forge -c astrorama sourcextractor==1.0.3
  ```
 
 We would recommend, however, to install it into its own environment.
 
 ```bash
-conda create -n sourcex -c astrorama -c conda-forge sourcextractor==1.0.2
+conda create -n sourcex -c astrorama -c conda-forge sourcextractor==1.0.3
 conda activate sourcex
  ```
 
