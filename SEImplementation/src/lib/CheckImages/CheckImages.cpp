@@ -85,9 +85,10 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   auto& config = manager.getConfiguration<CheckImagesConfig>();
 
   m_model_fitting_image_filename = config.getModelFittingImageFilename();
+  m_fitting_window_image_filename = config.getFittingWindowImageFilename();
   m_residual_filename = config.getModelFittingResidualFilename();
-  m_model_background_filename = config.getModelBackgroundFilename();
-  m_model_variance_filename = config.getModelVarianceFilename();
+  m_background_filename = config.getBackgroundFilename();
+  m_variance_filename = config.getVarianceFilename();
   m_segmentation_filename = config.getSegmentationFilename();
   m_partition_filename = config.getPartitionFilename();
   m_group_filename = config.getGroupFilename();
@@ -99,6 +100,9 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   m_moffat_filename = config.getMoffatFilename();
   m_psf_filename = config.getPsfFilename();
   m_ml_detection_filename = config.getMLDetectionFilename();
+
+  m_measurement_background_filename = config.getMeasurementBackgroundFilename();
+  m_measurement_variance_filename = config.getMeasurementVarianceFilename();
 
   size_t detection_images_nb = manager.getConfiguration<DetectionImageConfig>().getExtensionsNb();
 
@@ -153,7 +157,7 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
   const auto& frames = manager.getConfiguration<MeasurementFrameConfig>().getFrames();
   for (auto& info : measurement_images_info) {
     std::stringstream label;
-    label << boost::filesystem::basename(info.m_path) << "_" << info.m_image_hdu;
+    label << boost::filesystem::path(info.m_path).stem().string() << "_" << info.m_image_hdu;
     if (info.m_is_data_cube) {
       label << "_" << info.m_image_layer;
     }
@@ -169,11 +173,11 @@ void CheckImages::configure(Euclid::Configuration::ConfigManager& manager) {
 }
 
 std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementAutoApertureImage(unsigned int frame_number) {
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
   if (m_auto_aperture_filename.empty()) {
     return nullptr;
   }
-
-  std::lock_guard<std::mutex> lock{m_access_mutex};
 
   auto i = m_measurement_auto_aperture_images.find(frame_number);
   if (i == m_measurement_auto_aperture_images.end()) {
@@ -196,11 +200,11 @@ std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementAutoApertureImag
 }
 
 std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementApertureImage(unsigned int frame_number) {
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
   if (m_aperture_filename.empty()) {
     return nullptr;
   }
-
-  std::lock_guard<std::mutex> lock{m_access_mutex};
 
   auto i = m_measurement_aperture_images.find(frame_number);
   if (i == m_measurement_aperture_images.end()) {
@@ -224,11 +228,11 @@ std::shared_ptr<WriteableImage<int>> CheckImages::getMeasurementApertureImage(un
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
 CheckImages::getModelFittingImage(unsigned int frame_number) {
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
   if (m_model_fitting_image_filename.empty() && m_residual_filename.empty()) {
     return nullptr;
   }
-
-  std::lock_guard<std::mutex> lock{m_access_mutex};
 
   auto i = m_check_image_model_fitting.find(frame_number);
   if (i == m_check_image_model_fitting.end()) {
@@ -257,12 +261,39 @@ CheckImages::getModelFittingImage(unsigned int frame_number) {
   return LockedWriteableImage<MeasurementImage::PixelType>::create(i->second);
 }
 
-std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsfImage(unsigned int frame_number) {
-  if (m_psf_filename.empty()) {
+std::shared_ptr<WriteableImage<int>>
+CheckImages::getFittingWindowImage(unsigned int frame_number) {
+  std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  if (m_fitting_window_image_filename.empty()) {
     return nullptr;
   }
 
+  auto i = m_check_image_fitting_window.find(frame_number);
+  if (i == m_check_image_fitting_window.end()) {
+    auto& frame_info = m_measurement_frames.at(frame_number);
+    auto filename = m_fitting_window_image_filename.stem();
+    filename += "_" + frame_info.m_label;
+    filename += m_fitting_window_image_filename.extension();
+    auto frame_filename = m_fitting_window_image_filename.parent_path() / filename;
+    auto writeable_image = FitsWriter::newImage<int>(
+      frame_filename.native(),
+      frame_info.m_width,
+      frame_info.m_height,
+      frame_info.m_coordinate_system
+    );
+    i = m_check_image_fitting_window.emplace(std::make_pair(frame_number, writeable_image)).first;
+  }
+  return LockedWriteableImage<int>::create(i->second);
+}
+
+
+std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsfImage(unsigned int frame_number) {
   std::lock_guard<std::mutex> lock{m_access_mutex};
+
+  if (m_psf_filename.empty()) {
+    return nullptr;
+  }
 
   auto i = m_check_image_psf.find(frame_number);
   if (i == m_check_image_psf.end()) {
@@ -286,12 +317,11 @@ std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> CheckImages::getPsf
 
 std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>
     CheckImages::getMLDetectionImage(unsigned int plane_number, size_t index) {
+  std::lock_guard<std::mutex> lock{m_access_mutex};
 
   if (m_ml_detection_filename.empty()) {
     return nullptr;
   }
-
-  std::lock_guard<std::mutex> lock{m_access_mutex};
 
   auto i = m_check_image_ml_detection.at(index).find(plane_number);
   if (i == m_check_image_ml_detection.at(index).end()) {
@@ -318,15 +348,15 @@ void CheckImages::saveImages() {
   auto detection_images_nb = m_coordinate_systems.size();
   for (size_t i = 0; i < detection_images_nb; i++) {
     // if possible, save the background image
-    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_model_background_filename != "") {
+    if (i < m_background_images.size() && m_background_images.at(i) != nullptr && m_background_filename != "") {
       FitsWriter::writeFile(*m_background_images.at(i),
-          addNumberToFilename(m_model_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_background_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the variance image
-    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_model_variance_filename != "") {
+    if (i < m_variance_images.size() && m_variance_images.at(i) != nullptr && m_variance_filename != "") {
       FitsWriter::writeFile(*m_variance_images.at(i),
-          addNumberToFilename(m_model_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
+          addNumberToFilename(m_variance_filename, i, detection_images_nb>1), m_coordinate_systems.at(i));
     }
 
     // if possible, save the filtered image
@@ -348,7 +378,35 @@ void CheckImages::saveImages() {
     }
   }
 
-  // if possible, create and save the residual image
+  // if possible, save the measurement background images
+  if (m_measurement_background_filename != "") {
+    for (auto &ci : m_measurement_background_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto background_image = ci.second;
+      auto filename = m_measurement_background_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_background_filename.extension();
+      auto frame_filename = m_measurement_background_filename.parent_path() / filename;
+      FitsWriter::writeFile(*background_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, save the measurement variance images
+  if (m_measurement_variance_filename != "") {
+    for (auto &ci : m_measurement_variance_images) {
+      auto& frame_info = m_measurement_frames.at(ci.first);
+
+      auto variance_image = ci.second;
+      auto filename = m_measurement_variance_filename.stem();
+      filename += "_" + frame_info.m_label;
+      filename += m_measurement_variance_filename.extension();
+      auto frame_filename = m_measurement_variance_filename.parent_path() / filename;
+      FitsWriter::writeFile(*variance_image, frame_filename.native(), frame_info.m_coordinate_system);
+    }
+  }
+
+  // if possible, create and save the residual images
   if (m_residual_filename != "") {
     for (auto &ci : m_check_image_model_fitting) {
       auto& frame_info = m_measurement_frames.at(ci.first);
@@ -357,6 +415,7 @@ void CheckImages::saveImages() {
       auto filename = m_residual_filename.stem();
       filename += "_" + frame_info.m_label;
       filename += m_residual_filename.extension();
+
       auto frame_filename = m_residual_filename.parent_path() / filename;
       FitsWriter::writeFile(*residual_image, frame_filename.native(), frame_info.m_coordinate_system);
     }

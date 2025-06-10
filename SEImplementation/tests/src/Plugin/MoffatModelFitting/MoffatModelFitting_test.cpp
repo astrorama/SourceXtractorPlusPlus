@@ -40,7 +40,6 @@
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
-#include "SEImplementation/Plugin/Psf/PsfProperty.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
 

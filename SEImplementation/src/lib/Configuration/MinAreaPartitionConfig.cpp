@@ -21,6 +21,7 @@
 
 #include "SEImplementation/Configuration/MinAreaPartitionConfig.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 
 #include "SEImplementation/Partition/MinAreaPartitionStep.h"
 
@@ -33,6 +34,7 @@ static const std::string DETECT_MINAREA {"detection-minimum-area"};
 
 MinAreaPartitionConfig::MinAreaPartitionConfig(long manager_id) : Configuration(manager_id) {
   declareDependency<PartitionStepConfig>();
+  declareDependency<DetectionFrameConfig>();
 }
 
 auto MinAreaPartitionConfig::getProgramOptions() -> std::map<std::string, OptionDescriptionList> {
@@ -42,13 +44,15 @@ auto MinAreaPartitionConfig::getProgramOptions() -> std::map<std::string, Option
 }
 
 void MinAreaPartitionConfig::initialize(const UserValues& args) {
-  if (args.count(DETECT_MINAREA) != 0) {
-    auto min_pixel_count = args.at(DETECT_MINAREA).as<int>();
-    getDependency<PartitionStepConfig>().addPartitionStepCreator(
-            [min_pixel_count](std::shared_ptr<SourceFactory>) {
-              return std::make_shared<MinAreaPartitionStep>(min_pixel_count);
-            }
-    );
+  if (getDependency<DetectionFrameConfig>().getDetectionFrames().size() > 0) {
+    if (args.count(DETECT_MINAREA) != 0) {
+      auto min_pixel_count = args.at(DETECT_MINAREA).as<int>();
+      getDependency<PartitionStepConfig>().addPartitionStepCreator(
+              [min_pixel_count](std::shared_ptr<SourceFactory>) {
+                return std::make_shared<MinAreaPartitionStep>(min_pixel_count);
+              }
+      );
+    }
   }
 }
 

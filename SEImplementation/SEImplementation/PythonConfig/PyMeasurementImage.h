@@ -54,6 +54,8 @@ public:
   bool is_data_cube;
   int image_layer;
   int weight_layer;
+
+  bool psf_renormalize;
 };
 
 }

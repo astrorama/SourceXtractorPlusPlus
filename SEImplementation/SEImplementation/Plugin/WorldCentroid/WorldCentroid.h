@@ -26,6 +26,7 @@
 
 #include "SEUtils/Types.h"
 #include "SEFramework/Property/Property.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
 
@@ -34,19 +35,23 @@ public:
 
   virtual ~WorldCentroid() = default;
 
-  WorldCentroid(SeFloat centroid_alpha, SeFloat centroid_delta)
+  WorldCentroid(SeDouble centroid_alpha, SeDouble centroid_delta)
       : m_centroid_alpha(centroid_alpha), m_centroid_delta(centroid_delta) {}
 
-  SeFloat getCentroidAlpha() const {
+  SeDouble getCentroidAlpha() const {
     return m_centroid_alpha;
   }
 
-  SeFloat getCentroidDelta() const {
+  SeDouble getCentroidDelta() const {
     return m_centroid_delta;
   }
 
+  WorldCoordinate getCentroid() const {
+    return WorldCoordinate(m_centroid_alpha, m_centroid_delta);
+  }
+
 private:
-  SeFloat m_centroid_alpha, m_centroid_delta;
+  SeDouble m_centroid_alpha, m_centroid_delta;
 
 };
 

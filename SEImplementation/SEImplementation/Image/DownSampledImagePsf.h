@@ -41,11 +41,13 @@ namespace SourceXtractor {
 class DownSampledImagePsf {
 public:
 
-  DownSampledImagePsf(double pixel_scale, std::shared_ptr<VectorImage<SeFloat>> image, double down_scaling=1.0);
+  DownSampledImagePsf(double pixel_scale, std::shared_ptr<VectorImage<SeFloat>> image,
+      double down_scaling=1.0, bool normalize_psf = true);
 
   virtual ~DownSampledImagePsf() = default;
 
   double getPixelScale() const;
+
   std::size_t getSize() const;
   std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> getScaledKernel(SeFloat scale) const;
   void convolve(std::shared_ptr<WriteableImage<float>> image) const;
@@ -57,6 +59,7 @@ public:
 private:
   double m_down_scaling;
   std::shared_ptr<ImagePsf> m_psf;
+  bool m_normalize_psf { true };
 };
 
 } // end of SourceXtractor

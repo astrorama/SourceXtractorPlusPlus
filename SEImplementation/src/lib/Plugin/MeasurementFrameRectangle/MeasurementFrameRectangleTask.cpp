@@ -20,6 +20,7 @@
  *  Created on: Sep 24, 2018
  *      Author: Alejandro Alvarez Ayllon
  */
+#include <iostream>
 
 #include <SEImplementation/Plugin/MeasurementFrameCoordinates/MeasurementFrameCoordinates.h>
 #include <SEImplementation/Plugin/MeasurementFrameInfo/MeasurementFrameInfo.h>

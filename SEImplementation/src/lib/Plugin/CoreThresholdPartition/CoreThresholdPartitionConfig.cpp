@@ -28,6 +28,7 @@
 #include "SEImplementation/Plugin/CoreThresholdPartition/CoreThresholdPartitionStep.h"
 #include "SEImplementation/Configuration/PartitionStepConfig.h"
 #include "SEImplementation/Configuration/MultiThresholdPartitionConfig.h"
+#include "SEImplementation/Configuration/DetectionFrameConfig.h"
 
 
 namespace po = boost::program_options;
@@ -42,7 +43,9 @@ static const std::string CORE_THRESH_USE {"partition-corethreshold" };
 CoreThresholdPartitionConfig::CoreThresholdPartitionConfig(long manager_id)
   : Configuration(manager_id), m_core_threshold(0.), m_core_minarea(0) {
   declareDependency<PartitionStepConfig>();
+  declareDependency<DetectionFrameConfig>();
 
+  // this is used to enforce the order the PartitionSteps are added and performed
   ConfigManager::getInstance(manager_id).registerDependency<CoreThresholdPartitionConfig, MultiThresholdPartitionConfig>();
 }
 
@@ -65,11 +68,13 @@ void CoreThresholdPartitionConfig::initialize(const UserValues &args) {
     throw Elements::Exception() << "Invalid " << CORE_MINAREA << " value: " << m_core_minarea;
   }
 
-  if (m_core_threshold > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()) {
-    double core_threshold = m_core_threshold;
-    int core_minarea      = m_core_minarea;
-    getDependency<PartitionStepConfig>().addPartitionStepCreator([core_threshold, core_minarea](std::shared_ptr<SourceFactory>)
-        { return std::make_shared<CoreThresholdPartitionStep>(core_threshold, core_minarea); } );
+  if (getDependency<DetectionFrameConfig>().getDetectionFrames().size() > 0) {
+    if (m_core_threshold > 0.0 && m_core_minarea > 0 && args.at(CORE_THRESH_USE).as<bool>()) {
+      double core_threshold = m_core_threshold;
+      int core_minarea      = m_core_minarea;
+      getDependency<PartitionStepConfig>().addPartitionStepCreator([core_threshold, core_minarea](std::shared_ptr<SourceFactory>)
+          { return std::make_shared<CoreThresholdPartitionStep>(core_threshold, core_minarea); } );
+    }
   }
 }
 

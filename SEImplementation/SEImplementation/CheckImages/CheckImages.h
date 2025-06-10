@@ -117,6 +117,8 @@ public:
 
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getModelFittingImage(unsigned int frame_number);
 
+  std::shared_ptr<WriteableImage<int>> getFittingWindowImage(unsigned int frame_number);
+
   std::shared_ptr<WriteableImage<MeasurementImage::PixelType>> getPsfImage(unsigned int frame_number);
 
   std::shared_ptr<WriteableImage<float>> getMLDetectionImage(unsigned int plane_number, size_t index);
@@ -125,8 +127,16 @@ public:
     m_background_images.emplace_back(background_image);
   }
 
+  void addMeasurementBackgroundCheckImage(size_t index, std::shared_ptr<Image<SeFloat>> background_image) {
+    m_measurement_background_images[index] = background_image;
+  }
+
   void addVarianceCheckImage(std::shared_ptr<Image<SeFloat>> variance_image) {
     m_variance_images.emplace_back(variance_image);
+  }
+
+  void addMeasurementVarianceCheckImage(size_t index, std::shared_ptr<Image<SeFloat>> variance_image) {
+    m_measurement_variance_images[index] = variance_image;
   }
 
   void addFilteredCheckImage(std::shared_ptr<Image<SeFloat>> filtered_image) {
@@ -178,6 +188,7 @@ private:
   std::map<unsigned int, std::shared_ptr<WriteableImage<int>>> m_measurement_aperture_images;
   std::map<unsigned int, std::shared_ptr<WriteableImage<int>>> m_measurement_auto_aperture_images;
   std::map<unsigned int, std::shared_ptr<WriteableImage<MeasurementImage::PixelType>>> m_check_image_model_fitting, m_check_image_psf;
+  std::map<unsigned int, std::shared_ptr<WriteableImage<int>>> m_check_image_fitting_window;
   std::vector<std::map<unsigned int, std::shared_ptr<WriteableImage<float>>>> m_check_image_ml_detection;
 
   std::vector<std::shared_ptr<DetectionImage>> m_detection_images;
@@ -187,13 +198,17 @@ private:
   std::vector<std::shared_ptr<Image<SeFloat>>> m_snr_images;
   std::vector<std::shared_ptr<WeightImage>> m_variance_images;
 
+  std::map<unsigned int, std::shared_ptr<Image<SeFloat>>> m_measurement_background_images;
+  std::map<unsigned int, std::shared_ptr<WeightImage>> m_measurement_variance_images;
+
 
   std::vector<std::shared_ptr<CoordinateSystem>> m_coordinate_systems;
 
   boost::filesystem::path m_model_fitting_image_filename;
+  boost::filesystem::path m_fitting_window_image_filename;
   boost::filesystem::path m_residual_filename;
-  boost::filesystem::path m_model_background_filename;
-  boost::filesystem::path m_model_variance_filename;
+  boost::filesystem::path m_background_filename;
+  boost::filesystem::path m_variance_filename;
   boost::filesystem::path m_segmentation_filename;
   boost::filesystem::path m_partition_filename;
   boost::filesystem::path m_group_filename;
@@ -205,6 +220,9 @@ private:
   boost::filesystem::path m_moffat_filename;
   boost::filesystem::path m_psf_filename;
   boost::filesystem::path m_ml_detection_filename;
+
+  boost::filesystem::path m_measurement_background_filename;
+  boost::filesystem::path m_measurement_variance_filename;
 
   std::map<boost::filesystem::path, std::tuple<std::shared_ptr<Image<SeFloat>>, bool>> m_custom_images;
 

@@ -25,6 +25,7 @@
 
 #include "SEFramework/Source/SourceInterface.h"
 #include "AlexandriaKernel/memory_tools.h"
+#include <list>
 
 namespace SourceXtractor {
 

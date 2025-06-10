@@ -54,6 +54,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
 
   std::shared_ptr<DetectionImage> getDetectionImage(size_t index = 0) const;
   std::shared_ptr<CoordinateSystem> getCoordinateSystem(size_t index = 0) const;
+  bool isReferenceImage() const { return m_is_reference_image; }
   
   double getGain(size_t index = 0) const { return m_extensions.at(index).m_gain; }
   double getSaturation(size_t index = 0) const { return m_extensions.at(index).m_saturation; }
@@ -69,7 +70,11 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   }
 
   size_t getExtensionsNb() const {
-    return m_extensions.size();
+    if (m_is_reference_image) {
+      return 0;
+    } else {
+      return m_extensions.size();
+    }
   }
 
 private:
@@ -89,6 +94,7 @@ private:
 
   std::vector<DetectionImageExtension> m_extensions;
 
+  bool m_is_reference_image {false};
 }; /* End of DetectionImageConfig class */
 
 } /* namespace SourceXtractor */

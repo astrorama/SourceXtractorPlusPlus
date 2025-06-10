@@ -22,6 +22,7 @@
 
 #include "SEImplementation/Background/BackgroundAnalyzerFactory.h"
 #include "SEImplementation/Configuration/MeasurementImageConfig.h"
+#include "SEImplementation/CheckImages/CheckImages.h"
 
 #include "SEImplementation/Configuration/MeasurementFrameConfig.h"
 
@@ -63,7 +64,7 @@ void MeasurementFrameConfig::initialize(const UserValues&) {
     }
 
     std::stringstream label;
-    label << boost::filesystem::basename(image_info.m_path) << "_" << image_info.m_image_hdu;
+    label << boost::filesystem::path(image_info.m_path).stem().string() << "_" << image_info.m_image_hdu;
     measurement_frame->setLabel(label.str());
 
     if (image_info.m_weight_image != nullptr) {
@@ -82,6 +83,9 @@ void MeasurementFrameConfig::initialize(const UserValues&) {
     }
 
     m_measurement_frames[image_info.m_id] = measurement_frame;
+
+    CheckImages::getInstance().addMeasurementBackgroundCheckImage(image_info.m_id, measurement_frame->getBackgroundLevelMap());
+    CheckImages::getInstance().addMeasurementVarianceCheckImage(image_info.m_id, measurement_frame->getImage(FrameImageLayer::LayerVarianceMap));
   }
 
 }

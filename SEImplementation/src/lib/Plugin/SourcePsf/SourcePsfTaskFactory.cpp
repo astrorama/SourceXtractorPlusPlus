@@ -34,10 +34,13 @@ void SourcePsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manag
 
   for (unsigned int i = 0; i < image_infos.size(); i++) {
     if (!image_infos[i].m_psf_path.empty()) {
-      m_vpsf[image_infos[i].m_id] = PsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu);
+      m_psf_infos[image_infos[i].m_id] = {
+          PsfPluginConfig::readPsf(image_infos[i].m_psf_path, image_infos[i].m_psf_hdu),
+          image_infos[i].m_psf_renormalize
+      };
     }
     else if (default_psf) {
-      m_vpsf[image_infos[i].m_id] = default_psf;
+      m_psf_infos[image_infos[i].m_id] = { default_psf, true };
     }
   }
 }
@@ -45,12 +48,13 @@ void SourcePsfTaskFactory::configure(Euclid::Configuration::ConfigManager& manag
 std::shared_ptr<Task> SourcePsfTaskFactory::createTask(const SourceXtractor::PropertyId& property_id) const {
   auto instance = property_id.getIndex();
 
-  if (m_vpsf.find(instance) == m_vpsf.end()) {
+  if (m_psf_infos.find(instance) == m_psf_infos.end()) {
     throw Elements::Exception() << "Missing PSF. Make sure every frame has a PSF";
   }
 
   try {
-    return std::make_shared<SourcePsfTask>(instance, m_vpsf.at(instance));
+    return std::make_shared<SourcePsfTask>(
+        instance, m_psf_infos.at(instance).m_psf, m_psf_infos.at(instance).m_normalize_psf);
   } catch (const std::out_of_range&) {
     return nullptr;
   }

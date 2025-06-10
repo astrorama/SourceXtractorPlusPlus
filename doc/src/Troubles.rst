@@ -73,4 +73,61 @@ or directing the operating system to use a partition with sufficient disk space 
 
 Note that right now |SourceXtractor++| does **not** have a parameter to directly specify the directory to store
 temporary data.
- 
+
+
+.. index::
+   single: sourcextractor++ stops suddenly
+
+|SourceXtractor++| stops shortly after the first measurements are done
+----------------------------------------------------------------------
+
+It might happen that |SourceXtractor++| stops or dumps off when the first measurements are due or when the first few measurements have been done.
+The log file then ends similar to this example:
+
+.. code-block:: console
+
+	2023-02-09T16:06:50CET Progress  INFO : Segmentation: 487 / 7200 (6.76%)
+	2023-02-09T16:06:50CET Progress  INFO : Detected: 1200
+	2023-02-09T16:06:50CET Progress  INFO : Deblended: 0
+	2023-02-09T16:06:50CET Progress  INFO : Measured: 0
+	2023-02-09T16:06:50CET Progress  INFO : Elapsed: 00:01:36
+	2023-02-09T16:06:58CET Progress  INFO : Segmentation: 502 / 7200 (6.97%)
+	2023-02-09T16:06:58CET Progress  INFO : Detected: 1234
+	2023-02-09T16:06:58CET Progress  INFO : Deblended: 1
+	2023-02-09T16:06:58CET Progress  INFO : Measured: 1 / 1 (100.00%)
+	2023-02-09T16:06:58CET Progress  INFO : Elapsed: 00:01:43
+	2023-02-09T16:07:04CET Progress  INFO : Segmentation: 502 / 7200 (6.97%)
+	2023-02-09T16:07:04CET Progress  INFO : Detected: 1235
+	2023-02-09T16:07:04CET Progress  INFO : Deblended: 4
+	2023-02-09T16:07:04CET Progress  INFO : Measured: 4 / 4 (100.00%)
+	2023-02-09T16:07:04CET Progress  INFO : Elapsed: 00:01:50
+	2023-02-09T16:07:09CET Progress  INFO : Segmentation: 504 / 7200 (7.00%)
+	2023-02-09T16:07:09CET Progress  INFO : Detected: 1240
+	2023-02-09T16:07:09CET Progress  INFO : Deblended: 7
+	2023-02-09T16:07:09CET Progress  INFO : Measured: 7 / 7 (100.00%)
+	2023-02-09T16:07:09CET Progress  INFO : Elapsed: 00:01:55
+
+A possible cause could be a race condition created  by the concurrent calls to lower level libraries such as openMP or openBLAS.
+This can happen in already multi-threaded applications such as |SourceXtractor++|
+(see `here <https://github.com/xianyi/OpenBLAS/wiki/faq#multi-threaded>`_ for details). 
+
+A confirmation that the dump is caused by a race condition in lower level libraries is if |SourceXtractor++| runs with multi-threading
+switched off (`--thread-count=0`), meaning that |SourceXtractor++| does not dump at least beyound a couple of dozen measurements in.
+
+A solution is to switch off the multi-threading of all lower level libraries by setting the following environmental variables
+*before the call* to |SourceXtractor++|:
+
+.. code-block:: console
+
+	export MKL_NUM_THREADS=1
+	export NUMEXPR_NUM_THREADS=1
+	export OMP_NUM_THREADS=1
+	export OPENBLAS_NUM_THREADS=1
+	export VECLIB_MAXIMUM_THREADS=1
+	export NTHREADS=1
+	sourcextractor++ --conf ...
+
+This switches off the multi-threading in the lower level libraries and should prevent the race conditions. In version 0.20 we
+are trying to make these settings inside |SourceXtractor++|
+(see `here <https://gitlab.euclid-sgs.uk/EuclidLibs/SourceXtractorPlusPlus/-/blob/develop/SEMain/src/program/SourceXtractor.cpp#L136>`_),
+however we are not sure whether this will work in all situations and modes.

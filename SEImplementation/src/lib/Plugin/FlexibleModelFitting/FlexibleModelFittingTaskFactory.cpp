@@ -29,7 +29,9 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.h"
 
 #include "SEImplementation/Configuration/ModelFittingConfig.h"
+
 #include "SEImplementation/Configuration/SamplingConfig.h"
+#include "SEImplementation/Configuration/MeasurementImageConfig.h"
 
 namespace SourceXtractor {
 
@@ -39,8 +41,8 @@ std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const Property
   if (property_id == PropertyId::create<FlexibleModelFitting>()) {
     if (m_use_iterative_fitting) {
       return std::make_shared<FlexibleModelFittingIterativeTask>(m_least_squares_engine, m_max_iterations,
-          m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor,
-          m_meta_iterations, m_deblend_factor, m_meta_iteration_stop, m_max_fit_size);
+          m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_should_renormalize, m_scale_factor,
+          m_meta_iterations, m_deblend_factor, m_meta_iteration_stop, m_max_fit_size, m_window_type, m_ellipse_scale);
     } else {
       return std::make_shared<FlexibleModelFittingTask>(m_least_squares_engine, m_max_iterations,
           m_modified_chi_squared_scale, m_parameters, m_frames, m_priors, m_scale_factor);
@@ -53,6 +55,7 @@ std::shared_ptr<Task> FlexibleModelFittingTaskFactory::createTask(const Property
 void FlexibleModelFittingTaskFactory::reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const {
   manager.registerConfiguration<ModelFittingConfig>();
   manager.registerConfiguration<SamplingConfig>();
+  manager.registerConfiguration<MeasurementImageConfig>();
 }
 
 void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigManager& manager) {
@@ -76,6 +79,8 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   m_meta_iterations = model_fitting_config.getMetaIterations();
   m_deblend_factor = model_fitting_config.getDeblendFactor();
   m_meta_iteration_stop = model_fitting_config.getMetaIterationStop();
+  m_window_type = model_fitting_config.getWindowType();
+  m_ellipse_scale = model_fitting_config.getEllipseScale();
 
   std::string approach;
   if (m_use_iterative_fitting) {
@@ -86,12 +91,18 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
 
   logger.info() << "Using engine " << m_least_squares_engine << " with the "
                 << approach << " implementation and "
-                << m_max_iterations << " maximum number of iterations";
+                << m_max_iterations << " maximum number of iterations, window type: "
+                << static_cast<int>(m_window_type);
 
   m_outputs = model_fitting_config.getOutputs();
 
   m_scale_factor = sampling_config.getScaleFactor();
   m_max_fit_size = sampling_config.getMaxFitSize();
+
+  const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
+  for (const auto& info : image_infos) {
+    m_should_renormalize.push_back(info.m_psf_renormalize);
+  }
 }
 
 void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& registry) {

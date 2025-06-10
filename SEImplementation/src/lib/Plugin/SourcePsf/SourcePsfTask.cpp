@@ -45,10 +45,6 @@ std::map<std::string, SourcePsfTask::ValueGetter> SourcePsfTask::component_value
   {"YMODEL_IMAGE", getCoordY}
 };
 
-SourcePsfTask::SourcePsfTask(unsigned instance, const std::shared_ptr<Psf> &vpsf)
-    : m_instance(instance), m_vpsf(vpsf) {
-}
-
 void SourcePsfTask::computeProperties(SourceXtractor::SourceInterface &source) const {
   if (m_vpsf != nullptr) {
     std::vector<double> component_values;
@@ -57,11 +53,14 @@ void SourcePsfTask::computeProperties(SourceXtractor::SourceInterface &source) c
       component_values.push_back(component_value_getters[component](source, m_instance));
     }
 
-    auto psf = m_vpsf->getPsf(component_values);
-    // The result may not be normalized!
-    auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
-    auto psf_normalized = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
-    source.setIndexedProperty<SourcePsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf_normalized);
+    std::shared_ptr<VectorImage<SeFloat>> psf = m_vpsf->getPsf(component_values);
+
+    if (m_normalize_psf) {
+      // The result may not be normalized!
+      auto psf_sum = std::accumulate(psf->getData().begin(), psf->getData().end(), 0.);
+      psf = VectorImage<SeFloat>::create(*MultiplyImage<SeFloat>::create(psf, 1. / psf_sum));
+    }
+    source.setIndexedProperty<SourcePsfProperty>(m_instance, m_vpsf->getPixelSampling(), psf);
 
     // Check image
     auto check_image = CheckImages::getInstance().getPsfImage(m_instance);
@@ -70,7 +69,7 @@ void SourcePsfTask::computeProperties(SourceXtractor::SourceInterface &source) c
       auto y = component_value_getters["Y_IMAGE"](source, m_instance);
 
       ModelFitting::ImageTraits<ModelFitting::WriteableInterfaceTypePtr>::addImageToImage(
-        check_image, psf_normalized, m_vpsf->getPixelSampling(), x, y);
+        check_image, psf, m_vpsf->getPixelSampling(), x, y);
     }
   } else {
     source.setIndexedProperty<SourcePsfProperty>(m_instance, 1.0, nullptr);

@@ -68,8 +68,9 @@ struct FunctionFromPython<double(const SourceInterface&)> {
   static
   std::function<double(const SourceInterface&)> get(const char *readable,
                                                  Pyston::ExpressionTreeBuilder& builder,
-                                                 py::object py_func) {
-    auto wrapped = builder.build<double(const AttributeSet&)>(py_func, ObjectInfo{});
+                                                 py::object py_func,
+                                                 const AssocModeConfig& config) {
+    auto wrapped = builder.build<double(const AttributeSet&)>(py_func, ObjectInfo(config));
 
     if (!wrapped.isCompiled()) {
       logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
@@ -82,8 +83,8 @@ struct FunctionFromPython<double(const SourceInterface&)> {
       logger.debug() << gv.str();
     }
 
-    return [wrapped](const SourceInterface& o) -> double {
-      return wrapped(ObjectInfo{o});
+    return [wrapped, config](const SourceInterface& o) -> double {
+      return wrapped(ObjectInfo(o, config));
     };
   }
 };
@@ -115,8 +116,9 @@ struct FunctionFromPython<double(double, const SourceInterface&)> {
   static
   std::function<double(double, const SourceInterface&)> get(const char *readable,
                                                             Pyston::ExpressionTreeBuilder& builder,
-                                                            py::object py_func) {
-    auto wrapped = builder.build<double(double, const AttributeSet&)>(py_func, ObjectInfo{});
+                                                            py::object py_func,
+                                                            const AssocModeConfig& config) {
+    auto wrapped = builder.build<double(double, const AttributeSet&)>(py_func, ObjectInfo(config));
 
     if (!wrapped.isCompiled()) {
       logger.warn() << "Could not compile " << readable << ": " << wrapped.reason()->what();
@@ -129,8 +131,8 @@ struct FunctionFromPython<double(double, const SourceInterface&)> {
       logger.debug() << gv.str();
     }
 
-    return [wrapped](double a, const SourceInterface& o) -> double {
-      return wrapped(a, ObjectInfo{o});
+    return [wrapped, config](double a, const SourceInterface& o) -> double {
+      return wrapped(a, ObjectInfo(o, config));
     };
   }
 };
@@ -181,7 +183,7 @@ void ModelFittingConfig::initializeInner() {
   /* Constant parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getConstantParameters()) {
     auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
-      "Constant parameter", expr_builder, p.second.attr("get_value")
+      "Constant parameter", expr_builder, p.second.attr("get_value"), getDependency<AssocModeConfig>()
     );
 
     m_parameters[p.first] = std::make_shared<FlexibleModelFittingConstantParameter>(
@@ -191,7 +193,7 @@ void ModelFittingConfig::initializeInner() {
   /* Free parameters */
   for (auto& p : getDependency<PythonConfig>().getInterpreter().getFreeParameters()) {
     auto init_value_func = FunctionFromPython<double(const SourceInterface&)>::get(
-      "Free parameter", expr_builder, p.second.attr("get_init_value")
+      "Free parameter", expr_builder, p.second.attr("get_init_value"), getDependency<AssocModeConfig>()
     );
 
     auto py_range_obj = p.second.attr("get_range")();
@@ -201,15 +203,15 @@ void ModelFittingConfig::initializeInner() {
 
     if (type_string == "Unbounded") {
       auto factor_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
-        "Unbounded", expr_builder, py_range_obj.attr("get_normalization_factor")
+        "Unbounded", expr_builder, py_range_obj.attr("get_normalization_factor"), getDependency<AssocModeConfig>()
       );
       converter = std::make_shared<FlexibleModelFittingUnboundedConverterFactory>(factor_func);
     } else if (type_string == "Range") {
       auto min_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
-        "Range min", expr_builder, py_range_obj.attr("get_min")
+        "Range min", expr_builder, py_range_obj.attr("get_min"), getDependency<AssocModeConfig>()
       );
       auto max_func = FunctionFromPython<double(double, const SourceInterface&)>::get(
-        "Range max", expr_builder, py_range_obj.attr("get_max")
+        "Range max", expr_builder, py_range_obj.attr("get_max"), getDependency<AssocModeConfig>()
       );
 
       auto range_func = [min_func, max_func] (double init, const SourceInterface& o) -> std::pair<double, double> {
@@ -360,10 +362,10 @@ void ModelFittingConfig::initializeInner() {
     auto param = m_parameters.at(param_id);
 
     auto value_func = FunctionFromPython<double(const SourceInterface&)>::get(
-      "Prior mean", expr_builder, prior.attr("value")
+      "Prior mean", expr_builder, prior.attr("value"), getDependency<AssocModeConfig>()
     );
     auto sigma_func = FunctionFromPython<double(const SourceInterface&)>::get(
-      "Prior sigma", expr_builder, prior.attr("sigma")
+      "Prior sigma", expr_builder, prior.attr("sigma"), getDependency<AssocModeConfig>()
     );
 
     m_priors[p.first] = std::make_shared<FlexibleModelFittingPrior>(param, value_func, sigma_func);
@@ -382,6 +384,9 @@ void ModelFittingConfig::initializeInner() {
   m_meta_iterations = py::extract<int>(parameters["meta_iterations"]);
   m_deblend_factor = py::extract<double>(parameters["deblend_factor"]);
   m_meta_iteration_stop = py::extract<double>(parameters["meta_iteration_stop"]);
+  m_window_type = static_cast<FlexibleModelFittingIterativeTask::WindowType>(
+      py::extract<int>(parameters["window_type"].attr("value"))());
+  m_ellipse_scale = py::extract<double>(parameters["ellipse_scale"]);
 }
 
 const std::map<int, std::shared_ptr<FlexibleModelFittingParameter>>& ModelFittingConfig::getParameters() const {

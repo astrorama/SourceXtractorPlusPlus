@@ -24,12 +24,13 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGPARAMETERMANAGER_H_
 #define _SEIMPLEMENTATION_PLUGIN_FLEXIBLEMODELFITTING_FLEXIBLEMODELFITTINGPARAMETERMANAGER_H_
 
-#include <map>
-#include <vector>
-
 #include "ModelFitting/Engine/EngineParameterManager.h"
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
+
+#include <map>
+#include <set>
+#include <vector>
 
 namespace SourceXtractor {
 

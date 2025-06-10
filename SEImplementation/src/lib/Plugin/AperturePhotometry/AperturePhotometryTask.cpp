@@ -97,10 +97,17 @@ void AperturePhotometryTask::computeProperties(SourceInterface &source) const {
   additional_flags |= Flags::SATURATED * source.getProperty<SaturateFlag>(m_instance).getSaturateFlag();
   additional_flags |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
 
-  auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
-  for (size_t i = 0; i < m_apertures.size(); ++i) {
-    auto det_flag = aperture_flags.at(m_apertures[i]);
-    flags[i] |= additional_flags | det_flag;
+  try {
+    auto aperture_flags = source.getProperty<ApertureFlag>().getFlags();
+    for (size_t i = 0; i < m_apertures.size(); ++i) {
+      auto det_flag = aperture_flags.at(m_apertures[i]);
+      flags[i] |= additional_flags | det_flag;
+    }
+  } catch (PropertyNotFoundException& e) {
+    // In no detection image mode we can't get flags from the detection image
+      for (size_t i = 0; i < m_apertures.size(); ++i) {
+        flags[i] |= additional_flags;
+      }
   }
 
   // set the source properties

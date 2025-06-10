@@ -40,6 +40,7 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string DETECTION_IMAGE { "detection-image" };
+static const std::string REFERENCE_IMAGE { "reference-image" };
 static const std::string DETECTION_IMAGE_GAIN { "detection-image-gain" };
 static const std::string DETECTION_IMAGE_FLUX_SCALE {"detection-image-flux-scale"};
 static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturation" };
@@ -53,6 +54,8 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
   return { {"Detection image", {
       {DETECTION_IMAGE.c_str(), po::value<std::string>(),
           "Path to a fits format image to be used as detection image."},
+      {REFERENCE_IMAGE.c_str(), po::value<std::string>(),
+          "Path to a fits format image to be used as coordinates reference only."},
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
       {DETECTION_IMAGE_FLUX_SCALE.c_str(), po::value<double>(),
@@ -67,11 +70,27 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 }
 
 void DetectionImageConfig::initialize(const UserValues& args) {
-  // Normally we would define this one as required, but then --list-output-properties would be
-  // unusable unless we also specify --detection-image, which is not very intuitive.
-  // For this reason, we check for its existence here
+
   if (args.find(DETECTION_IMAGE) == args.end()) {
-    throw Elements::Exception() << "'--" << DETECTION_IMAGE << "' is required but missing";
+    // Running without a detection image
+
+    // Check if a reference image is provided
+    if (args.find(REFERENCE_IMAGE) != args.end()) {
+      DetectionImageExtension extension;
+
+      auto reference_image_source = std::make_shared<FitsImageSource>(
+          args.find(REFERENCE_IMAGE)->second.as<std::string>(), 0, ImageTile::FloatImage);
+      extension.m_coordinate_system = std::make_shared<WCS>(*reference_image_source);
+      m_extensions.emplace_back(std::move(extension));
+
+      m_is_reference_image = true;
+    }
+
+    return;
+  }
+
+  if (args.find(REFERENCE_IMAGE) != args.end()) {
+    throw Elements::Exception() << "Either detection or reference image can be provided, not both";
   }
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
@@ -186,6 +205,9 @@ std::string DetectionImageConfig::getDetectionImagePath() const {
 std::shared_ptr<DetectionImage> DetectionImageConfig::getDetectionImage(size_t index) const {
   if (getCurrentState() < State::INITIALIZED) {
     throw Elements::Exception() << "getDetectionImage() call on not initialized DetectionImageConfig";
+  }
+  if (m_is_reference_image) {
+    throw Elements::Exception() << "Trying to access detection image but only a reference image was provided";
   }
   return m_extensions.at(index).m_detection_image;
 }

@@ -113,7 +113,7 @@ public:
                                   FlexibleModelFittingParameterManager& parameter_manager,
                                   ModelFitting::EngineParameterManager& engine_manager,
                                   const SourceInterface& source,
-                                  double initial_value) const;
+                                  double initial_value, double current_value) const;
 
   double getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const override;

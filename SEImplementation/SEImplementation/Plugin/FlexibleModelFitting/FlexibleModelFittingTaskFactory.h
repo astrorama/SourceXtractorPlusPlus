@@ -26,7 +26,7 @@
 
 #include "SEFramework/Task/TaskFactory.h"
 
-#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingTask.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.h"
 
 namespace SourceXtractor {
 
@@ -52,6 +52,8 @@ private:
   int m_meta_iterations { 3 };
   double m_deblend_factor { 1.0 };
   double m_meta_iteration_stop { 0.0001 };
+  FlexibleModelFittingIterativeTask::WindowType m_window_type { FlexibleModelFittingIterativeTask::WindowType::RECTANGLE };
+  double m_ellipse_scale { 3.0 };
 
   std::vector<std::shared_ptr<FlexibleModelFittingParameter>> m_parameters;
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
@@ -60,6 +62,9 @@ private:
 
   double m_scale_factor {1.0};
   double m_max_fit_size {100};
+
+  // should we renormalize the PSF for each frame?
+  std::vector<bool> m_should_renormalize;
 };
 
 }
