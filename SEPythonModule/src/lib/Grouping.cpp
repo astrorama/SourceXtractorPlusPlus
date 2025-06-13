@@ -27,7 +27,7 @@ namespace se = SourceXtractor;
 namespace SourceXPy {
 
 Grouping::Grouping(ContextPtr context) : m_context(std::move(context)) {
-  m_grouping = m_context->m_grouping_factory->createGrouping();
+  m_grouping = std::dynamic_pointer_cast<se::SourceGrouping>(m_context->m_grouping_factory->createGrouping());
 }
 
 std::string Grouping::repr() const {
