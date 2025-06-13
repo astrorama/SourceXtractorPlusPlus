@@ -104,6 +104,8 @@ void SourceGrouping::receiveProcessSignal(const ProcessSourcesEvent& process_eve
     sendSource(std::move(*group));
     m_source_groups.erase(group);
   }
+
+  sendProcessSignal(process_event);
 }
 
 std::set<PropertyId> SourceGrouping::requiredProperties() const {

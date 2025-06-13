@@ -1,4 +1,5 @@
-/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/**
+ * Copyright © 2019-2022 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +26,6 @@
 #include "SEFramework/Task/TaskProvider.h"
 #include "SEFramework/Task/SourceTask.h"
 #include "SEFramework/Property/PropertyNotFoundException.h"
-
 #include "SEFramework/Source/SourceWithOnDemandProperties.h"
 
 namespace SourceXtractor {
@@ -34,6 +34,11 @@ static Elements::Logging logger = Elements::Logging::getLogger("SourceWithOnDema
 
 SourceWithOnDemandProperties::SourceWithOnDemandProperties(std::shared_ptr<const TaskProvider> task_provider) :
             m_task_provider(task_provider) {
+}
+
+SourceWithOnDemandProperties::SourceWithOnDemandProperties(const SourceXtractor::SourceWithOnDemandProperties& other)
+    : m_task_provider(other.m_task_provider) {
+  m_property_holder.update(other.m_property_holder);
 }
 
 const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& property_id) const {
@@ -58,11 +63,20 @@ const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& prop
   throw PropertyNotFoundException(property_id);
 }
 
-void SourceWithOnDemandProperties::setProperty(std::unique_ptr<Property> property, const PropertyId& property_id) {
+void SourceWithOnDemandProperties::setProperty(std::shared_ptr<Property> property, const PropertyId& property_id) {
   // just forward to the ObjectWithProperties implementation
   m_property_holder.setProperty(std::move(property), property_id);
 }
 
+std::unique_ptr<SourceInterface> SourceWithOnDemandProperties::clone() const {
+  return std::unique_ptr<SourceInterface>(new SourceWithOnDemandProperties(*this));
+}
+
+void SourceWithOnDemandProperties::visitProperties(const PropertyVisitor& visitor) {
+  std::for_each(
+      m_property_holder.begin(), m_property_holder.end(),
+      [visitor](const std::pair<PropertyId, std::shared_ptr<Property>>& prop) { visitor(prop.first, prop.second); });
+}
 
 } // SEFramework namespace
 
