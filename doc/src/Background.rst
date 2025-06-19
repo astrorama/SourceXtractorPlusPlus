@@ -10,7 +10,7 @@ Modeling the background
 On linear detectors, the value measured at each pixel is the sum of a "background" signal and light coming from the sources of interest.
 To be able to detect the faintest objects and make accurate measurements, |SourceXtractor++| needs first computing a precise estimate of the background level at any position of the image: a *background map*.
 Strictly speaking, there should be one background map per source, that is, what would the image look like if that very source was missing.
-However, one can start by assuming that most discrete sources do not overlap too severely — which is generally the case for high galactic latitude fields —, and that the background varies smoothly across the field. |SourceXtractor++|'s current background model is essentially the same as that of |SExtractor|_ :cite:`1996AAS_117_393B`.
+However, one can start by assuming that most discrete sources do not overlap too severely — which is generally the case for high galactic latitude fields, and that the background varies smoothly across the field. |SourceXtractor++|'s current background model is essentially the same as that of |SExtractor|_ :cite:`1996AAS_117_393B`.
 
 Background estimation
 ---------------------
@@ -32,7 +32,7 @@ Using simulated images, the expression above was found more accurate with clippe
 
   \mbox{Mode} = 3 \times \mbox{Median} - 2 \times \mbox{Mean}.
 
-:numref:`fig_modevsmean` shows that the mode estimation in :eq:`sexbackmode` is considerably less affected by source crowding than a simple clipped mean :cite:`1981AJ_86_476J,1987AA_183_177I` but it is :math:`\approx 30\%` noisier. 
+:numref:`fig_modevsmean` shows that the mode estimation in :eq:`sexbackmode` is considerably less affected by source crowding than a simple clipped mean :cite:`1981AJ_86_476J,1987AA_183_177I` but it is :math:`\approx 30\%` noisier.
 Obviously :eq:`sexbackmode` is not valid for any distribution; |SourceXtractor++| falls back to a simple median for estimating the local background value if the mode and the median disagree by more than 30%.
 
 .. _fig_modevsmean:
@@ -43,7 +43,7 @@ Obviously :eq:`sexbackmode` is not valid for any distribution; |SourceXtractor++
 
    Simulations of 32×32 pixels background cells contamined by random Gaussian profiles.
    The true background lies at 0 ADUs.
-   While being a bit noisier, the clipped "mode" gives a more robust estimate than the clipped mean in crowded regions. 
+   While being a bit noisier, the clipped "mode" gives a more robust estimate than the clipped mean in crowded regions.
 
 .. _chap_backfilter:
 
@@ -75,7 +75,7 @@ The user has some control over background map filtering by specifying the size o
 The ``smoothing-box-size`` configuration parameter sets the box size in pixels.
 ``smoothing-box-size=3`` is the default and is sufficient in most cases.
 ``smoothing-box-size=1`` deactivates filtering.
-Larger dimensions may occasionally be used to compensate for small background cell sizes, or in the presence of large image artifacts. 
+Larger dimensions may occasionally be used to compensate for small background cell sizes, or in the presence of large image artifacts.
 
 By default, the computed background maps are automatically subtracted from input images.
 However there are situations where subtracting a *constant* from the detection image may be more relevant, e.g., for images with strongly non-Gaussian background noise |pdf|_\ s).
