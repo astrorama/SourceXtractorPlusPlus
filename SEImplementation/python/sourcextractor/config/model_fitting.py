@@ -422,7 +422,7 @@ class ModelBase(cpp.Id):
     """
     Base class for all models.
     """
-    
+
     def get_params(self):
         return []
 
@@ -449,7 +449,7 @@ class CoordinateModelBase(ModelBase):
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
         self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
-        
+
     def get_params(self):
         return [self.x_coord, self.y_coord, self.flux]
 
@@ -530,7 +530,7 @@ class ConstantModel(ModelBase):
             return 'ConstantModel[value={}]'.format(self.value)
         else:
             return 'ConstantModel[value={}]'.format(self.value.id)
-        
+
         def get_params(self):
             return [self.value]
 
@@ -826,6 +826,7 @@ class WorldCoordinate:
 def pixel_to_world_coordinate(x, y):
     """
     Transform an (X, Y) in pixel coordinates on the detection image to (RA, DEC) in world coordinates.
+
     Parameters
     ----------
     x : float
@@ -1229,28 +1230,28 @@ class ModelFitting:
 
         """
         self.params_dict["meta_iteration_stop"] = meta_iteration_stop
-        
+
     def set_window_type(self, window_type):
         """
         Parameters
         ----------
-        
+
         window_type : WindowType
             specify the type of model fitting window
 
         """
         if type(window_type) != WindowType:
             raise TypeError("Window type must be a WindowType enum value!")
-        
+
         self.params_dict["window_type"] = window_type
 
     def set_ellipse_scale(self, ellipse_scale):
         """
         Parameters
         ----------
-        
+
         ellipse_scale : double
-            specify scaling of elliptic footprints 
+            specify scaling of elliptic footprints
 
         """
         self.params_dict["ellipse_scale"] = ellipse_scale
