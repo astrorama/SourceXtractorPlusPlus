@@ -56,6 +56,8 @@ elements_add_executable(BenchRendering src/program/BenchRendering.cpp
         LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
 elements_add_executable(BenchBackgroundModel src/program/BenchBackgroundModel.cpp
         LINK_LIBRARIES SEFramework SEImplementation ${Boost_LIBRARIES})
+elements_add_executable(BenchVariablePsfStack src/program/BenchVariablePsfStack.cpp
+        LINK_LIBRARIES SEFramework ${Boost_LIBRARIES})
 
 #===============================================================================
 # Declare the Boost tests here
