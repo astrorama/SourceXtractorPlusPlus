@@ -25,8 +25,10 @@
 #define _SEIMPLEMENTATION_PSF_VARIABLEPSFSTACK_H_
 
 #include <CCfits/CCfits>
+#include <memory>
 #include <SEFramework/Image/VectorImage.h>
 #include <SEFramework/Psf/Psf.h>
+#include <SEUtils/KdTree.h>
 
 namespace SourceXtractor {
 
@@ -42,6 +44,18 @@ namespace SourceXtractor {
  */
 class VariablePsfStack final : public Psf {
 public:
+  /**
+   * @brief Structure to hold PSF position data
+   */
+  struct PsfPosition {
+    SeFloat ra;
+    SeFloat dec;
+    SeFloat x;
+    SeFloat y;
+    double gridx;
+    double gridy;
+  };
+
   /**
    * Constructor
    */
@@ -84,6 +98,13 @@ public:
   };
 
   /**
+   * @return The number of PSFs loaded in the stack
+   */
+  long getNumberOfPsfs() const {
+    return m_nrows;
+  };
+
+  /**
    *
    */
   virtual std::shared_ptr<VectorImage<SeFloat>> getPsf(const std::vector<double>& values) const;
@@ -99,12 +120,8 @@ private:
 
   long m_nrows;
 
-  std::vector<SeFloat> m_ra_values;
-  std::vector<SeFloat> m_dec_values;
-  std::vector<SeFloat> m_x_values;
-  std::vector<SeFloat> m_y_values;
-  std::vector<double>  m_gridx_values;
-  std::vector<double>  m_gridy_values;
+  std::vector<PsfPosition> m_positions;
+  std::unique_ptr<KdTree<PsfPosition>> m_kdtree;
 
   std::vector<std::string> m_components = {"X_IMAGE", "Y_IMAGE"};
 
@@ -117,6 +134,16 @@ private:
    * consistency of the stackedPSF
    */
   void selfTest();
+};
+
+/**
+ * @brief KdTree traits specialization for PsfPosition
+ */
+template <>
+struct KdTreeTraits<VariablePsfStack::PsfPosition> {
+  static double getCoord(const VariablePsfStack::PsfPosition& pos, size_t index) {
+    return (index == 0) ? static_cast<double>(pos.x) : static_cast<double>(pos.y);
+  }
 };
 
 }  // namespace SourceXtractor
