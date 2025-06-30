@@ -11,3 +11,4 @@ __pycache__
 /packages
 /doc/build/
 /build/
+.vscode
