@@ -48,8 +48,8 @@ public:
     po::options_description options{};
     options.add_options()
       ("iterations", po::value<int>()->default_value(100000), "Number of getPsf calls to benchmark")
-      ("measures", po::value<int>()->default_value(10), "Number of timing measurements to take")
-      ("fits-file", po::value<std::string>()->default_value(""), "FITS file containing PSF stack (optional, will use nullptr if not provided)");
+      ("measures", po::value<int>()->default_value(3), "Number of timing measurements to take")
+      ("fits-file", po::value<std::string>()->default_value(""), "FITS file containing PSF stack");
     return options;
   }
 
@@ -70,10 +70,11 @@ public:
         logger.info() << "Using FITS file: " << fits_file;
       } catch (const std::exception& e) {
         logger.error() << "Failed to load FITS file '" << fits_file << "': " << e.what();
-        logger.info() << "Continuing with nullptr - this will likely cause exceptions during getPsf() calls";
+        return Elements::ExitCode::DATAERR;
       }
     } else {
-      logger.info() << "No FITS file provided - using nullptr (will likely cause exceptions)";
+      logger.error() << "No FITS file provided";
+      return Elements::ExitCode::USAGE;
     }
     
     try {
@@ -125,28 +126,7 @@ public:
       
     } catch (const std::exception& e) {
       logger.error() << "Error initializing VariablePsfStack: " << e.what();
-      logger.info() << "This is expected with nullptr parameter - fix the FITS file parameter later";
-      
-      // Still run a basic timing test to measure overhead
-      std::cout << "Running basic timing test without actual PSF operations..." << std::endl;
-      std::cout << "Iterations,Measurement,Time_nanoseconds" << std::endl;
-      
-      for (int m = 0; m < measures; ++m) {
-        timer::cpu_timer timer;
-        timer.stop();
-        
-        timer.start();
-        for (int i = 0; i < iterations; ++i) {
-          // Just measure the overhead of generating random values and vector creation
-          std::vector<double> values = {random_dist(random_generator), random_dist(random_generator)};
-          volatile auto size = values.size();
-          (void)size;
-        }
-        timer.stop();
-        
-        auto elapsed_ns = timer.elapsed().wall;
-        std::cout << iterations << "," << (m + 1) << "," << elapsed_ns << std::endl;
-      }
+      return Elements::ExitCode::DATAERR;
     }
 
     return Elements::ExitCode::OK;
