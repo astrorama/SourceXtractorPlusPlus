@@ -42,11 +42,12 @@ public:
   m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_min_coord_image{-1, -1},
   m_max_coord_image{-1, -1}, m_bad_projection{bad_projection} {}
 
-  MeasurementFrameRectangle(ImageCoordinate min_coord_image, ImageCoordinate max_coord_image):
+  MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord,
+                            ImageCoordinate min_coord_image, ImageCoordinate max_coord_image):
+      m_min_coord(min_coord), m_max_coord(max_coord),
       m_min_coord_image(min_coord_image), m_max_coord_image(max_coord_image), m_bad_projection{false} {
+    assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
     assert(min_coord_image.m_x <= max_coord_image.m_x && min_coord_image.m_y <= max_coord_image.m_y);
-    m_min_coord = PixelCoordinate(static_cast<int>(min_coord_image.m_x + 0.5), static_cast<int>(min_coord_image.m_y + 0.5));
-    m_max_coord = PixelCoordinate(static_cast<int>(max_coord_image.m_x + 0.5), static_cast<int>(max_coord_image.m_y + 0.5));
   }
 
   PixelCoordinate getTopLeft() const {
