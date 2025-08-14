@@ -31,8 +31,20 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
+find_package(ASDF)
 find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
+
+
+#===============================================================================
+# ASDF support is optional--don't compile it if libasdf was not found
+#===============================================================================
+if(NOT ASDF_FOUND)
+  message("libasdf not found, compiling without ASDF support!")
+else()
+  file(GLOB ASDF_SRC src/lib/ASDF/*.cpp)
+endif()
+
 
 
 #===============================================================================
@@ -57,10 +69,12 @@ elements_add_library(SEFramework
                      src/lib/FITS/*.cpp
                      src/lib/Frame/*.cpp
                      src/lib/CoordinateSystem/*.cpp
+                     ${ASDF_SRC}
                      LINK_LIBRARIES
                         ElementsKernel SEUtils Table Configuration MathUtils FilePool
-                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
-                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES} ${ASDF_LIBRARIES}
+                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS}
+                        ${FFTW_INCLUDE_DIRS} ${ASDF_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
 
 #===============================================================================
@@ -187,6 +201,12 @@ elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSour
 elements_add_unit_test(WCS_test tests/src/CoordinateSystem/WCS_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+
+if(ASDF_FOUND)
+  elements_add_unit_test(AsdfFile_test tests/src/ASDF/AsdfFile_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
+endif()
 #===============================================================================
 # Declare the Python programs here
 # Examples :
