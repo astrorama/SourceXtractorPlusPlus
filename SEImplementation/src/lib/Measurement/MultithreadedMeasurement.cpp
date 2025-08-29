@@ -34,7 +34,7 @@ static Elements::Logging logger = Elements::Logging::getLogger("Multithreading")
 
 
 MultithreadedMeasurement::~MultithreadedMeasurement() {
-  if (m_output_thread->joinable()) {
+  if (m_output_thread && m_output_thread->joinable()) {
     m_output_thread->join();
   }
 }
@@ -46,7 +46,9 @@ void MultithreadedMeasurement::startThreads() {
 void MultithreadedMeasurement::stopThreads() {
   m_input_done = true;
   m_thread_pool->block();
-  m_output_thread->join();
+  if (m_output_thread && m_output_thread->joinable()) {
+    m_output_thread->join();
+  }
   logger.debug() << "All worker threads done!";
 }
 
@@ -81,6 +83,7 @@ void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterfac
 
   // Put the new SourceGroup into the input queue
   auto order_number = m_group_counter;
+
   auto lambda = [this, order_number, source_group = std::move(source_group)]() mutable {
     // Trigger measurements
     for (auto& source : *source_group) {
@@ -88,15 +91,15 @@ void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterfac
     }
     // Pass to the output thread
     {
-      std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+      std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
       m_output_queue.emplace_back(order_number, std::move(source_group));
     }
-    m_new_output.notify_one();
   };
   auto lambda_copyable = [lambda = std::make_shared<decltype(lambda)>(std::move(lambda))](){
     (*lambda)();
   };
   m_thread_pool->submit(lambda_copyable);
+  
   ++m_group_counter;
 }
 
@@ -117,24 +120,21 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *meas
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (m_thread_pool->activeThreads() > 0) {
-    std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+  while (true) {
+    {
+      std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
 
-    // Wait for something in the output queue
-    if (m_output_queue.empty()) {
-      m_new_output.wait_for(output_lock, std::chrono::milliseconds(100));
-    }
+      while (!m_output_queue.empty()) {
+        sendSource(std::move(m_output_queue.front().second));
+        m_output_queue.pop_front();
+      }
 
-    // Process the output queue
-    while (!m_output_queue.empty()) {
-      sendSource(std::move(m_output_queue.front().second));
-      m_output_queue.pop_front();
-    }
-
-    if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 &&
+      if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 &&
         m_output_queue.empty()) {
-      break;
+        break;
+      }
     }
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
 }
 
