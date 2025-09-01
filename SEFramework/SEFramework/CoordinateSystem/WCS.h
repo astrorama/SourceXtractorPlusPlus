@@ -41,6 +41,9 @@ public:
 
   virtual ~WCS();
 
+  // Create a trivial WCS for a given number of axes
+  static WCS identity(int naxis);
+
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
   ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
 
@@ -49,6 +52,9 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
+  explicit WCS(std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> wcs)
+    : m_wcs(std::move(wcs)) {}
+
   void init(char* headers, int number_of_records);
 
   std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
