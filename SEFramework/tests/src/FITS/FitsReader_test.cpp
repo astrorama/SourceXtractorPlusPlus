@@ -23,10 +23,12 @@
 #include <boost/test/unit_test.hpp>
 #include <fstream>
 
+#include <ElementsKernel/Auxiliary.h>
 #include <ElementsKernel/Exception.h>
 #include <ElementsKernel/Temporary.h>
 
 #include "SEFramework/FITS/FitsReader.h"
+#include "SEFramework/Image/ImageFileReader.h"
 
 #include "1px.fits.h"
 
@@ -49,7 +51,7 @@ BOOST_AUTO_TEST_SUITE (FitsReader_test)
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE( read_file, FitsReaderFixture ) {
-  auto img = FitsReader<SeFloat>::readFile(m_tmp_fits.path().native());
+  auto img = FitsReader::readFile<SeFloat>(m_tmp_fits.path().native());
   BOOST_CHECK_EQUAL(img->getWidth(), 1);
   BOOST_CHECK_EQUAL(img->getHeight(), 1);
   BOOST_CHECK_EQUAL(img->getChunk(0, 0, 1, 1)->getValue(0, 0), 42);
@@ -64,10 +66,29 @@ BOOST_FIXTURE_TEST_CASE ( image_source, FitsReaderFixture ) {
   BOOST_CHECK_EQUAL(naxis, 2);
 }
 
+
+BOOST_AUTO_TEST_CASE ( detect_file_type ) {
+  auto reader = ImageFileReader::create(Elements::getAuxiliaryPath("with_primary.fits").native());
+  auto* fits_reader = dynamic_cast<FitsReader*>(reader.get());
+  BOOST_CHECK(fits_reader != nullptr);
+}
+
+
+BOOST_AUTO_TEST_CASE ( open_with_extname ) {
+  auto reader = ImageFileReader::create(
+    Elements::getAuxiliaryPath("multiple_hdu.fits").native() + "[IMAGE2]");
+  auto* fits_reader = dynamic_cast<FitsReader*>(reader.get());
+  BOOST_CHECK(fits_reader != nullptr);
+  auto img = reader->get();
+  BOOST_CHECK_EQUAL(img->getWidth(), 1);
+  BOOST_CHECK_EQUAL(img->getHeight(), 1);
+}
+
+
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE( missing_file ) {
-  BOOST_CHECK_THROW(FitsReader<SeFloat>::readFile("/not/existing/path"), Elements::Exception);
+  BOOST_CHECK_THROW(FitsReader::readFile<SeFloat>("/not/existing/path"), Elements::Exception);
 }
 
 //-----------------------------------------------------------------------------

@@ -78,6 +78,7 @@ ImageTile::ImageType convertImageType(int bitpix) {
 }
 
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
+                                 std::optional<std::string> extname,
                                  ImageTile::ImageType image_type,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
@@ -91,12 +92,16 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   auto acc = m_handler->getAccessor<FitsFile>();
   auto fptr = acc->m_fd.getFitsFilePtr();
 
-  if (m_hdu_number <= 0) {
+  if (m_hdu_number <= 0 && !extname) {
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
       throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
     }
-  }
-  else {
+  } else if (extname) {
+    switchHdu(fptr, *extname);
+    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
+    }
+  } else {
     switchHdu(fptr, m_hdu_number);
   }
 
@@ -277,6 +282,21 @@ void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
     throw Elements::Exception() << "Trying to access non-image HDU in file " << m_filename;
   }
 }
+
+
+void FitsImageSource::switchHdu(fitsfile *fptr, const std::string& extname) const {
+  int status = 0;
+
+  fits_movnam_hdu(fptr, IMAGE_HDU, const_cast<char *>(extname.c_str()), 0, &status);
+
+  if (status != 0) {
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw Elements::Exception() << "Could not switch to HDU with EXTNAME " << extname << " in file " << m_filename
+        << " status: " << status << " = " << error_message;
+  }
+}
+
 
 void FitsImageSource::setLayer(int layer) {
   if (layer < 0 && layer >= m_depth) {

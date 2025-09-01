@@ -16,14 +16,15 @@
  */
 /**
  * @file SEFramework/Image/FitsReader.h
- * @date 06/14/16
- * @author nikoapos
+ * @date 09/01/25
+ * @author embray
  */
 
 #ifndef _SEFRAMEWORK_IMAGE_FITSREADER_H
 #define _SEFRAMEWORK_IMAGE_FITSREADER_H
 
 #include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
@@ -33,16 +34,17 @@ namespace SourceXtractor {
  * @brief
  *
  */
-template <typename T>
-class FitsReader {
+class FitsReader : public ImageFileReader {
 
 public:
+  using ImageFileReader::ImageFileReader;
 
-  /**
-   * @brief Destructor
-   */
-  virtual ~FitsReader() = default;
-
+  static bool test(std::istream& stream);
+  std::shared_ptr<ImageSource> get() override;
+  std::shared_ptr<ImageSource> get(int image_index) override;
+  std::shared_ptr<ImageSource> get(const std::string& image_path) override;
+  // TODO: Integrate this interface into the ImageFileReader base class
+  template <typename T>
   static std::shared_ptr<Image<T>> readFile(const std::string& filename) {
     auto image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::getTypeValue(T()));
     return BufferedImage<T>::create(image_source);
