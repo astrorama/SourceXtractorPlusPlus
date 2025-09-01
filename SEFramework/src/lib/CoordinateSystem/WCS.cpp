@@ -219,6 +219,30 @@ void WCS::init(char* headers, int number_of_records) {
 WCS::~WCS() {
 }
 
+
+WCS WCS::identity(int naxis) {
+  auto wcs = std::unique_ptr<wcsprm, std::function<void(wcsprm*)>>(
+    new wcsprm, [](wcsprm* w) {
+      if (w) {
+        wcsfree(w);
+        delete w;
+      }
+    }
+  );
+
+  wcsini(1, naxis, wcs.get());
+  wcs->flag = -1;
+  for (int i = 0; i < naxis; i++) {
+    wcs->crpix[i] = 1.0;
+    wcs->crval[i] = 0.0;
+    wcs->cdelt[i] = 1.0;
+    std::strncpy(wcs->ctype[i], "LINEAR", 72);
+  }
+  wcsset(wcs.get());
+  return WCS(std::move(wcs));
+}
+
+
 WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   // wcsprm is in/out
   wcsprm wcs_copy;
