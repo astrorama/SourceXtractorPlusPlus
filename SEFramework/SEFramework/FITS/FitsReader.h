@@ -40,15 +40,31 @@ public:
   using ImageFileReader::ImageFileReader;
 
   static bool test(std::istream& stream);
-  std::shared_ptr<ImageSource> get() override;
+
+  using ImageFileReader::get;
+  /**
+   * Get the N-th image HDU from the FITS file
+   *
+   * NOTE: For consistency's sake across ImageFileReaders this is 0-indexed, and *not* the
+   * 1-indexed FORTRAN/FITS convention.  It also does not correspond to the HDU number itself,
+   * but rather the count of HDUs containing valid image arrays.
+   *
+   * Use FitsReader.getHdu to get by FITS HDU number
+   */
   std::shared_ptr<ImageSource> get(int image_index) override;
   std::shared_ptr<ImageSource> get(const std::string& image_path) override;
+
+  std::shared_ptr<FitsImageSource> getHdu(int hdu_num);
+
   // TODO: Integrate this interface into the ImageFileReader base class
   template <typename T>
   static std::shared_ptr<Image<T>> readFile(const std::string& filename) {
     auto image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::getTypeValue(T()));
     return BufferedImage<T>::create(image_source);
   }
+
+private:
+  std::map<int, int> m_image_hdu_map;
 
 }; /* End of FitsReader class */
 

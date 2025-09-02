@@ -31,36 +31,59 @@ namespace SourceXtractor {
 
 
 bool FitsReader::test(std::istream& stream) {
-    char header[9] = {0};
-    if (!stream.read(header, 9)) {
-        return false;
-    }
+  char header[9] = {0};
+  if (!stream.read(header, 9)) {
+    return false;
+  }
 
-    return std::strncmp(header, "SIMPLE  =", 9) == 0;
+  return std::strncmp(header, "SIMPLE  =", 9) == 0;
 }
 
 
-std::shared_ptr<ImageSource> FitsReader::get() {
-  if (0 == m_image_index) {
-    // If the primary HDU was not an image try the first extension HDU
+std::shared_ptr<ImageSource> FitsReader::get(int image_index) {
+  auto it = m_image_hdu_map.find(image_index);
+
+  if (it != m_image_hdu_map.end()) {
+    return std::make_shared<FitsImageSource>(m_filename, it->second);
+  }
+
+  // Try loading HDUs from the file until we find the next image HDU
+  int hdu_num = 0;
+  int known_index = -1;
+
+  if (!m_image_hdu_map.empty()) {
+    auto rit = m_image_hdu_map.rbegin();
+    known_index = rit->first;
+    hdu_num = rit->second;
+  }
+
+  while (known_index < image_index) {
     try {
-      return get(1);
-    } catch (...) {
-      return get(2);
+      auto image_source = getHdu(++hdu_num);
+      m_image_hdu_map[++known_index] = hdu_num;
+
+      if (known_index == image_index) {
+        return image_source;
+      }
+    } catch (const FitsImageSource::InvalidHduTypeException&) {
+      continue;
+    } catch (const FitsImageSource::UnknownHduException&) {
+      throw;
     }
   }
 
-  return ImageFileReader::get();
-}
-
-
-std::shared_ptr<ImageSource> FitsReader::get(int hdu_num) {
-  return std::make_shared<FitsImageSource>(m_filename, hdu_num);
+  // Shouldn't get here
+  throw FitsImageSource::UnknownHduException();
 }
 
 
 std::shared_ptr<ImageSource> FitsReader::get(const std::string& extname) {
   return std::make_shared<FitsImageSource>(m_filename, extname);
+}
+
+
+std::shared_ptr<FitsImageSource> FitsReader::getHdu(int hdu_num) {
+  return std::make_shared<FitsImageSource>(m_filename, hdu_num);
 }
 
 

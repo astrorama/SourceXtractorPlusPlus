@@ -75,6 +75,8 @@ public:
     using pointer = std::shared_ptr<ImageSource>*;
     using reference = std::shared_ptr<ImageSource>&;
 
+    Iterator() noexcept : m_reader(nullptr), m_index(0) {}
+
     Iterator(ImageFileReader* reader, int index)
         : m_reader(reader), m_index(index) {
         advance();
@@ -98,6 +100,12 @@ public:
 
   private:
     void advance() {
+      // If m_reader is null the iterator is considered "done"
+      if (nullptr == m_reader) {
+        m_current = nullptr;
+        return;
+      }
+
       try {
         m_current = m_reader->get(m_index);
       } catch (...) {
@@ -115,7 +123,7 @@ public:
   }
 
   Iterator end() {
-    return Iterator(this, -1);
+    return Iterator();
   }
 
   /**

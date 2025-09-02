@@ -66,6 +66,7 @@ BOOST_FIXTURE_TEST_CASE ( image_source, FitsReaderFixture ) {
   BOOST_CHECK_EQUAL(naxis, 2);
 }
 
+//-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE ( detect_file_type ) {
   auto reader = ImageFileReader::create(Elements::getAuxiliaryPath("with_primary.fits").native());
@@ -73,6 +74,21 @@ BOOST_AUTO_TEST_CASE ( detect_file_type ) {
   BOOST_CHECK(fits_reader != nullptr);
 }
 
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE ( iterate ) {
+  auto reader = ImageFileReader::create(Elements::getAuxiliaryPath("with_primary.fits").native());
+  // Should just return one image, from the primary HDU (the next HDU in this file is a table)
+  int image_count = 0;
+  for (const auto& img_source: *reader) {
+    auto fits_source = std::dynamic_pointer_cast<FitsImageSource>(img_source);
+    BOOST_CHECK(fits_source != nullptr);
+    image_count++;
+  }
+  BOOST_CHECK_EQUAL(image_count, 1);
+}
+
+//-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_CASE ( open_with_extname ) {
   auto reader = ImageFileReader::create(
@@ -83,7 +99,6 @@ BOOST_AUTO_TEST_CASE ( open_with_extname ) {
   BOOST_CHECK_EQUAL(img->getWidth(), 1);
   BOOST_CHECK_EQUAL(img->getHeight(), 1);
 }
-
 
 //-----------------------------------------------------------------------------
 

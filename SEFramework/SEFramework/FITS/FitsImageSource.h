@@ -31,6 +31,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <ElementsKernel/Exception.h>
+
 #include "FilePool/FileManager.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSourceWithMetadata.h"
@@ -45,8 +47,19 @@ using Euclid::FilePool::FileHandler;
 
 class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
+  /**
+   * Exception thrown when opening the file with or switching to an HDU that does not
+   * exist.
+   */
+  class UnknownHduException : public Elements::Exception {};
 
   static std::shared_ptr<FileManager> getFileManager(unsigned int max_open_files = 500);
+
+  /**
+   * Exception thrown when opening the file with or switching to an HDU that does not contain
+   * an image array.
+   */
+  class InvalidHduTypeException : public Elements::Exception {};
 
   /**
    * Constructor
