@@ -41,6 +41,10 @@ bool FitsReader::test(std::istream& stream) {
 
 
 std::shared_ptr<ImageSource> FitsReader::get(int image_index) {
+  // TODO: It turns out none of this is necessary: It's already implemented in
+  // the FitsFile class, which actually loops over all the HDUs when opening the file
+  // and gets the HDU numbers of images (can be accessed with FitsFile::getImageHdus)
+  // so should just use that instead.
   auto it = m_image_hdu_map.find(image_index);
 
   if (it != m_image_hdu_map.end()) {
