@@ -52,5 +52,33 @@ BOOST_AUTO_TEST_CASE( missing_file ) {
 
 //-----------------------------------------------------------------------------
 
+BOOST_AUTO_TEST_CASE( get_ndarray_by_index ) {
+  auto asdf_file = std::make_shared<AsdfFile>(Elements::getAuxiliaryPath("basic.asdf").native());
+  auto ndarray = asdf_file->getNdarray(0);
+  BOOST_CHECK_EQUAL(ndarray.ndim(), 1);
+  auto shape = ndarray.shape();
+  std::vector<uint64_t> expected_shape{8};
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+    shape.begin(), shape.end(),
+    expected_shape.begin(), expected_shape.end()
+  );
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE( get_ndarray_by_path ) {
+  auto asdf_file = std::make_shared<AsdfFile>(Elements::getAuxiliaryPath("basic.asdf").native());
+  auto ndarray = asdf_file->getNdarray("data");
+  BOOST_CHECK_EQUAL(ndarray.ndim(), 1);
+  auto shape = ndarray.shape();
+  std::vector<uint64_t> expected_shape{8};
+  BOOST_CHECK_EQUAL_COLLECTIONS(
+    shape.begin(), shape.end(),
+    expected_shape.begin(), expected_shape.end()
+  );
+}
+
+//-----------------------------------------------------------------------------
+
 
 BOOST_AUTO_TEST_SUITE_END ()
