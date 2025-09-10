@@ -122,6 +122,7 @@ AsdfFile::AsdfValuePtr AsdfFile::getValue(const std::string& path) {
   return AsdfValuePtr(v);
 }
 
+
 AsdfFile::Ndarray::Ndarray(std::shared_ptr<AsdfFile> file, asdf_value_t *value)
     : Ndarray(file, (asdf_ndarray_t*)nullptr) {
   asdf_ndarray_t *ndarray_ptr = nullptr;
@@ -142,6 +143,36 @@ AsdfFile::Ndarray::Ndarray(std::shared_ptr<AsdfFile> file, asdf_value_t *value)
     }
   }
   m_ndarray_ptr = ndarray_ptr;
+}
+
+
+void AsdfFile::Ndarray::fillImageTile(const std::shared_ptr<ImageTile> image_tile, int layer) {
+  uint64_t plane_origin = layer;
+  void* data = image_tile->getDataPtr();
+  asdf_ndarray_err_t err = asdf_ndarray_read_tile_2d(
+    m_ndarray_ptr,
+    image_tile->getPosX(),
+    image_tile->getPosY(),
+    image_tile->getWidth(),
+    image_tile->getHeight(),
+    &plane_origin,
+    &data
+  );
+
+  switch (err) {
+    case ASDF_NDARRAY_OK:
+      break;
+    case ASDF_NDARRAY_ERR_OUT_OF_BOUNDS:
+      throw Elements::Exception() << "requested image tile (" << image_tile->getPosX()
+        << ", " << image_tile->getPosY() << ") -> ("
+        << image_tile->getPosX() + image_tile->getWidth() << ", "
+        << image_tile->getPosY() + image_tile->getHeight() << ") is out of bounds";
+    case ASDF_NDARRAY_ERR_OOM:
+      throw Elements::Exception() << "out of memory copying image tile";
+    case ASDF_NDARRAY_ERR_INVAL:
+    default:
+      throw Elements::Exception() << "invalid argument to asdf_ndarray_read_tile_2d";
+  }
 }
 
 }  // namespace SourceXtractor
