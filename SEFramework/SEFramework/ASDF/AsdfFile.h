@@ -86,7 +86,7 @@ public:
      * Given a shared pointer to an already allocated ImageTile (i.e. from ImageTile::create)
      * copy a tile from the raw ndarray data into the ImageTile.
      */
-    void fillImageTile(const std::shared_ptr<ImageTile> image_tile);
+    void fillImageTile(const std::shared_ptr<ImageTile> image_tile, int layer);
 
   private:
     /**
