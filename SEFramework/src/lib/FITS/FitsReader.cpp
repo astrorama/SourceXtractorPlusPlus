@@ -40,7 +40,7 @@ bool FitsReader::test(std::istream& stream) {
 }
 
 
-std::shared_ptr<ImageSource> FitsReader::get(int image_index) {
+std::shared_ptr<ImageSource> FitsReader::get(int image_index, ImageTile::ImageType image_type) {
   // TODO: It turns out none of this is necessary: It's already implemented in
   // the FitsFile class, which actually loops over all the HDUs when opening the file
   // and gets the HDU numbers of images (can be accessed with FitsFile::getImageHdus)
@@ -48,7 +48,7 @@ std::shared_ptr<ImageSource> FitsReader::get(int image_index) {
   auto it = m_image_hdu_map.find(image_index);
 
   if (it != m_image_hdu_map.end()) {
-    return std::make_shared<FitsImageSource>(m_filename, it->second);
+    return std::make_shared<FitsImageSource>(m_filename, it->second, image_type);
   }
 
   // Try loading HDUs from the file until we find the next image HDU
@@ -81,13 +81,14 @@ std::shared_ptr<ImageSource> FitsReader::get(int image_index) {
 }
 
 
-std::shared_ptr<ImageSource> FitsReader::get(const std::string& extname) {
-  return std::make_shared<FitsImageSource>(m_filename, extname);
+std::shared_ptr<ImageSource> FitsReader::get(const std::string& extname,
+                                             ImageTile::ImageType image_type) {
+  return std::make_shared<FitsImageSource>(m_filename, extname, image_type);
 }
 
 
-std::shared_ptr<FitsImageSource> FitsReader::getHdu(int hdu_num) {
-  return std::make_shared<FitsImageSource>(m_filename, hdu_num);
+std::shared_ptr<FitsImageSource> FitsReader::getHdu(int hdu_num, ImageTile::ImageType image_type) {
+  return std::make_shared<FitsImageSource>(m_filename, hdu_num, image_type);
 }
 
 

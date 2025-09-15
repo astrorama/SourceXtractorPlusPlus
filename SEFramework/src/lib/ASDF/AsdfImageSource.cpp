@@ -31,8 +31,10 @@
 namespace SourceXtractor {
 AsdfImageSource::AsdfImageSource(const std::string& filename, int image_index,
                                  std::optional<std::string> image_path,
+                                 ImageTile::ImageType image_type,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
+    , m_image_type(image_type)
     , m_file_manager(std::move(manager))
     , m_handler(m_file_manager->getFileHandler(filename)) {
 
@@ -105,6 +107,7 @@ void AsdfImageSource::setLayer(int layer) {
 
 
 std::shared_ptr<ImageTile> AsdfImageSource::getImageTile(int x, int y, int width, int height) const {
+  // TODO: (#5) support image data type conversion
   auto tile = ImageTile::create(m_ndarray->getImageType(), x, y, width, height,
                                 std::const_pointer_cast<ImageSource>(shared_from_this()));
   m_ndarray->fillImageTile(tile, m_current_layer);

@@ -30,6 +30,7 @@
 
 #include "SEFramework/ASDF/AsdfFile.h"
 #include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/ImageTile.h"
 
 
 namespace SourceXtractor {
@@ -64,8 +65,9 @@ public:
    *    file is loaded.
    */
   explicit AsdfImageSource(const std::string& filename, int image_index = 0,
+                           ImageTile::ImageType image_type = ImageTile::AutoType,
                            std::shared_ptr<FileManager> manager = FileManager::getDefault()) :
-    AsdfImageSource(filename, image_index, std::nullopt, std::move(manager)) {}
+    AsdfImageSource(filename, image_index, std::nullopt, image_type, std::move(manager)) {}
 
   /**
    * Constructor
@@ -78,8 +80,9 @@ public:
    *    valid image ndarray an AsdfFile::AsdfValueTypeMismatchException is thrown.
    */
   explicit AsdfImageSource(const std::string& filename, const std::string& image_path,
+                           ImageTile::ImageType image_type = ImageTile::AutoType,
                            std::shared_ptr<FileManager> manager = FileManager::getDefault()) :
-    AsdfImageSource(filename, 0, image_path, std::move(manager)) {}
+    AsdfImageSource(filename, 0, image_path, image_type, std::move(manager)) {}
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
@@ -119,9 +122,11 @@ public:
 private:
   AsdfImageSource(const std::string& filename, int image_index,
                   std::optional<std::string> image_path,
+                  ImageTile::ImageType image_type,
                   std::shared_ptr<FileManager> manager);
 
   std::string m_filename;
+  ImageTile::ImageType m_image_type;
   std::shared_ptr<FileManager> m_file_manager;
   std::shared_ptr<FileHandler> m_handler;
 

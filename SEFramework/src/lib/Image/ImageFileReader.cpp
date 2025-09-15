@@ -92,9 +92,9 @@ ImageFileReader::ImageFileReader(const std::string& filename, int image_index)
 
 std::shared_ptr<ImageSource> ImageFileReader::get() {
   if (m_image_index >= 0) {
-    return get(m_image_index);
+    return get(m_image_index, ImageTile::AutoType);
   } else if (m_image_path) {
-    return get(*m_image_path);
+    return get(*m_image_path, ImageTile::AutoType);
   }
 
   return get(0);

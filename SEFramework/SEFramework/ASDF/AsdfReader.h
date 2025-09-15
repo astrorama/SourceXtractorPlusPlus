@@ -25,6 +25,7 @@
 
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageFileReader.h"
+#include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/ASDF/AsdfImageSource.h"
 
 namespace SourceXtractor {
@@ -45,8 +46,10 @@ public:
   /**
    * Get the N-th supported image ndarray from the ASDF file
    */
-  std::shared_ptr<ImageSource> get(int image_index) override;
-  std::shared_ptr<ImageSource> get(const std::string& image_path) override;
+  std::shared_ptr<ImageSource> get(int image_index,
+                                   ImageTile::ImageType image_type = ImageTile::AutoType) override;
+  std::shared_ptr<ImageSource> get(const std::string& image_path,
+                                   ImageTile::ImageType image_type = ImageTile::AutoType) override;
 }; /* End of AsdfReader class */
 
 } /* namespace SourceXtractor */
