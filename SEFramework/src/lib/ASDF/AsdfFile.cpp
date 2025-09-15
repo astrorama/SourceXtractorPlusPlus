@@ -52,10 +52,6 @@ AsdfFile::AsdfFile(const boost::filesystem::path& path, bool writeable)
 AsdfFile::~AsdfFile() {}
 
 
-asdf_file_t* AsdfFile::getAsdfFilePtr() {
-  return m_asdf_ptr.get();
-}
-
 void AsdfFile::open() {
   asdf_file_t* ptr = asdf_open_file(m_path.native().c_str(), "r");
 
@@ -78,7 +74,7 @@ void AsdfFile::open() {
 }
 
 // TODO: Support negative indexing as well
-AsdfFile::Ndarray AsdfFile::getNdarray(int index) {
+std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
   AsdfValuePtr root = getValue("/");
 
   if (!asdf_value_is_mapping(root.get())) {
@@ -94,7 +90,7 @@ AsdfFile::Ndarray AsdfFile::getNdarray(int index) {
     asdf_value_t* value = asdf_mapping_item_value(item);
     if (asdf_value_is_ndarray(value)) {
       if (count == index) {
-        return Ndarray(shared_from_this(), value);
+        return std::unique_ptr<Ndarray>(new Ndarray(*this, value));
       } else if (count > index) {
         break;
       }
@@ -106,9 +102,9 @@ AsdfFile::Ndarray AsdfFile::getNdarray(int index) {
     << m_path.native();
 }
 
-AsdfFile::Ndarray AsdfFile::getNdarray(const std::string &path) {
+std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(const std::string &path) {
   AsdfValuePtr value = getValue(path);
-  return Ndarray(shared_from_this(), value.get());
+  return std::unique_ptr<Ndarray>(new Ndarray(*this, value.get()));
 }
 
 
@@ -123,8 +119,40 @@ AsdfFile::AsdfValuePtr AsdfFile::getValue(const std::string& path) {
 }
 
 
-AsdfFile::Ndarray::Ndarray(std::shared_ptr<AsdfFile> file, asdf_value_t *value)
-    : Ndarray(file, (asdf_ndarray_t*)nullptr) {
+static ImageTile::ImageType convertImageType(asdf_datatype_t datatype) {
+  ImageTile::ImageType image_type;
+
+  switch (datatype) {
+  case ASDF_DATATYPE_FLOAT32:
+    image_type = ImageTile::FloatImage;
+    break;
+  case ASDF_DATATYPE_FLOAT64:
+    image_type = ImageTile::DoubleImage;
+    break;
+  case ASDF_DATATYPE_INT32:
+    image_type = ImageTile::IntImage;
+    break;
+  case ASDF_DATATYPE_UINT32:
+    image_type = ImageTile::UIntImage;
+    break;
+  case ASDF_DATATYPE_INT64:
+    image_type = ImageTile::LongLongImage;
+    break;
+  default:
+    // TODO: Support more datatypes supported by ASDF
+    // Currently SE++ (and ImageTile::ImageType) is constrainted by the basic BITPIX datatypes
+    // supported by FITS.  There's no strong need for that other than the fact that it currently
+    // only supports FITS.  Nevertheless for now this will cover most common cases.
+    throw AsdfFile::AsdfUnsupportedDatatypeException() << "Unsupported ASDF ndarray datatype: "
+      << asdf_ndarray_datatype_to_string(datatype);
+  }
+
+  return image_type;
+}
+
+
+AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t *value)
+    : Ndarray((asdf_ndarray_t*)nullptr) {
   asdf_ndarray_t *ndarray_ptr = nullptr;
   asdf_value_err_t err = asdf_value_as_ndarray(value, &ndarray_ptr);
   switch (err) {
@@ -134,15 +162,16 @@ AsdfFile::Ndarray::Ndarray(std::shared_ptr<AsdfFile> file, asdf_value_t *value)
     case ASDF_VALUE_ERR_TYPE_MISMATCH: {
       const char* path = asdf_value_path(value);
       throw AsdfValueTypeMismatchException() << "Value at " << path << " is not an ndarray: "
-        << file->m_path.native();
+        << file.m_path.native();
     }
     default: {
-      const char *error_message = asdf_error(file->getAsdfFilePtr());
+      const char *error_message = asdf_error(file.getAsdfFilePtr());
       throw AsdfValueNotFoundException() << "An error occurred reading the ASDF file "
-        << file->m_path.native() << ": " << error_message;
+        << file.m_path.native() << ": " << error_message;
     }
   }
   m_ndarray_ptr = ndarray_ptr;
+  m_image_type = convertImageType(ndarray_ptr->datatype);
 }
 
 
@@ -173,6 +202,23 @@ void AsdfFile::Ndarray::fillImageTile(const std::shared_ptr<ImageTile> image_til
     default:
       throw Elements::Exception() << "invalid argument to asdf_ndarray_read_tile_2d";
   }
+}
+
+
+bool AsdfFile::Ndarray::isSupportedImage() const {
+  uint64_t ndim = m_ndarray_ptr->ndim;
+
+  if (ndim < 2 || ndim > 3) {
+    return false;
+  }
+
+  try {
+    getImageType();
+  } catch (const AsdfFile::AsdfUnsupportedDatatypeException&) {
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace SourceXtractor

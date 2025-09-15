@@ -15,7 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 /**
- * @file SEFramework/Image/FitsReader.cpp
+ * @file SEFramework/FITS/FitsReader.cpp
  * @date 09/01/25
  * @author embray
  */

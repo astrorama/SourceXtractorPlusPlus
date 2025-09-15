@@ -42,7 +42,7 @@ namespace SourceXtractor {
  * @brief represents access to a whole ASDF file
  *
  */
-class AsdfFile : public std::enable_shared_from_this<AsdfFile> {
+class AsdfFile {
 public:
   /**
    * Exception thrown when trying to access a value that does not exist in the ASDF tree
@@ -54,6 +54,12 @@ public:
    */
   class AsdfValueTypeMismatchException : public Elements::Exception {};
 
+  /**
+   * Exception thrown when an ASDF ndarray contains a datatype not (currently) supported by
+   * SE++
+   */
+  class AsdfUnsupportedDatatypeException: public Elements::Exception {};
+
   AsdfFile(const boost::filesystem::path& path, bool writeable);
 
   AsdfFile(const boost::filesystem::path& path) : AsdfFile(path, false) {}
@@ -62,7 +68,7 @@ public:
 
   virtual ~AsdfFile();
 
-  asdf_file_t* getAsdfFilePtr();
+  asdf_file_t* getAsdfFilePtr() const { return m_asdf_ptr.get(); }
 
   /**
    * Wrapper around asdf_ndarray_t
@@ -77,10 +83,24 @@ public:
 
     uint32_t ndim() const { return m_ndarray_ptr->ndim; }
 
-    std::vector<uint64_t> shape() const {
-      return std::vector<uint64_t>(m_ndarray_ptr->shape,
-                                   m_ndarray_ptr->shape + m_ndarray_ptr->ndim);
+    std::vector<uint64_t>& shape() const {
+      if (!m_shape) {
+        m_shape = std::make_unique<std::vector<uint64_t>>(
+          m_ndarray_ptr->shape,
+          m_ndarray_ptr->shape + m_ndarray_ptr->ndim
+        );
+      }
+      return *m_shape;
     }
+
+    ImageTile::ImageType getImageType() const { return m_image_type; }
+
+    /**
+     * Convenience method to test whether the ndarray can be read as an image by SE++
+     *
+     * That is, it has ndim == 2 || ndim == 3 (for data cubes) and a supported datatype.
+     */
+    bool isSupportedImage() const;
 
     /**
      * Given a shared pointer to an already allocated ImageTile (i.e. from ImageTile::create)
@@ -92,22 +112,23 @@ public:
     /**
      * Private constructor for creating the `Ndarray` wrapper from a raw asdf_value_t *
      */
-    explicit Ndarray(std::shared_ptr<AsdfFile> file, asdf_value_t *ptr);
+    explicit Ndarray(const AsdfFile& file, asdf_value_t *ptr);
     /**
      * Private constructor for creating the `Ndarray` wrapper from a raw asdf_ndarray_t *
      */
-    explicit Ndarray(std::shared_ptr<AsdfFile> file, asdf_ndarray_t *ptr)
-      : m_file(file), m_ndarray_ptr(ptr) {}
+    explicit Ndarray(asdf_ndarray_t *ptr)
+      : m_ndarray_ptr(ptr) {}
 
-    std::shared_ptr<AsdfFile> m_file;
     asdf_ndarray_t* m_ndarray_ptr;
+    ImageTile::ImageType m_image_type;
+    mutable std::unique_ptr<std::vector<uint64_t>> m_shape;
   };
 
   /**
    * Return the N-th ndarray from the top-level of the ASDF tree iterating the top-level
    * keys in order.
    */
-  Ndarray getNdarray(int index);
+  std::unique_ptr<Ndarray> getNdarray(int index);
 
   /**
    * Return any ndarray from any path in the ASDF tree
@@ -116,7 +137,7 @@ public:
    * If the given path exists but is not an ndarray, an AsdfValueTypeMismatchException is
    * thrown.
    */
-  Ndarray getNdarray(const std::string& path);
+  std::unique_ptr<Ndarray> getNdarray(const std::string& path);
 
   /* TODO: More general methods for reading metadata from the ASDF tree; for the first version
    * not needed though. */
