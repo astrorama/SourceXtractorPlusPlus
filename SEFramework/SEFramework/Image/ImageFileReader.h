@@ -26,6 +26,7 @@
 #include <istream>
 
 #include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/ImageTile.h"
 
 namespace SourceXtractor {
 
@@ -62,9 +63,15 @@ public:
 
   virtual ~ImageFileReader() = default;
 
-  virtual std::shared_ptr<ImageSource> get();
-  virtual std::shared_ptr<ImageSource> get(int image_index) = 0;
-  virtual std::shared_ptr<ImageSource> get(const std::string& image_path) = 0;
+  /**
+   * Equivalent to calling get(m_image_index/m_image_path, ImageTile::AutoType)
+   */
+  std::shared_ptr<ImageSource> get();
+
+  virtual std::shared_ptr<ImageSource> get(
+    int image_index, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
+  virtual std::shared_ptr<ImageSource> get(
+    const std::string& image_path, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
 
   /* ImageFileReader iterator interface */
   class Iterator {
@@ -75,10 +82,11 @@ public:
     using pointer = std::shared_ptr<ImageSource>*;
     using reference = std::shared_ptr<ImageSource>&;
 
-    Iterator() noexcept : m_reader(nullptr), m_index(0) {}
+    Iterator() noexcept : m_reader(nullptr), m_index(0), m_image_type(ImageTile::AutoType) {}
 
-    Iterator(ImageFileReader* reader, int index)
-        : m_reader(reader), m_index(index) {
+    Iterator(ImageFileReader* reader, int index,
+             ImageTile::ImageType image_type = ImageTile::AutoType)
+        : m_reader(reader), m_index(index), m_image_type(image_type) {
         advance();
     }
 
@@ -98,6 +106,15 @@ public:
       return !(*this == other);
     }
 
+  /* To support ImageFileReader->iter(ImageTile::ImageType) */
+  Iterator begin() {
+    return *this;
+  }
+
+  Iterator end() {
+    return Iterator();
+  }
+
   private:
     void advance() {
       // If m_reader is null the iterator is considered "done"
@@ -107,7 +124,7 @@ public:
       }
 
       try {
-        m_current = m_reader->get(m_index);
+        m_current = m_reader->get(m_index, m_image_type);
       } catch (...) {
         m_current = nullptr;
       }
@@ -116,10 +133,15 @@ public:
     ImageFileReader* m_reader;
     int m_index;
     std::shared_ptr<ImageSource> m_current;
+    ImageTile::ImageType m_image_type;
   };
 
+  Iterator iter(ImageTile::ImageType image_type = ImageTile::AutoType) {
+    return Iterator(this, 0, image_type);
+  }
+
   Iterator begin() {
-    return Iterator(this, 0);
+    return Iterator(this, 0, ImageTile::AutoType);
   }
 
   Iterator end() {

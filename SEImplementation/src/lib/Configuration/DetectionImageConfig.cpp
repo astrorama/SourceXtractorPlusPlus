@@ -98,7 +98,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
   auto image_reader = ImageFileReader::create(m_detection_image_path);
 
-  for (const auto& img_source: *image_reader) {
+  for (const auto& img_source: image_reader->iter(ImageTile::FloatImage)) {
     DetectionImageExtension extension = DetectionImageExtension::create(img_source, args);
     m_extensions.emplace_back(std::move(extension));
   }

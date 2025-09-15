@@ -46,13 +46,14 @@ bool AsdfReader::test(std::istream& stream) {
 }
 
 
-std::shared_ptr<ImageSource> AsdfReader::get(int image_index) {
-  return std::make_shared<AsdfImageSource>(m_filename, image_index);
+std::shared_ptr<ImageSource> AsdfReader::get(int image_index, ImageTile::ImageType image_type) {
+  return std::make_shared<AsdfImageSource>(m_filename, image_index, image_type);
 }
 
 
-std::shared_ptr<ImageSource> AsdfReader::get(const std::string& extname) {
-  return std::make_shared<AsdfImageSource>(m_filename, extname);
+std::shared_ptr<ImageSource> AsdfReader::get(const std::string& extname,
+                                             ImageTile::ImageType image_type) {
+  return std::make_shared<AsdfImageSource>(m_filename, extname, image_type);
 }
 
 

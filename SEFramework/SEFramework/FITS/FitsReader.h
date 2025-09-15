@@ -25,6 +25,7 @@
 
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageFileReader.h"
+#include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 namespace SourceXtractor {
@@ -51,10 +52,13 @@ public:
    *
    * Use FitsReader.getHdu to get by FITS HDU number
    */
-  std::shared_ptr<ImageSource> get(int image_index) override;
-  std::shared_ptr<ImageSource> get(const std::string& image_path) override;
+  std::shared_ptr<ImageSource> get(int image_index,
+                                   ImageTile::ImageType image_type = ImageTile::AutoType) override;
+  std::shared_ptr<ImageSource> get(const std::string& image_path,
+                                   ImageTile::ImageType image_type = ImageTile::AutoType) override;
 
-  std::shared_ptr<FitsImageSource> getHdu(int hdu_num);
+  std::shared_ptr<FitsImageSource> getHdu(int hdu_num,
+                                          ImageTile::ImageType image_type = ImageTile::AutoType);
 
   // TODO: Integrate this interface into the ImageFileReader base class
   template <typename T>
