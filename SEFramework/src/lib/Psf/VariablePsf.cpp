@@ -98,7 +98,7 @@ void VariablePsf::selfTest() {
     throw Elements::Exception() << "A variable PSF needs at least one set of coefficients";
   }
   // give some feedback
-  stack_logger.info() << "In  VariablePsf::selfTest()";
+  stack_logger.debug() << "In  VariablePsf::selfTest()";
 
   // Pre-condition: There is a degree value per unique group
   std::vector<int> n_component_per_group(m_group_degrees.size());
