@@ -120,7 +120,7 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *meas
 }
 
 void MultithreadedMeasurement::outputThreadLoop() {
-  while (true) {
+  while (m_thread_pool->activeThreads() > 0) {
     {
       std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
 
