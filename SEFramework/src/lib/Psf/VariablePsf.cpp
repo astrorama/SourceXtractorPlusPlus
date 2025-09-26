@@ -21,11 +21,12 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
+#include <algorithm>
 #include <ElementsKernel/Logging.h>
 #include <ElementsKernel/Exception.h>
-#include <algorithm>
+#include "SEUtils/IsNan.h"
+
 #include "SEFramework/Psf/VariablePsf.h"
-#include "SEFramework/Psf/SEPP_isnan_isinf.h"
 
 static auto stack_logger = Elements::Logging::getLogger("PSFExPsf");
 
@@ -97,8 +98,6 @@ void VariablePsf::selfTest() {
   if (m_coefficients.size() == 0) {
     throw Elements::Exception() << "A variable PSF needs at least one set of coefficients";
   }
-  // give some feedback
-  stack_logger.debug() << "In  VariablePsf::selfTest()";
 
   // Pre-condition: There is a degree value per unique group
   std::vector<int> n_component_per_group(m_group_degrees.size());
@@ -135,15 +134,15 @@ void VariablePsf::selfTest() {
     if (coeff->getWidth() != psf_width || coeff->getHeight() != psf_height) {
       throw Elements::Exception() << "Malformed variable PSF, coefficient matrices do not have the same dimensions";
     }
-    for (auto x = 0; x < psf_width; ++x) {
-	for (auto y = 0; y < psf_height; ++y) {
-	    if (sepp_isnan(coeff->at(x, y))) {
-		throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains NANs";
-	    }
-	    else if (sepp_isnan(coeff->at(x, y))) {
-		throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains INFs";
-	    }
-	}
+    for (auto x = 0; x < psf_width; ++x){
+      for (auto y = 0; y < psf_height; ++y) {
+        if (fastmath_isnan(coeff->at(x, y))) {
+          throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains NANs";
+        }
+        else if (fastmath_isinf(coeff->at(x, y))){
+          throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains INFs";
+        }
+      }
     }
   }
 }

@@ -24,8 +24,6 @@
 #ifndef _SEIMPLEMENTATION_PSF_VARIABLEPSF_H_
 #define _SEIMPLEMENTATION_PSF_VARIABLEPSF_H_
 
-#include <cmath>
-
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Psf/Psf.h"
 

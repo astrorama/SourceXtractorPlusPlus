@@ -1,6 +1,9 @@
-#ifndef _SEIMPLEMENTATION_PSF_SEPP_ISNAN_ISINF_H
-#define _SEIMPLEMENTATION_PSF_SEPP_ISNAN_ISINF_H
-//#include <cstdint>
+#ifndef _SEUTILS_ISNAN_H
+#define _SEUTILS_ISNAN_H
+
+#include <cstdint>
+
+namespace SourceXtractor {
 
 /*
  * From:
@@ -31,7 +34,7 @@ const unsigned FLOAT_EXP_MASK = 0x7F800000;
 // 00000000011111111111111111111111 
 const unsigned FLOAT_FRAC_PART_MASK = 0x7FFFFF;
 
-inline bool sepp_isnan(float x) {
+inline bool fastmath_isnan(float x) {
   union {
     uint32_t u;
     float    f;
@@ -40,7 +43,7 @@ inline bool sepp_isnan(float x) {
   return ((conv.u & FLOAT_EXP_MASK) == FLOAT_EXP_MASK) && ((conv.u & FLOAT_FRAC_PART_MASK) != 0);
 };
 
-inline bool sepp_isinf(float x) {
+inline bool fastmath_isinf(float x) {
   union {
     uint32_t u;
     float    f;
@@ -54,7 +57,7 @@ const uint64_t DOUBLE_EXP_MASK = 0x7FF0000000000000ul;
 // 0000 0000 0000 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111 1111
 const uint64_t DOUBLE_FRAC_PART_MASK = 0x000FFFFFFFFFFFFFul;
 
-inline bool sepp_isnan(double x) {
+inline bool fastmath_isnan(double x) {
   union {
     uint64_t  u;
     double    f;
@@ -63,8 +66,7 @@ inline bool sepp_isnan(double x) {
   return ((conv.u & DOUBLE_EXP_MASK) == DOUBLE_EXP_MASK) && ((conv.u & DOUBLE_FRAC_PART_MASK) != 0);
 };
 
-
-inline bool sepp_isinf(double x) {
+inline bool fastmath_isinf(double x) {
   union {
     uint64_t  u;
     double    f;
@@ -72,5 +74,7 @@ inline bool sepp_isinf(double x) {
   conv.f = x;
   return ((conv.u & DOUBLE_EXP_MASK) == DOUBLE_EXP_MASK) && ((conv.u & DOUBLE_FRAC_PART_MASK) == 0);
 };
+
+} // namespace SourceXtractor
 
 #endif
