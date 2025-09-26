@@ -124,10 +124,11 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     }
 
     return std::make_shared<VariablePsf>(pixel_sampling, components, group_degrees, coefficients);
-  } catch (CCfits::FITS::NoSuchHDU&) {
-    throw;
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSFEx file: " << e.message();
+  } catch (...) {
+    logger.error() << "Failed loading a psf file: " << pFits->name();
+    throw;
   }
 }
 
