@@ -124,6 +124,8 @@ static std::shared_ptr<VariablePsf> readPsfEx(std::unique_ptr<CCfits::FITS> &pFi
     }
 
     return std::make_shared<VariablePsf>(pixel_sampling, components, group_degrees, coefficients);
+  } catch (CCfits::FITS::NoSuchHDU&) { // Make sure we propagate this specific exception
+    throw;
   } catch (CCfits::FitsException &e) {
     throw Elements::Exception() << "Error loading PSFEx file: " << e.message();
   } catch (...) {
