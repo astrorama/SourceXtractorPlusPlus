@@ -107,7 +107,7 @@ public:
     return m_depth;
   }
 
-  void setLayer(int layer);
+  void setLayer(int layer) override;
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
