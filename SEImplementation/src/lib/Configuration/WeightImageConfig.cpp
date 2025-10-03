@@ -23,18 +23,14 @@
 
 #include <limits>
 #include <boost/algorithm/string.hpp>
-#include <boost/regex.hpp>
-using boost::regex;
-using boost::regex_match;
-using boost::smatch;
 
 #include "Configuration/ConfigManager.h"
 
+#include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ProcessingImageSource.h"
 #include "SEFramework/Image/ProcessedImage.h"
-#include "SEFramework/FITS/FitsReader.h"
-#include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -137,38 +133,14 @@ void WeightImageConfig::initialize(const UserValues& args) {
     throw Elements::Exception() << "Setting absolute weight but providing *no* weight image does not make sense.";
 
   if (weight_image_filename != "") {
-    boost::regex hdu_regex(".*\\[[0-9]*\\]$");
-
-    for (int i=0;; i++) {
-      std::shared_ptr<FitsImageSource> fits_image_source;
-      if (boost::regex_match(weight_image_filename, hdu_regex)) {
-        if (i==0) {
-          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, 0, ImageTile::FloatImage);
-        } else {
-          break;
-        }
-      } else {
-        try {
-          fits_image_source = std::make_shared<FitsImageSource>(weight_image_filename, i+1, ImageTile::FloatImage);
-        } catch (...) {
-          if (i==0) {
-            // Skip past primary HDU if it doesn't have an image
-            continue;
-          } else {
-            if (m_weight_images.size() == 0) {
-              throw;
-            }
-            break;
-          }
-        }
-      }
-
-      std::shared_ptr<WeightImage> weight_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+    auto reader = ImageFileReader::create(weight_image_filename);
+    for (const auto& img_source: reader->iter(ImageTile::FloatImage)) {
+      std::shared_ptr<WeightImage> weight_image = BufferedImage<DetectionImage::PixelType>::create(
+        img_source);
       weight_image = convertWeightMap(weight_image, m_weight_type, m_weight_scaling);
-
-      // we should have a corresponding detection image
       auto flux_scale = getDependency<DetectionImageConfig>().getOriginalFluxScale(m_weight_images.size());
 
+      // we should have a corresponding detection image
       WeightImage::PixelType scaled_weight_threshold = m_weight_threshold;
       if (flux_scale != 1. && m_absolute_weight) {
         weight_image = MultiplyImage<WeightImage::PixelType>::create(weight_image, flux_scale * flux_scale);
