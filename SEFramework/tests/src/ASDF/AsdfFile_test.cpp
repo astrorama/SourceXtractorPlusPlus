@@ -29,6 +29,15 @@
 
 using namespace SourceXtractor;
 
+
+struct AsdfFileFixture {
+  std::string primary_path;
+
+  AsdfFileFixture() {
+    primary_path = Elements::getAuxiliaryPath("with_primary.asdf").native();
+  }
+};
+
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE (AsdfFile_test)
@@ -36,9 +45,9 @@ BOOST_AUTO_TEST_SUITE (AsdfFile_test)
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( open_file ) {
+BOOST_FIXTURE_TEST_CASE( open_file, AsdfFileFixture ) {
   BOOST_CHECK_NO_THROW({
-    AsdfFile asdf_file(Elements::getAuxiliaryPath("basic.asdf").native());
+    AsdfFile asdf_file(primary_path);
   });
 }
 
@@ -52,12 +61,12 @@ BOOST_AUTO_TEST_CASE( missing_file ) {
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( get_ndarray_by_index ) {
-  AsdfFile asdf_file(Elements::getAuxiliaryPath("basic.asdf").native());
+BOOST_FIXTURE_TEST_CASE( get_ndarray_by_index, AsdfFileFixture ) {
+  AsdfFile asdf_file(primary_path);
   auto ndarray = asdf_file.getNdarray(0);
-  BOOST_CHECK_EQUAL(ndarray->ndim(), 1);
+  BOOST_CHECK_EQUAL(ndarray->ndim(), 2);
   auto shape = ndarray->shape();
-  std::vector<uint64_t> expected_shape{8};
+  std::vector<uint64_t> expected_shape{1, 1};
   BOOST_CHECK_EQUAL_COLLECTIONS(
     shape.begin(), shape.end(),
     expected_shape.begin(), expected_shape.end()
@@ -66,12 +75,12 @@ BOOST_AUTO_TEST_CASE( get_ndarray_by_index ) {
 
 //-----------------------------------------------------------------------------
 
-BOOST_AUTO_TEST_CASE( get_ndarray_by_path ) {
-  AsdfFile asdf_file(Elements::getAuxiliaryPath("basic.asdf").native());
-  auto ndarray = asdf_file.getNdarray("data");
-  BOOST_CHECK_EQUAL(ndarray->ndim(), 1);
+BOOST_FIXTURE_TEST_CASE( get_ndarray_by_path, AsdfFileFixture ) {
+  AsdfFile asdf_file(primary_path);
+  auto ndarray = asdf_file.getNdarray("PRIMARY");
+  BOOST_CHECK_EQUAL(ndarray->ndim(), 2);
   auto shape = ndarray->shape();
-  std::vector<uint64_t> expected_shape{8};
+  std::vector<uint64_t> expected_shape{1, 1};
   BOOST_CHECK_EQUAL_COLLECTIONS(
     shape.begin(), shape.end(),
     expected_shape.begin(), expected_shape.end()
