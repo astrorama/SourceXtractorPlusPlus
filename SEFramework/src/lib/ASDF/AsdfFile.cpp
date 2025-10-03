@@ -119,10 +119,10 @@ AsdfFile::AsdfValuePtr AsdfFile::getValue(const std::string& path) {
 }
 
 
-static ImageTile::ImageType convertImageType(asdf_datatype_t datatype) {
+static ImageTile::ImageType convertDatatypeToImageType(const asdf_datatype_t *datatype) {
   ImageTile::ImageType image_type;
 
-  switch (datatype) {
+  switch (datatype->type) {
   case ASDF_DATATYPE_FLOAT32:
     image_type = ImageTile::FloatImage;
     break;
@@ -144,10 +144,37 @@ static ImageTile::ImageType convertImageType(asdf_datatype_t datatype) {
     // supported by FITS.  There's no strong need for that other than the fact that it currently
     // only supports FITS.  Nevertheless for now this will cover most common cases.
     throw AsdfFile::AsdfUnsupportedDatatypeException() << "Unsupported ASDF ndarray datatype: "
-      << asdf_ndarray_datatype_to_string(datatype);
+      << asdf_ndarray_datatype_to_string(datatype->type);
   }
 
   return image_type;
+}
+
+
+static asdf_scalar_datatype_t convertImageTypeToDatatype(ImageTile::ImageType image_type) {
+  // This is the same default used for FITS
+  asdf_scalar_datatype_t datatype = ASDF_DATATYPE_FLOAT32;
+
+  switch (image_type) {
+  default:
+  case ImageTile::FloatImage:
+    datatype = ASDF_DATATYPE_FLOAT32;
+    break;
+  case ImageTile::DoubleImage:
+    datatype = ASDF_DATATYPE_FLOAT64;
+    break;
+  case ImageTile::IntImage:
+    datatype = ASDF_DATATYPE_INT32;
+    break;
+  case ImageTile::UIntImage:
+    datatype = ASDF_DATATYPE_UINT32;
+    break;
+  case ImageTile::LongLongImage:
+    datatype = ASDF_DATATYPE_INT64;
+    break;
+  }
+
+  return datatype;
 }
 
 
@@ -171,7 +198,7 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t *value)
     }
   }
   m_ndarray_ptr = ndarray_ptr;
-  m_image_type = convertImageType(ndarray_ptr->datatype);
+  m_image_type = convertDatatypeToImageType(&ndarray_ptr->datatype);
 }
 
 
@@ -185,6 +212,7 @@ void AsdfFile::Ndarray::fillImageTile(const std::shared_ptr<ImageTile> image_til
     image_tile->getWidth(),
     image_tile->getHeight(),
     &plane_origin,
+    convertImageTypeToDatatype(image_tile->getType()),
     &data
   );
 
