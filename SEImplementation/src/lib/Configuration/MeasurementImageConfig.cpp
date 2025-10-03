@@ -31,9 +31,11 @@
 
 #include <Pyston/GIL.h>
 
-#include <SEFramework/Image/BufferedImage.h>
-#include <SEFramework/Image/ProcessedImage.h>
 #include <SEFramework/FITS/FitsImageSource.h>
+#include <SEFramework/Image/BufferedImage.h>
+#include <SEFramework/Image/ImageFileReader.h>
+#include <SEFramework/Image/ImageSource.h>
+#include <SEFramework/Image/ProcessedImage.h>
 
 #include <SEFramework/CoordinateSystem/WCS.h>
 #include <SEImplementation/Configuration/WeightImageConfig.h>
@@ -81,8 +83,8 @@ void validateImagePaths(const PyMeasurementImage& image) {
 }
 
 std::shared_ptr<MeasurementImage> createMeasurementImage(
-    std::shared_ptr<FitsImageSource> fits_image_source, double flux_scale) {
-  std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
+    std::shared_ptr<ImageSource> image_source, double flux_scale) {
+  std::shared_ptr<MeasurementImage> image = BufferedImage<DetectionImage::PixelType>::create(image_source);
   if (flux_scale != 1.) {
     image = MultiplyImage<MeasurementImage::PixelType>::create(image, flux_scale);
   }
@@ -117,8 +119,9 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
   }
 
-  auto weight_image_source =
-      std::make_shared<FitsImageSource>(py_image.weight_file, py_image.weight_hdu+1, ImageTile::FloatImage);
+  auto reader = ImageFileReader::create(py_image.weight_file);
+  // TODO: Extend py_image to also support ASDF ndarray paths
+  auto weight_image_source = reader->get(py_image.weight_hdu, ImageTile::FloatImage);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
   if (py_image.is_data_cube) {
     weight_image_source->setLayer(py_image.weight_layer);
@@ -151,7 +154,7 @@ WeightImage::PixelType extractWeightThreshold(const PyMeasurementImage& py_image
         } else {
           threshold = std::numeric_limits<WeightImage::PixelType>::max();
         }
-        break; 
+        break;
   }
   return threshold;
 }
@@ -185,15 +188,22 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_image_layer = py_image.image_layer;
       info.m_weight_layer = py_image.weight_layer;
 
-      auto fits_image_source =
-          std::make_shared<FitsImageSource>(py_image.file, py_image.image_hdu+1, ImageTile::FloatImage);
+      auto reader = ImageFileReader::create(py_image.file);
+      auto image_source = reader->get(py_image.image_hdu, ImageTile::FloatImage);
 
       if (py_image.is_data_cube) {
-        fits_image_source->setLayer(py_image.image_layer);
+        image_source->setLayer(py_image.image_layer);
       }
 
-      info.m_measurement_image = createMeasurementImage(fits_image_source, py_image.flux_scale);
-      info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
+      info.m_measurement_image = createMeasurementImage(image_source, py_image.flux_scale);
+
+      // TODO: Instantiating a WCS from ASDF files is not yet supported, use the dummy
+      // WCS for now.
+      if (auto fits_image_source = std::dynamic_pointer_cast<FitsImageSource>(image_source)) {
+        info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
+      } else {
+        info.m_coordinate_system = std::make_shared<WCS>(WCS::identity(2));
+      }
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;

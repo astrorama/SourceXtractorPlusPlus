@@ -115,7 +115,7 @@ public:
     return m_ndarray->getImageType();
   }
 
-  void setLayer(int layer);
+  void setLayer(int layer) override;
 
   void saveTile(ImageTile& tile) override;
 
