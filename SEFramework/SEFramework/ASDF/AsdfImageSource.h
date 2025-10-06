@@ -1,5 +1,5 @@
 /**
- * Copyright © 2019-2025 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+ * Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -90,6 +90,10 @@ public:
     return m_filename;
   }
 
+  int getNdim() const {
+    return m_ndarray->ndim();
+  }
+
   /**
    * Returns the width of the image in pixels
    */
@@ -111,8 +115,15 @@ public:
     return m_ndarray->ndim() == 3 ? m_ndarray->shape().at(0) : 0;
   }
 
+  /**
+   * Returns the data type of the pixel values
+   *
+   * NOTE: Does not necessarily return the data type of the raw array, but
+   * rather the type specified when constructing the AsdfImageSource, to which
+   * the original data is converted.
+   */
   ImageTile::ImageType getType() const override {
-    return m_ndarray->getImageType();
+    return m_image_type;
   }
 
   void setLayer(int layer) override;

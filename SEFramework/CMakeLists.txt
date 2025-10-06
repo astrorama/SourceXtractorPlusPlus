@@ -209,6 +209,9 @@ if(ASDF_FOUND)
   elements_add_unit_test(AsdfImageSource_test tests/src/ASDF/AsdfImageSource_test.cpp
                          LINK_LIBRARIES SEFramework
                          TYPE Boost)
+  elements_add_unit_test(AsdfReader_test tests/src/ASDF/AsdfReader_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
 endif()
 #===============================================================================
 # Declare the Python programs here

@@ -108,7 +108,7 @@ void AsdfImageSource::setLayer(int layer) {
 
 std::shared_ptr<ImageTile> AsdfImageSource::getImageTile(int x, int y, int width, int height) const {
   // TODO: (#5) support image data type conversion
-  auto tile = ImageTile::create(m_ndarray->getImageType(), x, y, width, height,
+  auto tile = ImageTile::create(m_image_type, x, y, width, height,
                                 std::const_pointer_cast<ImageSource>(shared_from_this()));
   m_ndarray->fillImageTile(tile, m_current_layer);
   return tile;
