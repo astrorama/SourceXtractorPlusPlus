@@ -154,7 +154,7 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFilter
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFITSFilter(const std::string& filename) const {
 
   // read in the FITS file
-  auto convolution_kernel = FitsReader::readFile<SeFloat>(filename);
+  auto convolution_kernel = FitsReader::readImage<SeFloat>(filename);
 
   // give some feedback on the filter
   segConfigLogger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();
