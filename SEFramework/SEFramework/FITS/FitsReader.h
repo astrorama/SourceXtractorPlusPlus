@@ -23,7 +23,6 @@
 #ifndef _SEFRAMEWORK_FITS_FITSREADER_H
 #define _SEFRAMEWORK_FITS_FITSREADER_H
 
-#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/Image/ImageTile.h"
 #include "SEFramework/FITS/FitsImageSource.h"
@@ -59,13 +58,6 @@ public:
 
   std::shared_ptr<FitsImageSource> getHdu(int hdu_num,
                                           ImageTile::ImageType image_type = ImageTile::AutoType);
-
-  // TODO: Integrate this interface into the ImageFileReader base class
-  template <typename T>
-  static std::shared_ptr<Image<T>> readFile(const std::string& filename) {
-    auto image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::getTypeValue(T()));
-    return BufferedImage<T>::create(image_source);
-  }
 
 private:
   std::map<int, int> m_image_hdu_map;

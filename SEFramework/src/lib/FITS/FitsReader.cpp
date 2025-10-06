@@ -63,7 +63,7 @@ std::shared_ptr<ImageSource> FitsReader::get(int image_index, ImageTile::ImageTy
 
   while (known_index < image_index) {
     try {
-      auto image_source = getHdu(++hdu_num);
+      auto image_source = getHdu(++hdu_num, image_type);
       m_image_hdu_map[++known_index] = hdu_num;
 
       if (known_index == image_index) {

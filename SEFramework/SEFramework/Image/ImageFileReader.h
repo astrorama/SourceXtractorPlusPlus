@@ -25,6 +25,7 @@
 
 #include <istream>
 
+#include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
 
@@ -169,6 +170,48 @@ public:
    * @return The default file type to use (currently "fits", when in doubt)
    */
   static std::string getDefault();
+
+  /**
+   * Convenience shortcut for returning a buffered image of a given datatype
+   * the file
+   *
+   * @param filename
+   *    The filename of the file
+   * @param image_index (optional)
+   *    The index of the image to return from the file if it contains multiple
+   *    images (such as a multi-extension FITS file)
+   * @return
+   *    A new instance of an Image<T>. An Elements::Exception is thrown if the file type
+   *    cannot be determined or does not contain a valid image.
+   */
+  template <typename T>
+  static std::shared_ptr<Image<T>> readImage(const std::string& filename, int image_index = 0) {
+    auto reader = create(filename);
+    auto image_source = reader->get(image_index, ImageTile::getTypeValue(T()));
+    return BufferedImage<T>::create(image_source);
+  }
+
+  /**
+   * Convenience shortcut for returning a buffered image of a given datatype
+   * the file
+   *
+   * @param filename
+   *    The filename of the file
+   * @param image_path
+   *    The name or path within the file for the image if there are multiple
+   *    images in the file (e.g. the EXTNAME of a FITS HDU or a path within
+   *    an ASDF file)
+   * @return
+   *    A new instance of an Image<T>. An Elements::Exception is thrown if the file type
+   *    cannot be determined or does not contain a valid image.
+   */
+  template <typename T>
+  static std::shared_ptr<Image<T>> readImage(const std::string& filename,
+                                             const std::string& image_path) {
+    auto reader = create(filename);
+    auto image_source = reader->get(image_path, ImageTile::getTypeValue(T()));
+    return BufferedImage<T>::create(image_source);
+  }
 
   /**
    * Create an instance of an `ImageFileReader` from the filename (which may contain an optional
