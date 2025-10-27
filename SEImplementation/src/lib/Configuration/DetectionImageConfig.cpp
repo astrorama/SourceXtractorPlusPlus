@@ -22,16 +22,16 @@
 #include "Configuration/ConfigManager.h"
 
 #include <boost/regex.hpp>
+#include <memory>
 using boost::regex;
 using boost::regex_match;
 using boost::smatch;
 
+#include "SEFramework/CoordinateSystem/WCS.h"
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsImageSource.h"
-
-#include "SEFramework/CoordinateSystem/WCS.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -79,8 +79,9 @@ void DetectionImageConfig::initialize(const UserValues& args) {
     if (args.find(REFERENCE_IMAGE) != args.end()) {
       DetectionImageExtension extension;
 
-      auto reference_image_source = std::make_shared<FitsImageSource>(
-          args.find(REFERENCE_IMAGE)->second.as<std::string>(), 0, ImageTile::FloatImage);
+      auto image_reader = ImageFileReader::create(
+        args.find(REFERENCE_IMAGE)->second.as<std::string>());
+      auto reference_image_source = image_reader->get(0);
       extension.m_coordinate_system = std::make_shared<WCS>(*reference_image_source);
       m_extensions.emplace_back(std::move(extension));
 
@@ -109,7 +110,7 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
     std::shared_ptr<ImageSource> image_source, double gain, double saturation,
     double flux_scale, int interpolation_gap) {
   init(image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = std::make_shared<WCS>(WCS::identity(2));
+  m_coordinate_system = std::make_shared<WCS>(*image_source);
   rescale();
 }
 

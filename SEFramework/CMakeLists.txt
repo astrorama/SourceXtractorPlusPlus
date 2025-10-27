@@ -31,6 +31,8 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
+# TODO: For ASDF support we also need optional GWCS support to work with WCS
+# from ASDF files; this needs to be checked as well
 find_package(ASDF)
 find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
@@ -40,9 +42,10 @@ find_package(WCSLIB REQUIRED)
 # ASDF support is optional--don't compile it if libasdf was not found
 #===============================================================================
 if(NOT ASDF_FOUND)
-  message("libasdf not found, compiling without ASDF support!")
+  message("libasdf not found, compiling without ASDF support")
 else()
   file(GLOB ASDF_SRC src/lib/ASDF/*.cpp)
+  add_definitions(-DWITH_ASDF)
 endif()
 
 

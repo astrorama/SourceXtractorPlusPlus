@@ -31,7 +31,6 @@
 
 #include <Pyston/GIL.h>
 
-#include <SEFramework/FITS/FitsImageSource.h>
 #include <SEFramework/Image/BufferedImage.h>
 #include <SEFramework/Image/ImageFileReader.h>
 #include <SEFramework/Image/ImageSource.h>
@@ -196,14 +195,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       }
 
       info.m_measurement_image = createMeasurementImage(image_source, py_image.flux_scale);
-
-      // TODO: Instantiating a WCS from ASDF files is not yet supported, use the dummy
-      // WCS for now.
-      if (auto fits_image_source = std::dynamic_pointer_cast<FitsImageSource>(image_source)) {
-        info.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
-      } else {
-        info.m_coordinate_system = std::make_shared<WCS>(WCS::identity(2));
-      }
+      info.m_coordinate_system = std::make_shared<WCS>(*image_source);
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;

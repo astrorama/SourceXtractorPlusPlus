@@ -33,6 +33,11 @@
 #include <wcslib/wcshdr.h>
 #include <wcslib/wcsprintf.h>
 
+#ifdef WITH_ASDF
+#include <asdf.h>
+#include <asdf/gwcs/gwcs.h>
+#endif
+
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
 
@@ -156,13 +161,17 @@ WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
   int number_of_records = 0;
   auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
 
-  init(&(*fits_headers)[0], number_of_records);
+  initFits(&(*fits_headers)[0], number_of_records);
 }
 
 WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
 
   //FIXME Horrible hack: I couldn't figure out how to properly do a deep copy wcsprm so instead
   // of making a copy, I use the ascii headers output from the original to recreate a new one
+
+  // (embray): Major sympathies here.  Looking through the wcslib headers I found there is a
+  // wcscopy() which is just a wrapper around wcssub() which should do it.  I'll give that a try
+  // later.
 
   int number_of_records;
   char *raw_header;
@@ -171,13 +180,13 @@ WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
     throw Elements::Exception() << "Failed to get the FITS headers for the WCS coordinate system when copying WCS";
   }
 
-  init(raw_header, number_of_records);
+  initFits(raw_header, number_of_records);
 
   free(raw_header);
 }
 
 
-void WCS::init(char* headers, int number_of_records) {
+void WCS::initFits(char* headers, int number_of_records) {
   wcserr_enable(1);
 
   int nreject = 0, nwcs = 0, nreject_strict = 0;
@@ -213,6 +222,31 @@ void WCS::init(char* headers, int number_of_records) {
                   << " is not fully thread safe, using wrapped lincpy call!";
     safe_wcssub = &wrapped_wcssub;
   }
+}
+
+
+#ifdef HAVE_ASDF
+/** WCS initializer from an ASDF file
+ *
+ * Currently this makes a brash assumption: if there is any compatible GWCS
+ * object in the file it "must" be the right one.  This assumption can be wrong
+ * but in practice most ASDF files have one data array, one WCS.
+ *
+ * Later we will figure out how to work in some config option(s) to explicitly
+ * provide a path to the correct WCS to use if there is any ambiguity.
+ */
+WCS::WCS(const AsdfImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
+}
+#endif
+
+
+/**
+ * Initializer for a generic ImageSource
+ *
+ * This just creates a dummy identity WCS and logs a warning
+ */
+WCS::WCS(const ImageSource &) : WCS(identity(2)) {
+    logger.warn() << "No WCS info on generic image source; creating an identity WCS";
 }
 
 
