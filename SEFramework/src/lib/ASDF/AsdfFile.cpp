@@ -102,14 +102,69 @@ std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
     << m_path.native();
 }
 
+
 std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(const std::string &path) {
   AsdfValuePtr value = getValue(path);
   return std::unique_ptr<Ndarray>(new Ndarray(*this, value.get()));
 }
 
 
+bool fitsWcsValuePredicate(asdf_value_t* value) {
+  asdf_gwcs_t* gwcs = nullptr;
+  asdf_value_err_t err = asdf_value_as_gwcs(value, &gwcs);
+
+  if (ASDF_VALUE_OK != err || !gwcs) {
+    return false;
+  }
+
+  return asdf_gwcs_is_fits((asdf_file_t*)asdf_value_file(value), gwcs);
+}
+
+
+std::unique_ptr<AsdfFile::FitsWCS> AsdfFile::getFitsWCS() {
+  AsdfValuePtr root = getValue("/");
+
+  if (!root) {
+    throw AsdfValueNotFoundException() << "Could not load the root of the ASDF tree in file: "
+      << m_path.native();
+  }
+
+  // Find the first applicable GWCS, if any
+  asdf_find_item_t* item = asdf_value_find(root.get(), fitsWcsValuePredicate);
+
+  if (!item) {
+    logger.warn() << "No FITS-compatible WCS could be found in the ASDF file: "
+      << m_path.native();
+    return std::unique_ptr<AsdfFile::FitsWCS>{};
+  }
+
+  asdf_value_t* value = asdf_find_item_value(item);
+  return std::unique_ptr<FitsWCS>(new FitsWCS(*this, value));
+}
+
+
+std::unique_ptr<AsdfFile::FitsWCS> AsdfFile::getFitsWCS(const std::string& path) {
+  asdf_value_t* value = asdf_get_value(m_asdf_ptr.get(), path.c_str());
+  asdf_gwcs_t* gwcs = nullptr;
+
+  if (!value) {
+    throw AsdfValueNotFoundException() << "No value at given WCS path " << path
+      << " in ASDF file: " << m_path.native();
+  }
+
+  asdf_value_err_t err = asdf_value_as_gwcs(value, &gwcs);
+
+  if (ASDF_VALUE_OK != err || !asdf_gwcs_is_fits(m_asdf_ptr.get(), gwcs)) {
+    throw AsdfValueNotFoundException() << "Value at given WCS path " << path
+      << " is not a FITS-compatible GWCS in ASDF file: " << m_path.native();
+  }
+
+  return std::unique_ptr<FitsWCS>(new FitsWCS(*this, value));
+}
+
+
 AsdfFile::AsdfValuePtr AsdfFile::getValue(const std::string& path) {
-  asdf_value_t *v = asdf_get_value(m_asdf_ptr.get(), path.c_str());
+  asdf_value_t* v = asdf_get_value(m_asdf_ptr.get(), path.c_str());
   if (!v) {
     throw AsdfValueNotFoundException() << "No value at path " << path << " in file: "
       << m_path.native();
@@ -119,7 +174,7 @@ AsdfFile::AsdfValuePtr AsdfFile::getValue(const std::string& path) {
 }
 
 
-static ImageTile::ImageType convertDatatypeToImageType(const asdf_datatype_t *datatype) {
+static ImageTile::ImageType convertDatatypeToImageType(const asdf_datatype_t* datatype) {
   ImageTile::ImageType image_type;
 
   switch (datatype->type) {
@@ -178,9 +233,9 @@ static asdf_scalar_datatype_t convertImageTypeToDatatype(ImageTile::ImageType im
 }
 
 
-AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t *value)
+AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t* value)
     : Ndarray((asdf_ndarray_t*)nullptr) {
-  asdf_ndarray_t *ndarray_ptr = nullptr;
+  asdf_ndarray_t* ndarray_ptr = nullptr;
   asdf_value_err_t err = asdf_value_as_ndarray(value, &ndarray_ptr);
   switch (err) {
     case ASDF_VALUE_OK:
@@ -192,7 +247,7 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t *value)
         << file.m_path.native();
     }
     default: {
-      const char *error_message = asdf_error(file.getAsdfFilePtr());
+      const char* error_message = asdf_error(file.getAsdfFilePtr());
       throw AsdfValueNotFoundException() << "An error occurred reading the ASDF file "
         << file.m_path.native() << ": " << error_message;
     }
@@ -248,5 +303,51 @@ bool AsdfFile::Ndarray::isSupportedImage() const {
 
   return true;
 }
+
+
+/**
+ * NOTE: The asdf_value_t* should be for the full GWCS object, not just the
+ * fitswcs_imaging part
+ *
+ * The full GWCS is needed in order to properly read the FITS WCS out of it.
+ */
+AsdfFile::FitsWCS::FitsWCS(const AsdfFile& file, asdf_value_t* value)
+    : FitsWCS((asdf_gwcs_fits_t*)nullptr) {
+  asdf_gwcs_t* gwcs_ptr = nullptr;
+  asdf_gwcs_fits_t* gwcs_fits_ptr = nullptr;
+  asdf_value_err_t err = asdf_value_as_gwcs(value, &gwcs_ptr);
+  switch (err) {
+    case ASDF_VALUE_OK:
+      // Value exists and is an ndarray: OK
+      break;
+    case ASDF_VALUE_ERR_TYPE_MISMATCH: {
+      const char* path = asdf_value_path(value);
+      throw AsdfValueTypeMismatchException() << "Value at " << path << " is not a GWCS: "
+        << file.m_path.native();
+    }
+    default: {
+      const char* error_message = asdf_error(file.getAsdfFilePtr());
+      throw AsdfValueNotFoundException() << "An error occurred reading the ASDF file "
+        << file.m_path.native() << ": " << error_message;
+    }
+  }
+
+  if (!asdf_gwcs_is_fits(file.getAsdfFilePtr(), gwcs_ptr)) {
+      const char* path = asdf_value_path(value);
+      throw AsdfValueTypeMismatchException() << "Value at " << path << " does not contain "
+        "a FITS-compatible WCS: " << file.m_path.native();
+  }
+
+  // This structure is already checked by asdf_gwcs_is_fits so we should expect all
+  // these values to be valid now...
+  const asdf_gwcs_step_t* step0 = &gwcs_ptr->steps[0];
+  gwcs_fits_ptr = (asdf_gwcs_fits_t*)step0->transform;
+  assert(gwcs_fits_ptr);
+
+  m_gwcs_fits_ptr = gwcs_fits_ptr;
+  // We don't need the asdf_value_t anymore at this point and can release it.
+  asdf_value_destroy(value);
+}
+
 
 }  // namespace SourceXtractor
