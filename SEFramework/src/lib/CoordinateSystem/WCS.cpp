@@ -253,7 +253,6 @@ WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
 
   wcserr_enable(1);
 
-  int nwcs = 0;
   wcsprm *wcs;
   wcs = (wcsprm *)malloc(sizeof(*wcs));
 
@@ -293,10 +292,8 @@ WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
   wcsRaiseOnParseError(ret);
   wcsReportWarnings(wcsprintf_buf());
 
-  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* ptr) {
-    int nwcs_copy = nwcs;
+  m_wcs = decltype(m_wcs)(wcs, [](wcsprm* ptr) {
     wcsfree(ptr);
-    wcsvfree(&nwcs_copy, &ptr);
   });
 
   installSafeWcssub();
