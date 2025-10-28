@@ -237,12 +237,12 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t* value)
     : Ndarray((asdf_ndarray_t*)nullptr) {
   asdf_ndarray_t* ndarray_ptr = nullptr;
   asdf_value_err_t err = asdf_value_as_ndarray(value, &ndarray_ptr);
+  const char* path = asdf_value_path(value);
   switch (err) {
     case ASDF_VALUE_OK:
       // Value exists and is an ndarray: OK
       break;
     case ASDF_VALUE_ERR_TYPE_MISMATCH: {
-      const char* path = asdf_value_path(value);
       throw AsdfValueTypeMismatchException() << "Value at " << path << " is not an ndarray: "
         << file.m_path.native();
     }
@@ -253,6 +253,7 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t* value)
     }
   }
   m_ndarray_ptr = ndarray_ptr;
+  m_path = path;
   m_image_type = convertDatatypeToImageType(&ndarray_ptr->datatype);
 }
 
