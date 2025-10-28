@@ -47,6 +47,30 @@ static auto logger = Elements::Logging::getLogger("WCS");
 
 decltype(&wcssub) safe_wcssub = &wcssub;
 
+
+/**
+ * wcslib < 5.18 is not fully safe thread, as some functions (like discpy, called by lincpy)
+ * rely on global variables for determining the allocation sizes. For those versions, this is called
+ * instead, wrapping the call with a mutex.
+ */
+static int wrapped_wcssub(int alloc, const struct wcsprm* wcssrc, int* nsub, int axes[], struct wcsprm* wcsdst) {
+  static std::mutex           cpy_mutex;
+  std::lock_guard<std::mutex> lock(cpy_mutex);
+
+  return wcssub(alloc, wcssrc, nsub, axes, wcsdst);
+}
+
+
+static void installSafeWcssub(void) {
+  int wcsver[3];
+  wcslib_version(wcsver);
+  if (wcsver[0] < 5 || (wcsver[0] == 5 && wcsver[1] < 18)) {
+    logger.info() << "wcslib " << wcsver[0] << "." << wcsver[1]
+                  << " is not fully thread safe, using wrapped lincpy call!";
+    safe_wcssub = &wrapped_wcssub;
+  }
+}
+
 /**
  * Translate the return code from wcspih to an elements exception
  */
@@ -145,18 +169,6 @@ static void wcsReportWarnings(const char *err_buffer) {
   }
 }
 
-/**
- * wcslib < 5.18 is not fully safe thread, as some functions (like discpy, called by lincpy)
- * rely on global variables for determining the allocation sizes. For those versions, this is called
- * instead, wrapping the call with a mutex.
- */
-static int wrapped_wcssub(int alloc, const struct wcsprm* wcssrc, int* nsub, int axes[], struct wcsprm* wcsdst) {
-  static std::mutex           cpy_mutex;
-  std::lock_guard<std::mutex> lock(cpy_mutex);
-
-  return wcssub(alloc, wcssrc, nsub, axes, wcsdst);
-}
-
 WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
   int number_of_records = 0;
   auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
@@ -215,17 +227,11 @@ void WCS::initFits(char* headers, int number_of_records) {
     wcsvfree(&nwcs_copy, &ptr);
   });
 
-  int wcsver[3];
-  wcslib_version(wcsver);
-  if (wcsver[0] < 5 || (wcsver[0] == 5 && wcsver[1] < 18)) {
-    logger.info() << "wcslib " << wcsver[0] << "." << wcsver[1]
-                  << " is not fully thread safe, using wrapped lincpy call!";
-    safe_wcssub = &wrapped_wcssub;
-  }
+  installSafeWcssub();
 }
 
 
-#ifdef HAVE_ASDF
+#ifdef WITH_ASDF
 /** WCS initializer from an ASDF file
  *
  * Currently this makes a brash assumption: if there is any compatible GWCS
@@ -235,9 +241,67 @@ void WCS::initFits(char* headers, int number_of_records) {
  * Later we will figure out how to work in some config option(s) to explicitly
  * provide a path to the correct WCS to use if there is any ambiguity.
  */
-WCS::WCS(const AsdfImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
+  // First get whether we even have a WCS in the image
+  auto fits_wcs = asdf_image_source.getFitsWCS();
+
+  if (!fits_wcs) {
+    auto tmp = WCS::identity(2);
+    m_wcs = std::move(tmp.m_wcs);
+    return;
+  }
+
+  wcserr_enable(1);
+
+  int nwcs = 0;
+  wcsprm *wcs;
+  wcs = (wcsprm *)malloc(sizeof(*wcs));
+
+  if (!wcs) {
+      throw Elements::Exception() << "failed to allocate memory for wcslib";
+  }
+
+  // Write warnings to a buffer
+  wcsprintf_set(nullptr);
+
+  // Initialize the wcsprm with memory allocated for 2 dimensions
+  wcs->flag = -1;
+  wcsini(1, 2, wcs);
+
+  // Populate from the AsdfFile::FitsWCS
+  for (int idx = 0; idx < 2; idx++) {
+    // WARNING: The GWCS fitwcs_imaging schema (and by extension the libasdf
+    // GWCS extension) use 0-indexed values for crpix:
+    // https://github.com/asdf-format/asdf-wcs-schemas/blob/main/resources/schemas/stsci.edu/gwcs/fitswcs_imaging-1.0.0.yaml
+    wcs->crpix[idx] = fits_wcs->crpix()[idx] + 1.0;
+    wcs->crval[idx] = fits_wcs->crval()[idx];
+    wcs->cdelt[idx] = fits_wcs->cdelt()[idx];
+
+    const auto ctype = fits_wcs->ctype()[idx];
+    if (!ctype.empty()) {
+      std::strncpy(wcs->ctype[idx], ctype.data(), 9);
+    } else {
+      wcs->ctype[idx][0] = '\0';
+    }
+
+    for (int jdx = 0; jdx < 2; jdx++) {
+      wcs->pc[idx * wcs->naxis + jdx] = fits_wcs->pc()[idx][jdx];
+    }
+  }
+
+  int ret = wcsset(wcs);
+  wcsRaiseOnParseError(ret);
+  wcsReportWarnings(wcsprintf_buf());
+
+  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* ptr) {
+    int nwcs_copy = nwcs;
+    wcsfree(ptr);
+    wcsvfree(&nwcs_copy, &ptr);
+  });
+
+  installSafeWcssub();
 }
-#endif
+#endif /* WITH_ASDF */
 
 
 /**
