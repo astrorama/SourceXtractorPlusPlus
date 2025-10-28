@@ -130,6 +130,9 @@ public:
 
   void saveTile(ImageTile& tile) override;
 
+  /** Get optional FITS WCS */
+  std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS() const;
+
 private:
   AsdfImageSource(const std::string& filename, int image_index,
                   std::optional<std::string> image_path,

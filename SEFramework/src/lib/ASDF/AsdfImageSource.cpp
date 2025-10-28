@@ -118,4 +118,11 @@ std::shared_ptr<ImageTile> AsdfImageSource::getImageTile(int x, int y, int width
 void AsdfImageSource::saveTile(ImageTile& /* tile */) {
   throw Elements::Exception() << "Saving to ASDF not yet supported";
 };
+
+
+std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS() const {
+  auto acc = m_handler->getAccessor<AsdfFile>();
+  auto& file = acc->m_fd;
+  return file.getFitsWCS();
+}
 }
