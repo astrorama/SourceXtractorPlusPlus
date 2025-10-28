@@ -87,6 +87,7 @@ BOOST_FIXTURE_TEST_CASE( get_ndarray_by_path, AsdfFileFixture ) {
     shape.begin(), shape.end(),
     expected_shape.begin(), expected_shape.end()
   );
+  BOOST_CHECK_EQUAL(ndarray->getPath(), "/PRIMARY");
 }
 
 

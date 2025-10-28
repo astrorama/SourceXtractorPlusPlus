@@ -109,6 +109,8 @@ public:
      */
     void fillImageTile(const std::shared_ptr<ImageTile> image_tile, int layer);
 
+    const std::string& getPath() const { return m_path; }
+
   private:
     /**
      * Private constructor for creating the `Ndarray` wrapper from a raw asdf_value_t *
@@ -121,6 +123,8 @@ public:
       : m_ndarray_ptr(ptr) {}
 
     asdf_ndarray_t* m_ndarray_ptr;
+    // Store the JSON Path to the ndarray
+    std::string m_path;
     ImageTile::ImageType m_image_type;
     mutable std::unique_ptr<std::vector<uint64_t>> m_shape;
   };
