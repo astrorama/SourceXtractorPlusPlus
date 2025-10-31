@@ -24,9 +24,17 @@ if(NOT ASDF_FOUND)
         HINTS ENV ASDF_ROOT_DIR ASDF_INSTALL_DIR
         PATH_SUFFIXES lib)
 
-    # You can add other deps here if libasdf needs them at link time
-    set(ASDF_LIBRARIES ${ASDF_LIBRARY} ${FYAML_LIBRARY})
-    set(ASDF_INCLUDE_DIRS ${ASDF_INCLUDE_DIR})
+    # Check for gwcs support as well
+    find_path(ASDF_GWCS_INCLUDE_DIR gwcs.h
+        HINTS ASDF_INCLUDE_DIR
+        PATH_SUFFIXES asdf/gwcs)
+    if (ASDF_GWCS_INCLUDE_DIR STREQUAL "ASDF_GWCS_INCLUDE_DIR-NOTFOUND")
+      message(WARNING "libasdf found, but no GWCS support available.")
+    else()
+      # You can add other deps here if libasdf needs them at link time
+      set(ASDF_LIBRARIES ${ASDF_LIBRARY} ${FYAML_LIBRARY})
+      set(ASDF_INCLUDE_DIRS ${ASDF_INCLUDE_DIR})
+    endif()
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(ASDF
@@ -37,5 +45,4 @@ if(NOT ASDF_FOUND)
 
     list(REMOVE_DUPLICATES ASDF_LIBRARIES)
     list(REMOVE_DUPLICATES ASDF_INCLUDE_DIRS)
-
 endif()
