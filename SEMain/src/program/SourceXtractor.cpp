@@ -74,6 +74,7 @@
 #include "SEImplementation/Configuration/MemoryConfig.h"
 #include "SEImplementation/Configuration/OutputConfig.h"
 #include "SEImplementation/Configuration/SamplingConfig.h"
+#include "SEImplementation/Configuration/FileManagerConfig.h"
 #include "SEImplementation/CheckImages/CheckImages.h"
 #include "SEImplementation/Prefetcher/Prefetcher.h"
 
@@ -191,6 +192,7 @@ public:
       config_manager.registerConfiguration<BackgroundAnalyzerFactory>();
       config_manager.registerConfiguration<SamplingConfig>();
       config_manager.registerConfiguration<DetectionFrameConfig>();
+      config_manager.registerConfiguration<FileManagerConfig>();
 
       CheckImages::getInstance().reportConfigDependencies(config_manager);
 
@@ -319,15 +321,15 @@ public:
         throw Elements::Exception() << "The configuration file '" << cfg_file << "' does not exist";
       }
     }
-
+    
     // Create the progress listener and printer ASAP
     progress_printer_factory.configure(args);
     auto progress_mediator = progress_printer_factory.createProgressMediator();
-
+    
     // Initialize the rest of the components
     auto& config_manager = ConfigManager::getInstance(config_manager_id);
     config_manager.initialize(args);
-
+    
     // Configure TileManager
     auto memory_config = config_manager.getConfiguration<MemoryConfig>();
     TileManager::getInstance()->setOptions(memory_config.getTileSize(),
