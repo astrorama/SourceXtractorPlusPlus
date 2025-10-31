@@ -21,14 +21,21 @@
  *  Created on: Sep 03, 2025
  *      Author: embray
  */
+#include <boost/algorithm/string/split.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 #include <asdf.h>
+
+#include "ElementsKernel/Logging.h"
 
 #include "SEFramework/ASDF/AsdfFile.h"
 #include "SEFramework/ASDF/AsdfImageSource.h"
 
 
 namespace SourceXtractor {
+
+static auto logger = Elements::Logging::getLogger("ASDF");
+
 AsdfImageSource::AsdfImageSource(const std::string& filename, int image_index,
                                  std::optional<std::string> image_path,
                                  ImageTile::ImageType image_type,
@@ -120,6 +127,51 @@ void AsdfImageSource::saveTile(ImageTile& /* tile */) {
 };
 
 
+/**
+ * Prefix an ASDF path with '/' if it doesn't already have, to ensure all paths are
+ * normalized; also trims whitespace
+ */
+inline std::string asdfNormalizePath(std::string s) {
+    s = boost::trim_copy(s);
+    if (!s.empty() && s.front() != '/') {
+      s.insert(s.begin(), '/');
+    }
+    return s;
+}
+
+
+AsdfImageSource::WcsPathMap AsdfImageSource::parseWcsPath(const std::string& wcs_path) const {
+  WcsPathMap path_map;
+
+  size_t nsep = std::count(wcs_path.begin(), wcs_path.end(), ':');
+
+  // Simple case, a single WCS which we indicate with '*'
+  if (nsep == 0) {
+    path_map["*"] = asdfNormalizePath(wcs_path);
+    return path_map;
+  }
+
+  std::vector<std::string> tokens;
+  boost::split(tokens, wcs_path, boost::is_any_of(":"));
+  for (auto& token : tokens) {
+    boost::trim(token);
+  }
+
+  if (tokens.size() % 2 != 0) {
+    throw Elements::Exception() << "Invalid WCS path given: " << wcs_path << "; odd number of "
+      "path elements";
+  }
+
+  for (size_t idx = 0; idx < tokens.size(); idx += 2) {
+    std::string key = asdfNormalizePath(tokens[idx]);
+    std::string value = asdfNormalizePath(tokens[idx + 1]);
+    path_map[key] = value;
+  }
+
+  return path_map;
+}
+
+
 std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS() const {
   auto acc = m_handler->getAccessor<AsdfFile>();
   auto& file = acc->m_fd;
@@ -130,6 +182,21 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS() const {
 std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS(std::optional<std::string> wcs_path) const {
   auto acc = m_handler->getAccessor<AsdfFile>();
   auto& file = acc->m_fd;
-  return file.getFitsWCS();
+
+  if (wcs_path == std::nullopt) {
+    return file.getFitsWCS();
+  }
+
+  WcsPathMap path_map = parseWcsPath(*wcs_path);
+  const std::string& ndarray_path = m_ndarray->getPath();
+
+  if (path_map.find(ndarray_path) != path_map.end()) {
+    return file.getFitsWCS(path_map.find(ndarray_path)->second);
+  } else if (path_map.find("*") != path_map.end()) {
+    return file.getFitsWCS(path_map.find("*")->second);
+  } else {
+    logger.warn() << "No WCS path found for ndarray at " << ndarray_path << "; trying any WCS";
+    return file.getFitsWCS();
+  }
 }
 }

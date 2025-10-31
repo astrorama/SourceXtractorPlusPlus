@@ -142,6 +142,10 @@ private:
                   ImageTile::ImageType image_type,
                   std::shared_ptr<FileManager> manager);
 
+  using WcsPathMap = std::unordered_map<std::string, std::string>;
+
+  WcsPathMap parseWcsPath(const std::string& wcs_path) const;
+
   std::string m_filename;
   ImageTile::ImageType m_image_type;
   std::shared_ptr<FileManager> m_file_manager;
