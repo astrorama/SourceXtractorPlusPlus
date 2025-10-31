@@ -133,6 +133,9 @@ public:
   /** Get optional FITS WCS */
   std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS() const;
 
+  /** Get optional FITS WCS with optional path lookup map */
+  std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS(std::optional<std::string> wcs_path) const;
+
 private:
   AsdfImageSource(const std::string& filename, int image_index,
                   std::optional<std::string> image_path,

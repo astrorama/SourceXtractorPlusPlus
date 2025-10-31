@@ -37,6 +37,7 @@ find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
 find_package(OnnxRuntime)
 find_package(Log4CPP REQUIRED)
+find_package(ASDF)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -47,6 +48,12 @@ endif ()
 if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
     message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
 endif ()
+
+if(NOT ASDF_FOUND)
+  message("libasdf not found, compiling without ASDF support")
+else()
+  add_definitions(-DWITH_ASDF)
+endif()
 
 #===============================================================================
 # Declare the library dependencies here

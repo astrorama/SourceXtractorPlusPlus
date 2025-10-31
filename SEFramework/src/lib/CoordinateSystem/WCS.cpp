@@ -232,19 +232,7 @@ void WCS::initFits(char* headers, int number_of_records) {
 
 
 #ifdef WITH_ASDF
-/** WCS initializer from an ASDF file
- *
- * Currently this makes a brash assumption: if there is any compatible GWCS
- * object in the file it "must" be the right one.  This assumption can be wrong
- * but in practice most ASDF files have one data array, one WCS.
- *
- * Later we will figure out how to work in some config option(s) to explicitly
- * provide a path to the correct WCS to use if there is any ambiguity.
- */
-WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
-  // First get whether we even have a WCS in the image
-  auto fits_wcs = asdf_image_source.getFitsWCS();
-
+void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
   if (!fits_wcs) {
     auto tmp = WCS::identity(2);
     m_wcs = std::move(tmp.m_wcs);
@@ -297,6 +285,29 @@ WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
   });
 
   installSafeWcssub();
+}
+
+
+/** WCS initializer from an ASDF file
+ *
+ * Currently this makes a brash assumption: if there is any compatible GWCS
+ * object in the file it "must" be the right one.  This assumption can be wrong
+ * but in practice most ASDF files have one data array, one WCS.
+ *
+ * Later we will figure out how to work in some config option(s) to explicitly
+ * provide a path to the correct WCS to use if there is any ambiguity.
+ */
+WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
+  // First get whether we even have a WCS in the image
+  auto fits_wcs = asdf_image_source.getFitsWCS();
+  initAsdf(std::move(fits_wcs));
+}
+
+
+WCS::WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path) : m_wcs(nullptr, nullptr) {
+  // First get whether we even have a WCS in the image
+  auto fits_wcs = asdf_image_source.getFitsWCS(wcs_path);
+  initAsdf(std::move(fits_wcs));
 }
 #endif /* WITH_ASDF */
 
