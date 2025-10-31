@@ -31,6 +31,7 @@
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/ImageSource.h"
 #ifdef WITH_ASDF
+#include "SEFramework/ASDF/AsdfFile.h"
 #include "SEFramework/ASDF/AsdfImageSource.h"
 #endif
 
@@ -41,11 +42,12 @@ namespace SourceXtractor {
 class WCS : public CoordinateSystem {
 public:
   explicit WCS(const FitsImageSource& fits_image_source);
-#ifdef WITH_ASDF
-  explicit WCS(const AsdfImageSource& asdf_image_source);
-#endif
   explicit WCS(const ImageSource& image_source);
   explicit WCS(const WCS& original);
+#ifdef WITH_ASDF
+  explicit WCS(const AsdfImageSource& asdf_image_source);
+  explicit WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path);
+#endif
 
   virtual ~WCS();
 
@@ -64,6 +66,10 @@ private:
     : m_wcs(std::move(wcs)) {}
 
   void initFits(char* headers, int number_of_records);
+
+#ifdef WITH_ASDF
+  void initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs);
+#endif
 
   std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
 };

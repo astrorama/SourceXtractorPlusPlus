@@ -125,4 +125,11 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS() const {
   auto& file = acc->m_fd;
   return file.getFitsWCS();
 }
+
+// TODO: Implement handling of wcs_path_map
+std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS(std::optional<std::string> wcs_path) const {
+  auto acc = m_handler->getAccessor<AsdfFile>();
+  auto& file = acc->m_fd;
+  return file.getFitsWCS();
+}
 }
