@@ -60,17 +60,17 @@ void AsdfFile::open() {
   if (ptr == nullptr) {
       throw Elements::Exception()
           << "Can't open ASDF file: ";
-  } else {
-    // Check if the file was created but has an error condition set
-    const char *error_message = asdf_error(ptr);
-
-    if (error_message != nullptr) {
-      throw Elements::Exception()
-          << "Can't open ASDF file: " << m_path.native() << " reason: " << error_message;
-    }
   }
 
   m_asdf_ptr.reset(ptr);
+
+  // Check if the file was created but has an error condition set
+  const char *error_message = asdf_error(ptr);
+
+  if (error_message != nullptr) {
+    throw Elements::Exception()
+        << "Can't open ASDF file: " << m_path.native() << " reason: " << error_message;
+  }
 }
 
 // TODO: Support negative indexing as well
@@ -90,8 +90,16 @@ std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
     asdf_value_t* value = asdf_mapping_item_value(item);
     if (asdf_value_is_ndarray(value)) {
       if (count == index) {
-        return std::unique_ptr<Ndarray>(new Ndarray(*this, value));
+        // Have to clone the value before destroying the mapping item
+        // This is an unfortunate foot gun that needs to be fixed in the
+        // asdf_mapping_iter interface...
+        AsdfValuePtr value_clone = AsdfValuePtr(asdf_value_clone(value));
+        asdf_mapping_item_destroy(item);
+        return std::unique_ptr<Ndarray>(new Ndarray(*this, value_clone.get()));
       } else if (count > index) {
+        // Breaking the loop early means we have to manually clean up the
+        // mapping item
+        asdf_mapping_item_destroy(item);
         break;
       }
       count++;
@@ -117,7 +125,9 @@ bool fitsWcsValuePredicate(asdf_value_t* value) {
     return false;
   }
 
-  return asdf_gwcs_is_fits((asdf_file_t*)asdf_value_file(value), gwcs);
+  bool is_fits = asdf_gwcs_is_fits((asdf_file_t*)asdf_value_file(value), gwcs);
+  asdf_gwcs_destroy(gwcs);
+  return is_fits;
 }
 
 
@@ -138,7 +148,8 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfFile::getFitsWCS() {
     return std::unique_ptr<AsdfFile::FitsWCS>{};
   }
 
-  asdf_value_t* value = asdf_find_item_value(item);
+  asdf_value_t* value = asdf_value_clone(asdf_find_item_value(item));
+  asdf_find_item_destroy(item);
   return std::unique_ptr<FitsWCS>(new FitsWCS(*this, value));
 }
 
@@ -238,6 +249,7 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t* value)
   asdf_ndarray_t* ndarray_ptr = nullptr;
   asdf_value_err_t err = asdf_value_as_ndarray(value, &ndarray_ptr);
   const char* path = asdf_value_path(value);
+  m_path = path;
   switch (err) {
     case ASDF_VALUE_OK:
       // Value exists and is an ndarray: OK
@@ -252,8 +264,8 @@ AsdfFile::Ndarray::Ndarray(const AsdfFile& file, asdf_value_t* value)
         << file.m_path.native() << ": " << error_message;
     }
   }
+
   m_ndarray_ptr = ndarray_ptr;
-  m_path = path;
   m_image_type = convertDatatypeToImageType(&ndarray_ptr->datatype);
 }
 
@@ -312,8 +324,7 @@ bool AsdfFile::Ndarray::isSupportedImage() const {
  *
  * The full GWCS is needed in order to properly read the FITS WCS out of it.
  */
-AsdfFile::FitsWCS::FitsWCS(const AsdfFile& file, asdf_value_t* value)
-    : FitsWCS((asdf_gwcs_fits_t*)nullptr) {
+AsdfFile::FitsWCS::FitsWCS(const AsdfFile& file, asdf_value_t* value) {
   asdf_gwcs_t* gwcs_ptr = nullptr;
   asdf_gwcs_fits_t* gwcs_fits_ptr = nullptr;
   asdf_value_err_t err = asdf_value_as_gwcs(value, &gwcs_ptr);
@@ -345,6 +356,7 @@ AsdfFile::FitsWCS::FitsWCS(const AsdfFile& file, asdf_value_t* value)
   gwcs_fits_ptr = (asdf_gwcs_fits_t*)step0->transform;
   assert(gwcs_fits_ptr);
 
+  m_gwcs_ptr = gwcs_ptr;
   m_gwcs_fits_ptr = gwcs_fits_ptr;
   // We don't need the asdf_value_t anymore at this point and can release it.
   asdf_value_destroy(value);
