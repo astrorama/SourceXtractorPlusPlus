@@ -27,6 +27,9 @@
 #include <memory>
 #include <map>
 
+#include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
+
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/ImageSource.h"
@@ -62,16 +65,43 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
-  explicit WCS(std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> wcs)
-    : m_wcs(std::move(wcs)) {}
-
   void initFits(char* headers, int number_of_records);
 
 #ifdef WITH_ASDF
   void initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs);
 #endif
 
-  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
+  struct WcsprmDestroy {
+    int nwcs;
+    bool owned;
+
+    void operator()(wcsprm* wcs) {
+      if (!wcs)
+        return;
+
+      if (nwcs > 0) {
+        wcsvfree(&nwcs, &wcs);
+      } else {
+        wcsfree(wcs);
+        if (owned) {
+          delete wcs;
+        }
+      }
+    }
+  };
+
+  using WcsprmPtr = std::unique_ptr<wcsprm, WcsprmDestroy>;
+
+  WcsprmPtr m_wcs;
+
+  static WcsprmPtr make_wcsprm_ptr();
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned, int nwcs);
+
+  explicit WCS(WcsprmPtr wcs)
+    : m_wcs(std::move(wcs)) {}
+
 };
 
 }
