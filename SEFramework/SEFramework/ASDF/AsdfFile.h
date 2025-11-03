@@ -138,7 +138,9 @@ public:
     friend class AsdfFile;
 
     ~FitsWCS() {
-      asdf_gwcs_fits_destroy(m_gwcs_fits_ptr);
+      asdf_gwcs_destroy(m_gwcs_ptr);
+      m_gwcs_fits_ptr = nullptr;
+      m_gwcs_ptr = nullptr;
     }
 
     std::array<double, 2> crpix() const noexcept {
@@ -172,12 +174,8 @@ public:
      * Private constructor for creating the `Ndarray` wrapper from a raw asdf_value_t *
      */
     explicit FitsWCS(const AsdfFile& file, asdf_value_t *ptr);
-    /**
-     * Private constructor for creating the `Ndarray` wrapper from a raw asdf_ndarray_t *
-     */
-    explicit FitsWCS(asdf_gwcs_fits_t *ptr)
-      : m_gwcs_fits_ptr(ptr) {}
 
+    asdf_gwcs_t *m_gwcs_ptr;
     asdf_gwcs_fits_t* m_gwcs_fits_ptr;
   };
 
