@@ -169,14 +169,14 @@ static void wcsReportWarnings(const char *err_buffer) {
   }
 }
 
-WCS::WCS(const FitsImageSource& fits_image_source) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const FitsImageSource& fits_image_source) {
   int number_of_records = 0;
   auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
 
   initFits(&(*fits_headers)[0], number_of_records);
 }
 
-WCS::WCS(const WCS& original) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const WCS& original) {
 
   //FIXME Horrible hack: I couldn't figure out how to properly do a deep copy wcsprm so instead
   // of making a copy, I use the ascii headers output from the original to recreate a new one
@@ -212,6 +212,9 @@ void WCS::initFits(char* headers, int number_of_records) {
   int ret = wcspih(headers, number_of_records, WCSHDR_strict, 2, &nreject_strict, &nwcs, &wcs);
   wcsRaiseOnParseError(ret);
   wcsReportWarnings(wcsprintf_buf());
+  // It's still necessary to do wcsvfree before the second pass, alas, otherwise there
+  // are memory leaks; maybe there isanother way though.
+  wcsvfree(&nwcs, &wcs);
 
   // Do a second pass, in relaxed mode. We use the result.
   ret = wcspih(headers, number_of_records, WCSHDR_all, 0, &nreject, &nwcs, &wcs);
@@ -221,11 +224,7 @@ void WCS::initFits(char* headers, int number_of_records) {
   // There are some things worth reporting about which WCS will not necessarily complain
   wcsCheckHeaders(wcs, headers, number_of_records);
 
-  m_wcs = decltype(m_wcs)(wcs, [nwcs](wcsprm* ptr) {
-    int nwcs_copy = nwcs;
-    wcsfree(ptr);
-    wcsvfree(&nwcs_copy, &ptr);
-  });
+  m_wcs = make_wcsprm_ptr(wcs, false, nwcs);
 
   installSafeWcssub();
 }
@@ -241,8 +240,7 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
 
   wcserr_enable(1);
 
-  wcsprm *wcs;
-  wcs = (wcsprm *)malloc(sizeof(*wcs));
+  wcsprm *wcs = new wcsprm;
 
   if (!wcs) {
       throw Elements::Exception() << "failed to allocate memory for wcslib";
@@ -280,9 +278,7 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
   wcsRaiseOnParseError(ret);
   wcsReportWarnings(wcsprintf_buf());
 
-  m_wcs = decltype(m_wcs)(wcs, [](wcsprm* ptr) {
-    wcsfree(ptr);
-  });
+  m_wcs = make_wcsprm_ptr(wcs, true);
 
   installSafeWcssub();
 }
@@ -297,14 +293,14 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
  * Later we will figure out how to work in some config option(s) to explicitly
  * provide a path to the correct WCS to use if there is any ambiguity.
  */
-WCS::WCS(const AsdfImageSource& asdf_image_source) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const AsdfImageSource& asdf_image_source) {
   // First get whether we even have a WCS in the image
   auto fits_wcs = asdf_image_source.getFitsWCS();
   initAsdf(std::move(fits_wcs));
 }
 
 
-WCS::WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path) : m_wcs(nullptr, nullptr) {
+WCS::WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path) {
   // First get whether we even have a WCS in the image
   auto fits_wcs = asdf_image_source.getFitsWCS(wcs_path);
   initAsdf(std::move(fits_wcs));
@@ -327,17 +323,9 @@ WCS::~WCS() {
 
 
 WCS WCS::identity(int naxis) {
-  auto wcs = std::unique_ptr<wcsprm, std::function<void(wcsprm*)>>(
-    new wcsprm, [](wcsprm* w) {
-      if (w) {
-        wcsfree(w);
-        delete w;
-      }
-    }
-  );
-
-  wcsini(1, naxis, wcs.get());
+  WcsprmPtr wcs = make_wcsprm_ptr();
   wcs->flag = -1;
+  wcsini(1, naxis, wcs.get());
   for (int i = 0; i < naxis; i++) {
     wcs->crpix[i] = 1.0;
     wcs->crval[i] = 0.0;
@@ -351,9 +339,9 @@ WCS WCS::identity(int naxis) {
 
 WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   // wcsprm is in/out
-  wcsprm wcs_copy;
-  wcs_copy.flag = -1;
-  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, &wcs_copy);
+  WcsprmPtr wcs_copy = make_wcsprm_ptr();
+  wcs_copy->flag = -1;
+  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, wcs_copy.get());
 
   // +1 as fits standard coordinates start at 1
   double pc_array[2] {image_coordinate.m_x + 1, image_coordinate.m_y + 1};
@@ -363,18 +351,17 @@ WorldCoordinate WCS::imageToWorld(ImageCoordinate image_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  int ret_val = wcsp2s(&wcs_copy, 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
-  wcsRaiseOnTransformError(&wcs_copy, ret_val);
-  wcsfree(&wcs_copy);
+  int ret_val = wcsp2s(wcs_copy.get(), 1, 1, pc_array, ic_array, &phi, &theta, wc_array, &status);
+  wcsRaiseOnTransformError(wcs_copy.get(), ret_val);
 
   return WorldCoordinate(wc_array[0], wc_array[1]);
 }
 
 ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   // wcsprm is in/out
-  wcsprm wcs_copy;
-  wcs_copy.flag = -1;
-  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, &wcs_copy);
+  WcsprmPtr wcs_copy = make_wcsprm_ptr();
+  wcs_copy->flag = -1;
+  safe_wcssub(true, m_wcs.get(), nullptr, nullptr, wcs_copy.get());
 
   double pc_array[2] {0, 0};
   double ic_array[2] {0, 0};
@@ -382,13 +369,12 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   double phi, theta;
 
   int status = 0;
-  int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
+  int ret_val = wcss2p(wcs_copy.get(), 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   if (ret_val != WCSERR_SUCCESS) {
     logger.warn() << "Bad worldToImage from RA/Dec: " << wc_array[0] << "/" << wc_array[1];
     pc_array[0] = -std::numeric_limits<double>::infinity();
     pc_array[1] = -std::numeric_limits<double>::infinity();
   }
-  wcsfree(&wcs_copy);
   return ImageCoordinate(pc_array[0] - 1, pc_array[1] - 1); // -1 as fits standard coordinates start at 1
 }
 
@@ -421,5 +407,25 @@ void WCS::addOffset(PixelCoordinate pc) {
   m_wcs->crpix[1] -= pc.m_y;
 }
 
+
+WCS::WcsprmPtr WCS::make_wcsprm_ptr() {
+  wcsprm *wcs = new wcsprm;
+  return WcsprmPtr(wcs, WcsprmDestroy{0, true});
+}
+
+
+WCS::WcsprmPtr WCS::make_wcsprm_ptr(wcsprm *wcs) {
+  return WcsprmPtr(wcs, WcsprmDestroy{0, false});
+}
+
+
+WCS::WcsprmPtr WCS::make_wcsprm_ptr(wcsprm *wcs, bool owned) {
+  return WcsprmPtr(wcs, WcsprmDestroy{0, owned});
+}
+
+
+WCS::WcsprmPtr WCS::make_wcsprm_ptr(wcsprm *wcs, bool owned, int nwcs) {
+  return WcsprmPtr(wcs, WcsprmDestroy{nwcs, owned});
+}
 
 }
