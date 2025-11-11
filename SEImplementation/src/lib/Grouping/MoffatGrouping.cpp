@@ -27,7 +27,11 @@
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Plugin/PeakValue/PeakValue.h"
 
+#include <ElementsKernel/Logging.h>
+
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("MoffatGrouping");
 
 template <>
 struct QuadTreeTraits<std::shared_ptr<MoffatGrouping::SourceInfo>> {
@@ -58,6 +62,8 @@ std::set<PropertyId> MoffatGrouping::requiredProperties() const {
 
 /// Handles a new Source
 void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
+  m_total_sources_waiting++;
+  logger.debug() << "Receiving source, sources in grouping: " << m_total_sources_waiting;
 
   // Encapsulates the source unique_ptr
   auto& centroid = source->getProperty<PixelCentroid>();
@@ -110,6 +116,8 @@ void MoffatGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
 void MoffatGrouping::receiveProcessSignal(const ProcessSourcesEvent& event) {
   std::vector<size_t> groups_to_process;
 
+  logger.debug() << "Received processing signal, total sources waiting in grouping: " << m_total_sources_waiting;
+
   // We iterate through all the SourceGroups we have
   for (auto const& it : m_groups) {
     // We look at its Sources and if we find at least one that needs to be processed
@@ -125,6 +133,8 @@ void MoffatGrouping::receiveProcessSignal(const ProcessSourcesEvent& event) {
   for (auto group_id : groups_to_process) {
     processGroup(group_id);
   }
+
+  logger.debug() << "Processing signal handled, total sources remaining in grouping: " << m_total_sources_waiting;
 }
 
 void MoffatGrouping::processGroup(unsigned int group_id) {
@@ -135,6 +145,9 @@ void MoffatGrouping::processGroup(unsigned int group_id) {
     new_group->addSource(std::move(source_info->m_source));
     m_tree.remove(source_info);
   }
+
+  m_total_sources_waiting -= new_group->size();
+  logger.debug() << "Sending group size " << new_group->size() << ", sources remaining in grouping: " << m_total_sources_waiting;
 
   sendSource(std::move(new_group));
   m_groups.erase(group_id);

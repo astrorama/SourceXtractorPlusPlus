@@ -21,10 +21,14 @@
  */
 
 #include "SEFramework/Pipeline/SourceGrouping.h"
+#include <ElementsKernel/Logging.h>
 #include <vector>
 
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("SourceGrouping");
+
 
 SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criteria,
                                std::shared_ptr<SourceGroupFactory> group_factory,
@@ -33,6 +37,9 @@ SourceGrouping::SourceGrouping(std::shared_ptr<GroupingCriteria> grouping_criter
 }
 
 void SourceGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
+  m_total_sources_waiting++;
+  logger.debug() << "Receiving source, sources in grouping: " << m_total_sources_waiting;
+
   // Pointer which points to the group of the source
   SourceGroupInterface* matched_group = nullptr;
 
@@ -87,6 +94,8 @@ void SourceGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
 void SourceGrouping::receiveProcessSignal(const ProcessSourcesEvent& process_event) {
   std::vector<std::list<std::unique_ptr<SourceGroupInterface>>::iterator> groups_to_process;
 
+  logger.debug() << "Received processing signal, total sources waiting in grouping: " << m_total_sources_waiting;
+
   // We iterate through all the SourceGroups we have
   for (auto group_it = m_source_groups.begin(); group_it != m_source_groups.end(); ++group_it) {
     // We look at its Sources and if we find at least one that needs to be processed we put it in groups_to_process
@@ -101,9 +110,13 @@ void SourceGrouping::receiveProcessSignal(const ProcessSourcesEvent& process_eve
   // For each SourceGroup that we put in groups_to_process,
   for (auto& group : groups_to_process) {
     // we remove it from our list of stored SourceGroups and notify our observers
+    m_total_sources_waiting -= (*group)->size();
+    logger.debug() << "Sending group size " << (*group)->size() << ", sources remaining in grouping: " << m_total_sources_waiting;
     sendSource(std::move(*group));
     m_source_groups.erase(group);
   }
+
+  logger.debug() << "Processing signal handled, total sources remaining in grouping: " << m_total_sources_waiting;
 }
 
 std::set<PropertyId> SourceGrouping::requiredProperties() const {

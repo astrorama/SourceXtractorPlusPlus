@@ -21,8 +21,11 @@
 
 #include "SEFramework/Source/SourceGroupWithOnDemandProperties.h"
 #include "SEFramework/Task/GroupTask.h"
+#include "ElementsKernel/Logging.h"
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("EntangledSource");
 
 SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::shared_ptr<SourceInterface> source, SourceGroupWithOnDemandProperties& group)
         : m_source(source), m_group(group) {
@@ -38,7 +41,6 @@ SourceGroupWithOnDemandProperties::EntangledSource::EntangledSource(std::shared_
 }
 
 const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(const PropertyId& property_id) const {
-
   // If we already have the property stored in this object, returns it
   if (m_property_holder.isPropertySet(property_id)) {
     return m_property_holder.getProperty(property_id);
@@ -63,7 +65,8 @@ const Property& SourceGroupWithOnDemandProperties::EntangledSource::getProperty(
       throw PropertyNotFoundException(property_id);
     }
 
-  // Use the task to make the property
+    //logger.debug() << "Computing property " << property_id.getString();
+    // Use the task to make the property
     group_task->computeProperties(m_group);
 
     // The property should now be available either in this object or in the group object

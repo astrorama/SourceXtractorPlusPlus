@@ -121,6 +121,7 @@ private:
   std::shared_ptr<SourceGroupFactory> m_group_factory;
   std::list<std::unique_ptr<SourceGroupInterface>> m_source_groups;
   unsigned int m_hard_limit;
+  unsigned int m_total_sources_waiting = 0;
 
 }; /* End of SourceGrouping class */
 

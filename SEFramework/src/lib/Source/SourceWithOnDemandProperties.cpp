@@ -46,6 +46,7 @@ const Property& SourceWithOnDemandProperties::getProperty(const PropertyId& prop
     // if not, get the task that makes it and execute, we should have it then
     auto task = m_task_provider->getTask<SourceTask>(property_id);
     if (task) {
+      //logger.debug() << "Computing property " << property_id.getString();
       task->computeProperties(const_cast<SourceWithOnDemandProperties&>(*this));
       return m_property_holder.getProperty(property_id);
     }

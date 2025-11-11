@@ -17,8 +17,10 @@
 
 #include "SEImplementation/Grouping/SplitSourcesGrouping.h"
 #include "SEImplementation/Property/SourceId.h"
-
+#include <ElementsKernel/Logging.h>
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("SplitSourcesGrouping");
 
 SplitSourcesGrouping::SplitSourcesGrouping(std::shared_ptr<SourceGroupFactory> group_factory, unsigned int hard_limit)
     : m_group_factory(group_factory), m_hard_limit(hard_limit)
@@ -31,6 +33,9 @@ std::set<PropertyId> SplitSourcesGrouping::requiredProperties() const {
 
 /// Handles a new Source
 void SplitSourcesGrouping::receiveSource(std::unique_ptr<SourceInterface> source) {
+  m_total_sources_waiting++;
+  logger.debug() << "Receiving source, sources in grouping: " << m_total_sources_waiting;
+
   auto source_id = source->getProperty<SourceId>().getDetectionId();
 
   if (m_source_groups.find(source_id) == m_source_groups.end()) {
@@ -39,14 +44,17 @@ void SplitSourcesGrouping::receiveSource(std::unique_ptr<SourceInterface> source
   }
 
   if (m_hard_limit > 0 && m_source_groups.at(source_id)->size() >= m_hard_limit) {
-      // the stored group has reached the hard limit
-      // send the current group to processing
-      sendSource(std::move(m_source_groups.at(source_id)));
+    // the stored group has reached the hard limit
+    // send the current group to processing
+    m_total_sources_waiting -= m_source_groups.at(source_id)->size();
+    logger.debug() << "Group " << source_id << " reached hard limit of " << m_hard_limit
+    << " sources, sending group to processing, sources remaining in grouping: " << m_total_sources_waiting;
+    sendSource(std::move(m_source_groups.at(source_id)));
 
-      // and replace it with a new empty one
-      auto new_group = m_group_factory->createSourceGroup();
-      m_source_groups[source_id] = std::move(new_group);
-    }
+    // and replace it with a new empty one
+    auto new_group = m_group_factory->createSourceGroup();
+    m_source_groups[source_id] = std::move(new_group);
+  }
 
   m_source_groups.at(source_id)->addSource(std::move(source));
 }
@@ -54,6 +62,8 @@ void SplitSourcesGrouping::receiveSource(std::unique_ptr<SourceInterface> source
 /// Handles a ProcessSourcesEvent to trigger the processing of some of the Sources stored in SourceGrouping
 void SplitSourcesGrouping::receiveProcessSignal(const ProcessSourcesEvent& event) {
   std::vector<unsigned int> groups_to_process;
+
+  logger.debug() << "Received processing signal, total sources waiting in grouping: " << m_total_sources_waiting;
 
   // We iterate through all the SourceGroups we have
   for (auto const& it : m_source_groups) {
@@ -69,9 +79,14 @@ void SplitSourcesGrouping::receiveProcessSignal(const ProcessSourcesEvent& event
   // For each SourceGroup that we put in groups_to_process,
   for (auto group_id : groups_to_process) {
     // we remove it from our list of stored SourceGroups and notify our observers
+    m_total_sources_waiting -= m_source_groups[group_id]->size();
+    logger.debug() << "Sending group size " << m_source_groups[group_id]->size() << ", sources remaining in grouping: " << m_total_sources_waiting;
+
     sendSource(std::move(m_source_groups[group_id]));
     m_source_groups.erase(group_id);
   }
+
+  logger.debug() << "Processing signal handled, total sources remaining in grouping: " << m_total_sources_waiting;
 }
 
 } // SourceXtractor namespace

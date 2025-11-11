@@ -376,6 +376,9 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
 }
 
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   FittingState fitting_state;
 
   for (auto& source : group) {
@@ -478,6 +481,10 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
   }
 
   updateCheckImages(group, 1.0, fitting_state);
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+  logger.debug() << "Flexible model fitting completed in " << duration << " ms, group size: " << group.size();
 }
 
 

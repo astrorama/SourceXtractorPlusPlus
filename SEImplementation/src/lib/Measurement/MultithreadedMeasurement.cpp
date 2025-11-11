@@ -30,7 +30,7 @@
 
 using namespace SourceXtractor;
 
-static Elements::Logging logger = Elements::Logging::getLogger("Multithreading");
+static Elements::Logging logger = Elements::Logging::getLogger("MultithreadedMeasurement");
 
 
 MultithreadedMeasurement::~MultithreadedMeasurement() {
@@ -44,6 +44,7 @@ void MultithreadedMeasurement::startThreads() {
 }
 
 void MultithreadedMeasurement::stopThreads() {
+  logger.debug() << "Stopping worker threads";
   m_input_done = true;
   m_thread_pool->block();
   m_output_thread->join();
@@ -51,6 +52,8 @@ void MultithreadedMeasurement::stopThreads() {
 }
 
 void MultithreadedMeasurement::synchronizeThreads() {
+  logger.debug() << "Synchronizing worker threads";
+
   // Wait until all worker threads are done
   m_thread_pool->block();
 
@@ -74,6 +77,9 @@ void MultithreadedMeasurement::synchronizeThreads() {
 }
 
 void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterface> source_group) {
+  logger.debug() << "Receiving source group with " << source_group->size() << " sources, job queue size: "
+                 << m_thread_pool->queued() << " output queue size: " << m_output_queue.size();
+
   // Force computation of SourceID here, where the order is still deterministic
   for (auto& source : *source_group) {
     source.getProperty<SourceID>();
@@ -127,8 +133,14 @@ void MultithreadedMeasurement::outputThreadLoop() {
 
     // Process the output queue
     while (!m_output_queue.empty()) {
+      logger.debug() << "Output queue: " << m_output_queue.size() << " Sending group to output, group has "
+                     << m_output_queue.front().second->size() << " sources";
+      
       sendSource(std::move(m_output_queue.front().second));
       m_output_queue.pop_front();
+
+      logger.debug() << "Thread pool: active threads: " << m_thread_pool->activeThreads() << ", running jobs: " << m_thread_pool->running()
+                    << " queued jobs: " << m_thread_pool->queued();
     }
 
     if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 &&

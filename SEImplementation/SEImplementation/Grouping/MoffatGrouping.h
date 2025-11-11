@@ -60,6 +60,8 @@ private:
   size_t m_group_counter;
   std::map<unsigned int, std::shared_ptr<Group>> m_groups;
   QuadTree<std::shared_ptr<SourceInfo>> m_tree;
+
+  unsigned int m_total_sources_waiting = 0;
 };
 
 }

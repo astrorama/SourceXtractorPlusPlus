@@ -144,16 +144,20 @@ void Prefetcher::receiveProcessSignal(const ProcessSourcesEvent& message) {
 }
 
 void Prefetcher::wait() {
+  logger.debug() << "Waiting for prefetcher to finish";
   m_stop = true;
   m_output_thread->join();
 }
 
 void Prefetcher::synchronize() {
+  logger.debug() << "Waiting for prefetcher queue to be empty";
+
   // Wait until the output queue is empty
   while (true) {
     {
       std::unique_lock<std::mutex> output_lock(m_queue_mutex);
       if (m_received.empty()) {
+        logger.debug() << "Prefetcher queue is empty";
         break;
       }
       else if (m_thread_pool->checkForException(false)) {
@@ -164,6 +168,7 @@ void Prefetcher::synchronize() {
         throw Elements::Exception() << "No active threads and the queue is not empty! Please, report this as a bug";
       }
     }
+    logger.debug() << "Queue: " << m_received.size() << " activeThreads: " << m_thread_pool->activeThreads();
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
   }
 }
