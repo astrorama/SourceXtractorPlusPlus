@@ -85,6 +85,10 @@ private:
     std::vector<int> iterations_per_meta;
     std::vector<SeFloat> fitting_areas_x;
     std::vector<SeFloat> fitting_areas_y;
+
+    // Cached images
+    std::vector<std::shared_ptr<VectorImage<SeFloat>>> cached_image_copies;
+    std::vector<std::shared_ptr<VectorImage<SeFloat>>> cached_weight_images;
   };
 
   struct FittingState {
@@ -111,8 +115,8 @@ private:
   void updateCheckImages(SourceGroupInterface& group, double pixel_scale, FittingState& state) const;
   SeFloat computeChiSquared(SourceGroupInterface& group, SourceInterface& source, int index,
       double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const;
-  SeFloat computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
-      std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
+  SeFloat computeChiSquaredForFrame(std::shared_ptr<const VectorImage<SeFloat>> image,
+      std::shared_ptr<const VectorImage<SeFloat>> model, std::shared_ptr<const VectorImage<SeFloat>> weights, int& data_points) const;
   int fitSourcePrepareParameters(FlexibleModelFittingParameterManager& parameter_manager,
                                  ModelFitting::EngineParameterManager& engine_parameter_manager,
                                  SourceInterface& source, int index, FittingState& state) const;

@@ -416,12 +416,28 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
       }
     }
 
+    // pre compute images copies and weight images for each frame
+    for (auto frame : m_frames) {
+      int frame_index = frame->getFrameNb();
+      if (isFrameValid(source, frame_index)) {
+        initial_state.cached_image_copies.push_back(createImageCopy(source, frame_index));
+        initial_state.cached_weight_images.push_back(createWeightImage(source, frame_index));
+      } else {
+        initial_state.cached_image_copies.push_back(nullptr);
+        initial_state.cached_weight_images.push_back(nullptr);
+      }
+    }
+
     fitting_state.source_states.emplace_back(std::move(initial_state));
   }
+
+
 
   // TODO Sort sources by flux to fit brightest sources first?
 
   // iterate over the whole group, fitting sources one at a time
+
+  auto time_before_iterations = std::chrono::high_resolution_clock::now();
 
   double prev_chi_squared = 999999.9;
   for (int iteration = 0; iteration < m_meta_iterations; iteration++) {
@@ -440,11 +456,13 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     chi_squared /= fitting_state.source_states.size();
 
     if (fabs(chi_squared - prev_chi_squared) / chi_squared < m_meta_iteration_stop) {
-     break;
+      break;
     }
 
     prev_chi_squared = chi_squared;
   }
+
+  auto time_after_iterations = std::chrono::high_resolution_clock::now();
 
 
   // Remove parameters that couldn't be fit from the output
@@ -461,6 +479,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
       }
     }
   }
+
+  auto time_finalization_start = std::chrono::high_resolution_clock::now();
 
   // output a property for every source
   size_t index = 0;
@@ -480,11 +500,22 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     index++;
   }
 
-  updateCheckImages(group, 1.0, fitting_state);
+  auto time_check_images = std::chrono::high_resolution_clock::now();
+  //updateCheckImages(group, 1.0, fitting_state);
 
   auto end_time = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
-  logger.debug() << "Flexible model fitting completed in " << duration << " ms, group size: " << group.size();
+
+  auto total_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
+  auto before_iterations_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_before_iterations - start_time).count();
+  auto iteration_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_after_iterations - time_before_iterations).count();
+  auto after_iterations_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_finalization_start - time_after_iterations).count();
+  auto finalization_duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_check_images - time_finalization_start).count();
+  auto check_images_duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - time_check_images).count();
+
+  logger.debug() << "Flexible model fitting completed in " << total_duration << " ms, group size: " << group.size()
+    << " (preparation: " << before_iterations_duration << " ms, iterations: " << iteration_duration << " ms, post-processing: "
+    << after_iterations_duration << " ms, finalization: " << finalization_duration << " ms, check images: "
+    << check_images_duration << " ms)";
 }
 
 
@@ -574,7 +605,15 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
     ResidualEstimator& res_estimator, int& good_pixels,
     SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double down_scaling) const {
 
+
   double pixel_scale = 1.0;
+
+  double frame_duration = 0.0;
+  double image_duration = 0.0;
+  double deblend_duration = 0.0;
+  double weight_duration = 0.0;
+  double residuals_duration = 0.0;
+
 
   int valid_frames = 0;
   for (auto frame : m_frames) {
@@ -583,11 +622,19 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
     if (isFrameValid(source, frame_index)) {
       valid_frames++;
 
+      auto start_time = std::chrono::high_resolution_clock::now();
+
       auto stamp_rect = getFittingRect(source, frame_index);
       auto frame_model = createFrameModel(source, pixel_scale, parameter_manager, frame, stamp_rect, down_scaling);
 
-      auto image = createImageCopy(source, frame_index);
+      auto frame_time = std::chrono::high_resolution_clock::now();
+      frame_duration += std::chrono::duration_cast<std::chrono::milliseconds>(frame_time - start_time).count();
 
+      auto image = VectorImage<SeFloat>::create(*state.source_states[index].cached_image_copies[frame_index]);
+
+      auto image_time = std::chrono::high_resolution_clock::now();
+      image_duration += std::chrono::duration_cast<std::chrono::milliseconds>(image_time - frame_time).count();
+      
       auto deblend_image = createDeblendImage(group, source, index, frame, state);
       for (int y = 0; y < image->getHeight(); ++y) {
         for (int x = 0; x < image->getWidth(); ++x) {
@@ -595,23 +642,39 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
         }
       }
 
-      auto weight = createWeightImage(source, frame_index);
+      auto deblend_time = std::chrono::high_resolution_clock::now();
+      deblend_duration += std::chrono::duration_cast<std::chrono::milliseconds>(deblend_time - image_time).count();
 
+      auto weight_image = state.source_states[index].cached_weight_images[frame_index];
+
+      
       // count number of pixels that can be used for fitting
-      for (int y = 0; y < weight->getHeight(); ++y) {
-        for (int x = 0; x < weight->getWidth(); ++x) {
-          good_pixels += (weight->at(x, y) != 0.);
+      for (int y = 0; y < weight_image->getHeight(); ++y) {
+        for (int x = 0; x < weight_image->getWidth(); ++x) {
+          good_pixels += (weight_image->at(x, y) != 0.);
         }
       }
-
+      
+      auto weight_time = std::chrono::high_resolution_clock::now();
+      weight_duration += std::chrono::duration_cast<std::chrono::milliseconds>(weight_time - deblend_time).count();
       // Setup residuals
+
       auto data_vs_model =
-        createDataVsModelResiduals(image, std::move(frame_model), weight,
-                                   //LogChiSquareComparator(m_modified_chi_squared_scale));
+        createDataVsModelResiduals(image, std::move(frame_model), weight_image,
                                    AsinhChiSquareComparator(m_modified_chi_squared_scale));
       res_estimator.registerBlockProvider(std::move(data_vs_model));
+
+      auto end_time = std::chrono::high_resolution_clock::now();
+      residuals_duration += std::chrono::duration_cast<std::chrono::milliseconds>(end_time - weight_time).count();
+
     }
   }
+  logger.debug() << "Frame model preparation times (ms): "
+  << " model: " <<  frame_duration
+      << ", image copy: " << image_duration
+      << ", deblend: " << deblend_duration
+      << ", weight: " << weight_duration
+      << ", setup residuals: " << residuals_duration;
 
   return valid_frames;
 }
@@ -686,6 +749,8 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
 
 void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
 
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   //////////////////////////////////////////////
   // Determine size of fitted area and if needed downsize factor
 
@@ -708,6 +773,8 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
         << " scaling factor: " << down_scaling;
   }
 
+  auto init_time = std::chrono::high_resolution_clock::now();
+
   //////////////////////////////////////////////
   // Prepare parameters
 
@@ -716,12 +783,16 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   int n_free_parameters = fitSourcePrepareParameters(
       parameter_manager, engine_parameter_manager, source, index, state);
 
+  auto prep_param_time = std::chrono::high_resolution_clock::now();
+
   ///////////////////////////////////////////////////////////////////////////////////
   // Add models for all frames
   ResidualEstimator res_estimator {};
   int n_good_pixels = 0;
   int valid_frames = fitSourcePrepareModels(
       parameter_manager, res_estimator, n_good_pixels, group, source, index, state, down_scaling);
+
+  auto prep_model_time = std::chrono::high_resolution_clock::now();
 
   ///////////////////////////////////////////////////////////////////////////////
   // Check that we had enough data for the fit
@@ -751,6 +822,8 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
     prior->setupPrior(parameter_manager, source, res_estimator);
   }
 
+  auto prep_prior_time = std::chrono::high_resolution_clock::now();
+
   /////////////////////////////////////////////////////////////////////////////////
   // Model fitting
 
@@ -764,15 +837,32 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   }
   auto duration = solution.duration;
 
+  auto fit_time = std::chrono::high_resolution_clock::now();
+
   ////////////////////////////////////////////////////////////////////////////////////
   // compute chi squared
 
-  SeFloat avg_reduced_chi_squared =  fitSourceComputeChiSquared(parameter_manager, group, source, index, state);
+  SeFloat avg_reduced_chi_squared = fitSourceComputeChiSquared(parameter_manager, group, source, index, state);
+
+  auto chi_squared_time = std::chrono::high_resolution_clock::now();
+
 
   ////////////////////////////////////////////////////////////////////////////////////
   // update state with results
   fitSourceUpdateState(parameter_manager, source, avg_reduced_chi_squared, duration, iterations, stop_reason, flags, solution,
                        index, state);
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+
+  logger.debug() << " Flexible model fitting for source " 
+      << " completed in " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << " ms (init: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(init_time - start_time).count() << " ms, param prep: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(prep_param_time - init_time).count() << " ms, model prep: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(prep_model_time - prep_param_time).count() << " ms, prior prep: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(prep_prior_time - prep_model_time).count() << " ms, fit: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(fit_time - prep_prior_time).count() << " ms, chi_squared: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(chi_squared_time - fit_time).count() << " ms, update state: "
+      << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - chi_squared_time).count() << " ms)";
 }
 
 void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& group,
@@ -802,6 +892,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
     index++;
   }
 
+  index = 0;
   for (auto& src : group) {
     for (auto frame : m_frames) {
       int frame_index = frame->getFrameNb();
@@ -812,7 +903,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
         auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, stamp_rect);
         auto final_stamp = frame_model.getImage();
 
-        auto weight_image = createWeightImage(src, frame_index);
+        auto weight_image = state.source_states[index].cached_weight_images[frame_index];
 
         {
           auto debug_image = CheckImages::getInstance().getModelFittingImage(frame_index);
@@ -849,22 +940,20 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
 
       }
     }
+    index++;
   }
 }
 
-SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
-    std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const {
+SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared_ptr<const VectorImage<SeFloat>> image,
+    std::shared_ptr<const VectorImage<SeFloat>> model, std::shared_ptr<const VectorImage<SeFloat>> weights, int& data_points) const {
   double reduced_chi_squared = 0.0;
   data_points = 0;
 
-  ImageAccessor<SeFloat> imageAccessor(image), modelAccessor(model);
-  ImageAccessor<SeFloat> weightAccessor(weights);
-
   for (int y=0; y < image->getHeight(); y++) {
     for (int x=0; x < image->getWidth(); x++) {
-      double tmp = imageAccessor.getValue(x, y) - modelAccessor.getValue(x, y);
-      reduced_chi_squared += tmp * tmp * weightAccessor.getValue(x, y) * weightAccessor.getValue(x, y);
-      if (weightAccessor.getValue(x, y) > 0) {
+      double tmp = image->at(x, y) - model->at(x, y);
+      reduced_chi_squared += tmp * tmp * weights->at(x, y) * weights->at(x, y);
+      if (weights->at(x, y) > 0) {
         data_points++;
       }
     }
@@ -874,6 +963,15 @@ SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared
 
 SeFloat FlexibleModelFittingIterativeTask::computeChiSquared(SourceGroupInterface& group, SourceInterface& source, int index,
     double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const {
+
+  double frame_model_time = 0.0;
+  double image_time = 0.0;
+  double image_copy_time = 0.0;
+  double deblend_time = 0.0;
+  double deblend_image_time = 0.0;
+  double weight_time = 0.0;
+  double chi_squared_time = 0.0;
+
   SeFloat total_chi_squared = 0;
   total_data_points = 0;
   int valid_frames = 0;
@@ -881,28 +979,64 @@ SeFloat FlexibleModelFittingIterativeTask::computeChiSquared(SourceGroupInterfac
     int frame_index = frame->getFrameNb();
     // Validate that each frame covers the model fitting region
     if (isFrameValid(source, frame_index)) {
+      auto start_time = std::chrono::high_resolution_clock::now();
+
       valid_frames++;
       auto stamp_rect = getFittingRect(source, frame_index);
       auto frame_model = createFrameModel(source, pixel_scale, manager, frame, stamp_rect);
+
+      auto create_time = std::chrono::high_resolution_clock::now();
+      frame_model_time += std::chrono::duration_cast<std::chrono::milliseconds>(create_time - start_time).count();
+
       auto final_stamp = frame_model.getImage();
 
-      auto image = createImageCopy(source, frame_index);
+      auto image_time_point = std::chrono::high_resolution_clock::now();
+      image_time += std::chrono::duration_cast<std::chrono::milliseconds>(image_time_point - create_time).count();
+
+      auto image = VectorImage<SeFloat>::create(*state.source_states[index].cached_image_copies[frame_index]);
+
+      auto image_copy_time_point = std::chrono::high_resolution_clock::now();
+      image_copy_time += std::chrono::duration_cast<std::chrono::milliseconds>(image_copy_time_point - image_time_point).count();
+
+
       auto deblend_image = createDeblendImage(group, source, index, frame, state);
+
+      auto deblend_time_point = std::chrono::high_resolution_clock::now();
+      deblend_time += std::chrono::duration_cast<std::chrono::milliseconds>(deblend_time_point - image_copy_time_point).count();
+
       for (int y = 0; y < image->getHeight(); ++y) {
         for (int x = 0; x < image->getWidth(); ++x) {
           image->at(x, y) -= deblend_image->at(x, y);
         }
       }
 
-      auto weight = createWeightImage(source, frame_index);
+      auto deblend_image_time_point = std::chrono::high_resolution_clock::now();
+      deblend_image_time += std::chrono::duration_cast<std::chrono::milliseconds>(deblend_image_time_point - deblend_time_point).count();
+
+      auto weight_image = state.source_states[index].cached_weight_images[frame_index];
+
+      auto weight_time_point = std::chrono::high_resolution_clock::now();
+      weight_time += std::chrono::duration_cast<std::chrono::milliseconds>(weight_time_point - deblend_image_time_point).count();
 
       int data_points = 0;
-      SeFloat chi_squared = computeChiSquaredForFrame(image, final_stamp, weight, data_points);
+      SeFloat chi_squared = computeChiSquaredForFrame(image, final_stamp, weight_image, data_points);
+
+      auto chi_squared_time_point = std::chrono::high_resolution_clock::now();
+      chi_squared_time += std::chrono::duration_cast<std::chrono::milliseconds>(chi_squared_time_point - weight_time_point).count();
 
       total_data_points += data_points;
       total_chi_squared += chi_squared;
     }
   }
+
+  logger.debug() << "Frame model chi squared computation times (ms): "
+      << " model: " <<  frame_model_time
+      << ", image copy: " << image_copy_time
+      << ", image: " << image_time
+      << ", deblend: " << deblend_time
+      << ", deblend image: " << deblend_image_time
+      << ", weight: " << weight_time
+      << ", chi_squared: " << chi_squared_time;
 
   return total_chi_squared;
 }
