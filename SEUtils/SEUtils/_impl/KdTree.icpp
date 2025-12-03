@@ -21,6 +21,7 @@ template<typename T, size_t N, size_t S>
 class KdTree<T, N, S>::Node {
 public:
   virtual std::vector<T> findPointsWithinRadius(Coord coord, double radius) const = 0;
+  virtual T findNearest(Coord coord, double& best_dist_sq) const = 0;
   virtual ~Node() = default;
 };
 
@@ -43,6 +44,24 @@ public:
       }
     }
     return selection;
+  }
+
+  virtual T findNearest(Coord coord, double& best_dist_sq) const {
+    T best_point = m_data[0];
+    best_dist_sq = std::numeric_limits<double>::max();
+    
+    for (const auto& entry : m_data) {
+      double square_dist = 0.0;
+      for (size_t i = 0; i < N; i++) {
+        double delta = Traits::getCoord(entry, i) - coord.coord[i];
+        square_dist += delta * delta;
+      }
+      if (square_dist < best_dist_sq) {
+        best_dist_sq = square_dist;
+        best_point = entry;
+      }
+    }
+    return best_point;
   }
 
 private:
@@ -101,6 +120,29 @@ public:
     }
   }
 
+  virtual T findNearest(Coord coord, double& best_dist_sq) const {
+    // Determine which side to search first
+    bool search_left_first = coord.coord[m_axis] < m_split_value;
+    auto first_child = search_left_first ? m_left_child : m_right_child;
+    auto second_child = search_left_first ? m_right_child : m_left_child;
+    
+    // Search the first side
+    T best_point = first_child->findNearest(coord, best_dist_sq);
+    
+    // Check if we need to search the other side
+    double axis_dist = coord.coord[m_axis] - m_split_value;
+    if (axis_dist * axis_dist < best_dist_sq) {
+      double second_best_dist_sq = best_dist_sq;
+      T second_best = second_child->findNearest(coord, second_best_dist_sq);
+      if (second_best_dist_sq < best_dist_sq) {
+        best_dist_sq = second_best_dist_sq;
+        best_point = second_best;
+      }
+    }
+    
+    return best_point;
+  }
+
 private:
   size_t m_axis;
   double m_split_value;
@@ -122,6 +164,12 @@ KdTree<T, N, S>::KdTree(const std::vector<T>& data) {
 template<typename T, size_t N, size_t S>
 std::vector<T> KdTree<T, N, S>::findPointsWithinRadius(Coord coord, double radius) const {
   return m_root->findPointsWithinRadius(coord, radius);
+}
+
+template<typename T, size_t N, size_t S>
+T KdTree<T, N, S>::findNearest(Coord coord) const {
+  double best_dist_sq;
+  return m_root->findNearest(coord, best_dist_sq);
 }
 
 }

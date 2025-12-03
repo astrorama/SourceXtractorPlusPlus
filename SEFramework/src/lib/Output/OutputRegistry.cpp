@@ -49,21 +49,26 @@ auto OutputRegistry::getSourceToRowConverter(const std::vector<std::string>& ena
   return [this, out_prop_list](const SourceInterface& source) {
     std::vector<ColumnInfo::info_type> info_list {};
     std::vector<Row::cell_type> cell_values {};
+
+    const auto& property_to_names_map = m_property_to_names_map;
+    const auto& name_to_col_info_map = m_name_to_col_info_map;
+    const auto& name_to_converter_map = m_name_to_converter_map;
+
     for (const auto& property : out_prop_list) {
-      if (m_property_to_names_map.count(property) == 0) {
+      if (property_to_names_map.count(property) == 0) {
         throw Elements::Exception() << "Missing column generator for " << property.name();
       }
-      for (const auto& name : m_property_to_names_map.at(property)) {
-        auto& col_info = m_name_to_col_info_map.at(name);
-        info_list.emplace_back(name, m_name_to_converter_map.at(name).first,
-                               col_info.unit, col_info.description);
-        cell_values.emplace_back(m_name_to_converter_map.at(name).second(source));
+      for (const auto& name : property_to_names_map.at(property)) {
+        auto& col_info = name_to_col_info_map.at(name);
+        info_list.push_back(ColumnInfo::info_type {name, name_to_converter_map.at(name).first,
+                               col_info.unit, col_info.description});
+        cell_values.push_back(name_to_converter_map.at(name).second(source));
       }
     }
     if (info_list.empty()) {
       throw Elements::Exception() << "The given configuration would not generate any output";
     }
-    return Row {std::move(cell_values), std::make_shared<ColumnInfo>(move(info_list))};
+    return Row {std::move(cell_values), std::make_shared<ColumnInfo>(std::move(info_list))};
   };
 }
 
