@@ -24,7 +24,10 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 
+#include <tuple>
+
 #include "SEUtils/PixelRectangle.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
@@ -36,11 +39,15 @@ public:
   virtual ~MeasurementFrameRectangle() = default;
 
   explicit MeasurementFrameRectangle(bool bad_projection):
-  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection}{}
+  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_min_coord_image{-1, -1},
+  m_max_coord_image{-1, -1}, m_bad_projection{bad_projection} {}
 
-  MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):
-    m_min_coord{min_coord}, m_max_coord{max_coord}, m_bad_projection{false} {
+  MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord,
+                            ImageCoordinate min_coord_image, ImageCoordinate max_coord_image):
+      m_min_coord(min_coord), m_max_coord(max_coord),
+      m_min_coord_image(min_coord_image), m_max_coord_image(max_coord_image), m_bad_projection{false} {
     assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
+    assert(min_coord_image.m_x <= max_coord_image.m_x && min_coord_image.m_y <= max_coord_image.m_y);
   }
 
   PixelCoordinate getTopLeft() const {
@@ -65,8 +72,8 @@ public:
     return m_max_coord.m_y - m_min_coord.m_y + 1;
   }
 
-  PixelRectangle getRect() const {
-    return PixelRectangle(m_min_coord, m_max_coord);
+  std::tuple<ImageCoordinate, ImageCoordinate> getImageRect() const {
+    return std::make_tuple(m_min_coord_image, m_max_coord_image);
   }
 
   bool badProjection() const {
@@ -75,6 +82,7 @@ public:
 
 private:
   PixelCoordinate m_min_coord, m_max_coord;
+  ImageCoordinate m_min_coord_image, m_max_coord_image;
   bool m_bad_projection;
 };
 
