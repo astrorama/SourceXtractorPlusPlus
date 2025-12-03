@@ -46,6 +46,7 @@ using Euclid::FilePool::FileHandler;
 class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
 
+  static std::shared_ptr<FileManager> getFileManager(unsigned int max_open_files = 500);
 
   /**
    * Constructor
@@ -57,14 +58,14 @@ public:
    */
   explicit FitsImageSource(const std::string& filename, int hdu_number = 0,
                   ImageTile::ImageType image_type = ImageTile::AutoType,
-                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
+                  std::shared_ptr<FileManager> manager = getFileManager());
 
   FitsImageSource(const std::string& filename, int width, int height,
                   ImageTile::ImageType image_type,
                   const std::shared_ptr<CoordinateSystem> coord_system = nullptr,
                   bool append = false,
                   bool empty_primary = false,
-                  std::shared_ptr<FileManager> manager = FileManager::getDefault());
+                  std::shared_ptr<FileManager> manager = getFileManager());
 
   virtual ~FitsImageSource() = default;
 
@@ -137,6 +138,8 @@ private:
   ImageTile::ImageType m_image_type;
 
   int m_current_layer;
+
+  static std::shared_ptr<FileManager> s_file_manager;
 };
 
 }

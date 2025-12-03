@@ -23,10 +23,13 @@
  */
 
 #include "SEFramework/FITS/FitsImageSource.h"
+
 #include "SEFramework/FITS/FitsFile.h"
 #include "SEUtils/VariantCast.h"
 #include <AlexandriaKernel/memory_tools.h>
+#include <FilePool/LRUFileManager.h>
 #include <ElementsKernel/Exception.h>
+#include "ElementsKernel/Logging.h"
 #include <boost/algorithm/string/case_conv.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/filesystem/operations.hpp>
@@ -38,6 +41,9 @@
 #include <string>
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("FitsFile");
+
 
 using Euclid::make_unique;
 
@@ -386,7 +392,18 @@ int FitsImageSource::getImageType() const {
       return LONGLONG_IMG;
   }
 }
-
 //FIXME add missing types
 
+
+std::shared_ptr<FileManager> FitsImageSource::getFileManager(unsigned int max_open_files) {
+  if (!s_file_manager) {
+    logger.info() << "Creating shared LRUFileManager with limit of " << max_open_files << " open files.";
+    s_file_manager = std::make_shared<Euclid::FilePool::LRUFileManager>(max_open_files);
+  }
+  return s_file_manager;
 }
+
+std::shared_ptr<FileManager> FitsImageSource::s_file_manager = nullptr;
+
+}  // namespace SourceXtractor
+
