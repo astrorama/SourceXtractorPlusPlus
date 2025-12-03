@@ -40,7 +40,6 @@ FileManagerConfig::FileManagerConfig(long manager_id)
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> FileManagerConfig::getProgramOptions() {
-    std::cout << "Getting FileManagerConfig options" << std::endl;
     return { {"File Manager", {
         {MAX_SIMULTANEOUS_FILES.c_str(), po::value<int>()->default_value(500),
             "Maximum number of simultaneous open files."}
