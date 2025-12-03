@@ -21,10 +21,14 @@
  *      Author: Alejandro Álvarez Ayllón
  */
 
-#include <ElementsKernel/Exception.h>
 #include <algorithm>
+#include <ElementsKernel/Logging.h>
+#include <ElementsKernel/Exception.h>
+#include "SEUtils/IsNan.h"
+
 #include "SEFramework/Psf/VariablePsf.h"
 
+static auto stack_logger = Elements::Logging::getLogger("PSFExPsf");
 
 namespace SourceXtractor {
 
@@ -129,6 +133,16 @@ void VariablePsf::selfTest() {
   for (auto coeff : m_coefficients) {
     if (coeff->getWidth() != psf_width || coeff->getHeight() != psf_height) {
       throw Elements::Exception() << "Malformed variable PSF, coefficient matrices do not have the same dimensions";
+    }
+    for (auto x = 0; x < psf_width; ++x){
+      for (auto y = 0; y < psf_height; ++y) {
+        if (fastmath_isnan(coeff->at(x, y))) {
+          throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains NANs";
+        }
+        else if (fastmath_isinf(coeff->at(x, y))){
+          throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains INFs";
+        }
+      }
     }
   }
 }

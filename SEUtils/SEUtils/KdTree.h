@@ -21,6 +21,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <limits>
 
 namespace SourceXtractor {
 
@@ -49,6 +50,7 @@ public:
 
   explicit KdTree(const std::vector<T>& data);
   std::vector<T> findPointsWithinRadius(Coord coord, double radius) const;
+  T findNearest(Coord coord) const;
 
 private:
   class Node;

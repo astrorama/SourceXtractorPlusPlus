@@ -169,7 +169,7 @@ private:
         return converter(source.getProperty<PropertyType>(i));
       };
     }
-    Euclid::Table::Row::cell_type operator()(const SourceInterface& source) {
+    Euclid::Table::Row::cell_type operator()(const SourceInterface& source) const {
       return m_convert_func(source, index);
     }
     std::size_t index = 0;
