@@ -28,10 +28,11 @@
 
 namespace SourceXtractor {
 
+template <typename T = SeFloat>
 class OpenCVConvolution {
 public:
-  explicit OpenCVConvolution(std::shared_ptr<const VectorImage<SeFloat>> img)
-    : m_kernel(img->getWidth(), img->getHeight(), CV_32F) {
+  explicit OpenCVConvolution(std::shared_ptr<const VectorImage<T>> img)
+    : m_kernel(img->getWidth(), img->getHeight(), CV_32F) , m_original_kernel{VectorImage<T>::create(*MirrorImage<T>::create(img))} {
     cv::Mat aux(img->getWidth(), img->getHeight(), CV_32F);
     std::copy(img->getData().begin(), img->getData().end(), aux.begin<float>());
     cv::flip(aux, m_kernel, -1);
@@ -39,13 +40,26 @@ public:
 
   virtual ~OpenCVConvolution() = default;
 
-  void convolve(std::shared_ptr<VectorImage<SeFloat>> image) const {
+  void convolve(std::shared_ptr<WriteableImage<T>> image) const {
+    auto vector_image = VectorImage<T>::create(image);
+
     cv::Mat image_cv (image->getHeight(), image->getWidth(), CV_32F);
-    std::copy(image->getData().begin(), image->getData().end(), image_cv.begin<float>());
+    // for (int y = 0; y < image->getHeight(); ++y) {
+    //   for (int x = 0; x < image->getWidth(); ++x) {
+    //     image_cv.at<float>(y, x) = image->getValue(x, y);
+    //   }
+    // }
+    std::copy(vector_image->getData().begin(), vector_image->getData().end(), image_cv.begin<float>());
 
     cv::filter2D(image_cv, image_cv, -1, m_kernel);
 
-    std::copy(image_cv.begin<float>(), image_cv.end<float>(), image->getData().begin());
+    for (int y = 0; y < image->getHeight(); ++y) {
+      for (int x = 0; x < image->getWidth(); ++x) {
+        image->setValue(x, y, image_cv.at<float>(y, x));
+      }
+    }
+
+    //std::copy(image_cv.begin<float>(), image_cv.end<float>(), image->getData().begin());
   }
 
   std::size_t getWidth() const {
@@ -56,8 +70,13 @@ public:
     return m_kernel.size[1];
   }
 
+  std::shared_ptr<const Image<T>> getKernel() const {
+    return m_original_kernel;
+  }
+
 private:
   cv::Mat m_kernel;// (size, size, CV_32F);
+  std::shared_ptr<const VectorImage<T>> m_original_kernel;
 };
 
 } // end of SourceXtractor

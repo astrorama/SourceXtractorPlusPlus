@@ -105,6 +105,8 @@ void DownSampledImagePsf::convolve(std::shared_ptr<WriteableImage<float>> image)
   }
 }
 
+#ifdef USE_DFT_CONVOLUTION_FOR_PSF
+
 std::unique_ptr<DFTConvolution<SeFloat>::ConvolutionContext> DownSampledImagePsf::prepare(
     const std::shared_ptr<const Image<SeFloat>>& model_ptr) const {
   if (m_psf != nullptr) {
@@ -121,6 +123,7 @@ void DownSampledImagePsf::convolve(std::shared_ptr<WriteableImage<float>> image,
   }
 }
 
+#endif
 
 }
 

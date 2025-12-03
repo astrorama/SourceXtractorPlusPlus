@@ -37,6 +37,7 @@ find_package(BoostPython ${PYTHON_EXPLICIT_VERSION})
 find_package(Boost 1.53 REQUIRED)
 find_package(OnnxRuntime)
 find_package(Log4CPP REQUIRED)
+find_package(OpenCV REQUIRED)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -104,7 +105,7 @@ elements_add_library(SEImplementation
               BoostPython PythonLibs PythonInterp
               Pyston
               ${OPT_LIBRARIES}
-            INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
+	      INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES} ${OpenCV_INCLUDE_DIRS}
             PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================

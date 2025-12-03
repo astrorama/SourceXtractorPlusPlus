@@ -522,6 +522,9 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createDeblendImage(
     SourceGroupInterface& group, SourceInterface& source, int source_index,
     std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const {
+
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   int frame_index = frame->getFrameNb();
   auto rect = getFittingRect(source, frame_index);
 
@@ -553,21 +556,48 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
     index++;
   }
 
+  auto parameter_time = std::chrono::high_resolution_clock::now();
+
+  double frame_model_duration = 0.0;
+  double get_image_duration = 0.0;
+  double deblend_image_duration = 0.0;
+
   auto deblend_image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   index = 0;
   for (auto& src : group) {
     if (index != source_index) {
+        auto source_start_time = std::chrono::high_resolution_clock::now();
+
         auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, rect);
+
+        auto frame_model_time = std::chrono::high_resolution_clock::now();
+        frame_model_duration += std::chrono::duration_cast<std::chrono::milliseconds>(frame_model_time - source_start_time).count();
+
         auto final_stamp = frame_model.getImage();
+
+        auto get_image_time = std::chrono::high_resolution_clock::now();
+        get_image_duration += std::chrono::duration_cast<std::chrono::milliseconds>(get_image_time - frame_model_time).count();
 
         for (int y = 0; y < final_stamp->getHeight(); ++y) {
           for (int x = 0; x < final_stamp->getWidth(); ++x) {
             deblend_image->at(x, y) += final_stamp->at(x, y);
           }
         }
+
+        auto deblend_image_time = std::chrono::high_resolution_clock::now();
+        deblend_image_duration += std::chrono::duration_cast<std::chrono::milliseconds>(deblend_image_time - get_image_time).count();
     }
     index++;
   }
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+
+  // logger.debug() << "Deblend image preparation times (ms): "
+  //     << " parameter setup: " << std::chrono::duration_cast<std::chrono::milliseconds>(parameter_time - start_time).count()
+  //     << ", frame models: " << frame_model_duration
+  //     << ", get images: " << get_image_duration
+  //     << ", deblend image sum: " << deblend_image_duration
+  //     << ", total: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count();
 
   return deblend_image;
 }

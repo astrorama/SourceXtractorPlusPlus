@@ -31,12 +31,35 @@
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Convolution/Convolution.h"
 
+//#define USE_DFT_CONVOLUTION_FOR_PSF
+//#define USE_DIRECT_CONVOLUTION_FOR_PSF
+#define USE_OPENCV_CONVOLUTION_FOR_PSF
+
+#ifdef USE_DIRECT_CONVOLUTION_FOR_PSF
+#include "SEFramework/Convolution/DirectConvolution.h"
+#endif
+
+#ifdef USE_OPENCV_CONVOLUTION_FOR_PSF
+#include "SEFramework/Convolution/OpenCVConvolution.h"
+#endif
 
 namespace SourceXtractor {
 
+#ifdef USE_DIRECT_CONVOLUTION_FOR_PSF
+class ImagePsf: public DirectConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> {
+private:
+  typedef DirectConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> base_t;
+#endif
+#ifdef USE_DFT_CONVOLUTION_FOR_PSF
 class ImagePsf: public DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> {
 private:
-  typedef DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> base_t;
+typedef DFTConvolution<SeFloat, PaddedImage<SeFloat, Reflect101Coordinates>> base_t;
+#endif
+#ifdef USE_OPENCV_CONVOLUTION_FOR_PSF
+class ImagePsf: public OpenCVConvolution<SeFloat> {
+private:
+  typedef OpenCVConvolution<SeFloat> base_t;
+#endif
 
 public:
 
@@ -78,11 +101,14 @@ namespace ModelFitting {
 /**
  * Specialization of PsfTraits, as DFTConvolution has the concept of context
  */
+#ifdef USE_DFT_CONVOLUTION_FOR_PSF
 template<>
 struct PsfTraits<SourceXtractor::ImagePsf> {
   using context_t = typename std::unique_ptr<SourceXtractor::ImagePsf::ConvolutionContext>;
   static constexpr bool has_context = true;
 };
+
+#endif
 
 } // end of ModelFitting
 

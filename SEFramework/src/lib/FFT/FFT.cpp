@@ -26,6 +26,8 @@
 #include <fftw3.h>
 #include <map>
 
+#include <iostream>
+
 namespace SourceXtractor {
 
 /**
@@ -130,6 +132,9 @@ auto FFT<T>::createForwardPlan(int width, int height, std::vector<T>& inout) -> 
   }
 
   // No available plan yet, so get one from FFTW
+
+  std::cout << "!!!!!!!!!!Creating new FFTW forward plan for size " << width << "x" << height << std::endl;
+
   boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
   boost::lock_guard<boost::mutex>                    lock_planner{fftw_global_plan_mutex};
 
@@ -162,7 +167,11 @@ auto FFT<T>::createInversePlan(int width, int height, std::vector<T>& inout) -> 
   static boost::shared_mutex                        mutex;
   static std::map<std::tuple<int, int>, plan_ptr_t> plan_cache;
 
+
+  auto before_time = std::chrono::high_resolution_clock::now();
   boost::upgrade_lock<boost::shared_mutex> read_lock{mutex};
+  auto after_time =  std::chrono::high_resolution_clock::now();
+  std::cout << "!!!!Time to get read lock: " << std::chrono::duration_cast<std::chrono::microseconds>(after_time - before_time).count() << " us" << std::endl;
 
   auto pi = plan_cache.find(std::make_tuple(width, height));
   if (pi != plan_cache.end()) {
@@ -170,6 +179,9 @@ auto FFT<T>::createInversePlan(int width, int height, std::vector<T>& inout) -> 
   }
 
   // No available plan yet, so get one from FFTW
+
+  std::cout << "!!!!!!!!!!Creating new FFTW inverse plan for size " << width << "x" << height << std::endl;
+
   boost::upgrade_to_unique_lock<boost::shared_mutex> write_lock{read_lock};
   boost::lock_guard<boost::mutex>                    lock_planner{fftw_global_plan_mutex};
 

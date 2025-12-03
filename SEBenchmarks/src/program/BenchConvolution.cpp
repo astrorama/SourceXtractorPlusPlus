@@ -106,7 +106,7 @@ public:
 
 #ifdef WITH_OPENCV
         logger.info() << "Timing OpenCV implementation";
-        auto opencv_result = benchmark<OpenCVConvolution>(image, kernel, repeat, measures);
+        auto opencv_result = benchmark<OpenCVConvolution<SeFloat>>(image, kernel, repeat, measures);
 #endif
 
         if (krn_size <= 10 || img_size <= 20) {

@@ -33,6 +33,7 @@ find_package(CCfits)
 find_package(BoostDLL)
 find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
+find_package(OpenCV REQUIRED)
 
 
 #===============================================================================
@@ -59,8 +60,8 @@ elements_add_library(SEFramework
                      src/lib/CoordinateSystem/*.cpp
                      LINK_LIBRARIES
                         ElementsKernel SEUtils Table Configuration MathUtils FilePool
-                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
-                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+			WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES} ${OpenCV_LIBRARIES}
+			INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
 
 #===============================================================================

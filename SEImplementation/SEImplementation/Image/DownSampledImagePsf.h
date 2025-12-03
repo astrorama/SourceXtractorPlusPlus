@@ -52,9 +52,12 @@ public:
   std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> getScaledKernel(SeFloat scale) const;
   void convolve(std::shared_ptr<WriteableImage<float>> image) const;
 
-  // For ConvolutionContext optimization
+
+#ifdef USE_DFT_CONVOLUTION_FOR_PSF
+  // // For ConvolutionContext optimization
   std::unique_ptr<DFTConvolution<SeFloat>::ConvolutionContext> prepare(const std::shared_ptr<const Image<SeFloat>>& model_ptr) const;
   void convolve(std::shared_ptr<WriteableImage<float>> image, std::unique_ptr<DFTConvolution<SeFloat>::ConvolutionContext>& context) const;
+#endif
 
 private:
   double m_down_scaling;
@@ -66,14 +69,18 @@ private:
 
 namespace ModelFitting {
 
+
 /**
  * Specialization of PsfTraits, as DFTConvolution has the concept of context
  */
-template<>
+#ifdef USE_DFT_CONVOLUTION_FOR_PSF
+ template<>
 struct PsfTraits<SourceXtractor::DownSampledImagePsf> {
   using context_t = typename std::unique_ptr<SourceXtractor::ImagePsf::ConvolutionContext>;
   static constexpr bool has_context = true;
 };
+
+#endif
 
 } // end of ModelFitting
 
