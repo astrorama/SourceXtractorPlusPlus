@@ -17,3 +17,4 @@ levmar-devel
 log4cpp-devel
 onnxruntime-devel
 wcslib-devel
+opencv-devel
