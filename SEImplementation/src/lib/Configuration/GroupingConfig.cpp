@@ -37,6 +37,7 @@ static const std::string GROUPING_ALGORITHM {"grouping-algorithm" };
 static const std::string GROUPING_HARD_LIMIT {"grouping-hard-limit" };
 static const std::string GROUPING_MOFFAT_THRESHOLD {"grouping-moffat-threshold" };
 static const std::string GROUPING_MOFFAT_MAX_DISTANCE {"grouping-moffat-max-distance" };
+static const std::string GROUPING_TEST_GROUP_SIZE {"grouping-test-group-size" };
 
 static const std::string GROUPING_ALGORITHM_NONE {"NONE" };
 static const std::string GROUPING_ALGORITHM_OVERLAP {"OVERLAP" };
@@ -59,6 +60,8 @@ std::map<std::string, Configuration::OptionDescriptionList> GroupingConfig::getP
           "Threshold used for Moffat grouping."},
       {GROUPING_MOFFAT_MAX_DISTANCE.c_str(), po::value<double>()->default_value(300),
           "Maximum distance (in pixels) to be considered for grouping"},
+      {GROUPING_TEST_GROUP_SIZE.c_str(), po::value<unsigned int>()->default_value(0),
+          "Group size for test grouping."}
   }}};
 }
 
@@ -86,6 +89,9 @@ void GroupingConfig::initialize(const UserValues& args) {
   }
   if (args.find(GROUPING_HARD_LIMIT) != args.end()) {
     m_hard_limit = args.find(GROUPING_HARD_LIMIT)->second.as<unsigned int>();
+  }
+  if (args.find(GROUPING_TEST_GROUP_SIZE) != args.end()) {
+    m_test_group_size = args.find(GROUPING_TEST_GROUP_SIZE)->second.as<unsigned int>();
   }
 }
 

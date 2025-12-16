@@ -20,6 +20,7 @@
 #include "SEImplementation/Grouping/SplitSourcesGrouping.h"
 #include "SEImplementation/Grouping/AssocGrouping.h"
 #include "SEImplementation/Grouping/MoffatGrouping.h"
+#include "SEImplementation/Grouping/TestGrouping.h"
 
 namespace SourceXtractor {
 
@@ -53,11 +54,16 @@ void GroupingFactory::configure(Euclid::Configuration::ConfigManager& manager)  
       break;
   }
   m_hard_limit = grouping_config.getHardLimit();
+  m_test_group_size = grouping_config.getTestGroupSize();
 }
 
 std::shared_ptr<SourceGroupingInterface> GroupingFactory::createGrouping() const {
   assert(m_grouping_criteria != nullptr);
   assert(m_source_group_factory != nullptr);
+
+  if (m_test_group_size > 0) {
+    return std::make_shared<TestGrouping>(m_source_group_factory, m_test_group_size);
+  } 
 
   // return optimized grouping if available, if not uses general grouping with criteria
   switch (m_algorithm) {
