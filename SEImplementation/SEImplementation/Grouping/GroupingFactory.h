@@ -60,6 +60,7 @@ private:
   std::shared_ptr<SourceGroupFactory> m_source_group_factory;
   unsigned int m_hard_limit;
   double m_moffat_max_distance;
+  unsigned int m_test_group_size = 0;
 };
 
 } /* namespace SourceXtractor */

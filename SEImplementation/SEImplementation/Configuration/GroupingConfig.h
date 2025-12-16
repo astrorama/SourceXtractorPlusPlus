@@ -71,11 +71,16 @@ public:
     return m_hard_limit;
   }
 
+  unsigned int getTestGroupSize() const {
+    return m_test_group_size;
+  }
+
 private:
   Algorithm m_selected_algorithm;
   double m_moffat_threshold;
   double m_moffat_max_distance;
   unsigned int m_hard_limit;
+  unsigned int m_test_group_size;
 
 }; /* End of GroupingConfig class */
 
