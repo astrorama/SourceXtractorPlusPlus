@@ -63,7 +63,7 @@ elements_add_library(SEMain ${LIB_SRC}
 #                        INCLUDE_DIRS Boost ElementsExamples)
 #===============================================================================
 elements_add_executable(sourcextractor++ src/program/SourceXtractor.cpp
-                     LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation)
+	LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation Tracy::TracyClient)
 
 elements_add_executable(TestImage src/program/TestImage.cpp
                      LINK_LIBRARIES SEMain SEUtils SEFramework SEImplementation)

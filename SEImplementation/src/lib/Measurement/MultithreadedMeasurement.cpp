@@ -59,7 +59,7 @@ void MultithreadedMeasurement::synchronizeThreads() {
   // Wait until the output queue is empty
   while (true) {
     {
-      std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
+      std::unique_lock<LockableBase(std::mutex)> output_lock(m_output_queue_mutex);
       if (m_output_queue.empty()) {
         break;
       }
@@ -91,7 +91,7 @@ void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterfac
     }
     // Pass to the output thread
     {
-      std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
+      std::lock_guard<LockableBase(std::mutex)> output_lock(m_output_queue_mutex);
       m_output_queue.emplace_back(order_number, std::move(source_group));
     }
   };
@@ -99,12 +99,14 @@ void MultithreadedMeasurement::receiveSource(std::unique_ptr<SourceGroupInterfac
     (*lambda)();
   };
   m_thread_pool->submit(lambda_copyable);
+  TracyPlot("Waiting jobs", (int64_t) m_thread_pool->queued());
   
   ++m_group_counter;
 }
 
 void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *measurement) {
   logger.debug() << "Starting output thread";
+  tracy::SetThreadName("Measurement Output");
   try {
     measurement->outputThreadLoop();
   }
@@ -121,10 +123,13 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *meas
 
 void MultithreadedMeasurement::outputThreadLoop() {
   while (m_thread_pool->activeThreads() > 0) {
+    ZoneScoped;
+    TracyPlot("Waiting jobs", (int64_t) m_thread_pool->queued());
     {
-      std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
-
+      std::lock_guard<LockableBase(std::mutex)> output_lock(m_output_queue_mutex);
+      
       while (!m_output_queue.empty()) {
+        TracyPlot("Waiting jobs", (int64_t) m_thread_pool->queued());
         sendSource(std::move(m_output_queue.front().second));
         m_output_queue.pop_front();
       }

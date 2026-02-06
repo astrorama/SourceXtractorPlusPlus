@@ -43,6 +43,8 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace SourceXtractor {
 
 using namespace ModelFitting;
@@ -74,6 +76,7 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   ImageCoordinate min_coord, max_coord;
   std::tie(min_coord, max_coord) = source.getProperty<MeasurementFrameRectangle>(frame_index).getImageRect();
 
@@ -135,6 +138,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
 
 PixelRectangle FlexibleModelFittingIterativeTask::clipFittingRect(PixelRectangle fitting_rect,
     SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
 
   auto min = fitting_rect.getTopLeft();
@@ -154,6 +158,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getFittingRect(SourceInterface
 }
 
 FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeTask::getFittingEllipse(SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   auto source_shape = source.getProperty<ShapeParameters>();
   auto centroid = source.getProperty<PixelCentroid>();
 
@@ -175,6 +180,7 @@ FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeT
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::getEllipseRect(FittingEllipse ellipse) const {
+  ZoneScoped;
   double cos_theta = std::cos(ellipse.m_theta);
   double sin_theta = std::sin(ellipse.m_theta);
 
@@ -198,6 +204,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getEllipseRect(FittingEllipse 
 
 FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeTask::transformEllipse(
     FittingEllipse ellipse, SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto jacobian = source.getProperty<JacobianSource>(frame_index).asTuple();
@@ -244,6 +251,7 @@ bool FlexibleModelFittingIterativeTask::isFrameValid(SourceInterface& source, in
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createImageCopy(
     SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
   auto rect = getFittingRect(source, frame_index);
 
@@ -258,6 +266,7 @@ FrameModel<DownSampledImagePsf, std::shared_ptr<VectorImage<SourceXtractor::SeFl
 FlexibleModelFittingIterativeTask::createFrameModel(
     SourceInterface& source, double pixel_scale, FlexibleModelFittingParameterManager& manager,
     std::shared_ptr<FlexibleModelFittingFrame> frame, PixelRectangle stamp_rect, double down_scaling) const {
+  ZoneScoped;
 
   int frame_index = frame->getFrameNb();
 
@@ -294,6 +303,7 @@ FlexibleModelFittingIterativeTask::createFrameModel(
 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createWeightImage(
     SourceInterface& source, int frame_index) const {
+  ZoneScoped;
   const auto& frame_images = source.getProperty<MeasurementFrameImages>(frame_index);
   auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(frame_index).getCoordinateSystem();
   auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
@@ -380,6 +390,9 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
 }
 
 void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& group) const {
+  ZoneScoped;
+  ZoneColor(group.size() >= 3 ? 0xff0000 : 0x00ff00);
+
   FittingState fitting_state;
 
   for (auto& source : group) {
@@ -426,6 +439,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
 
   double prev_chi_squared = 999999.9;
   for (int iteration = 0; iteration < m_meta_iterations; iteration++) {
+    ZoneScopedN("Meta Iteration");
     int index = 0;
     for (auto& source : group) {
       fitSource(group, source, index, fitting_state);
@@ -488,6 +502,7 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
 std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createDeblendImage(
     SourceGroupInterface& group, SourceInterface& source, int source_index,
     std::shared_ptr<FlexibleModelFittingFrame> frame, FittingState& state) const {
+  ZoneScoped;
   int frame_index = frame->getFrameNb();
   auto rect = getFittingRect(source, frame_index);
 
@@ -542,6 +557,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
                                                     FlexibleModelFittingParameterManager& parameter_manager,
                                                     ModelFitting::EngineParameterManager& engine_parameter_manager,
                                                     SourceInterface& source, int index, FittingState& state) const {
+  ZoneScoped;
   int free_parameters_nb = 0;
   for (auto parameter : m_parameters) {
     auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
@@ -615,6 +631,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFitti
 
 SeFloat FlexibleModelFittingIterativeTask::fitSourceComputeChiSquared(FlexibleModelFittingParameterManager& parameter_manager,
     SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
+  ZoneScoped;
 
   double pixel_scale = 1.0;
 
@@ -639,6 +656,7 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
     SeFloat avg_reduced_chi_squared, SeFloat duration, unsigned int iterations, unsigned int stop_reason, Flags flags,
     ModelFitting::LeastSquareSummary solution,
     int index, FittingState& state) const {
+  ZoneScoped;
   ////////////////////////////////////////////////////////////////////////////////////
   // Collect parameters for output
   std::unordered_map<int, double> parameters_values, parameters_sigmas;
@@ -682,6 +700,7 @@ void FlexibleModelFittingIterativeTask::fitSourceUpdateState(
 }
 
 void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state) const {
+  ZoneScoped;
 
   //////////////////////////////////////////////
   // Determine size of fitted area and if needed downsize factor
@@ -751,6 +770,8 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   /////////////////////////////////////////////////////////////////////////////////
   // Model fitting
 
+  ZoneNamedN(leastsquarezone, "LeastSquaresSolve", true);
+
   auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
   auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
 
@@ -775,6 +796,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& group,
   double pixel_scale, FittingState& state) const {
 
+  ZoneScoped;
   // recreate parameters
 
   FlexibleModelFittingParameterManager parameter_manager;
@@ -851,6 +873,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
 
 SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared_ptr<const Image<SeFloat>> image,
     std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const {
+  ZoneScoped;
   double reduced_chi_squared = 0.0;
   data_points = 0;
 
@@ -871,6 +894,7 @@ SeFloat FlexibleModelFittingIterativeTask::computeChiSquaredForFrame(std::shared
 
 SeFloat FlexibleModelFittingIterativeTask::computeChiSquared(SourceGroupInterface& group, SourceInterface& source, int index,
     double pixel_scale, FlexibleModelFittingParameterManager& manager, int& total_data_points, FittingState& state) const {
+  ZoneScoped;
   SeFloat total_chi_squared = 0;
   total_data_points = 0;
   int valid_frames = 0;

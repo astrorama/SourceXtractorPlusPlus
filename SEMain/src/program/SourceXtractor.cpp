@@ -82,6 +82,7 @@
 #include "SEMain/PluginConfig.h"
 #include "SEMain/Sorter.h"
 
+#include <tracy/Tracy.hpp>
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -289,6 +290,8 @@ public:
   }
 
   Elements::ExitCode mainMethod(std::map<std::string, po::variable_value>& args) override {
+
+    TracyNoop;
 
     // If the user just requested to see the possible output columns we show
     // them and we do nothing else

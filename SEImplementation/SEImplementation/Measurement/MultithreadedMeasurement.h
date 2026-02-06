@@ -33,6 +33,7 @@
 #include "AlexandriaKernel/Semaphore.h"
 #include "SEFramework/Pipeline/Measurement.h"
 
+#include <tracy/Tracy.hpp>
 namespace SourceXtractor {
 
 class MultithreadedMeasurement : public Measurement {
@@ -67,7 +68,7 @@ private:
   std::atomic_bool m_input_done, m_abort_raised;
 
   std::list<std::pair<int, std::unique_ptr<SourceGroupInterface>>> m_output_queue;
-  mutable std::mutex m_output_queue_mutex;
+  TracyLockable(std::mutex, m_output_queue_mutex);
 };
 
 }

@@ -56,7 +56,7 @@ void Prefetcher::receiveSource(std::unique_ptr<SourceInterface> message) {
 
   intptr_t source_addr = reinterpret_cast<intptr_t>(message.get());
   {
-    std::lock_guard<std::mutex> queue_lock(m_queue_mutex);
+    std::lock_guard<LockableBase(std::mutex)> queue_lock(m_queue_mutex);
     m_received.emplace_back(EventType::SOURCE, source_addr);
   }
 
@@ -66,7 +66,7 @@ void Prefetcher::receiveSource(std::unique_ptr<SourceInterface> message) {
       message->getProperty(prop);
     }
     {
-      std::lock_guard<std::mutex> lock(m_queue_mutex);
+      std::lock_guard<LockableBase(std::mutex)> lock(m_queue_mutex);
       m_finished_sources.emplace(source_addr, std::move(message));
     }
     m_new_output.notify_one();
@@ -86,10 +86,12 @@ void Prefetcher::outputLoop() {
   logger.debug() << "Starting prefetcher output loop";
 
   while (m_thread_pool->activeThreads() > 0) {
-    std::unique_lock<std::mutex> output_lock(m_queue_mutex);
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::unique_lock<LockableBase(std::mutex)> output_lock(m_queue_mutex);
 
     // Wait for something new
-    m_new_output.wait_for(output_lock, std::chrono::milliseconds(1000));
+    //m_new_output.wait_for(output_lock, std::chrono::milliseconds(1000));
+
 
     // Process the output queue
     // This is, release sources when the front of the received has been processed
@@ -135,7 +137,7 @@ void Prefetcher::outputLoop() {
 
 void Prefetcher::receiveProcessSignal(const ProcessSourcesEvent& message) {
   {
-    std::lock_guard<std::mutex> output_lock(m_queue_mutex);
+    std::lock_guard<LockableBase(std::mutex)> output_lock(m_queue_mutex);
     m_received.emplace_back(EventType::PROCESS_SOURCE);
     m_event_queue.emplace_back(message);
   }
@@ -152,7 +154,7 @@ void Prefetcher::synchronize() {
   // Wait until the output queue is empty
   while (true) {
     {
-      std::unique_lock<std::mutex> output_lock(m_queue_mutex);
+      std::unique_lock<LockableBase(std::mutex)> output_lock(m_queue_mutex);
       if (m_received.empty()) {
         break;
       }

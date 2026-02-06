@@ -102,9 +102,9 @@ elements_add_library(SEImplementation
               ElementsKernel Configuration Table
               SEUtils SEFramework ModelFitting
               BoostPython PythonLibs PythonInterp
-              Pyston
+	      Pyston Tracy::TracyClient
               ${OPT_LIBRARIES}
-            INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES}
+	    INCLUDE_DIRS ${BoostPython_INCLUDE_DIRS} ${PYTHON_INCLUDE_DIRS} ${OPT_INCLUDES} ${tracy_includes}
             PUBLIC_HEADERS SEImplementation)
 
 #===============================================================================

@@ -24,6 +24,8 @@
 #include "SEFramework/Source/SourceInterface.h"
 #include "SEFramework/Pipeline/PipelineStage.h"
 
+#include <tracy/Tracy.hpp>
+
 namespace SourceXtractor {
 
 /**
@@ -120,7 +122,7 @@ private:
   /// Queue of type of received events. Used to pass downstream events respecting the received order
   std::deque<EventType> m_received;
 
-  std::mutex m_queue_mutex;
+  TracyLockable(std::mutex, m_queue_mutex);
 
   /// Termination condition for the output loop
   std::atomic_bool m_stop;
