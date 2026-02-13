@@ -58,9 +58,9 @@ elements_add_library(SEFramework
                      src/lib/Frame/*.cpp
                      src/lib/CoordinateSystem/*.cpp
                      LINK_LIBRARIES
-                        ElementsKernel SEUtils Table Configuration MathUtils FilePool
+                        ElementsKernel SEUtils Table Configuration MathUtils FilePool Tracy::TracyClient
                         WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
-                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS} ${tracy_includes}
                      PUBLIC_HEADERS SEFramework)
 
 #===============================================================================

@@ -23,6 +23,9 @@
 
 #include "SEFramework/Image/TileManager.h"
 
+#include <tracy/Tracy.hpp>
+
+
 namespace SourceXtractor {
 
 static std::shared_ptr<TileManager> s_instance;
@@ -76,6 +79,7 @@ void TileManager::flush() {
  * so multiples can retrieve from the cache at the same time.
  */
 std::shared_ptr<ImageTile> TileManager::tryTileFromCache(const TileKey& key) {
+  ZoneScoped;
   boost::shared_lock<boost::shared_mutex> shared_rd_lock(m_mutex);
 
   auto it = m_tile_map.find(key);
@@ -103,6 +107,8 @@ std::shared_ptr<boost::mutex>& TileManager::getMutexForImageSource(const ImageSo
 
 std::shared_ptr<ImageTile> TileManager::getTileForPixel(int x, int y,
                                                         std::shared_ptr<const ImageSource> source) {
+  ZoneScoped;
+  
   x = x / m_tile_width * m_tile_width;
   y = y / m_tile_height * m_tile_height;
   TileKey key{std::static_pointer_cast<const ImageSource>(source), x, y};
