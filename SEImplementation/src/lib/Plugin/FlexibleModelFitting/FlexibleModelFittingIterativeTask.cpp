@@ -586,7 +586,7 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
 int FlexibleModelFittingIterativeTask::fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
     ResidualEstimator& res_estimator, int& good_pixels,
     SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double down_scaling) const {
-
+  ZoneScoped;
   double pixel_scale = 1.0;
 
   int valid_frames = 0;
