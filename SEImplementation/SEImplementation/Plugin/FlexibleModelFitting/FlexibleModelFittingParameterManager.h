@@ -32,6 +32,7 @@
 #include <set>
 #include <vector>
 
+#include <tracy/Tracy.hpp>
 namespace SourceXtractor {
 
 // Needed to store the source in a reference_wrapper
@@ -51,6 +52,7 @@ public:
 
   std::shared_ptr<ModelFitting::BasicParameter> getParameter(
       const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter) const {
+  ZoneScoped;
 
     auto key = std::make_tuple(std::cref(source), parameter);
     m_accessed_params.insert(key);
@@ -61,6 +63,7 @@ public:
 
   void addParameter(const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter,
       std::shared_ptr<ModelFitting::BasicParameter> engine_parameter) {
+  ZoneScoped;
     m_params[std::make_tuple(std::cref(source), parameter)] = engine_parameter;
 
     if (std::dynamic_pointer_cast<const FlexibleModelFittingFreeParameter>(parameter)) {
@@ -69,23 +72,28 @@ public:
   }
 
   int getParameterNb() const {
+  ZoneScoped;
     return m_params.size();
   }
 
   void clearAccessCheck() {
+    ZoneScoped;
     m_accessed_params.clear();
   }
 
   bool isParamAccessed(const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter) const {
+    ZoneScoped;
     auto key = std::make_tuple(std::cref(source), parameter);
     return m_accessed_params.count(key) > 0;
   }
 
   int getParameterIndex(std::shared_ptr<ModelFitting::BasicParameter> engine_parameter) const {
+  ZoneScoped;
     return m_parameter_indices.at(engine_parameter);
   }
 
   int getParameterIndex(const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter) const {
+  ZoneScoped;
     return getParameterIndex(getParameter(source, parameter));
   }
 
@@ -99,6 +107,8 @@ private:
 
   // Propagate access to dependees
   void followDependencies(const SourceInterface& source, std::shared_ptr<const FlexibleModelFittingParameter> parameter) const {
+    ZoneScoped;
+
     auto dependent_parameter = std::dynamic_pointer_cast<const FlexibleModelFittingDependentParameter>(parameter).get();
     if (dependent_parameter) {
       for (auto &dependee : dependent_parameter->getDependees()) {

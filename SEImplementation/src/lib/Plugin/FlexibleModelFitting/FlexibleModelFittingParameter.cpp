@@ -71,6 +71,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingConstantParame
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& /*engine_manager*/,
                                                             const SourceInterface& source) const {
+  ZoneScoped;
   return std::make_shared<ManualParameter>(m_value(source));
 }
 
@@ -78,6 +79,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             FlexibleModelFittingParameterManager& /*parameter_manager*/,
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source) const {
+  ZoneScoped;
   double initial_value = m_initial_value(source);
 
   auto converter = m_converter_factory->getConverter(initial_value, source);
@@ -92,6 +94,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
                                                             ModelFitting::EngineParameterManager& engine_manager,
                                                             const SourceInterface& source,
                                                             double initial_value, double current_value) const {
+  ZoneScoped;
   auto converter = m_converter_factory->getConverter(initial_value, source);
   auto parameter = std::make_shared<EngineParameter>(current_value, std::move(converter));
   engine_manager.registerParameter(parameter);
@@ -101,11 +104,13 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingFreeParameter:
 
 double FlexibleModelFittingFreeParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const {
+  ZoneScoped;
   auto modelfitting_parameter = parameter_manager.getParameter(source, shared_from_this());
   return free_parameter_sigmas[parameter_manager.getParameterIndex(source, shared_from_this())];
 }
 
 double FlexibleModelFittingFreeParameter::getInitialValue(const SourceInterface& source) const {
+  ZoneScoped;
   return m_initial_value(source);
 }
 
@@ -123,6 +128,7 @@ std::shared_ptr<ModelFitting::BasicParameter> createDependentParameterHelper(
                                        const SourceInterface& source,
                                        FlexibleModelFittingDependentParameter::ValueFunc value_calculator,
                                        std::shared_ptr<Parameters>... parameters) {
+  ZoneScoped;
 
   auto coordinate_system = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
   auto calc = [value_calculator, coordinate_system] (decltype(doubleResolver(std::declval<Parameters>()))... params) -> double {
@@ -139,6 +145,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingDependentParam
                                                             FlexibleModelFittingParameterManager& parameter_manager,
                                                             ModelFitting::EngineParameterManager&,
                                                             const SourceInterface& source) const {
+  ZoneScoped;
   switch (m_parameters.size()) {
   case 1:
     return createDependentParameterHelper(parameter_manager, source, m_value_calculator, 
@@ -181,6 +188,7 @@ std::shared_ptr<ModelFitting::BasicParameter> FlexibleModelFittingDependentParam
 
 std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivatives(
     const SourceInterface& source, const std::vector<double>& param_values) const {
+  ZoneScoped;
   assert(param_values.size() == m_parameters.size());
 
   std::vector<double> result(param_values.size());
@@ -207,6 +215,7 @@ std::vector<double> FlexibleModelFittingDependentParameter::getPartialDerivative
 
 double FlexibleModelFittingDependentParameter::getSigma(FlexibleModelFittingParameterManager& parameter_manager, const SourceInterface& source,
       const std::vector<double>& free_parameter_sigmas) const {
+  ZoneScoped;
   auto dependees = getDependees();
   std::vector<double> values;
 
