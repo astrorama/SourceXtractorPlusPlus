@@ -516,17 +516,21 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   for (auto& src : group) {
     if (index != source_index) {
       for (auto parameter : m_parameters) {
+      ZoneNamedN(create_params_zone_a, "A", true);
         auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
         if (free_parameter != nullptr) {
+          ZoneNamedN(create_params_zone_b, "B", true);
           ++n_free_parameters;
 
+          ZoneNamedN(create_params_zone_c, "C", true);
           // Initial with the values from the current iteration run
           parameter_manager.addParameter(src, parameter,
               free_parameter->create(parameter_manager, engine_parameter_manager, src,
                   state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
                   state.source_states[index].parameters_values.at(free_parameter->getId())));
         } else {
+          ZoneNamedN(create_params_zone_d, "D", true);
           parameter_manager.addParameter(src, parameter,
               parameter->create(parameter_manager, engine_parameter_manager, src));
         }
