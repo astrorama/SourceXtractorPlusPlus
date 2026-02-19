@@ -511,6 +511,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   ModelFitting::EngineParameterManager engine_parameter_manager {};
   int n_free_parameters = 0;
 
+  ZoneNamedN(create_params_zone, "CreateParameters", true);
   int index = 0;
   for (auto& src : group) {
     if (index != source_index) {
@@ -533,6 +534,8 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
     }
     index++;
   }
+
+  ZoneNamedN(create_deblend_zone, "CreateDeblendImage", true);
 
   auto deblend_image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   index = 0;
