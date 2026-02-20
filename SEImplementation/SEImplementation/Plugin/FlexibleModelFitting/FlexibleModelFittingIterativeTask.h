@@ -21,6 +21,7 @@
 #include "ModelFitting/Models/FrameModel.h"
 #include "ModelFitting/Engine/ResidualEstimator.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
+#include "ModelFitting/Engine/EngineParameterManager.h"
 
 #include "SEUtils/PixelRectangle.h"
 
@@ -31,6 +32,7 @@
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingFrame.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingPrior.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h"
 
 #include "SEImplementation/Image/DownSampledImagePsf.h"
 
@@ -85,6 +87,10 @@ private:
     std::vector<int> iterations_per_meta;
     std::vector<SeFloat> fitting_areas_x;
     std::vector<SeFloat> fitting_areas_y;
+
+    FlexibleModelFittingParameterManager parameter_manager;
+    ModelFitting::EngineParameterManager engine_parameter_manager {};
+    int n_free_parameters = 0;
   };
 
   struct FittingState {
@@ -115,7 +121,7 @@ private:
       std::shared_ptr<const Image<SeFloat>> model, std::shared_ptr<const Image<SeFloat>> weights, int& data_points) const;
   int fitSourcePrepareParameters(FlexibleModelFittingParameterManager& parameter_manager,
                                  ModelFitting::EngineParameterManager& engine_parameter_manager,
-                                 SourceInterface& source, int index, FittingState& state) const;
+                                 SourceInterface& source, SourceState& state) const;
   int fitSourcePrepareModels(FlexibleModelFittingParameterManager& parameter_manager,
       ModelFitting::ResidualEstimator& res_estimator, int& good_pixels,
       SourceGroupInterface& group, SourceInterface& source, int index, FittingState& state, double downscaling) const;
