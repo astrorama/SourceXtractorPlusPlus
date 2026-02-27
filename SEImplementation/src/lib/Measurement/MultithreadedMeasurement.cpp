@@ -122,11 +122,14 @@ void MultithreadedMeasurement::outputThreadStatic(MultithreadedMeasurement *meas
 void MultithreadedMeasurement::outputThreadLoop() {
   while (m_thread_pool->activeThreads() > 0) {
     {
-      std::lock_guard<std::mutex> output_lock(m_output_queue_mutex);
+      std::unique_lock<std::mutex> output_lock(m_output_queue_mutex);
 
       while (!m_output_queue.empty()) {
-        sendSource(std::move(m_output_queue.front().second));
+        auto source = std::move(m_output_queue.front().second);
         m_output_queue.pop_front();
+        output_lock.unlock();
+        sendSource(std::move(source));
+        output_lock.lock();
       }
 
       if (m_input_done && m_thread_pool->running() + m_thread_pool->queued() == 0 &&
