@@ -140,6 +140,7 @@ void MultithreadedMeasurement::outputThreadLoop() {
       }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    TracyPlot("Output queue", (int64_t) m_output_queue.size());
   }
 }
 
