@@ -45,30 +45,6 @@ struct ImageCoordinate {
 
   ImageCoordinate() : m_x(0), m_y(0) {}
   ImageCoordinate(double x, double y) : m_x(x), m_y(y) {}
-
-  ImageCoordinate operator*(double scalar) const {
-    return ImageCoordinate(m_x * scalar, m_y * scalar);
-  }
-
-  ImageCoordinate operator+(const ImageCoordinate& other) const {
-    return ImageCoordinate(m_x + other.m_x, m_y + other.m_y);
-  }
-
-  ImageCoordinate& operator+=(const ImageCoordinate& other) {
-    m_x += other.m_x;
-    m_y += other.m_y;
-    return *this;
-  }
-
-  ImageCoordinate operator-(const ImageCoordinate& other) const {
-    return ImageCoordinate(m_x - other.m_x, m_y - other.m_y);
-  }
-
-  ImageCoordinate& operator-=(const ImageCoordinate& other) {
-    m_x -= other.m_x;
-    m_y -= other.m_y;
-    return *this;
-  }
 };
 
 class CoordinateSystem {
