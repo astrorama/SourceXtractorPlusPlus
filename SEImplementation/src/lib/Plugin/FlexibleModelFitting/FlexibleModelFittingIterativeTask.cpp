@@ -75,7 +75,12 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 
 PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
   ImageCoordinate min_coord, max_coord;
-  std::tie(min_coord, max_coord) = source.getProperty<MeasurementFrameRectangle>(frame_index).getImageRect();
+  auto& measurement_frame_rectangle = source.getProperty<MeasurementFrameRectangle>(frame_index);
+  std::tie(min_coord, max_coord) = measurement_frame_rectangle.getImageRect();
+
+  if (measurement_frame_rectangle.badProjection()) {
+    return PixelRectangle();
+  }
 
   if (m_window_type == WindowType::ROTATED_ELLIPSE) {
     auto ellipse = getFittingEllipse(source, frame_index);

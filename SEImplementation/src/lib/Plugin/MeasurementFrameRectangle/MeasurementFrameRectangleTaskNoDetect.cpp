@@ -73,7 +73,7 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   // The full boundaries may lie outside of the frame
   if (bad_coordinates || max_coord.m_x < 0 || max_coord.m_y < 0 ||
       min_coord.m_x >= measurement_frame_info.getWidth() || min_coord.m_y >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_coordinates);
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
   }
   // Clip the coordinates to fit the available image
   else {
