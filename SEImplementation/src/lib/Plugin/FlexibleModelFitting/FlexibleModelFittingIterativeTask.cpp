@@ -140,6 +140,11 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
 
 PixelRectangle FlexibleModelFittingIterativeTask::clipFittingRect(PixelRectangle fitting_rect,
     SourceInterface& source, int frame_index) const {
+
+  if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
+    return PixelRectangle();
+  }
+
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
 
   auto min = fitting_rect.getTopLeft();
