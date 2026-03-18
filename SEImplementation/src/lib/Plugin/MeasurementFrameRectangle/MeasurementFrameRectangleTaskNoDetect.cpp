@@ -73,7 +73,7 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   // The full boundaries may lie outside of the frame
   if (bad_coordinates || max_coord.m_x < 0 || max_coord.m_y < 0 ||
       min_coord.m_x >= measurement_frame_info.getWidth() || min_coord.m_y >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_coordinates);
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
   }
   // Clip the coordinates to fit the available image
   else {
@@ -81,6 +81,11 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
     min_coord.m_y = std::max(0, min_coord.m_y);
     max_coord.m_x = std::min(measurement_frame_info.getWidth() - 1, max_coord.m_x);
     max_coord.m_y = std::min(measurement_frame_info.getHeight() - 1, max_coord.m_y);
+
+    min_x = std::max(0.0, min_x);
+    min_y = std::max(0.0, min_y);
+    max_x = std::min(measurement_frame_info.getWidth() - 1.0, max_x);
+    max_y = std::min(measurement_frame_info.getHeight() - 1.0, max_y);
 
     source.setIndexedProperty<MeasurementFrameRectangle>(
       m_instance, min_coord, max_coord, ImageCoordinate(min_x, min_y), ImageCoordinate(max_x, max_y));
