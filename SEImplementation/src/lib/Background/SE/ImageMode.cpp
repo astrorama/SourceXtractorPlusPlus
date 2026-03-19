@@ -106,17 +106,8 @@ std::tuple<T, T> ImageMode<T>::getBackGuess(const std::vector<T>& data) const {
 
   // Sigma is 0
   T mode;
-  if (std::abs(sigma) == 0) {
-    mode = mean;
-  }
-  // Not crowded: mean and median do not differ more than 30%
-  else if (std::abs((mean - median) / sigma) < 0.3) {
-    mode = 2.5 * median - 1.5 * mean;
-  }
-  // Crowded case: we use the median
-  else {
-    mode = median;
-  }
+  mode = 3.5 * median - 2.5 * mean;
+
   return std::make_tuple(mode, sigma);
 }
 
