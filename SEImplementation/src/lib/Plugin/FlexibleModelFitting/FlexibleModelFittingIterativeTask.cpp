@@ -78,7 +78,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
   auto& measurement_frame_rectangle = source.getProperty<MeasurementFrameRectangle>(frame_index);
   std::tie(min_coord, max_coord) = measurement_frame_rectangle.getImageRect();
 
-  if (measurement_frame_rectangle.badProjection()) {
+  if (!measurement_frame_rectangle.isValid()) {
     return PixelRectangle();
   }
 

@@ -47,23 +47,23 @@ public:
   }
 
   ImageCoordinate getTopLeft() const {
-    assert(m_max_coord.m_x >= 0);
+    assert(m_max_coord.m_x >= 0.0);
     return m_min_coord;
   }
 
   ImageCoordinate getBottomRight() const {
-    assert(m_max_coord.m_x >= 0);
+    assert(m_max_coord.m_x >= 0.0);
     return m_max_coord;
   }
 
-  int getWidth() const {
-    if (m_max_coord.m_x < 0)
+  double getWidth() const {
+    if (m_max_coord.m_x < 0.0)
       return 0;
     return m_max_coord.m_x - m_min_coord.m_x;
   }
 
-  int getHeight() const {
-    if (m_max_coord.m_x < 0)
+  double getHeight() const {
+    if (m_max_coord.m_x < 0.0)
       return 0;
     return m_max_coord.m_y - m_min_coord.m_y;
   }
@@ -74,6 +74,10 @@ public:
 
   bool badProjection() const {
     return m_bad_projection;
+  }
+
+  bool isValid() const {
+    return !m_bad_projection && m_max_coord.m_x >= 0.0 && m_max_coord.m_y >= 0.0 && getWidth() > 0.0 && getHeight() > 0.0;
   }
 
 private:
