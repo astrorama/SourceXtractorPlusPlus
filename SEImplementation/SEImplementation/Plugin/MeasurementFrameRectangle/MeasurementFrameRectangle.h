@@ -39,23 +39,19 @@ public:
   virtual ~MeasurementFrameRectangle() = default;
 
   explicit MeasurementFrameRectangle(bool bad_projection):
-  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_min_coord_image{-1, -1},
-  m_max_coord_image{-1, -1}, m_bad_projection{bad_projection} {}
+  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection} {}
 
-  MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord,
-                            ImageCoordinate min_coord_image, ImageCoordinate max_coord_image):
-      m_min_coord(min_coord), m_max_coord(max_coord),
-      m_min_coord_image(min_coord_image), m_max_coord_image(max_coord_image), m_bad_projection{false} {
+  MeasurementFrameRectangle(ImageCoordinate min_coord, ImageCoordinate max_coord):
+      m_min_coord(min_coord), m_max_coord(max_coord), m_bad_projection{false} {
     assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
-    assert(min_coord_image.m_x <= max_coord_image.m_x && min_coord_image.m_y <= max_coord_image.m_y);
   }
 
-  PixelCoordinate getTopLeft() const {
+  ImageCoordinate getTopLeft() const {
     assert(m_max_coord.m_x >= 0);
     return m_min_coord;
   }
 
-  PixelCoordinate getBottomRight() const {
+  ImageCoordinate getBottomRight() const {
     assert(m_max_coord.m_x >= 0);
     return m_max_coord;
   }
@@ -63,17 +59,17 @@ public:
   int getWidth() const {
     if (m_max_coord.m_x < 0)
       return 0;
-    return m_max_coord.m_x - m_min_coord.m_x + 1;
+    return m_max_coord.m_x - m_min_coord.m_x;
   }
 
   int getHeight() const {
     if (m_max_coord.m_x < 0)
       return 0;
-    return m_max_coord.m_y - m_min_coord.m_y + 1;
+    return m_max_coord.m_y - m_min_coord.m_y;
   }
 
   std::tuple<ImageCoordinate, ImageCoordinate> getImageRect() const {
-    return std::make_tuple(m_min_coord_image, m_max_coord_image);
+    return std::make_tuple(m_min_coord, m_max_coord);
   }
 
   bool badProjection() const {
@@ -81,8 +77,7 @@ public:
   }
 
 private:
-  PixelCoordinate m_min_coord, m_max_coord;
-  ImageCoordinate m_min_coord_image, m_max_coord_image;
+  ImageCoordinate m_min_coord, m_max_coord;
   bool m_bad_projection;
 };
 
