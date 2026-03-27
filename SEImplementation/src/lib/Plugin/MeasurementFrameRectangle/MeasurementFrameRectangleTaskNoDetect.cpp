@@ -38,7 +38,7 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   const auto& world_centroid = source.getProperty<WorldCentroid>();
   const auto& assoc_mode = source.getProperty<AssocMode>();
 
-  bool bad_coordinates = false;
+  bool bad_projection = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
     auto w = assoc_mode.getRefFramePixelWidth();
@@ -55,7 +55,7 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
         reference_frame_coordinates->imageToWorld(ImageCoordinate(c.m_x + w, c.m_y + h)));
   }
   catch (const InvalidCoordinatesException&) {
-    bad_coordinates = true;
+    bad_projection = true;
   }
 
   // Determine the min/max coordinates
@@ -65,9 +65,9 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
 
   // The full boundaries may lie outside of the frame
-  if (bad_coordinates || max_x < 0.0 || max_y < 0.0 ||
+  if (bad_projection || max_x < 0.0 || max_y < 0.0 ||
       int(min_x) >= measurement_frame_info.getWidth() || int(max_y) >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_coordinates);
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_projection);
   }
   // Clip the coordinates to fit the available image
   else {
