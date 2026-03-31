@@ -1,6 +1,6 @@
 # Normally, finding a boost component should rely on
 #   find_package(Boost REQUIRED COMPONENTS python)
-# But the packaging is now always the same: sometimes it will be python3,
+# But the packaging is not always the same: sometimes it will be python3,
 # others python37, python2, python27, or just python
 # (i.e. python3 for Fedora < 30, but python37 for Fedora >= 30 and MacOSX via Homebrew)
 # We wrap all this in this module
