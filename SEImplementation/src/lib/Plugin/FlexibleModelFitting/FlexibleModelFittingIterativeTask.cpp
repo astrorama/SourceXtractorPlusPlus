@@ -132,7 +132,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
     }
 
     auto min_pc = PixelCoordinate(static_cast<int>(min.m_x), static_cast<int>(min.m_y));
-    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x + 1.0), static_cast<int>(max.m_y + 1.0));
+    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x), static_cast<int>(max.m_y));
 
     return PixelRectangle(min_pc, max_pc);
   }

@@ -52,7 +52,6 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
 
   // Transform the 4 corner coordinates from detection image
   ImageCoordinate coord1, coord2, coord3, coord4;
-  bool bad_projection = false;
   try {
     coord1 = measurement_frame_coordinates->worldToImage(
         detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y)));
@@ -64,7 +63,8 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
         detection_frame_coordinates->imageToWorld(ImageCoordinate(stamp_top_left.m_x, stamp_top_left.m_y + height)));
   }
   catch (const InvalidCoordinatesException&) {
-    bad_projection = true;
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
   }
 
   // Determine the min/max coordinates
@@ -73,21 +73,26 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
   auto max_x = std::max(coord1.m_x, std::max(coord2.m_x, std::max(coord3.m_x, coord4.m_x)));
   auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
 
-  // The full boundaries may lie outside of the frame
-  if (bad_projection || max_x < 0.0 || max_y < 0.0 ||
-      int(min_x) >= measurement_frame_info.getWidth() || int(max_y) >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_projection);
+  // test for nans
+  if (std::isnan(min_x) || std::isnan(min_y) || std::isnan(max_x) || std::isnan(max_y)) {
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
   }
-  // Clip the coordinates to fit the available image
-  else {
-    min_x = std::max(0.0, min_x);
-    min_y = std::max(0.0, min_y);
-    max_x = std::min(static_cast<double>(measurement_frame_info.getWidth()), max_x);
-    max_y = std::min(static_cast<double>(measurement_frame_info.getHeight()), max_y);
 
-    source.setIndexedProperty<MeasurementFrameRectangle>(
-      m_instance, ImageCoordinate(min_x, min_y), ImageCoordinate(max_x, max_y));
+  // Clip the coordinates to fit the available image
+  min_x = std::max(0.0, min_x);
+  min_y = std::max(0.0, min_y);
+  max_x = std::min(static_cast<double>(measurement_frame_info.getWidth() - 1), max_x);
+  max_y = std::min(static_cast<double>(measurement_frame_info.getHeight() - 1), max_y);
+
+  if (max_x <= min_x || max_y <= min_y) {
+    // No valid rectangle, set the property to an empty rectangle
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, false);
+    return;
   }
+
+   source.setIndexedProperty<MeasurementFrameRectangle>(
+      m_instance, ImageCoordinate(min_x, min_y), ImageCoordinate(max_x, max_y));
 }
 
 } // SEImplementation namespace
