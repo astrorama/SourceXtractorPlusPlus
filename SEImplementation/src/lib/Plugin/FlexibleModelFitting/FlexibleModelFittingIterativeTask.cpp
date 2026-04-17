@@ -74,14 +74,13 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
-  ImageCoordinate min_coord, max_coord;
   auto& measurement_frame_rectangle = source.getProperty<MeasurementFrameRectangle>(frame_index);
-  std::tie(min_coord, max_coord) = measurement_frame_rectangle.getImageRect();
-
-  if (!measurement_frame_rectangle.isValid()) {
+  if (!measurement_frame_rectangle.isValid() || measurement_frame_rectangle.isEmpty()) {
     return PixelRectangle();
   }
-
+  
+  ImageCoordinate min_coord = measurement_frame_rectangle.getTopLeft();
+  ImageCoordinate max_coord = measurement_frame_rectangle.getBottomRight();
 
   if (m_window_type == WindowType::ROTATED_ELLIPSE) {
     auto ellipse = getFittingEllipse(source, frame_index);
@@ -91,7 +90,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
     return getEllipseRect(ellipse);
   }
 
-  if (max_coord.m_x - min_coord.m_x <= 0 || max_coord.m_y - min_coord.m_y <= 0) {
+  if ((max_coord.m_x - min_coord.m_x <= 0.0) || (max_coord.m_y - min_coord.m_y <= 0.0)) {
     return PixelRectangle();
   } else {
     auto min = min_coord;
@@ -132,8 +131,8 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
       max.m_y = min.m_y + size;
     }
 
-    auto min_pc = PixelCoordinate(static_cast<int>(min.m_x + 0.5), static_cast<int>(min.m_y + 0.5));
-    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x + 0.5), static_cast<int>(max.m_y + 0.5));
+    auto min_pc = PixelCoordinate(static_cast<int>(min.m_x), static_cast<int>(min.m_y));
+    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x + 1.0), static_cast<int>(max.m_y + 1.0));
 
     return PixelRectangle(min_pc, max_pc);
   }
