@@ -532,6 +532,11 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   index = 0;
   for (auto& src : group) {
     if (index != source_index) {
+        // check if frame is valid
+        if (!isFrameValid(src, frame->getFrameNb())) {
+          index++;
+          continue;
+        }
         auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, rect);
         auto final_stamp = frame_model.getImage();
 
