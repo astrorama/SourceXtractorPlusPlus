@@ -70,6 +70,12 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
     return;
   }
 
+    // test for infinite values
+  if (std::isinf(min_x) || std::isinf(min_y) || std::isinf(max_x) || std::isinf(max_y)) {
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
+  } 
+
   // Clip the coordinates to fit the available image
   min_x = std::max(0.0, min_x);
   min_y = std::max(0.0, min_y);
