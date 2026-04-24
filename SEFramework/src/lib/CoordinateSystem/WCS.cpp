@@ -255,8 +255,6 @@ ImageCoordinate WCS::worldToImage(WorldCoordinate world_coordinate) const {
   int ret_val = wcss2p(&wcs_copy, 1, 1, wc_array, &phi, &theta, ic_array, pc_array, &status);
   if (ret_val != WCSERR_SUCCESS) {
     logger.warn() << "Bad worldToImage from RA/Dec: " << wc_array[0] << "/" << wc_array[1];
-    // pc_array[0] = -std::numeric_limits<double>::infinity();
-    // pc_array[1] = -std::numeric_limits<double>::infinity();
     pc_array[0] = -10000000.0;
     pc_array[1] = -10000000.0;
   }
