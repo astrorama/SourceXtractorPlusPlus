@@ -85,7 +85,8 @@ void MeasurementFrameRectangleTask::computeProperties(SourceInterface& source) c
     max_coord.m_x = std::min(measurement_frame_info.getWidth() - 1, max_coord.m_x);
     max_coord.m_y = std::min(measurement_frame_info.getHeight() - 1, max_coord.m_y);
 
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, min_coord, max_coord);
+    source.setIndexedProperty<MeasurementFrameRectangle>(
+      m_instance, min_coord, max_coord, ImageCoordinate(min_x, min_y), ImageCoordinate(max_x, max_y));
   }
 }
 
