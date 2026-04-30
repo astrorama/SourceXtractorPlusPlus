@@ -74,8 +74,13 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
-  ImageCoordinate min_coord, max_coord;
-  std::tie(min_coord, max_coord) = source.getProperty<MeasurementFrameRectangle>(frame_index).getImageRect();
+  auto& measurement_frame_rectangle = source.getProperty<MeasurementFrameRectangle>(frame_index);
+  if (!measurement_frame_rectangle.isValid() || measurement_frame_rectangle.isEmpty()) {
+    return PixelRectangle();
+  }
+  
+  ImageCoordinate min_coord = measurement_frame_rectangle.getTopLeft();
+  ImageCoordinate max_coord = measurement_frame_rectangle.getBottomRight();
 
   if (m_window_type == WindowType::ROTATED_ELLIPSE) {
     auto ellipse = getFittingEllipse(source, frame_index);
@@ -85,7 +90,7 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
     return getEllipseRect(ellipse);
   }
 
-  if (max_coord.m_x - min_coord.m_x <= 0 || max_coord.m_y - min_coord.m_y <= 0) {
+  if ((max_coord.m_x - min_coord.m_x <= 0.0) || (max_coord.m_y - min_coord.m_y <= 0.0)) {
     return PixelRectangle();
   } else {
     auto min = min_coord;
@@ -126,8 +131,8 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
       max.m_y = min.m_y + size;
     }
 
-    auto min_pc = PixelCoordinate(static_cast<int>(min.m_x + 0.5), static_cast<int>(min.m_y + 0.5));
-    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x + 0.5), static_cast<int>(max.m_y + 0.5));
+    auto min_pc = PixelCoordinate(static_cast<int>(min.m_x), static_cast<int>(min.m_y));
+    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x), static_cast<int>(max.m_y));
 
     return PixelRectangle(min_pc, max_pc);
   }
@@ -135,6 +140,10 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
 
 PixelRectangle FlexibleModelFittingIterativeTask::clipFittingRect(PixelRectangle fitting_rect,
     SourceInterface& source, int frame_index) const {
+  if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
+    return PixelRectangle();
+  }
+  
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
 
   auto min = fitting_rect.getTopLeft();
@@ -498,7 +507,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   auto deblend_image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
   int index = 0;
   for (auto& src : group) {
-    if (index != source_index) {
+    if (index != source_index && isFrameValid(src, frame->getFrameNb())) {
       // reset parameters to final values after fitting
       for (auto parameter : m_parameters) {
         auto engine_parameter = std::dynamic_pointer_cast<ModelFitting::EngineParameter>(state.source_states[index].parameter_manager.getParameter(src, parameter));
