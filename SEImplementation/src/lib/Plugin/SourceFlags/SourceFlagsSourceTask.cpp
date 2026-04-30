@@ -39,7 +39,7 @@ void SourceFlagsSourceTask::computeProperties(SourceInterface &source) const {
       source_flag |= Flags::SATURATED * source.getProperty<SaturateFlag>(instance).getSaturateFlag();
       source_flag |= Flags::BOUNDARY * source.getProperty<BoundaryFlag>(instance).getBoundaryFlag();
       source_flag |= Flags::BLENDED * source.getProperty<BlendedFlag>().getBlendedFlag();
-      if (source.getProperty<MeasurementFrameRectangle>(instance).badProjection()) {
+      if (source.getProperty<MeasurementFrameRectangle>(instance).isBadProjection()) {
         source_flag |= Flags::BAD_PROJECTION;
       }
     }
