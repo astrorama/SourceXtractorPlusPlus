@@ -68,7 +68,7 @@ public:
   ImageMode(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
             int cell_w, int cell_h,
             T invalid_value, T kappa1 = 2, T kappa2 = 5, T kappa3 = 3,
-            T rtol = 1e-4, size_t max_iter = 100);
+            T rtol = 1e-4, size_t max_iter = 100, T pearson_factor = 2.5);
 
   /**
    * Destructor
@@ -106,7 +106,7 @@ private:
   std::shared_ptr<VectorImage<T>> m_mode, m_sigma;
   std::shared_ptr<VectorImage<T>> m_var_mode, m_var_sigma;
   int m_cell_w, m_cell_h;
-  T m_invalid, m_kappa1, m_kappa2, m_kappa3, m_rtol;
+  T m_invalid, m_kappa1, m_kappa2, m_kappa3, m_rtol, m_pearson_factor;
   size_t m_max_iter;
 
   std::tuple<T, T> getBackGuess(const std::vector<T> &data) const;
