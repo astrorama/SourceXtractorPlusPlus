@@ -50,7 +50,7 @@ private:
   std::vector<int> m_cell_size;
   std::vector<int> m_smoothing_box;
   WeightImageConfig::WeightType m_weight_type;
-  SeFloat m_pearson_factor;
+  double m_pearson_factor;
 };
 
 }

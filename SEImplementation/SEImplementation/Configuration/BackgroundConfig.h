@@ -55,7 +55,7 @@ public:
     return m_detection_threshold_absolute;
   }
 
-  SeFloat getPearsonFactor() const {
+  double getPearsonFactor() const {
     return m_pearson_factor;
   }
 
@@ -66,7 +66,7 @@ private:
   bool m_detection_threshold_absolute;
   SeFloat m_detection_threshold;
 
-  SeFloat m_pearson_factor;
+  double m_pearson_factor;
 };
 
 } /* namespace SourceXtractor */
