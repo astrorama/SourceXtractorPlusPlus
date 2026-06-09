@@ -29,13 +29,15 @@ namespace SourceXtractor {
 
 static const std::string BACKGROUND_VALUE {"background-value" };
 static const std::string THRESHOLD_VALUE {"detection-threshold" };
+static const std::string PEARSON_FACTOR_VALUE {"pearson-factor" };
 
 BackgroundConfig::BackgroundConfig(long manager_id) :
     Configuration(manager_id),
     m_background_level_absolute(false),
     m_background_level(0),
     m_detection_threshold_absolute(false),
-    m_detection_threshold(0) {
+    m_detection_threshold(0),
+    m_pearson_factor(2.5) {
 }
 
 std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::getProgramOptions() {
@@ -44,6 +46,8 @@ std::map<std::string, Configuration::OptionDescriptionList> BackgroundConfig::ge
           "Background value to be subtracted from the detection image."},
       {THRESHOLD_VALUE.c_str(), po::value<double>()->default_value((1.5)),
           "Detection threshold above the background."},
+      {PEARSON_FACTOR_VALUE.c_str(), po::value<double>()->default_value((2.5)),
+          "Pearson factor for background mode estimation."},
   }}};
 }
 
@@ -55,6 +59,9 @@ void BackgroundConfig::initialize(const UserValues& args) {
   if (args.find(THRESHOLD_VALUE) != args.end()) {
     m_detection_threshold_absolute = true;
     m_detection_threshold = args.find(THRESHOLD_VALUE)->second.as<double>();
+  }
+  if (args.find(PEARSON_FACTOR_VALUE) != args.end()) {
+    m_pearson_factor = args.find(PEARSON_FACTOR_VALUE)->second.as<double>();
   }
 }
 
