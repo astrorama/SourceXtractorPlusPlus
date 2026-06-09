@@ -115,7 +115,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // Create histogram model for the image
-  ImageMode<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3, m_pearson_factor);
+  ImageMode<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3, 1e-4, 100, m_pearson_factor);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
 
