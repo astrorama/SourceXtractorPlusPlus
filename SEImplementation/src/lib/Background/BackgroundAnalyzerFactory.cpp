@@ -37,7 +37,7 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
     WeightImageConfig::WeightType weight_type) const {
   // make a SE2 background if cell size and smoothing box are given
   if (m_cell_size.size() > 0 && m_smoothing_box.size() > 0) {
-      return std::make_shared<SEBackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type);
+      return std::make_shared<SEBackgroundLevelAnalyzer>(m_cell_size, m_smoothing_box, weight_type, m_pearson_factor);
   } else {
     // make a simple background
     return std::make_shared<SimpleBackgroundAnalyzer>();
@@ -45,17 +45,20 @@ std::shared_ptr<BackgroundAnalyzer> BackgroundAnalyzerFactory::createBackgroundA
 }
 
 BackgroundAnalyzerFactory::BackgroundAnalyzerFactory(long manager_id)
-    : Configuration(manager_id), m_weight_type(WeightImageConfig::WeightType::WEIGHT_TYPE_NONE) {
+    : Configuration(manager_id), m_weight_type(WeightImageConfig::WeightType::WEIGHT_TYPE_NONE), m_pearson_factor(2.5) {
   declareDependency<SE2BackgroundConfig>();
+  declareDependency<BackgroundConfig>();
   declareDependency<WeightImageConfig>();
 }
 
 void BackgroundAnalyzerFactory::initialize(const UserValues&) {
+  auto background_config = getDependency<BackgroundConfig>();
   auto se2background_config = getDependency<SE2BackgroundConfig>();
   auto weight_image_config = getDependency<WeightImageConfig>();
   m_cell_size = se2background_config.getCellSize();
   m_smoothing_box = se2background_config.getSmoothingBox();
   m_weight_type = weight_image_config.getWeightType();
+  m_pearson_factor = background_config.getPearsonFactor();
 }
 
 }

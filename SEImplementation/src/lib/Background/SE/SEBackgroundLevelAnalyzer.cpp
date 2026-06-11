@@ -31,8 +31,9 @@ namespace SourceXtractor {
 
 SEBackgroundLevelAnalyzer::SEBackgroundLevelAnalyzer(const std::vector<int>& cell_size,
                                                      const std::vector<int>& smoothing_box,
-                                                     const WeightImageConfig::WeightType weight_type)
-  : m_weight_type(weight_type) {
+                                                     const WeightImageConfig::WeightType weight_type,
+                                                     SeFloat pearson_factor)
+  : m_weight_type(weight_type), m_pearson_factor(pearson_factor) {
   assert(cell_size.size() > 0 && cell_size.size() < 3);
   assert(smoothing_box.size() > 0 && smoothing_box.size() < 3);
   m_cell_size[0] = cell_size.front();
@@ -114,7 +115,7 @@ BackgroundModel SEBackgroundLevelAnalyzer::analyzeBackground(
   }
 
   // Create histogram model for the image
-  ImageMode<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3);
+  ImageMode<DetectionImage::PixelType> histo(image, variance_map, m_cell_size[0], m_cell_size[1], mask_value, 2, 5, 3, 1e-4, 100, m_pearson_factor);
   auto mode = histo.getModeImage();
   auto var = histo.getSigmaImage();
 

@@ -55,12 +55,18 @@ public:
     return m_detection_threshold_absolute;
   }
 
+  double getPearsonFactor() const {
+    return m_pearson_factor;
+  }
+
 private:
   bool m_background_level_absolute;
   SeFloat m_background_level;
 
   bool m_detection_threshold_absolute;
   SeFloat m_detection_threshold;
+
+  double m_pearson_factor;
 };
 
 } /* namespace SourceXtractor */
