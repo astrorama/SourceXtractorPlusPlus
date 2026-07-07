@@ -40,11 +40,11 @@ public:
 
   using SourceToRowConverter = std::function<Euclid::Table::Row(const SourceInterface&)>;
   MultithreadedMeasurement(SourceToRowConverter source_to_row, const std::shared_ptr<Euclid::ThreadPool>& thread_pool,
-                           unsigned max_queue_size)
+                           unsigned /*max_queue_size*/)
       : m_source_to_row(source_to_row),
         m_thread_pool(thread_pool),
         m_group_counter(0),
-        m_input_done(false), m_abort_raised(false), m_semaphore(max_queue_size) {}
+        m_input_done(false), m_abort_raised(false) {}
 
   ~MultithreadedMeasurement() override;
 
@@ -66,10 +66,8 @@ private:
   int m_group_counter;
   std::atomic_bool m_input_done, m_abort_raised;
 
-  std::condition_variable m_new_output;
   std::list<std::pair<int, std::unique_ptr<SourceGroupInterface>>> m_output_queue;
-  std::mutex m_output_queue_mutex;
-  Euclid::Semaphore m_semaphore;
+  mutable std::mutex m_output_queue_mutex;
 };
 
 }

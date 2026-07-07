@@ -65,7 +65,11 @@ public:
     //m_get_value_hook = std::bind(&DependentParameter::getValueHook, this);
   }
 
-  virtual ~DependentParameter() = default;
+  virtual ~DependentParameter() {
+    for (auto& parameter_observer : m_parameter_observers) {
+      std::get<0>(parameter_observer)->removeObserver(std::get<1>(parameter_observer));
+    }
+  }
 
   double getValue() const override {
     if (!this->isObserved()) {
@@ -118,13 +122,17 @@ private:
 
   template<typename Param>
   void addParameterObserver(int, Param& param) {
-    param->addObserver([this](double){
+    auto id = param->addObserver([this](double){
       // Do not bother updating live if there are no observers
       if (this->isObserved()) {
           this->update((*m_params)[0]->getValue());
       }
     });
+
+    m_parameter_observers.emplace_back(param, id);
   }
+
+  std::vector<std::tuple<std::shared_ptr<BasicParameter>, size_t>> m_parameter_observers;
 };
 
 template<typename ... Parameters>
@@ -132,6 +140,7 @@ std::shared_ptr<DependentParameter<Parameters...>> createDependentParameter(
     typename DependentParameter<Parameters...>::ValueCalculator value_calculator, Parameters... parameters) {
   return std::make_shared<DependentParameter<Parameters...>>(value_calculator, parameters...);
 }
+
 
 }
 

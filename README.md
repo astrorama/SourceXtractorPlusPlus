@@ -17,13 +17,13 @@ Documentation: https://astrorama.github.io/SourceXtractorPlusPlus/
 SourceXtractor++ is available on [Anaconda Cloud for Linux and MacOSX](https://anaconda.org/astrorama/sourcextractor)
 
 ```bash
-conda install -c conda-forge -c astrorama sourcextractor==1.0.2
+conda install -c conda-forge -c astrorama sourcextractor==1.1.0
  ```
 
 We would recommend, however, to install it into its own environment.
 
 ```bash
-conda create -n sourcex -c astrorama -c conda-forge sourcextractor==1.0.2
+conda create -n sourcex -c astrorama -c conda-forge sourcextractor==1.1.0
 conda activate sourcex
  ```
 
@@ -36,47 +36,9 @@ conda activate sourcex-dev
 
 We recommend always using an explicit version number as there is no guarantee that `conda` will install the latest version otherwise.
 
-## Fedora
+Fedora and RPM
 
-SourceXtractor++ is shipped directly in Fedora. It can be installed simply as follows:
-
-```bash
-sudo dnf install sourcextractor++
-```
-
-[We also build our own RPMs as part of our CI setup](http://repository.astro.unige.ch/euclid/)
-They can be installed adding a `.repo` file under `/etc/yum.repos.d` with the following content:
-
-```ini
-# Stable and tagged versions
-# This is the recommended way to install sourcextractor++
-[Astrorama]
-name=Astrorama
-baseurl=http://repository.astro.unige.ch/euclid/fedora/$releasever/$basearch
-enabled=1
-gpgcheck=0
-
-# Enable this to get the stable (untagged) version
-[Astrorama-Stable]
-name=Astrorama Stable
-baseurl=http://repository.astro.unige.ch/euclid/devel/stable/fedora/$releasever/$basearch
-enabled=0
-gpgcheck=0
-
-# Enable this to get the development version
-# Use with care!
-[Astrorama-Develop]
-name=Astrorama Develop
-baseurl=http://repository.astro.unige.ch/euclid/devel/develop/fedora/$releasever/$basearch
-enabled=0
-gpgcheck=0
-```
-
-And install with
-
-```bash
-dnf install SourceXtractorPlusPlus
-```
+RPM packages are temporarily not available due to technical problems.
 
 ## Test Data Set
 

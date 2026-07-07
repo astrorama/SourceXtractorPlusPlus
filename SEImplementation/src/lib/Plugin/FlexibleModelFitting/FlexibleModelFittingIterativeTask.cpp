@@ -74,7 +74,13 @@ FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(SourceInterface& source, int frame_index) const {
-  auto fitting_rect = source.getProperty<MeasurementFrameRectangle>(frame_index).getRect();
+  auto& measurement_frame_rectangle = source.getProperty<MeasurementFrameRectangle>(frame_index);
+  if (!measurement_frame_rectangle.isValid() || measurement_frame_rectangle.isEmpty()) {
+    return PixelRectangle();
+  }
+  
+  ImageCoordinate min_coord = measurement_frame_rectangle.getTopLeft();
+  ImageCoordinate max_coord = measurement_frame_rectangle.getBottomRight();
 
   if (m_window_type == WindowType::ROTATED_ELLIPSE) {
     auto ellipse = getFittingEllipse(source, frame_index);
@@ -84,14 +90,14 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
     return getEllipseRect(ellipse);
   }
 
-  if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
+  if ((max_coord.m_x - min_coord.m_x <= 0.0) || (max_coord.m_y - min_coord.m_y <= 0.0)) {
     return PixelRectangle();
   } else {
-    auto min = fitting_rect.getTopLeft();
-    auto max = fitting_rect.getBottomRight();
+    auto min = min_coord;
+    auto max = max_coord;
 
     // FIXME temporary, for now just enlarge the area by a fixed amount of pixels
-    PixelCoordinate border = (max - min) * .8 + PixelCoordinate(2, 2);
+    ImageCoordinate border = (max - min) * .8 + ImageCoordinate(2.0, 2.0);
 
     min -= border;
     max += border;
@@ -125,12 +131,19 @@ PixelRectangle FlexibleModelFittingIterativeTask::getUnclippedFittingRect(Source
       max.m_y = min.m_y + size;
     }
 
-    return PixelRectangle(min, max);
+    auto min_pc = PixelCoordinate(static_cast<int>(min.m_x), static_cast<int>(min.m_y));
+    auto max_pc = PixelCoordinate(static_cast<int>(max.m_x), static_cast<int>(max.m_y));
+
+    return PixelRectangle(min_pc, max_pc);
   }
 }
 
 PixelRectangle FlexibleModelFittingIterativeTask::clipFittingRect(PixelRectangle fitting_rect,
     SourceInterface& source, int frame_index) const {
+  if (fitting_rect.getWidth() <= 0 || fitting_rect.getHeight() <= 0) {
+    return PixelRectangle();
+  }
+  
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
 
   auto min = fitting_rect.getTopLeft();
@@ -413,6 +426,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
       }
     }
 
+    initial_state.n_free_parameters = fitSourcePrepareParameters(initial_state.parameter_manager, initial_state.engine_parameter_manager, source, initial_state);
+
     fitting_state.source_states.emplace_back(std::move(initial_state));
   }
 
@@ -488,45 +503,27 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
   auto rect = getFittingRect(source, frame_index);
 
   double pixel_scale = 1.0;
-  FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_parameter_manager {};
-  int n_free_parameters = 0;
-
-  int index = 0;
-  for (auto& src : group) {
-    if (index != source_index) {
-      for (auto parameter : m_parameters) {
-        auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
-
-        if (free_parameter != nullptr) {
-          ++n_free_parameters;
-
-          // Initial with the values from the current iteration run
-          parameter_manager.addParameter(src, parameter,
-              free_parameter->create(parameter_manager, engine_parameter_manager, src,
-                  state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
-                  state.source_states[index].parameters_values.at(free_parameter->getId())));
-        } else {
-          parameter_manager.addParameter(src, parameter,
-              parameter->create(parameter_manager, engine_parameter_manager, src));
-        }
-      }
-    }
-    index++;
-  }
 
   auto deblend_image = VectorImage<SeFloat>::create(rect.getWidth(), rect.getHeight());
-  index = 0;
+  int index = 0;
   for (auto& src : group) {
-    if (index != source_index) {
-        auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, rect);
-        auto final_stamp = frame_model.getImage();
-
-        for (int y = 0; y < final_stamp->getHeight(); ++y) {
-          for (int x = 0; x < final_stamp->getWidth(); ++x) {
-            deblend_image->at(x, y) += final_stamp->at(x, y);
-          }
+    if (index != source_index && isFrameValid(src, frame->getFrameNb())) {
+      // reset parameters to final values after fitting
+      for (auto parameter : m_parameters) {
+        auto engine_parameter = std::dynamic_pointer_cast<ModelFitting::EngineParameter>(state.source_states[index].parameter_manager.getParameter(src, parameter));
+        if (engine_parameter != nullptr) {
+          engine_parameter->setValue(state.source_states[index].parameters_values.at(parameter->getId()));
         }
+      }
+
+      auto frame_model = createFrameModel(src, pixel_scale, state.source_states[index].parameter_manager, frame, rect);
+      auto final_stamp = frame_model.getImage();
+
+      for (int y = 0; y < final_stamp->getHeight(); ++y) {
+        for (int x = 0; x < final_stamp->getWidth(); ++x) {
+          deblend_image->at(x, y) += final_stamp->at(x, y);
+        }
+      }
     }
     index++;
   }
@@ -537,7 +534,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createD
 int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
                                                     FlexibleModelFittingParameterManager& parameter_manager,
                                                     ModelFitting::EngineParameterManager& engine_parameter_manager,
-                                                    SourceInterface& source, int index, FittingState& state) const {
+                                                    SourceInterface& source, SourceState& state) const {
   int free_parameters_nb = 0;
   for (auto parameter : m_parameters) {
     auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
@@ -548,8 +545,8 @@ int FlexibleModelFittingIterativeTask::fitSourcePrepareParameters(
       // Initial with the values from the current iteration run
       parameter_manager.addParameter(source, parameter,
           free_parameter->create(parameter_manager, engine_parameter_manager, source,
-              state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
-              state.source_states[index].parameters_values.at(free_parameter->getId())));
+              state.parameters_initial_values.at(free_parameter->getId()),
+              state.parameters_values.at(free_parameter->getId())));
     } else {
       parameter_manager.addParameter(source, parameter,
           parameter->create(parameter_manager, engine_parameter_manager, source));
@@ -704,17 +701,19 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   //////////////////////////////////////////////
   // Prepare parameters
 
-  FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_parameter_manager{};
-  int n_free_parameters = fitSourcePrepareParameters(
-      parameter_manager, engine_parameter_manager, source, index, state);
+  for (auto parameter : m_parameters) {
+    auto engine_parameter = std::dynamic_pointer_cast<ModelFitting::EngineParameter>(state.source_states[index].parameter_manager.getParameter(source, parameter));
+    if (engine_parameter != nullptr) {
+      engine_parameter->setValue(state.source_states[index].parameters_values.at(parameter->getId()));
+    }
+ }
 
   ///////////////////////////////////////////////////////////////////////////////////
   // Add models for all frames
   ResidualEstimator res_estimator {};
   int n_good_pixels = 0;
   int valid_frames = fitSourcePrepareModels(
-      parameter_manager, res_estimator, n_good_pixels, group, source, index, state, down_scaling);
+      state.source_states[index].parameter_manager, res_estimator, n_good_pixels, group, source, index, state, down_scaling);
 
   ///////////////////////////////////////////////////////////////////////////////
   // Check that we had enough data for the fit
@@ -724,7 +723,7 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   if (valid_frames == 0) {
     flags = Flags::OUTSIDE;
   }
-  else if (n_good_pixels < n_free_parameters) {
+  else if (n_good_pixels < state.source_states[index].n_free_parameters) {
     flags = Flags::INSUFFICIENT_DATA;
   }
 
@@ -741,14 +740,14 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   ////////////////////////////////////////////////////////////////////////////////
   // Add priors
   for (auto prior : m_priors) {
-    prior->setupPrior(parameter_manager, source, res_estimator);
+    prior->setupPrior(state.source_states[index].parameter_manager, source, res_estimator);
   }
 
   /////////////////////////////////////////////////////////////////////////////////
   // Model fitting
 
   auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);
-  auto solution = engine->solveProblem(engine_parameter_manager, res_estimator);
+  auto solution = engine->solveProblem(state.source_states[index].engine_parameter_manager, res_estimator);
 
   auto iterations = solution.iteration_no;
   auto stop_reason = solution.engine_stop_reason;
@@ -760,49 +759,34 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
   ////////////////////////////////////////////////////////////////////////////////////
   // compute chi squared
 
-  SeFloat avg_reduced_chi_squared =  fitSourceComputeChiSquared(parameter_manager, group, source, index, state);
+  SeFloat avg_reduced_chi_squared =  fitSourceComputeChiSquared(state.source_states[index].parameter_manager, group, source, index, state);
 
   ////////////////////////////////////////////////////////////////////////////////////
   // update state with results
-  fitSourceUpdateState(parameter_manager, source, avg_reduced_chi_squared, duration, iterations, stop_reason, flags, solution,
+  fitSourceUpdateState(state.source_states[index].parameter_manager, source, avg_reduced_chi_squared, duration, iterations, stop_reason, flags, solution,
                        index, state);
 }
 
 void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& group,
   double pixel_scale, FittingState& state) const {
 
-  // recreate parameters
-
-  FlexibleModelFittingParameterManager parameter_manager;
-  ModelFitting::EngineParameterManager engine_parameter_manager {};
-
   int index = 0;
   for (auto& src : group) {
     for (auto parameter : m_parameters) {
-      auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
-
-      if (free_parameter != nullptr) {
-        // Initialize with the values from the current iteration run
-        parameter_manager.addParameter(src, parameter,
-            free_parameter->create(parameter_manager, engine_parameter_manager, src,
-                state.source_states[index].parameters_initial_values.at(free_parameter->getId()),
-                state.source_states[index].parameters_values.at(free_parameter->getId())));
-      } else {
-        parameter_manager.addParameter(src, parameter,
-            parameter->create(parameter_manager, engine_parameter_manager, src));
+      // reset parameters to final values after fitting
+      auto engine_parameter = std::dynamic_pointer_cast<ModelFitting::EngineParameter>(state.source_states[index].parameter_manager.getParameter(src, parameter));
+      if (engine_parameter != nullptr) {
+        engine_parameter->setValue(state.source_states[index].parameters_values.at(parameter->getId()));
       }
     }
-    index++;
-  }
 
-  for (auto& src : group) {
     for (auto frame : m_frames) {
       int frame_index = frame->getFrameNb();
 
       if (isFrameValid(src, frame_index)) {
         auto stamp_rect = getFittingRect(src, frame_index);
 
-        auto frame_model = createFrameModel(src, pixel_scale, parameter_manager, frame, stamp_rect);
+        auto frame_model = createFrameModel(src, pixel_scale, state.source_states[index].parameter_manager, frame, stamp_rect);
         auto final_stamp = frame_model.getImage();
 
         auto weight_image = createWeightImage(src, frame_index);
@@ -842,6 +826,7 @@ void FlexibleModelFittingIterativeTask::updateCheckImages(SourceGroupInterface& 
 
       }
     }
+    index++;
   }
 }
 

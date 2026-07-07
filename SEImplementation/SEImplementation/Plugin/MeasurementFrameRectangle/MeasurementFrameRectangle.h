@@ -24,7 +24,10 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 #define _SEIMPLEMENTATION_PLUGIN_MEASUREMENTFRAMERECTANGLE_MEASUREMENTFRAMERECTANGLE_H_
 
+#include <tuple>
+
 #include "SEUtils/PixelRectangle.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/Image/Image.h"
@@ -36,46 +39,45 @@ public:
   virtual ~MeasurementFrameRectangle() = default;
 
   explicit MeasurementFrameRectangle(bool bad_projection):
-  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection}{}
+  m_min_coord{-1, -1}, m_max_coord{-1, -1}, m_bad_projection{bad_projection}, m_is_valid{false} {}
 
-  MeasurementFrameRectangle(PixelCoordinate min_coord, PixelCoordinate max_coord):
-    m_min_coord{min_coord}, m_max_coord{max_coord}, m_bad_projection{false} {
+  MeasurementFrameRectangle(ImageCoordinate min_coord, ImageCoordinate max_coord):
+      m_min_coord(min_coord), m_max_coord(max_coord), m_bad_projection{false}, m_is_valid{true} {
     assert(min_coord.m_x <= max_coord.m_x && min_coord.m_y <= max_coord.m_y);
   }
 
-  PixelCoordinate getTopLeft() const {
-    assert(m_max_coord.m_x >= 0);
+  ImageCoordinate getTopLeft() const {
     return m_min_coord;
   }
 
-  PixelCoordinate getBottomRight() const {
-    assert(m_max_coord.m_x >= 0);
+  ImageCoordinate getBottomRight() const {
     return m_max_coord;
   }
 
-  int getWidth() const {
-    if (m_max_coord.m_x < 0)
-      return 0;
-    return m_max_coord.m_x - m_min_coord.m_x + 1;
+  double getWidth() const {
+    return m_max_coord.m_x - m_min_coord.m_x;
   }
 
-  int getHeight() const {
-    if (m_max_coord.m_x < 0)
-      return 0;
-    return m_max_coord.m_y - m_min_coord.m_y + 1;
+  double getHeight() const {
+    return m_max_coord.m_y - m_min_coord.m_y;
   }
 
-  PixelRectangle getRect() const {
-    return PixelRectangle(m_min_coord, m_max_coord);
-  }
-
-  bool badProjection() const {
+  bool isBadProjection() const {
     return m_bad_projection;
   }
 
+  bool isValid() const {
+    return m_is_valid;
+  }
+
+  bool isEmpty() const {
+    return getWidth() <= 0.0 || getHeight() <= 0.0;
+  }
+
 private:
-  PixelCoordinate m_min_coord, m_max_coord;
+  ImageCoordinate m_min_coord, m_max_coord;
   bool m_bad_projection;
+  bool m_is_valid;
 };
 
 } // end SourceXtractor

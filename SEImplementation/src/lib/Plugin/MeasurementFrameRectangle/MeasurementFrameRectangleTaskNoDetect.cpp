@@ -23,6 +23,7 @@
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include <SEImplementation/Plugin/WorldCentroid/WorldCentroid.h>
 #include <SEImplementation/Plugin/AssocMode/AssocMode.h>
+#include <SEImplementation/Plugin/ReferenceCoordinates/ReferenceCoordinates.h>
 
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangle.h>
 #include <SEImplementation/Plugin/MeasurementFrameRectangle/MeasurementFrameRectangleTaskNoDetect.h>
@@ -31,26 +32,30 @@ namespace SourceXtractor {
 
 void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& source) const {
   auto measurement_frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  auto reference_frame_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
+
   const auto& measurement_frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
   const auto& world_centroid = source.getProperty<WorldCentroid>();
   const auto& assoc_mode = source.getProperty<AssocMode>();
 
-  auto coord = world_centroid.getCentroid();
-
-  bool bad_coordinates = false;
   ImageCoordinate coord1, coord2, coord3, coord4;
   try {
-    int w = assoc_mode.getRefFramePixelWidth();
-    int h = assoc_mode.getRefFramePixelHeight();
+    auto w = assoc_mode.getRefFramePixelWidth();
+    auto h = assoc_mode.getRefFramePixelHeight();
 
-    auto c = measurement_frame_coordinates->worldToImage(coord);
-    coord1 = ImageCoordinate(c.m_x - w, c.m_y - h);
-    coord2 = ImageCoordinate(c.m_x + w, c.m_y - h);
-    coord3 = ImageCoordinate(c.m_x - w, c.m_y + h);
-    coord4 = ImageCoordinate(c.m_x + w, c.m_y + h);
+    auto c = reference_frame_coordinates->worldToImage(world_centroid.getCentroid());
+    coord1 = measurement_frame_coordinates->worldToImage(
+        reference_frame_coordinates->imageToWorld(ImageCoordinate(c.m_x - w, c.m_y - h)));
+    coord2 = measurement_frame_coordinates->worldToImage(
+        reference_frame_coordinates->imageToWorld(ImageCoordinate(c.m_x + w, c.m_y - h)));
+    coord3 = measurement_frame_coordinates->worldToImage(
+        reference_frame_coordinates->imageToWorld(ImageCoordinate(c.m_x - w, c.m_y + h)));
+    coord4 = measurement_frame_coordinates->worldToImage(
+        reference_frame_coordinates->imageToWorld(ImageCoordinate(c.m_x + w, c.m_y + h)));
   }
   catch (const InvalidCoordinatesException&) {
-    bad_coordinates = true;
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
   }
 
   // Determine the min/max coordinates
@@ -59,26 +64,32 @@ void MeasurementFrameRectangleTaskNoDetect::computeProperties(SourceInterface& s
   auto max_x = std::max(coord1.m_x, std::max(coord2.m_x, std::max(coord3.m_x, coord4.m_x)));
   auto max_y = std::max(coord1.m_y, std::max(coord2.m_y, std::max(coord3.m_y, coord4.m_y)));
 
-  PixelCoordinate min_coord, max_coord;
-  min_coord.m_x = int(min_x);
-  min_coord.m_y = int(min_y);
-  max_coord.m_x = int(max_x) + 1;
-  max_coord.m_y = int(max_y) + 1;
-
-  // The full boundaries may lie outside of the frame
-  if (bad_coordinates || max_coord.m_x < 0 || max_coord.m_y < 0 ||
-      min_coord.m_x >= measurement_frame_info.getWidth() || min_coord.m_y >= measurement_frame_info.getHeight()) {
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, bad_coordinates);
+  // test for nans
+  if (std::isnan(min_x) || std::isnan(min_y) || std::isnan(max_x) || std::isnan(max_y)) {
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
   }
+
+    // test for infinite values
+  if (std::isinf(min_x) || std::isinf(min_y) || std::isinf(max_x) || std::isinf(max_y)) {
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, true);
+    return;
+  } 
+
   // Clip the coordinates to fit the available image
-  else {
-    min_coord.m_x = std::max(0, min_coord.m_x);
-    min_coord.m_y = std::max(0, min_coord.m_y);
-    max_coord.m_x = std::min(measurement_frame_info.getWidth() - 1, max_coord.m_x);
-    max_coord.m_y = std::min(measurement_frame_info.getHeight() - 1, max_coord.m_y);
+  min_x = std::max(0.0, min_x);
+  min_y = std::max(0.0, min_y);
+  max_x = std::min(static_cast<double>(measurement_frame_info.getWidth() - 1), max_x);
+  max_y = std::min(static_cast<double>(measurement_frame_info.getHeight() - 1), max_y);
 
-    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, min_coord, max_coord);
+  if (max_x <= min_x || max_y <= min_y) {
+    // No valid rectangle, set the property to an empty rectangle
+    source.setIndexedProperty<MeasurementFrameRectangle>(m_instance, false);
+    return;
   }
+
+   source.setIndexedProperty<MeasurementFrameRectangle>(
+      m_instance, ImageCoordinate(min_x, min_y), ImageCoordinate(max_x, max_y));
 }
 
 } // SEImplementation namespace

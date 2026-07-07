@@ -28,7 +28,7 @@ namespace SourceXtractor {
 class SEBackgroundLevelAnalyzer : public BackgroundAnalyzer {
 public:
   SEBackgroundLevelAnalyzer(const std::vector<int>& cell_size, const std::vector<int>& smoothing_box,
-                            const WeightImageConfig::WeightType weight_type);
+                            const WeightImageConfig::WeightType weight_type, SeFloat pearson_factor = 2.5);
 
   virtual ~SEBackgroundLevelAnalyzer() = default;
 
@@ -41,6 +41,7 @@ private:
   std::array<int, 2> m_smoothing_box;
 
   WeightImageConfig::WeightType m_weight_type;
+  SeFloat m_pearson_factor;
 };
 
 } // end of namespace SourceXtractor

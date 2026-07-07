@@ -1,5 +1,3 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.5)
-
 #===============================================================================
 # Load elements_subdir macro here
 # Examples:
@@ -64,6 +62,9 @@ elements_add_unit_test(Misc_test tests/src/Misc_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
 elements_add_unit_test(QuadTree_test tests/src/QuadTree_test.cpp
+                     LINK_LIBRARIES SEUtils
+                     TYPE Boost)
+elements_add_unit_test(KdTree_test tests/src/KdTree_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
 

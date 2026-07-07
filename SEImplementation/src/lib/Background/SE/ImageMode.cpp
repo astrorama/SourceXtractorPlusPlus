@@ -30,11 +30,11 @@ template<typename T>
 ImageMode<T>::ImageMode(const std::shared_ptr<Image<T>>& image, const std::shared_ptr<Image<T>>& variance,
                         int cell_w, int cell_h,
                         T invalid_value, T kappa1, T kappa2, T kappa3,
-                        T rtol, size_t max_iter): m_image(image),
+                        T rtol, size_t max_iter, double pearson_factor): m_image(image),
                                                             m_cell_w(cell_w), m_cell_h(cell_h),
                                                             m_invalid(invalid_value),
                                                             m_kappa1(kappa1), m_kappa2(kappa2), m_kappa3(kappa3),
-                                                            m_rtol(rtol), m_max_iter(max_iter) {
+                                                            m_rtol(rtol), m_max_iter(max_iter), m_pearson_factor(pearson_factor) {
   auto hist_width = std::div(image->getWidth(), m_cell_w);
   if (hist_width.rem)
     ++hist_width.quot;
@@ -111,7 +111,7 @@ std::tuple<T, T> ImageMode<T>::getBackGuess(const std::vector<T>& data) const {
   }
   // Not crowded: mean and median do not differ more than 30%
   else if (std::abs((mean - median) / sigma) < 0.3) {
-    mode = 2.5 * median - 1.5 * mean;
+    mode = m_pearson_factor * median - (m_pearson_factor - 1.0) * mean;
   }
   // Crowded case: we use the median
   else {
