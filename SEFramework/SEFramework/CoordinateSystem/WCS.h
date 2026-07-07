@@ -27,8 +27,16 @@
 #include <memory>
 #include <map>
 
+#include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
+
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/Image/ImageSource.h"
+#ifdef WITH_ASDF
+#include "SEFramework/ASDF/AsdfFile.h"
+#include "SEFramework/ASDF/AsdfImageSource.h"
+#endif
 
 struct wcsprm;
 
@@ -37,9 +45,17 @@ namespace SourceXtractor {
 class WCS : public CoordinateSystem {
 public:
   explicit WCS(const FitsImageSource& fits_image_source);
+  explicit WCS(const ImageSource& image_source);
   explicit WCS(const WCS& original);
+#ifdef WITH_ASDF
+  explicit WCS(const AsdfImageSource& asdf_image_source);
+  explicit WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path);
+#endif
 
   virtual ~WCS();
+
+  // Create a trivial WCS for a given number of axes
+  static WCS identity(int naxis);
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
   ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
@@ -49,9 +65,43 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
-  void init(char* headers, int number_of_records);
+  void initFits(char* headers, int number_of_records);
 
-  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
+#ifdef WITH_ASDF
+  void initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs);
+#endif
+
+  struct WcsprmDestroy {
+    int nwcs;
+    bool owned;
+
+    void operator()(wcsprm* wcs) {
+      if (!wcs)
+        return;
+
+      if (nwcs > 0) {
+        wcsvfree(&nwcs, &wcs);
+      } else {
+        wcsfree(wcs);
+        if (owned) {
+          delete wcs;
+        }
+      }
+    }
+  };
+
+  using WcsprmPtr = std::unique_ptr<wcsprm, WcsprmDestroy>;
+
+  WcsprmPtr m_wcs;
+
+  static WcsprmPtr make_wcsprm_ptr();
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned, int nwcs);
+
+  explicit WCS(WcsprmPtr wcs)
+    : m_wcs(std::move(wcs)) {}
+
 };
 
 }

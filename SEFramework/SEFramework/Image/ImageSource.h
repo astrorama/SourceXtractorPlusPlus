@@ -72,6 +72,9 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
+  /// Sets the current layer to use if the image is in a data cube
+  virtual void setLayer(int /* unused */) { }
+
   virtual ImageTile::ImageType getType() const = 0;
 
   /**

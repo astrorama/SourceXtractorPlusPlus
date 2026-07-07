@@ -31,6 +31,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include <ElementsKernel/Exception.h>
+
 #include "FilePool/FileManager.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/ImageSourceWithMetadata.h"
@@ -45,8 +47,19 @@ using Euclid::FilePool::FileHandler;
 
 class FitsImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
+  /**
+   * Exception thrown when opening the file with or switching to an HDU that does not
+   * exist.
+   */
+  class UnknownHduException : public Elements::Exception {};
 
   static std::shared_ptr<FileManager> getFileManager(unsigned int max_open_files = 500);
+
+  /**
+   * Exception thrown when opening the file with or switching to an HDU that does not contain
+   * an image array.
+   */
+  class InvalidHduTypeException : public Elements::Exception {};
 
   /**
    * Constructor
@@ -58,7 +71,13 @@ public:
    */
   explicit FitsImageSource(const std::string& filename, int hdu_number = 0,
                   ImageTile::ImageType image_type = ImageTile::AutoType,
-                  std::shared_ptr<FileManager> manager = getFileManager());
+                  std::shared_ptr<FileManager> manager = getFileManager()) :
+    FitsImageSource(filename, hdu_number, std::nullopt, image_type, std::move(manager)) {}
+
+  explicit FitsImageSource(const std::string& filename, const std::string& extname,
+                  ImageTile::ImageType image_type = ImageTile::AutoType,
+                  std::shared_ptr<FileManager> manager = getFileManager()) :
+    FitsImageSource(filename, 0, extname, image_type, std::move(manager)) {}
 
   FitsImageSource(const std::string& filename, int width, int height,
                   ImageTile::ImageType image_type,
@@ -88,7 +107,7 @@ public:
     return m_depth;
   }
 
-  void setLayer(int layer);
+  void setLayer(int layer) override;
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
 
@@ -120,7 +139,12 @@ public:
   void setMetadata(const std::string& key, const MetadataEntry& value) override;
 
 private:
+  FitsImageSource(const std::string& filename, int hdu_number,
+                  std::optional<std::string> extname,
+                  ImageTile::ImageType image_type,
+                  std::shared_ptr<FileManager> manager);
   void switchHdu(fitsfile *fptr, int hdu_number) const;
+  void switchHdu(fitsfile *fptr, const std::string& extname) const;
 
   int getDataType() const;
 
