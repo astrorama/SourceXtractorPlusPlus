@@ -24,7 +24,7 @@ Effect of weighting
 Weight-maps modify the working of |SourceXtractor++| in the several ways:
 
 - The detection threshold :math:`t` above the local sky background in the detection image is adjusted for each pixel :math:`i` with variance :math:`\sigma^2_i`: :math:`t_i=`\ ``detection-threshold``\ :math:`\times\sqrt{\sigma^2_i}`, where ``detection-threshold`` is expressed in units of standard deviations of the background noise.
-  Pixels having a variance *above* the threshold set with the ``--weight-threshold`` command line option are never detected.
+  Pixels having a variance *above* the threshold set with the ``--weight-threshold`` command-line option are never detected.
   This may result in splitting objects crossed by a group of bad pixels.
   Interpolation should be used to avoid this problem.
   If convolution filtering is applied for detection then the variance map is also convolved.

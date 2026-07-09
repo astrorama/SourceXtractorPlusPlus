@@ -36,7 +36,7 @@ They can be very sensitive to contamination by the light of neighbors, although 
 They are close to optimum from the point-of-view of |SNR|, but they require accurate PSF models (one per image).
 |PSF|_ models can be computed using the |PSFEx|_ package.
 |SourceXtractor++| can fit mixtures of models to clumps of overlapping objects, which is generally effective at taking care of the contamination by the light of neighbors.
-The main inconvenient of model-fitting is that it is much slower than aperture photometry.
+The main inconvenience of model-fitting is that it is much slower than aperture photometry.
 
 .. _chap_configuration_script:
 
@@ -44,7 +44,7 @@ The measurement configuration script
 ------------------------------------
 
 Measurement settings, as well as :ref:`grouping procedures <groups>` and catalog outputs must be defined in a configuration script that uses the `Python language <https://python.org>`_: the measurement configuration script.
-The script filename is set with the ``python-config-file`` configuration option. 
+The script filename is set with the ``python-config-file`` configuration option.
 Thanks to its flexibility, the Python language makes it possible to set up arbitrarily complex rules to finely control the measurement process.
 |SourceXtractor++|'s configuration library classes and functions must be imported at the beginning of the script:
 
@@ -60,8 +60,8 @@ The same goes for other Python libraries that might be needed for the current co
 Measurement images
 ~~~~~~~~~~~~~~~~~~
 
-Measurement images are scientific images stored as |FITS|_ files and used only for measurements. 
-Every measurement image can be associated a |PSF| model (|PSFEx|'s :file:`.psf` file), and a weight map.
+Measurement images are scientific images stored as |FITS|_ files and used only for measurements.
+Every measurement image can be associated a |PSF| model (|PSFEx|\'s :file:`.psf` file), and a weight map.
 The :func:`~config.measurement_images.load_fits_image()` function creates a measurement image from a |FITS| image filename; for example:
 
 .. _chap_load_fits_image:
@@ -131,8 +131,8 @@ It is possible to add images or another group to a pre-existing image group usin
 Splitting
 ^^^^^^^^^
 
-Now, within an image group one may want to create subgroups based on, e.g., band pass filters or epochs. 
-This is easily accomplished using the :meth:`~config.measurement_images.ImageGroup.split()` method. 
+Now, within an image group one may want to create subgroups based on, e.g., band pass filters or epochs.
+This is easily accomplished using the :meth:`~config.measurement_images.ImageGroup.split()` method.
 Splitting may be done according to a |FITS| header keyword with the :class:`~config.measurement_images.ByKeyword()` callable.
 For instance, to generate subgroups each with a different filter (assuming all image headers contain the :param:`FILTER` keyword):
 
@@ -141,8 +141,8 @@ For instance, to generate subgroups each with a different filter (assuming all i
   imagegroup.split(ByKeyword('FILTER'))
 
 :class:`~config.measurement_images.ByPattern()` also checks for a |FITS| header keyword, with the difference that a `regular expression <https://en.wikipedia.org/wiki/Regular_expression>`_ provided by the user is applied to the keyword value.
-The first matching group acts as the grouping key, which means that a 'capturing group (within parentheses) <https://www.regular-expressions.info/brackets.html>'_ must be present in the regular expression.
-For instance, the following command groups images by year of observation, ignoring the rest of the date: 
+The first matching group acts as the grouping key, which means that a `capturing group (within parentheses) <https://www.regular-expressions.info/brackets.html>`_ must be present in the regular expression.
+For instance, the following command groups images by year of observation, ignoring the rest of the date:
 
 .. _bypattern:
 
