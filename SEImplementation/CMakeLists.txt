@@ -46,10 +46,15 @@ if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
     message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
 endif ()
 
+# NOTE: these conditions must match SEFramework/CMakeLists.txt, which is where
+# the ASDF sources are actually compiled.  ASDF support additionally requires
+# the libasdf-gwcs plugin with a WCS evaluation backend; SEFramework warns
+# about that case, so stay quiet about it here.
 if(NOT ASDF_FOUND)
   message("libasdf not found, compiling without ASDF support")
-else()
+elseif(ASDF_GWCS_FOUND AND ASDF_GWCS_HAS_AST)
   add_definitions(-DWITH_ASDF)
+  add_definitions(-DWITH_ASDF_GWCS)
 endif()
 
 #===============================================================================

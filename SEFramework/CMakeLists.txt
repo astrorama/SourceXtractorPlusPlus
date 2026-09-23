@@ -29,8 +29,6 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
-# TODO: For ASDF support we also need optional GWCS support to work with WCS
-# from ASDF files; this needs to be checked as well
 find_package(ASDF)
 find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
@@ -38,12 +36,33 @@ find_package(WCSLIB REQUIRED)
 
 #===============================================================================
 # ASDF support is optional--don't compile it if libasdf was not found
+#
+# GWCS support requires the separate libasdf-gwcs plugin, built with a WCS
+# evaluation backend.  Without it, ASDF images can still be read for their
+# pixel data, but they carry no WCS.
+#
+# TODO: at present the existing ASDF code calls into the GWCS API
+# unconditionally, so ASDF support as a whole still requires the plugin.  That
+# coupling goes away once the ASDF->WCS path is replaced by the GWCS
+# coordinate system, at which point this becomes a plain ASDF_FOUND check.
 #===============================================================================
 if(NOT ASDF_FOUND)
   message("libasdf not found, compiling without ASDF support")
+elseif(NOT ASDF_GWCS_FOUND)
+  message(WARNING
+    "libasdf was found but the libasdf-gwcs plugin was not, so ASDF images "
+    "would have no WCS support; compiling without ASDF support")
+elseif(NOT ASDF_GWCS_HAS_AST)
+  message(WARNING
+    "libasdf-gwcs was found but was built without a WCS evaluation backend, "
+    "so ASDF images would have no WCS support; compiling without ASDF support")
 else()
   file(GLOB ASDF_SRC src/lib/ASDF/*.cpp)
   add_definitions(-DWITH_ASDF)
+  add_definitions(-DWITH_ASDF_GWCS)
+  # Used below to guard the ASDF unit tests; ASDF_FOUND on its own is not
+  # enough, since the GWCS plugin may still be missing
+  set(WITH_ASDF TRUE)
 endif()
 
 
@@ -74,8 +93,9 @@ elements_add_library(SEFramework
                      LINK_LIBRARIES
                         ElementsKernel SEUtils Table Configuration MathUtils FilePool
                         WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES} ${ASDF_LIBRARIES}
+                        ${ASDF_GWCS_LIBRARIES}
                      INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS}
-                        ${FFTW_INCLUDE_DIRS} ${ASDF_INCLUDE_DIRS}
+                        ${FFTW_INCLUDE_DIRS} ${ASDF_INCLUDE_DIRS} ${ASDF_GWCS_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
 
 #===============================================================================
@@ -203,7 +223,7 @@ elements_add_unit_test(WCS_test tests/src/CoordinateSystem/WCS_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 
-if(ASDF_FOUND)
+if(WITH_ASDF)
   elements_add_unit_test(AsdfFile_test tests/src/ASDF/AsdfFile_test.cpp
                          LINK_LIBRARIES SEFramework
                          TYPE Boost)

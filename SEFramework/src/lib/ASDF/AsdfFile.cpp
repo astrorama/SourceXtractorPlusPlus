@@ -74,6 +74,8 @@ void AsdfFile::open() {
 }
 
 // TODO: Support negative indexing as well
+// TODO: Probably change this to use asdf_value_find_iter instead, and
+// enumerate all ndarray in breadth-first order rather than just top-level.
 std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
   AsdfValuePtr root = getValue("/");
 
@@ -82,25 +84,26 @@ std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
       << m_path.native();
   }
 
-  asdf_mapping_iter_t iter = asdf_mapping_iter_init();
-  asdf_mapping_item_t* item;
+  asdf_mapping_t* mapping = nullptr;
+
+  if (ASDF_VALUE_OK != asdf_value_as_mapping(root.get(), &mapping)) {
+    throw AsdfValueNotFoundException() << "Could not read the ASDF tree root as a mapping "
+      "in file: " << m_path.native();
+  }
+
+  asdf_mapping_iter_t* iter = asdf_mapping_iter_init(mapping);
   int count = 0;
 
-  while ((item = asdf_mapping_iter(root.get(), &iter)) != nullptr) {
-    asdf_value_t* value = asdf_mapping_item_value(item);
-    if (asdf_value_is_ndarray(value)) {
+  while (asdf_mapping_iter_next(&iter)) {
+    if (asdf_value_is_ndarray(iter->value)) {
       if (count == index) {
-        // Have to clone the value before destroying the mapping item
-        // This is an unfortunate foot gun that needs to be fixed in the
-        // asdf_mapping_iter interface...
-        AsdfValuePtr value_clone = AsdfValuePtr(asdf_value_clone(value));
-        asdf_mapping_item_destroy(item);
-        return std::unique_ptr<Ndarray>(new Ndarray(*this, value_clone.get()));
-      } else if (count > index) {
-        // Breaking the loop early means we have to manually clean up the
-        // mapping item
-        asdf_mapping_item_destroy(item);
-        break;
+        // The iterator's value is only valid until the next iteration step, so
+        // take an owned copy before breaking out of the loop.  Breaking early
+        // also means destroying the iterator by hand; it frees itself only when
+        // iteration runs to exhaustion.
+        AsdfValuePtr value_copy = AsdfValuePtr(asdf_value_copy(iter->value));
+        asdf_mapping_iter_destroy(iter);
+        return std::unique_ptr<Ndarray>(new Ndarray(*this, value_copy.get()));
       }
       count++;
     }
@@ -125,9 +128,10 @@ bool fitsWcsValuePredicate(asdf_value_t* value) {
     return false;
   }
 
-  bool is_fits = asdf_gwcs_is_fits((asdf_file_t*)asdf_value_file(value), gwcs);
-  asdf_gwcs_destroy(gwcs);
-  return is_fits;
+  // When reading an object from an existing asdf_value_t* (as in
+  // asdf_value_as_gwcs above) the gwcs object is still owned by its containing
+  // value so don't free it here--the object is released by ~FitsWCS later.
+  return asdf_gwcs_is_fits((asdf_file_t*)asdf_value_file(value), gwcs);
 }
 
 
@@ -139,17 +143,16 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfFile::getFitsWCS() {
       << m_path.native();
   }
 
-  // Find the first applicable GWCS, if any
-  asdf_find_item_t* item = asdf_value_find(root.get(), fitsWcsValuePredicate);
+  // Find the first applicable GWCS, if any.  The returned value is owned by us,
+  // and ownership of it passes to the FitsWCS.
+  asdf_value_t* value = asdf_value_find(root.get(), fitsWcsValuePredicate);
 
-  if (!item) {
+  if (!value) {
     logger.warn() << "No FITS-compatible WCS could be found in the ASDF file: "
       << m_path.native();
     return std::unique_ptr<AsdfFile::FitsWCS>{};
   }
 
-  asdf_value_t* value = asdf_value_clone(asdf_find_item_value(item));
-  asdf_find_item_destroy(item);
   return std::unique_ptr<FitsWCS>(new FitsWCS(*this, value));
 }
 
@@ -210,7 +213,7 @@ static ImageTile::ImageType convertDatatypeToImageType(const asdf_datatype_t* da
     // supported by FITS.  There's no strong need for that other than the fact that it currently
     // only supports FITS.  Nevertheless for now this will cover most common cases.
     throw AsdfFile::AsdfUnsupportedDatatypeException() << "Unsupported ASDF ndarray datatype: "
-      << asdf_ndarray_datatype_to_string(datatype->type);
+      << asdf_scalar_datatype_to_string(datatype->type);
   }
 
   return image_type;
