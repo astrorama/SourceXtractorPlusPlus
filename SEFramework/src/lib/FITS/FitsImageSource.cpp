@@ -25,6 +25,7 @@
 #include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEFramework/FITS/FitsFile.h"
+#include "SEFramework/FITS/FitsWcsSerializable.h"
 #include "SEUtils/VariantCast.h"
 #include <AlexandriaKernel/memory_tools.h>
 #include <FilePool/LRUFileManager.h>
@@ -173,8 +174,18 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     int hdutype = 0;
     fits_movabs_hdu(fptr, m_hdu_number, &hdutype, &status);
 
-    if (coord_system) {
-      auto headers = coord_system->getFitsHeaders();
+    // Coordinate systems with no FITS representation (e.g. a GWCS from an ASDF
+    // file) don't implement FitsWcsSerializable; the image is written without
+    // WCS cards in that case.
+    auto serializable = std::dynamic_pointer_cast<const FitsWcsSerializable>(coord_system);
+
+    if (coord_system && !serializable) {
+      logger.warn() << "Coordinate system cannot be represented as FITS headers; writing "
+          << filename << " without WCS information";
+    }
+
+    if (serializable) {
+      auto headers = serializable->getFitsHeaders();
       for (const auto& h : headers) {
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;

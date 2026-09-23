@@ -42,6 +42,7 @@
 #include "AlexandriaKernel/memory_tools.h"
 
 #include "SEFramework/CoordinateSystem/WCS.h"
+#include "SEFramework/FITS/FitsWcsSerializable.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -86,7 +87,7 @@ struct TestImageSource {
 };
 
 //
-class DummyWCS : public CoordinateSystem {
+class DummyWCS : public CoordinateSystem, public FitsWcsSerializable {
 public:
   DummyWCS(int image_width, int image_height, double rotation, double scale, double shift_x, double shift_y)
       : m_image_width(image_width), m_image_height(image_height),
