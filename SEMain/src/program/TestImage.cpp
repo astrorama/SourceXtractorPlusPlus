@@ -520,7 +520,7 @@ public:
     std::shared_ptr<CoordinateSystem> coordinate_system;
     auto copy_coordinate_system = args["copy-coordinate-system"].as<std::string>();
     if (copy_coordinate_system != "") {
-      coordinate_system = std::make_shared<WCS>(FitsImageSource(copy_coordinate_system));
+      coordinate_system = FitsImageSource(copy_coordinate_system).getCoordinateSystem();
     } else {
       coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
     }

@@ -136,6 +136,24 @@ public:
   /** Get optional FITS WCS with optional path lookup map */
   std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS(std::optional<std::string> wcs_path) const;
 
+  /**
+   * The coordinate system of this image, or nullptr if it has none
+   *
+   * Only a FITS-compatible GWCS (a single fitswcs_imaging transform) can be
+   * represented for now; anything else yields nullptr.
+   */
+  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const override;
+
+  /**
+   * As above, but selecting the WCS by its path within the ASDF tree
+   *
+   * @param wcs_path
+   *    Either a bare tree path, or a colon-separated "ndarray:wcs" map; see
+   *    parseWcsPath.  When empty, the first usable WCS in the file is used.
+   */
+  std::shared_ptr<CoordinateSystem> getCoordinateSystem(
+      std::optional<std::string> wcs_path) const;
+
 private:
   AsdfImageSource(const std::string& filename, int image_index,
                   std::optional<std::string> image_path,

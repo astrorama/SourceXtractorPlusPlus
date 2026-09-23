@@ -134,6 +134,8 @@ public:
 
   std::unique_ptr<std::vector<char>> getFitsHeaders(int& number_of_records) const;
 
+  std::shared_ptr<CoordinateSystem> getCoordinateSystem() const override;
+
   const std::map<std::string, MetadataEntry>& getMetadata() const override;
 
   void setMetadata(const std::string& key, const MetadataEntry& value) override;

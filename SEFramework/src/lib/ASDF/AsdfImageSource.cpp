@@ -30,6 +30,7 @@
 
 #include "SEFramework/ASDF/AsdfFile.h"
 #include "SEFramework/ASDF/AsdfImageSource.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 
 
 namespace SourceXtractor {
@@ -198,4 +199,37 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS(std::optional<std
     return file.getFitsWCS();
   }
 }
+
+
+std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem() const {
+  return getCoordinateSystem(std::nullopt);
+}
+
+
+std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem(
+    std::optional<std::string> wcs_path) const {
+  auto fits_wcs = getFitsWCS(wcs_path);
+
+  if (!fits_wcs) {
+    return nullptr;
+  }
+
+  ImagingWcsParams params;
+
+  for (int idx = 0; idx < 2; idx++) {
+    // The GWCS fitswcs_imaging schema uses 0-indexed crpix, unlike FITS:
+    // https://github.com/asdf-format/asdf-wcs-schemas/blob/main/resources/schemas/stsci.edu/gwcs/fitswcs_imaging-1.0.0.yaml
+    params.crpix[idx] = fits_wcs->crpix()[idx] + 1.0;
+    params.crval[idx] = fits_wcs->crval()[idx];
+    params.cdelt[idx] = fits_wcs->cdelt()[idx];
+    params.ctype[idx] = std::string(fits_wcs->ctype()[idx]);
+
+    for (int jdx = 0; jdx < 2; jdx++) {
+      params.pc[idx][jdx] = fits_wcs->pc()[idx][jdx];
+    }
+  }
+
+  return WCS::fromImagingParams(params);
+}
+
 }

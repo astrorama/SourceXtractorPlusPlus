@@ -24,6 +24,7 @@
 
 #include "SEFramework/FITS/FitsImageSource.h"
 
+#include "SEFramework/CoordinateSystem/WCS.h"
 #include "SEFramework/FITS/FitsFile.h"
 #include "SEFramework/FITS/FitsWcsSerializable.h"
 #include "SEUtils/VariantCast.h"
@@ -36,9 +37,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/regex.hpp>
-#include <fstream>
 #include <iomanip>
-#include <numeric>
 #include <string>
 
 namespace SourceXtractor {
@@ -315,6 +314,14 @@ void FitsImageSource::setLayer(int layer) {
   }
   m_current_layer = layer;
 }
+
+std::shared_ptr<CoordinateSystem> FitsImageSource::getCoordinateSystem() const {
+  int number_of_records = 0;
+  auto headers = getFitsHeaders(number_of_records);
+
+  return WCS::fromFitsHeaders(&(*headers)[0], number_of_records);
+}
+
 
 std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;

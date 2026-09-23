@@ -24,36 +24,58 @@
 #ifndef _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
 #define _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
 
+#include <array>
 #include <memory>
 #include <map>
+#include <string>
 
 #include <wcslib/wcs.h>
 #include <wcslib/wcshdr.h>
 
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/FITS/FitsWcsSerializable.h"
-#include "SEFramework/Image/ImageSource.h"
-#ifdef WITH_ASDF
-#include "SEFramework/ASDF/AsdfFile.h"
-#include "SEFramework/ASDF/AsdfImageSource.h"
-#endif
+#include "SEUtils/PixelCoordinate.h"
 
 struct wcsprm;
 
 namespace SourceXtractor {
 
+/**
+ * The parameters of a simple imaging WCS
+ *
+ * An alternative to a full set of FITS header cards, for callers that already
+ * hold the values in a structured form.  Values follow the FITS conventions,
+ * so crpix is 1-indexed; a caller whose source is 0-indexed converts first.
+ */
+struct ImagingWcsParams {
+  std::array<double, 2> crpix;
+  std::array<double, 2> crval;
+  std::array<double, 2> cdelt;
+  std::array<std::array<double, 2>, 2> pc;
+  std::array<std::string, 2> ctype;
+};
+
 class WCS : public CoordinateSystem, public FitsWcsSerializable {
 public:
-  explicit WCS(const FitsImageSource& fits_image_source);
-  explicit WCS(const ImageSource& image_source);
   explicit WCS(const WCS& original);
-#ifdef WITH_ASDF
-  explicit WCS(const AsdfImageSource& asdf_image_source);
-  explicit WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path);
-#endif
 
   virtual ~WCS();
+
+  /**
+   * Build a WCS from a raw block of FITS header cards
+   *
+   * @param headers
+   *    Concatenated 80-character header cards, as produced by
+   *    FitsImageSource::getFitsHeaders
+   * @param number_of_records
+   *    The number of cards in that block
+   */
+  static std::shared_ptr<WCS> fromFitsHeaders(char* headers, int number_of_records);
+
+  /**
+   * Build a WCS from the parameters of a simple imaging WCS
+   */
+  static std::shared_ptr<WCS> fromImagingParams(const ImagingWcsParams& params);
 
   // Create a trivial WCS for a given number of axes
   static WCS identity(int naxis);
@@ -66,11 +88,11 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
-  void initFits(char* headers, int number_of_records);
+  WCS(char* headers, int number_of_records);
+  explicit WCS(const ImagingWcsParams& params);
 
-#ifdef WITH_ASDF
-  void initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs);
-#endif
+  void initFits(char* headers, int number_of_records);
+  void initImaging(const ImagingWcsParams& params);
 
   struct WcsprmDestroy {
     int nwcs;

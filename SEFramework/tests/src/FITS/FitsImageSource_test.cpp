@@ -203,7 +203,7 @@ BOOST_FIXTURE_TEST_CASE(write_fits_headers, FitsImageSourceFixture) {
 BOOST_FIXTURE_TEST_CASE(write_wcs_headers, FitsImageSourceFixture) {
   // A coordinate system that can be serialized to FITS gets its cards written
   // out with the image.  This is what gives check images their WCS.
-  auto coord_system = std::make_shared<WCS>(FitsImageSource(wcs_path));
+  auto coord_system = FitsImageSource(wcs_path).getCoordinateSystem();
 
   {
     std::make_shared<FitsImageSource>(temp_path.path().native(), 100, 100,

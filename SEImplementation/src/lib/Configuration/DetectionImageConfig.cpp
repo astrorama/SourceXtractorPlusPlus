@@ -24,7 +24,6 @@
 #include <boost/regex.hpp>
 #include <memory>
 using boost::regex;
-using boost::regex_match;
 using boost::smatch;
 
 #include "SEFramework/CoordinateSystem/WCS.h"
@@ -43,6 +42,28 @@ using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
 namespace SourceXtractor {
+
+namespace {
+
+Elements::Logging logger = Elements::Logging::getLogger("Config");
+
+/// The given coordinate system, or an identity WCS if there is none
+std::shared_ptr<CoordinateSystem> orIdentity(
+    std::shared_ptr<CoordinateSystem> coordinate_system, const std::string& repr) {
+  if (coordinate_system) {
+    return coordinate_system;
+  }
+
+  logger.warn() << "No coordinate system information on image " << repr << "; using an identity WCS";
+  return std::make_shared<WCS>(WCS::identity(2));
+}
+
+/// The image's own coordinate system, or an identity WCS if it has none
+std::shared_ptr<CoordinateSystem> coordinateSystemOrIdentity(const ImageSource& image_source) {
+  return orIdentity(image_source.getCoordinateSystem(), image_source.getRepr());
+}
+
+}  // anonymous namespace
 
 static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string REFERENCE_IMAGE { "reference-image" };
@@ -76,7 +97,7 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
 #ifdef WITH_ASDF
           "Path to a FITS or ASDF format image to be used as coordinates reference only."},
 #else
-          "Path to a FITS or ASDF format image to be used as coordinates reference only."},
+          "Path to a FITS format image to be used as coordinates reference only."},
 #endif
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
@@ -110,18 +131,21 @@ void DetectionImageConfig::initialize(const UserValues& args) {
       auto image_reader = ImageFileReader::create(
         args.find(REFERENCE_IMAGE)->second.as<std::string>());
       auto reference_image_source = image_reader->get(0);
-#ifndef WITH_ASDF
-      extension.m_coordinate_system = std::make_shared<WCS>(*reference_image_source);
-#else
+#ifdef WITH_ASDF
+      // ASDF needs special handling here for the wcs_path, though arguably
+      // this may be generalized more in the future when if, e.g., adding
+      // ASDF-in-FITS support for GWCS in FITS files.
       if (auto asdf_src = std::dynamic_pointer_cast<AsdfImageSource>(reference_image_source)) {
         std::optional<std::string> wcs_path;
         if (auto it = args.find(REFERENCE_IMAGE_ASDF_WCS_PATH); it != args.end())
-            wcs_path = it->second.as<std::string>();
-        extension.m_coordinate_system = std::make_shared<WCS>(*asdf_src, wcs_path);
-      } else {
-        extension.m_coordinate_system = std::make_shared<WCS>(*reference_image_source);
-      }
+          wcs_path = it->second.as<std::string>();
+        extension.m_coordinate_system = orIdentity(
+          asdf_src->getCoordinateSystem(wcs_path), asdf_src->getRepr());
+      } else
 #endif
+      {
+        extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
+      }
       m_extensions.emplace_back(std::move(extension));
 
       m_is_reference_image = true;
@@ -149,7 +173,7 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
     std::shared_ptr<ImageSource> image_source, double gain, double saturation,
     double flux_scale, int interpolation_gap) {
   init(image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = std::make_shared<WCS>(*image_source);
+  m_coordinate_system = coordinateSystemOrIdentity(*image_source);
   rescale();
 }
 
@@ -158,7 +182,7 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
     std::shared_ptr<FitsImageSource> fits_image_source, double gain, double saturation,
     double flux_scale, int interpolation_gap) {
   init(fits_image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
+  m_coordinate_system = coordinateSystemOrIdentity(*fits_image_source);
   auto img_metadata = fits_image_source->getMetadata();
 
   if (img_metadata.count("GAIN")){
@@ -210,7 +234,8 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
     std::shared_ptr<AsdfImageSource> asdf_image_source, double gain, double saturation,
     double flux_scale, int interpolation_gap, std::optional<std::string> wcs_path) {
   init(asdf_image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = std::make_shared<WCS>(*asdf_image_source, wcs_path);
+  m_coordinate_system = orIdentity(
+    asdf_image_source->getCoordinateSystem(wcs_path), asdf_image_source->getRepr());
   rescale();
 }
 

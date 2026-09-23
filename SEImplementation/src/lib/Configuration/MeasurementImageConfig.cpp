@@ -46,7 +46,6 @@
 
 using namespace Euclid::Configuration;
 namespace fs = boost::filesystem;
-namespace py = boost::python;
 
 namespace SourceXtractor {
 
@@ -195,7 +194,13 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       }
 
       info.m_measurement_image = createMeasurementImage(image_source, py_image.flux_scale);
-      info.m_coordinate_system = std::make_shared<WCS>(*image_source);
+      info.m_coordinate_system = image_source->getCoordinateSystem();
+
+      if (!info.m_coordinate_system) {
+        logger.warn() << "No coordinate system information on measurement image " << py_image.file
+                      << "; using an identity WCS";
+        info.m_coordinate_system = std::make_shared<WCS>(WCS::identity(2));
+      }
 
       info.m_gain = py_image.gain / flux_scale;
       info.m_saturation_level = py_image.saturation * flux_scale;

@@ -31,21 +31,21 @@ using namespace SourceXtractor;
 // That image is needed for the regression test WorldOutOfBounds_test
 // Other images with other projections do not trigger the error
 struct WCSFixture {
-  std::string          m_fits_path;
-  std::shared_ptr<WCS> m_wcs_fits;
+  std::string                       m_fits_path;
+  std::shared_ptr<CoordinateSystem> m_wcs_fits;
 #ifdef WITH_ASDF
-  std::string          m_asdf_path;
-  std::shared_ptr<WCS> m_wcs_asdf;
+  std::string                       m_asdf_path;
+  std::shared_ptr<CoordinateSystem> m_wcs_asdf;
 #endif
 
   WCSFixture() {
     m_fits_path = Elements::getAuxiliaryPath("wcs_header.fits").native();
     FitsImageSource fits_source(m_fits_path, 0);
-    m_wcs_fits = std::make_shared<WCS>(fits_source);
+    m_wcs_fits = fits_source.getCoordinateSystem();
 #ifdef WITH_ASDF
     m_asdf_path = Elements::getAuxiliaryPath("wcs_header.asdf").native();
     AsdfImageSource asdf_source(m_asdf_path);
-    m_wcs_asdf = std::make_shared<WCS>(asdf_source);
+    m_wcs_asdf = asdf_source.getCoordinateSystem();
 #endif
   }
 };

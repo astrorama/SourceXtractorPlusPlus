@@ -33,11 +33,6 @@
 #include <wcslib/wcshdr.h>
 #include <wcslib/wcsprintf.h>
 
-#ifdef WITH_ASDF
-#include <asdf.h>
-#include <asdf/gwcs/gwcs.h>
-#endif
-
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
 
@@ -169,11 +164,13 @@ static void wcsReportWarnings(const char *err_buffer) {
   }
 }
 
-WCS::WCS(const FitsImageSource& fits_image_source) {
-  int number_of_records = 0;
-  auto fits_headers = fits_image_source.getFitsHeaders(number_of_records);
+WCS::WCS(char* headers, int number_of_records) {
+  initFits(headers, number_of_records);
+}
 
-  initFits(&(*fits_headers)[0], number_of_records);
+
+std::shared_ptr<WCS> WCS::fromFitsHeaders(char* headers, int number_of_records) {
+  return std::shared_ptr<WCS>(new WCS(headers, number_of_records));
 }
 
 WCS::WCS(const WCS& original) {
@@ -230,14 +227,7 @@ void WCS::initFits(char* headers, int number_of_records) {
 }
 
 
-#ifdef WITH_ASDF
-void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
-  if (!fits_wcs) {
-    auto tmp = WCS::identity(2);
-    m_wcs = std::move(tmp.m_wcs);
-    return;
-  }
-
+void WCS::initImaging(const ImagingWcsParams& params) {
   wcserr_enable(1);
 
   wcsprm *wcs = new wcsprm;
@@ -253,16 +243,12 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
   wcs->flag = -1;
   wcsini(1, 2, wcs);
 
-  // Populate from the AsdfFile::FitsWCS
   for (int idx = 0; idx < 2; idx++) {
-    // WARNING: The GWCS fitwcs_imaging schema (and by extension the libasdf
-    // GWCS extension) use 0-indexed values for crpix:
-    // https://github.com/asdf-format/asdf-wcs-schemas/blob/main/resources/schemas/stsci.edu/gwcs/fitswcs_imaging-1.0.0.yaml
-    wcs->crpix[idx] = fits_wcs->crpix()[idx] + 1.0;
-    wcs->crval[idx] = fits_wcs->crval()[idx];
-    wcs->cdelt[idx] = fits_wcs->cdelt()[idx];
+    wcs->crpix[idx] = params.crpix[idx];
+    wcs->crval[idx] = params.crval[idx];
+    wcs->cdelt[idx] = params.cdelt[idx];
 
-    const auto ctype = fits_wcs->ctype()[idx];
+    const auto& ctype = params.ctype[idx];
     if (!ctype.empty()) {
       std::strncpy(wcs->ctype[idx], ctype.data(), 9);
     } else {
@@ -270,7 +256,7 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
     }
 
     for (int jdx = 0; jdx < 2; jdx++) {
-      wcs->pc[idx * wcs->naxis + jdx] = fits_wcs->pc()[idx][jdx];
+      wcs->pc[idx * wcs->naxis + jdx] = params.pc[idx][jdx];
     }
   }
 
@@ -284,37 +270,13 @@ void WCS::initAsdf(std::unique_ptr<AsdfFile::FitsWCS> fits_wcs) {
 }
 
 
-/** WCS initializer from an ASDF file
- *
- * Currently this makes a brash assumption: if there is any compatible GWCS
- * object in the file it "must" be the right one.  This assumption can be wrong
- * but in practice most ASDF files have one data array, one WCS.
- *
- * Later we will figure out how to work in some config option(s) to explicitly
- * provide a path to the correct WCS to use if there is any ambiguity.
- */
-WCS::WCS(const AsdfImageSource& asdf_image_source) {
-  // First get whether we even have a WCS in the image
-  auto fits_wcs = asdf_image_source.getFitsWCS();
-  initAsdf(std::move(fits_wcs));
+WCS::WCS(const ImagingWcsParams& params) {
+  initImaging(params);
 }
 
 
-WCS::WCS(const AsdfImageSource& asdf_image_source, std::optional<std::string> wcs_path) {
-  // First get whether we even have a WCS in the image
-  auto fits_wcs = asdf_image_source.getFitsWCS(wcs_path);
-  initAsdf(std::move(fits_wcs));
-}
-#endif /* WITH_ASDF */
-
-
-/**
- * Initializer for a generic ImageSource
- *
- * This just creates a dummy identity WCS and logs a warning
- */
-WCS::WCS(const ImageSource &) : WCS(identity(2)) {
-    logger.warn() << "No WCS info on generic image source; creating an identity WCS";
+std::shared_ptr<WCS> WCS::fromImagingParams(const ImagingWcsParams& params) {
+  return std::shared_ptr<WCS>(new WCS(params));
 }
 
 
