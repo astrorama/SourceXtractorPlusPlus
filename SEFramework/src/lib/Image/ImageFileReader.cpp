@@ -27,10 +27,13 @@
 #include <boost/regex.hpp>
 
 #include <ElementsKernel/Exception.h>
+#include <ElementsKernel/Logging.h>
 
 #include "SEFramework/Image/ImageFileReader.h"
 
 namespace SourceXtractor {
+
+static auto logger = Elements::Logging::getLogger("ImageFileReader");
 
 // We use this idiom to make sure the map is initialized on the first need
 // Otherwise, this may be initialized *after* the concrete implementations try to register themselves
@@ -144,6 +147,17 @@ static std::unique_ptr<ImageFileReader> tryCreateFromFile(
       return file_type.factory(filename);
   }
   return nullptr;
+}
+
+
+void ImageFileReader::setWcsPath(std::optional<std::string> wcs_path) {
+  if (wcs_path && !supportsWcsPath()) {
+    logger.warn() << "Selecting a WCS by path is not supported for this file format; "
+                  << "ignoring the WCS path given for " << m_filename;
+    return;
+  }
+
+  m_wcs_path = std::move(wcs_path);
 }
 
 

@@ -42,6 +42,9 @@ public:
 
   static bool test(std::istream& stream);
 
+  /// An ASDF file may hold several GWCS objects, so one can be named explicitly
+  bool supportsWcsPath() const override { return true; }
+
   using ImageFileReader::get;
   /**
    * Get the N-th supported image ndarray from the ASDF file

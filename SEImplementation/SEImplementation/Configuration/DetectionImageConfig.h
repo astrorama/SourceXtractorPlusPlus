@@ -28,9 +28,6 @@
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#ifdef WITH_ASDF
-#include "SEFramework/ASDF/AsdfImageSource.h"
-#endif
 
 namespace SourceXtractor {
 
@@ -101,11 +98,6 @@ private:
                             double saturation, double flux_scale, int interpolation_gap);
     DetectionImageExtension(std::shared_ptr<FitsImageSource> fits_image_source, double gain,
                             double saturation, double flux_scale, int interpolation_gap);
-#ifdef WITH_ASDF
-    DetectionImageExtension(std::shared_ptr<AsdfImageSource> fits_image_source, double gain,
-                            double saturation, double flux_scale, int interpolation_gap,
-                            std::optional<std::string> wcs_path);
-#endif
 
     static DetectionImageExtension create(std::shared_ptr<ImageSource>, const UserValues& args);
 

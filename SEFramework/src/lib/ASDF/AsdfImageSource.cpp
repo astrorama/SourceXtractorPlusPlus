@@ -40,11 +40,13 @@ static auto logger = Elements::Logging::getLogger("ASDF");
 AsdfImageSource::AsdfImageSource(const std::string& filename, int image_index,
                                  std::optional<std::string> image_path,
                                  ImageTile::ImageType image_type,
+                                 std::optional<std::string> wcs_path,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
     , m_image_type(image_type)
     , m_file_manager(std::move(manager))
-    , m_handler(m_file_manager->getFileHandler(filename)) {
+    , m_handler(m_file_manager->getFileHandler(filename))
+    , m_wcs_path(std::move(wcs_path)) {
 
   auto acc = m_handler->getAccessor<AsdfFile>();
   auto& file = acc->m_fd;
@@ -202,7 +204,7 @@ std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS(std::optional<std
 
 
 std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem() const {
-  return getCoordinateSystem(std::nullopt);
+  return getCoordinateSystem(m_wcs_path);
 }
 
 

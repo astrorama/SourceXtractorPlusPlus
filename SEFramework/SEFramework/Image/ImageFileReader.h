@@ -74,6 +74,28 @@ public:
   virtual std::shared_ptr<ImageSource> get(
     const std::string& image_path, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
 
+  /**
+   * Whether this file format can select a coordinate system by path
+   *
+   * True for formats that may hold several coordinate systems with no fixed
+   * association to the image arrays, so that one has to be named explicitly.
+   * That is the case for ASDF; it would also be the case for FITS carrying an
+   * embedded GWCS, which is not supported yet.
+   */
+  virtual bool supportsWcsPath() const { return false; }
+
+  /**
+   * Select which coordinate system the images from this reader should use
+   *
+   * Applies to every ImageSource subsequently returned by get() or iter().
+   * Ignored, with a warning, by formats that do not support it.
+   */
+  void setWcsPath(std::optional<std::string> wcs_path);
+
+  const std::optional<std::string>& getWcsPath() const {
+    return m_wcs_path;
+  }
+
   /* ImageFileReader iterator interface */
   class Iterator {
   public:
@@ -260,6 +282,7 @@ protected:
   std::string m_filename;
   std::optional<std::string> m_image_path;
   int m_image_index;
+  std::optional<std::string> m_wcs_path;
 };
 
 }  // end of namespace SourceXtractor

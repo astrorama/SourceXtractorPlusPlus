@@ -32,10 +32,6 @@ using boost::smatch;
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
-#ifdef WITH_ASDF
-#include "SEFramework/ASDF/AsdfImageSource.h"
-#endif
-
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
 using namespace Euclid::Configuration;
@@ -63,6 +59,16 @@ std::shared_ptr<CoordinateSystem> coordinateSystemOrIdentity(const ImageSource& 
   return orIdentity(image_source.getCoordinateSystem(), image_source.getRepr());
 }
 
+/// The value of a WCS path option, if it was given
+std::optional<std::string> getWcsPath(
+    const Euclid::Configuration::Configuration::UserValues& args, const std::string& option) {
+  if (auto it = args.find(option); it != args.end()) {
+    return it->second.as<std::string>();
+  }
+
+  return std::nullopt;
+}
+
 }  // anonymous namespace
 
 static const std::string DETECTION_IMAGE { "detection-image" };
@@ -73,10 +79,8 @@ static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturatio
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
-#ifdef WITH_ASDF
-static const std::string DETECTION_IMAGE_ASDF_WCS_PATH { "detection-image-asdf-wcs-path" };
-static const std::string REFERENCE_IMAGE_ASDF_WCS_PATH { "reference-image-asdf-wcs-path" };
-#endif
+static const std::string DETECTION_IMAGE_WCS_PATH { "detection-image-wcs-path" };
+static const std::string REFERENCE_IMAGE_WCS_PATH { "reference-image-wcs-path" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id)
 {}
@@ -108,14 +112,13 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
       {DETECTION_IMAGE_INTERPOLATION.c_str(), po::value<bool>()->default_value(true),
           "Interpolate bad pixels in detection image"},
       {DETECTION_IMAGE_INTERPOLATION_GAP.c_str(), po::value<int>()->default_value(5),
-          "Maximum number if pixels to interpolate over"}
-#ifdef WITH_ASDF
-      ,
-      {DETECTION_IMAGE_ASDF_WCS_PATH.c_str(), po::value<std::string>(),
-          "When reading from an ASDF file, the JSON path to the WCS to use for the detection image"},
-      {REFERENCE_IMAGE_ASDF_WCS_PATH.c_str(), po::value<std::string>(),
-          "When reading from an ASDF file, the JSON path to the WCS to use for the reference image"}
-#endif
+          "Maximum number if pixels to interpolate over"},
+      // NOTE: Only meaningful for file formats that can hold several coordinate
+      // systems, which today means ASDF; ignored with a warning for the rest.
+      {DETECTION_IMAGE_WCS_PATH.c_str(), po::value<std::string>(),
+          "Path, within the file, of the WCS to use for the detection image"},
+      {REFERENCE_IMAGE_WCS_PATH.c_str(), po::value<std::string>(),
+          "Path, within the file, of the WCS to use for the reference image"}
   }}};
 }
 
@@ -130,22 +133,10 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
       auto image_reader = ImageFileReader::create(
         args.find(REFERENCE_IMAGE)->second.as<std::string>());
+      image_reader->setWcsPath(getWcsPath(args, REFERENCE_IMAGE_WCS_PATH));
+
       auto reference_image_source = image_reader->get(0);
-#ifdef WITH_ASDF
-      // ASDF needs special handling here for the wcs_path, though arguably
-      // this may be generalized more in the future when if, e.g., adding
-      // ASDF-in-FITS support for GWCS in FITS files.
-      if (auto asdf_src = std::dynamic_pointer_cast<AsdfImageSource>(reference_image_source)) {
-        std::optional<std::string> wcs_path;
-        if (auto it = args.find(REFERENCE_IMAGE_ASDF_WCS_PATH); it != args.end())
-          wcs_path = it->second.as<std::string>();
-        extension.m_coordinate_system = orIdentity(
-          asdf_src->getCoordinateSystem(wcs_path), asdf_src->getRepr());
-      } else
-#endif
-      {
-        extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
-      }
+      extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
       m_extensions.emplace_back(std::move(extension));
 
       m_is_reference_image = true;
@@ -161,6 +152,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
 
   auto image_reader = ImageFileReader::create(m_detection_image_path);
+  image_reader->setWcsPath(getWcsPath(args, DETECTION_IMAGE_WCS_PATH));
 
   for (const auto& img_source: image_reader->iter(ImageTile::FloatImage)) {
     DetectionImageExtension extension = DetectionImageExtension::create(img_source, args);
@@ -225,24 +217,6 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
 }
 
 
-#ifdef WITH_ASDF
-/**
- * Special case for loading from ASDF when enabled, to use the detection-image-asdf-wcs-path
- * option if given
- */
-DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
-    std::shared_ptr<AsdfImageSource> asdf_image_source, double gain, double saturation,
-    double flux_scale, int interpolation_gap, std::optional<std::string> wcs_path) {
-  init(asdf_image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = orIdentity(
-    asdf_image_source->getCoordinateSystem(wcs_path), asdf_image_source->getRepr());
-  rescale();
-}
-
-
-#endif /* WITH_ASDF */
-
-
 void DetectionImageConfig::DetectionImageExtension::init(
     std::shared_ptr<ImageSource> image_source, double gain, double saturation,
     double flux_scale, int interpolation_gap) {
@@ -273,18 +247,11 @@ DetectionImageConfig::DetectionImageExtension DetectionImageConfig::DetectionIma
     ? std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>())
     : 0;
 
+  // FITS still needs its own branch to pick up GAIN/FLXSCALE/SATURATE from the
+  // header; the coordinate system comes from the image source either way.
   if (auto fits_src = std::dynamic_pointer_cast<FitsImageSource>(image_source)) {
     return DetectionImageExtension(fits_src, gain, saturation, flux_scale, interpolation_gap);
   }
-#ifdef WITH_ASDF
-  else if (auto asdf_src = std::dynamic_pointer_cast<AsdfImageSource>(image_source)) {
-    std::optional<std::string> wcs_path;
-    if (auto it = args.find(DETECTION_IMAGE_ASDF_WCS_PATH); it != args.end())
-        wcs_path = it->second.as<std::string>();
-    return DetectionImageExtension(asdf_src, gain, saturation, flux_scale, interpolation_gap,
-                                   wcs_path);
-  }
-#endif
 
   return DetectionImageExtension(image_source, gain, saturation, flux_scale, interpolation_gap);
 }
