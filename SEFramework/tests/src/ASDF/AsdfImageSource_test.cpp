@@ -102,53 +102,17 @@ BOOST_FIXTURE_TEST_CASE(empty_ndarray_test, AsdfImageSourceFixture) {
 }
 
 
-BOOST_FIXTURE_TEST_CASE(get_fitswcs_auto, AsdfImageSourceFixture) {
-  auto img_src = std::make_shared<AsdfImageSource>(wcs_header, "data", ImageTile::FloatImage);
-  auto fits_wcs = img_src->getFitsWCS();
-  BOOST_CHECK(fits_wcs != nullptr);
-  // The full WCS is checked in AsdfFile_test, but here make sure we just grab the expected
-  // one.  There are two WCS in the file each with different expected ctypes.  The first one,
-  // "wcs", should be TAN, the other is AIR
-  auto ctype = fits_wcs->ctype();
-  std::array<std::string_view, 2> expected_ctype{{"RA---TAN", "DEC--TAN"}};
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    ctype.begin(), ctype.end(),
-    expected_ctype.begin(), expected_ctype.end()
-  );
-}
+// NOTE: WCS selection by path is covered in depth by GWCS_test; here we only
+// check that an ASDF image exposes a coordinate system at all -- or, when built
+// without libasdf-gwcs, that it reports having none instead of failing.
+BOOST_FIXTURE_TEST_CASE(get_coordinate_system, AsdfImageSourceFixture) {
+  auto img_src = std::make_shared<AsdfImageSource>(wcs_header);
 
-
-BOOST_FIXTURE_TEST_CASE(get_fitswcs_simple_path, AsdfImageSourceFixture) {
-  auto img_src = std::make_shared<AsdfImageSource>(wcs_header, "data", ImageTile::FloatImage);
-  auto fits_wcs = img_src->getFitsWCS("wcs2");
-  BOOST_CHECK(fits_wcs != nullptr);
-  // The full WCS is checked in AsdfFile_test, but here make sure we just grab the expected
-  // one.  There are two WCS in the file each with different expected ctypes.  The first one,
-  // "wcs", should be TAN, the other is AIR
-  auto ctype = fits_wcs->ctype();
-  std::array<std::string_view, 2> expected_ctype{{"RA---AIR", "DEC--AIR"}};
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    ctype.begin(), ctype.end(),
-    expected_ctype.begin(), expected_ctype.end()
-  );
-}
-
-
-BOOST_FIXTURE_TEST_CASE(get_fitswcs_mapped_path, AsdfImageSourceFixture) {
-  auto img_src = std::make_shared<AsdfImageSource>(wcs_header, "data", ImageTile::FloatImage);
-  auto fits_wcs = img_src->getFitsWCS("data:wcs2");
-  BOOST_CHECK(fits_wcs != nullptr);
-  // The full WCS is checked in AsdfFile_test, but here make sure we just grab the expected
-  // one.  There are two WCS in the file each with different expected ctypes.  The first one,
-  // "wcs", should be TAN, the other is AIR
-  auto ctype = fits_wcs->ctype();
-  std::array<std::string_view, 2> expected_ctype{{"RA---AIR", "DEC--AIR"}};
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    ctype.begin(), ctype.end(),
-    expected_ctype.begin(), expected_ctype.end()
-  );
-
-  BOOST_CHECK_THROW(img_src->getFitsWCS("data:does-not-exist"), Elements::Exception);
+#ifdef WITH_ASDF_GWCS
+  BOOST_CHECK(img_src->getCoordinateSystem() != nullptr);
+#else
+  BOOST_CHECK(img_src->getCoordinateSystem() == nullptr);
+#endif
 }
 
 //-----------------------------------------------------------------------------

@@ -134,12 +134,6 @@ public:
 
   void saveTile(ImageTile& tile) override;
 
-  /** Get optional FITS WCS */
-  std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS() const;
-
-  /** Get optional FITS WCS with optional path lookup map */
-  std::unique_ptr<AsdfFile::FitsWCS> getFitsWCS(std::optional<std::string> wcs_path) const;
-
   /**
    * The coordinate system of this image, or nullptr if it has none
    *

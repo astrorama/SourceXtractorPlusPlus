@@ -30,7 +30,9 @@
 
 #include "SEFramework/ASDF/AsdfFile.h"
 #include "SEFramework/ASDF/AsdfImageSource.h"
-#include "SEFramework/CoordinateSystem/WCS.h"
+#ifdef WITH_ASDF_GWCS
+#include "SEFramework/CoordinateSystem/GWCS.h"
+#endif
 
 
 namespace SourceXtractor {
@@ -174,64 +176,49 @@ AsdfImageSource::WcsPathMap AsdfImageSource::parseWcsPath(const std::string& wcs
 }
 
 
-std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS() const {
-  auto acc = m_handler->getAccessor<AsdfFile>();
-  auto& file = acc->m_fd;
-  return file.getFitsWCS();
-}
-
-// TODO: Implement handling of wcs_path_map
-std::unique_ptr<AsdfFile::FitsWCS> AsdfImageSource::getFitsWCS(std::optional<std::string> wcs_path) const {
-  auto acc = m_handler->getAccessor<AsdfFile>();
-  auto& file = acc->m_fd;
-
-  if (wcs_path == std::nullopt) {
-    return file.getFitsWCS();
-  }
-
-  WcsPathMap path_map = parseWcsPath(*wcs_path);
-  const std::string& ndarray_path = m_ndarray->getPath();
-
-  if (path_map.find(ndarray_path) != path_map.end()) {
-    return file.getFitsWCS(path_map.find(ndarray_path)->second);
-  } else if (path_map.find("*") != path_map.end()) {
-    return file.getFitsWCS(path_map.find("*")->second);
-  } else {
-    logger.warn() << "No WCS path found for ndarray at " << ndarray_path << "; trying any WCS";
-    return file.getFitsWCS();
-  }
-}
-
-
 std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem() const {
   return getCoordinateSystem(m_wcs_path);
 }
 
 
+#ifndef WITH_ASDF_GWCS
+std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem(
+    std::optional<std::string>) const {
+  logger.warn() << "Built without libasdf-gwcs, so no GWCS can be read from " << m_filename;
+  return nullptr;
+}
+#else
 std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem(
     std::optional<std::string> wcs_path) const {
-  auto fits_wcs = getFitsWCS(wcs_path);
+  auto acc = m_handler->getAccessor<AsdfFile>();
+  auto& file = acc->m_fd;
 
-  if (!fits_wcs) {
-    return nullptr;
-  }
+  AsdfFile::GwcsEvalPtr eval{nullptr, asdf_gwcs_eval_destroy};
 
-  ImagingWcsParams params;
+  if (wcs_path == std::nullopt) {
+    eval = file.getGwcsEval();
+  } else {
+    // If a wcs_path is given we have to parse it and handle per-ndarray->GWCS
+    // mappings if present.
+    WcsPathMap path_map = parseWcsPath(*wcs_path);
+    const std::string& ndarray_path = m_ndarray->getPath();
 
-  for (int idx = 0; idx < 2; idx++) {
-    // The GWCS fitswcs_imaging schema uses 0-indexed crpix, unlike FITS:
-    // https://github.com/asdf-format/asdf-wcs-schemas/blob/main/resources/schemas/stsci.edu/gwcs/fitswcs_imaging-1.0.0.yaml
-    params.crpix[idx] = fits_wcs->crpix()[idx] + 1.0;
-    params.crval[idx] = fits_wcs->crval()[idx];
-    params.cdelt[idx] = fits_wcs->cdelt()[idx];
-    params.ctype[idx] = std::string(fits_wcs->ctype()[idx]);
-
-    for (int jdx = 0; jdx < 2; jdx++) {
-      params.pc[idx][jdx] = fits_wcs->pc()[idx][jdx];
+    if (path_map.find(ndarray_path) != path_map.end()) {
+      eval = file.getGwcsEval(path_map.find(ndarray_path)->second);
+    } else if (path_map.find("*") != path_map.end()) {
+      eval = file.getGwcsEval(path_map.find("*")->second);
+    } else {
+      logger.warn() << "No GWCS path found for ndarray at " << ndarray_path << "; trying any GWCS";
+      eval = file.getGwcsEval();
     }
   }
 
-  return WCS::fromImagingParams(params);
+  if (!eval) {
+    return nullptr;
+  }
+
+  return std::make_shared<GWCS>(std::move(eval));
 }
+#endif /* WITH_ASDF_GWCS */
 
 }

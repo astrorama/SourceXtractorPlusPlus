@@ -227,59 +227,6 @@ void WCS::initFits(char* headers, int number_of_records) {
 }
 
 
-void WCS::initImaging(const ImagingWcsParams& params) {
-  wcserr_enable(1);
-
-  wcsprm *wcs = new wcsprm;
-
-  if (!wcs) {
-      throw Elements::Exception() << "failed to allocate memory for wcslib";
-  }
-
-  // Write warnings to a buffer
-  wcsprintf_set(nullptr);
-
-  // Initialize the wcsprm with memory allocated for 2 dimensions
-  wcs->flag = -1;
-  wcsini(1, 2, wcs);
-
-  for (int idx = 0; idx < 2; idx++) {
-    wcs->crpix[idx] = params.crpix[idx];
-    wcs->crval[idx] = params.crval[idx];
-    wcs->cdelt[idx] = params.cdelt[idx];
-
-    const auto& ctype = params.ctype[idx];
-    if (!ctype.empty()) {
-      std::strncpy(wcs->ctype[idx], ctype.data(), 9);
-    } else {
-      wcs->ctype[idx][0] = '\0';
-    }
-
-    for (int jdx = 0; jdx < 2; jdx++) {
-      wcs->pc[idx * wcs->naxis + jdx] = params.pc[idx][jdx];
-    }
-  }
-
-  int ret = wcsset(wcs);
-  wcsRaiseOnParseError(ret);
-  wcsReportWarnings(wcsprintf_buf());
-
-  m_wcs = make_wcsprm_ptr(wcs, true);
-
-  installSafeWcssub();
-}
-
-
-WCS::WCS(const ImagingWcsParams& params) {
-  initImaging(params);
-}
-
-
-std::shared_ptr<WCS> WCS::fromImagingParams(const ImagingWcsParams& params) {
-  return std::shared_ptr<WCS>(new WCS(params));
-}
-
-
 WCS::~WCS() {
 }
 

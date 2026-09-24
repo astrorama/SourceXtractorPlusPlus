@@ -91,45 +91,24 @@ BOOST_FIXTURE_TEST_CASE( get_ndarray_by_path, AsdfFileFixture ) {
 }
 
 
-BOOST_FIXTURE_TEST_CASE( get_fits_wcs_auto, AsdfFileFixture ) {
+#ifdef WITH_ASDF_GWCS
+BOOST_FIXTURE_TEST_CASE( get_gwcs_eval_auto, AsdfFileFixture ) {
   AsdfFile asdf_file(wcs_path);
-  auto wcs = asdf_file.getFitsWCS();
+  auto eval = asdf_file.getGwcsEval();
 
-  BOOST_CHECK(wcs != nullptr);
-
-  auto crpix = wcs->crpix();
-  std::array<double, 2> expected_crpix{12099.5, -88700.5};
-  for (int idx = 0; idx < 2; idx++) {
-    BOOST_CHECK_CLOSE(crpix[idx], expected_crpix[idx], 1e-6);
-  }
-
-  auto crval = wcs->crval();
-  std::array<double, 2> expected_crval{270., 64.60237301};
-  for (int idx = 0; idx < 2; idx++) {
-    BOOST_CHECK_CLOSE(crval[idx], expected_crval[idx], 1e-6);
-  }
-
-  auto cdelt = wcs->cdelt();
-  std::array<double, 2> expected_cdelt{1.52777778e-05, 1.52777778e-05};
-  for (int idx = 0; idx < 2; idx++) {
-    BOOST_CHECK_CLOSE(cdelt[idx], expected_cdelt[idx], 1e-6);
-  }
-
-  auto pc = wcs->pc();
-  std::array<std::array<double, 2>, 2> expected_pc{{{1., 0.}, {-0., 1.}}};
-  for (int idx = 0; idx < 2; idx++) {
-    for (int jdx = 0; jdx < 2; jdx++) {
-      BOOST_CHECK_CLOSE(pc[idx][jdx], expected_pc[idx][jdx], 1e-6);
-    }
-  }
-
-  auto ctype = wcs->ctype();
-  std::array<std::string_view, 2> expected_ctype{{"RA---TAN", "DEC--TAN"}};
-  BOOST_CHECK_EQUAL_COLLECTIONS(
-    ctype.begin(), ctype.end(),
-    expected_ctype.begin(), expected_ctype.end()
-  );
+  BOOST_CHECK(eval != nullptr);
 }
+
+
+BOOST_FIXTURE_TEST_CASE( get_gwcs_eval_by_path, AsdfFileFixture ) {
+  AsdfFile asdf_file(wcs_path);
+
+  BOOST_CHECK(asdf_file.getGwcsEval("wcs1") != nullptr);
+  BOOST_CHECK(asdf_file.getGwcsEval("wcs2") != nullptr);
+  BOOST_CHECK_THROW(asdf_file.getGwcsEval("does-not-exist"), Elements::Exception);
+}
+
+#endif /* WITH_ASDF_GWCS */
 
 //-----------------------------------------------------------------------------
 

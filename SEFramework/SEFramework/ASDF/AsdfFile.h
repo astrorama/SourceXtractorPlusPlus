@@ -29,7 +29,9 @@
 
 #include <boost/filesystem/path.hpp>
 #include <asdf.h>
+#ifdef WITH_ASDF_GWCS
 #include <asdf/gwcs/gwcs.h>
+#endif
 
 #include <ElementsKernel/Exception.h>
 
@@ -130,56 +132,6 @@ public:
   };
 
   /**
-   * Wrapper around asdf_gwcs_fits_t, which represents a FITS- (WCSLIB)
-   * compatible WCS for use with SourceXtractor::WCS
-   */
-  class FitsWCS {
-  public:
-    friend class AsdfFile;
-
-    ~FitsWCS() {
-      asdf_gwcs_destroy(m_gwcs_ptr);
-      m_gwcs_fits_ptr = nullptr;
-      m_gwcs_ptr = nullptr;
-    }
-
-    std::array<double, 2> crpix() const noexcept {
-      return {m_gwcs_fits_ptr->crpix[0], m_gwcs_fits_ptr->crpix[1]};
-    }
-
-    std::array<double, 2> crval() const noexcept {
-      return {m_gwcs_fits_ptr->crval[0], m_gwcs_fits_ptr->crval[1]};
-    }
-
-    std::array<double, 2> cdelt() const noexcept {
-      return {m_gwcs_fits_ptr->cdelt[0], m_gwcs_fits_ptr->cdelt[1]};
-    }
-
-    std::array<std::array<double, 2>, 2> pc() const noexcept {
-      return {{
-        {m_gwcs_fits_ptr->pc[0][0], m_gwcs_fits_ptr->pc[0][1]},
-        {m_gwcs_fits_ptr->pc[1][0], m_gwcs_fits_ptr->pc[1][1]}
-      }};
-    }
-
-    std::array<std::string_view, 2> ctype() const noexcept {
-      return {{
-        m_gwcs_fits_ptr->ctype[0] ? std::string_view(m_gwcs_fits_ptr->ctype[0]) : std::string_view(),
-        m_gwcs_fits_ptr->ctype[1] ? std::string_view(m_gwcs_fits_ptr->ctype[1]) : std::string_view()
-      }};
-    }
-
-  private:
-    /**
-     * Private constructor for creating the `Ndarray` wrapper from a raw asdf_value_t *
-     */
-    explicit FitsWCS(const AsdfFile& file, asdf_value_t *ptr);
-
-    asdf_gwcs_t *m_gwcs_ptr;
-    asdf_gwcs_fits_t* m_gwcs_fits_ptr;
-  };
-
-  /**
    * Return the N-th ndarray from the top-level of the ASDF tree iterating the top-level
    * keys in order.
    */
@@ -194,20 +146,29 @@ public:
    */
   std::unique_ptr<Ndarray> getNdarray(const std::string& path);
 
-  /* TODO: More general methods for reading metadata from the ASDF tree; for the first version
-   * not needed though. */
+#ifdef WITH_ASDF_GWCS
+  using GwcsEvalPtr = std::unique_ptr<asdf_gwcs_eval_t, decltype(&asdf_gwcs_eval_destroy)>;
+
   /**
-   * Return FITS-compatible WCS metadata (wrapped in `AsdfFile::FitsWCS`)
+   * Return an evaluation context for a GWCS in the file
    *
-   * If called without any arguments it will look for the first applicable GWCS
-   * object in the ASDF metadata tree.  Called with a path argument it will
-   * look for one specifically at that path.  In either case if no matching
-   * GWCS is found will return a null-ish pointer.
+   * Without arguments the first GWCS found in the tree is used; with a path,
+   * the one at that path.  Returns a null pointer if there is no GWCS to use,
+   * or if the available backend cannot evaluate it.
+   *
+   * The returned context is self-contained: it does not refer back to this
+   * AsdfFile, so it stays valid after the file is closed.
    */
-  std::unique_ptr<FitsWCS> getFitsWCS();
-  std::unique_ptr<FitsWCS> getFitsWCS(const std::string& path);
+  GwcsEvalPtr getGwcsEval();
+  GwcsEvalPtr getGwcsEval(const std::string& path);
+#endif /* WITH_ASDF_GWCS */
 
 private:
+#ifdef WITH_ASDF_GWCS
+  /// Build an evaluation context from a value holding a GWCS, taking ownership of it
+  GwcsEvalPtr makeGwcsEval(asdf_value_t* value);
+#endif
+
   struct AsdfValueDestroy {
     void operator()(asdf_value_t *v) const noexcept {
       asdf_value_destroy(v);
