@@ -44,8 +44,9 @@ namespace SourceXtractor {
  * confines a GWCS to detection, segmentation, grouping, deblending and sky
  * coordinate output; measurement and model fitting need the inverse.
  *
- * TODO: NOT THREAD SAFE: the underlying evaluation context belongs to the
- * thread that created it and cannot be used from another one.
+ * Safe to share between threads: the underlying evaluation context belongs to
+ * the thread that created it, so imageToWorld evaluates on a private copy made
+ * via asdf_gwcs_eval_copy, in the same spirit as WCS copying its wcsprm.
  */
 class GWCS : public CoordinateSystem {
 public:

@@ -16,6 +16,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <atomic>
+#include <thread>
+#include <vector>
+
 #include <boost/test/unit_test.hpp>
 
 #include <ElementsKernel/Auxiliary.h>
@@ -138,6 +142,60 @@ BOOST_FIXTURE_TEST_CASE(SelectByPath_test, GWCSFixture) {
   // wcs2 uses a different projection, so it must not agree with wcs1
   BOOST_CHECK(std::abs(world1.m_alpha - world2.m_alpha) > 1e-6 ||
               std::abs(world1.m_delta - world2.m_delta) > 1e-6);
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * A single CoordinateSystem is shared by every source in a frame and evaluated
+ * from the measurement thread pool, so concurrent imageToWorld must give the
+ * same answers as a serial one.  This previously blocked due to AST's
+ * threading model, but libasdf-gwcs now provides asdf_gwcs_eval_copy, which
+ * is a thread-safe way to make a per-thread copy of the evaluation context
+ * for concurrent use--similarly to how the WCS class takes a per-thread copy
+ * of the wcsprm struct.
+ */
+BOOST_FIXTURE_TEST_CASE(ConcurrentImageToWorld_test, GWCSFixture) {
+  std::vector<ImageCoordinate> coords;
+  for (int idx = 0; idx < 64; idx++) {
+    coords.emplace_back(idx * 7.5, idx * 3.25);
+  }
+
+  // Reference, computed on this thread
+  std::vector<WorldCoordinate> expected;
+  for (const auto& coord : coords) {
+    expected.push_back(m_gwcs->imageToWorld(coord));
+  }
+
+  constexpr int n_threads = 8;
+  std::vector<std::thread> threads;
+  std::atomic<int> mismatches{0};
+  std::atomic<int> failures{0};
+
+  for (int t = 0; t < n_threads; t++) {
+    threads.emplace_back([&]() {
+      for (int rep = 0; rep < 50; rep++) {
+        for (size_t idx = 0; idx < coords.size(); idx++) {
+          try {
+            auto world = m_gwcs->imageToWorld(coords[idx]);
+            if (world.m_alpha != expected[idx].m_alpha ||
+                world.m_delta != expected[idx].m_delta) {
+              ++mismatches;
+            }
+          } catch (...) {
+            ++failures;
+          }
+        }
+      }
+    });
+  }
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  BOOST_CHECK_EQUAL(failures.load(), 0);
+  BOOST_CHECK_EQUAL(mismatches.load(), 0);
 }
 
 //-----------------------------------------------------------------------------

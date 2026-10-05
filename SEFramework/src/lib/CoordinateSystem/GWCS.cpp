@@ -61,6 +61,19 @@ GWCS::~GWCS() {}
 
 
 WorldCoordinate GWCS::imageToWorld(ImageCoordinate image_coordinate) const {
+  // An evaluation context belongs to the thread that created it (at least with
+  // the AST backend, the only one supported currently), and a single
+  // CoordinateSystem is shared by every source in a frame across the
+  // measurement thread pool.  So evaluate on a per-thread copy, as WCS does
+  // with wcssub.
+  asdf_gwcs_err_t err = ASDF_GWCS_OK;
+  EvalPtr eval(asdf_gwcs_eval_copy(m_eval.get(), &err), asdf_gwcs_eval_destroy);
+
+  if (!eval) {
+    throw InvalidCoordinatesException() << "Failed to copy the WCS evaluation context: error "
+      << err;
+  }
+
   double x_in = image_coordinate.m_x;
   double y_in = image_coordinate.m_y;
   double alpha = 0.0;
@@ -68,7 +81,7 @@ WorldCoordinate GWCS::imageToWorld(ImageCoordinate image_coordinate) const {
 
   // NOTE: evaluating one point at a time is wasteful--libasdf-gwcs is much
   // happier with batches--but the CoordinateSystem interface is scalar.
-  asdf_gwcs_err_t err = asdf_gwcs_eval_2d(m_eval.get(), &x_in, &y_in, &alpha, &delta, 1);
+  err = asdf_gwcs_eval_2d(eval.get(), &x_in, &y_in, &alpha, &delta, 1);
 
   if (ASDF_GWCS_OK != err) {
     throw InvalidCoordinatesException() << "Failed to evaluate the WCS at image coordinates ("
