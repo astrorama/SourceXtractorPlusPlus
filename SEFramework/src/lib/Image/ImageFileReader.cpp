@@ -172,6 +172,22 @@ std::unique_ptr<ImageFileReader> ImageFileReader::create(const std::string& file
     base_filename = match[1];
   }
 
+  // Diagnose an inaccessible file here: every ImageFileType::test() below works on an open stream,
+  // so otherwise all of them fail and the file is reported as having an unrecognized format
+  boost::system::error_code ec;
+  auto status = boost::filesystem::status(base_filename, ec);
+  if (ec || !boost::filesystem::exists(status)) {
+    throw Elements::Exception() << "Image file " << base_filename << " does not exist";
+  }
+  if (boost::filesystem::is_directory(status)) {
+    throw Elements::Exception() << "Image file " << base_filename << " is a directory";
+  }
+  std::ifstream ifs(base_filename, std::ios::binary);
+  if (!ifs) {
+    throw Elements::Exception() << "Image file " << base_filename << " could not be opened for reading";
+  }
+  ifs.close();
+
   std::string ext = boost::filesystem::path(base_filename).extension().string();
   if (!ext.empty() && ext[0] == '.') {
     ext.erase(0, 1);
