@@ -39,14 +39,11 @@ namespace SourceXtractor {
  * has no FITS header representation and does not implement FitsWcsSerializable
  * for the moment (it might later if we implement ASDF-in-FITS).
  *
- * TODO: Only the forward direction is available: libasdf-gwcs evaluates
- * image-to-world, and worldToImage throws InvalidCoordinatesException.  That
- * confines a GWCS to detection, segmentation, grouping, deblending and sky
- * coordinate output; measurement and model fitting need the inverse.
- *
  * Safe to share between threads: the underlying evaluation context belongs to
- * the thread that created it, so imageToWorld evaluates on a private copy made
- * via asdf_gwcs_eval_copy, in the same spirit as WCS copying its wcsprm.
+ * the thread that created it, so each conversion evaluates on a private
+ * context of its own--asdf_gwcs_eval_copy going forwards and
+ * asdf_gwcs_eval_invert going back--in the same spirit as WCS copying its
+ * wcsprm per call.
  */
 class GWCS : public CoordinateSystem {
 public:
@@ -63,10 +60,10 @@ public:
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
 
   /**
-   * Always throws InvalidCoordinatesException
-   *
-   * TODO: libasdf-gwcs has no inverse evaluation yet, and many GWCS pipelines are not
-   * analytically invertible in any case.
+   * @throws InvalidCoordinatesException
+   *    if the WCS cannot be inverted at all, or if the given sky position has
+   *    no image coordinates--being outside the projection's valid region.
+   *    Callers treat the latter as "this source is not on this frame".
    */
   ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
 

@@ -109,12 +109,110 @@ BOOST_FIXTURE_TEST_CASE(ImageOutOfBounds_test, GWCSFixture) {
 //-----------------------------------------------------------------------------
 
 /**
- * libasdf-gwcs evaluates the forward transform only; the reverse has to fail
- * loudly rather than return something plausible but wrong.
+ * The forward direction is validated against wcslib and astropy above, so a
+ * clean round trip is what establishes the inverse: pixel -> sky -> pixel must
+ * land back where it started.
  */
-BOOST_FIXTURE_TEST_CASE(WorldToImageThrows_test, GWCSFixture) {
-  BOOST_CHECK_THROW(m_gwcs->worldToImage(WorldCoordinate(269.5464167447208, 65.95659889599523)),
-                    InvalidCoordinatesException);
+BOOST_FIXTURE_TEST_CASE(RoundTrip_test, GWCSFixture) {
+  std::vector<ImageCoordinate> img_coords{
+    {0, 0}, {10, 8}, {55.5, 980.5}, {255, 255}, {500, 100}
+  };
+
+  for (const auto& img : img_coords) {
+    auto world = m_gwcs->imageToWorld(img);
+    auto back = m_gwcs->worldToImage(world);
+
+    BOOST_CHECK_SMALL(back.m_x - img.m_x, 1e-6);
+    BOOST_CHECK_SMALL(back.m_y - img.m_y, 1e-6);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * imageToWorld normalizes longitude to [0, 360) while AST works in
+ * (-180, 180]; the inverse has to accept what the forward direction produces.
+ */
+BOOST_FIXTURE_TEST_CASE(RoundTripAcceptsNormalizedLongitude_test, GWCSFixture) {
+  auto world = m_gwcs->imageToWorld(ImageCoordinate(10, 8));
+  BOOST_REQUIRE_GE(world.m_alpha, 0.);
+  BOOST_REQUIRE_LT(world.m_alpha, 360.);
+
+  // Same position expressed in (-180, 180] must give the same pixel
+  WorldCoordinate shifted(world.m_alpha - 360.0, world.m_delta);
+
+  auto from_normalized = m_gwcs->worldToImage(world);
+  auto from_shifted = m_gwcs->worldToImage(shifted);
+
+  BOOST_CHECK_SMALL(from_normalized.m_x - 10.0, 1e-6);
+  BOOST_CHECK_SMALL(from_normalized.m_y - 8.0, 1e-6);
+  BOOST_CHECK_SMALL(from_shifted.m_x - from_normalized.m_x, 1e-9);
+  BOOST_CHECK_SMALL(from_shifted.m_y - from_normalized.m_y, 1e-9);
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * A sky position outside the projection's valid region has no image
+ * coordinates.  AST reports that as AST__BAD with no error code, so without an
+ * explicit check worldToImage would hand back -DBL_MAX.  Callers such as
+ * MeasurementFrameRectangleTask catch InvalidCoordinatesException and read it
+ * as "this source is not on that frame".
+ */
+BOOST_FIXTURE_TEST_CASE(WorldToImageOutsideProjectionThrows_test, GWCSFixture) {
+  // The fixture's WCS is centred near (269.5, +66); the opposite hemisphere is
+  // not representable in a TAN projection
+  for (auto world : {WorldCoordinate(269.5, -65.9), WorldCoordinate(0.0, 0.0),
+                     WorldCoordinate(89.5, -89.0)}) {
+    BOOST_CHECK_THROW(m_gwcs->worldToImage(world), InvalidCoordinatesException);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * worldToImage runs on the measurement threads just as imageToWorld does, and
+ * builds its inverse context per call, so it needs the same guarantee.
+ */
+BOOST_FIXTURE_TEST_CASE(ConcurrentWorldToImage_test, GWCSFixture) {
+  std::vector<WorldCoordinate> coords;
+  for (int idx = 0; idx < 32; idx++) {
+    coords.push_back(m_gwcs->imageToWorld(ImageCoordinate(idx * 11.0, idx * 5.0)));
+  }
+
+  std::vector<ImageCoordinate> expected;
+  for (const auto& world : coords) {
+    expected.push_back(m_gwcs->worldToImage(world));
+  }
+
+  constexpr int n_threads = 8;
+  std::vector<std::thread> threads;
+  std::atomic<int> mismatches{0};
+  std::atomic<int> failures{0};
+
+  for (int t = 0; t < n_threads; t++) {
+    threads.emplace_back([&]() {
+      for (int rep = 0; rep < 20; rep++) {
+        for (size_t idx = 0; idx < coords.size(); idx++) {
+          try {
+            auto img = m_gwcs->worldToImage(coords[idx]);
+            if (img.m_x != expected[idx].m_x || img.m_y != expected[idx].m_y) {
+              ++mismatches;
+            }
+          } catch (...) {
+            ++failures;
+          }
+        }
+      }
+    });
+  }
+
+  for (auto& thread : threads) {
+    thread.join();
+  }
+
+  BOOST_CHECK_EQUAL(failures.load(), 0);
+  BOOST_CHECK_EQUAL(mismatches.load(), 0);
 }
 
 //-----------------------------------------------------------------------------
