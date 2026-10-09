@@ -17,6 +17,11 @@
 #ifndef _SEIMPLEMENTATION_PLUGIN_SPREADMODEL_SPREADMODELTASKFACTORY_H_
 #define _SEIMPLEMENTATION_PLUGIN_SPREADMODEL_SPREADMODELTASKFACTORY_H_
 
+#include <cstddef>
+#include <map>
+#include <string>
+#include <vector>
+
 #include "SEFramework/Task/TaskFactory.h"
 
 namespace SourceXtractor {
@@ -26,6 +31,18 @@ public:
   virtual ~SpreadModelTaskFactory() = default;
 
   std::shared_ptr<Task> createTask(const PropertyId& property_id) const override;
+
+  void reportConfigDependencies(Euclid::Configuration::ConfigManager& manager) const override;
+  void configure(Euclid::Configuration::ConfigManager& manager) override;
+  void registerPropertyInstances(OutputRegistry& registry) override;
+
+private:
+  std::vector<int> m_measurement_frames;
+  unsigned int m_max_iterations;
+  std::string m_least_squares_engine;
+  double m_scale_factor;
+  std::size_t m_max_fit_size;
+  std::map<int, bool> m_should_renormalize;
 };
 
 }

@@ -15,6 +15,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 #include "SEImplementation/Plugin/SpreadModel/SpreadModel.h"
+#include "SEImplementation/Plugin/SpreadModel/CombinedSpreadModel.h"
 #include "SEImplementation/Plugin/SpreadModel/SpreadModelPlugin.h"
 #include "SEImplementation/Plugin/SpreadModel/SpreadModelTaskFactory.h"
 #include "SEFramework/Plugin/StaticPlugin.h"
@@ -24,7 +25,7 @@ namespace SourceXtractor {
 static StaticPlugin<SpreadModelPlugin> spread_model_plugin;
 
 void SpreadModelPlugin::registerPlugin(PluginAPI& plugin_api) {
-  plugin_api.getTaskFactoryRegistry().registerTaskFactory<SpreadModelTaskFactory, SpreadModel>();
+  plugin_api.getTaskFactoryRegistry().registerTaskFactory<SpreadModelTaskFactory, SpreadModel, CombinedSpreadModel>();
 
   plugin_api.getOutputRegistry().registerColumnConverter<SpreadModel, double>(
           "spread_model",
@@ -45,6 +46,21 @@ void SpreadModelPlugin::registerPlugin(PluginAPI& plugin_api) {
   );
 
   plugin_api.getOutputRegistry().enableOutput<SpreadModel>("SpreadModel");
+
+  auto& registry = plugin_api.getOutputRegistry();
+  registry.registerColumnConverter<CombinedSpreadModel, double>("combined_spread_model",
+      [](const CombinedSpreadModel& prop) { return prop.getSpreadModel(); }, "",
+      "Inverse-variance weighted spread model across measurement frames");
+  registry.registerColumnConverter<CombinedSpreadModel, double>("combined_spread_model_error",
+      [](const CombinedSpreadModel& prop) { return prop.getSpreadModelError(); }, "",
+      "Formal combined spread uncertainty assuming independent frames");
+  registry.registerColumnConverter<CombinedSpreadModel, int>("combined_spread_model_nframes",
+      [](const CombinedSpreadModel& prop) { return prop.getNFrames(); }, "",
+      "Number of valid frames in the combined spread model");
+  registry.registerColumnConverter<CombinedSpreadModel, double>("combined_spread_model_reduced_chi_squared",
+      [](const CombinedSpreadModel& prop) { return prop.getReducedChiSquared(); }, "",
+      "Reduced chi-square of the per-frame spread measurements (NaN for fewer than two frames)");
+  registry.enableOutput<CombinedSpreadModel>("CombinedSpreadModel");
 }
 
 std::string SpreadModelPlugin::getIdString() const {

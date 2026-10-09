@@ -22,6 +22,12 @@
 
 namespace SourceXtractor {
 
+/**
+ * @brief Spread-model value and uncertainty for one measurement frame.
+ * @details The property index is the measurement frame ID.
+ * Both quantities are dimensionless. Rejected frames store NaN for both fields.
+ * The uncertainty propagates pixel noise with the fitted templates held fixed.
+ */
 class SpreadModel : public Property {
 public:
 
