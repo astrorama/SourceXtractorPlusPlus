@@ -41,6 +41,9 @@ public:
   
   void runFile(const std::string& filename, const std::vector<std::string>& argv);
 
+  /// Insert a directory at the front of sys.path; must be called before any import from it
+  void prependSysPath(const std::string& path);
+
   void setupContext();
 
   virtual ~PythonInterpreter();
