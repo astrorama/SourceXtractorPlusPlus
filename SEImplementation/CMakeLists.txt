@@ -79,6 +79,10 @@ else()
   add_definitions(-DWITH_ONNX_MODELS)
 endif()
 
+# Elements installs our Python package under <prefix>/${PYTHON_INSTALL_SUFFIX}, which is only on
+# sys.path when the prefix is a system one. PythonConfig adds it explicitly.
+add_definitions(-DSE_PYTHON_INSTALL_SUFFIX="${PYTHON_INSTALL_SUFFIX}")
+
 elements_add_library(SEImplementation
             src/lib/Background/*.cpp
             src/lib/Background/*/*.cpp
