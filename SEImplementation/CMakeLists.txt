@@ -34,6 +34,7 @@ find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} REQUIRED)
 find_package(Boost 1.53 REQUIRED COMPONENTS python${PYTHON_VERSION_MAJOR}${PYTHON_VERSION_MINOR})
 find_package(OnnxRuntime)
 find_package(Log4CPP REQUIRED)
+find_package(ASDF)
 
 if (${Boost_VERSION} LESS "106700")
     message(WARNING "
@@ -44,6 +45,17 @@ endif ()
 if (${PYTHON_VERSION_MAJOR} VERSION_LESS 3)
     message(DEPRECATION "Python 2 support is deprecated and will be removed (found ${PYTHON_VERSION_STRING})")
 endif ()
+
+# NOTE: these conditions must match SEFramework/CMakeLists.txt, which is where
+# the ASDF sources are actually compiled.  ASDF support additionally requires
+# the libasdf-gwcs plugin with a WCS evaluation backend; SEFramework warns
+# about that case, so stay quiet about it here.
+if(NOT ASDF_FOUND)
+  message("libasdf not found, compiling without ASDF support")
+elseif(ASDF_GWCS_FOUND AND ASDF_GWCS_HAS_AST)
+  add_definitions(-DWITH_ASDF)
+  add_definitions(-DWITH_ASDF_GWCS)
+endif()
 
 #===============================================================================
 # Declare the library dependencies here

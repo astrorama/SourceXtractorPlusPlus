@@ -27,13 +27,13 @@ using namespace SourceXtractor;
 // That image is needed for the regression test WorldOutOfBounds_test
 // Other images with other projections do not trigger the error
 struct WCSFixture {
-  std::string          m_fits_path;
-  std::shared_ptr<WCS> m_wcs;
+  std::string                       m_fits_path;
+  std::shared_ptr<CoordinateSystem> m_wcs_fits;
 
   WCSFixture() {
     m_fits_path = Elements::getAuxiliaryPath("wcs_header.fits").native();
     FitsImageSource fits_source(m_fits_path, 0);
-    m_wcs = std::make_shared<WCS>(fits_source);
+    m_wcs_fits = fits_source.getCoordinateSystem();
   }
 };
 
@@ -50,7 +50,7 @@ BOOST_FIXTURE_TEST_CASE(ImageToWorld_test, WCSFixture) {
   for (size_t i = 0; i < img_coords.size(); ++i) {
     auto img        = img_coords[i];
     auto true_world = world_coords[i];
-    auto world      = m_wcs->imageToWorld(img);
+    auto world      = m_wcs_fits->imageToWorld(img);
     BOOST_CHECK_CLOSE(world.m_alpha, true_world.m_alpha, 1e-4);
     BOOST_CHECK_CLOSE(world.m_delta, true_world.m_delta, 1e-4);
   }
@@ -65,7 +65,7 @@ BOOST_FIXTURE_TEST_CASE(WorldToImage_test, WCSFixture) {
   for (size_t i = 0; i < img_coords.size(); ++i) {
     auto true_img = img_coords[i];
     auto world    = world_coords[i];
-    auto img      = m_wcs->worldToImage(world);
+    auto img      = m_wcs_fits->worldToImage(world);
     BOOST_CHECK_CLOSE(img.m_x, true_img.m_x, 1e-4);
     BOOST_CHECK_CLOSE(img.m_y, true_img.m_y, 1e-4);
   }
@@ -74,11 +74,11 @@ BOOST_FIXTURE_TEST_CASE(WorldToImage_test, WCSFixture) {
 //-----------------------------------------------------------------------------
 
 BOOST_FIXTURE_TEST_CASE(ImageOutOfBounds_test, WCSFixture) {
-  auto world = m_wcs->imageToWorld(ImageCoordinate(-10, -5));
+  auto world = m_wcs_fits->imageToWorld(ImageCoordinate(-10, -5));
   BOOST_CHECK_CLOSE(world.m_alpha, 231.36376564, 1e-4);
   BOOST_CHECK_CLOSE(world.m_delta, 30.74723277, 1e-4);
 
-  world = m_wcs->imageToWorld(ImageCoordinate(2100, 2100));
+  world = m_wcs_fits->imageToWorld(ImageCoordinate(2100, 2100));
   BOOST_CHECK_CLOSE(world.m_alpha, 231.62793621, 1e-4);
   BOOST_CHECK_CLOSE(world.m_delta, 30.8452462, 1e-4);
 }
@@ -93,6 +93,8 @@ BOOST_FIXTURE_TEST_CASE(ImageOutOfBounds_test, WCSFixture) {
 //}
 //
 //-----------------------------------------------------------------------------
+
+
 
 BOOST_AUTO_TEST_SUITE_END()
 

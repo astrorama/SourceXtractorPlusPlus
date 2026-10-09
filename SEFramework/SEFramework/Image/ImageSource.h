@@ -25,11 +25,13 @@
 #ifndef _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 #define _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageTile.h"
 
 #include <boost/variant.hpp>
 #include <map>
+#include <memory>
 
 
 namespace SourceXtractor {
@@ -72,7 +74,20 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
+  /// Sets the current layer to use if the image is in a data cube
+  virtual void setLayer(int /* unused */) { }
+
   virtual ImageTile::ImageType getType() const = 0;
+
+  /**
+   * The coordinate system of this image, or nullptr if it has none
+   *
+   * The returned coordinate system is a fresh instance the caller owns; it is
+   * not shared between calls, since WCS is mutable.
+   *
+   * @return The coordinate system, or nullptr if the image carries no usable one
+   */
+  virtual std::shared_ptr<CoordinateSystem> getCoordinateSystem() const { return nullptr; }
 
   /**
    * @return A copy of the metadata set

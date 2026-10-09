@@ -24,22 +24,41 @@
 #ifndef _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
 #define _SEFRAMEWORK_COORDINATESYSTEM_WCS_H_
 
+#include <array>
 #include <memory>
 #include <map>
+#include <string>
+
+#include <wcslib/wcs.h>
+#include <wcslib/wcshdr.h>
 
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/FITS/FitsImageSource.h"
+#include "SEFramework/FITS/FitsWcsSerializable.h"
+#include "SEUtils/PixelCoordinate.h"
 
 struct wcsprm;
 
 namespace SourceXtractor {
 
-class WCS : public CoordinateSystem {
+class WCS : public CoordinateSystem, public FitsWcsSerializable {
 public:
-  explicit WCS(const FitsImageSource& fits_image_source);
   explicit WCS(const WCS& original);
 
   virtual ~WCS();
+
+  /**
+   * Build a WCS from a raw block of FITS header cards
+   *
+   * @param headers
+   *    Concatenated 80-character header cards, as produced by
+   *    FitsImageSource::getFitsHeaders
+   * @param number_of_records
+   *    The number of cards in that block
+   */
+  static std::shared_ptr<WCS> fromFitsHeaders(char* headers, int number_of_records);
+
+  // Create a trivial WCS for a given number of axes
+  static WCS identity(int naxis);
 
   WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override;
   ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override;
@@ -49,9 +68,41 @@ public:
   void addOffset(PixelCoordinate pc);
 
 private:
-  void init(char* headers, int number_of_records);
+  WCS(char* headers, int number_of_records);
 
-  std::unique_ptr<wcsprm, std::function<void(wcsprm*)>> m_wcs;
+  void initFits(char* headers, int number_of_records);
+
+  struct WcsprmDestroy {
+    int nwcs;
+    bool owned;
+
+    void operator()(wcsprm* wcs) {
+      if (!wcs)
+        return;
+
+      if (nwcs > 0) {
+        wcsvfree(&nwcs, &wcs);
+      } else {
+        wcsfree(wcs);
+        if (owned) {
+          delete wcs;
+        }
+      }
+    }
+  };
+
+  using WcsprmPtr = std::unique_ptr<wcsprm, WcsprmDestroy>;
+
+  WcsprmPtr m_wcs;
+
+  static WcsprmPtr make_wcsprm_ptr();
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned);
+  static WcsprmPtr make_wcsprm_ptr(wcsprm* wcs, bool owned, int nwcs);
+
+  explicit WCS(WcsprmPtr wcs)
+    : m_wcs(std::move(wcs)) {}
+
 };
 
 }
