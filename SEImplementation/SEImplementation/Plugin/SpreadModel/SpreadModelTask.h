@@ -26,6 +26,8 @@
 
 namespace SourceXtractor {
 
+class SpreadModel;
+
 /** Fit one frame's point source, render point/exponential templates, and measure spread.
  * Only m_instance is fitted; the full frame list determines a common rendering scale.
  * Invalid coverage, insufficient pixels, or explicit solver failures yield NaN results.
@@ -52,6 +54,9 @@ public:
   void computeProperties(SourceInterface& source) const override;
 
 private:
+  double computeDownScaling(SourceInterface& source) const;
+  SpreadModel computeFrameSpread(SourceInterface& source, double down_scaling) const;
+
   unsigned int m_instance;
   std::vector<int> m_measurement_frames;
   unsigned int m_max_iterations;

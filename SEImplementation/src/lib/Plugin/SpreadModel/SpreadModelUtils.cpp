@@ -36,30 +36,38 @@ SpreadModel invalidResult() {
   const auto nan = std::numeric_limits<SeFloat>::quiet_NaN();
   return SpreadModel(nan, nan);
 }
-}
 
-double SpreadModelUtils::computePsfFwhm(const VectorImage<SeFloat>& kernel, double pixel_sampling,
-                                      unsigned int subdivisions) {
-  const auto nan = std::numeric_limits<double>::quiet_NaN();
-  if (!finite(pixel_sampling) || pixel_sampling <= 0 || subdivisions == 0 ||
-      kernel.getWidth() < 3 || kernel.getHeight() < 3) {
-    return nan;
-  }
+// Validate the entire kernel while locating the first global maximum.
+std::pair<double, std::size_t> findPsfPeak(const VectorImage<SeFloat>& kernel) {
   const auto& pixels = kernel.getData();
   double peak = 0;
   std::size_t peak_index = 0;
   for (std::size_t i = 0; i < pixels.size(); ++i) {
     if (!finite(pixels[i])) {
-      return nan;
+      return {std::numeric_limits<double>::quiet_NaN(), 0};
     }
     if (pixels[i] > peak) {
       peak = pixels[i];
       peak_index = i;
     }
   }
-  if (peak <= 0) {
-    return nan;
-  }
+  return {peak, peak_index};
+}
+
+double interpolatePsf(const VectorImage<SeFloat>& kernel, std::size_t x, std::size_t y,
+                      unsigned int subdivisions) {
+  const int ix = std::min<int>(x / subdivisions, kernel.getWidth() - 2);
+  const int iy = std::min<int>(y / subdivisions, kernel.getHeight() - 2);
+  const double dx = double(x) / subdivisions - ix;
+  const double dy = double(y) / subdivisions - iy;
+  return (1 - dy) * ((1 - dx) * kernel.getValue(ix, iy) + dx * kernel.getValue(ix + 1, iy)) +
+         dy * ((1 - dx) * kernel.getValue(ix, iy + 1) + dx * kernel.getValue(ix + 1, iy + 1));
+}
+
+// Return the connected half-maximum area in original kernel pixels squared.
+double halfMaximumArea(const VectorImage<SeFloat>& kernel, double peak, std::size_t peak_index,
+                       unsigned int subdivisions) {
+  const auto nan = std::numeric_limits<double>::quiet_NaN();
   // Sample between the original kernel pixel centres. Flood-fill only the
   // four-connected half-maximum region of the global peak, excluding detached lobes.
   const std::size_t nx = std::size_t(kernel.getWidth() - 1) * subdivisions + 1;
@@ -77,12 +85,7 @@ double SpreadModelUtils::computePsfFwhm(const VectorImage<SeFloat>& kernel, doub
     visited[index] = true;
     const auto x = index % nx;
     const auto y = index / nx;
-    const int ix = std::min<int>(x / subdivisions, kernel.getWidth() - 2);
-    const int iy = std::min<int>(y / subdivisions, kernel.getHeight() - 2);
-    const double dx = double(x) / subdivisions - ix;
-    const double dy = double(y) / subdivisions - iy;
-    const double value = (1 - dy) * ((1 - dx) * kernel.getValue(ix, iy) + dx * kernel.getValue(ix + 1, iy)) +
-                         dy * ((1 - dx) * kernel.getValue(ix, iy + 1) + dx * kernel.getValue(ix + 1, iy + 1));
+    const double value = interpolatePsf(kernel, x, y, subdivisions);
     if (value < peak / 2) {
       continue;
     }
@@ -93,9 +96,25 @@ double SpreadModelUtils::computePsfFwhm(const VectorImage<SeFloat>& kernel, doub
     ++area_samples;
     pending.insert(pending.end(), {index - 1, index + 1, index - nx, index + nx});
   }
+  return double(area_samples) / (double(subdivisions) * subdivisions);
+}
+
+}
+
+double SpreadModelUtils::computePsfFwhm(const VectorImage<SeFloat>& kernel, double pixel_sampling,
+                                      unsigned int subdivisions) {
+  const auto nan = std::numeric_limits<double>::quiet_NaN();
+  if (!finite(pixel_sampling) || pixel_sampling <= 0 || subdivisions == 0 ||
+      kernel.getWidth() < 3 || kernel.getHeight() < 3) {
+    return nan;
+  }
+  const auto peak = findPsfPeak(kernel);
+  if (!finite(peak.first) || peak.first <= 0) {
+    return nan;
+  }
   // Area is in original kernel pixels squared. The equivalent-circle diameter
   // defines our FWHM for non-circular PSFs; pixel_sampling converts it to image pixels.
-  const double area = double(area_samples) / (double(subdivisions) * subdivisions);
+  const double area = halfMaximumArea(kernel, peak.first, peak.second, subdivisions);
   const double fwhm = 2 * std::sqrt(area / M_PI) * pixel_sampling;
   return finite(fwhm) && fwhm > 0 ? fwhm : nan;
 }

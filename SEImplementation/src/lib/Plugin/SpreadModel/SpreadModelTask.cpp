@@ -120,21 +120,99 @@ struct SourceModel {
 
 };
 
+bool finite(double value) {
+  return !fastmath_isnan(value) && !fastmath_isinf(value);
+}
+
+SpreadModel invalidResult() {
+  const auto nan = std::numeric_limits<SeFloat>::quiet_NaN();
+  return SpreadModel(nan, nan);
+}
+
+// Keep the mask and noise variances alongside the fit inputs for the final statistic.
+struct FitStamp {
+  std::shared_ptr<VectorImage<SeFloat>> image;
+  std::shared_ptr<VectorImage<SeFloat>> weight;
+  std::vector<double> variances;
+  std::vector<bool> valid;
+  std::size_t valid_pixels = 0;
+};
+
+double pixelVariance(SeFloat pixel_value, SeFloat background_variance, const MeasurementFrameInfo& info) {
+  const SeFloat gain = info.getGain();
+  const SeFloat saturation = info.getSaturation();
+  if (!(finite(pixel_value) && finite(background_variance) && background_variance > 0 &&
+        background_variance <= info.getVarianceThreshold() && !(saturation > 0 && pixel_value >= saturation))) {
+    return 0;
+  }
+  // Negative background-subtracted values must not subtract shot-noise variance.
+  const double variance = double(background_variance) + (gain > 0 ? std::max<double>(pixel_value, 0) / gain : 0);
+  return finite(variance) && variance > 0 ? variance : 0;
+}
+
+FitStamp prepareFitStamp(const MeasurementFrameImages& images, const MeasurementFrameInfo& info,
+                         PixelCoordinate offset, std::size_t width, std::size_t height) {
+  FitStamp stamp;
+  stamp.image = VectorImage<SeFloat>::create(images.getImageChunk(
+      LayerSubtractedImage, offset.m_x, offset.m_y, width, height));
+  stamp.weight = VectorImage<SeFloat>::create(width, height);
+  stamp.variances.assign(width * height, 0);
+  stamp.valid.assign(width * height, false);
+  const auto frame_image = images.getLockedImage(LayerSubtractedImage);
+  const auto variance_map = images.getLockedImage(LayerVarianceMap);
+  // Share the pixel mask between fitting and spread calculation. The fitter takes
+  // residual weights 1/sqrt(V); the statistic uses binary weights and keeps V separately.
+  for (std::size_t y = 0; y < height; ++y) {
+    for (std::size_t x = 0; x < width; ++x) {
+      const auto i = y * width + x;
+      const double variance = pixelVariance(frame_image->getValue(offset.m_x + x, offset.m_y + y),
+          variance_map->getValue(offset.m_x + x, offset.m_y + y), info);
+      if (variance > 0) {
+        stamp.variances[i] = variance;
+        stamp.valid[i] = true;
+        ++stamp.valid_pixels;
+        stamp.weight->at(x, y) = std::sqrt(1.0 / variance);
+      }
+      else {
+        stamp.weight->at(x, y) = 0;
+        // A zero weight alone does not prevent NaN residuals (NaN * 0).
+        stamp.image->at(x, y) = 0;
+      }
+    }
+  }
+  return stamp;
+}
+
+bool centreInFrame(const PointModel& point, PixelCoordinate offset, const MeasurementFrameInfo& info) {
+  // Model coordinates have pixel centres at half integers. Restore the
+  // full-frame coordinates and test against pixel edges, not stamp edges.
+  const double x = point.getX() + offset.m_x;
+  const double y = point.getY() + offset.m_y;
+  return finite(x) && finite(y) && x >= 0 && y >= 0 && x < info.getWidth() && y < info.getHeight();
+}
+
+bool fitPointSource(SourceModel& source_model, PointModel point, FitStamp& stamp,
+                    const DownSampledImagePsf& psf, const std::string& engine_name, unsigned int max_iterations) {
+  using VectorImageType = std::shared_ptr<VectorImage<SeFloat>>;
+  std::vector<PointModel> point_models;
+  point_models.emplace_back(std::move(point));
+  FrameModel<DownSampledImagePsf, VectorImageType> frame_model{
+      1.0, std::size_t(stamp.image->getWidth()), std::size_t(stamp.image->getHeight()), {}, std::move(point_models), {}, psf};
+  ResidualEstimator res_estimator;
+  res_estimator.registerBlockProvider(createDataVsModelResiduals(
+      stamp.image, std::move(frame_model), stamp.weight, AsinhChiSquareComparator{}));
+  EngineParameterManager manager;
+  source_model.registerParameters(manager);
+  auto engine = LeastSquareEngineManager::create(engine_name, max_iterations);
+  const auto solution = engine->solveProblem(manager, res_estimator);
+  // Finite parameters can survive a failed solve. Explicit failures invalidate
+  // this frame; reaching the iteration limit alone remains eligible.
+  return solution.status_flag != LeastSquareSummary::ERROR && solution.status_flag != LeastSquareSummary::MEMORY;
+}
+
 } // namespace
 
-void SpreadModelTask::computeProperties(SourceInterface &source) const {
-  typedef std::shared_ptr<VectorImage<SourceXtractor::SeFloat>> VectorImageType;
-
-  auto &pixel_centroid = source.getProperty<PixelCentroid>();
-  auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
-
-  double pixel_scale = 1;
-
-  // Position is fit in the reference frame's absolute pixel coordinates, then
-  // projected onto each measurement frame
-  double guess_x = pixel_centroid.getCentroidX();
-  double guess_y = pixel_centroid.getCentroidY();
-
+double SpreadModelTask::computeDownScaling(SourceInterface& source) const {
   // Match iterative fitting: estimate the largest stamp area in PSF pixels
   // and use one rendering scale for all measurement frames.
   double fit_size = 0;
@@ -160,174 +238,71 @@ void SpreadModelTask::computeProperties(SourceInterface &source) const {
     down_scaling *= std::sqrt(m_max_fit_area / fit_size);
   }
 
-  {
-    const auto frame_index = m_instance;
-    ResidualEstimator res_estimator{};
-    EngineParameterManager manager{};
+  return down_scaling;
+}
 
-    auto &frame_rect =
-        source.getProperty<MeasurementFrameRectangle>(frame_index);
-    if (!frame_rect.isValid() || frame_rect.isEmpty()) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    // Point-source rendering requires a PSF
-    const auto &psf_property =
-        source.getProperty<SourcePsfProperty>(frame_index);
-    if (!psf_property.getPsf()) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    // Measure the original local PSF before any rendering downsampling changes its profile.
-    const double fwhm = SpreadModelUtils::computePsfFwhm(*psf_property.getPsf(), psf_property.getPixelSampling());
-    if (fastmath_isnan(fwhm) || fastmath_isinf(fwhm) || fwhm <= 0) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    auto frame_coordinates =
-        source.getProperty<MeasurementFrameCoordinates>(frame_index)
-            .getCoordinateSystem();
-    auto &frame_images =
-        source.getProperty<MeasurementFrameImages>(frame_index);
-    auto &frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
-
-    PixelCoordinate offset(frame_rect.getTopLeft().m_x,
-                           frame_rect.getTopLeft().m_y);
-    size_t width = (size_t)frame_rect.getWidth();
-    size_t height = (size_t)frame_rect.getHeight();
-
-    if (width == 0 || height == 0) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-    auto image = VectorImage<SeFloat>::create(frame_images.getImageChunk(
-        LayerSubtractedImage, offset.m_x, offset.m_y, width, height));
-
-    auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
-    auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
-
-    SeFloat gain = frame_info.getGain();
-    SeFloat saturation = frame_info.getSaturation();
-
-    // Share the pixel mask between fitting and spread calculation. The fitter takes
-    // residual weights 1/sqrt(V); the statistic uses binary weights and keeps V separately.
-    auto weight = VectorImage<SeFloat>::create(width, height);
-    std::vector<double> variances(width * height, 0);
-    std::vector<bool> valid(width * height, false);
-    std::size_t valid_pixels = 0;
-    auto finite = [](double value) { return !fastmath_isnan(value) && !fastmath_isinf(value); };
-    for (size_t y = 0; y < height; y++) {
-      for (size_t x = 0; x < width; x++) {
-        auto back_var = variance_map->getValue(offset.m_x + x, offset.m_y + y);
-        auto pixel_val = frame_image->getValue(offset.m_x + x, offset.m_y + y);
-        const auto i = y * width + x;
-        if (finite(pixel_val) && finite(back_var) && back_var > 0 &&
-            back_var <= frame_info.getVarianceThreshold() && !(saturation > 0 && pixel_val >= saturation)) {
-          // Negative background-subtracted values must not subtract shot-noise variance.
-          const double variance = double(back_var) + (gain > 0 ? std::max<double>(pixel_val, 0) / gain : 0);
-          if (finite(variance) && variance > 0) {
-            variances[i] = variance;
-            valid[i] = true;
-            ++valid_pixels;
-            weight->at(x, y) = std::sqrt(1.0 / variance);
-          }
-        }
-        if (!valid[i]) {
-          weight->at(x, y) = 0;
-          // A zero weight alone does not prevent NaN residuals (NaN * 0).
-          image->at(x, y) = 0;
-        }
-      }
-    }
-
-    // The point fit has three free parameters (x, y, flux); require at least
-    // one residual degree of freedom after masking.
-    if (valid_pixels < 4 || !finite(iso_flux) || !finite(guess_x) || !finite(guess_y)) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    // FIXME: temporary hardcoded floor, matching PythonConfig/ObjectInfo.cpp.
-    // Keep the initial flux positive for ExpSigmoidConverter; this should be
-    // configurable.
-    auto flux_guess = std::max<double>(iso_flux, 0.0001);
-
-    auto source_model = make_unique<SourceModel>(
-        flux_guess, guess_x, guess_y, 5.0 /* FIXME radius_guess * 2*/);
-
-    std::vector<PointModel> point_models;
-    auto reference_coordinates =
-        source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
-    point_models.emplace_back(source_model->createPointModelForFrame(
-        reference_coordinates, frame_coordinates, offset));
-
-    auto centre_in_frame = [&](const PointModel& point) {
-      // Model coordinates have pixel centres at half integers. Restore the
-      // full-frame coordinates and test against pixel edges, not stamp edges.
-      const double x = point.getX() + offset.m_x;
-      const double y = point.getY() + offset.m_y;
-      return finite(x) && finite(y) && x >= 0 && y >= 0 &&
-             x < frame_info.getWidth() && y < frame_info.getHeight();
-    };
-    if (!centre_in_frame(point_models.front())) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    DownSampledImagePsf psf(psf_property.getPixelSampling(),
-                            psf_property.getPsf(), down_scaling,
-                            m_should_renormalize.at(frame_index));
-
-    FrameModel<DownSampledImagePsf, VectorImageType> frame_model{
-        pixel_scale,
-        width,
-        height,
-        std::vector<ConstantModel>{},
-        std::move(point_models),
-        std::vector<std::shared_ptr<
-            ModelFitting::ExtendedModel<ImageInterfaceTypePtr>>>{},
-        psf};
-
-    auto data_vs_model = createDataVsModelResiduals(
-        image, std::move(frame_model), weight, AsinhChiSquareComparator{});
-    res_estimator.registerBlockProvider(std::move(data_vs_model));
-
-    source_model->registerParameters(manager);
-
-    // Perform the minimization
-    auto engine = LeastSquareEngineManager::create(m_least_squares_engine,
-                                                   m_max_iterations);
-    const auto solution = engine->solveProblem(manager, res_estimator);
-    // Finite parameters can survive a failed solve. Explicit failures invalidate
-    // this frame; reaching the iteration limit alone remains eligible.
-    if (solution.status_flag == LeastSquareSummary::ERROR || solution.status_flag == LeastSquareSummary::MEMORY) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-
-    // Snapshot the fitted position in exactly the same pixel convention as the point fit.
-    auto fitted_point = source_model->createPointModelForFrame(reference_coordinates, frame_coordinates, offset);
-    const auto flux = source_model->flux->getValue();
-    if (!finite(flux) || flux <= 0 || !centre_in_frame(fitted_point)) {
-      source.setIndexedProperty<SpreadModel>(frame_index,
-          std::numeric_limits<SeFloat>::quiet_NaN(), std::numeric_limits<SeFloat>::quiet_NaN());
-      return;
-    }
-    const auto stamps = SpreadModelUtils::renderModels(fitted_point.getX(), fitted_point.getY(), flux, fwhm,
-                                                      width, height, psf);
-    const auto result = SpreadModelUtils::computeSpread(*stamps.first, *stamps.second, *image, variances, valid);
-    source.setIndexedProperty<SpreadModel>(frame_index, result.getSpreadModel(), result.getSpreadModelError());
+SpreadModel SpreadModelTask::computeFrameSpread(SourceInterface& source, double down_scaling) const {
+  const auto& frame_rect = source.getProperty<MeasurementFrameRectangle>(m_instance);
+  if (!frame_rect.isValid() || frame_rect.isEmpty()) {
+    return invalidResult();
   }
+  // Point-source rendering requires a PSF.
+  const auto& psf_property = source.getProperty<SourcePsfProperty>(m_instance);
+  if (!psf_property.getPsf()) {
+    return invalidResult();
+  }
+  // Measure the original local PSF before any rendering downsampling changes its profile.
+  const double fwhm = SpreadModelUtils::computePsfFwhm(*psf_property.getPsf(), psf_property.getPixelSampling());
+  if (!finite(fwhm) || fwhm <= 0) {
+    return invalidResult();
+  }
+  const auto frame_coordinates = source.getProperty<MeasurementFrameCoordinates>(m_instance).getCoordinateSystem();
+  const auto& frame_images = source.getProperty<MeasurementFrameImages>(m_instance);
+  const auto& frame_info = source.getProperty<MeasurementFrameInfo>(m_instance);
+  const PixelCoordinate offset(frame_rect.getTopLeft().m_x, frame_rect.getTopLeft().m_y);
+  const auto width = std::size_t(frame_rect.getWidth());
+  const auto height = std::size_t(frame_rect.getHeight());
+  if (width == 0 || height == 0) {
+    return invalidResult();
+  }
+  auto stamp = prepareFitStamp(frame_images, frame_info, offset, width, height);
+  const auto& centroid = source.getProperty<PixelCentroid>();
+  const auto iso_flux = source.getProperty<IsophotalFlux>().getFlux();
+  const double guess_x = centroid.getCentroidX();
+  const double guess_y = centroid.getCentroidY();
+  // The point fit has three free parameters (x, y, flux); require at least
+  // one residual degree of freedom after masking.
+  if (stamp.valid_pixels < 4 || !finite(iso_flux) || !finite(guess_x) || !finite(guess_y)) {
+    return invalidResult();
+  }
+  // FIXME: temporary hardcoded floor, matching PythonConfig/ObjectInfo.cpp.
+  // Keep the initial flux positive for ExpSigmoidConverter; this should be configurable.
+  const auto flux_guess = std::max<double>(iso_flux, 0.0001);
+  SourceModel source_model(flux_guess, guess_x, guess_y, 5.0 /* FIXME radius_guess * 2 */);
+  const auto reference_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
+  auto point = source_model.createPointModelForFrame(reference_coordinates, frame_coordinates, offset);
+  if (!centreInFrame(point, offset, frame_info)) {
+    return invalidResult();
+  }
+  DownSampledImagePsf psf(psf_property.getPixelSampling(), psf_property.getPsf(), down_scaling,
+                          m_should_renormalize.at(m_instance));
+  if (!fitPointSource(source_model, std::move(point), stamp, psf, m_least_squares_engine, m_max_iterations)) {
+    return invalidResult();
+  }
+  // Snapshot the fitted position in exactly the same pixel convention as the point fit.
+  const auto fitted_point = source_model.createPointModelForFrame(reference_coordinates, frame_coordinates, offset);
+  const auto flux = source_model.flux->getValue();
+  if (!finite(flux) || flux <= 0 || !centreInFrame(fitted_point, offset, frame_info)) {
+    return invalidResult();
+  }
+  const auto stamps = SpreadModelUtils::renderModels(fitted_point.getX(), fitted_point.getY(), flux, fwhm,
+                                                    width, height, psf);
+  return SpreadModelUtils::computeSpread(*stamps.first, *stamps.second, *stamp.image, stamp.variances, stamp.valid);
+}
+
+void SpreadModelTask::computeProperties(SourceInterface& source) const {
+  const auto result = computeFrameSpread(source, computeDownScaling(source));
+  source.setIndexedProperty<SpreadModel>(m_instance, result.getSpreadModel(), result.getSpreadModelError());
 }
 
 } // namespace SourceXtractor
