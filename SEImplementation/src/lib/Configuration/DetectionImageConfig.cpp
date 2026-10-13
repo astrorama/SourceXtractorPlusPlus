@@ -135,7 +135,7 @@ void DetectionImageConfig::initialize(const UserValues& args) {
         args.find(REFERENCE_IMAGE)->second.as<std::string>());
       image_reader->setWcsPath(getWcsPath(args, REFERENCE_IMAGE_WCS_PATH));
 
-      auto reference_image_source = image_reader->get(0);
+      auto reference_image_source = image_reader->get();
       extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
       m_extensions.emplace_back(std::move(extension));
 

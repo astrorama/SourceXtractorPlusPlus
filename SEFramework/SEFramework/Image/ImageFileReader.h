@@ -65,9 +65,9 @@ public:
   virtual ~ImageFileReader() = default;
 
   /**
-   * Equivalent to calling get(m_image_index/m_image_path, ImageTile::AutoType)
+   * Equivalent to calling get(m_image_index/m_image_path, image_type)
    */
-  std::shared_ptr<ImageSource> get();
+  std::shared_ptr<ImageSource> get(ImageTile::ImageType image_type = ImageTile::AutoType);
 
   virtual std::shared_ptr<ImageSource> get(
     int image_index, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
@@ -139,19 +139,10 @@ public:
   }
 
   private:
-    void advance() {
-      // If m_reader is null the iterator is considered "done"
-      if (nullptr == m_reader) {
-        m_current = nullptr;
-        return;
-      }
-
-      try {
-        m_current = m_reader->get(m_index, m_image_type);
-      } catch (...) {
-        m_current = nullptr;
-      }
-    }
+    /**
+     * Fetch the image at the current position, leaving it null once done
+     */
+    void advance();
 
     ImageFileReader* m_reader;
     int m_index;
@@ -279,6 +270,19 @@ public:
   static void registerFileType(ImageFileType file_type);
 
 protected:
+  /**
+   * Whether the file[image] suffix selects which image(s) in the file are used
+   *
+   * get() and iter() then cover only the selection, rather than defaulting to
+   * the first image or walking the whole file.  A selection names a single
+   * image today, by index or by path, so iterating one yields exactly one
+   * image; it need not stay that narrow (e.g. one could imagine a wildcard
+   * selection).
+   */
+  bool hasImageSelection() const {
+    return m_image_index >= 0 || m_image_path.has_value();
+  }
+
   std::string m_filename;
   std::optional<std::string> m_image_path;
   int m_image_index;

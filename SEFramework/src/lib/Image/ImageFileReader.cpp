@@ -93,14 +93,48 @@ ImageFileReader::ImageFileReader(const std::string& filename, int image_index)
     : m_filename(filename), m_image_index(image_index) {}
 
 
-std::shared_ptr<ImageSource> ImageFileReader::get() {
+std::shared_ptr<ImageSource> ImageFileReader::get(ImageTile::ImageType image_type) {
   if (m_image_index >= 0) {
-    return get(m_image_index, ImageTile::AutoType);
+    return get(m_image_index, image_type);
   } else if (m_image_path) {
-    return get(*m_image_path, ImageTile::AutoType);
+    return get(*m_image_path, image_type);
   }
 
-  return get(0);
+  return get(0, image_type);
+}
+
+
+void ImageFileReader::Iterator::advance() {
+  // If m_reader is null the iterator is considered "done"
+  if (nullptr == m_reader) {
+    m_current = nullptr;
+    return;
+  }
+
+  // A file[image] suffix selects which images the file offers, so iterate over
+  // the selection rather than over everything.  A selection names a single image
+  // today; one that could cover several (a wildcard, say) would instead return
+  // the m_index'th image it selects here
+  if (m_reader->hasImageSelection()) {
+    m_current = (0 == m_index) ? m_reader->get(m_image_type) : nullptr;
+    return;
+  }
+
+  try {
+    m_current = m_reader->get(m_index, m_image_type);
+  } catch (const std::exception& e) {
+    // Running off the end of the file is how iteration terminates, so a failure
+    // past the first image just ends it.  The first image is different: there is
+    // no earlier one that succeeded, so reporting "no images" would hide the
+    // real reason the file could not be read
+    if (0 == m_index) {
+      throw;
+    }
+
+    logger.debug() << "Stopping iteration of " << m_reader->m_filename << " at image "
+                   << m_index << ": " << e.what();
+    m_current = nullptr;
+  }
 }
 
 

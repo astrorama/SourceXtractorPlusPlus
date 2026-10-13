@@ -118,4 +118,85 @@ BOOST_FIXTURE_TEST_CASE(create_missing_file_with_image_path, ImageFileReaderFixt
 
 //-----------------------------------------------------------------------------
 
+/// With nothing selected, iteration walks every image in the file.
+/// multiple_hdu.fits holds two (the primary HDU carries no data and the table is
+/// not an image)
+BOOST_FIXTURE_TEST_CASE(iter_all_images, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+
+  int image_count = 0;
+  for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+    BOOST_CHECK(img_source != nullptr);
+    image_count++;
+  }
+
+  BOOST_CHECK_EQUAL(image_count, 2);
+}
+
+//-----------------------------------------------------------------------------
+
+/// A file[image] suffix selects the one image it names, so iteration covers that
+/// alone rather than every image in the file
+BOOST_FIXTURE_TEST_CASE(iter_selected_by_index, ImageFileReaderFixture) {
+  for (int index : {0, 1}) {
+    auto reader = ImageFileReader::create(fits_path + "[" + std::to_string(index) + "]");
+
+    int image_count = 0;
+    for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+      BOOST_CHECK(img_source != nullptr);
+      image_count++;
+    }
+
+    BOOST_CHECK_EQUAL(image_count, 1);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/// A selection that matches nothing is an error, not an empty iteration: there
+/// is no other image the user could have meant
+BOOST_FIXTURE_TEST_CASE(iter_selected_missing_index, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path + "[99]");
+
+  BOOST_CHECK_THROW(
+      {
+        for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+          BOOST_CHECK(img_source != nullptr);
+        }
+      },
+      Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/// Likewise for the first image when nothing was selected: reporting an empty
+/// file would hide whatever actually went wrong
+BOOST_FIXTURE_TEST_CASE(iter_first_image_failure_propagates, ImageFileReaderFixture) {
+  // A FITS file with no readable image at all: valid enough to be recognized by
+  // its header, but with nothing for the reader to return
+  auto path = inTempDir("header_only.fits");
+  {
+    std::ofstream out{path, std::ios::binary};
+    std::string card(80, ' ');
+    card.replace(0, 30, "SIMPLE  =                    T");
+    out << card;
+    card.assign(80, ' ');
+    card.replace(0, 3, "END");
+    out << card;
+    out << std::string(2880 - 160, ' ');
+  }
+
+  auto reader = ImageFileReader::create(path);
+
+  BOOST_CHECK_THROW(
+      {
+        for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+          BOOST_CHECK(img_source != nullptr);
+        }
+      },
+      std::exception);
+}
+
+//-----------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_SUITE_END()

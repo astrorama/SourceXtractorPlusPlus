@@ -80,7 +80,14 @@ AsdfImageSource::AsdfImageSource(const std::string& filename, int image_index,
     }
 
     if (!m_ndarray) {
-      throw AsdfImageSource::InvalidImageNdarrayException();
+      // NOTE: getNdarray(int) only looks at the top level of the tree, so a file
+      // that nests its arrays (as Roman data products do under /roman) lands here
+      // even though it does hold images; naming one with file[path] still works
+      // TODO: The above still needs to be fixed.
+      throw AsdfImageSource::InvalidImageNdarrayException()
+        << "No image at index " << image_index << " in ASDF file: " << filename
+        << " (only top-level arrays are found by index; if the file nests its "
+           "arrays, name one explicitly as " << filename << "[/path/to/array])";
     }
   }
 

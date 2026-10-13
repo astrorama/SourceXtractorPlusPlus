@@ -100,6 +100,42 @@ BOOST_AUTO_TEST_CASE ( open_with_extname ) {
 
 //-----------------------------------------------------------------------------
 
+/// A file[path] suffix selects the one array it names, so iteration covers that
+/// alone.  This is what lets a file whose arrays are nested (Roman data products
+/// keep theirs under /roman) be used at all, since indexed lookup only finds
+/// top-level arrays
+BOOST_AUTO_TEST_CASE( iterate_with_extname ) {
+  auto reader = ImageFileReader::create(
+      Elements::getAuxiliaryPath("multiple_hdu.asdf").native() + "[IMAGE2]");
+
+  int image_count = 0;
+  for (const auto& img_source: reader->iter(ImageTile::FloatImage)) {
+    auto asdf_source = std::dynamic_pointer_cast<AsdfImageSource>(img_source);
+    BOOST_CHECK(asdf_source != nullptr);
+    BOOST_CHECK_EQUAL(asdf_source->getWidth(), 1);
+    image_count++;
+  }
+
+  BOOST_CHECK_EQUAL(image_count, 1);
+}
+
+//-----------------------------------------------------------------------------
+
+/// Selecting an array that is not in the tree is an error, not an empty
+/// iteration
+BOOST_AUTO_TEST_CASE( iterate_with_missing_extname ) {
+  auto reader = ImageFileReader::create(
+      Elements::getAuxiliaryPath("multiple_hdu.asdf").native() + "[NO_SUCH_IMAGE]");
+
+  BOOST_CHECK_THROW({
+    for (const auto& img_source: reader->iter(ImageTile::FloatImage)) {
+      BOOST_CHECK(img_source != nullptr);
+    }
+  }, Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_CASE( missing_file ) {
   BOOST_CHECK_THROW(AsdfReader::readImage<SeFloat>("/not/existing/path"), Elements::Exception);
 }
