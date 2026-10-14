@@ -28,8 +28,14 @@ try:
     import pyston
 except ImportError:
     warnings.warn('Could not import pyston: running outside sourcextractor?', ImportWarning)
-from astropy import units as u
-from astropy.coordinates import SkyCoord
+# NumPy probes the float limits when astropy imports it, and this process runs
+# with subnormals flushed to zero (due to -ffast-math), so every probe warns
+# that they are zero
+with warnings.catch_warnings():
+    warnings.filterwarnings('ignore', message='The value of the smallest subnormal',
+                            category=UserWarning)
+    from astropy import units as u
+    from astropy.coordinates import SkyCoord
 
 from .measurement_images import MeasurementGroup
 
