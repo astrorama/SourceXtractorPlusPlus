@@ -19,6 +19,8 @@
 #define SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 
 #include <iostream>
+
+#include "ElementsKernel/Exception.h"
 #include "Histogram/Histogram.h"
 
 namespace SourceXtractor {
@@ -67,6 +69,11 @@ public:
    */
   template<typename Iterator>
   void computeBins(Iterator begin, Iterator end) {
+    // *begin is dereferenced below, and there are no bins to compute anyway
+    if (begin == end) {
+      throw Elements::Exception() << "Can't compute background histogram bins: no data points";
+    }
+
     // Compute mean and standard deviation of the original data set
     double mean, sigma;
     size_t ndata;
@@ -95,7 +102,16 @@ public:
     }
     std::tie(mean, sigma, ndata) = stats.get();
 
-    assert(ndata > 0);
+    // Every comparison against a NaN cut is false, so an empty selection here is
+    // what a non-finite input value looks like by the time it reaches this point.
+    // Throw in this case (previously there was a bare assert which, when compiled
+    // out, would just fall down to the code below allowing NaNs to propagate
+    // silently, or eventually segfault).
+    if (ndata == 0) {
+      throw Elements::Exception()
+          << "Can't compute background histogram bins: no data points within " << m_kappa
+          << " sigma of the mean; the input may contain NaN or infinite values";
+    }
 
     // Number of bins
     m_nbins = computeBinCount(ndata);
