@@ -17,9 +17,12 @@
 
 #include <Histogram/Histogram.h> // From Alexandria
 
+#include "ElementsKernel/Exception.h"
+
 #include "SEFramework/Image/ImageChunk.h"
 #include "SEImplementation/Background/SE/ImageMode.h"
 #include "SEImplementation/Background/SE/KappaSigmaBinning.h"
+#include "SEUtils/IsNan.h"
 
 
 using Euclid::Histogram::Histogram;
@@ -96,7 +99,11 @@ std::tuple<T, T> ImageMode<T>::getBackGuess(const std::vector<T>& data) const {
   std::tie(mean, median, sigma) = histo.getStats();
   T prev_sigma = sigma * 10;
 
-  assert(!std::isnan(mean));
+  // processCell() filters non-finite pixels out, so this should be unreachable;
+  // std::isnan would have been compiled away by -ffast-math in any case
+  if (fastmath_isnan(mean)) {
+    throw Elements::Exception() << "Background histogram produced a NaN mean";
+  }
 
   for (size_t iter = 0; iter < m_max_iter && sigma > atol && std::abs(sigma / prev_sigma - 1.0) > m_rtol; ++iter) {
     histo.clip(median - sigma * m_kappa3, median + sigma * m_kappa3);
@@ -137,7 +144,11 @@ void ImageMode<T>::processCell(const Image<T>& img, int x, int y,
   for (int y = 0; y < h; ++y) {
     for (int x = 0; x < w; ++x) {
       auto v = img_chunk.getValue(x, y);
-      if (v != m_invalid)
+      // A NaN compares unequal to everything, so the sentinel test alone lets it
+      // through, and one is enough to poison the whole cell's statistics.  An
+      // infinity does the same by way of Inf - Inf.  fastmath_isnan/isinf rather
+      // than std::isnan/isfinite because -ffast-math compiles the latter away
+      if (v != m_invalid && !fastmath_isnan(v) && !fastmath_isinf(v))
         filtered.emplace_back(v);
     }
   }
