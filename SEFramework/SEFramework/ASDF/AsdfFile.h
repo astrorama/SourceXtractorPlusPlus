@@ -147,7 +147,7 @@ public:
    *
    * Enumerated once on first use and cached, so repeated lookups do not re-walk the
    * tree.  Note this cannot tell an image from any other array of the right shape and
-   * type; see the TODO in AsdfReader about excluding known non-image schemas.
+   * type, so the caller has to cope with there being more than one candidate.
    */
   const std::vector<std::string>& getImageNdarrayPaths();
 

@@ -75,6 +75,16 @@ public:
     const std::string& image_path, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
 
   /**
+   * Select which image within the file to use, unless the filename already said
+   *
+   * Takes the same text as a file[image] suffix: an integer index, or a path whose
+   * meaning is the format's own (an ASDF tree path, a FITS EXTNAME).  Intended for a
+   * configured default covering many files, so an explicit suffix on one filename
+   * takes precedence and this is then ignored.
+   */
+  void setImagePath(const std::string& image_path);
+
+  /**
    * Whether this file format can select a coordinate system by path
    *
    * True for formats that may hold several coordinate systems with no fixed

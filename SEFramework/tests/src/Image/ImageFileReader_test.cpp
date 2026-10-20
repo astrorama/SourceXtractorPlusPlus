@@ -130,7 +130,7 @@ BOOST_FIXTURE_TEST_CASE(create_missing_file_with_image_path, ImageFileReaderFixt
  * explicitly otherwise.  Nor is a rule of the format.  E.g. HST products
  * interleave tables between science and SQ arrays.
  *
- * This is however the long-standing behavior in SE++ since MEF support was,
+ * This is however the long-standing behavior in SE++ since MEF support was
  * added, so we encode the policy in this test for now, lest we decide to
  * change it later.  See also the comment in FitsReader::get.
  */
@@ -152,6 +152,45 @@ BOOST_FIXTURE_TEST_CASE(iter_stops_at_first_non_image, ImageFileReaderFixture) {
 /// alone rather than every image in the file
 BOOST_FIXTURE_TEST_CASE(iter_selected_by_index, ImageFileReaderFixture) {
   auto reader = ImageFileReader::create(fits_path + "[0]");
+
+  int image_count = 0;
+  for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+    BOOST_CHECK(img_source != nullptr);
+    image_count++;
+  }
+
+  BOOST_CHECK_EQUAL(image_count, 1);
+}
+
+//-----------------------------------------------------------------------------
+
+/// setImagePath() selects an image for a filename that does not name one itself
+BOOST_FIXTURE_TEST_CASE(set_image_path_selects, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+  reader->setImagePath("0");
+
+  int image_count = 0;
+  for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
+    BOOST_CHECK(img_source != nullptr);
+    image_count++;
+  }
+
+  BOOST_CHECK_EQUAL(image_count, 1);
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * A file[image] suffix takes precedence over a configured image path
+ *
+ * The suffix names one particular file, whereas the configured path typically
+ * covers many, so the suffix is the more specific of the two.  Asking for index 99
+ * here is what makes the test sharp: were the configured path to win, iteration
+ * would throw rather than yield the image the suffix named.
+ */
+BOOST_FIXTURE_TEST_CASE(set_image_path_yields_to_suffix, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path + "[0]");
+  reader->setImagePath("99");
 
   int image_count = 0;
   for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {

@@ -49,39 +49,51 @@ static std::map<std::string, ImageFileReader::ImageFileType>& getExtensionMap() 
 }
 
 
+/**
+ * Interpret the text naming one image within a file
+ *
+ * An integer is an index; anything else is a path whose meaning is the format's own,
+ * an ASDF tree path or a FITS EXTNAME.  Shared by the file[image] suffix and by
+ * setImagePath(), so the two always agree on what a selector means.
+ */
+static void parseImageSelector(const std::string& selector,
+                               std::optional<std::string>& image_path, int& image_index) {
+  try {
+    size_t idx;
+    int parsed = std::stoi(selector, &idx);
+
+    if (idx == selector.size()) {
+      image_path = std::nullopt;
+      image_index = parsed;
+      return;
+    }
+  } catch (...) {
+    // Not an integer, treat as a path
+  }
+
+  image_path = selector;
+  image_index = -1;
+}
+
+
 ImageFileReader::ImageFileReader(const std::string& filename) {
   std::string base_filename = filename;
-  std::optional<std::string> image_path;
+  std::optional<std::string> selector;
 
   // Check for optional [image_path]
   boost::regex suffix_regex(R"((^.*)\[(.*)\]$)");
   boost::smatch match;
   if (boost::regex_match(filename, match, suffix_regex)) {
     base_filename = match[1];
-    image_path = match[2];
+    selector = match[2];
   }
 
-  if (image_path) {
-    m_filename = base_filename;
+  m_filename = base_filename;
+  m_image_path = std::nullopt;
+  m_image_index = -1;
 
-    try {
-      size_t idx;
-      int image_index = std::stoi(*image_path, &idx);
-      if (idx == image_path->size()) {
-        m_image_path = std::nullopt;
-        m_image_index = image_index;
-        return;
-      }
-    } catch (...) {
-      // Not an integer, treat as string
-    }
-
-    m_image_path = image_path;
-    m_image_index = -1;
-  } else {
-    m_filename = base_filename;
-    m_image_path = std::nullopt;
-    m_image_index = -1;
+  if (selector) {
+    parseImageSelector(*selector, m_image_path, m_image_index);
   }
 }
 
@@ -181,6 +193,20 @@ static std::unique_ptr<ImageFileReader> tryCreateFromFile(
       return file_type.factory(filename);
   }
   return nullptr;
+}
+
+
+void ImageFileReader::setImagePath(const std::string& image_path) {
+  // A file[image] suffix names one particular file, whereas this normally comes from
+  // a configuration that applies to many, so the suffix is the more specific of the
+  // two and wins
+  if (hasImageSelection()) {
+    logger.info() << "Ignoring the configured image path for " << m_filename
+                  << ", which already names an image itself";
+    return;
+  }
+
+  parseImageSelector(image_path, m_image_path, m_image_index);
 }
 
 
