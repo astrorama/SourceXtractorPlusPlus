@@ -489,11 +489,17 @@ void AsdfFile::Ndarray::fillImageTile(const std::shared_ptr<ImageTile> image_til
   switch (err) {
     case ASDF_NDARRAY_OK:
       break;
-    case ASDF_NDARRAY_ERR_OUT_OF_BOUNDS:
+    case ASDF_NDARRAY_ERR_OUT_OF_BOUNDS: {
+      std::ostringstream shape_str;
+      for (uint64_t i = 0; i < m_ndarray_ptr->ndim; i++) {
+        shape_str << (i ? ", " : "") << m_ndarray_ptr->shape[i];
+      }
       throw Elements::Exception() << "requested image tile (" << image_tile->getPosX()
         << ", " << image_tile->getPosY() << ") -> ("
         << image_tile->getPosX() + image_tile->getWidth() << ", "
-        << image_tile->getPosY() + image_tile->getHeight() << ") is out of bounds";
+        << image_tile->getPosY() + image_tile->getHeight() << ") is out of bounds for the "
+        << "ndarray at " << m_path << " with shape [" << shape_str.str() << "]";
+    }
     case ASDF_NDARRAY_ERR_OOM:
       throw Elements::Exception() << "out of memory copying image tile";
     case ASDF_NDARRAY_ERR_INVAL:
