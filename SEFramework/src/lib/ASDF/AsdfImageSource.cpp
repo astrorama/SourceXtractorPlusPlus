@@ -56,39 +56,19 @@ AsdfImageSource::AsdfImageSource(const std::string& filename, int image_index,
   if (image_path) {
     m_ndarray = std::move(file.getNdarray(image_path.value()));
   } else {
-    // Find the <image_index>'th ndarray that actually looks like a usable image
-    int found = 0;
-    int ndarray_index = 0;
-    while (found <= image_index) {
-      try {
-        auto ndarray = file.getNdarray(ndarray_index);
+    // The candidate images are enumerated once per file and cached, so indexing is a
+    // lookup rather than a fresh walk of the tree for every index
+    const auto& paths = file.getImageNdarrayPaths();
 
-        if (ndarray->isSupportedImage()) {
-          if (found == image_index) {
-            m_ndarray = std::move(ndarray);
-            break;
-          } else {
-            found++;
-          }
-        }
-      } catch (const AsdfFile::AsdfUnsupportedDatatypeException&) {
-        // continue
-      } catch (const AsdfFile::AsdfValueNotFoundException&) {
-        break;
-      }
-      ndarray_index++;
-    }
-
-    if (!m_ndarray) {
-      // NOTE: getNdarray(int) only looks at the top level of the tree, so a file
-      // that nests its arrays (as Roman data products do under /roman) lands here
-      // even though it does hold images; naming one with file[path] still works
-      // TODO: The above still needs to be fixed.
+    if (image_index < 0 || static_cast<size_t>(image_index) >= paths.size()) {
       throw AsdfImageSource::InvalidImageNdarrayException()
         << "No image at index " << image_index << " in ASDF file: " << filename
-        << " (only top-level arrays are found by index; if the file nests its "
-           "arrays, name one explicitly as " << filename << "[/path/to/array])";
+        << " (the file holds " << paths.size() << "; an image is a 2D or 3D array of a "
+           "supported numeric type, and one can also be named explicitly as "
+        << filename << "[/path/to/array])";
     }
+
+    m_ndarray = std::move(file.getNdarray(paths.at(image_index)));
   }
 
   uint64_t ndim = m_ndarray->ndim();

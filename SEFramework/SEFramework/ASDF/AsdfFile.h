@@ -132,10 +132,24 @@ public:
   };
 
   /**
-   * Return the N-th ndarray from the top-level of the ASDF tree iterating the top-level
-   * keys in order.
+   * Return the N-th ndarray in the ASDF tree, in breadth-first order
    */
   std::unique_ptr<Ndarray> getNdarray(int index);
+
+  /**
+   * The tree paths of every ndarray that looks like an image, breadth-first
+   *
+   * "Looks like an image" is Ndarray::isSupportedImage(): 2 or 3 dimensional, of a
+   * datatype an ImageTile can hold.  Breadth-first matters because arrays nearer the
+   * root are the ones a file is actually about; a Roman mosaic keeps its image planes
+   * at /roman/<name> but also has a 2x2 float64 `pc` matrix buried in its GWCS, which
+   * is a perfectly good ndarray by this test. Of course, this is merely a heuristic.
+   *
+   * Enumerated once on first use and cached, so repeated lookups do not re-walk the
+   * tree.  Note this cannot tell an image from any other array of the right shape and
+   * type; see the TODO in AsdfReader about excluding known non-image schemas.
+   */
+  const std::vector<std::string>& getImageNdarrayPaths();
 
   /**
    * Return any ndarray from any path in the ASDF tree
@@ -181,6 +195,9 @@ private:
 
   boost::filesystem::path m_path;
   std::unique_ptr<asdf_file_t, void (*)(asdf_file_t*)> m_asdf_ptr;
+
+  /// Cache for getImageNdarrayPaths(); empty optional means "not enumerated yet"
+  std::optional<std::vector<std::string>> m_image_ndarray_paths;
 
   void open();
 };

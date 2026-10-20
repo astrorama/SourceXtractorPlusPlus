@@ -26,6 +26,7 @@
 
 #include <cstdio>
 #include <mutex>
+#include <sstream>
 #include <string>
 
 #include <boost/algorithm/string/trim.hpp>
@@ -252,39 +253,35 @@ void AsdfFile::open() {
 }
 
 // TODO: Support negative indexing as well
-// TODO: Probably change this to use asdf_value_find_iter instead, and
-// enumerate all ndarray in breadth-first order rather than just top-level.
 std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
   AsdfValuePtr root = getValue("/");
 
-  if (!asdf_value_is_mapping(root.get())) {
-    throw AsdfValueNotFoundException() << "ASDF tree root is not a mapping in file: "
+  // Breadth-first, so that arrays nearer the root are found first.  That is what
+  // makes indexing predictable on real files: a Roman L3 mosaic keeps its image
+  // planes at /roman/<name> (depth 2) but also has a 2x2 float64 `pc` matrix at
+  // /roman/meta/wcs/steps[0]/transform (depth 7), so this happens to be a good
+  // heuristic for such files.  Depth-first would hand back the WCS matrix as
+  // "image 0".
+  asdf_find_iter_t* iter = asdf_find_iter_init(root.get(), &asdf_value_is_ndarray);
+
+  if (iter == nullptr) {
+    throw AsdfValueNotFoundException() << "Could not walk the ASDF tree in file: "
       << m_path.native();
   }
 
-  asdf_mapping_t* mapping = nullptr;
-
-  if (ASDF_VALUE_OK != asdf_value_as_mapping(root.get(), &mapping)) {
-    throw AsdfValueNotFoundException() << "Could not read the ASDF tree root as a mapping "
-      "in file: " << m_path.native();
-  }
-
-  asdf_mapping_iter_t* iter = asdf_mapping_iter_init(mapping);
   int count = 0;
 
-  while (asdf_mapping_iter_next(&iter)) {
-    if (asdf_value_is_ndarray(iter->value)) {
-      if (count == index) {
-        // The iterator's value is only valid until the next iteration step, so
-        // take an owned copy before breaking out of the loop.  Breaking early
-        // also means destroying the iterator by hand; it frees itself only when
-        // iteration runs to exhaustion.
-        AsdfValuePtr value_copy = AsdfValuePtr(asdf_value_copy(iter->value));
-        asdf_mapping_iter_destroy(iter);
-        return std::unique_ptr<Ndarray>(new Ndarray(*this, value_copy.get()));
-      }
-      count++;
+  while (asdf_value_find_iter_next(&iter)) {
+    if (count == index) {
+      // The iterator's value is only valid until the next iteration step, so
+      // take an owned copy before breaking out of the loop.  Breaking early
+      // also means destroying the iterator by hand; it frees itself only when
+      // iteration runs to exhaustion.
+      AsdfValuePtr value_copy = AsdfValuePtr(asdf_value_copy(iter->value));
+      asdf_find_iter_destroy(iter);
+      return std::unique_ptr<Ndarray>(new Ndarray(*this, value_copy.get()));
     }
+    count++;
   }
 
   throw AsdfValueNotFoundException() << "No ndarray at index " << index << " in file: "
@@ -295,6 +292,39 @@ std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(int index) {
 std::unique_ptr<AsdfFile::Ndarray> AsdfFile::getNdarray(const std::string &path) {
   AsdfValuePtr value = getValue(path);
   return std::unique_ptr<Ndarray>(new Ndarray(*this, value.get()));
+}
+
+
+const std::vector<std::string>& AsdfFile::getImageNdarrayPaths() {
+  if (m_image_ndarray_paths) {
+    return *m_image_ndarray_paths;
+  }
+
+  std::vector<std::string> paths;
+  AsdfValuePtr root = getValue("/");
+  asdf_find_iter_t* iter = asdf_find_iter_init(root.get(), &asdf_value_is_ndarray);
+
+  if (iter == nullptr) {
+    throw AsdfValueNotFoundException() << "Could not walk the ASDF tree in file: "
+      << m_path.native();
+  }
+
+  while (asdf_value_find_iter_next(&iter)) {
+    // Ndarray's constructor throws for anything it cannot represent; such a value is
+    // simply not a candidate image, so skip it rather than abandoning the walk
+    try {
+      Ndarray ndarray(*this, iter->value);
+
+      if (ndarray.isSupportedImage()) {
+        paths.emplace_back(ndarray.getPath());
+      }
+    } catch (const Elements::Exception&) {
+      continue;
+    }
+  }
+
+  m_image_ndarray_paths = std::move(paths);
+  return *m_image_ndarray_paths;
 }
 
 

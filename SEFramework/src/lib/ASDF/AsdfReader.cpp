@@ -20,6 +20,8 @@
  * @author embray
  */
 
+#include <sstream>
+
 #include <boost/regex.hpp>
 
 #include <ElementsKernel/Exception.h>
@@ -47,6 +49,30 @@ bool AsdfReader::test(std::istream& stream) {
 
 
 std::shared_ptr<ImageSource> AsdfReader::get(int image_index, ImageTile::ImageType image_type) {
+  // Unlike a multi-extension FITS file, whose image HDUs are conventionally
+  // alternative frames, an ASDF tree routinely bundles ancillary planes beside the
+  // science array; e.g. a Roman mosaic carries err, weight, context and two variance
+  // planes, none of which is a detection image.  Enumerating them the way the FITS
+  // path does would silently run detection on the error map.  Nothing in the file
+  // says which array is the image, so refuse to choose rather than guess wrong.
+  if (!hasImageSelection()) {
+    AsdfFile file{m_filename};
+    const auto& paths = file.getImageNdarrayPaths();
+
+    if (paths.size() > 1) {
+      std::ostringstream candidates;
+      for (const auto& path : paths) {
+        candidates << "\n    " << path;
+      }
+
+      throw Elements::Exception()
+        << "The ASDF file " << m_filename << " holds " << paths.size() << " arrays that "
+        << "could be images, and nothing in the file says which one is meant.  Name it "
+        << "explicitly, as " << m_filename << "[<path>], choosing from:"
+        << candidates.str();
+    }
+  }
+
   return std::make_shared<AsdfImageSource>(m_filename, image_index, image_type,
                                            m_wcs_path);
 }
