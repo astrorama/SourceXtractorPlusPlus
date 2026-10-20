@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Experimental joint morphology fitting &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Test Data Set" href="TestData.html" />
+    <link rel="prev" title="Model fitting" href="Model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Measurements.html">Measuring</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Measurements.html#the-measurement-configuration-script">The measurement configuration script</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Measurements.html#measurements">Measurements</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Position.html">Isophotal measurements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Photom.html">Aperture photometry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Model.html">Model fitting</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Experimental joint morphology fitting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#per-frame-astrometric-offsets">Per-frame astrometric offsets</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#outputs">Outputs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#comparing-on-sim12">Comparing on sim12</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#testing-injected-astrometric-errors">Testing injected astrometric errors</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="TestData.html">Test Data Set</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Measurements.html">Measuring</a></li>
+      <li class="breadcrumb-item active">Experimental joint morphology fitting</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="experimental-joint-morphology-fitting">
+<h1>Experimental joint morphology fitting<a class="headerlink" href="#experimental-joint-morphology-fitting" title="Permalink to this heading">¶</a></h1>
+<p>Request <code class="docutils literal notranslate"><span class="pre">CombinedSpreadModelAlt</span></code> in <code class="docutils literal notranslate"><span class="pre">output-properties</span></code> to write both the
+inverse-variance combined spread measurements and the experimental joint-fit
+columns. <code class="docutils literal notranslate"><span class="pre">SpreadModelAlt</span></code> writes the separate per-frame spread measurements.
+The original <code class="docutils literal notranslate"><span class="pre">SpreadModel</span></code> and <code class="docutils literal notranslate"><span class="pre">CombinedSpreadModel</span></code> remain available for
+comparison.</p>
+<p>The joint task fits one isolated source across all eligible measurement frames.
+It compares a point source against a circular exponential source with a shared
+position and intrinsic half-light radius in reference-image pixels. Each frame
+has its own fitted flux, position offset, PSF, noise weights and coordinate transformation.
+A shared radius across filters assumes wavelength-independent morphology.
+Neighbours are not fitted or subtracted by this task.</p>
+<p>Frames must contain the initial projected source centre within their full pixel
+edges, have a usable PSF and coordinate Jacobian, and contain at least two valid
+pixels. Both hypotheses use exactly the same frames and pixel masks. The total
+number of valid pixels must exceed the number of frames plus three. The two
+additional offset parameters per frame have two Gaussian prior residuals; priors
+are excluded from the reported pixel count. Fitted centres outside an included frame
+are checked after applying that frame’s offset and invalidate that solution; frames are not dropped after optimization.</p>
+<p>Residuals use ordinary inverse-noise chi-square, with independent pixel noise
+and fixed PSFs. The shared centroid can move up to five reference-image pixels
+per axis from its initial value. The exponential fit uses two starting radii,
+0.3 and 1.5 reference-image pixels, initialized from the joint point fit, including its per-frame offsets.
+Its positive radius range starts at 0.01 pixels and ends at the larger of two
+pixels or half the largest equivalent reference-frame stamp size. The explicit
+point fit supplies the zero-radius limit without evaluating a singular
+exponential. The same rendering scale is used for both hypotheses.</p>
+<section id="per-frame-astrometric-offsets">
+<h2>Per-frame astrometric offsets<a class="headerlink" href="#per-frame-astrometric-offsets" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">spread-model-alt-position-prior-sigma</span></code> sets the Gaussian prior’s per-axis
+standard deviation in reference-image pixels (default 0.2). Zero removes the
+extra parameters and exactly restores the shared-position model. Negative or
+non-finite values are rejected. The default is an experimental starting value,
+not a calibrated uncertainty for a particular instrument.</p>
+<p>For each frame the model projects (common_x + offset_x, common_y + offset_y)
+through that frame’s WCS, so the prior has the same reference-coordinate units
+across different rotations and pixel scales. Both hypotheses use identical
+zero-centred Gaussian priors and minimize pixel chi-square plus the sum of
+(offset_x / sigma) squared and (offset_y / sigma) squared. The common centre is
+not tied to a designated frame; the priors prefer zero mean offsets. Offsets
+have no additional hard bounds, but fitted centres must remain inside every
+included frame. Low-information frames are pulled toward the common centre.</p>
+<p>The radius uncertainty includes the fitted offset nuisance parameters and prior
+curvature through the solver covariance. It remains conditional on fixed PSFs
+and pixel variances. Independent frame offsets can absorb proper motion, but
+there is no explicit time-dependent motion model.</p>
+</section>
+<section id="outputs">
+<h2>Outputs<a class="headerlink" href="#outputs" title="Permalink to this heading">¶</a></h2>
+<p>All joint columns have the prefix <code class="docutils literal notranslate"><span class="pre">joint_spread_model_alt_</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">radius</span></code>: intrinsic exponential half-light radius in reference-image pixels;
+zero when the point-source limit has the lowest penalized objective.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">radius_error</span></code>: formal solver uncertainty; NaN for boundary solutions or
+unavailable covariance. This is not a calibrated confidence interval near zero.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta_chi_squared</span></code>: point chi-square minus extended chi-square, including
+the point-source limit. Larger values favour extension. Its square root is
+not automatically a Gaussian detection significance. With position priors this
+raw pixel difference may be negative: selection uses <code class="docutils literal notranslate"><span class="pre">delta_objective</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">point_chi_squared</span></code> and <code class="docutils literal notranslate"><span class="pre">extended_chi_squared</span></code>: raw sums over weighted
+pixel residuals, not reduced chi-square.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">point_prior_penalty</span></code> and <code class="docutils literal notranslate"><span class="pre">extended_prior_penalty</span></code>: sums of squared
+position offsets divided by the squared prior sigma, for each hypothesis.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delta_objective</span></code>: point minus extended (pixel chi-square + prior penalty).
+This is the quantity used for selecting the extended solution, including the
+point-source limit, and is nonnegative for a valid comparison. It is not a
+calibrated significance or a marginalized evidence ratio.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">point_offset_rms</span></code> and <code class="docutils literal notranslate"><span class="pre">extended_offset_rms</span></code>: RMS radial offset in reference
+pixels, namely sqrt(mean(dx squared + dy squared)) over contributing frames.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frame_ids</span></code>: configured measurement frame IDs in the offset arrays’ order.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">point_offset_x</span></code>, <code class="docutils literal notranslate"><span class="pre">point_offset_y</span></code>, <code class="docutils literal notranslate"><span class="pre">extended_offset_x</span></code> and
+<code class="docutils literal notranslate"><span class="pre">extended_offset_y</span></code>: fitted offsets in reference pixels, with a fixed entry
+for every configured frame. Excluded or failed-fit entries are NaN. Radius-zero
+solutions use the point fit’s offsets in both sets of arrays.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nframes</span></code> and <code class="docutils literal notranslate"><span class="pre">npixels</span></code>: counts used by both hypotheses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flags</span></code>: bit mask described below. Zero means no reported fit problem.</p></li>
+</ul>
+<p>Flags can be combined:</p>
+<ul class="simple">
+<li><p>1: solver failure or non-finite fit result.</p></li>
+<li><p>2: iteration limit reached; inspect before using the model comparison.</p></li>
+<li><p>4: radius boundary (zero, at most 0.02 pixels, or at least 99% of the upper bound).</p></li>
+<li><p>8: a fitted centre left an included frame.</p></li>
+<li><p>16: insufficient usable data.</p></li>
+</ul>
+<p>The fitting engine, iteration limit, rendering scale and maximum fit size follow
+<code class="docutils literal notranslate"><span class="pre">model-fitting-engine</span></code>, <code class="docutils literal notranslate"><span class="pre">model-fitting-iterations</span></code>, <code class="docutils literal notranslate"><span class="pre">sampling-scale-factor</span></code>
+and <code class="docutils literal notranslate"><span class="pre">sampling-max-fit-size</span></code> respectively. Per-frame offsets increase the
+parameter count and fitting cost; short iteration budgets such as 100 may
+produce more iteration-limit flags. The normal iteration default is 1000.</p>
+<p>These joint scores have different units and meaning from SPREAD_MODEL. The
+existing combined-spread columns retain their weighted-mean definition and
+frame-agreement reduced chi-square diagnostic.</p>
+</section>
+<section id="comparing-on-sim12">
+<h2>Comparing on sim12<a class="headerlink" href="#comparing-on-sim12" title="Permalink to this heading">¶</a></h2>
+<p>After <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install</span></code>, run the installed executable in its installed environment
+from <code class="docutils literal notranslate"><span class="pre">tests/sim12</span></code>, for example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sourcextractor</span><span class="o">++</span> <span class="o">--</span><span class="n">config</span><span class="o">-</span><span class="n">file</span> <span class="n">sourcextractor</span><span class="o">++.</span><span class="n">conf</span> \
+  <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">properties</span> <span class="n">WorldCentroid</span><span class="p">,</span><span class="n">IsophotalFlux</span><span class="p">,</span><span class="n">CombinedSpreadModel</span><span class="p">,</span><span class="n">CombinedSpreadModelAlt</span> \
+  <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">fitting</span><span class="o">-</span><span class="n">iterations</span> <span class="mi">1000</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">catalog</span><span class="o">-</span><span class="n">filename</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">joint</span><span class="o">-</span><span class="n">spread</span><span class="o">-</span><span class="n">comparison</span><span class="o">.</span><span class="n">fits</span>
+<span class="n">python3</span> <span class="o">../../</span><span class="n">SEImplementation</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">compare_joint_spread</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">joint</span><span class="o">-</span><span class="n">spread</span><span class="o">-</span><span class="n">comparison</span><span class="o">.</span><span class="n">fits</span> \
+  <span class="o">--</span><span class="n">output</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">joint</span><span class="o">-</span><span class="n">spread</span><span class="o">-</span><span class="n">comparison</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>The comparison uses the same valid truth-matched sources for every score and
+reports galaxy completeness at fixed empirical stellar contamination, overall
+and by magnitude and contributing frame count. Thresholds are selected on the
+same sample; use independent simulations to assess generalization. Seeing and
+PSF systematics require additional validation.</p>
+<p>To generate the paired score plots and classification curves (requires
+Matplotlib in addition to NumPy and Astropy):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="o">../../</span><span class="n">SEImplementation</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">plot_joint_spread</span><span class="o">.</span><span class="n">py</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">joint</span><span class="o">-</span><span class="n">spread</span><span class="o">-</span><span class="n">comparison</span><span class="o">.</span><span class="n">fits</span> \
+  <span class="o">--</span><span class="n">prefix</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">joint_spread_comparison</span>
+</pre></div>
+</div>
+<p>This writes PNG and SVG figures, plus a JSON summary of the plotted ROC areas
+and empirical completeness values. All curves use the same truth-matched sample.</p>
+</section>
+<section id="testing-injected-astrometric-errors">
+<h2>Testing injected astrometric errors<a class="headerlink" href="#testing-injected-astrometric-errors" title="Permalink to this heading">¶</a></h2>
+<p>The helper below copies the nine measurement images and changes their WCS
+reference pixels without changing image data. It writes the injected shifts
+and a Python configuration selecting those copies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">SEImplementation</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">inject_sim12_astrometry</span><span class="o">.</span><span class="n">py</span> \
+  <span class="n">tests</span><span class="o">/</span><span class="n">sim12</span><span class="o">/</span><span class="n">joint_spread_offsets</span><span class="o">/</span><span class="n">injected</span> <span class="o">--</span><span class="n">sigma</span> <span class="mf">0.3</span> <span class="o">--</span><span class="n">seed</span> <span class="mi">2026</span>
+</pre></div>
+</div>
+<p>From <code class="docutils literal notranslate"><span class="pre">tests/sim12</span></code>, select
+<code class="docutils literal notranslate"><span class="pre">--python-config-file</span> <span class="pre">joint_spread_offsets/injected/sersic_shifted.py</span></code> and run
+once with <code class="docutils literal notranslate"><span class="pre">--spread-model-alt-position-prior-sigma</span> <span class="pre">0</span></code> and once with <code class="docutils literal notranslate"><span class="pre">0.2</span></code>.
+Use different output catalog filenames to preserve both runs. Keep the original
+detection image and reference coordinates so the shifted WCS represents a
+measurement-frame astrometric error. The injection is an approximate constant
+reference-pixel displacement at the detection-image centre; each frame gets
+its own corresponding measurement-pixel shift.</p>
+<p>For a comparison of all available spread and joint-fit scores, prepare matched
+1000-iteration catalogs in the <code class="docutils literal notranslate"><span class="pre">clean_shared</span></code>, <code class="docutils literal notranslate"><span class="pre">clean_offsets</span></code>,
+<code class="docutils literal notranslate"><span class="pre">shifted_shared</span></code> and <code class="docutils literal notranslate"><span class="pre">shifted_offsets</span></code> subdirectories, then run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python3</span> <span class="n">SEImplementation</span><span class="o">/</span><span class="n">tests</span><span class="o">/</span><span class="n">scripts</span><span class="o">/</span><span class="n">plot_spread_methods</span><span class="o">.</span><span class="n">py</span> <span class="n">tests</span><span class="o">/</span><span class="n">sim12</span><span class="o">/</span><span class="n">method_comparison</span>
+</pre></div>
+</div>
+<p>The saved <code class="docutils literal notranslate"><span class="pre">tests/sim12/method_comparison/README.md</span></code> describes the current runs.
+This figure uses one common source sample across every method and both
+astrometric conditions, with ROC curves and recovery at contamination limits.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Model.html" class="btn btn-neutral float-left" title="Model fitting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="TestData.html" class="btn btn-neutral float-right" title="Test Data Set" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
