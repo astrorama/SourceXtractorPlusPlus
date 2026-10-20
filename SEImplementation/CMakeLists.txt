@@ -203,6 +203,13 @@ elements_add_unit_test(SpreadModel_test tests/src/Plugin/SpreadModel/SpreadModel
 elements_add_unit_test(CombinedSpreadModel_test tests/src/Plugin/SpreadModel/CombinedSpreadModel_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+# Per-frame and joint single-source fitting, including regularized frame offsets.
+elements_add_unit_test(SpreadModelAlt_test tests/src/Plugin/SpreadModelAlt/SpreadModelAlt_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(CombinedSpreadModelAlt_test tests/src/Plugin/SpreadModelAlt/CombinedSpreadModelAlt_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(ImageInterfaceTraits_test tests/src/Image/ImageInterfaceTraits_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
