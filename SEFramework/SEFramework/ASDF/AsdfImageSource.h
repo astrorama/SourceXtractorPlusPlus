@@ -173,7 +173,7 @@ private:
   std::optional<std::string> m_wcs_path;
 
   std::shared_ptr<AsdfFile::Ndarray> m_ndarray;
-  int m_current_layer;
+  int m_current_layer = 0;
 };
 }
 
