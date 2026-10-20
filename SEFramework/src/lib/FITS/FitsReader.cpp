@@ -70,7 +70,28 @@ std::shared_ptr<ImageSource> FitsReader::get(int image_index, ImageTile::ImageTy
         return image_source;
       }
     } catch (const FitsImageSource::InvalidHduTypeException&) {
-      continue;
+      // Preserving the original behaviour for iteration of MEF files:
+      // the sequence of images ends at the first HDU that is not one,
+      // rather than continuing to check later HDUs. Wanted to change
+      // this to iterate all potential IMAGE HDU, but that breaks the
+      // current assumptions.  A dataless primary HDU is the one exception,
+      // since it is how a multi-extension file often starts.
+      // So a [PRIMARY, SCI, TABLE, DQ] file yields SCI alone.
+      //
+      // This is purely a convention e.g. of HST products, which put a table
+      // between the science and data-quality arrays. Nothing in the FITS
+      // standard says image HDUs must be contiguous, so it is worth
+      // revisiting, but not as a silent side effect of generalizing the
+      // reader. Note the heuristic makes much less sense for ASDF, whose
+      // arrays are not an unamibiguously ordered sequence at all.
+      if (hdu_num == 1) {
+        continue;
+      }
+
+      throw FitsImageSource::UnknownHduException()
+          << "No image at index " << image_index << " in file " << m_filename
+          << ": the images end at HDU " << hdu_num - 1 << ", which is followed by a "
+          << "non-image HDU";
     } catch (const FitsImageSource::UnknownHduException&) {
       throw;
     }
