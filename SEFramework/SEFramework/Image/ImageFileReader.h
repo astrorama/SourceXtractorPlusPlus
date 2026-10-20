@@ -82,7 +82,7 @@ public:
    * configured default covering many files, so an explicit suffix on one filename
    * takes precedence and this is then ignored.
    */
-  void setImagePath(const std::string& image_path);
+  void setImageName(const std::string& image_name);
 
   /**
    * Whether this file format can select a coordinate system by path

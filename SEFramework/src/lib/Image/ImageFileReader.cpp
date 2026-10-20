@@ -54,7 +54,7 @@ static std::map<std::string, ImageFileReader::ImageFileType>& getExtensionMap() 
  *
  * An integer is an index; anything else is a path whose meaning is the format's own,
  * an ASDF tree path or a FITS EXTNAME.  Shared by the file[image] suffix and by
- * setImagePath(), so the two always agree on what a selector means.
+ * setImageName(), so the two always agree on what a selector means.
  */
 static void parseImageSelector(const std::string& selector,
                                std::optional<std::string>& image_path, int& image_index) {
@@ -196,7 +196,7 @@ static std::unique_ptr<ImageFileReader> tryCreateFromFile(
 }
 
 
-void ImageFileReader::setImagePath(const std::string& image_path) {
+void ImageFileReader::setImageName(const std::string& image_name) {
   // A file[image] suffix names one particular file, whereas this normally comes from
   // a configuration that applies to many, so the suffix is the more specific of the
   // two and wins
@@ -206,7 +206,7 @@ void ImageFileReader::setImagePath(const std::string& image_path) {
     return;
   }
 
-  parseImageSelector(image_path, m_image_path, m_image_index);
+  parseImageSelector(image_name, m_image_path, m_image_index);
 }
 
 

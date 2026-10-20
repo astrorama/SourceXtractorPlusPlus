@@ -164,10 +164,10 @@ BOOST_FIXTURE_TEST_CASE(iter_selected_by_index, ImageFileReaderFixture) {
 
 //-----------------------------------------------------------------------------
 
-/// setImagePath() selects an image for a filename that does not name one itself
-BOOST_FIXTURE_TEST_CASE(set_image_path_selects, ImageFileReaderFixture) {
+/// setImageName() selects an image for a filename that does not name one itself
+BOOST_FIXTURE_TEST_CASE(set_image_name_selects, ImageFileReaderFixture) {
   auto reader = ImageFileReader::create(fits_path);
-  reader->setImagePath("0");
+  reader->setImageName("0");
 
   int image_count = 0;
   for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
@@ -188,9 +188,9 @@ BOOST_FIXTURE_TEST_CASE(set_image_path_selects, ImageFileReaderFixture) {
  * here is what makes the test sharp: were the configured path to win, iteration
  * would throw rather than yield the image the suffix named.
  */
-BOOST_FIXTURE_TEST_CASE(set_image_path_yields_to_suffix, ImageFileReaderFixture) {
+BOOST_FIXTURE_TEST_CASE(set_image_name_yields_to_suffix, ImageFileReaderFixture) {
   auto reader = ImageFileReader::create(fits_path + "[0]");
-  reader->setImagePath("99");
+  reader->setImageName("99");
 
   int image_count = 0;
   for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {

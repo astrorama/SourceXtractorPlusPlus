@@ -70,11 +70,11 @@ std::optional<std::string> getStringOption(
 }
 
 /// Apply the configured in-file image path, if there is one
-void setImagePath(ImageFileReader& reader,
+void setImageName(ImageFileReader& reader,
                   const Euclid::Configuration::Configuration::UserValues& args,
                   const std::string& option) {
   if (auto image_path = getStringOption(args, option)) {
-    reader.setImagePath(*image_path);
+    reader.setImageName(*image_path);
   }
 }
 
@@ -88,11 +88,11 @@ static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturatio
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
-static const std::string DETECTION_IMAGE_PATH { "detection-image-path" };
-static const std::string REFERENCE_IMAGE_PATH { "reference-image-path" };
+static const std::string DETECTION_IMAGE_NAME { "detection-image-name" };
+static const std::string REFERENCE_IMAGE_NAME { "reference-image-name" };
 
-static const std::string DETECTION_IMAGE_WCS_PATH { "detection-image-wcs-path" };
-static const std::string REFERENCE_IMAGE_WCS_PATH { "reference-image-wcs-path" };
+static const std::string DETECTION_IMAGE_WCS_NAME { "detection-image-wcs-name" };
+static const std::string REFERENCE_IMAGE_WCS_NAME { "reference-image-wcs-name" };
 
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id)
 {}
@@ -127,19 +127,22 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
           "Maximum number if pixels to interpolate over"},
       // Saves repeating a [...] suffix on every filename; a suffix that is given
       // still wins, being specific to that one file.
-      {DETECTION_IMAGE_PATH.c_str(), po::value<std::string>(),
-          "Path, within the file, of the image to use as detection image: an ASDF tree "
-          "path such as /roman/data, or for FITS an EXTNAME or image index. Ignored for "
+      {DETECTION_IMAGE_NAME.c_str(), po::value<std::string>(),
+          "Which image to use from within the detection image file (not the file "
+          "itself, see --detection-image): a FITS EXTNAME, or an ASDF tree path such "
+          "as /roman/data. An integer is taken as an image index instead. Ignored for "
           "a file whose name already carries a [...] suffix"},
-      {REFERENCE_IMAGE_PATH.c_str(), po::value<std::string>(),
-          "Path, within the file, of the image to use as reference image; see "
-          "detection-image-path"},
+      {REFERENCE_IMAGE_NAME.c_str(), po::value<std::string>(),
+          "Which image to use from within the reference image file; see "
+          "--detection-image-name"},
       // NOTE: Only meaningful for file formats that can hold several coordinate
       // systems, which today means ASDF; ignored with a warning for the rest.
-      {DETECTION_IMAGE_WCS_PATH.c_str(), po::value<std::string>(),
-          "Path, within the file, of the WCS to use for the detection image"},
-      {REFERENCE_IMAGE_WCS_PATH.c_str(), po::value<std::string>(),
-          "Path, within the file, of the WCS to use for the reference image"}
+      {DETECTION_IMAGE_WCS_NAME.c_str(), po::value<std::string>(),
+          "Which WCS to use from within the detection image file, named the same way "
+          "as --detection-image-name"},
+      {REFERENCE_IMAGE_WCS_NAME.c_str(), po::value<std::string>(),
+          "Which WCS to use from within the reference image file, named the same way "
+          "as --detection-image-name"}
   }}};
 }
 
@@ -154,8 +157,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
       auto image_reader = ImageFileReader::create(
         args.find(REFERENCE_IMAGE)->second.as<std::string>());
-      setImagePath(*image_reader, args, REFERENCE_IMAGE_PATH);
-      image_reader->setWcsPath(getStringOption(args, REFERENCE_IMAGE_WCS_PATH));
+      setImageName(*image_reader, args, REFERENCE_IMAGE_NAME);
+      image_reader->setWcsPath(getStringOption(args, REFERENCE_IMAGE_WCS_NAME));
 
       auto reference_image_source = image_reader->get();
       extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
@@ -174,8 +177,8 @@ void DetectionImageConfig::initialize(const UserValues& args) {
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
 
   auto image_reader = ImageFileReader::create(m_detection_image_path);
-  setImagePath(*image_reader, args, DETECTION_IMAGE_PATH);
-  image_reader->setWcsPath(getStringOption(args, DETECTION_IMAGE_WCS_PATH));
+  setImageName(*image_reader, args, DETECTION_IMAGE_NAME);
+  image_reader->setWcsPath(getStringOption(args, DETECTION_IMAGE_WCS_NAME));
 
   for (const auto& img_source: image_reader->iter(ImageTile::FloatImage)) {
     DetectionImageExtension extension = DetectionImageExtension::create(img_source, args);

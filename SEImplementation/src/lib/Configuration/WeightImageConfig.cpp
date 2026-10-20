@@ -42,6 +42,7 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 static const std::string WEIGHT_IMAGE {"weight-image" };
+static const std::string WEIGHT_IMAGE_NAME {"weight-image-name" };
 static const std::string WEIGHT_TYPE {"weight-type" };
 static const std::string WEIGHT_ABSOLUTE {"weight-absolute" };
 static const std::string WEIGHT_SCALING {"weight-scaling" };
@@ -63,6 +64,12 @@ std::map<std::string, Configuration::OptionDescriptionList> WeightImageConfig::g
   return { {"Weight image", {
       {WEIGHT_IMAGE.c_str(), po::value<std::string>()->default_value(""),
           "Path to a fits format image to be used as weight image."},
+      // Saves repeating a [...] suffix on the filename; a suffix that is given still
+      // wins, being specific to that one file.  See --detection-image-name.
+      {WEIGHT_IMAGE_NAME.c_str(), po::value<std::string>(),
+          "Which image to use from within the weight image file (not the file itself, "
+          "see --weight-image): a FITS EXTNAME, or an ASDF tree path. An integer is "
+          "taken as an image index instead"},
       {WEIGHT_ABSOLUTE.c_str(), po::value<bool>()->default_value(false),
           "Is the weight map provided as absolute values or relative to background."},
       {WEIGHT_TYPE.c_str(), po::value<std::string>()->default_value("none"),
@@ -134,6 +141,11 @@ void WeightImageConfig::initialize(const UserValues& args) {
 
   if (weight_image_filename != "") {
     auto reader = ImageFileReader::create(weight_image_filename);
+
+    if (args.count(WEIGHT_IMAGE_NAME) != 0) {
+      reader->setImageName(args.at(WEIGHT_IMAGE_NAME).as<std::string>());
+    }
+
     for (const auto& img_source: reader->iter(ImageTile::FloatImage)) {
       std::shared_ptr<WeightImage> weight_image = BufferedImage<DetectionImage::PixelType>::create(
         img_source);
