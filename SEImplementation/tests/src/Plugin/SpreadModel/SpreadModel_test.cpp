@@ -77,11 +77,14 @@ class TestSpreadEngine : public ModelFitting::LeastSquareEngine {
 public:
   ModelFitting::LeastSquareSummary::StatusFlag status = ModelFitting::LeastSquareSummary::SUCCESS;
   int calls = 0;
+  std::vector<double> last_residuals;
   bool move_outside = false;
 
   ModelFitting::LeastSquareSummary solveProblem(ModelFitting::EngineParameterManager& manager,
-                                               ModelFitting::ResidualEstimator&) override {
+                                               ModelFitting::ResidualEstimator& residuals) override {
     ++calls;
+    last_residuals.resize(residuals.numberOfResiduals());
+    residuals.populateResiduals(last_residuals.begin());
     if (move_outside) {
       std::vector<double> parameters(manager.numberOfParameters());
       manager.getEngineValues(parameters.begin());
@@ -244,6 +247,53 @@ BOOST_AUTO_TEST_CASE(frame_indices_are_independent) {
   BOOST_CHECK_CLOSE(source.getProperty<SpreadModel>(3).getSpreadModel(), 0.123, 0.001);
   BOOST_CHECK(fastmath_isnan(source.getProperty<SpreadModel>(8).getSpreadModel()));
 }
+BOOST_FIXTURE_TEST_CASE(saturation_uses_original_pixels, SpreadFitFixture) {
+  // Exercise exact clipping, values above/below the threshold, and scaled image units.
+  for (double scale : {1.0, 2.0}) {
+    for (double background : {0.0, 100.0}) {
+      auto set_frame = [&](bool explicit_mask, bool saturation_enabled) {
+        auto data = gaussian(9, 1, 1, 50);
+        for (auto& value : data->getData()) {
+          value = (value + background) * scale;
+        }
+        data->at(2, 2) = 200 * scale;
+        data->at(2, 3) = 201 * scale;
+        data->at(1, 2) = 199 * scale;
+        auto variance = VectorImage<SeFloat>::create(9, 9);
+        for (int y = 0; y < 5; ++y) {
+          for (int x = 0; x < 5; ++x) {
+            variance->at(x, y) = scale * scale;
+          }
+        }
+        if (explicit_mask) {
+          variance->at(2, 2) = variance->at(2, 3) = 0;
+        }
+        auto frame = std::make_shared<MeasurementImageFrame>(data, nullptr, variance);
+        frame->setBackgroundLevel(background * scale);
+        source.setIndexedProperty<MeasurementFrameImages>(8, frame, 9, 9);
+        source.setIndexedProperty<MeasurementFrameInfo>(8, 9, 9, 0,
+            saturation_enabled ? 200 * scale : 0, 10, 1);
+      };
+      set_frame(true, false);
+      task.computeProperties(source);
+      const auto expected = source.getProperty<SpreadModel>(8);
+      const auto expected_residuals = engine->last_residuals;
+      BOOST_REQUIRE(std::isfinite(expected.getSpreadModel()));
+      set_frame(false, true);
+      task.computeProperties(source);
+      const auto& actual = source.getProperty<SpreadModel>(8);
+      BOOST_CHECK_EQUAL(actual.getSpreadModel(), expected.getSpreadModel());
+      BOOST_CHECK_EQUAL(actual.getSpreadModelError(), expected.getSpreadModelError());
+      BOOST_CHECK_EQUAL_COLLECTIONS(engine->last_residuals.begin(), engine->last_residuals.end(),
+                                    expected_residuals.begin(), expected_residuals.end());
+      // A zero threshold disables saturation masking.
+      set_frame(false, false);
+      task.computeProperties(source);
+      BOOST_CHECK_NE(source.getProperty<SpreadModel>(8).getSpreadModel(), expected.getSpreadModel());
+    }
+  }
+}
+
 BOOST_FIXTURE_TEST_CASE(minimum_valid_pixels, SpreadFitFixture) {
   for (int count = 0; count < 4; ++count) {
     setValidPixels(count);

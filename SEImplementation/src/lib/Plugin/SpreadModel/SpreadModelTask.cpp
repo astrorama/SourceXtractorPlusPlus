@@ -140,9 +140,8 @@ struct FitStamp {
 
 double pixelVariance(SeFloat pixel_value, SeFloat background_variance, const MeasurementFrameInfo& info) {
   const SeFloat gain = info.getGain();
-  const SeFloat saturation = info.getSaturation();
   if (!(finite(pixel_value) && finite(background_variance) && background_variance > 0 &&
-        background_variance <= info.getVarianceThreshold() && !(saturation > 0 && pixel_value >= saturation))) {
+        background_variance <= info.getVarianceThreshold())) {
     return 0;
   }
   // Negative background-subtracted values must not subtract shot-noise variance.
@@ -159,13 +158,19 @@ FitStamp prepareFitStamp(const MeasurementFrameImages& images, const Measurement
   stamp.variances.assign(width * height, 0);
   stamp.valid.assign(width * height, false);
   const auto frame_image = images.getLockedImage(LayerSubtractedImage);
+  const auto original_image = images.getLockedImage(LayerOriginalImage);
+  const auto saturation = info.getSaturation();
   const auto variance_map = images.getLockedImage(LayerVarianceMap);
   // Share the pixel mask between fitting and spread calculation. The fitter takes
   // residual weights 1/sqrt(V); the statistic uses binary weights and keeps V separately.
   for (std::size_t y = 0; y < height; ++y) {
     for (std::size_t x = 0; x < width; ++x) {
       const auto i = y * width + x;
-      const double variance = pixelVariance(frame_image->getValue(offset.m_x + x, offset.m_y + y),
+      // The saturation threshold applies to original-image values, before background subtraction.
+      const bool saturated = saturation > 0 &&
+          original_image->getValue(offset.m_x + x, offset.m_y + y) >= saturation;
+      const double variance = saturated ? 0 : pixelVariance(
+          frame_image->getValue(offset.m_x + x, offset.m_y + y),
           variance_map->getValue(offset.m_x + x, offset.m_y + y), info);
       if (variance > 0) {
         stamp.variances[i] = variance;
