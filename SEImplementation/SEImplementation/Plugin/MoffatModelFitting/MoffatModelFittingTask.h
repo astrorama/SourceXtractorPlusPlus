@@ -25,6 +25,7 @@
 #define _SEIMPLEMENTATION_PLUGIN_MOFFATMODELFITTING_MOFFATMODELFITTINGTASK_H_
 
 #include "SEFramework/Task/SourceTask.h"
+#include "SEFramework/Image/VectorImage.h"
 
 #include "SEImplementation/Image/ImagePsf.h"
 
@@ -41,6 +42,9 @@ public:
   void computeProperties(SourceInterface& source) const override;
 
 private:
+  friend struct MoffatModelFittingWeightFixture;
+
+  std::shared_ptr<VectorImage<SeFloat>> createWeightImage(SourceInterface& source) const;
 
   std::string m_least_squares_engine;
   unsigned int m_max_iterations;

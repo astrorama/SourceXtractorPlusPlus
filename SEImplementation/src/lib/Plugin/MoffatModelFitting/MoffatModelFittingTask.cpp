@@ -63,6 +63,7 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 
 #include "SEImplementation/Plugin/PixelCentroid/PixelCentroid.h"
 #include "SEImplementation/Property/PixelCoordinateList.h"
@@ -150,10 +151,60 @@ struct SourceModel {
 }
 
 
+std::shared_ptr<VectorImage<SeFloat>> MoffatModelFittingTask::createWeightImage(SourceInterface& source) const {
+  const auto& stamp = source.getProperty<DetectionFrameSourceStamp>();
+  const auto& source_stamp = stamp.getStamp();
+  const auto& variance_stamp = stamp.getVarianceStamp();
+  const auto& thresholded_stamp = stamp.getThresholdedStamp();
+  auto stamp_top_left = stamp.getTopLeft();
+  const auto& pixel_coordinates = source.getProperty<PixelCoordinateList>().getCoordinateList();
+
+  auto weight = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
+  std::fill(weight->getData().begin(), weight->getData().end(), 1);
+
+  for (int y = 0; y < source_stamp.getHeight(); y++) {
+    for (int x = 0; x < source_stamp.getWidth(); x++) {
+      weight->at(x, y) = (thresholded_stamp.getValue(x, y) >= 0) ? 0 : 1;
+    }
+  }
+
+  for (auto pixel : pixel_coordinates) {
+    pixel -= stamp_top_left;
+    weight->at(pixel.m_x, pixel.m_y) = 1;
+  }
+
+  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
+  SeFloat gain = detection_frame_info.getGain();
+  SeFloat saturation = detection_frame_info.getSaturation();
+
+  std::shared_ptr<ImageChunk<SeFloat>> original_stamp;
+  if (saturation > 0) {
+    const auto& frame_images = source.getProperty<DetectionFrameImages>();
+    original_stamp = frame_images.getImageChunk(LayerOriginalImage,
+        stamp_top_left.m_x, stamp_top_left.m_y, source_stamp.getWidth(), source_stamp.getHeight());
+  }
+
+  for (int y = 0; y < source_stamp.getHeight(); y++) {
+    for (int x = 0; x < source_stamp.getWidth(); x++) {
+      auto back_var = variance_stamp.getValue(x, y);
+      // The threshold is defined in original-image units, before background subtraction.
+      if (saturation > 0 && original_stamp->getValue(x, y) >= saturation) {
+        weight->at(x, y) = 0;
+      } else if (weight->at(x, y)>0) {
+        if (gain > 0.0) {
+          weight->at(x, y) = sqrt(1.0 / (back_var + source_stamp.getValue(x, y) / gain));
+        } else {
+          weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
+        }
+      }
+    }
+  }
+
+  return weight;
+}
+
 void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
   auto& source_stamp = source.getProperty<DetectionFrameSourceStamp>().getStamp();
-  auto& variance_stamp = source.getProperty<DetectionFrameSourceStamp>().getVarianceStamp();
-  auto& thresholded_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdedStamp();
   auto& threshold_map_stamp = source.getProperty<DetectionFrameSourceStamp>().getThresholdMapStamp();
   PixelCoordinate stamp_top_left = source.getProperty<DetectionFrameSourceStamp>().getTopLeft();
 
@@ -207,38 +258,7 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
     std::move(extended_models)
   };
 
-  auto weight = VectorImage<SeFloat>::create(source_stamp.getWidth(), source_stamp.getHeight());
-  std::fill(weight->getData().begin(), weight->getData().end(), 1);
-
-  for (int y=0; y < source_stamp.getHeight(); y++) {
-    for (int x=0; x < source_stamp.getWidth(); x++) {
-      weight->at(x, y) = (thresholded_stamp.getValue(x, y) >= 0) ? 0 : 1;
-    }
-  }
-
-  for (auto pixel : pixel_coordinates) {
-    pixel -= stamp_top_left;
-    weight->at(pixel.m_x, pixel.m_y) = 1;
-  }
-
-  const auto& detection_frame_info = source.getProperty<DetectionFrameInfo>();
-  SeFloat gain = detection_frame_info.getGain();
-  SeFloat saturation = detection_frame_info.getSaturation();
-
-  for (int y=0; y < source_stamp.getHeight(); y++) {
-    for (int x=0; x < source_stamp.getWidth(); x++) {
-      auto back_var = variance_stamp.getValue(x, y);
-      if (saturation > 0 && source_stamp.getValue(x, y) >= saturation) {
-        weight->at(x, y) = 0;
-      } else if (weight->at(x, y)>0) {
-        if (gain > 0.0) {
-          weight->at(x, y) = sqrt(1.0 / (back_var + source_stamp.getValue(x, y) / gain));
-        } else {
-          weight->at(x, y) = sqrt(1.0 / back_var); // infinite gain
-        }
-      }
-    }
-  }
+  auto weight = createWeightImage(source);
 
   // FIXME we should be able to use the source_stamp Image interface directly
   auto image = VectorImage<SeFloat>::create(source_stamp);
