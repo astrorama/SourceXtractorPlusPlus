@@ -19,6 +19,9 @@
 #define SOURCEXTRACTORPLUSPLUS_KAPPASIGMABINNING_H
 
 #include <iostream>
+#include <iterator>
+
+#include "ElementsKernel/Exception.h"
 #include "Histogram/Histogram.h"
 
 namespace SourceXtractor {
@@ -67,6 +70,11 @@ public:
    */
   template<typename Iterator>
   void computeBins(Iterator begin, Iterator end) {
+    // *begin is dereferenced below, and there are no bins to compute anyway
+    if (begin == end) {
+      throw Elements::Exception() << "Can't compute background histogram bins: no data points";
+    }
+
     // Compute mean and standard deviation of the original data set
     double mean, sigma;
     size_t ndata;
@@ -95,7 +103,15 @@ public:
     }
     std::tie(mean, sigma, ndata) = stats.get();
 
-    assert(ndata > 0);
+    // This case shouldn't be reachable anymore with fixes in #649, but still
+    // throw here just in case (previously was a bare assert); this way at least
+    // it gives a more informative error message.
+    if (ndata == 0) {
+      throw Elements::Exception()
+          << "Can't compute background histogram bins: none of the " << std::distance(begin, end)
+          << " input values lie within " << m_kappa << " sigma of their mean (" << mean
+          << "), which should not be possible for finite data";
+    }
 
     // Number of bins
     m_nbins = computeBinCount(ndata);
@@ -133,30 +149,47 @@ private:
 
   /**
    * Online mean and standard deviation computation
-   * Similar to boost::accumulators, but this turned out to be faster
    */
   struct Stats {
-    double mean = 0, sigma = 0;
+    /// Everything is accumulated as an offset from the first value seen, so that the
+    /// sums stay on the scale of the spread rather than that of the data
+    double shift = 0, sum = 0, sum_sq = 0;
     size_t ndata = 0;
 
+    // Shifting by a value from the data largely avoids the catastrophic cancellation
+    // that E[X^2] - E[X]^2 suffers when the spread is small next to the magnitude.
+    // See https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance, under
+    // "Computing shifted data"; Welford's algorithm there fixes it too, but costs
+    // about 4x as much, as it performs a division per sample.
     void operator() (VarType v) {
-      mean += v;
-      sigma += v * v;
+      if (ndata == 0) {
+        shift = v;
+      }
+
+      double offset = v - shift;
+      sum += offset;
+      sum_sq += offset * offset;
       ++ndata;
     }
 
     std::tuple<double, double, size_t> get() {
-      mean /= ndata;
-      sigma = sigma / ndata - mean * mean;
+      if (ndata == 0) {
+        return std::make_tuple(0., 0., ndata);
+      }
+
+      double mean = shift + sum / ndata;
+      double sigma = (sum_sq - sum * sum / ndata) / ndata;
+
       if (sigma > std::numeric_limits<double>::epsilon())
         sigma = std::sqrt(sigma);
       else
         sigma = 0.;
+
       return std::make_tuple(mean, sigma, ndata);
     }
 
     void reset() {
-      mean = sigma = 0;
+      shift = sum = sum_sq = 0;
       ndata = 0;
     }
   };
