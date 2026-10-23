@@ -22,10 +22,12 @@
  *      Author: embray
  */
 
+#include <asdf/file.h>
+#include <asdf/log.h>
 #include <assert.h>
 
 #include <cstdio>
-#include <mutex>
+#include <log4cpp/Priority.hh>
 #include <sstream>
 #include <string>
 
@@ -45,124 +47,6 @@ namespace {
 
 /// libasdf's own messages, so they are attributable in the log
 Elements::Logging asdf_logger = Elements::Logging::getLogger("libasdf");
-
-/// Guards the partial-line buffer below; ASDF files may be read from worker threads
-std::mutex log_mutex;
-
-/**
- * Re-emit one complete libasdf log line through the Elements logger
- *
- * libasdf's formatter is fixed, so the level has to be recovered from the line it
- * produces.  With colour off and the package field dropped that is
- * "[LEVEL] file:line: message", where LEVEL is padded to five characters.
- *
- * Future libasdf versions will have better structured logging support, at
- * which point this workaround will be unnecessary and obsolete.
- */
-void emitAsdfLogLine(const std::string& line) {
-  std::string message = line;
-  std::string level;
-
-  if (!message.empty() && message.front() == '[') {
-    auto close = message.find(']');
-    if (close != std::string::npos) {
-      level = boost::trim_copy(message.substr(1, close - 1));
-      message = boost::trim_left_copy(message.substr(close + 1));
-    }
-  }
-
-  if (message.empty()) {
-    return;
-  }
-
-  // An unrecognized level is reported rather than dropped: losing a diagnostic is
-  // worse than logging one at the wrong level
-  if (level == "TRACE" || level == "DEBUG") {
-    asdf_logger.debug() << message;
-  } else if (level == "INFO") {
-    asdf_logger.info() << message;
-  } else if (level == "WARN") {
-    asdf_logger.warn() << message;
-  } else if (level == "FATAL") {
-    asdf_logger.fatal() << message;
-  } else {
-    asdf_logger.error() << message;
-  }
-}
-
-
-/// Accumulate bytes written by libasdf and emit each complete line
-void consumeAsdfLogBytes(const char* data, size_t size) {
-  static std::string pending;
-  std::lock_guard<std::mutex> guard{log_mutex};
-
-  for (size_t i = 0; i < size; i++) {
-    if (data[i] == '\n') {
-      emitAsdfLogLine(pending);
-      pending.clear();
-    } else {
-      pending.push_back(data[i]);
-    }
-  }
-}
-
-
-#if defined(__GLIBC__)
-
-ssize_t asdfLogCookieWrite(void* /* cookie */, const char* buf, size_t size) {
-  consumeAsdfLogBytes(buf, size);
-  return static_cast<ssize_t>(size);
-}
-
-FILE* openAsdfLogStream() {
-  cookie_io_functions_t funcs{};
-  funcs.write = &asdfLogCookieWrite;
-  return fopencookie(nullptr, "w", funcs);
-}
-
-#elif defined(__APPLE__) || defined(BSD) || defined(__FreeBSD__)
-
-int asdfLogFunopenWrite(void* /* cookie */, const char* buf, int size) {
-  if (size > 0) {
-    consumeAsdfLogBytes(buf, static_cast<size_t>(size));
-  }
-  return size;
-}
-
-FILE* openAsdfLogStream() {
-  return funopen(nullptr, nullptr, &asdfLogFunopenWrite, nullptr, nullptr);
-}
-
-#else
-
-/// No way to adapt a FILE* to a callback here; fall back to uncoloured stderr
-FILE* openAsdfLogStream() {
-  return nullptr;
-}
-
-#endif
-
-
-/**
- * The stream libasdf writes its log messages to
- *
- * Lives for the lifetime of the process, so one stream serves every file.
- */
-FILE* getAsdfLogStream() {
-  static FILE* stream = []() -> FILE* {
-    FILE* s = openAsdfLogStream();
-
-    if (s == nullptr) {
-      asdf_logger.warn() << "Could not install a log stream for libasdf; its messages "
-                         << "will go to stderr unformatted";
-      return stderr;
-    }
-
-    return s;
-  }();
-
-  return stream;
-}
 
 
 /// The libasdf log level matching SourceXtractor++'s configured one
@@ -191,22 +75,45 @@ asdf_log_level_t getAsdfLogLevel() {
 
 
 /**
+ * A libasdf custom log handler (libasdf>=0.3) that forwards its messages into
+ * Elements::Logging.
+ */
+static void asdfLogHandler(const asdf_log_rec_t* rec, void* userdata) {
+  asdf_log_level_t level = rec->level;
+  const char* msg = rec->msg;
+  const char* file = rec->file;
+  int lineno = rec->lineno;
+  log4cpp::Priority::Value prio;
+  (void)userdata;
+
+
+  if (level == ASDF_LOG_TRACE || level == ASDF_LOG_DEBUG) {
+    prio = log4cpp::Priority::DEBUG;
+  } else if (level == ASDF_LOG_INFO) {
+    prio = log4cpp::Priority::INFO;
+  } else if (level == ASDF_LOG_WARN) {
+    prio = log4cpp::Priority::WARN;
+  } else if (level == ASDF_LOG_FATAL) {
+    prio = log4cpp::Priority::FATAL;
+  // An unrecognized level is reported rather than dropped: losing a diagnostic is
+  // worse than logging one at the wrong level, so default to error
+  } else {
+    prio = log4cpp::Priority::ERROR;
+  }
+
+  std::stringstream message;
+  message << file << ":" << lineno << ": " << msg;
+  asdf_logger.log(prio, message.str());
+}
+
+
+/**
  * A libasdf logging configuration that forwards messages into Elements::Logging
- *
- * Colour is asked to be off; libasdf would not colourize this stream anyway, since
- * it is not a terminal, but the level parse in emitAsdfLogLine() depends on it.
- * As previously mentioned, future structured logging support in libasdf will
- * obviate the need for this getAsdfLogStream workaround.
  */
 asdf_log_cfg_t getAsdfLogConfig() {
   asdf_log_cfg_t cfg{};
 
-  cfg.stream = getAsdfLogStream();
-  cfg.no_color = true;
-  // The logger name already says libasdf; keep the source location, the only clue
-  // to where in libasdf a message came from
-  cfg.fields = ASDF_LOG_FIELD_LEVEL | ASDF_LOG_FIELD_FILE | ASDF_LOG_FIELD_LINE |
-               ASDF_LOG_FIELD_MSG;
+  cfg.handler = asdfLogHandler;
   cfg.level = getAsdfLogLevel();
 
   return cfg;
@@ -234,11 +141,9 @@ void AsdfFile::open() {
   config.log = getAsdfLogConfig();
   asdf_file_t* ptr = asdf_open_file_ex(m_path.native().c_str(), "r", &config);
 
-  // TODO: Actually kinda stinks there's not enough options for retrieving file open errors
-  // yet in libasdf; this needs improvement on the libasdf side.
   if (ptr == nullptr) {
       throw Elements::Exception()
-          << "Can't open ASDF file: ";
+          << "Can't open ASDF file: " << asdf_error(nullptr);
   }
 
   m_asdf_ptr.reset(ptr);
