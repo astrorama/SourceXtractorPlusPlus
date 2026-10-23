@@ -23,15 +23,10 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 
-#include <boost/regex.hpp>
-using boost::regex;
-using boost::regex_match;
-using boost::smatch;
-
 #include "Configuration/ProgramOptionsHelper.h"
 
-#include "SEFramework/FITS/FitsReader.h"
-
+#include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ImageFileReader.h"
 #include "SEImplementation/Plugin/ExternalFlag/ExternalFlagConfig.h"
 
 namespace po = boost::program_options;
@@ -41,7 +36,7 @@ using poh = Euclid::Configuration::ProgramOptionsHelper;
 namespace SourceXtractor {
 
 namespace {
-  
+
 const std::string FLAG_IMAGE {"flag-image"};
 const std::string FLAG_TYPE {"flag-type"};
 
@@ -67,7 +62,7 @@ auto ExternalFlagConfig::getProgramOptions() -> std::map<std::string, OptionDesc
 
 void ExternalFlagConfig::preInitialize(const UserValues& args) {
   for (auto& name : poh::findWildcardNames({FLAG_IMAGE, FLAG_TYPE}, args)) {
-    
+
     // Check that the user gave both the filename and the type
     if (args.count(poh::wildcard(FLAG_IMAGE, name)) == 0) {
       throw Elements::Exception() << "Missing option " << poh::wildcard(FLAG_IMAGE, name);
@@ -79,7 +74,7 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
     } else {
       type = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
     }
-    
+
     // Check that the type is a valid option
     if (available_types.count(type) == 0) {
       throw Elements::Exception() << "Invalid option " << poh::wildcard(FLAG_TYPE, name)
@@ -90,38 +85,15 @@ void ExternalFlagConfig::preInitialize(const UserValues& args) {
 
 void ExternalFlagConfig::initialize(const UserValues& args) {
   for (auto& name : poh::findWildcardNames({FLAG_IMAGE, FLAG_TYPE}, args)) {
-    
+
     auto& filename = args.at(poh::wildcard(FLAG_IMAGE, name)).as<std::string>();
     std::vector<std::shared_ptr<FlagImage>> flag_images;
-    boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+    auto image_reader = ImageFileReader::create(filename);
 
-    for (int i=0;; i++) {
-      std::shared_ptr<FitsImageSource> fits_image_source;
-      if (boost::regex_match(filename, hdu_regex)) {
-        if (i==0) {
-          fits_image_source = std::make_shared<FitsImageSource>(filename, 0, ImageTile::LongLongImage);
-        } else {
-          break;
-        }
-      } else {
-        try {
-          fits_image_source = std::make_shared<FitsImageSource>(filename, i+1, ImageTile::LongLongImage);
-        } catch (...) {
-          if (i==0) {
-            // Skip past primary HDU if it doesn't have an image
-            continue;
-          } else {
-            if (flag_images.size() == 0) {
-              throw;
-            }
-            break;
-          }
-        }
-      }
-
-      flag_images.emplace_back(BufferedImage<std::int64_t>::create(fits_image_source));
+    for (const auto& img_source: image_reader->iter(ImageTile::LongLongImage)) {
+      flag_images.emplace_back(BufferedImage<std::int64_t>::create(img_source));
     }
-    
+
     std::string type_str;
     if (args.count(poh::wildcard(FLAG_TYPE, name)) == 0) {
       type_str = "OR";
@@ -129,7 +101,7 @@ void ExternalFlagConfig::initialize(const UserValues& args) {
       type_str = boost::to_upper_copy(args.at(poh::wildcard(FLAG_TYPE, name)).as<std::string>());
     }
     Type type = available_types.at(type_str);
-    
+
     m_flag_info_list.emplace_back(name, FlagInfo{std::move(flag_images), type});
   }
 }
@@ -139,6 +111,3 @@ auto ExternalFlagConfig::getFlagInfoList() const -> const std::vector<std::pair<
 }
 
 } // SourceXtractor namespace
-
-
-

@@ -42,6 +42,7 @@
 #include "AlexandriaKernel/memory_tools.h"
 
 #include "SEFramework/CoordinateSystem/WCS.h"
+#include "SEFramework/FITS/FitsWcsSerializable.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/ProcessedImage.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -86,7 +87,7 @@ struct TestImageSource {
 };
 
 //
-class DummyWCS : public CoordinateSystem {
+class DummyWCS : public CoordinateSystem, public FitsWcsSerializable {
 public:
   DummyWCS(int image_width, int image_height, double rotation, double scale, double shift_x, double shift_y)
       : m_image_width(image_width), m_image_height(image_height),
@@ -519,7 +520,7 @@ public:
     std::shared_ptr<CoordinateSystem> coordinate_system;
     auto copy_coordinate_system = args["copy-coordinate-system"].as<std::string>();
     if (copy_coordinate_system != "") {
-      coordinate_system = std::make_shared<WCS>(FitsImageSource(copy_coordinate_system));
+      coordinate_system = FitsImageSource(copy_coordinate_system).getCoordinateSystem();
     } else {
       coordinate_system = std::make_shared<DummyWCS>(image_size, image_size, rot_angle, scale, shift_x, shift_y);
     }

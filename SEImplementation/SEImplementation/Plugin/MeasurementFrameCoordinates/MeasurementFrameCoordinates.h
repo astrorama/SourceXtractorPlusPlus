@@ -20,6 +20,7 @@
 
 #include "SEFramework/Property/Property.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include <memory>
 
 namespace SourceXtractor {
 

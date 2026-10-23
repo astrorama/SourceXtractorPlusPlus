@@ -136,6 +136,8 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::getDefault
 }
 
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFilter(const std::string& filename) const {
+  // TODO: Replace this to use ImageFileReader, don't need to assume the convolution kernel is
+  // in a FITS file.
   // check for the extension ".fits"
   std::string fits_ending(".fits");
   if (filename.length() >= fits_ending.length()
@@ -152,7 +154,7 @@ std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFilter
 std::shared_ptr<DetectionImageFrame::ImageFilter> SegmentationConfig::loadFITSFilter(const std::string& filename) const {
 
   // read in the FITS file
-  auto convolution_kernel = FitsReader<SeFloat>::readFile(filename);
+  auto convolution_kernel = FitsReader::readImage<SeFloat>(filename);
 
   // give some feedback on the filter
   segConfigLogger.info() << "Loaded segmentation filter: " << filename << " height: " << convolution_kernel->getHeight() << " width: " << convolution_kernel->getWidth();

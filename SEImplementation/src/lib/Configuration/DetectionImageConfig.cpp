@@ -22,15 +22,15 @@
 #include "Configuration/ConfigManager.h"
 
 #include <boost/regex.hpp>
+#include <memory>
 using boost::regex;
-using boost::regex_match;
 using boost::smatch;
 
-#include <SEFramework/Image/ProcessedImage.h>
-#include <SEFramework/Image/BufferedImage.h>
-#include "SEFramework/FITS/FitsImageSource.h"
-
 #include "SEFramework/CoordinateSystem/WCS.h"
+#include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ImageFileReader.h"
+#include "SEFramework/Image/ProcessedImage.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 
@@ -38,6 +38,47 @@ using namespace Euclid::Configuration;
 namespace po = boost::program_options;
 
 namespace SourceXtractor {
+
+namespace {
+
+Elements::Logging logger = Elements::Logging::getLogger("Config");
+
+/// The given coordinate system, or an identity WCS if there is none
+std::shared_ptr<CoordinateSystem> orIdentity(
+    std::shared_ptr<CoordinateSystem> coordinate_system, const std::string& repr) {
+  if (coordinate_system) {
+    return coordinate_system;
+  }
+
+  logger.warn() << "No coordinate system information on image " << repr << "; using an identity WCS";
+  return std::make_shared<WCS>(WCS::identity(2));
+}
+
+/// The image's own coordinate system, or an identity WCS if it has none
+std::shared_ptr<CoordinateSystem> coordinateSystemOrIdentity(const ImageSource& image_source) {
+  return orIdentity(image_source.getCoordinateSystem(), image_source.getRepr());
+}
+
+/// The value of a string option, if it was given
+std::optional<std::string> getStringOption(
+    const Euclid::Configuration::Configuration::UserValues& args, const std::string& option) {
+  if (auto it = args.find(option); it != args.end()) {
+    return it->second.as<std::string>();
+  }
+
+  return std::nullopt;
+}
+
+/// Apply the configured in-file image path, if there is one
+void setImageName(ImageFileReader& reader,
+                  const Euclid::Configuration::Configuration::UserValues& args,
+                  const std::string& option) {
+  if (auto image_path = getStringOption(args, option)) {
+    reader.setImageName(*image_path);
+  }
+}
+
+}  // anonymous namespace
 
 static const std::string DETECTION_IMAGE { "detection-image" };
 static const std::string REFERENCE_IMAGE { "reference-image" };
@@ -47,15 +88,33 @@ static const std::string DETECTION_IMAGE_SATURATION { "detection-image-saturatio
 static const std::string DETECTION_IMAGE_INTERPOLATION { "detection-image-interpolation" };
 static const std::string DETECTION_IMAGE_INTERPOLATION_GAP { "detection-image-interpolation-gap" };
 
+static const std::string DETECTION_IMAGE_NAME { "detection-image-name" };
+static const std::string REFERENCE_IMAGE_NAME { "reference-image-name" };
+
+static const std::string DETECTION_IMAGE_WCS_NAME { "detection-image-wcs-name" };
+static const std::string REFERENCE_IMAGE_WCS_NAME { "reference-image-wcs-name" };
+
 DetectionImageConfig::DetectionImageConfig(long manager_id) : Configuration(manager_id)
 {}
 
 std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig::getProgramOptions() {
   return { {"Detection image", {
       {DETECTION_IMAGE.c_str(), po::value<std::string>(),
-          "Path to a fits format image to be used as detection image."},
+      // NOTE: In principle ImageFileReader can be used to programmatically
+      // build a string listing the supported file types, but as currently
+      // there are only two and one of them only with optional support we
+      // can use an ifdef for now.
+#ifdef WITH_ASDF
+          "Path to a FITS or ASDF format image to be used as detection image."},
+#else
+          "Path to a FITS format image to be used as detection image."},
+#endif
       {REFERENCE_IMAGE.c_str(), po::value<std::string>(),
-          "Path to a fits format image to be used as coordinates reference only."},
+#ifdef WITH_ASDF
+          "Path to a FITS or ASDF format image to be used as coordinates reference only."},
+#else
+          "Path to a FITS format image to be used as coordinates reference only."},
+#endif
       {DETECTION_IMAGE_GAIN.c_str(), po::value<double>(),
           "Detection image gain in e-/ADU (0 = infinite gain)"},
       {DETECTION_IMAGE_FLUX_SCALE.c_str(), po::value<double>(),
@@ -65,7 +124,25 @@ std::map<std::string, Configuration::OptionDescriptionList> DetectionImageConfig
       {DETECTION_IMAGE_INTERPOLATION.c_str(), po::value<bool>()->default_value(true),
           "Interpolate bad pixels in detection image"},
       {DETECTION_IMAGE_INTERPOLATION_GAP.c_str(), po::value<int>()->default_value(5),
-          "Maximum number if pixels to interpolate over"}
+          "Maximum number if pixels to interpolate over"},
+      // Saves repeating a [...] suffix on every filename; a suffix that is given
+      // still wins, being specific to that one file.
+      {DETECTION_IMAGE_NAME.c_str(), po::value<std::string>(),
+          "Which image to use from within the detection image file (not the file "
+          "itself, see --detection-image): a FITS EXTNAME, or an ASDF tree path such "
+          "as /roman/data. An integer is taken as an image index instead. Ignored for "
+          "a file whose name already carries a [...] suffix"},
+      {REFERENCE_IMAGE_NAME.c_str(), po::value<std::string>(),
+          "Which image to use from within the reference image file; see "
+          "--detection-image-name"},
+      // NOTE: Only meaningful for file formats that can hold several coordinate
+      // systems, which today means ASDF; ignored with a warning for the rest.
+      {DETECTION_IMAGE_WCS_NAME.c_str(), po::value<std::string>(),
+          "Which WCS to use from within the detection image file, named the same way "
+          "as --detection-image-name"},
+      {REFERENCE_IMAGE_WCS_NAME.c_str(), po::value<std::string>(),
+          "Which WCS to use from within the reference image file, named the same way "
+          "as --detection-image-name"}
   }}};
 }
 
@@ -78,9 +155,13 @@ void DetectionImageConfig::initialize(const UserValues& args) {
     if (args.find(REFERENCE_IMAGE) != args.end()) {
       DetectionImageExtension extension;
 
-      auto reference_image_source = std::make_shared<FitsImageSource>(
-          args.find(REFERENCE_IMAGE)->second.as<std::string>(), 0, ImageTile::FloatImage);
-      extension.m_coordinate_system = std::make_shared<WCS>(*reference_image_source);
+      auto image_reader = ImageFileReader::create(
+        args.find(REFERENCE_IMAGE)->second.as<std::string>());
+      setImageName(*image_reader, args, REFERENCE_IMAGE_NAME);
+      image_reader->setWcsPath(getStringOption(args, REFERENCE_IMAGE_WCS_NAME));
+
+      auto reference_image_source = image_reader->get();
+      extension.m_coordinate_system = coordinateSystemOrIdentity(*reference_image_source);
       m_extensions.emplace_back(std::move(extension));
 
       m_is_reference_image = true;
@@ -95,108 +176,123 @@ void DetectionImageConfig::initialize(const UserValues& args) {
 
   m_detection_image_path = args.find(DETECTION_IMAGE)->second.as<std::string>();
 
-  boost::regex hdu_regex(".*\\[[0-9]*\\]$");
+  auto image_reader = ImageFileReader::create(m_detection_image_path);
+  setImageName(*image_reader, args, DETECTION_IMAGE_NAME);
+  image_reader->setWcsPath(getStringOption(args, DETECTION_IMAGE_WCS_NAME));
 
-  for (int i=0;; i++) {
-    DetectionImageExtension extension;
-
-    std::shared_ptr<FitsImageSource> fits_image_source;
-    if (boost::regex_match(m_detection_image_path, hdu_regex)) {
-      if (i==0) {
-        fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, 0, ImageTile::FloatImage);
-      } else {
-        break;
-      }
-    } else {
-      try {
-        fits_image_source = std::make_shared<FitsImageSource>(m_detection_image_path, i+1, ImageTile::FloatImage);
-      } catch (...) {
-        if (i==0) {
-          // Skip past primary HDU if it doesn't have an image
-          continue;
-        } else {
-          if (m_extensions.size() == 0) {
-            throw;
-          }
-          break;
-        }
-      }
-    }
-
-    extension.m_image_source = fits_image_source;
-    extension.m_detection_image = BufferedImage<DetectionImage::PixelType>::create(fits_image_source);
-    extension.m_coordinate_system = std::make_shared<WCS>(*fits_image_source);
-
-    double detection_image_gain = 0, detection_image_saturate = 0;
-    auto img_metadata = fits_image_source->getMetadata();
-
-    if (img_metadata.count("GAIN")){
-        // read the keyword GAIN from the metadata
-        if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
-          detection_image_gain = *double_gain;
-        } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
-          detection_image_gain = (double) *int64_gain;
-        }
-        else {
-          throw Elements::Exception() << "Keyword GAIN must be either float or int!";
-        }
-    }
-
-    if (img_metadata.count("SATURATE")){
-      // read the keyword SATURATE from the metadata
-      if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
-        detection_image_saturate = *double_saturate;
-      } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
-        detection_image_saturate = (double) *int64_saturate;
-      }
-      else {
-        throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
-      }
-    }
-
-    if (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end()) {
-      extension.m_flux_scale = args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>();
-    }
-    else if (img_metadata.count("FLXSCALE")) {
-      // read the keyword FLXSCALE from the metadata
-      if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
-        extension.m_flux_scale = *f_scale;
-      } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
-        extension.m_flux_scale = (double) *int64_f_scale;
-      }
-      else {
-        throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
-      }
-    }
-
-    if (args.find(DETECTION_IMAGE_GAIN) != args.end()) {
-      extension.m_gain = args.find(DETECTION_IMAGE_GAIN)->second.as<double>();
-    }
-    else {
-      extension.m_gain = detection_image_gain;
-    }
-
-    if (args.find(DETECTION_IMAGE_SATURATION) != args.end()) {
-      extension.m_saturation = args.find(DETECTION_IMAGE_SATURATION)->second.as<double>();
-    }
-    else {
-      extension.m_saturation = detection_image_saturate;
-    }
-
-    extension.m_interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>() ?
-        std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>()) : 0;
-
-    // Adapt image and parameters to take flux_scale into consideration
-    if (extension.m_flux_scale != 1.0) {
-      extension.m_detection_image =
-          MultiplyImage<DetectionImage::PixelType>::create(extension.m_detection_image, extension.m_flux_scale);
-      extension.m_gain /= extension.m_flux_scale;
-      extension.m_saturation *= extension.m_flux_scale;
-    }
-
+  for (const auto& img_source: image_reader->iter(ImageTile::FloatImage)) {
+    DetectionImageExtension extension = DetectionImageExtension::create(img_source, args);
     m_extensions.emplace_back(std::move(extension));
   }
 }
+
+
+DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
+    std::shared_ptr<ImageSource> image_source, double gain, double saturation,
+    double flux_scale, int interpolation_gap) {
+  init(image_source, gain, saturation, flux_scale, interpolation_gap);
+  m_coordinate_system = coordinateSystemOrIdentity(*image_source);
+  rescale();
+}
+
+
+DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
+    std::shared_ptr<FitsImageSource> fits_image_source, double gain, double saturation,
+    double flux_scale, int interpolation_gap) {
+  init(fits_image_source, gain, saturation, flux_scale, interpolation_gap);
+  m_coordinate_system = coordinateSystemOrIdentity(*fits_image_source);
+  auto img_metadata = fits_image_source->getMetadata();
+
+  if (img_metadata.count("GAIN")){
+      // read the keyword GAIN from the metadata
+      if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
+        m_gain = *double_gain;
+      } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
+        m_gain = (double) *int64_gain;
+      }
+      else {
+        throw Elements::Exception() << "Keyword GAIN must be either float or int!";
+      }
+  }
+
+  if (img_metadata.count("FLXSCALE")) {
+    // read the keyword FLXSCALE from the metadata
+    if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
+      m_flux_scale = *f_scale;
+    } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
+      m_flux_scale = (double) *int64_f_scale;
+    }
+    else {
+      throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
+    }
+  }
+
+  if (img_metadata.count("SATURATE")){
+    // read the keyword SATURATE from the metadata
+    if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
+      m_saturation = *double_saturate;
+    } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
+      m_saturation = (double) *int64_saturate;
+    }
+    else {
+      throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
+    }
+  }
+
+  rescale();
+}
+
+
+void DetectionImageConfig::DetectionImageExtension::init(
+    std::shared_ptr<ImageSource> image_source, double gain, double saturation,
+    double flux_scale, int interpolation_gap) {
+  m_image_source = image_source;
+  m_detection_image = BufferedImage<DetectionImage::PixelType>::create(image_source);
+  m_gain = gain;
+  m_saturation = saturation;
+  m_flux_scale = flux_scale;
+  m_interpolation_gap = interpolation_gap;
+}
+
+
+DetectionImageConfig::DetectionImageExtension DetectionImageConfig::DetectionImageExtension::create(
+    std::shared_ptr<ImageSource> image_source, const UserValues& args) {
+  double gain = (args.find(DETECTION_IMAGE_GAIN) != args.end())
+    ? args.find(DETECTION_IMAGE_GAIN)->second.as<double>()
+    : 0.0;
+
+  double saturation = (args.find(DETECTION_IMAGE_SATURATION) != args.end())
+    ? args.find(DETECTION_IMAGE_SATURATION)->second.as<double>()
+    : 0.0;
+
+  double flux_scale = (args.find(DETECTION_IMAGE_FLUX_SCALE) != args.end())
+    ? args.find(DETECTION_IMAGE_FLUX_SCALE)->second.as<double>()
+    : 1.0;
+
+  int interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>()
+    ? std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>())
+    : 0;
+
+  // FITS still needs its own branch to pick up GAIN/FLXSCALE/SATURATE from the
+  // header; the coordinate system comes from the image source either way.
+  if (auto fits_src = std::dynamic_pointer_cast<FitsImageSource>(image_source)) {
+    return DetectionImageExtension(fits_src, gain, saturation, flux_scale, interpolation_gap);
+  }
+
+  return DetectionImageExtension(image_source, gain, saturation, flux_scale, interpolation_gap);
+}
+
+
+void DetectionImageConfig::DetectionImageExtension::rescale() {
+  // Adapt image and parameters to take flux_scale into consideration
+  if (m_flux_scale != 1.0) {
+    m_detection_image =
+        MultiplyImage<DetectionImage::PixelType>::create(m_detection_image, m_flux_scale);
+    m_gain /= m_flux_scale;
+    m_saturation *= m_flux_scale;
+  }
+}
+
 
 std::string DetectionImageConfig::getDetectionImagePath() const {
   return m_detection_image_path;
