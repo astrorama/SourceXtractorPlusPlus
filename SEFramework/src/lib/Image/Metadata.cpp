@@ -1,4 +1,4 @@
-/** Copyright © 2020 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
+/** Copyright © 2019 Université de Genève, LMU Munich - Faculty of Physics, IAP-CNRS/Sorbonne Université
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,14 +15,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef _SEFRAMEWORK_IMAGE_IMAGESOURCEWITHMETADATA_H_
-#define _SEFRAMEWORK_IMAGE_IMAGESOURCEWITHMETADATA_H_
-
-#include "SEFramework/Image/ImageSource.h"
+#include "SEFramework/Image/Metadata.h"
 
 namespace SourceXtractor {
 
+std::shared_ptr<const Metadata> Metadata::empty() {
+  // Immutable and stateless, so one instance serves every caller
+  static const std::shared_ptr<const Metadata> instance = std::make_shared<const MapMetadata>();
+  return instance;
+}
 
-} // end of namespace SourceXtractor
-
-#endif /* _SEFRAMEWORK_IMAGE_IMAGESOURCEWITHMETADATA_H_ */
+}  // namespace SourceXtractor

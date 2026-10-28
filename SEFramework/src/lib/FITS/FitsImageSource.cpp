@@ -327,10 +327,7 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   number_of_records = 0;
   std::string records;
 
-  auto& headers = getMetadata();
-  for (const auto& record : headers) {
-    const auto& key = record.first;
-
+  getMetadata()->forEach([&](const std::string& key, const MetadataEntry& entry) {
     std::string record_string(key);
     if (record_string.size() > 8) {
       throw Elements::Exception() << "FITS keyword longer than 8 characters";
@@ -339,11 +336,11 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
       record_string += std::string(8 - record_string.size(), ' ');
     }
 
-    if (headers.at(key).m_value.type() == typeid(std::string)) {
-      record_string += "= '" + VariantCast<std::string>(headers.at(key).m_value) + "'";
+    if (entry.m_value.type() == typeid(std::string)) {
+      record_string += "= '" + VariantCast<std::string>(entry.m_value) + "'";
     }
     else {
-      record_string += "= " + VariantCast<std::string>(headers.at(key).m_value);
+      record_string += "= " + VariantCast<std::string>(entry.m_value);
     }
 
     if (record_string.size() > 80) {
@@ -357,7 +354,8 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
 
     records += record_string;
     number_of_records++;
-  }
+    return true;
+  });
 
   std::string record_string("END");
   record_string += std::string(80 - record_string.size(), ' ');
@@ -368,9 +366,13 @@ std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_o
   return buffer;
 }
 
-const std::map<std::string, MetadataEntry>& FitsImageSource::getMetadata() const {
+std::shared_ptr<const Metadata> FitsImageSource::getMetadata() const {
+  // A copy, not a view: the headers live in a FitsFile owned by the file pool,
+  // which may close and reopen the file underneath us.  FITS headers are at most
+  // a few hundred entries, so copying them is cheap enough to be worth the
+  // lifetime guarantee the interface promises.
   auto acc = m_handler->getAccessor<FitsFile>();
-  return acc->m_fd.getHDUHeaders(m_hdu_number);
+  return std::make_shared<const MapMetadata>(acc->m_fd.getHDUHeaders(m_hdu_number));
 }
 
 void FitsImageSource::setMetadata(const std::string& key, const MetadataEntry& value) {

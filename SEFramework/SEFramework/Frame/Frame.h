@@ -88,13 +88,13 @@ public:
     m_hdu_index = hdu_index;
   }
 
-  // Metadata of the original image
-  const std::map<std::string, MetadataEntry>& getMetadata() const {
-    return m_metadata;
+  // Metadata of the original image; never null
+  std::shared_ptr<const Metadata> getMetadata() const {
+    return m_metadata ? m_metadata : Metadata::empty();
   };
 
-  void setMetadata(const std::map<std::string, MetadataEntry>& metadata) {
-    m_metadata = metadata;
+  void setMetadata(std::shared_ptr<const Metadata> metadata) {
+    m_metadata = std::move(metadata);
   };
 
   // Returns the image with bad pixels interpolated (if interpolation is active, otherwise returns original)
@@ -202,7 +202,7 @@ private:
 
   std::string m_label;
   size_t m_hdu_index = 0;
-  std::map<std::string, MetadataEntry> m_metadata {};
+  std::shared_ptr<const Metadata> m_metadata;
 };
 
 using DetectionImageFrame = Frame<DetectionImage::PixelType>;

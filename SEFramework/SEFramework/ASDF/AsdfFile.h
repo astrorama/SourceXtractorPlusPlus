@@ -35,7 +35,7 @@
 
 #include <ElementsKernel/Exception.h>
 
-#include "SEFramework/Image/ImageSourceWithMetadata.h"
+#include "SEFramework/Image/Metadata.h"
 #include "SEFramework/Image/ImageTile.h"
 
 namespace SourceXtractor {

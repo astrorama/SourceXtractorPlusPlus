@@ -33,6 +33,7 @@ using boost::smatch;
 #include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace Euclid::Configuration;
 namespace po = boost::program_options;
@@ -40,6 +41,24 @@ namespace po = boost::program_options;
 namespace SourceXtractor {
 
 namespace {
+
+/**
+ * Overwrite `out` with the value of `keyword`, if the metadata has one
+ *
+ * Left alone when the keyword is absent, so the caller's default survives.
+ * Throws if the keyword is present but is not a number, since a header that
+ * says GAIN = "high" is a mistake worth reporting.
+ */
+void readNumericKeyword(const Metadata& metadata, const std::string& keyword, double& out) {
+  try {
+    if (auto value = metadata.getAs<double>(keyword)) {
+      out = *value;
+    }
+  } catch (const boost::bad_lexical_cast&) {
+    throw Elements::Exception() << "Keyword " << keyword << " must be a number!";
+  }
+}
+
 
 Elements::Logging logger = Elements::Logging::getLogger("Config");
 
@@ -203,41 +222,12 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
   m_coordinate_system = coordinateSystemOrIdentity(*fits_image_source);
   auto img_metadata = fits_image_source->getMetadata();
 
-  if (img_metadata.count("GAIN")){
-      // read the keyword GAIN from the metadata
-      if (double* double_gain = boost::get<double>(&img_metadata.at("GAIN").m_value)){
-        m_gain = *double_gain;
-      } else if (int64_t *int64_gain = boost::get<int64_t>(&img_metadata.at("GAIN").m_value)){
-        m_gain = (double) *int64_gain;
-      }
-      else {
-        throw Elements::Exception() << "Keyword GAIN must be either float or int!";
-      }
-  }
-
-  if (img_metadata.count("FLXSCALE")) {
-    // read the keyword FLXSCALE from the metadata
-    if (double* f_scale = boost::get<double>(&img_metadata.at("FLXSCALE").m_value)){
-      m_flux_scale = *f_scale;
-    } else if (int64_t *int64_f_scale = boost::get<int64_t>(&img_metadata.at("FLXSCALE").m_value)){
-      m_flux_scale = (double) *int64_f_scale;
-    }
-    else {
-      throw Elements::Exception() << "Keyword FLXSCALE must be either float or int!";
-    }
-  }
-
-  if (img_metadata.count("SATURATE")){
-    // read the keyword SATURATE from the metadata
-    if (double* double_saturate = boost::get<double>(&img_metadata.at("SATURATE").m_value)){
-      m_saturation = *double_saturate;
-    } else if (int64_t *int64_saturate = boost::get<int64_t>(&img_metadata.at("SATURATE").m_value)){
-      m_saturation = (double) *int64_saturate;
-    }
-    else {
-      throw Elements::Exception() << "Keyword SATURATE must be either float or int!";
-    }
-  }
+  // Each of these is a single named lookup, so ask for it rather than walking
+  // the whole header.  Only float and int are accepted; anything else is a
+  // configuration error rather than something to silently ignore.
+  readNumericKeyword(*img_metadata, "GAIN", m_gain);
+  readNumericKeyword(*img_metadata, "FLXSCALE", m_flux_scale);
+  readNumericKeyword(*img_metadata, "SATURATE", m_saturation);
 
   rescale();
 }

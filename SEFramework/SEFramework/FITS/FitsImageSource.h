@@ -35,7 +35,7 @@
 
 #include "FilePool/FileManager.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/Image/ImageSourceWithMetadata.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/FITS/FitsFile.h"
 #include "SEUtils/VariantCast.h"
 
@@ -115,10 +115,9 @@ public:
 
   template<typename TT>
   bool readFitsKeyword(const std::string& header_keyword, TT& out_value) const {
-    auto& headers = getMetadata();
-    auto i = headers.find(header_keyword);
-    if (i != headers.end()) {
-      out_value = VariantCast<TT>(i->second.m_value);
+    auto value = getMetadata()->getAs<TT>(header_keyword);
+    if (value) {
+      out_value = *value;
       return true;
     }
     return false;
@@ -136,7 +135,7 @@ public:
 
   std::shared_ptr<CoordinateSystem> getCoordinateSystem() const override;
 
-  const std::map<std::string, MetadataEntry>& getMetadata() const override;
+  std::shared_ptr<const Metadata> getMetadata() const override;
 
   void setMetadata(const std::string& key, const MetadataEntry& value) override;
 

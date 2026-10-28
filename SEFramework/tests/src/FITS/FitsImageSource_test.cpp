@@ -72,11 +72,46 @@ BOOST_FIXTURE_TEST_CASE(default_is_primary_test, FitsImageSourceFixture) {
   BOOST_CHECK_EQUAL(img_src->getHeight(), 1);
   BOOST_CHECK_EQUAL(img_src->getWidth(), 1);
   BOOST_CHECK_CLOSE(img_src->getImageTile(0, 0, 1, 1)->getValue<SeFloat>(0, 0), 1024.44f, 1e-8);
-  auto metadata = img_src->getMetadata();
-  BOOST_CHECK_EQUAL(boost::get<double>(metadata["GAIN"].m_value), 42);
-  BOOST_CHECK_EQUAL(metadata["GAIN"].m_extra["comment"], "ADU");
-  BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["STRF"].m_value), "A string 'header'");
-  BOOST_CHECK_EQUAL(metadata["STRF"].m_extra["comment"], "Some random stuff");
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(read_metadata_test, FitsImageSourceFixture) {
+  auto metadata = FitsImageSource(primary_path, 0, ImageTile::FloatImage).getMetadata();
+
+  // Reading the variant out of the entry, and the typed shorthand for it
+  BOOST_CHECK_EQUAL(boost::get<double>(metadata->get("GAIN")->m_value), 42);
+  BOOST_CHECK_EQUAL(*metadata->getAs<double>("GAIN"), 42);
+  BOOST_CHECK_EQUAL(boost::get<std::string>(metadata->get("STRF")->m_value), "A string 'header'");
+  BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("STRF"), "A string 'header'");
+
+  // getAs is lexical, so a numeric keyword also reads as a string and vice versa
+  BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("GAIN"), "42");
+  BOOST_CHECK_EQUAL(*metadata->getAs<int>("GAIN"), 42);
+
+  // Comments live on the entry, so they need get() rather than getAs()
+  BOOST_CHECK_EQUAL(metadata->get("GAIN")->m_extra.at("comment"), "ADU");
+  BOOST_CHECK_EQUAL(metadata->get("STRF")->m_extra.at("comment"), "Some random stuff");
+
+  // A missing keyword is an empty optional, not an exception
+  BOOST_CHECK(!metadata->contains("NOSUCHKEY"));
+  BOOST_CHECK(metadata->get("NOSUCHKEY") == std::nullopt);
+  BOOST_CHECK(metadata->getAs<double>("NOSUCHKEY") == std::nullopt);
+
+  // forEach visits everything, and stops when the visitor says so
+  size_t count = 0;
+  metadata->forEach([&count](const std::string&, const MetadataEntry&) {
+    count++;
+    return true;
+  });
+  BOOST_CHECK_GT(count, 1u);
+
+  size_t stopped = 0;
+  metadata->forEach([&stopped](const std::string&, const MetadataEntry&) {
+    stopped++;
+    return false;
+  });
+  BOOST_CHECK_EQUAL(stopped, 1u);
 }
 
 //-----------------------------------------------------------------------------
@@ -195,7 +230,7 @@ BOOST_FIXTURE_TEST_CASE(write_fits_headers, FitsImageSourceFixture) {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
 
     auto metadata = image_source->getMetadata();
-    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["TEST"].m_value), "toto");
+    BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("TEST"), "toto");
   }
 }
 
@@ -216,16 +251,16 @@ BOOST_FIXTURE_TEST_CASE(write_wcs_headers, FitsImageSourceFixture) {
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
     auto metadata = image_source->getMetadata();
 
-    BOOST_CHECK_EQUAL(metadata.count("CTYPE1"), 1);
-    BOOST_CHECK_EQUAL(metadata.count("CTYPE2"), 1);
-    BOOST_CHECK_EQUAL(metadata.count("CRPIX1"), 1);
-    BOOST_CHECK_EQUAL(metadata.count("CRVAL1"), 1);
+    BOOST_CHECK(metadata->contains("CTYPE1"));
+    BOOST_CHECK(metadata->contains("CTYPE2"));
+    BOOST_CHECK(metadata->contains("CRPIX1"));
+    BOOST_CHECK(metadata->contains("CRVAL1"));
 
     // Values as they appear in the wcs_header.fits fixture
-    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["CTYPE1"].m_value), "RA---TPV");
-    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["CTYPE2"].m_value), "DEC--TPV");
-    BOOST_CHECK_CLOSE(boost::get<double>(metadata["CRVAL1"].m_value), 231.4664282939, 1e-6);
-    BOOST_CHECK_CLOSE(boost::get<double>(metadata["CRVAL2"].m_value), 30.48780336375, 1e-6);
+    BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("CTYPE1"), "RA---TPV");
+    BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("CTYPE2"), "DEC--TPV");
+    BOOST_CHECK_CLOSE(*metadata->getAs<double>("CRVAL1"), 231.4664282939, 1e-6);
+    BOOST_CHECK_CLOSE(*metadata->getAs<double>("CRVAL2"), 30.48780336375, 1e-6);
   }
 }
 
@@ -247,9 +282,9 @@ BOOST_FIXTURE_TEST_CASE(write_without_serializable_wcs, FitsImageSourceFixture) 
     auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
     auto metadata = image_source->getMetadata();
 
-    BOOST_CHECK_EQUAL(metadata.count("CTYPE1"), 0);
-    BOOST_CHECK_EQUAL(metadata.count("CRPIX1"), 0);
-    BOOST_CHECK_EQUAL(metadata.count("CRVAL1"), 0);
+    BOOST_CHECK(!metadata->contains("CTYPE1"));
+    BOOST_CHECK(!metadata->contains("CRPIX1"));
+    BOOST_CHECK(!metadata->contains("CRVAL1"));
   }
 }
 

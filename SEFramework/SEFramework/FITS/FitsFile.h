@@ -31,7 +31,7 @@
 #include <string>
 #include <vector>
 
-#include "SEFramework/Image/ImageSourceWithMetadata.h"
+#include "SEFramework/Image/Metadata.h"
 
 namespace SourceXtractor {
 

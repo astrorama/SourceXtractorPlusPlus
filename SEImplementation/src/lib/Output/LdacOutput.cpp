@@ -30,9 +30,13 @@
 #include <boost/io/detail/quoted_manip.hpp>
 #else
 #include <boost/io/quoted.hpp>
+#include <ElementsKernel/Logging.h>
 #endif
 
 namespace SourceXtractor {
+
+static Elements::Logging logger = Elements::Logging::getLogger("LdacOutput");
+
 
 using Euclid::Configuration::ConfigManager;
 using Euclid::make_unique;
@@ -149,18 +153,35 @@ void LdacOutput::writeHeaders() {
     imhead_writer->setHduName("LDAC_IMHEAD");
   }
 
-  // Headers from the image
+  // Headers from the image.  LDAC_IMHEAD is literally a run of 80-character FITS
+  // cards, so a key that is not a legal FITS keyword cannot be represented and is
+  // skipped.  That is what happens to the slash-separated tree paths an ASDF image
+  // reports: none of them survive, which is the honest outcome -- there is no
+  // meaningful way to render an ASDF tree as a FITS header, and the tools that read
+  // LDAC_IMHEAD (SCAMP, PSFEx) could not use a GWCS anyway.
   std::vector<std::string> ldac_imhead;
-  for (const auto &p : m_image_metadata) {
+  size_t skipped = 0;
+  m_image_metadata->forEach([&](const std::string& key, const MetadataEntry& entry) {
+    if (key.size() > 8 || key.find('/') != std::string::npos) {
+      skipped++;
+      return true;
+    }
+
     std::string comment;
-    if (p.second.m_extra.count("comment")) {
-      comment = p.second.m_extra.at("comment");
+    if (entry.m_extra.count("comment")) {
+      comment = entry.m_extra.at("comment");
     }
-    if (p.second.m_value.type() == typeid(std::string)) {
-      ldac_imhead.emplace_back(generateHeader(p.first, boost::get<std::string>(p.second.m_value), comment));
+    if (entry.m_value.type() == typeid(std::string)) {
+      ldac_imhead.emplace_back(generateHeader(key, boost::get<std::string>(entry.m_value), comment));
     } else {
-      ldac_imhead.emplace_back(generateHeader(p.first, p.second.m_value, comment));
+      ldac_imhead.emplace_back(generateHeader(key, entry.m_value, comment));
     }
+    return true;
+  });
+
+  if (skipped > 0) {
+    logger.warn() << skipped << " image metadata entries cannot be represented as FITS "
+                  << "keywords and were left out of LDAC_IMHEAD";
   }
 
   // Headers from the configuration and detection

@@ -26,33 +26,13 @@
 #define _SEFRAMEWORK_IMAGE_IMAGESOURCE_H_
 
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
-#include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageTile.h"
+#include "SEFramework/Image/Metadata.h"
 
-#include <boost/variant.hpp>
-#include <map>
 #include <memory>
 
 
 namespace SourceXtractor {
-
-/**
- * Accepted values are bool, char, int64_t, double and string
- * Other types must be promoted (i.e. int32_t => int64_t, float => double)
- */
-
-struct MetadataEntry {
-  typedef boost::variant<bool, char, int64_t, double, std::string> value_t;
-
-  value_t m_value;
-
-  /// Additional metadata about the entry: i.e. comments
-  std::map<std::string, std::string> m_extra;
-};
-
-/**
- * Metadata is modeled as a set of key/value pairs. Keys are unique.
- */
 
 class ImageSource {
 public:
@@ -90,16 +70,27 @@ public:
   virtual std::shared_ptr<CoordinateSystem> getCoordinateSystem() const { return nullptr; }
 
   /**
-   * @return A copy of the metadata set
+   * The metadata this image carries, if any
+   *
+   * Never returns NULL but may return an empty Metadata if the source carries
+   * no metadata of its own.
    */
-  virtual const std::map<std::string, MetadataEntry>& getMetadata() const { return m_metadata; }
+  virtual std::shared_ptr<const Metadata> getMetadata() const {
+    return m_metadata ? std::static_pointer_cast<const Metadata>(m_metadata) : Metadata::empty();
+  }
 
+  /// Add or replace one metadata value
   virtual void setMetadata(const std::string& key, const MetadataEntry& value) {
-    m_metadata[key] = value;
+    if (!m_metadata) {
+      m_metadata = std::make_shared<MapMetadata>();
+    }
+
+    m_metadata->set(key, value);
   }
 
 private:
-  std::map<std::string, MetadataEntry> m_metadata;
+  /// Built on first write; a source never written to shares Metadata::empty()
+  std::shared_ptr<MapMetadata> m_metadata;
 };
 
 }  // namespace SourceXtractor

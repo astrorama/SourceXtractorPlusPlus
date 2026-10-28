@@ -39,7 +39,7 @@ private:
 
   std::shared_ptr<Euclid::Table::FitsWriter> m_fits_writer;
 
-  std::map<std::string, MetadataEntry> m_image_metadata {};
+  std::shared_ptr<const Metadata> m_image_metadata = Metadata::empty();
   DetectionImage::PixelType m_rms;
   double m_gain;
 };
