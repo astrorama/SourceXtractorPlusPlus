@@ -24,8 +24,9 @@
 #define _SEIMPLEMENTATION_DETECTIONIMAGECONFIG_H
 
 #include "Configuration/Configuration.h"
+#include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/Image.h"
-#include "SEFramework/Image/ImageSourceWithMetadata.h"
+#include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
 
 namespace SourceXtractor {
@@ -47,7 +48,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   explicit DetectionImageConfig(long manager_id);
 
   std::map<std::string, Configuration::OptionDescriptionList> getProgramOptions() override;
-  
+
   void initialize(const UserValues& args) override;
 
   std::string getDetectionImagePath() const;
@@ -55,7 +56,7 @@ class DetectionImageConfig : public Euclid::Configuration::Configuration {
   std::shared_ptr<DetectionImage> getDetectionImage(size_t index = 0) const;
   std::shared_ptr<CoordinateSystem> getCoordinateSystem(size_t index = 0) const;
   bool isReferenceImage() const { return m_is_reference_image; }
-  
+
   double getGain(size_t index = 0) const { return m_extensions.at(index).m_gain; }
   double getSaturation(size_t index = 0) const { return m_extensions.at(index).m_saturation; }
   int getInterpolationGap(size_t index = 0) const { return m_extensions.at(index).m_interpolation_gap; }
@@ -90,6 +91,20 @@ private:
     double m_flux_scale {1.0};
 
     int m_interpolation_gap {0};
+
+    DetectionImageExtension() = default;
+
+    DetectionImageExtension(std::shared_ptr<ImageSource> image_source, double gain,
+                            double saturation, double flux_scale, int interpolation_gap);
+    DetectionImageExtension(std::shared_ptr<FitsImageSource> fits_image_source, double gain,
+                            double saturation, double flux_scale, int interpolation_gap);
+
+    static DetectionImageExtension create(std::shared_ptr<ImageSource>, const UserValues& args);
+
+  private:
+    void init(std::shared_ptr<ImageSource> image_source, double gain, double saturation,
+              double flux_scale, int interpolation_gap);
+    void rescale();
   };
 
   std::vector<DetectionImageExtension> m_extensions;

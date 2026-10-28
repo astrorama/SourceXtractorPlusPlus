@@ -24,7 +24,9 @@
 
 #include "SEFramework/FITS/FitsImageSource.h"
 
+#include "SEFramework/CoordinateSystem/WCS.h"
 #include "SEFramework/FITS/FitsFile.h"
+#include "SEFramework/FITS/FitsWcsSerializable.h"
 #include "SEUtils/VariantCast.h"
 #include <AlexandriaKernel/memory_tools.h>
 #include <FilePool/LRUFileManager.h>
@@ -35,9 +37,7 @@
 #include <boost/filesystem/operations.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/regex.hpp>
-#include <fstream>
 #include <iomanip>
-#include <numeric>
 #include <string>
 
 namespace SourceXtractor {
@@ -69,7 +69,7 @@ ImageTile::ImageType convertImageType(int bitpix) {
     image_type = ImageTile::LongLongImage;
     break;
   default:
-    throw Elements::Exception() << "Unsupported FITS image type: " << bitpix;
+    throw FitsImageSource::InvalidHduTypeException() << "Unsupported FITS image type: " << bitpix;
   }
 
   return image_type;
@@ -78,6 +78,7 @@ ImageTile::ImageType convertImageType(int bitpix) {
 }
 
 FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
+                                 std::optional<std::string> extname,
                                  ImageTile::ImageType image_type,
                                  std::shared_ptr<FileManager> manager)
     : m_filename(filename)
@@ -91,12 +92,16 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   auto acc = m_handler->getAccessor<FitsFile>();
   auto fptr = acc->m_fd.getFitsFilePtr();
 
-  if (m_hdu_number <= 0) {
+  if (m_hdu_number <= 0 && !extname) {
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
-      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename;
+      throw UnknownHduException() << "Can't get the active HDU from the FITS file: " << filename;
     }
-  }
-  else {
+  } else if (extname) {
+    switchHdu(fptr, *extname);
+    if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
+      throw UnknownHduException() << "Can't get the active HDU from the FITS file: " << filename;
+    }
+  } else {
     switchHdu(fptr, m_hdu_number);
   }
 
@@ -104,7 +109,7 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
   if (status != 0 || (naxis != 2 && naxis != 3)) {
     char error_message[32];
     fits_get_errstatus(status, error_message);
-    throw Elements::Exception()
+    throw InvalidHduTypeException()
         << "Can't find 2D image or data cube in FITS file: " << filename << "[" << m_hdu_number << "]"
         << " status: " << status << " = " << error_message;
   }
@@ -161,15 +166,25 @@ FitsImageSource::FitsImageSource(const std::string& filename, int width, int hei
     if (fits_get_hdu_num(fptr, &m_hdu_number) < 0) {
       char error_message[32];
       fits_get_errstatus(status, error_message);
-      throw Elements::Exception() << "Can't get the active HDU from the FITS file: " << filename
+      throw UnknownHduException() << "Can't get the active HDU from the FITS file: " << filename
           << " status: " << status << " = " << error_message;
     }
 
     int hdutype = 0;
     fits_movabs_hdu(fptr, m_hdu_number, &hdutype, &status);
 
-    if (coord_system) {
-      auto headers = coord_system->getFitsHeaders();
+    // Coordinate systems with no FITS representation (e.g. a GWCS from an ASDF
+    // file) don't implement FitsWcsSerializable; the image is written without
+    // WCS cards in that case.
+    auto serializable = std::dynamic_pointer_cast<const FitsWcsSerializable>(coord_system);
+
+    if (coord_system && !serializable) {
+      logger.warn() << "Coordinate system cannot be represented as FITS headers; writing "
+          << filename << " without WCS information";
+    }
+
+    if (serializable) {
+      auto headers = serializable->getFitsHeaders();
       for (const auto& h : headers) {
         std::ostringstream padded_key, serializer;
         padded_key << std::setw(8) << std::left << h.first;
@@ -270,13 +285,28 @@ void FitsImageSource::switchHdu(fitsfile *fptr, int hdu_number) const {
   if (status != 0) {
     char error_message[32];
     fits_get_errstatus(status, error_message);
-    throw Elements::Exception() << "Could not switch to HDU # " << hdu_number << " in file " << m_filename
+    throw UnknownHduException() << "Could not switch to HDU # " << hdu_number << " in file " << m_filename
         << " status: " << status << " = " << error_message;
   }
   if (hdu_type != IMAGE_HDU) {
-    throw Elements::Exception() << "Trying to access non-image HDU in file " << m_filename;
+    throw InvalidHduTypeException() << "Trying to access non-image HDU in file " << m_filename;
   }
 }
+
+
+void FitsImageSource::switchHdu(fitsfile *fptr, const std::string& extname) const {
+  int status = 0;
+
+  fits_movnam_hdu(fptr, IMAGE_HDU, const_cast<char *>(extname.c_str()), 0, &status);
+
+  if (status != 0) {
+    char error_message[32];
+    fits_get_errstatus(status, error_message);
+    throw UnknownHduException() << "Could not switch to HDU with EXTNAME " << extname << " in file " << m_filename
+        << " status: " << status << " = " << error_message;
+  }
+}
+
 
 void FitsImageSource::setLayer(int layer) {
   if (layer < 0 && layer >= m_depth) {
@@ -284,6 +314,14 @@ void FitsImageSource::setLayer(int layer) {
   }
   m_current_layer = layer;
 }
+
+std::shared_ptr<CoordinateSystem> FitsImageSource::getCoordinateSystem() const {
+  int number_of_records = 0;
+  auto headers = getFitsHeaders(number_of_records);
+
+  return WCS::fromFitsHeaders(&(*headers)[0], number_of_records);
+}
+
 
 std::unique_ptr<std::vector<char>> FitsImageSource::getFitsHeaders(int& number_of_records) const {
   number_of_records = 0;

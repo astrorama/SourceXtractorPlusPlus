@@ -28,17 +28,36 @@
 
 #include "SEFramework/Image/WriteableBufferedImage.h"
 #include "SEFramework/Image/ImageAccessor.h"
+#include "SEFramework/CoordinateSystem/CoordinateSystem.h"
+#include "SEFramework/CoordinateSystem/WCS.h"
 #include "SEFramework/FITS/FitsImageSource.h"
 
 using namespace SourceXtractor;
 
 struct FitsImageSourceFixture {
-  std::string mhdu_path, primary_path;
+  std::string mhdu_path, primary_path, wcs_path;
   Elements::TempFile temp_path;
 
   FitsImageSourceFixture() : temp_path("FitsImageSource_test_%%%%%%.fits") {
     mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.fits").native();
+    wcs_path = Elements::getAuxiliaryPath("wcs_header.fits").native();
+  }
+};
+
+/**
+ * A CoordinateSystem with no FITS representation, i.e. one that does not
+ * implement FitsWcsSerializable.  Stands in for GWCS, which is only available
+ * when built against libasdf-gwcs.
+ */
+class NonSerializableCoordinateSystem : public CoordinateSystem {
+public:
+  WorldCoordinate imageToWorld(ImageCoordinate image_coordinate) const override {
+    return WorldCoordinate(image_coordinate.m_x, image_coordinate.m_y);
+  }
+
+  ImageCoordinate worldToImage(WorldCoordinate world_coordinate) const override {
+    return ImageCoordinate(world_coordinate.m_alpha, world_coordinate.m_delta);
   }
 };
 
@@ -180,6 +199,59 @@ BOOST_FIXTURE_TEST_CASE(write_fits_headers, FitsImageSourceFixture) {
   }
 }
 
+
+BOOST_FIXTURE_TEST_CASE(write_wcs_headers, FitsImageSourceFixture) {
+  // A coordinate system that can be serialized to FITS gets its cards written
+  // out with the image.  This is what gives check images their WCS.
+  auto coord_system = FitsImageSource(wcs_path).getCoordinateSystem();
+
+  {
+    std::make_shared<FitsImageSource>(temp_path.path().native(), 100, 100,
+        ImageTile::FloatImage, coord_system, false, true);
+  }
+
+  TileManager::getInstance()->flush();
+
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
+    auto metadata = image_source->getMetadata();
+
+    BOOST_CHECK_EQUAL(metadata.count("CTYPE1"), 1);
+    BOOST_CHECK_EQUAL(metadata.count("CTYPE2"), 1);
+    BOOST_CHECK_EQUAL(metadata.count("CRPIX1"), 1);
+    BOOST_CHECK_EQUAL(metadata.count("CRVAL1"), 1);
+
+    // Values as they appear in the wcs_header.fits fixture
+    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["CTYPE1"].m_value), "RA---TPV");
+    BOOST_CHECK_EQUAL(boost::get<std::string>(metadata["CTYPE2"].m_value), "DEC--TPV");
+    BOOST_CHECK_CLOSE(boost::get<double>(metadata["CRVAL1"].m_value), 231.4664282939, 1e-6);
+    BOOST_CHECK_CLOSE(boost::get<double>(metadata["CRVAL2"].m_value), 30.48780336375, 1e-6);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(write_without_serializable_wcs, FitsImageSourceFixture) {
+  // A coordinate system with no FITS representation is not an error: the image
+  // is written without WCS cards rather than failing.
+  auto coord_system = std::make_shared<NonSerializableCoordinateSystem>();
+
+  {
+    BOOST_CHECK_NO_THROW(std::make_shared<FitsImageSource>(temp_path.path().native(), 100, 100,
+        ImageTile::FloatImage, coord_system, false, true));
+  }
+
+  TileManager::getInstance()->flush();
+
+  {
+    auto image_source = std::make_shared<FitsImageSource>(temp_path.path().native());
+    auto metadata = image_source->getMetadata();
+
+    BOOST_CHECK_EQUAL(metadata.count("CTYPE1"), 0);
+    BOOST_CHECK_EQUAL(metadata.count("CRPIX1"), 0);
+    BOOST_CHECK_EQUAL(metadata.count("CRVAL1"), 0);
+  }
+}
 
 //-----------------------------------------------------------------------------
 

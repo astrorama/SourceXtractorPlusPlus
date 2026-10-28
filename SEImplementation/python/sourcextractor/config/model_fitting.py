@@ -28,9 +28,6 @@ try:
     import pyston
 except ImportError:
     warnings.warn('Could not import pyston: running outside sourcextractor?', ImportWarning)
-from astropy import units as u
-from astropy.coordinates import SkyCoord
-
 from .measurement_images import MeasurementGroup
 
 
@@ -422,7 +419,7 @@ class ModelBase(cpp.Id):
     """
     Base class for all models.
     """
-    
+
     def get_params(self):
         return []
 
@@ -449,7 +446,7 @@ class CoordinateModelBase(ModelBase):
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
         self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
-        
+
     def get_params(self):
         return [self.x_coord, self.y_coord, self.flux]
 
@@ -530,7 +527,7 @@ class ConstantModel(ModelBase):
             return 'ConstantModel[value={}]'.format(self.value)
         else:
             return 'ConstantModel[value={}]'.format(self.value.id)
-        
+
         def get_params(self):
             return [self.value]
 
@@ -841,6 +838,33 @@ def pixel_to_world_coordinate(x, y):
     return WorldCoordinate(wc_alpha, wc_delta)
 
 
+def import_astropy():
+    """
+    Lazy import of astropy
+
+    astropy is only used, currently in `get_sky_coord`, but can be a rather
+    heavy import.  Delaying its import until actually used can save
+    noticeably on startup time on each invocation.
+    """
+
+    # NumPy probes the float limits when astropy imports it, and this process runs
+    # with subnormals flushed to zero (due to -ffast-math), so every probe warns
+    # that they are zero
+    try:
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message='The value of the smallest subnormal',
+                                    category=UserWarning)
+            from astropy import units as u
+            from astropy.coordinates import SkyCoord
+    except ImportError as exc:
+        raise ImportError(
+            'astropy is required for computing world coordinate angles and separations '
+            '(e.g. get_world_parameters()); install it with: pip install astropy'
+        ) from exc
+
+    return u, SkyCoord
+
+
 def get_sky_coord(x, y):
     """
     Transform an (X, Y) in pixel coordinates on the detection image to astropy SkyCoord.
@@ -854,6 +878,8 @@ def get_sky_coord(x, y):
     -------
     SkyCoord
     """
+
+    u, SkyCoord = import_astropy()
     coord = pixel_to_world_coordinate(x, y)
     sky_coord = SkyCoord(ra=coord.ra * u.degree, dec=coord.dec * u.degree)
     return sky_coord
@@ -1229,28 +1255,28 @@ class ModelFitting:
 
         """
         self.params_dict["meta_iteration_stop"] = meta_iteration_stop
-        
+
     def set_window_type(self, window_type):
         """
         Parameters
         ----------
-        
+
         window_type : WindowType
             specify the type of model fitting window
 
         """
         if type(window_type) != WindowType:
             raise TypeError("Window type must be a WindowType enum value!")
-        
+
         self.params_dict["window_type"] = window_type
 
     def set_ellipse_scale(self, ellipse_scale):
         """
         Parameters
         ----------
-        
+
         ellipse_scale : double
-            specify scaling of elliptic footprints 
+            specify scaling of elliptic footprints
 
         """
         self.params_dict["ellipse_scale"] = ellipse_scale
