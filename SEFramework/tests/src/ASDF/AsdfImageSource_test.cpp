@@ -30,12 +30,13 @@
 using namespace SourceXtractor;
 
 struct AsdfImageSourceFixture {
-  std::string mhdu_path, primary_path, wcs_header;
+  std::string mhdu_path, primary_path, wcs_header, metadata_path;
 
   AsdfImageSourceFixture() {
     mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.asdf").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.asdf").native();
     wcs_header = Elements::getAuxiliaryPath("wcs_header.asdf").native();
+    metadata_path = Elements::getAuxiliaryPath("metadata.asdf").native();
   }
 };
 
@@ -101,6 +102,41 @@ BOOST_FIXTURE_TEST_CASE(empty_ndarray_test, AsdfImageSourceFixture) {
   BOOST_CHECK_THROW(std::make_shared<AsdfImageSource>(mhdu_path, "PRIMARY"), Elements::Exception);
 }
 
+
+BOOST_FIXTURE_TEST_CASE(get_metadata, AsdfImageSourceFixture) {
+  auto metadata = AsdfImageSource(metadata_path, "data").getMetadata();
+
+  BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("/meta/instrument/optical_element"), "F158");
+  BOOST_CHECK_EQUAL(*metadata->getAs<double>("/meta/gain"), 2.5);
+  BOOST_CHECK(!metadata->contains("/meta/nope"));
+
+  // getAs is lexical, so an integer keyword also reads as a string
+  BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("/meta/saturation"), "65535");
+
+  size_t count = 0;
+  metadata->forEach([&count](const std::string&, const MetadataEntry&) {
+    count++;
+    return true;
+  });
+  BOOST_CHECK_GT(count, 1u);
+}
+
+
+BOOST_FIXTURE_TEST_CASE(metadata_outlives_the_source, AsdfImageSourceFixture) {
+  // The returned Metadata holds the pooled file handle, not the ImageSource, so
+  // it keeps working after the source is gone.  That is what the ImageSource
+  // interface promises, and what makes the lazy reads safe.
+  std::shared_ptr<const Metadata> metadata;
+
+  {
+    AsdfImageSource source(metadata_path, "data");
+    metadata = source.getMetadata();
+  }
+
+  BOOST_CHECK_EQUAL(*metadata->getAs<std::string>("/meta/instrument/name"), "WFI");
+}
+
+//-----------------------------------------------------------------------------
 
 // NOTE: WCS selection by name is covered in depth by GWCS_test; here we only
 // check that an ASDF image exposes a coordinate system at all -- or, when built

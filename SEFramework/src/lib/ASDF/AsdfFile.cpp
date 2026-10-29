@@ -37,6 +37,8 @@
 #include "ElementsKernel/Exception.h"
 #include "ElementsKernel/Logging.h"
 
+#include <FilePool/FileManager.h>
+
 #include "SEFramework/ASDF/AsdfFile.h"
 
 namespace SourceXtractor {
@@ -230,6 +232,139 @@ const std::vector<std::string>& AsdfFile::getImageNdarrayPaths() {
 
   m_image_ndarray_paths = std::move(paths);
   return *m_image_ndarray_paths;
+}
+
+
+namespace {
+
+/**
+ * Convert one ASDF scalar to a MetadataEntry value
+ *
+ * Switching on the concrete type keeps the integer family from being mistaken
+ * for something else: asdf_value_as_bool() accepts an integer, so a conversion
+ * that tried the accessors in turn would report every small int as a boolean.
+ */
+MetadataEntry::value_t scalarToMetadataValue(asdf_value_t* value) {
+  switch (asdf_value_get_type(value)) {
+  case ASDF_VALUE_BOOL: {
+    bool out = false;
+    if (ASDF_VALUE_OK == asdf_value_as_bool(value, &out)) {
+      return out;
+    }
+    break;
+  }
+  case ASDF_VALUE_INT8:
+  case ASDF_VALUE_INT16:
+  case ASDF_VALUE_INT32:
+  case ASDF_VALUE_INT64:
+  case ASDF_VALUE_UINT8:
+  case ASDF_VALUE_UINT16:
+  case ASDF_VALUE_UINT32:
+  case ASDF_VALUE_UINT64: {
+    // MetadataEntry holds only int64_t, so every width widens to it.  A uint64
+    // above INT64_MAX does not fit and yields ASDF_VALUE_ERR_OVERFLOW; keep the
+    // text form rather than silently wrapping it.
+    int64_t out = 0;
+    if (ASDF_VALUE_OK == asdf_value_as_int64(value, &out)) {
+      return out;
+    }
+    break;
+  }
+  case ASDF_VALUE_FLOAT:
+  case ASDF_VALUE_DOUBLE: {
+    double out = 0.;
+    if (ASDF_VALUE_OK == asdf_value_as_double(value, &out)) {
+      return out;
+    }
+    break;
+  }
+  case ASDF_VALUE_STRING: {
+    const char* out = nullptr;
+    if (ASDF_VALUE_OK == asdf_value_as_string0(value, &out) && out != nullptr) {
+      return std::string(out);
+    }
+    break;
+  }
+  case ASDF_VALUE_NULL:
+    // MetadataEntry has no null; an absent value reads empty, as a FITS card
+    // with no value does.
+    return std::string();
+  default:
+    // Includes ASDF_VALUE_SCALAR, a scalar matching no YAML core schema type
+    break;
+  }
+
+  // Anything above that is unrepresentable, or whose typed read failed: keep
+  // the raw YAML text
+  const char* text = nullptr;
+  if (ASDF_VALUE_OK == asdf_value_as_scalar0(value, &text) && text != nullptr) {
+    return std::string(text);
+  }
+
+  return std::string();
+}
+
+}  // anonymous namespace
+
+
+AsdfFile::Metadata::Metadata(std::shared_ptr<Euclid::FilePool::FileHandler> handler)
+    : m_handler(std::move(handler)) {}
+
+
+AsdfFile::Metadata::~Metadata() {}
+
+
+std::optional<MetadataEntry> AsdfFile::Metadata::get(const std::string& key) const {
+  auto acc = m_handler->getAccessor<AsdfFile>();
+  auto& file = acc->m_fd;
+
+  asdf_value_t* raw = asdf_get_value(file.m_asdf_ptr.get(), key.c_str());
+
+  if (raw == nullptr) {
+    return std::nullopt;
+  }
+
+  AsdfValuePtr value(raw);
+
+  // A mapping or a sequence has no value of its own
+  if (!asdf_value_is_scalar(value.get())) {
+    return std::nullopt;
+  }
+
+  return MetadataEntry{scalarToMetadataValue(value.get()), {}};
+}
+
+
+void AsdfFile::Metadata::forEach(const Visitor& visitor) const {
+  auto acc = m_handler->getAccessor<AsdfFile>();
+  auto& file = acc->m_fd;
+
+  AsdfValuePtr root = file.getValue("/");
+
+  // A null descend predicate walks every container: mappings, sequences, and
+  // the mappings behind ndarray tags alike.
+  asdf_find_iter_t* iter = asdf_find_iter_init_ex(
+    root.get(), &asdf_value_is_scalar, true, nullptr, -1);
+
+  if (iter == nullptr) {
+    throw AsdfValueNotFoundException() << "Could not walk the ASDF tree in file: "
+      << file.m_path.native();
+  }
+
+  while (asdf_value_find_iter_next(&iter)) {
+    const char* path = asdf_value_path(iter->value);
+
+    if (path == nullptr) {
+      continue;
+    }
+
+    if (!visitor(path, MetadataEntry{scalarToMetadataValue(iter->value), {}})) {
+      // Stopping early means destroying the iterator by hand; it frees itself
+      // only when iteration runs to exhaustion.
+      asdf_find_iter_destroy(iter);
+      return;
+    }
+  }
 }
 
 

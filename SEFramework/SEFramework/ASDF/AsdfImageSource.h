@@ -42,7 +42,7 @@ using Euclid::FilePool::FileHandler;
  * Read images from ASDF files
  *
  * Similar to FitsImageSource but simpler currently as it only allows reading image tiles from
- * ASDF, not writing, nor does it support metadata lookup (yet).  These features will come later.
+ * ASDF, not writing.  Writing will come later.
  */
 class AsdfImageSource : public ImageSource, public std::enable_shared_from_this<ImageSource> {
 public:
@@ -133,6 +133,14 @@ public:
   void setLayer(int layer) override;
 
   void saveTile(ImageTile& tile) override;
+
+  /**
+   * The metadata in this file's tree
+   *
+   * Provides access to scalar values in the tree, keyed by their paths;
+   * see AsdfMetadata.
+   */
+  std::shared_ptr<const Metadata> getMetadata() const override;
 
   /**
    * The coordinate system of this image, or nullptr if it has none

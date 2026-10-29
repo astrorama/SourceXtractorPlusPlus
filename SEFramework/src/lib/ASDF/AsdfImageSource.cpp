@@ -163,6 +163,11 @@ AsdfImageSource::WcsPathMap AsdfImageSource::parseWcsName(const std::string& wcs
 }
 
 
+std::shared_ptr<const Metadata> AsdfImageSource::getMetadata() const {
+  return std::make_shared<const AsdfFile::Metadata>(m_handler);
+}
+
+
 std::shared_ptr<CoordinateSystem> AsdfImageSource::getCoordinateSystem() const {
   return getCoordinateSystem(m_wcs_name);
 }

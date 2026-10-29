@@ -38,6 +38,13 @@
 #include "SEFramework/Image/Metadata.h"
 #include "SEFramework/Image/ImageTile.h"
 
+// Forward-declaration without pulling in the full FilePool headers
+namespace Euclid {
+namespace FilePool {
+class FileHandler;
+}
+}
+
 namespace SourceXtractor {
 
 /**
@@ -159,6 +166,32 @@ public:
    * thrown.
    */
   std::unique_ptr<Ndarray> getNdarray(const std::string& path);
+
+  /**
+   * The metadata in an ASDF tree: every scalar value, keyed by its path
+   *
+   * Keys are the paths libasdf reports, so "/meta/instrument/name" names a
+   * mapping key and "/meta/shape/0" an element of a sequence.  Every container
+   * is descended into, including the mappings behind ndarray tags, which may
+   * carry keys of their own; an ndarray's binary block is not a scalar and so
+   * never appears.
+   *
+   * Constructed from the pooled FileHandler allowing it to outlive an
+   * ImageSource and stay correct when the pool closes and reopens the file.
+   */
+  class Metadata : public SourceXtractor::Metadata {
+  public:
+    explicit Metadata(std::shared_ptr<Euclid::FilePool::FileHandler> handler);
+
+    ~Metadata() override;
+
+    std::optional<MetadataEntry> get(const std::string& key) const override;
+
+    void forEach(const Visitor& visitor) const override;
+
+  private:
+    std::shared_ptr<Euclid::FilePool::FileHandler> m_handler;
+  };
 
 #ifdef WITH_ASDF_GWCS
   using GwcsEvalPtr = std::unique_ptr<asdf_gwcs_eval_t, decltype(&asdf_gwcs_eval_destroy)>;
