@@ -30,7 +30,6 @@ using boost::smatch;
 #include "SEFramework/Image/BufferedImage.h"
 #include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/Image/ProcessedImage.h"
-#include "SEFramework/FITS/FitsImageSource.h"
 
 #include "SEImplementation/Configuration/DetectionImageConfig.h"
 #include <boost/lexical_cast.hpp>
@@ -211,20 +210,12 @@ DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
     double flux_scale, int interpolation_gap) {
   init(image_source, gain, saturation, flux_scale, interpolation_gap);
   m_coordinate_system = coordinateSystemOrIdentity(*image_source);
-  rescale();
-}
 
-
-DetectionImageConfig::DetectionImageExtension::DetectionImageExtension(
-    std::shared_ptr<FitsImageSource> fits_image_source, double gain, double saturation,
-    double flux_scale, int interpolation_gap) {
-  init(fits_image_source, gain, saturation, flux_scale, interpolation_gap);
-  m_coordinate_system = coordinateSystemOrIdentity(*fits_image_source);
-  auto img_metadata = fits_image_source->getMetadata();
-
-  // Each of these is a single named lookup, so ask for it rather than walking
-  // the whole header.  Only float and int are accepted; anything else is a
-  // configuration error rather than something to silently ignore.
+  // Each of these is a single named lookup, so ask for it rather than
+  // enumerating.  The names are the FITS conventions; a format that keys its
+  // metadata differently simply has none of them, and the values given on the
+  // command line stand.
+  auto img_metadata = image_source->getMetadata();
   readNumericKeyword(*img_metadata, "GAIN", m_gain);
   readNumericKeyword(*img_metadata, "FLXSCALE", m_flux_scale);
   readNumericKeyword(*img_metadata, "SATURATE", m_saturation);
@@ -262,12 +253,6 @@ DetectionImageConfig::DetectionImageExtension DetectionImageConfig::DetectionIma
   int interpolation_gap = args.find(DETECTION_IMAGE_INTERPOLATION)->second.as<bool>()
     ? std::max(0, args.find(DETECTION_IMAGE_INTERPOLATION_GAP)->second.as<int>())
     : 0;
-
-  // FITS still needs its own branch to pick up GAIN/FLXSCALE/SATURATE from the
-  // header; the coordinate system comes from the image source either way.
-  if (auto fits_src = std::dynamic_pointer_cast<FitsImageSource>(image_source)) {
-    return DetectionImageExtension(fits_src, gain, saturation, flux_scale, interpolation_gap);
-  }
 
   return DetectionImageExtension(image_source, gain, saturation, flux_scale, interpolation_gap);
 }

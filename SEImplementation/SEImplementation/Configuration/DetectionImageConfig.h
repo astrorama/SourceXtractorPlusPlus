@@ -24,7 +24,6 @@
 #define _SEIMPLEMENTATION_DETECTIONIMAGECONFIG_H
 
 #include "Configuration/Configuration.h"
-#include "SEFramework/FITS/FitsImageSource.h"
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/CoordinateSystem/CoordinateSystem.h"
@@ -95,8 +94,6 @@ private:
     DetectionImageExtension() = default;
 
     DetectionImageExtension(std::shared_ptr<ImageSource> image_source, double gain,
-                            double saturation, double flux_scale, int interpolation_gap);
-    DetectionImageExtension(std::shared_ptr<FitsImageSource> fits_image_source, double gain,
                             double saturation, double flux_scale, int interpolation_gap);
 
     static DetectionImageExtension create(std::shared_ptr<ImageSource>, const UserValues& args);
