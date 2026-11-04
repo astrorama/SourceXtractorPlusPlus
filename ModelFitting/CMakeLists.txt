@@ -96,3 +96,9 @@ elements_add_unit_test(ScaledModelComponent_test
 elements_add_unit_test(TransformModelComponent_test
                        tests/src/Models/TransformModelComponent_test.cpp
                        LINK_LIBRARIES ModelFitting TYPE Boost )
+
+if (GSL_FOUND)
+    elements_add_unit_test(GSLEngine_test
+                           tests/src/Engine/GSLEngine_test.cpp
+                           LINK_LIBRARIES ModelFitting TYPE Boost)
+endif ()

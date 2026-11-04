@@ -174,7 +174,12 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   fdf.params = &adata;
 
   // Setup the solver
-  gsl_multifit_nlinear_init(&gsl_param_view.vector, &fdf, workspace);
+  int init_ret = gsl_multifit_nlinear_init(&gsl_param_view.vector, &fdf, workspace);
+  if (init_ret != GSL_SUCCESS) {
+    gsl_multifit_nlinear_free(workspace);
+    parameter_manager.updateEngineValues(param_values.begin());
+    throw Elements::Exception() << "Failed to initialize the GSL solver: " << gsl_strerror(init_ret);
+  }
 
   // Initial cost
   double chisq0;
@@ -196,6 +201,10 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   );
   auto end     = std::chrono::steady_clock::now();
   std::chrono::duration<float> elapsed = end - start;
+
+  // The last callback can be a derivative probe or a rejected trial point. Restore the accepted
+  // position on every driver exit, including non-convergence, before converting covariance.
+  parameter_manager.updateEngineValues(GslVectorConstIterator{gsl_multifit_nlinear_position(workspace)});
 
   // Final cost
   double chisq;
