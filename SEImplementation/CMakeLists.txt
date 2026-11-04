@@ -187,6 +187,10 @@ elements_add_unit_test(JacobianSource_test tests/src/Plugin/Jacobian/JacobianSou
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
 if (NOT WITHOUT_MODELFITTING)
+elements_add_unit_test(FlexibleModelFittingWeight_test
+                     tests/src/Plugin/FlexibleModelFitting/FlexibleModelFittingWeight_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitting/MoffatModelFitting_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

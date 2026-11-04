@@ -54,6 +54,7 @@ public:
   void computeProperties(SourceGroupInterface& group) const override;
 
 private:
+  friend struct FlexibleModelFittingWeightFixture;
 
   bool isFrameValid(SourceGroupInterface& group, int frame_index) const;
 

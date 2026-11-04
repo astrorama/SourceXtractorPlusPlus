@@ -73,6 +73,7 @@ public:
   void computeProperties(SourceGroupInterface& group) const override;
 
 private:
+  friend struct FlexibleModelFittingWeightFixture;
   struct SourceState {
     std::unordered_map<int, double> parameters_initial_values;
     std::unordered_map<int, double> parameters_values;

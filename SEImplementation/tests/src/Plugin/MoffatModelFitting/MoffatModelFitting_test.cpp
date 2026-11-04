@@ -40,6 +40,7 @@
 #include "SEImplementation/Plugin/DetectionFrameSourceStamp/DetectionFrameSourceStamp.h"
 #include "SEImplementation/Plugin/DetectionFrameCoordinates/DetectionFrameCoordinates.h"
 #include "SEImplementation/Plugin/DetectionFrameInfo/DetectionFrameInfo.h"
+#include "SEImplementation/Plugin/DetectionFrameImages/DetectionFrameImages.h"
 #include "SEImplementation/Plugin/IsophotalFlux/IsophotalFlux.h"
 #include "SEFramework/Property/DetectionFrame.h"
 
@@ -101,6 +102,7 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
   source->setProperty<IsophotalFlux>(500., 0., 1., 0.);
   source->setProperty<PixelCoordinateList>(pixel_coordinates);
   source->setProperty<DetectionFrame>(detection_frame);
+  source->setProperty<DetectionFrameImages>(detection_frame, 20, 20);
   source->setProperty<DetectionFrameCoordinates>(std::make_shared<DummyCoordinateSystem>());
   source->setProperty<DetectionFrameInfo>(20, 20, 1, 65000, 1e6, 1);
 
@@ -117,3 +119,65 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 BOOST_AUTO_TEST_SUITE_END ()
 
 
+
+namespace SourceXtractor {
+
+struct MoffatModelFittingWeightFixture {
+  void checkWeights(SeFloat saturation, SeFloat background_level) {
+    auto original = VectorImage<SeFloat>::create(12, 10);
+    original->fillValue(0);
+    auto stamp = VectorImage<SeFloat>::create(4, 3);
+    auto variance = VectorImage<SeFloat>::create(4, 3);
+    variance->fillValue(4);
+    auto thresholded = VectorImage<SeFloat>::create(4, 3);
+    thresholded->fillValue(-1);
+    // Put the stamp away from the image origin to exercise coordinate alignment.
+    PixelCoordinate top_left(5, 4);
+    const SeFloat pixels[] = {99, 100, 101, 80};
+    for (int y = 0; y < 3; ++y) {
+      for (int x = 0; x < 4; ++x) {
+        original->at(top_left.m_x + x, top_left.m_y + y) = pixels[x];
+        stamp->at(x, y) = pixels[x] - background_level - y;
+      }
+    }
+    // A neighbour remains excluded; source membership must not override saturation.
+    thresholded->at(3, 2) = 1;
+    std::vector<PixelCoordinate> source_pixels {PixelCoordinate(6, 4)};
+    thresholded->at(1, 0) = 1;
+    auto frame = std::make_shared<DetectionImageFrame>(original, std::make_shared<DummyCoordinateSystem>());
+    SimpleSource source;
+    source.setProperty<DetectionFrameImages>(frame, 12, 10);
+    source.setProperty<DetectionFrameSourceStamp>(stamp, stamp, thresholded, top_left, variance, variance);
+    source.setProperty<DetectionFrameInfo>(12, 10, 2, saturation, 1e6, 2);
+    source.setProperty<PixelCoordinateList>(source_pixels);
+    MoffatModelFittingTask task("", 1);
+    auto weights = task.createWeightImage(source);
+    for (int y = 0; y < 3; ++y) {
+      for (int x = 0; x < 4; ++x) {
+        if ((saturation > 0 && (x == 1 || x == 2)) || (x == 3 && y == 2)) {
+          BOOST_CHECK_EQUAL(weights->getValue(x, y), 0);
+        } else {
+          double expected = std::sqrt(1.0 / (4 + stamp->getValue(x, y) / 2));
+          BOOST_CHECK_CLOSE(weights->getValue(x, y), expected, 0.001);
+        }
+      }
+    }
+  }
+};
+
+BOOST_FIXTURE_TEST_SUITE(MoffatModelFittingWeight_test, MoffatModelFittingWeightFixture)
+
+BOOST_AUTO_TEST_CASE(original_pixels_determine_saturation) {
+  checkWeights(100, 30);
+  checkWeights(100, 0);
+  checkWeights(100, -30);
+}
+
+BOOST_AUTO_TEST_CASE(disabled_saturation_preserves_weights) {
+  checkWeights(0, 30);
+  checkWeights(-1, 30);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+}

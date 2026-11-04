@@ -95,7 +95,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
   const auto& frame_images = group.begin()->getProperty<MeasurementFrameImages>(frame_index);
 
   auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
-  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
+  auto original_image = frame_images.getLockedImage(LayerOriginalImage);
   auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
 
   const auto& frame_info = group.begin()->getProperty<MeasurementFrameInfo>(frame_index);
@@ -109,7 +109,9 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingTask::createWeightImag
     for (int x = 0; x < rect.getWidth(); x++) {
       auto back_var = variance_map->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
       auto pixel_val = frame_image->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
-      if (saturation > 0 && pixel_val > saturation) {
+      // Saturation is defined before background subtraction, in the original image units.
+      if (saturation > 0 && original_image->getValue(
+          rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       }
       else if (gain > 0.0 && pixel_val > 0.0) {

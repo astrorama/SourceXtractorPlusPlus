@@ -308,7 +308,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
   auto ref_coordinates = source.getProperty<ReferenceCoordinates>().getCoordinateSystem();
 
   auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
-  auto frame_image_thresholded = frame_images.getLockedImage(LayerThresholdedImage);
+  auto original_image = frame_images.getLockedImage(LayerOriginalImage);
   auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
 
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
@@ -356,7 +356,9 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
       auto dx = x + rect.getTopLeft().m_x - ellipse.m_x;
       auto dy = y + rect.getTopLeft().m_y - ellipse.m_y;
 
-      if (saturation > 0 && pixel_val > saturation) {
+      // Saturation is defined before background subtraction, in the original image units.
+      if (saturation > 0 && original_image->getValue(
+          rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (gain > 0.0 && pixel_val > 0.0) {
         weight->at(x, y) = sqrt(1.0 / (back_var + pixel_val / gain));
