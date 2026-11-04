@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<meta content="test data" name="keywords" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Data Set &mdash; SourceXtractor++ 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css" />
+      <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration API Reference" href="ConfigAPI.html" />
+    <link rel="prev" title="Model fitting" href="Model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            SourceXtractor++
+          </a>
+              <div class="version">
+                1.0.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="License.html">License</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installing.html">Installing the software</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using.html">Using SourceXtractor++</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Processing.html">Processing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Association.html">Asociation Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Measurements.html">Measuring</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Test Data Set</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#the-basics">01 The basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-band">02 Multi-band</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependent-parameters-and-priors">03 Dependent parameters and priors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#user-defined-functions">04 User defined functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#working-on-cubes">05 Working on cubes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extended-associations">06 Extended associations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-future-python-control">07 The future: Python control</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ConfigAPI.html">Configuration API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Troubles.html">Troubleshooting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">Bibliography</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">SourceXtractor++</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Test Data Set</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="test-data-set">
+<span id="index-0"></span><h1>Test Data Set<a class="headerlink" href="#test-data-set" title="Permalink to this heading">¶</a></h1>
+<p>A test data set for <strong class="program">SourceXtractor++</strong> covering various data reduction scenarios was developed for the <a class="reference external" href="https://www.adass2022.ca/">ADASS XXXII Conference</a>.
+The proceedings contribution is available as a <a class="reference external" href="http://arxiv.org/abs/2212.02428">pre-print</a>.
+The test data set includes the input data, all relevant configuration files, the <strong class="program">SourceXtractor++</strong> commands and the expected output results for a reference
+and is available for  download <a class="reference external" href="https://cloud.physik.lmu.de/index.php/s/3K4KemBsw5y9yqd">here</a>. The data set is organized in a series of exercises
+that run with  <strong class="program">SourceXtractor++</strong> <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus/releases/tag/0.19">v0.19</a> (except for the last exercise).</p>
+<section id="the-basics">
+<h2>01 The basics<a class="headerlink" href="#the-basics" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Making the connection to <a class="reference external" href="http://astromatic.net/software/sextractor"><strong class="program">SExtractor</strong></a>;</p></li>
+<li><p>Object detection;</p></li>
+<li><p>Configuration file(s);</p></li>
+<li><p>Object properties;</p></li>
+<li><p>Simple fitting (Sersic model, one image, one band);</p></li>
+</ul>
+</section>
+<section id="multi-band">
+<h2>02 Multi-band<a class="headerlink" href="#multi-band" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The bread-and-butter scenario (running on multi-band images);</p></li>
+<li><p>Three bands, three different WCS;</p></li>
+<li><p>Creating and processing in groups;</p></li>
+<li><p>Dependent parameters;</p></li>
+<li><p>User defined output columns;</p></li>
+</ul>
+</section>
+<section id="dependent-parameters-and-priors">
+<h2>03 Dependent parameters and priors<a class="headerlink" href="#dependent-parameters-and-priors" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Connect data and measurements;</p></li>
+<li><p>Add knowledge on your data;</p></li>
+<li><p>Iterate and refine your processing;</p></li>
+<li><p>see <a class="reference external" href="https://www.aanda.org/articles/aa/pdf/2022/10/aa44202-22.pdf">Quilley &amp; de Lapparent</a>;</p></li>
+</ul>
+</section>
+<section id="user-defined-functions">
+<h2>04 User defined functions<a class="headerlink" href="#user-defined-functions" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>What’s beyond Sersic and Disk+Bulge and Pointlike;</p></li>
+<li><p>With onnx towards galfit!</p></li>
+</ul>
+</section>
+<section id="working-on-cubes">
+<h2>05 Working on cubes<a class="headerlink" href="#working-on-cubes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Exploring the third dimension!</p></li>
+</ul>
+</section>
+<section id="extended-associations">
+<h2>06 Extended associations<a class="headerlink" href="#extended-associations" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Funnel external knowledge into your measurements;</p></li>
+<li><p>Towards disentangling detection and measurements!</p></li>
+</ul>
+</section>
+<section id="the-future-python-control">
+<h2>07 The future: Python control<a class="headerlink" href="#the-future-python-control" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>available in the devel branch <a class="reference external" href="https://github.com/astrorama/SourceXtractorPlusPlus/tree/experimental/call_from_python">experimental/call_from_python</a>;</p></li>
+<li><p>Run <strong class="program">SourceXtractor++</strong> from python;</p></li>
+<li><p>Direct interaction with the objects and results;</p></li>
+<li><p>Run your own software as part of the <strong class="program">SourceXtractor++</strong> processing;</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Model.html" class="btn btn-neutral float-left" title="Model fitting" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ConfigAPI.html" class="btn btn-neutral float-right" title="Configuration API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2019,2020,2021,2022 GenevaU/LMU/CNRS/SorbonneU.</p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
