@@ -15,11 +15,12 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file PythonConfig.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
 
+#include <ElementsKernel/ModuleInfo.h>
 #include <boost/filesystem.hpp>
 #include <SEImplementation/Configuration/PythonConfig.h>
 
@@ -60,6 +61,17 @@ void PythonConfig::preInitialize(const UserValues& args) {
 
 void PythonConfig::initialize(const UserValues& args) {
   auto &singleton = PythonInterpreter::getSingleton();
+
+  // Elements installs our Python package under <prefix>/SE_PYTHON_INSTALL_SUFFIX, which is on
+  // sys.path only when the prefix is one the interpreter already searches. Derived from the
+  // running executable, so that a relocated prefix keeps working.
+  // i.e. <prefix>/bin/sourcextractor++ -> <prefix>/bin -> <prefix> -> <prefix>/<SE_PYTHON_INSTALL_SUFFIX>
+  auto py_dir = Elements::System::getExecutablePath().parent_path().parent_path() / SE_PYTHON_INSTALL_SUFFIX;
+  boost::system::error_code ec;
+  if (fs::is_directory(py_dir, ec)) {
+    singleton.prependSysPath(py_dir.string());
+  }
+
   auto filename = args.find(PYTHON_CONFIG_FILE)->second.as<std::string>();
   if (!filename.empty()) {
     std::vector<std::string> argv;
