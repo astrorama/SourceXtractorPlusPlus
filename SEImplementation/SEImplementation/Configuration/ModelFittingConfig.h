@@ -66,6 +66,7 @@ public:
   double getMetaIterationStop() const { return m_meta_iteration_stop; }
   FlexibleModelFittingIterativeTask::WindowType getWindowType() const { return m_window_type; }
   double getEllipseScale() const { return m_ellipse_scale; }
+  bool getOutputFittingAreas() const { return m_output_fitting_areas; }
 
 private:
   std::string m_least_squares_engine;
@@ -84,6 +85,8 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::map<int, std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
   std::vector<std::pair<std::string, std::vector<int>>> m_outputs;
+
+  bool m_output_fitting_areas { false };
 
   /// The initialization code calls Python. It gets wrapped here so we can catch any
   /// potential error and translate into a Elements exception

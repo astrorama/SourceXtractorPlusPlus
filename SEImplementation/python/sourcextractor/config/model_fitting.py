@@ -1061,7 +1061,8 @@ class ModelFitting:
         self.params_dict = {"max_iterations": 200, "modified_chi_squared_scale": 10, "engine": "",
                             "use_iterative_fitting": True, "meta_iterations": 5,
                             "deblend_factor": 0.95, "meta_iteration_stop": 0.0001,
-                            "window_type": WindowType.RECTANGLE, "ellipse_scale": 3.0
+                            "window_type": WindowType.RECTANGLE, "ellipse_scale": 3.0,
+                            "show_fitting_areas": False
                             }
 
     def _set_model_to_frames(self, group, model):
@@ -1254,6 +1255,17 @@ class ModelFitting:
 
         """
         self.params_dict["ellipse_scale"] = ellipse_scale
+
+    def set_show_fitting_areas(self, show_fitting_areas):
+        """
+        Parameters
+        ----------
+
+        show_fitting_areas : bool
+            Specify whether to output the model fitting windows.
+
+        """
+        self.params_dict["show_fitting_areas"] = show_fitting_areas
 
 
 def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stderr):

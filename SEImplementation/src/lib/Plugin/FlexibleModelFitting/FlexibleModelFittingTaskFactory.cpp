@@ -102,9 +102,32 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   for (const auto& info : image_infos) {
     m_should_renormalize.push_back(info.m_psf_renormalize);
   }
+
+  m_output_fitting_areas = model_fitting_config.getOutputFittingAreas();
 }
 
 void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& registry) {
+  if (m_output_fitting_areas) {
+    // register the fitting window output if needed
+    registry.registerColumnConverter<FlexibleModelFitting, std::vector<SeFloat>>(
+            "fmf_fitting_areas_x",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getFittingAreasX();
+            },
+            "",
+            "Fitting areas X"
+    );
+
+    registry.registerColumnConverter<FlexibleModelFitting, std::vector<SeFloat>>(
+            "fmf_fitting_areas_y",
+            [](const FlexibleModelFitting& prop) {
+              return prop.getFittingAreasY();
+            },
+            "",
+            "Fitting areas Y"
+    );
+  }
+
   for (auto& p : m_outputs) {
     std::string name = p.first;
     std::vector<int> properties = p.second;
@@ -140,6 +163,7 @@ void FlexibleModelFittingTaskFactory::registerPropertyInstances(OutputRegistry& 
       );
     }
   }
+
 }
 
 }
