@@ -20,8 +20,11 @@
  * @author Nikolaos Apostolakos
  */
 
+#include <algorithm>
 #include <array>
 #include <cmath>
+#include <exception>
+#include <limits>
 #include <mutex>
 
 #include <levmar.h>
@@ -121,25 +124,34 @@ namespace {
 
 LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_manager,
                                               ResidualEstimator& residual_estimator) {
-  // Create a tuple which keeps the references to the given manager and estimator
-  auto adata = std::tie(parameter_manager, residual_estimator);
+  std::exception_ptr callback_error;
+  auto adata = std::tie(parameter_manager, residual_estimator, callback_error);
 
   // The function which is called by the levmar loop
-  auto levmar_res_func = [](double *p, double *hx, int, int, void *extra) {
+  auto levmar_res_func = [](double *p, double *hx, int, int residual_count, void *extra) {
 #ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.unlock();
 #endif
 
     auto* extra_ptr = (decltype(adata)*)extra;
-    EngineParameterManager& pm = std::get<0>(*extra_ptr);
-    pm.updateEngineValues(p);
-    ResidualEstimator& re = std::get<1>(*extra_ptr);
-    re.populateResiduals(hx);
+    auto& error = std::get<2>(*extra_ptr);
+    if (!error) {
+      try {
+        std::get<0>(*extra_ptr).updateEngineValues(p);
+        std::get<1>(*extra_ptr).populateResiduals(hx);
+      } catch (...) {
+        error = std::current_exception();
+      }
+    }
+    if (error) {
+      // Levmar's callback has no return code. Non-finite residuals signal failure.
+      std::fill_n(hx, residual_count, std::numeric_limits<double>::quiet_NaN());
+    }
 
 #ifdef LINSOLVERS_RETAIN_MEMORY
     levmar_mutex.lock();
 #endif
-    };
+  };
 
   // Create the vector which will be used for keeping the parameter values
   // and initialize it to the current values of the parameters
@@ -150,10 +162,6 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   std::array<double, 10> info = {0};
 
   std::vector<double> covariance_matrix (parameter_manager.numberOfParameters() * parameter_manager.numberOfParameters());
-
-#ifdef LINSOLVERS_RETAIN_MEMORY
-  levmar_mutex.lock();
-#endif
 
   std::unique_ptr<double[]> workarea;
   size_t workarea_size = LM_DIF_WORKSZ(parameter_manager.numberOfParameters(),
@@ -176,6 +184,9 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
   }
 
   // Call the levmar library
+#ifdef LINSOLVERS_RETAIN_MEMORY
+  levmar_mutex.lock();
+#endif
   auto start = std::chrono::steady_clock::now();
   auto res = dlevmar_dif(levmar_res_func, // The function called from the levmar algorithm
                          param_values.data(), // The pointer where the parameter values are
@@ -194,6 +205,10 @@ LeastSquareSummary LevmarEngine::solveProblem(EngineParameterManager& parameter_
 #ifdef LINSOLVERS_RETAIN_MEMORY
   levmar_mutex.unlock();
 #endif
+
+  if (callback_error) {
+    std::rethrow_exception(callback_error);
+  }
 
   // Create and return the summary object
   LeastSquareSummary summary {};

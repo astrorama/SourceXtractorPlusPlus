@@ -25,6 +25,7 @@
 
 #include <memory>
 
+#include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelEvaluator.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFitting.h"
 #include "SEImplementation/Plugin/MoffatModelFitting/MoffatModelFittingTask.h"
 #include "SEFramework/Source/SimpleSource.h"
@@ -115,6 +116,33 @@ BOOST_FIXTURE_TEST_CASE(modelfitting_test, MoffatModelFittingFixture) {
 }
 
 //-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(masked_stamp_with_too_few_usable_pixels) {
+  auto image = VectorImage<SeFloat>::create(4, 3);
+  image->fillValue(2);
+  auto thresholded = VectorImage<SeFloat>::create(4, 3);
+  thresholded->fillValue(-1);
+  for (int x = 0; x < 4; ++x) {
+    thresholded->at(x, 2) = 1;
+  }
+  auto variance = VectorImage<SeFloat>::create(4, 3);
+  variance->fillValue(1);
+  SimpleSource source;
+  source.setProperty<DetectionFrameSourceStamp>(image, image, thresholded, PixelCoordinate(0, 0), variance, variance);
+  source.setProperty<PixelCentroid>(1.5, 1.);
+  source.setProperty<ShapeParameters>(2, 2, 0, 0, 0, 0, 0, 0, 0, 0);
+  source.setProperty<IsophotalFlux>(16., 0., 1., 0.);
+  source.setProperty<PixelCoordinateList>(std::vector<PixelCoordinate>{PixelCoordinate(1, 1)});
+  source.setProperty<DetectionFrameInfo>(4, 3, 1, 0, 1e6, 1);
+
+  // An unregistered engine name verifies that the task returns before creating a solver.
+  MoffatModelFittingTask task("unused", 100);
+  task.computeProperties(source);
+
+  const auto& fit = source.getProperty<MoffatModelFitting>();
+  BOOST_CHECK_EQUAL(fit.getIterations(), 0);
+  BOOST_CHECK_EQUAL(MoffatModelEvaluator(fit).getValue(1., 1.), 0.);
+}
 
 BOOST_AUTO_TEST_SUITE_END ()
 

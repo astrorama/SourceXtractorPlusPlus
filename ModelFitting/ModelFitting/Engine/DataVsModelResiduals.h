@@ -89,9 +89,15 @@ public:
    * @brief Constructs a new instance of DataVsModelResiduals
    * 
    * @details
-   * The DataVsModelResiduals keeps internally copies of all the parameters of
-   * the constructor. Modifications done after the DataVsModelResiduals is
-   * created will not be visible by the DataVsModelResiduals instance.
+   * The provider stores copies of its inputs. When an input refers to shared
+   * data, changes to that data remain visible.
+   *
+   * Data points with zero weight are excluded from the residual block. The nonzero
+   * weights are counted at construction, and zero weights are skipped during
+   * each evaluation. Shared weights must keep their zero/nonzero pattern
+   * unchanged for the provider's lifetime so the residual count stays constant.
+   * Data, model values, and weights are traversed together to keep corresponding
+   * entries aligned.
    * 
    * @param data
    *    The data to compute the residuals for
@@ -109,11 +115,11 @@ public:
   /// Destructor
   virtual ~DataVsModelResiduals();
   
-  /// Returns the number of residuals produced by this residual provider (same
-  /// as the number of data points)
+  /// Returns the number of data points selected by nonzero weights at construction.
   std::size_t numberOfResiduals() const override;
   
-  /// Updates the values where the iterator points with the residuals
+  /// Writes the block's residuals to the output iterator.
+  /// @throws Elements::Exception If the number of nonzero weights differs from the construction-time count.
   void populateResidualBlock(IterType output_iter) override;
   
 private:
@@ -122,7 +128,7 @@ private:
   ModelType m_model;
   WeightType m_weight;
   Comparator m_comparator;
-  std::size_t m_residual_no;
+  std::size_t m_residual_no {0};
   
 }; // end of class DataVsModelResiduals
 

@@ -25,6 +25,8 @@
 #include <ElementsKernel/Exception.h>
 #include <array>
 #include <chrono>
+#include <exception>
+#include <memory>
 #include <gsl/gsl_blas.h>
 #include <gsl/gsl_multifit_nlinear.h>
 #include <iostream>
@@ -117,9 +119,8 @@ static LeastSquareSummary::StatusFlag getStatusFlag(int ret) {
 
 LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager& parameter_manager,
                                            ModelFitting::ResidualEstimator& residual_estimator) {
-  // Create a tuple which keeps the references to the given manager and estimator
-  // If we capture, we can not use the lambda for the function pointer
-  auto adata = std::tie(parameter_manager, residual_estimator);
+  std::exception_ptr callback_error;
+  auto adata = std::tie(parameter_manager, residual_estimator, callback_error);
 
   // Only type supported by GSL
   const gsl_multifit_nlinear_type *type = gsl_multifit_nlinear_trust;
@@ -143,10 +144,12 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   params.h_df = m_delta;
 
   // Allocate the workspace for the resolver. It may return null if there is no memory.
-  gsl_multifit_nlinear_workspace *workspace = gsl_multifit_nlinear_alloc(
-    type, &params,
-    residual_estimator.numberOfResiduals(), parameter_manager.numberOfParameters()
-  );
+  auto free_workspace = gsl_multifit_nlinear_free;
+  std::unique_ptr<gsl_multifit_nlinear_workspace, decltype(free_workspace)> workspace_owner(
+      gsl_multifit_nlinear_alloc(type, &params, residual_estimator.numberOfResiduals(),
+                                parameter_manager.numberOfParameters()),
+      free_workspace);
+  auto* workspace = workspace_owner.get();
   if (workspace == nullptr) {
     throw Elements::Exception() << "Insufficient memory for initializing the GSL solver";
   }
@@ -159,11 +162,18 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   // Function to be minimized
   auto function = [](const gsl_vector *x, void *extra, gsl_vector *f) -> int {
     auto *extra_ptr = (decltype(adata) *) extra;
-    EngineParameterManager& pm = std::get<0>(*extra_ptr);
-    pm.updateEngineValues(GslVectorConstIterator{x});
-    ResidualEstimator& re = std::get<1>(*extra_ptr);
-    re.populateResiduals(GslVectorIterator{f});
-    return GSL_SUCCESS;
+    auto& error = std::get<2>(*extra_ptr);
+    if (error) {
+      return GSL_EBADFUNC;
+    }
+    try {
+      std::get<0>(*extra_ptr).updateEngineValues(GslVectorConstIterator{x});
+      std::get<1>(*extra_ptr).populateResiduals(GslVectorIterator{f});
+      return GSL_SUCCESS;
+    } catch (...) {
+      error = std::current_exception();
+      return GSL_EBADFUNC;
+    }
   };
   gsl_multifit_nlinear_fdf fdf;
   fdf.f = function;
@@ -175,9 +185,11 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
 
   // Setup the solver
   int init_ret = gsl_multifit_nlinear_init(&gsl_param_view.vector, &fdf, workspace);
-  if (init_ret != GSL_SUCCESS) {
-    gsl_multifit_nlinear_free(workspace);
+  if (init_ret != GSL_SUCCESS || callback_error) {
     parameter_manager.updateEngineValues(param_values.begin());
+    if (callback_error) {
+      std::rethrow_exception(callback_error);
+    }
     throw Elements::Exception() << "Failed to initialize the GSL solver: " << gsl_strerror(init_ret);
   }
 
@@ -205,6 +217,10 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
   // The last callback can be a derivative probe or a rejected trial point. Restore the accepted
   // position on every driver exit, including non-convergence, before converting covariance.
   parameter_manager.updateEngineValues(GslVectorConstIterator{gsl_multifit_nlinear_position(workspace)});
+
+  if (callback_error) {
+    std::rethrow_exception(callback_error);
+  }
 
   // Final cost
   double chisq;
@@ -268,8 +284,6 @@ LeastSquareSummary GSLEngine::solveProblem(ModelFitting::EngineParameterManager&
     0. // Linear systems solved
   };
 
-  // Free resources and return
-  gsl_multifit_nlinear_free(workspace);
   return summary;
 }
 
