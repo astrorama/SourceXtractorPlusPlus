@@ -37,15 +37,19 @@ std::size_t ResidualEstimator::numberOfResiduals() const {
 
 void ResidualEstimator::populateResiduals(double* output_iter) const {
   for (auto& block_prov_ptr : m_block_provider_list) {
-    block_prov_ptr->populateResidualBlock(output_iter);
-    output_iter += block_prov_ptr->numberOfResiduals();
+    if (block_prov_ptr->numberOfResiduals() != 0) {
+      block_prov_ptr->populateResidualBlock(output_iter);
+      output_iter += block_prov_ptr->numberOfResiduals();
+    }
   }
 }
 
 void ResidualEstimator::populateResiduals(std::vector<double>::iterator output_iter) const {
   for (auto& block_prov_ptr : m_block_provider_list) {
-    block_prov_ptr->populateResidualBlock(&*output_iter);
-    output_iter += block_prov_ptr->numberOfResiduals();
+    if (block_prov_ptr->numberOfResiduals() != 0) {
+      block_prov_ptr->populateResidualBlock(&*output_iter);
+      output_iter += block_prov_ptr->numberOfResiduals();
+    }
   }
 }
 

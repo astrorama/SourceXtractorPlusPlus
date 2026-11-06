@@ -38,7 +38,11 @@ This alone does not establish thread safety of all shared dependencies.
 `fitSource()` restores saved engine values, determines model downsampling, and builds residual providers for
 geometrically valid frames. Each provider contains a copy of background-subtracted image pixels minus scaled
 neighbor models, a model of the target source, inverse-standard-deviation weights, and an asinh comparator.
-Priors add additional residual blocks. A newly created solver updates the runtime parameters through callbacks.
+The shared `DataVsModelResiduals` provider counts nonzero weights at construction and skips zero-weight pixels
+on each evaluation, traversing data, the full rectangular model rendering, and weights together. Shared weights
+must retain their zero/nonzero pattern for the provider's lifetime. A block evaluation throws if the count changes.
+Empty blocks are skipped by `ResidualEstimator`. Priors add additional residual blocks. A newly created solver
+updates the runtime parameters through callbacks and relays callback exceptions after returning from the library.
 The task separately computes ordinary chi-square and copies parameter values/sigmas into saved state.
 
 Important distinction: the objective minimized is robust asinh residuals, whereas the reported diagnostic is
@@ -100,10 +104,11 @@ The following behaviors were confirmed during this review; details and limitatio
 - **Solver state needs an explicit handoff.** The GSL callback's last evaluation can be a derivative probe,
   not its accepted solution. The engine now restores the accepted position after every driver exit and before
   converting covariance (BUG-018). Initialization failure restores the initial guesses and throws.
-  Covariance scaling still treats zero-weight pixels as additional observations (BUG-019).
+  Zero-weight pixels are excluded by the shared residual provider, so neither GSL nor Levmar counts masked padding
+  as additional observations in covariance scaling (BUG-019). The existing scaling convention is retained.
 - **Conditional backend synchronization matters.** With `LINSOLVERS_RETAIN_MEMORY`, Levmar uses a global mutex,
-  unlocks during residual callbacks, and relocks afterward. Its memory-return path leaks the lock (BUG-020).
-  Replacing individual `lock()` calls without accounting for callbacks could introduce another locking error.
+  unlocks during residual callbacks, and relocks afterward. The wrapper now acquires the mutex after the
+  workspace-rejection path. The conditional locking build still needs verification (BUG-020).
 
 ## Open questions and scope limits
 
@@ -126,3 +131,8 @@ The BUG-018 fix now explicitly synchronizes GSL output with runtime parameters; 
 convergence, iteration limits, and nonlinear covariance conversion. All 74 registered tests passed via `make tests`.
 Update this document when another path is traced or an assumption is resolved; keep tentative interpretation visibly
 separate from observed behavior and confirmed defects.
+
+The BUG-019 fix compacts weighted residual blocks without changing image geometry. The shared provider regression
+checks padding invariance in both available engines (including priors and robust asinh residuals), and provider
+coverage checks alignment, refreshed models, and safe empty-block handling. The padding regression failed in both
+engines before filtering was applied. `make tests` rebuilt the project and passed all 75 registered tests.

@@ -22,6 +22,7 @@
  */
 
 #include <iostream>
+#include <limits>
 #include <tuple>
 #include <vector>
 #include <valarray>
@@ -268,6 +269,13 @@ void MoffatModelFittingTask::computeProperties(SourceInterface& source) const {
 
   ResidualEstimator res_estimator {};
   res_estimator.registerBlockProvider(move(data_vs_model));
+
+  if (res_estimator.numberOfResiduals() < manager.numberOfParameters()) {
+    const auto unavailable = std::numeric_limits<SeFloat>::quiet_NaN();
+    source.setProperty<MoffatModelFitting>(unavailable, unavailable, unavailable, unavailable, unavailable,
+                                          unavailable, size, unavailable, unavailable, unavailable, 0);
+    return;
+  }
 
   // Perform the minimization
   auto engine = LeastSquareEngineManager::create(m_least_squares_engine, m_max_iterations);

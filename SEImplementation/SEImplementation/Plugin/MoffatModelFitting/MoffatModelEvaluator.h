@@ -37,7 +37,7 @@ public:
   explicit MoffatModelEvaluator(const MoffatModelFitting& model);
 
   double getValue(double x, double y) const {
-    return m_model->getValue(x, y);
+    return m_model ? m_model->getValue(x, y) : 0.;
   }
 
   unsigned getIterations() const {

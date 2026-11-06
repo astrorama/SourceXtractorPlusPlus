@@ -1,7 +1,7 @@
 # Bug inventory
 
 Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-BUG-018 has since been fixed and regression-tested; other entries retain their review status.
+BUG-018 and BUG-019 have since been fixed and regression-tested; other entries retain their review status.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -42,8 +42,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Confirmed | Fix |
 | BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Confirmed | Fix |
 | BUG-018 | GSL leaves runtime parameters at an evaluation probe | High | High with GSL | Fixed | None |
-| BUG-019 | Zero-weight pixels artificially shrink GSL uncertainties | High | High with GSL masks | Confirmed | Fix |
-| BUG-020 | Levmar workspace rejection leaves a global mutex locked | High | Low / build-dependent | Confirmed | Fix |
+| BUG-019 | Zero-weight pixels artificially shrink solver uncertainties | High | High with masks | Fixed | None |
+| BUG-020 | Levmar workspace rejection leaves a global mutex locked | High | Low / build-dependent | Fix pending verification | Verify with conditional locking enabled |
 | BUG-021 | Iterative task treats solver memory failure as usable output | High | Low | Confirmed | Fix |
 | BUG-022 | Small PSF kernels render point sources as zero | High | Medium | Confirmed | Fix |
 | BUG-023 | Fit and stopping diagnostic use different neighbor subtraction | High if unintended | High for blends | Unconfirmed | Try to confirm |
@@ -356,41 +356,56 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   iteration-limit cost consistency, and nonlinear covariance conversion. All three cases failed before the fix
   and pass afterward. `make tests` rebuilt the project and passed all 74 registered tests.
 
-## BUG-019: Zero-weight pixels artificially shrink GSL uncertainties
+## BUG-019: Zero-weight pixels artificially shrink solver uncertainties
 
 - **Severity:** High: silently underestimates scientific parameter uncertainties.
-- **Likelihood:** High with GSL when masks, saturation, or nonrectangular windows leave zero-weight residuals.
-- **Status:** Confirmed by executing the production `GSLEngine`; integration with iterative residual construction
-  was checked by inspection.
-- **Locations:** [GSLEngine.cpp:229](ModelFitting/src/lib/Engine/GSLEngine.cpp#L229),
-  [FlexibleModelFittingIterativeTask.cpp:601](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L601).
-- **Next action needed:** Fix.
-- **Description:** Every pixel in a rectangular stamp remains a solver residual, even when its weight is zero.
-  GSL covariance scaling divides squared residuals by the total residual count minus parameter count. Adding
-  excluded pixels therefore increases the denominator without adding information or changing the objective.
+- **Likelihood:** High with GSL or Levmar when masks, saturation, or nonrectangular windows leave zero-weight pixels.
+- **Status:** Fixed; confirmed by executing both production engines with the shared weighted residual provider.
+- **Locations:** [DataVsModelResiduals.icpp](ModelFitting/ModelFitting/Engine/_impl/DataVsModelResiduals.icpp),
+  [GSLEngine.cpp](ModelFitting/src/lib/Engine/GSLEngine.cpp),
+  [LevmarEngine.cpp](ModelFitting/src/lib/Engine/LevmarEngine.cpp).
+- **Next action needed:** None.
+- **Description:** Every pixel in a rectangular stamp remained a solver residual, even when its weight was zero.
+  GSL's wrapper explicitly scales covariance by squared residuals divided by residual count minus parameter count;
+  Levmar performs the equivalent scaling internally for full-rank problems. Adding excluded pixels therefore
+  increased the denominator without adding information or changing the objective.
 - **Evidence / reproduction:** Fit one parameter to targets 1 and 3 with unit weights. Reported sigma is **1**.
-  Append 98 identically zero, zero-weight residuals: the objective is unchanged, but sigma becomes **0.100504**.
+  Append 98 zero-weight pixels: the objective is unchanged, but sigma becomes **0.100504** in both engines.
   The ratio is `sqrt(1/99)`. The iterative diagnostic's usable-pixel count does not repair solver-provided sigmas.
-- **Fix direction:** Define the uncertainty scaling convention explicitly and use the effective informative residual
-  count, or remove excluded residuals. Verify that adding masked padding cannot change reported uncertainty.
+- **Resolution:** `DataVsModelResiduals` counts nonzero weights at construction and skips zero-weight pixels
+  during each residual evaluation. Data, weights, and model rendering retain their rectangular geometry and are
+  traversed together to preserve alignment. Both engines now receive the usable residual count, with priors still
+  adding their existing residuals. Shared weights must retain their zero/nonzero pattern for the provider's
+  lifetime. Evaluation throws if the emitted count differs from the cached count. Both solvers relay callback
+  exceptions after the library call returns. `ResidualEstimator` safely skips empty blocks. Moffat skips the
+  solver if there are fewer usable pixels than free parameters and reports an unavailable fit.
+- **Regression coverage:** `ModelFitting.DataVsModelResiduals_test` checks uncertainty, fitted-value, and cost
+  invariance under masked padding for both available engines, with and without a prior, and with the iterative
+  task's robust asinh comparator. Provider tests cover pixel alignment with input iterators, model refresh,
+  zero-valued usable residuals, masked non-finite data, empty/mixed blocks, size validation, and usable counts at
+  insufficient-data boundaries. The padding regression failed for both engines before the fix.
+  `make tests` rebuilt the project and passed all 75 registered tests, including BUG-018's existing regressions.
+- **Scope:** Retains the existing covariance scaling convention and prior treatment. It does not redefine
+  uncertainty estimates for rank-deficient fits or fits without positive residual degrees of freedom.
 
 ## BUG-020: Levmar workspace rejection leaves a global mutex locked
 
 - **Severity:** High: subsequent solves can deadlock, preventing the run from completing.
 - **Likelihood:** Low: requires a Levmar build with `LINSOLVERS_RETAIN_MEMORY` and a workspace allocation failure or
   rejection by the workspace-size cap. Relevant to the rare multithreading investigation only under these conditions.
-- **Status:** Confirmed by executing production `LevmarEngine::solveProblem()`'s workspace-rejection path.
-- **Next action needed:** Fix.
-- **Location:** [LevmarEngine.cpp:154](ModelFitting/src/lib/Engine/LevmarEngine.cpp#L154).
-- **Description:** The conditional global mutex is locked before workspace allocation. The `MEMORY` early return
-  bypasses the unlock, which exists only after the numerical solver call. Future calls block on that same mutex.
+- **Status:** Reproduced before the lock was moved. The conditional locking build still needs verification.
+- **Next action needed:** Repeat the forced workspace rejection with conditional locking enabled.
+- **Location:** [LevmarEngine.cpp](ModelFitting/src/lib/Engine/LevmarEngine.cpp).
+- **Description:** The conditional global mutex was locked before workspace allocation. The `MEMORY` early return
+  bypassed the unlock, so future calls could block. The wrapper now acquires the mutex after workspace allocation
+  and rejection handling, immediately before calling Levmar.
 - **Evidence / reproduction:** Compile this source with `LINSOLVERS_RETAIN_MEMORY` and a zero workspace cap to force
   rejection without allocating large memory. First solve returns `MEMORY`; the second prints no completion and is
   terminated by a two-second timeout (exit 124). An unreachable numerical-entry stub replaces the absent Levmar
   library; neither call reaches it. This confirms the engine's lock path, not a failure in the numerical library.
-- **Fix direction:** Manage locking through RAII while respecting the existing callback unlock/relock protocol.
-  Cover workspace rejection, allocation exceptions, and callback exceptions. Check the deployed build option before
-  treating this as an explanation for the user's observed rare failure.
+- **Verification:** The default build passes the solver callback exception regression. Check workspace rejection
+  and callback exception handling with conditional locking enabled. Check the deployed build option before treating
+  this as an explanation for the user's observed rare failure.
 
 ## BUG-021: Iterative task treats solver memory failure as usable output
 
