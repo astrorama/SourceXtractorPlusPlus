@@ -21,7 +21,7 @@
  *      Author: mkuemmel
  */
 
-#include <iostream>
+#include <cmath>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
@@ -74,41 +74,19 @@ void ErrorEllipseTask::computeProperties(SourceInterface& source) const {
   	y_2_error += total_variance;
   }
 
-  /*------------------------- Error ellipse parameters ------------------------*/
-  /*    if (FLAG(obj2.poserr_a))
-        {
-         double	pmx2,pmy2,temp,theta;
+  const SeFloat variance_difference = x_2_error - y_2_error;
 
-        if (fabs(temp=obj->poserr_mx2-obj->poserr_my2) > 0.0)
-          theta = atan2(2.0 * obj->poserr_mxy,temp) / 2.0;
-        else
-          theta = PI/4.0;
-
-        temp = sqrt(0.25*temp*temp+obj->poserr_mxy*obj->poserr_mxy);
-        pmy2 = pmx2 = 0.5*(obj->poserr_mx2+obj->poserr_my2);
-        pmx2+=temp;
-        pmy2-=temp;
-
-        obj2->poserr_a = (float)sqrt(pmx2);
-        obj2->poserr_b = (float)sqrt(pmy2);
-        obj2->poserr_theta = theta*180.0/PI;
-        }
-	*/
-
-  // angle of the error ellipse
-  SeFloat theta_error, a_error, b_error;
-  SeFloat temp_error = fabs(x_2_error - y_2_error);
-  if (temp_error>0.0)
-	  theta_error = atan2(2.0*x_y_error, temp_error); // when dividing by 2.0 as in SE2 the range is -45 < theta_error < 45 which is smaller than in SE2
-  else
-	  theta_error = M_PI /4.0;
+  // A circular ellipse has no preferred orientation.
+  SeFloat theta_error = 0.0;
+  if (variance_difference != 0.0 || x_y_error != 0.0) {
+    theta_error = 0.5 * std::atan2(2.0 * x_y_error, variance_difference);
+  }
 
   // major/minor axis for the error ellipse
-  temp_error = sqrt(0.25*temp_error*temp_error+x_y_error*x_y_error);
-  a_error = 0.5*(x_2_error+y_2_error);
-  b_error = a_error;
-  a_error = sqrt(a_error+temp_error);
-  b_error = sqrt(b_error-temp_error);
+  const SeFloat axis_offset = std::sqrt(0.25 * variance_difference * variance_difference + x_y_error * x_y_error);
+  const SeFloat mean_variance = 0.5 * (x_2_error + y_2_error);
+  const SeFloat a_error = std::sqrt(static_cast<double>(mean_variance + axis_offset));
+  const SeFloat b_error = std::sqrt(static_cast<double>(mean_variance - axis_offset));
 
   // set the property
   source.setProperty<ErrorEllipse>(a_error, b_error, theta_error, x_2_error, y_2_error, x_y_error);
