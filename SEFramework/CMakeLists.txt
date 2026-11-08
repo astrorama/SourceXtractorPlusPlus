@@ -29,8 +29,47 @@ elements_depends_on_subdirs(ModelFitting)
 find_package(GMock)
 find_package(CCfits)
 find_package(BoostDLL)
+find_package(ASDF)
 find_package(FFTW COMPONENTS single double)
 find_package(WCSLIB REQUIRED)
+
+
+#===============================================================================
+# ASDF support is optional--don't compile it if libasdf was not found
+#
+# Reading WCS from ASDF additionally requires the separate libasdf-gwcs plugin,
+# built with a WCS evaluation backend.  Without it, ASDF images can still be
+# read for their pixel data; they just carry no WCS.
+#===============================================================================
+if(NOT ASDF_FOUND)
+  message("libasdf not found, compiling without ASDF support")
+else()
+  file(GLOB ASDF_SRC src/lib/ASDF/*.cpp)
+  add_definitions(-DWITH_ASDF)
+  set(WITH_ASDF TRUE)
+
+  if(ASDF_GWCS_FOUND AND ASDF_GWCS_HAS_AST)
+    add_definitions(-DWITH_ASDF_GWCS)
+    set(WITH_ASDF_GWCS TRUE)
+  elseif(NOT ASDF_GWCS_FOUND)
+    message(WARNING
+      "libasdf was found but the libasdf-gwcs plugin was not; ASDF images will "
+      "be readable but will have no WCS")
+  else()
+    message(WARNING
+      "libasdf-gwcs was found but was built without a WCS evaluation backend; "
+      "ASDF images will be readable but will have no WCS")
+  endif()
+endif()
+
+# GWCS.cpp is only buildable with libasdf-gwcs, so keep it out of the glob
+# otherwise
+file(GLOB COORDINATE_SYSTEM_SRC src/lib/CoordinateSystem/*.cpp)
+if(NOT WITH_ASDF_GWCS)
+  list(REMOVE_ITEM COORDINATE_SYSTEM_SRC
+       ${CMAKE_CURRENT_SOURCE_DIR}/src/lib/CoordinateSystem/GWCS.cpp)
+endif()
+
 
 
 #===============================================================================
@@ -54,11 +93,14 @@ elements_add_library(SEFramework
                      src/lib/FFT/*.cpp
                      src/lib/FITS/*.cpp
                      src/lib/Frame/*.cpp
-                     src/lib/CoordinateSystem/*.cpp
+                     ${COORDINATE_SYSTEM_SRC}
+                     ${ASDF_SRC}
                      LINK_LIBRARIES
                         ElementsKernel SEUtils Table Configuration MathUtils FilePool
-                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES}
-                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS} ${FFTW_INCLUDE_DIRS}
+                        WCSLIB ${CCFITS_LIBRARIES} ${FFTW_LIBRARIES} ${ASDF_LIBRARIES}
+                        ${ASDF_GWCS_LIBRARIES}
+                     INCLUDE_DIRS SEUtils ${CCFITS_INCLUDE_DIRS} ${BoostDLL_INCLUDE_DIRS}
+                        ${FFTW_INCLUDE_DIRS} ${ASDF_INCLUDE_DIRS} ${ASDF_GWCS_INCLUDE_DIRS}
                      PUBLIC_HEADERS SEFramework)
 
 #===============================================================================
@@ -114,6 +156,9 @@ elements_add_unit_test(VectorImage_test tests/src/Image/VectorImage_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(ImageChunk_test tests/src/Image/ImageChunk_test.cpp
+                     LINK_LIBRARIES SEFramework
+                     TYPE Boost)
+elements_add_unit_test(ImageFileReader_test tests/src/Image/ImageFileReader_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
 elements_add_unit_test(SimpleSource_test tests/src/Source/SimpleSource_test.cpp
@@ -185,6 +230,24 @@ elements_add_unit_test(TemporaryFitsSource_test tests/src/FITS/TemporaryFitsSour
 elements_add_unit_test(WCS_test tests/src/CoordinateSystem/WCS_test.cpp
                      LINK_LIBRARIES SEFramework
                      TYPE Boost)
+
+if(WITH_ASDF_GWCS)
+  elements_add_unit_test(GWCS_test tests/src/CoordinateSystem/GWCS_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
+endif()
+
+if(WITH_ASDF)
+  elements_add_unit_test(AsdfFile_test tests/src/ASDF/AsdfFile_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
+  elements_add_unit_test(AsdfImageSource_test tests/src/ASDF/AsdfImageSource_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
+  elements_add_unit_test(AsdfReader_test tests/src/ASDF/AsdfReader_test.cpp
+                         LINK_LIBRARIES SEFramework
+                         TYPE Boost)
+endif()
 #===============================================================================
 # Declare the Python programs here
 # Examples :
