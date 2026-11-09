@@ -99,6 +99,28 @@ WeightImageConfig::WeightType getWeightType(const std::string& type_string, cons
   return weight_type_map[weight_type_name];
 }
 
+/**
+ * Open one image from a file, by name if one was given and by index otherwise
+ *
+ * `wcs_name` is passed on for formats (i.e. ASDF) that can hold several coordinate systems;
+ * ImageFileReader warns and ignores it for the rest, though it might be good if we could
+ * make this optional, or specified elsewhere later.
+ */
+std::shared_ptr<ImageSource> openImage(const std::string& filename, const std::string& name,
+                                       int hdu, const std::string& wcs_name) {
+  auto reader = ImageFileReader::create(filename);
+
+  if (!wcs_name.empty()) {
+    reader->setWcsName(wcs_name);
+  }
+
+  if (!name.empty()) {
+    return reader->get(name, ImageTile::FloatImage);
+  }
+
+  return reader->get(hdu, ImageTile::FloatImage);
+}
+
 std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image) {
   auto weight_type = getWeightType(py_image.weight_type, py_image.weight_file);
 
@@ -117,9 +139,8 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
   }
 
-  auto reader = ImageFileReader::create(py_image.weight_file);
-  // TODO: Extend py_image to also support ASDF ndarray paths
-  auto weight_image_source = reader->get(py_image.weight_hdu, ImageTile::FloatImage);
+  auto weight_image_source = openImage(py_image.weight_file, py_image.weight_name,
+                                       py_image.weight_hdu, py_image.wcs_name);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
   if (py_image.is_data_cube) {
     weight_image_source->setLayer(py_image.weight_layer);
@@ -186,8 +207,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_image_layer = py_image.image_layer;
       info.m_weight_layer = py_image.weight_layer;
 
-      auto reader = ImageFileReader::create(py_image.file);
-      auto image_source = reader->get(py_image.image_hdu, ImageTile::FloatImage);
+      auto image_source = openImage(py_image.file, py_image.image_name,
+                                    py_image.image_hdu, py_image.wcs_name);
 
       if (py_image.is_data_cube) {
         image_source->setLayer(py_image.image_layer);

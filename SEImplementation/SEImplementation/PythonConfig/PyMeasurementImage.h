@@ -51,6 +51,21 @@ public:
   int psf_hdu;
   int weight_hdu;
 
+  /**
+   * Which image within the file, named rather than numbered
+   *
+   * Takes the same text as a `file[image]` suffix: for ASDF a tree path, for
+   * FITS an EXTNAME.  Empty means fall back to the corresponding *_hdu index,
+   * which is what a FITS configuration uses.  These mirror the
+   * --detection-image-name and --detection-image-wcs-name options.
+   */
+  std::string image_name;
+  std::string psf_name;
+  std::string weight_name;
+
+  /// Which coordinate system to use, for formats that can hold several
+  std::string wcs_name;
+
   bool is_data_cube;
   int image_layer;
   int weight_layer;
