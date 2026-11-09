@@ -15,7 +15,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <cmath>
+
 #include <Histogram/Histogram.h> // From Alexandria
+
+#include "ElementsKernel/Exception.h"
 
 #include "SEFramework/Image/ImageChunk.h"
 #include "SEImplementation/Background/SE/ImageMode.h"
@@ -34,7 +38,8 @@ ImageMode<T>::ImageMode(const std::shared_ptr<Image<T>>& image, const std::share
                                                             m_cell_w(cell_w), m_cell_h(cell_h),
                                                             m_invalid(invalid_value),
                                                             m_kappa1(kappa1), m_kappa2(kappa2), m_kappa3(kappa3),
-                                                            m_rtol(rtol), m_max_iter(max_iter), m_pearson_factor(pearson_factor) {
+                                                            m_rtol(rtol), m_pearson_factor(pearson_factor),
+                                                            m_max_iter(max_iter) {
   auto hist_width = std::div(image->getWidth(), m_cell_w);
   if (hist_width.rem)
     ++hist_width.quot;
@@ -96,7 +101,10 @@ std::tuple<T, T> ImageMode<T>::getBackGuess(const std::vector<T>& data) const {
   std::tie(mean, median, sigma) = histo.getStats();
   T prev_sigma = sigma * 10;
 
-  assert(!std::isnan(mean));
+  // processCell() filters non-finite pixels out, so this should be unreachable
+  if (std::isnan(mean)) {
+    throw Elements::Exception() << "Background histogram produced a NaN mean";
+  }
 
   for (size_t iter = 0; iter < m_max_iter && sigma > atol && std::abs(sigma / prev_sigma - 1.0) > m_rtol; ++iter) {
     histo.clip(median - sigma * m_kappa3, median + sigma * m_kappa3);
@@ -134,10 +142,13 @@ void ImageMode<T>::processCell(const Image<T>& img, int x, int y,
   std::vector<T> filtered;
   filtered.reserve(w * h);
 
-  for (int y = 0; y < h; ++y) {
-    for (int x = 0; x < w; ++x) {
-      auto v = img_chunk.getValue(x, y);
-      if (v != m_invalid)
+  for (int py = 0; py < h; ++py) {
+    for (int px = 0; px < w; ++px) {
+      auto v = img_chunk.getValue(px, py);
+      // A NaN compares unequal to everything, so the sentinel test alone lets it
+      // through, and one is enough to poison the whole cell's statistics.  An
+      // infinity does the same by way of Inf - Inf
+      if (v != m_invalid && !std::isnan(v) && !std::isinf(v))
         filtered.emplace_back(v);
     }
   }

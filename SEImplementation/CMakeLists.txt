@@ -129,6 +129,9 @@ elements_add_python_module(SourceXtractorPy
 #                       INCLUDE_DIRS ElementsExamples
 #                       LINK_LIBRARIES ElementsExamples TYPE Boost)
 #===============================================================================
+elements_add_unit_test(ImageMode_test tests/src/Background/ImageMode_test.cpp
+		             LINK_LIBRARIES SEImplementation
+		             TYPE Boost)
 elements_add_unit_test(KappaSigmaBinning_test tests/src/Background/KappaSigmaBinning_test.cpp
 		             LINK_LIBRARIES SEImplementation
 		             TYPE Boost)
