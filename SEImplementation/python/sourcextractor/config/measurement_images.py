@@ -22,6 +22,7 @@ import sys
 
 import _SourceXtractorPy as cpp
 
+from collections import defaultdict
 from io import StringIO
 
 
@@ -493,12 +494,10 @@ class ByKeyword:
                 (G, [frame_g_01.fits,  frame_g_02.fits])
             ]
         """
-        result = {}
+        result: defaultdict[str, list[MeasurementImage]] = defaultdict(list)
         for im in images:
             if self.__key not in im.meta:
                 raise KeyError(f'The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
-            if im.meta[self.__key] not in result:
-                result[im.meta[self.__key]] = []
             result[im.meta[self.__key]].append(im)
         return [(k, result[k]) for k in result]
 
@@ -538,14 +537,24 @@ class ByPattern:
         -------
         list of tuples of str and list of MeasurementImage
         """
-        result = {}
+        result: defaultdict[str, list[MeasurementImage]] = defaultdict(list)
+
         for im in images:
             if self.__key not in im.meta:
                 raise KeyError('The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
-            group = re.match(self.__pattern, im.meta[self.__key]).group(1)
-            if group not in result:
-                result[group] = []
+
+            value = im.meta[self.__key]
+            if (m := re.match(self.__pattern, str(value))) is None:
+                raise ValueError(f'The image {im.file}[{im.image_hdu}] has {self.__key} = {value!r}, '
+                                 f'which does not match the pattern {self.__pattern!r}')
+            try:
+                group = m.group(1)
+            except IndexError:
+                raise ValueError(f'The pattern {self.__pattern!r} has no capturing group; '
+                                 f'ByPattern requires at least one to use as the grouping key')
+
             result[group].append(im)
+
         return [(k, result[k]) for k in result]
 
 
@@ -563,7 +572,12 @@ class MeasurementGroup:
         """
         Constructor.
         """
-        self.__images = None
+        # Models to be fitted to this group, if any; see ModelFitting.add_model
+        self.models = []
+
+        # initialize to empty list so at least one of subgroups/images is non-None,
+        # fixing a class of typing bugs that assumed both of these attributes could be None
+        self.__images = []
         self.__subgroups = None
         if image_group.is_leaf():
             self.__images = [im for im in image_group]
@@ -577,9 +591,9 @@ class MeasurementGroup:
         iterator
         """
         if self.__subgroups:
-            return self.__subgroups.__iter__()
-        else:
-            return self.__images.__iter__()
+            return iter(self.__subgroups)
+
+        return iter(self.__images)
 
     def __getitem__(self, index):
         """
@@ -605,11 +619,11 @@ class MeasurementGroup:
                 return next(x for x in self.__subgroups if x[0] == index)[1]
             except StopIteration:
                 raise KeyError(f'Group {index} not found')
-        else:
-            try:
-                return self.__images[index]
-            except:
-                raise KeyError(f'Image #{index} not found')
+
+        try:
+            return self.__images[index]
+        except:
+            raise KeyError(f'Image #{index} not found')
 
     def __len__(self):
         """
@@ -620,8 +634,8 @@ class MeasurementGroup:
         """
         if self.__subgroups:
             return len(self.__subgroups)
-        else:
-            return len(self.__images)
+
+        return len(self.__images)
 
     def is_leaf(self):
         """

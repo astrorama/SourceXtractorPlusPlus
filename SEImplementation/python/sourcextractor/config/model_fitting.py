@@ -775,14 +775,17 @@ class ComputeGraphModel(CoordinateModelBase):
         -------
         str
         """
+        # NOTE: This code used to list an `effective_radius` as well, but this is not
+        # set in the constructor unlike the models based on SersicModelBase; as such
+        # this code was previously broken.  Rather than guess as to whether or not that
+        # should be a supported parameter (I don't know) leave it out for now. Do make
+        # a note of this when submitting a PR...
         if show_params:
             return (f'ComputeGraph[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}, '
-                    f'effective_radius={self.effective_radius}, aspect_ratio={self.aspect_ratio}, '
-                    f'angle={self.angle}]')
+                    f'aspect_ratio={self.aspect_ratio}, angle={self.angle}]')
         else:
             return (f'ComputeGraph[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}, '
-                    f'effective_radius={self.effective_radius.id}, aspect_ratio={self.aspect_ratio.id}, '
-                    f'angle={self.angle.id}]')
+                    f'aspect_ratio={self.aspect_ratio.id}, angle={self.angle.id}]')
 
     def get_params(self):
         return (super().get_params() + [self.scale, self.aspect_ratio, self.angle] +
@@ -1109,8 +1112,6 @@ class ModelFitting:
         if not isinstance(group, MeasurementGroup):
             raise TypeError(
                 f'Models can only be added on MeasurementGroup, got {type(group)}')
-        if not hasattr(group, 'models'):
-            group.models = []
         group.models.append(model)
         self._set_model_to_frames(group, model)
         self._populate_parameters(model)
@@ -1275,7 +1276,7 @@ def print_model_fitting_info(group, show_params=False, prefix='', file=None):
     """
     file = file or sys.stderr
 
-    if hasattr(group, 'models') and group.models:
+    if group.models:
         print(f'{prefix}Models:', file=file)
         for m in group.models:
             print(f'{prefix}  {m.to_string(show_params)}', file=file)

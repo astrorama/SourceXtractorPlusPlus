@@ -16,6 +16,9 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
+from collections.abc import Iterable
+from itertools import repeat
+from typing import cast
 
 import _SourceXtractorPy as cpp
 
@@ -29,8 +32,8 @@ class MeasurementConfig:
         self._measurement_images = {}
         self._apertures_for_image = {}
         self._used_names = set()
-        self._model_fitting_parameter_columns = []
-        self._aperture_columns = []
+        self._model_fitting_parameter_columns: list[tuple[str, ParameterBase]] = []
+        self._aperture_columns: list[tuple[str, cpp.Aperture]] = []
         self._column_map = {
             ParameterBase: self._model_fitting_parameter_columns,
             cpp.Aperture: self._aperture_columns
@@ -99,7 +102,9 @@ class MeasurementConfig:
             if "psf_hdu" in kwargs.keys():
                 psf_hdu_list = [kwargs.pop("psf_hdu")] * len(image_hdu_list)
             else:
-                psf_hdu_list = range(len(image_hdu_list))
+                # NOTE: Technically need not build a list here, but it is
+                # normally a small list in practice
+                psf_hdu_list = list(range(len(image_hdu_list)))
             psf_file_list = [psf] * len(image_hdu_list)
 
         # handles the weight maps
@@ -208,19 +213,26 @@ class MeasurementConfig:
             cube_hdu = image_cube_hdu
 
         dims = image_cube_file.get_dimensions(cube_hdu)
+
         if len(dims) != 3:
             raise ValueError("Not a data cube!")
+
         cube_size = dims[2]
         image_layer_list = range(cube_size)
+        psf_hdu_list: Iterable[int]
+        psf_file_list: Iterable[FitsFile]
+        weight_hdu_list: Iterable[int]
+        weight_layer_list: Iterable[int]
+        weight_file_list: Iterable[FitsFile] | Iterable[None]
 
         # handles the PSFs
         if isinstance(psf, list):
             if len(psf) != cube_size:
                 raise ValueError("The number of psf files must match the number of images!")
             psf_file_list = psf
-            psf_hdu_list = [0] * cube_size
+            psf_hdu_list = repeat(0, cube_size)
         else:
-            psf_file_list = [psf] * cube_size
+            psf_file_list = repeat(psf, cube_size)
             psf_hdu_list = range(cube_size)
 
         # handles the weight maps
@@ -228,12 +240,12 @@ class MeasurementConfig:
             if len(weight) != cube_size:
                 raise ValueError("The number of weight files must match the number of images!")
             weight_file_list = weight
-            weight_hdu_list = [0] * cube_size
-            weight_layer_list = [0] * cube_size
+            weight_hdu_list = repeat(0, cube_size)
+            weight_layer_list = repeat(0, cube_size)
         elif weight is None:
-            weight_file_list = [None] * cube_size
-            weight_hdu_list = [0] * cube_size
-            weight_layer_list = [0] * cube_size
+            weight_file_list = repeat(None, cube_size)
+            weight_hdu_list = repeat(0, cube_size)
+            weight_layer_list = repeat(0, cube_size)
         else:
             weight_fits_file = FitsFile(weight)
             if weight_cube_hdu < 0:
@@ -247,14 +259,14 @@ class MeasurementConfig:
                 if dims[2] != cube_size:
                     raise ValueError("The weight map cube doesn't match the image cube")
 
-                weight_file_list = [weight_fits_file] * cube_size
-                weight_hdu_list = [weight_hdu] * cube_size
+                weight_file_list = repeat(weight_fits_file, cube_size)
+                weight_hdu_list = repeat(weight_hdu, cube_size)
                 weight_layer_list = range(cube_size)
             else:
                 # weight is a FITS without a datacube, assume MEF
-                weight_file_list = [weight_fits_file] * cube_size
+                weight_file_list = repeat(weight_fits_file, cube_size)
                 weight_hdu_list = weight_fits_file.hdu_list
-                weight_layer_list = [0] * cube_size
+                weight_layer_list = repeat(0, cube_size)
 
         image_list = []
         for psf_file, psf_hdu, weight_file, weight_hdu, image_layer, weight_layer in zip(
@@ -372,12 +384,13 @@ class MeasurementConfig:
 
         if self._model_fitting_parameter_columns:
             print('Model fitting parameter outputs:', file=file)
-            for n, ids in self._model_fitting_parameter_columns:
-                print(f'    {n} : {ids}', file=file)
+            for name, param_ids in self._model_fitting_parameter_columns:
+                print(f'    {name} : {param_ids}', file=file)
+
         if self._aperture_columns:
             print('Aperture outputs:', file=file)
-            for n, ids in self._aperture_columns:
-                print(f'    {n} : {ids}', file=file)
+            for name, aper_ids in self._aperture_columns:
+                print(f'    {name} : {aper_ids}', file=file)
 
     def add_output_column(self, name, params):
         """
@@ -414,7 +427,10 @@ class MeasurementConfig:
         known_subclass = False
         for base in self._column_map:
             if issubclass(param_type, base):
-                self._column_map[base].append((name, params))
+                # TODO: This cast could be avoided with a little judicious
+                # refactoring I think, but for now it's fine.
+                cols = cast(list[tuple[str, list[object]]], self._column_map[base])
+                cols.append((name, params))
                 known_subclass = True
         if issubclass(param_type, ParameterBase):
             self.model_fitting._register_parameter(params[0])
