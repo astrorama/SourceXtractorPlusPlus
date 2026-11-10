@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from __future__ import division, print_function
 
 import os
 import re
@@ -23,15 +22,12 @@ import sys
 
 import _SourceXtractorPy as cpp
 
-if sys.version_info.major < 3:
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 
 class FitsFile(cpp.FitsFile):
     def __init__(self, filename):
-        super(FitsFile, self).__init__(str(filename))
+        super().__init__(str(filename))
         self.hdu_list = [i for i in self.image_hdus]
 
     def __iter__(self):
@@ -39,7 +35,7 @@ class FitsFile(cpp.FitsFile):
 
     def get_headers(self, hdu):
         d = {}
-        headers = super(FitsFile, self).get_headers(hdu)
+        headers = super().get_headers(hdu)
 
         try:
             it = iter(headers)
@@ -139,9 +135,9 @@ class MeasurementImage(cpp.MeasurementImage):
         if isinstance(weight_file, FitsFile):
             weight_file = weight_file.filename
 
-        super(MeasurementImage, self).__init__(os.path.abspath(file_path),
-                                               os.path.abspath(psf_file) if psf_file else '',
-                                               os.path.abspath(weight_file) if weight_file else '')
+        super().__init__(os.path.abspath(file_path),
+                         os.path.abspath(psf_file) if psf_file else '',
+                         os.path.abspath(weight_file) if weight_file else '')
 
         if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (
                 psf_hdu is not None and psf_hdu < 0):
@@ -203,7 +199,7 @@ class MeasurementImage(cpp.MeasurementImage):
             self._set_checked('weight_hdu', image_hdu)
         else:
             self._set_checked('weight_hdu', weight_hdu)
-            
+
         self.psf_renormalize = psf_renormalize
 
     def __str__(self):
@@ -227,12 +223,12 @@ class DataCubeSlice(MeasurementImage):
                  weight_threshold=None, constant_background=None,
                  image_hdu=0, psf_hdu=None, weight_hdu=None,
                  image_layer=0, weight_layer=0):
-        super(DataCubeSlice, self).__init__(fits_file, psf_file, weight_file, gain,
-                                            gain_keyword, saturation, saturation_keyword,
-                                            flux_scale, flux_scale_keyword,
-                                            weight_type, weight_absolute, weight_scaling,
-                                            weight_threshold, constant_background,
-                                            image_hdu, psf_hdu, weight_hdu)
+        super().__init__(fits_file, psf_file, weight_file, gain,
+                         gain_keyword, saturation, saturation_keyword,
+                         flux_scale, flux_scale_keyword,
+                         weight_type, weight_absolute, weight_scaling,
+                         weight_threshold, constant_background,
+                         image_hdu, psf_hdu, weight_hdu)
 
         self.is_data_cube = True
         self.image_layer = image_layer
@@ -251,7 +247,7 @@ class DataCubeSlice(MeasurementImage):
             self.meta['WEIGHT_FILENAME'], self.weight_hdu, self.weight_layer)
 
 
-class ImageGroup(object):
+class ImageGroup:
     """
     Models the grouping of images. Measurement can *not* be made directly on instances of this type.
     The configuration must be "frozen" before creating a MeasurementGroup
@@ -464,7 +460,7 @@ class ImageGroup(object):
         return string.getvalue()
 
 
-class ByKeyword(object):
+class ByKeyword:
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).
 
@@ -511,7 +507,7 @@ class ByKeyword(object):
         return [(k, result[k]) for k in result]
 
 
-class ByPattern(object):
+class ByPattern:
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
     expression and using the first matching group as key.
@@ -559,7 +555,7 @@ class ByPattern(object):
         return [(k, result[k]) for k in result]
 
 
-class MeasurementGroup(object):
+class MeasurementGroup:
     """
     Once an instance of this class is created from an ImageGroup, its configuration is "frozen". i.e.
     no new images can be added, or no new grouping applied.

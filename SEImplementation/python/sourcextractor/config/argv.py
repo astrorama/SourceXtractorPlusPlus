@@ -19,7 +19,7 @@ import sys
 from glob import glob
 
 
-class Arguments(object):
+class Arguments:
     """
     This helper class automatically parses the arguments received by the Python script via
     sys.argv, using the set of key-value parameters received on its constructor to cast the types
@@ -125,7 +125,7 @@ class Arguments(object):
         return repr(self.__args)
 
 
-class FileList(object):
+class FileList:
     """
     Helper class for receiving a globing pattern as a parameter, defining a list of files
     - i.e. measurement images or PSFs.

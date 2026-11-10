@@ -125,6 +125,7 @@ def use_iterative_fitting(use):
 def set_window_type(window_type):
     global_measurement_config.model_fitting.set_window_type(window_type)
 
+
 @_compat_doc_helper(copy_doc_from=ModelFitting.set_ellipse_scale)
 def set_ellipse_scale(ellipse_scale):
     global_measurement_config.model_fitting.set_ellipse_scale(ellipse_scale)
@@ -133,5 +134,3 @@ def set_ellipse_scale(ellipse_scale):
 @_compat_doc_helper(copy_doc_from=ModelFitting.set_show_fitting_areas)
 def set_show_fitting_areas(show_fitting_areas):
     global_measurement_config.model_fitting.set_show_fitting_areas(show_fitting_areas)
-
-
