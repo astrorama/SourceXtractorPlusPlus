@@ -77,13 +77,13 @@ class Arguments:
                 try:
                     self.__args[arg_name] = arg_type(argv[arg_name])
                 except ValueError:
-                    raise ValueError('Invalid value for {}: {}'.format(arg_name, argv[arg_name]))
+                    raise ValueError(f'Invalid value for {arg_name}: {argv[arg_name]}')
                 argv.pop(arg_name)
             else:
                 self.__args[arg_name] = arg_default
 
         if len(argv) != 0:
-            raise KeyError('Unknown parameters found: {}'.format(', '.join(argv.keys())))
+            raise KeyError(f'Unknown parameters found: {", ".join(argv)}')
 
     def __getattr__(self, item):
         """

@@ -282,10 +282,10 @@ class MeasurementConfig:
         print('Measurement images:', file=file)
         for i in self._measurement_images:
             im = self._measurement_images[i]
-            print('Image {}'.format(i), file=file)
-            print('      File: {}'.format(im.file), file=file)
-            print('       PSF: {}'.format(im.psf_file), file=file)
-            print('    Weight: {}'.format(im.weight_file), file=file)
+            print(f'Image {i}', file=file)
+            print(f'      File: {im.file}', file=file)
+            print(f'       PSF: {im.psf_file}', file=file)
+            print(f'    Weight: {im.weight_file}', file=file)
 
     def add_aperture_photometry(self, target, apertures):
         """
@@ -344,15 +344,15 @@ class MeasurementConfig:
                 if not t.is_leaf():
                     raise Exception('The MeasurementGroup is not a leaf')
                 elif len(t) != 1:
-                    raise Exception('The MeasurementGroup contains {} images'.format(len(t)))
+                    raise Exception(f'The MeasurementGroup contains {len(t)} images')
                 t = [i for i in t][0]
 
             if not isinstance(t, MeasurementImage):
                 raise Exception(
-                    'Only MeasurementImage supported as targets, got {}'.format(type(t)))
+                    f'Only MeasurementImage supported as targets, got {type(t)}')
             else:
                 if t.id in self._apertures_for_image:
-                    raise Exception('Apertures already set for the image {}'.format(t.id))
+                    raise Exception(f'Apertures already set for the image {t.id}')
                 self._apertures_for_image[t.id] = cpp.Aperture(apertures)
                 outputs.append(self._apertures_for_image[t.id])
 
@@ -370,11 +370,11 @@ class MeasurementConfig:
         if self._model_fitting_parameter_columns:
             print('Model fitting parameter outputs:', file=file)
             for n, ids in self._model_fitting_parameter_columns:
-                print('    {} : {}'.format(n, ids), file=file)
+                print(f'    {n} : {ids}', file=file)
         if self._aperture_columns:
             print('Aperture outputs:', file=file)
             for n, ids in self._aperture_columns:
-                print('    {} : {}'.format(n, ids), file=file)
+                print(f'    {n} : {ids}', file=file)
 
     def add_output_column(self, name, params):
         """
@@ -401,7 +401,7 @@ class MeasurementConfig:
         model_fitting.ParameterBase
         """
         if name in self._used_names:
-            raise ValueError('Column {} is already set'.format(name))
+            raise ValueError(f'Column {name} is already set')
         self._used_names.add(name)
 
         if not isinstance(params, list):
@@ -417,7 +417,7 @@ class MeasurementConfig:
             self.model_fitting._register_parameter(params[0])
 
         if not known_subclass:
-            raise TypeError('{} is not a known column type'.format(str(param_type)))
+            raise TypeError(f'{param_type} is not a known column type')
 
 
 global_measurement_config = MeasurementConfig()

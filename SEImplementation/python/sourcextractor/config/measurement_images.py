@@ -112,8 +112,8 @@ class MeasurementImage(cpp.MeasurementImage):
             setattr(self, attr_name, value)
         except Exception:
             expected_type = type(getattr(self, attr_name))
-            raise TypeError('Expecting {} for {}, got {}'.format(expected_type.__name__, attr_name,
-                                                                 type(value).__name__))
+            raise TypeError(f'Expecting {expected_type.__name__} for {attr_name}, '
+                            f'got {type(value).__name__}')
 
     def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
                  gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
@@ -209,10 +209,9 @@ class MeasurementImage(cpp.MeasurementImage):
         str
             Human readable representation for the object
         """
-        return 'Image {}: {} / {}, PSF: {} / {}, Weight: {} / {}'.format(
-            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.meta['PSF_FILENAME'],
-            self.psf_hdu,
-            self.meta['WEIGHT_FILENAME'], self.weight_hdu)
+        return (f'Image {self.id}: {self.file} / {self.image_hdu}, '
+                f'PSF: {self.psf_file} / {self.psf_hdu}, '
+                f'Weight: {self.weight_file} / {self.weight_hdu}')
 
 
 class DataCubeSlice(MeasurementImage):
@@ -241,10 +240,9 @@ class DataCubeSlice(MeasurementImage):
         str
             Human readable representation for the object
         """
-        return 'DataCubeSlice {}: {} / {} / {}, PSF: {} / {}, Weight: {} / {} / {}'.format(
-            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.image_layer,
-            self.meta['PSF_FILENAME'], self.psf_hdu,
-            self.meta['WEIGHT_FILENAME'], self.weight_hdu, self.weight_layer)
+        return (f'DataCubeSlice {self.id}: {self.file} / {self.image_hdu} / {self.image_layer}, '
+                f'PSF: {self.psf_file} / {self.psf_hdu}, '
+                f'Weight: {self.weight_file} / {self.weight_hdu} / {self.weight_layer}')
 
 
 class ImageGroup:
@@ -381,7 +379,7 @@ class ImageGroup:
         if self.__subgroups is None:
             raise Exception('ImageGroup is not subgrouped yet')
         if name in self.__subgroup_names:
-            raise Exception('Subgroup {} alread exists'.format(name))
+            raise Exception(f'Subgroup {name} alread exists')
         self.__subgroup_names.add(name)
         self.__subgroups.append((name, group))
 
@@ -420,7 +418,7 @@ class ImageGroup:
         try:
             return next(x for x in self.__subgroups if x[0] == name)[1]
         except StopIteration:
-            raise KeyError('Group {} not found'.format(name))
+            raise KeyError(f'Group {name} not found')
 
     def print(self, prefix='', show_images=False, file=sys.stderr):
         """
@@ -436,16 +434,15 @@ class ImageGroup:
             Where to print the representation. Defaults to sys.stderr
         """
         if self.__subgroups is None:
-            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
+            print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}  {}'.format(prefix, im), file=file)
+                    print(f'{prefix}  {im}', file=file)
         else:
-            print('{}Image sub-groups: {}'.format(prefix,
-                                                  ','.join(str(x) for x, _ in self.__subgroups)),
-                  file=file)
+            sub = ','.join(str(x) for x, _ in self.__subgroups)
+            print(f'{prefix}Image sub-groups: {sub}', file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name), file=file)
+                print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file)
 
     def __str__(self):
@@ -498,9 +495,7 @@ class ByKeyword:
         result = {}
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError('The image {}[{}] does not contain the key {}'.format(
-                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
-                ))
+                raise KeyError(f'The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
             if im.meta[self.__key] not in result:
                 result[im.meta[self.__key]] = []
             result[im.meta[self.__key]].append(im)
@@ -545,9 +540,7 @@ class ByPattern:
         result = {}
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError('The image {}[{}] does not contain the key {}'.format(
-                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
-                ))
+                raise KeyError('The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
             group = re.match(self.__pattern, im.meta[self.__key]).group(1)
             if group not in result:
                 result[group] = []
@@ -610,12 +603,12 @@ class MeasurementGroup:
             try:
                 return next(x for x in self.__subgroups if x[0] == index)[1]
             except StopIteration:
-                raise KeyError('Group {} not found'.format(index))
+                raise KeyError(f'Group {index} not found')
         else:
             try:
                 return self.__images[index]
             except:
-                raise KeyError('Image #{} not found'.format(index))
+                raise KeyError(f'Image #{index} not found')
 
     def __len__(self):
         """
@@ -652,15 +645,15 @@ class MeasurementGroup:
             Where to print the representation. Defaults to sys.stderr
         """
         if self.__images:
-            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
+            print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}  {}'.format(prefix, im), file=file)
+                    print(f'{prefix}  {im}', file=file)
         if self.__subgroups:
-            print('{}Measurement sub-groups: {}'.format(prefix, ','.join(
-                x for x, _ in self.__subgroups)), file=file)
+            sub = ','.join(x for x, _ in self.__subgroups)
+            print(f'{prefix}Measurement sub-groups: {sub}', file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name), file=file)
+                print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file=file)
 
     def __str__(self):

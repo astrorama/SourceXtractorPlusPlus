@@ -120,12 +120,12 @@ class Range:
         if hasattr(self.__limits, '__call__'):
             res += 'func'
         else:
-            res += '{},{}'.format(self.__limits[0], self.__limits[1])
+            res += f'{self.__limits[0]},{self.__limits[1]}'
         type_str = {
             RangeType.LINEAR: 'LIN',
             RangeType.EXPONENTIAL: 'EXP'
         }
-        res += ',{}]'.format(type_str[self.__type])
+        res += f',{type_str[self.__type]}]'
         return res
 
 
@@ -171,13 +171,11 @@ class Unbounded:
         str
             Human readable representation for the object
         """
-        res = '['
         if hasattr(self.__normalization_factor, '__call__'):
-            res += 'func'
+            res = 'func'
         else:
-            res += '{}'.format(self.__normalization_factor)
-        res += ']'
-        return res
+            res = str(self.__normalization_factor)
+        return f'[{res}]'
 
 
 class ParameterBase(cpp.Id):
@@ -193,7 +191,7 @@ class ParameterBase(cpp.Id):
         str
             Human readable representation for the object
         """
-        return '(ID:{})'.format(self.id)
+        return f'(ID:{self.id})'
 
 
 class ConstantParameter(ParameterBase):
@@ -234,12 +232,12 @@ class ConstantParameter(ParameterBase):
         str
             Human readable representation for the object
         """
-        res = super().__str__()[:-1] + ', value:'
+        pre = super().__str__()[:-1]
         if hasattr(self.__value, '__call__'):
-            res += 'func'
+            val = 'func'
         else:
-            res += str(self.__value)
-        return res + ')'
+            val = str(self.__value)
+        return f'{pre}, value:{val})'
 
 
 class FreeParameter(ParameterBase):
@@ -300,14 +298,17 @@ class FreeParameter(ParameterBase):
         str
             Human readable representation for the object
         """
-        res = super().__str__()[:-1] + ', init:'
+        pre = super().__str__()[:-1] + ', init:'
         if hasattr(self.__init_value, '__call__'):
-            res += 'func'
+            init = 'func'
         else:
-            res += str(self.__init_value)
+            init = str(self.__init_value)
         if self.__range:
-            res += ', range:' + str(self.__range)
-        return res + ')'
+            rng = f', range:{self.__range}'
+        else:
+            rng = ''
+
+        return f'{pre}, init: {init}{rng})'
 
 
 class DependentParameter(ParameterBase):
@@ -420,7 +421,7 @@ class ModelBase(cpp.Id):
     """
     Base class for all models.
     """
-    
+
     def get_params(self):
         return []
 
@@ -447,7 +448,7 @@ class CoordinateModelBase(ModelBase):
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
         self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
-        
+
     def get_params(self):
         return [self.x_coord, self.y_coord, self.flux]
 
@@ -487,11 +488,9 @@ class PointSourceModel(CoordinateModelBase):
         str
         """
         if show_params:
-            return 'PointSource[x_coord={}, y_coord={}, flux={}]'.format(
-                self.x_coord, self.y_coord, self.flux)
+            return f'PointSource[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}]'
         else:
-            return 'PointSource[x_coord={}, y_coord={}, flux={}]'.format(
-                self.x_coord.id, self.y_coord.id, self.flux.id)
+            return f'PointSource[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}]'
 
 
 class ConstantModel(ModelBase):
@@ -525,10 +524,10 @@ class ConstantModel(ModelBase):
         str
         """
         if show_params:
-            return 'ConstantModel[value={}]'.format(self.value)
+            return f'ConstantModel[value={self.value}]'
         else:
-            return 'ConstantModel[value={}]'.format(self.value.id)
-        
+            return f'ConstantModel[value={self.value.id}]'
+
         def get_params(self):
             return [self.value]
 
@@ -612,14 +611,16 @@ class SersicModel(SersicModelBase):
         -------
         str
         """
+        # TODO: These reprs could be generalized so as to avoid writing these
+        # strings out by hand in every subclass
         if show_params:
-            return 'Sersic[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
-                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio,
-                self.angle, self.n)
+            return (f'Sersic[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}, '
+                    f'effective_radius={self.effective_radius}, aspect_ratio={self.aspect_ratio}, '
+                    f'angle={self.angle}, n={self.n}]')
         else:
-            return 'Sersic[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}, n={}]'.format(
-                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
-                self.aspect_ratio.id, self.angle.id, self.n.id)
+            return (f'Sersic[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}, '
+                    f'effective_radius={self.effective_radius.id}, aspect_ratio={self.aspect_ratio.id}, '
+                    f'angle={self.angle.id}, n={self.n.id}]')
 
     def get_params(self):
         return super().get_params() + [self.n]
@@ -660,13 +661,13 @@ class ExponentialModel(SersicModelBase):
         """
 
         if show_params:
-            return 'Exponential[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio,
-                self.angle)
+            return (f'Exponential[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}, '
+                    f'effective_radius={self.effective_radius}, aspect_ratio={self.aspect_ratio}, '
+                    f'angle={self.angle}]')
         else:
-            return 'Exponential[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
-                self.aspect_ratio.id, self.angle.id)
+            return (f'Exponential[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}, '
+                    f'effective_radius={self.effective_radius.id}, aspect_ratio={self.aspect_ratio.id}, '
+                    f'angle={self.angle.id}]')
 
 
 class DeVaucouleursModel(SersicModelBase):
@@ -703,13 +704,13 @@ class DeVaucouleursModel(SersicModelBase):
         str
         """
         if show_params:
-            return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio,
-                self.angle)
+            return (f'DeVaucouleurs[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}, '
+                    f'effective_radius={self.effective_radius}, aspect_ratio={self.aspect_ratio}, '
+                    f'angle={self.angle}]')
         else:
-            return 'DeVaucouleurs[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
-                self.aspect_ratio.id, self.angle.id)
+            return (f'DeVaucouleurs[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}, '
+                    f'effective_radius={self.effective_radius.id}, aspect_ratio={self.aspect_ratio.id}, '
+                    f'angle={self.angle.id}]')
 
 
 class ComputeGraphModel(CoordinateModelBase):
@@ -775,13 +776,13 @@ class ComputeGraphModel(CoordinateModelBase):
         str
         """
         if show_params:
-            return 'ComputeGraph[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio,
-                self.angle)
+            return (f'ComputeGraph[x_coord={self.x_coord}, y_coord={self.y_coord}, flux={self.flux}, '
+                    f'effective_radius={self.effective_radius}, aspect_ratio={self.aspect_ratio}, '
+                    f'angle={self.angle}]')
         else:
-            return 'ComputeGraph[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
-                self.x_coord.id, self.y_coord.id, self.flux.id, self.effective_radius.id,
-                self.aspect_ratio.id, self.angle.id)
+            return (f'ComputeGraph[x_coord={self.x_coord.id}, y_coord={self.y_coord.id}, flux={self.flux.id}, '
+                    f'effective_radius={self.effective_radius.id}, aspect_ratio={self.aspect_ratio.id}, '
+                    f'angle={self.angle.id}]')
 
     def get_params(self):
         return (super().get_params() + [self.scale, self.aspect_ratio, self.angle] +
@@ -1094,7 +1095,7 @@ class ModelFitting:
         elif isinstance(model, ComputeGraphModel):
             self.onnx_model_dict[model.id] = model
         else:
-            raise TypeError('Unknown model type {}'.format(type(model)))
+            raise TypeError(f'Unknown model type {type(model)}')
 
     def add_model(self, group, model):
         """
@@ -1107,7 +1108,7 @@ class ModelFitting:
         """
         if not isinstance(group, MeasurementGroup):
             raise TypeError(
-                'Models can only be added on MeasurementGroup, got {}'.format(type(group)))
+                f'Models can only be added on MeasurementGroup, got {type(group)}')
         if not hasattr(group, 'models'):
             group.models = []
         group.models.append(model)
@@ -1144,15 +1145,15 @@ class ModelFitting:
         if self.constant_parameter_dict:
             print('Constant parameters:', file=file)
             for n, param in self.constant_parameter_dict.items():
-                print('  {}: {}'.format(n, param), file=file)
+                print(f'  {n}: {param}', file=file)
         if self.free_parameter_dict:
             print('Free parameters:', file=file)
             for n, param in self.free_parameter_dict.items():
-                print('  {}: {}'.format(n, param), file=file)
+                print(f'  {n}: {param}', file=file)
         if self.dependent_parameter_dict:
             print('Dependent parameters:', file=file)
             for n, param in self.dependent_parameter_dict.items():
-                print('  {}: {}'.format(n, param), file=file)
+                print(f'  {n}: {param}', file=file)
 
     def set_max_iterations(self, iterations):
         """
@@ -1217,28 +1218,28 @@ class ModelFitting:
 
         """
         self.params_dict["meta_iteration_stop"] = meta_iteration_stop
-        
+
     def set_window_type(self, window_type):
         """
         Parameters
         ----------
-        
+
         window_type : WindowType
             specify the type of model fitting window
 
         """
         if type(window_type) != WindowType:
             raise TypeError("Window type must be a WindowType enum value!")
-        
+
         self.params_dict["window_type"] = window_type
 
     def set_ellipse_scale(self, ellipse_scale):
         """
         Parameters
         ----------
-        
+
         ellipse_scale : double
-            specify scaling of elliptic footprints 
+            specify scaling of elliptic footprints
 
         """
         self.params_dict["ellipse_scale"] = ellipse_scale
@@ -1271,10 +1272,10 @@ def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stder
         Where to print the representation. Defaults to sys.stderr
     """
     if hasattr(group, 'models') and group.models:
-        print('{}Models:'.format(prefix), file=file)
+        print(f'{prefix}Models:', file=file)
         for m in group.models:
-            print('{}  {}'.format(prefix, m.to_string(show_params)), file=file)
+            print(f'{prefix}  {m.to_string(show_params)}', file=file)
     for x in group:
         if isinstance(x, tuple):
-            print('{}{}:'.format(prefix, x[0]), file=file)
+            print(f'{prefix}{x[0]}:', file=file)
             print_model_fitting_info(x[1], show_params, prefix + '    ', file=file)
