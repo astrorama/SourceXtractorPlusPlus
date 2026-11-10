@@ -44,7 +44,7 @@ def add_aperture_photometry(target, apertures):
 
 
 @_compat_doc_helper(copy_doc_from=MeasurementConfig.print_measurement_images)
-def print_measurement_images(file=sys.stderr):
+def print_measurement_images(file=None):
     global_measurement_config.print_measurement_images(file)
 
 
@@ -66,7 +66,7 @@ def load_fits_data_cube(image, psf=None, weight=None, image_cube_hdu=-1,
 
 
 @_compat_doc_helper(copy_doc_from=MeasurementConfig.print_output_columns)
-def print_output_columns(file=sys.stderr):
+def print_output_columns(file=None):
     global_measurement_config.print_output_columns(file)
 
 

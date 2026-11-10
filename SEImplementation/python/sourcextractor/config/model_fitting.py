@@ -1158,7 +1158,7 @@ class ModelFitting:
         if not self._is_param_known(param):
             self._register_parameter(param)
 
-    def print_parameters(self, file=sys.stderr):
+    def print_parameters(self, file=None):
         """
         Print a human-readable representation of the configured model fitting parameters.
 
@@ -1167,6 +1167,8 @@ class ModelFitting:
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
+
         if self.constant_parameter_dict:
             print('Constant parameters:', file=file)
             for n, param in self.constant_parameter_dict.items():
@@ -1270,7 +1272,7 @@ class ModelFitting:
         self.params_dict["ellipse_scale"] = ellipse_scale
 
 
-def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stderr):
+def print_model_fitting_info(group, show_params=False, prefix='', file=None):
     """
     Print a human-readable representation of the configured models.
 
@@ -1285,6 +1287,8 @@ def print_model_fitting_info(group, show_params=False, prefix='', file=sys.stder
     file : file object
         Where to print the representation. Defaults to sys.stderr
     """
+    file = file or sys.stderr
+
     if hasattr(group, 'models') and group.models:
         print(f'{prefix}Models:', file=file)
         for m in group.models:

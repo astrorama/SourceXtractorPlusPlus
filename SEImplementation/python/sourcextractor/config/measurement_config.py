@@ -270,7 +270,7 @@ class MeasurementConfig:
             self._measurement_images[img.id] = img
         return ImageGroup(images=image_list)
 
-    def print_measurement_images(self, file=sys.stderr):
+    def print_measurement_images(self, file=None):
         """
         Print a human-readable representation of the configured measurement images.
 
@@ -279,6 +279,7 @@ class MeasurementConfig:
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
         print('Measurement images:', file=file)
         for i in self._measurement_images:
             im = self._measurement_images[i]
@@ -358,7 +359,7 @@ class MeasurementConfig:
 
         return outputs
 
-    def print_output_columns(self, file=sys.stderr):
+    def print_output_columns(self, file=None):
         """
         Print a human-readable representation of the configured output columns.
 
@@ -367,6 +368,8 @@ class MeasurementConfig:
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
+
         if self._model_fitting_parameter_columns:
             print('Model fitting parameter outputs:', file=file)
             for n, ids in self._model_fitting_parameter_columns:

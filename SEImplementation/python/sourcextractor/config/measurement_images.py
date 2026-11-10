@@ -420,7 +420,7 @@ class ImageGroup:
         except StopIteration:
             raise KeyError(f'Group {name} not found')
 
-    def print(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=None):
         """
         Print a human-readable representation of the group.
 
@@ -433,6 +433,7 @@ class ImageGroup:
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
         if self.__subgroups is None:
             print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
@@ -631,7 +632,7 @@ class MeasurementGroup:
         """
         return self.__subgroups is None
 
-    def print(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix='', show_images=False, file=None):
         """
         Print a human-readable representation of the group.
 
@@ -644,6 +645,7 @@ class MeasurementGroup:
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
         if self.__images:
             print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
