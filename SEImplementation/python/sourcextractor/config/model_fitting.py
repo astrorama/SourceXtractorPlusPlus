@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from __future__ import division, print_function
-
 import math
 import sys
 import warnings
@@ -36,7 +34,7 @@ class RangeType(Enum):
     EXPONENTIAL = 2
 
 
-class Range(object):
+class Range:
     r"""
     Limit, and normalize, the range of values for a model fitting parameter.
 
@@ -128,7 +126,7 @@ class Range(object):
         return res
 
 
-class Unbounded(object):
+class Unbounded:
     """
     Unbounded, but normalize, value of a model fitting parameter
 
@@ -209,7 +207,7 @@ class ConstantParameter(ParameterBase):
         """
         Constructor.
         """
-        ParameterBase.__init__(self)
+        super().__init__()
         self.__value = value
         self.__callable = value if hasattr(value, '__call__') else lambda o: value
 
@@ -233,7 +231,7 @@ class ConstantParameter(ParameterBase):
         str
             Human readable representation for the object
         """
-        res = ParameterBase.__str__(self)[:-1] + ', value:'
+        res = super().__str__()[:-1] + ', value:'
         if hasattr(self.__value, '__call__'):
             res += 'func'
         else:
@@ -266,7 +264,7 @@ class FreeParameter(ParameterBase):
         """
         Constructor.
         """
-        ParameterBase.__init__(self)
+        super().__init__()
         self.__init_value = init_value
         self.__init_call = init_value if hasattr(init_value, '__call__') else lambda o: init_value
         self.__range = range
@@ -299,7 +297,7 @@ class FreeParameter(ParameterBase):
         str
             Human readable representation for the object
         """
-        res = ParameterBase.__str__(self)[:-1] + ', init:'
+        res = super().__str__()[:-1] + ', init:'
         if hasattr(self.__init_value, '__call__'):
             res += 'func'
         else:
@@ -333,7 +331,7 @@ class DependentParameter(ParameterBase):
         """
         Constructor.
         """
-        ParameterBase.__init__(self)
+        super().__init__()
         self.func = func
         self.params = list(params)
 
@@ -409,7 +407,7 @@ class Prior(cpp.Id):
         """
         Constructor.
         """
-        cpp.Id.__init__(self)
+        super().__init__()
         self.param = param.id
         self.value = value if hasattr(value, '__call__') else lambda o: value
         self.sigma = sigma if hasattr(sigma, '__call__') else lambda o: sigma
@@ -442,7 +440,7 @@ class CoordinateModelBase(ModelBase):
         """
         Constructor.
         """
-        ModelBase.__init__(self)
+        super().__init__()
         self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
         self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
         self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
@@ -470,7 +468,7 @@ class PointSourceModel(CoordinateModelBase):
         """
         Constructor.
         """
-        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
+        super().__init__(x_coord, y_coord, flux)
 
     def to_string(self, show_params=False):
         """
@@ -507,7 +505,7 @@ class ConstantModel(ModelBase):
         """
         Constructor.
         """
-        ModelBase.__init__(self)
+        super().__init__()
         self.value = value if isinstance(value, ParameterBase) else ConstantParameter(value)
 
     def to_string(self, show_params=False):
@@ -556,7 +554,7 @@ class SersicModelBase(CoordinateModelBase):
         """
         Constructor.
         """
-        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
+        super().__init__(x_coord, y_coord, flux)
         self.effective_radius = effective_radius if isinstance(effective_radius,
                                                                ParameterBase) else ConstantParameter(
             effective_radius)
@@ -566,7 +564,8 @@ class SersicModelBase(CoordinateModelBase):
         self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
 
     def get_params(self):
-        return CoordinateModelBase.get_params(self) + [self.effective_radius, self.aspect_ratio, self.angle]
+        return super().get_params() + [self.effective_radius, self.aspect_ratio, self.angle]
+
 
 class SersicModel(SersicModelBase):
     """
@@ -594,8 +593,7 @@ class SersicModel(SersicModelBase):
         """
         Constructor.
         """
-        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio,
-                                 angle)
+        super().__init__(x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         self.n = n if isinstance(n, ParameterBase) else ConstantParameter(n)
 
     def to_string(self, show_params=False):
@@ -621,7 +619,7 @@ class SersicModel(SersicModelBase):
                 self.aspect_ratio.id, self.angle.id, self.n.id)
 
     def get_params(self):
-        return SersicModelBase.get_params(self) + [self.n]
+        return super().get_params() + [self.n]
 
 
 class ExponentialModel(SersicModelBase):
@@ -644,13 +642,6 @@ class ExponentialModel(SersicModelBase):
         Ellipse rotation, in radians
     """
 
-    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
-        """
-        Constructor.
-        """
-        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio,
-                                 angle)
-
     def to_string(self, show_params=False):
         """
         Return a human readable representation of the model.
@@ -664,6 +655,7 @@ class ExponentialModel(SersicModelBase):
         -------
         str
         """
+
         if show_params:
             return 'Exponential[x_coord={}, y_coord={}, flux={}, effective_radius={}, aspect_ratio={}, angle={}]'.format(
                 self.x_coord, self.y_coord, self.flux, self.effective_radius, self.aspect_ratio,
@@ -693,13 +685,6 @@ class DeVaucouleursModel(SersicModelBase):
     angle : ParameterBase or float
         Ellipse rotation, in radians
     """
-
-    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
-        """
-        Constructor.
-        """
-        SersicModelBase.__init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio,
-                                 angle)
 
     def to_string(self, show_params=False):
         """
@@ -746,7 +731,7 @@ class ComputeGraphModel(CoordinateModelBase):
         """
         Constructor.
         """
-        CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
+        super().__init__(x_coord, y_coord, flux)
 
         ratio_name = "_aspect_ratio"
         angle_name = "_angle"
@@ -796,7 +781,7 @@ class ComputeGraphModel(CoordinateModelBase):
                 self.aspect_ratio.id, self.angle.id)
 
     def get_params(self):
-        return (CoordinateModelBase.get_params(self) + [self.scale, self.aspect_ratio, self.angle] +
+        return (super().get_params() + [self.scale, self.aspect_ratio, self.angle] +
             list(self.params.values()))
 
 
@@ -1060,6 +1045,7 @@ def get_world_parameters(x, y, radius, angle, ratio):
 
     return ra, dec, wc_rad, wc_angle, wc_ratio
 
+
 class WindowType(Enum):
     RECTANGLE = 1
     SQUARE_MIN = 2
@@ -1070,6 +1056,7 @@ class WindowType(Enum):
     DISK_AREA = 7
     ALIGNED_ELLIPSE = 8
     ROTATED_ELLIPSE = 9
+
 
 class ModelFitting:
     def __init__(self):
