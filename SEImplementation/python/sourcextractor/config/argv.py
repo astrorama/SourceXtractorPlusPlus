@@ -59,7 +59,15 @@ class Arguments:
         """
         Constructor.
         """
-        argv = dict([arg.split('=', 1) if '=' in arg else (arg, True) for arg in sys.argv[1:]])
+
+        def split_kv(s: str) -> tuple[str, str | bool]:
+            if '=' in s:
+                k, v = s.split('=', 1)
+                return (k, v)
+
+            return (s, True)
+
+        argv = dict(split_kv(arg) for arg in sys.argv[1:])
 
         self.__args = dict()
         for arg_name, arg_spec in kwargs.items():
