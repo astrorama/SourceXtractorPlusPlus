@@ -15,26 +15,34 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from __future__ import annotations
 
 import os
 import re
 import sys
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
 
 import _SourceXtractorPy as cpp
 
 from collections import defaultdict
 from io import StringIO
 
+if TYPE_CHECKING:
+    from sourcextractor.config.model_fitting import FittableModel
+
 
 class FitsFile(cpp.FitsFile):
-    def __init__(self, filename):
-        super().__init__(str(filename))
+    def __init__(self, filename: str) -> None:
+        super().__init__(filename)
         self.hdu_list = [i for i in self.image_hdus]
 
     def __iter__(self):
         return iter(self.hdu_list)
 
-    def get_headers(self, hdu):
+    # NOTE: This deliberately overrides the base class's method of the same
+    # name to allow returning a plain Python dict
+    def get_headers(self, hdu: int) -> dict[str, str]:  # type: ignore[override]
         d = {}
         headers = super().get_headers(hdu)
 
@@ -49,7 +57,67 @@ class FitsFile(cpp.FitsFile):
         return d
 
 
-class MeasurementImage(cpp.MeasurementImage):
+WeightType: TypeAlias = Literal['none', 'background', 'rms', 'variance',  'weight']
+
+
+class CheckBoostProperties:
+    """
+    Mixin for Python sublcasses of a Boost.Python class
+
+    Rewrites every settable property inherited from the C++ base so that
+    assignment is type-checked against the type of the attribute's current
+    (or default) value.
+
+    The numeric hierarchy is respected such that an existing float property
+    allows an int to be assigned (and converted to float) but not vice-versa.
+    """
+
+    _checked: ClassVar[frozenset[str]] = frozenset()
+    _boost_class: ClassVar[type] = type(cpp.Id)
+    """
+    Reference to the Boost.Python.class metaclass type
+
+    It is not importable directly, so the only way to get a reference to it at
+    runtime is from a known class implemented in Boost.Python.
+    """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        checked = set(cls._checked)
+        for base in cls.__mro__[1:]:
+            if not isinstance(base, cls._boost_class):
+                continue
+            for name, prop in vars(base).items():
+                if isinstance(prop, property) and prop.fset and name not in checked:
+                    checked.add(name)
+                    setattr(cls, name, cls._checked_property(name, prop))
+
+        cls._checked = frozenset(checked)
+
+    @staticmethod
+    def _checked_property(name: str, prop: property) -> property:
+        fget: Callable[[Any], Any] = prop.fget  # type: ignore[assignment]
+        fset: Callable[[Any, Any], None] = prop.fset  # type: ignore[assignment]
+
+        def checked_fset(self: Any, value: Any) -> None:
+            expected = type(fget(self))
+            # bool is a subclass of int, so exclude it explicitly; an int,
+            # however, is accepted where a float would be
+            if (isinstance(value, bool) is not (expected is bool) or
+                    not isinstance(value, (int, expected) if expected is float else expected)):
+                raise TypeError(f'Expecting {expected.__name__} for {name}, '
+                                f'got {type(value).__name__}')
+
+            # At this point is only int or float
+            if expected is float:
+                value = float(value)
+
+            fset(self, value)
+
+        return property(fget, checked_fset, prop.fdel, prop.__doc__)
+
+
+class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
     """
     A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
@@ -108,21 +176,16 @@ class MeasurementImage(cpp.MeasurementImage):
         If True, the PSF will be renormalized to have a total flux of 1.0. Default True
     """
 
-    def _set_checked(self, attr_name, value):
-        try:
-            setattr(self, attr_name, value)
-        except Exception:
-            expected_type = type(getattr(self, attr_name))
-            raise TypeError(f'Expecting {expected_type.__name__} for {attr_name}, '
-                            f'got {type(value).__name__}')
-
-    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
-                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
-                 flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='none', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None, psf_renormalize=True
-                 ):
+    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
+                 weight_file: str | FitsFile | None = None,
+                 gain: float | None = None, gain_keyword: str = 'GAIN',
+                 saturation: float | None = None, saturation_keyword: str = 'SATURATE',
+                 flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
+                 weight_type: WeightType = 'none', weight_absolute: bool = False,
+                 weight_scaling: float = 1., weight_threshold: float | None = None,
+                 constant_background: float | None = None, image_hdu: int = 0,
+                 psf_hdu: int | None = None, weight_hdu: int | None = None,
+                 psf_renormalize: bool = True) -> None:
         """
         Constructor.
         """
@@ -153,53 +216,53 @@ class MeasurementImage(cpp.MeasurementImage):
         self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
-            self._set_checked('gain', gain)
+            self.gain = gain
         elif gain_keyword in self.meta:
             self.gain = float(self.meta[gain_keyword])
         else:
             self.gain = 0.
 
         if saturation is not None:
-            self._set_checked('saturation', saturation)
+            self.saturation = saturation
         elif saturation_keyword in self.meta:
             self.saturation = float(self.meta[saturation_keyword])
         else:
             self.saturation = 0.
 
         if flux_scale is not None:
-            self._set_checked('flux_scale', flux_scale)
+            self.flux_scale = flux_scale
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 1.
 
-        self._set_checked('weight_type', weight_type)
-        self._set_checked('weight_absolute', weight_absolute)
-        self._set_checked('weight_scaling', weight_scaling)
+        self.weight_type = weight_type
+        self.weight_absolute = weight_absolute
+        self.weight_scaling = weight_scaling
         if weight_threshold is None:
             self.has_weight_threshold = False
         else:
             self.has_weight_threshold = True
-            self._set_checked('weight_threshold', weight_threshold)
+            self.weight_threshold = weight_threshold
 
         if constant_background is not None:
             self.is_background_constant = True
-            self._set_checked('constant_background_value', constant_background)
+            self.constant_background_value = constant_background
         else:
             self.is_background_constant = False
             self.constant_background_value = -1
 
-        self._set_checked('image_hdu', image_hdu)
+        self.image_hdu = image_hdu
 
         if psf_hdu is None:
-            self._set_checked('psf_hdu', image_hdu)
+            self.psf_hdu = image_hdu
         else:
-            self._set_checked('psf_hdu', psf_hdu)
+            self.psf_hdu = psf_hdu
 
         if weight_hdu is None:
-            self._set_checked('weight_hdu', image_hdu)
+            self.weight_hdu = image_hdu
         else:
-            self._set_checked('weight_hdu', weight_hdu)
+            self.weight_hdu = weight_hdu
 
         self.psf_renormalize = psf_renormalize
 
@@ -216,13 +279,16 @@ class MeasurementImage(cpp.MeasurementImage):
 
 
 class DataCubeSlice(MeasurementImage):
-    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
-                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
-                 flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='none', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None,
-                 image_layer=0, weight_layer=0):
+    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
+                 weight_file: str | FitsFile | None = None,
+                 gain: float | None = None, gain_keyword: str = 'GAIN',
+                 saturation: float | None = None, saturation_keyword: str = 'SATURATE',
+                 flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
+                 weight_type: WeightType = 'none', weight_absolute: bool = False,
+                 weight_scaling: float = 1., weight_threshold: float | None = None,
+                 constant_background: float | None = None, image_hdu: int = 0,
+                 psf_hdu: int | None = None, weight_hdu: int | None = None,
+                 image_layer: int = 0, weight_layer: int = 0) -> None:
         super().__init__(fits_file, psf_file, weight_file, gain,
                          gain_keyword, saturation, saturation_keyword,
                          flux_scale, flux_scale_keyword,
@@ -256,7 +322,11 @@ class ImageGroup:
     MeasurementGroup
     """
 
-    def __init__(self, **kwargs):
+    @overload
+    def __init__(self, *, images: Sequence[MeasurementImage]) -> None: ...
+    @overload
+    def __init__(self, *, subgroups: Sequence[ImageGroup]) -> None: ...
+    def __init__(self, **kwargs: Any) -> None:  # noqa: E301
         """
         Constructor. It is not recommended to be used directly. Use instead load_fits_image or load_fits_images.
         """
@@ -384,7 +454,7 @@ class ImageGroup:
         self.__subgroup_names.add(name)
         self.__subgroups.append((name, group))
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """
         Returns
         -------
@@ -421,7 +491,8 @@ class ImageGroup:
         except StopIteration:
             raise KeyError(f'Group {name} not found')
 
-    def print(self, prefix='', show_images=False, file=None):
+    def print(self, prefix: str = '', show_images: bool = False,
+              file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the group.
 
@@ -568,12 +639,12 @@ class MeasurementGroup:
     image_group : ImageGroup
     """
 
-    def __init__(self, image_group, is_subgroup=False):
+    def __init__(self, image_group: ImageGroup, is_subgroup: bool = False) -> None:
         """
         Constructor.
         """
         # Models to be fitted to this group, if any; see ModelFitting.add_model
-        self.models = []
+        self.models: list[FittableModel] = []
 
         # initialize to empty list so at least one of subgroups/images is non-None,
         # fixing a class of typing bugs that assumed both of these attributes could be None
@@ -637,7 +708,7 @@ class MeasurementGroup:
 
         return len(self.__images)
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """
         Returns
         -------
@@ -646,7 +717,7 @@ class MeasurementGroup:
         """
         return self.__subgroups is None
 
-    def print(self, prefix='', show_images=False, file=None):
+    def print(self, prefix: str = '', show_images: bool = False, file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the group.
 

@@ -16,9 +16,9 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
-from collections.abc import Iterable
-from itertools import repeat
-from typing import cast
+from collections.abc import Iterable, Sequence
+from itertools import repeat, zip_longest
+from typing import Any, IO, TypeAlias, cast
 
 import _SourceXtractorPy as cpp
 
@@ -27,11 +27,17 @@ from .measurement_images import (DataCubeSlice, FitsFile, ImageGroup, Measuremen
 from .model_fitting import ModelFitting, ParameterBase
 
 
+OutputColumn: TypeAlias = ParameterBase | cpp.Aperture | list[ParameterBase] | list[cpp.Aperture]
+# TODO: It may be possible to implement a special type just for leaf
+# nodes, but in the meantime the is_leaf() requirement is a runtime check
+Target: TypeAlias = MeasurementImage | MeasurementGroup | list[MeasurementImage] | list[MeasurementGroup]
+
+
 class MeasurementConfig:
-    def __init__(self):
-        self._measurement_images = {}
-        self._apertures_for_image = {}
-        self._used_names = set()
+    def __init__(self) -> None:
+        self._measurement_images: dict[int, MeasurementImage] = {}
+        self._apertures_for_image: dict[int, cpp.Aperture] = {}
+        self._used_names: set[str] = set()
         self._model_fitting_parameter_columns: list[tuple[str, ParameterBase]] = []
         self._aperture_columns: list[tuple[str, cpp.Aperture]] = []
         self._column_map = {
@@ -41,15 +47,15 @@ class MeasurementConfig:
         self._model_fitting = ModelFitting()
 
     @property
-    def apertures_for_image(self):
+    def apertures_for_image(self) -> dict[int, cpp.Aperture]:
         return self._apertures_for_image
 
     @property
-    def measurement_images(self):
+    def measurement_images(self) -> dict[int, MeasurementImage]:
         return self._measurement_images
 
     @property
-    def model_fitting_parameter_columns(self):
+    def model_fitting_parameter_columns(self) -> list[tuple[str, ParameterBase]]:
         return self._model_fitting_parameter_columns
 
     @property
@@ -60,7 +66,7 @@ class MeasurementConfig:
     def model_fitting(self):
         return self._model_fitting
 
-    def add_measurement_image(self, image):
+    def add_measurement_image(self, image: MeasurementImage | MeasurementGroup) -> None:
         if isinstance(image, MeasurementImage):
             if image.id not in self._measurement_images:
                 self._measurement_images[image.id] = image
@@ -71,7 +77,10 @@ class MeasurementConfig:
             for _, subgroup in image:
                 self.add_measurement_image(subgroup)
 
-    def load_fits_image(self, image, psf=None, weight=None, **kwargs):
+    # TODO: better typing for kwargs passed through to DataCubeSlice
+    def load_fits_image(self, image: str, psf: str | list[str] | None = None,
+                        weight: str | FitsFile | list[FitsFile] | list[str] | None = None,
+                        **kwargs: Any) -> ImageGroup:
         """
         Creates an image group with the images of a (possibly multi-HDU) single FITS file.
 
@@ -92,6 +101,8 @@ class MeasurementConfig:
         else:
             image_hdu_list = image_file.hdu_list
 
+        psf_file_list: Sequence[str | None]
+
         # handles the PSFs
         if isinstance(psf, list):
             if len(psf) != len(image_hdu_list):
@@ -107,6 +118,8 @@ class MeasurementConfig:
                 psf_hdu_list = list(range(len(image_hdu_list)))
             psf_file_list = [psf] * len(image_hdu_list)
 
+        weight_file_list: Sequence[str | FitsFile | None]
+
         # handles the weight maps
         if isinstance(weight, list):
             if len(weight) != len(image_hdu_list):
@@ -117,16 +130,17 @@ class MeasurementConfig:
             weight_file_list = [None] * len(image_hdu_list)
             weight_hdu_list = [0] * len(weight_file_list)
         else:
-            weight_file = FitsFile(weight)
+            if not isinstance(weight, FitsFile):
+                weight = FitsFile(weight)
             if "weight_hdu" in kwargs.keys():
                 weight_hdu_list = [kwargs.pop("weight_hdu")] * len(image_hdu_list)
             else:
-                weight_hdu_list = weight_file.hdu_list
-            weight_file_list = [weight_file] * len(image_hdu_list)
+                weight_hdu_list = weight.hdu_list
+            weight_file_list = [weight] * len(image_hdu_list)
 
         image_list = []
-        for hdu, psf_file, psf_hdu, weight_file, weight_hdu in zip(
-                image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list):
+        it = zip(image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list)
+        for hdu, psf_file, psf_hdu, weight_file, weight_hdu in it:
             image_list.append(MeasurementImage(image_file, psf_file, weight_file,
                                                image_hdu=hdu, psf_hdu=psf_hdu,
                                                weight_hdu=weight_hdu,
@@ -135,7 +149,9 @@ class MeasurementConfig:
             self._measurement_images[img.id] = img
         return ImageGroup(images=image_list)
 
-    def load_fits_images(self, images, psfs=None, weights=None, **kwargs):
+    # TODO: better typing for kwargs passed through to DataCubeSlice
+    def load_fits_images(self, images: str | list[str], psfs: list[str] | None = None,
+                         weights: list[str] | None = None, **kwargs: Any) -> ImageGroup:
         """Creates an image group for the given images.
 
         Parameters
@@ -163,9 +179,6 @@ class MeasurementConfig:
             if len(images) == 0:
                 raise ValueError("An empty list passed to load_fits_images")
 
-            psfs = psfs or [None] * len(images)
-            weights = weights or [None] * len(images)
-
             if not isinstance(psfs, list) or len(psfs) != len(images):
                 raise ValueError("The number of image files and psf files must match!")
 
@@ -173,10 +186,10 @@ class MeasurementConfig:
                 raise ValueError("The number of image files and weight files must match!")
 
             groups = []
-            for f, p, w in zip(images, psfs, weights):
+            for f, p, w in zip_longest(images, psfs, weights):
                 groups.append(self.load_fits_image(f, p, w, **kwargs))
 
-            image_list = []
+            image_list: list[MeasurementImage] = []
             for g in groups:
                 image_list += g
             for img in image_list:
@@ -185,8 +198,10 @@ class MeasurementConfig:
         else:
             return self.load_fits_image(images, psfs, weights, **kwargs)
 
-    def load_fits_data_cube(self, image, psf=None, weight=None, image_cube_hdu=-1,
-                            weight_cube_hdu=-1, **kwargs):
+    # TODO: better typing for kwargs passed through to DataCubeSlice
+    def load_fits_data_cube(self, image: str, psf: str | list[str] | None = None,
+                            weight: str | list[FitsFile] | None = None, image_cube_hdu: int = -1,
+                            weight_cube_hdu: int = -1, **kwargs: Any) -> ImageGroup:
         """
         Creates an image group with the images of a data cube.
 
@@ -197,7 +212,7 @@ class MeasurementConfig:
 
         :param image: The filename of the FITS file containing the image datacube
         :param psf: psf file or list of psf files
-        :param weight: FITS file contianing a weight datacube, a MEF contianing the weights
+        :param weight: FITS file contianing a weight datacube, a MEF containing the weights
              or a list of such files
         :param image_cube_hdu: hdu containing the image datacube, default = first HDU containing image data
         :param weight_cube_hdu: hdu containing the weight datacube, default = first HDU containing image data
@@ -220,7 +235,7 @@ class MeasurementConfig:
         cube_size = dims[2]
         image_layer_list = range(cube_size)
         psf_hdu_list: Iterable[int]
-        psf_file_list: Iterable[FitsFile]
+        psf_file_list: Iterable[str] | Iterable[None]
         weight_hdu_list: Iterable[int]
         weight_layer_list: Iterable[int]
         weight_file_list: Iterable[FitsFile] | Iterable[None]
@@ -230,6 +245,9 @@ class MeasurementConfig:
             if len(psf) != cube_size:
                 raise ValueError("The number of psf files must match the number of images!")
             psf_file_list = psf
+            psf_hdu_list = repeat(0, cube_size)
+        elif psf is None:
+            psf_file_list = repeat(None, cube_size)
             psf_hdu_list = repeat(0, cube_size)
         else:
             psf_file_list = repeat(psf, cube_size)
@@ -282,7 +300,7 @@ class MeasurementConfig:
             self._measurement_images[img.id] = img
         return ImageGroup(images=image_list)
 
-    def print_measurement_images(self, file=None):
+    def print_measurement_images(self, file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the configured measurement images.
 
@@ -300,7 +318,7 @@ class MeasurementConfig:
             print(f'       PSF: {im.psf_file}', file=file)
             print(f'    Weight: {im.weight_file}', file=file)
 
-    def add_aperture_photometry(self, target, apertures):
+    def add_aperture_photometry(self, target: Target, apertures: float | list[float]) -> list[cpp.Aperture]:
         """
         Flux measurement from the image above the background inside a circular aperture.
 
@@ -344,15 +362,20 @@ class MeasurementConfig:
         >>>     all_apertures.extend(context.add_aperture_photometry(img, [5, 10, 20]))
         >>> context.add_output_column('aperture', all_apertures)
         """
-        if not isinstance(target, list):
-            target = [target]
-        if not isinstance(apertures, list):
+        if isinstance(target, list):
+            target_list = target
+        else:
+            target_list = cast(list[MeasurementImage] | list[MeasurementGroup], [target])
+
+        if isinstance(apertures, list):
+            apertures_list = apertures
+        else:
             apertures = [apertures]
 
         apertures = [float(a) for a in apertures]
         outputs = []
 
-        for t in target:
+        for t in target_list:
             if isinstance(t, MeasurementGroup):
                 if not t.is_leaf():
                     raise Exception('The MeasurementGroup is not a leaf')
@@ -366,12 +389,12 @@ class MeasurementConfig:
             else:
                 if t.id in self._apertures_for_image:
                     raise Exception(f'Apertures already set for the image {t.id}')
-                self._apertures_for_image[t.id] = cpp.Aperture(apertures)
+                self._apertures_for_image[t.id] = cpp.Aperture(apertures_list)
                 outputs.append(self._apertures_for_image[t.id])
 
         return outputs
 
-    def print_output_columns(self, file=None):
+    def print_output_columns(self, file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the configured output columns.
 
@@ -392,7 +415,7 @@ class MeasurementConfig:
             for name, aper_ids in self._aperture_columns:
                 print(f'    {name} : {aper_ids}', file=file)
 
-    def add_output_column(self, name, params):
+    def add_output_column(self, name: str, params: OutputColumn) -> None:
         """
         Add a new set of columns to the output catalog.
 
@@ -401,8 +424,9 @@ class MeasurementConfig:
         name : str
             Name/prefix of the new set of columns
         params : list of columns
-            List of properties to add to the output with the given name/prefix. They must be subtype
-            of one of the known ones: ParameterBase for model fitting, or Aperture for aperture photometry.
+            Homogenous list of properties to add to the output with the given name/prefix. They
+            must be subtype of one of the known ones: ParameterBase for model fitting, or Aperture
+            for aperture photometry.
 
         Raises
         ------
@@ -420,20 +444,25 @@ class MeasurementConfig:
             raise ValueError(f'Column {name} is already set')
         self._used_names.add(name)
 
-        if not isinstance(params, list):
-            params = [params]
-        param_type = type(params[0])
+        if isinstance(params, list):
+            params_list = params
+        else:
+            params_list = cast(list[ParameterBase] | list[cpp.Aperture], [params])
+
+        # TODO: Should check that all items are the same param type; could be implemented
+        # as part of a type guard.
+        param_type = type(params_list[0])
 
         known_subclass = False
         for base in self._column_map:
             if issubclass(param_type, base):
                 # TODO: This cast could be avoided with a little judicious
                 # refactoring I think, but for now it's fine.
-                cols = cast(list[tuple[str, list[object]]], self._column_map[base])
-                cols.append((name, params))
+                cols = cast(list[tuple[str, list[Any]]], self._column_map[base])
+                cols.append((name, params_list))
                 known_subclass = True
         if issubclass(param_type, ParameterBase):
-            self.model_fitting._register_parameter(params[0])
+            self.model_fitting._register_parameter(params_list[0])
 
         if not known_subclass:
             raise TypeError(f'{param_type} is not a known column type')

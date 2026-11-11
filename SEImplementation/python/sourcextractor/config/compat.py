@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-import sys
+from typing import Any, Callable, ParamSpec, TypeVar
 
 import _SourceXtractorPy as cpp
 
@@ -25,12 +25,17 @@ from .model_fitting import ModelFitting
 Aperture = cpp.Aperture
 
 
-def _compat_doc_helper(copy_doc_from):
+P = ParamSpec('P')
+R = TypeVar('R')
+Wrapper = Callable[[Callable[..., Any]], Callable[..., Any]]
+
+
+def _compat_doc_helper(copy_doc_from: Callable[..., Any]) -> Wrapper:
     """
     Decorate a method setting its docstring to the one from `copy_doc_from`
     """
 
-    def _decorate(func):
+    def _decorate(func: Callable[P, R]) -> Callable[P, R]:
         func.__doc__ = copy_doc_from.__doc__
         return func
 
