@@ -15,10 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from __future__ import annotations
+
 import math
 import sys
 import warnings
-from enum import Enum
+from collections.abc import Mapping
+from dataclasses import dataclass
+from enum import Enum, IntEnum
+from typing import Callable, IO, Protocol, TypeAlias, overload
 
 import _SourceXtractorPy as cpp
 
@@ -32,9 +37,33 @@ from astropy.coordinates import SkyCoord
 from .measurement_images import MeasurementGroup
 
 
+class SourceInfo(Protocol):
+    """
+    Seed properties of detected source, passed to model-fitting callables
+
+    Mirrors the attributes of the C++ ObjectInfo (a Pyston AttributeSet) and
+    must be kept in sync with its attributes.
+    """
+
+    centroid_x: float
+    centroid_y: float
+    isophotal_flux: float
+    radius: float
+    angle: float
+    aspect_ratio: float
+    assoc_match: bool
+    assoc_size: float
+
+    def __getattr__(self, name: str) -> float:
+        """Covers config-specific assoc_value_<i> and assoc_<column_name>"""
+
+
 class RangeType(Enum):
     LINEAR = 1
     EXPONENTIAL = 2
+
+
+Limits: TypeAlias = tuple[float, float] | Callable[[float, SourceInfo], tuple[float, float]]
 
 
 class Range:
@@ -67,12 +96,12 @@ class Range:
 
     """
 
-    def __init__(self, limits, type):
+    def __init__(self, limits: Limits, type: RangeType) -> None:
         """
         Constructor.
         """
         self.__limits = limits
-        self.__callable = limits if hasattr(limits, '__call__') else lambda v, o: limits
+        self.__callable = limits if callable(limits) else lambda v, o: limits
         self.__type = type
 
     def get_min(self, v, o):
@@ -117,7 +146,7 @@ class Range:
             Human readable representation for the object
         """
         res = '['
-        if hasattr(self.__limits, '__call__'):
+        if callable(self.__limits):
             res += 'func'
         else:
             res += f'{self.__limits[0]},{self.__limits[1]}'
@@ -140,12 +169,12 @@ class Unbounded:
         The world value which will be normalized to 1 in engine coordinates
     """
 
-    def __init__(self, normalization_factor=1):
+    def __init__(self, normalization_factor: FloatOrFloatSourceCb = 1.) -> None:
         """
         Constructor.
         """
         self.__normalization_factor = normalization_factor
-        if hasattr(normalization_factor, '__call__'):
+        if callable(normalization_factor):
             self.__callable = normalization_factor
         else:
             self.__callable = lambda v, o: normalization_factor
@@ -171,7 +200,7 @@ class Unbounded:
         str
             Human readable representation for the object
         """
-        if hasattr(self.__normalization_factor, '__call__'):
+        if callable(self.__normalization_factor):
             res = 'func'
         else:
             res = str(self.__normalization_factor)
@@ -184,7 +213,7 @@ class ParameterBase(cpp.Id):
     Can not be used directly.
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -204,13 +233,13 @@ class ConstantParameter(ParameterBase):
         Value for this parameter
     """
 
-    def __init__(self, value):
+    def __init__(self, value: FloatOrSourceCb) -> None:
         """
         Constructor.
         """
         super().__init__()
         self.__value = value
-        self.__callable = value if hasattr(value, '__call__') else lambda o: value
+        self.__callable = value if callable(value) else lambda o: value
 
     def get_value(self, o):
         """
@@ -233,7 +262,7 @@ class ConstantParameter(ParameterBase):
             Human readable representation for the object
         """
         pre = super().__str__()[:-1]
-        if hasattr(self.__value, '__call__'):
+        if callable(self.__value):
             val = 'func'
         else:
             val = str(self.__value)
@@ -261,13 +290,13 @@ class FreeParameter(ParameterBase):
     >>> sersic = FreeParameter(2.0, Range((1.0, 7.0), RangeType.LINEAR))
     """
 
-    def __init__(self, init_value, range=Unbounded()):
+    def __init__(self, init_value: FloatOrSourceCb, range: Range | Unbounded = Unbounded()) -> None:
         """
         Constructor.
         """
         super().__init__()
         self.__init_value = init_value
-        self.__init_call = init_value if hasattr(init_value, '__call__') else lambda o: init_value
+        self.__init_call = init_value if callable(init_value) else lambda o: init_value
         self.__range = range
 
     def get_init_value(self, o):
@@ -299,7 +328,7 @@ class FreeParameter(ParameterBase):
             Human readable representation for the object
         """
         pre = super().__str__()[:-1] + ', init:'
-        if hasattr(self.__init_value, '__call__'):
+        if callable(self.__init_value):
             init = 'func'
         else:
             init = str(self.__init_value)
@@ -309,6 +338,11 @@ class FreeParameter(ParameterBase):
             rng = ''
 
         return f'{pre}, init: {init}{rng})'
+
+
+# Type aliass to make the below DependentParamenter.__init__ overloads terser
+_F: TypeAlias = float
+_P: TypeAlias = 'FittableParameter'
 
 
 class DependentParameter(ParameterBase):
@@ -331,7 +365,25 @@ class DependentParameter(ParameterBase):
     >>> add_output_column('mf_mag_' + band, mag)
     """
 
-    def __init__(self, func, *params):
+    # NOTE: The interface of this constructor is not possible to express exactly with current
+    # static typing features, as the signature of the callback function depends on the number
+    # of positional parameters given--this is not even possible with a TypeVarTuple.  Would
+    # require a plugin, or refactoring.  IMO this is not a bad interface though.
+    # The overloads here cover the cases of a few different parameters (up to 5 for now).
+
+    @overload
+    def __init__(self, func: Callable[[_F], _F], p0: _P, /) -> None: ...
+    @overload
+    def __init__(self, func: Callable[[_F, _F], _F], p0: _P, p1: _P, /) -> None: ...
+    @overload
+    def __init__(self, func: Callable[[_F, _F, _F], _F], p0: _P, p1: _P, p2: _P, /) -> None: ...
+    @overload
+    def __init__(self, func: Callable[[_F, _F, _F, _F], _F], p0: _P, p1: _P, p2: _P, p3: _P, /) -> None: ...
+    @overload
+    def __init__(self, func: Callable[[_F, _F, _F, _F, _F], _F], p0: _P, p1: _P, p2: _P, p3: _P, p4: _P, /) -> None: ...
+    @overload
+    def __init__(self, func: Callable[..., float], *params: FittableParameter) -> None: ...
+    def __init__(self, func, *params):  # noqa: E301
         """
         Constructor.
         """
@@ -362,7 +414,7 @@ def get_pos_parameters():
     )
 
 
-class FluxParameterType():
+class FluxParameterType(IntEnum):
     """
     Possible flux types to use as initial value for the flux parameter.
     Right now, only isophotal is supported.
@@ -393,6 +445,20 @@ def get_flux_parameter(type=FluxParameterType.ISO, scale=1):
                          Range(lambda v, o: (v * 1E-3, v * 1E3), RangeType.EXPONENTIAL))
 
 
+class ModelBase(cpp.Id):
+    """
+    Base class for all models.
+    """
+
+    def get_params(self) -> list[FittableParameter]:
+        return []
+
+
+FloatOrFloatCb = float | Callable[[float], float]
+FloatOrSourceCb = float | Callable[[SourceInfo], float]
+FloatOrFloatSourceCb = float | Callable[[float, SourceInfo], float]
+
+
 class Prior(cpp.Id):
     """
     Model a Gaussian prior on a given parameter.
@@ -407,23 +473,14 @@ class Prior(cpp.Id):
         Standard deviation of the Gaussian
     """
 
-    def __init__(self, param, value, sigma):
+    def __init__(self, param: ParameterBase, value: FloatOrSourceCb, sigma: FloatOrSourceCb) -> None:
         """
         Constructor.
         """
         super().__init__()
         self.param = param.id
-        self.value = value if hasattr(value, '__call__') else lambda o: value
-        self.sigma = sigma if hasattr(sigma, '__call__') else lambda o: sigma
-
-
-class ModelBase(cpp.Id):
-    """
-    Base class for all models.
-    """
-
-    def get_params(self):
-        return []
+        self.value = value if callable(value) else lambda o: value
+        self.sigma = sigma if callable(sigma) else lambda o: sigma
 
 
 class CoordinateModelBase(ModelBase):
@@ -440,16 +497,17 @@ class CoordinateModelBase(ModelBase):
         Total flux
     """
 
-    def __init__(self, x_coord, y_coord, flux):
+    def __init__(self, x_coord: float | FittableParameter, y_coord: float | FittableParameter,
+                 flux: float | FittableParameter) -> None:
         """
         Constructor.
         """
         super().__init__()
-        self.x_coord = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
-        self.y_coord = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
-        self.flux = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
+        self.x_coord: FittableParameter = x_coord if isinstance(x_coord, ParameterBase) else ConstantParameter(x_coord)
+        self.y_coord: FittableParameter = y_coord if isinstance(y_coord, ParameterBase) else ConstantParameter(y_coord)
+        self.flux: FittableParameter = flux if isinstance(flux, ParameterBase) else ConstantParameter(flux)
 
-    def get_params(self):
+    def get_params(self) -> list[FittableParameter]:
         return [self.x_coord, self.y_coord, self.flux]
 
 
@@ -474,7 +532,7 @@ class PointSourceModel(CoordinateModelBase):
         """
         super().__init__(x_coord, y_coord, flux)
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -510,7 +568,7 @@ class ConstantModel(ModelBase):
         super().__init__()
         self.value = value if isinstance(value, ParameterBase) else ConstantParameter(value)
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -552,7 +610,9 @@ class SersicModelBase(CoordinateModelBase):
         Ellipse rotation, in radians
     """
 
-    def __init__(self, x_coord, y_coord, flux, effective_radius, aspect_ratio, angle):
+    def __init__(self, x_coord: float | FittableParameter, y_coord: float | FittableParameter,
+                 flux: float | FittableParameter, effective_radius: float | FittableParameter,
+                 aspect_ratio: float | FittableParameter, angle: float | FittableParameter):
         """
         Constructor.
         """
@@ -565,7 +625,7 @@ class SersicModelBase(CoordinateModelBase):
             aspect_ratio)
         self.angle = angle if isinstance(angle, ParameterBase) else ConstantParameter(angle)
 
-    def get_params(self):
+    def get_params(self) -> list[FittableParameter]:
         return super().get_params() + [self.effective_radius, self.aspect_ratio, self.angle]
 
 
@@ -598,7 +658,7 @@ class SersicModel(SersicModelBase):
         super().__init__(x_coord, y_coord, flux, effective_radius, aspect_ratio, angle)
         self.n = n if isinstance(n, ParameterBase) else ConstantParameter(n)
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -646,7 +706,7 @@ class ExponentialModel(SersicModelBase):
         Ellipse rotation, in radians
     """
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -690,7 +750,7 @@ class DeVaucouleursModel(SersicModelBase):
         Ellipse rotation, in radians
     """
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -762,7 +822,7 @@ class ComputeGraphModel(CoordinateModelBase):
         self.params = params
         self.models = models if isinstance(models, list) else [models]
 
-    def to_string(self, show_params=False):
+    def to_string(self, show_params: bool = False) -> str:
         """
         Return a human readable representation of the model.
 
@@ -792,6 +852,7 @@ class ComputeGraphModel(CoordinateModelBase):
             list(self.params.values()))
 
 
+@dataclass
 class WorldCoordinate:
     """
     Coordinates in right ascension and declination
@@ -804,15 +865,11 @@ class WorldCoordinate:
         Declination
     """
 
-    def __init__(self, ra, dec):
-        """
-        Constructor.
-        """
-        self.ra = ra
-        self.dec = dec
+    ra: float
+    dec: float
 
 
-def pixel_to_world_coordinate(x, y):
+def pixel_to_world_coordinate(x: float, y: float) -> WorldCoordinate:
     """
     Transform an (X, Y) in pixel coordinates on the detection image to (RA, DEC) in world coordinates.
     Parameters
@@ -830,7 +887,7 @@ def pixel_to_world_coordinate(x, y):
     return WorldCoordinate(wc_alpha, wc_delta)
 
 
-def get_sky_coord(x, y):
+def get_sky_coord(x: float, y: float) -> SkyCoord:
     """
     Transform an (X, Y) in pixel coordinates on the detection image to astropy SkyCoord.
 
@@ -865,7 +922,7 @@ def radius_to_wc_angle(x, y, rad):
     return (get_separation_angle(x, y, x + rad, y) + get_separation_angle(x, y, x, y + rad)) / 2.0
 
 
-def get_separation_angle(x1, y1, x2, y2):
+def get_separation_angle(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     Get the separation angle in sky coordinates for two points defined in pixels on the detection image.
 
@@ -885,7 +942,7 @@ def get_separation_angle(x1, y1, x2, y2):
     return c1.separation(c2).degree
 
 
-def get_position_angle(x1, y1, x2, y2):
+def get_position_angle(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     Get the position angle in sky coordinates for two points defined in pixels on the detection image.
 
@@ -980,7 +1037,7 @@ def get_world_parameters(x, y, radius, angle, ratio):
     ra = DependentParameter(lambda x, y: pixel_to_world_coordinate(x, y).ra, x, y)
     dec = DependentParameter(lambda x, y: pixel_to_world_coordinate(x, y).dec, x, y)
 
-    def get_major_axis(x, y, radius, angle, ratio):
+    def get_major_axis(x: float, y: float, radius: float, angle: float, ratio: float) -> tuple[float, float]:
         if ratio <= 1:
             x2 = x + math.cos(angle) * radius
             y2 = y + math.sin(angle) * radius
@@ -990,7 +1047,7 @@ def get_world_parameters(x, y, radius, angle, ratio):
 
         return x2, y2
 
-    def get_minor_axis(x, y, radius, angle, ratio):
+    def get_minor_axis(x: float, y: float, radius: float, angle: float, ratio: float) -> tuple[float, float]:
         if ratio <= 1:
             x2 = x + math.sin(angle) * radius * ratio
             y2 = y + math.cos(angle) * radius * ratio
@@ -1036,19 +1093,30 @@ class WindowType(Enum):
     ROTATED_ELLIPSE = 9
 
 
+FittableParameter: TypeAlias = ConstantParameter | DependentParameter | FreeParameter
+"""Parameter types that can be added to a model fitter"""
+
+
+FittableModel: TypeAlias = (
+    ConstantModel | PointSourceModel | SersicModel | ExponentialModel | DeVaucouleursModel |
+    ComputeGraphModel
+)
+"""Concrete model types that can be fitted"""
+
+
 class ModelFitting:
-    def __init__(self):
-        self.constant_parameter_dict = {}
-        self.free_parameter_dict = {}
-        self.dependent_parameter_dict = {}
-        self.frame_models_dict = {}
-        self.prior_dict = {}
-        self.constant_model_dict = {}
-        self.point_source_model_dict = {}
-        self.sersic_model_dict = {}
-        self.exponential_model_dict = {}
-        self.de_vaucouleurs_model_dict = {}
-        self.onnx_model_dict = {}
+    def __init__(self) -> None:
+        self.constant_parameter_dict: dict[int, ConstantParameter] = {}
+        self.free_parameter_dict: dict[int, FreeParameter] = {}
+        self.dependent_parameter_dict: dict[int, DependentParameter] = {}
+        self.frame_models_dict: dict[int, list[int]] = {}
+        self.prior_dict: dict[int, Prior] = {}
+        self.constant_model_dict: dict[int, ConstantModel] = {}
+        self.point_source_model_dict: dict[int, PointSourceModel] = {}
+        self.sersic_model_dict: dict[int, SersicModel] = {}
+        self.exponential_model_dict: dict[int, ExponentialModel] = {}
+        self.de_vaucouleurs_model_dict: dict[int, DeVaucouleursModel] = {}
+        self.onnx_model_dict: dict[int, ComputeGraphModel] = {}
         self.params_dict = {"max_iterations": 200, "modified_chi_squared_scale": 10, "engine": "",
                             "use_iterative_fitting": True, "meta_iterations": 5,
                             "deblend_factor": 0.95, "meta_iteration_stop": 0.0001,
@@ -1056,7 +1124,7 @@ class ModelFitting:
                             "show_fitting_areas": False
                             }
 
-    def _set_model_to_frames(self, group, model):
+    def _set_model_to_frames(self, group: MeasurementGroup, model: FittableModel) -> None:
         for x in group:
             if isinstance(x, tuple):
                 self._set_model_to_frames(x[1], model)
@@ -1065,12 +1133,12 @@ class ModelFitting:
                     self.frame_models_dict[x.id] = []
                 self.frame_models_dict[x.id].append(model.id)
 
-    def _is_param_known(self, param):
+    def _is_param_known(self, param: FittableParameter) -> bool:
         return param.id in self.constant_parameter_dict or \
                param.id in self.free_parameter_dict or \
                param.id in self.dependent_parameter_dict
 
-    def _register_parameter(self, attr):
+    def _register_parameter(self, attr: FittableParameter) -> None:
         if isinstance(attr, ConstantParameter):
             self.constant_parameter_dict[attr.id] = attr
         elif isinstance(attr, FreeParameter):
@@ -1080,11 +1148,11 @@ class ModelFitting:
             for param in attr.params:
                 self._register_parameter(param)
 
-    def _populate_parameters(self, model):
+    def _populate_parameters(self, model: FittableModel) -> None:
         for param in model.get_params():
             self._register_parameter(param)
 
-    def _register_model(self, model):
+    def _register_model(self, model: FittableModel) -> None:
         if isinstance(model, ConstantModel):
             self.constant_model_dict[model.id] = model
         elif isinstance(model, PointSourceModel):
@@ -1145,18 +1213,14 @@ class ModelFitting:
         """
         file = file or sys.stderr
 
-        if self.constant_parameter_dict:
-            print('Constant parameters:', file=file)
-            for n, param in self.constant_parameter_dict.items():
+        def list_params(type_name: str, params: Mapping[int, ParameterBase]) -> None:
+            print(type_name + ':', file=file)
+            for n, param in params.items():
                 print(f'  {n}: {param}', file=file)
-        if self.free_parameter_dict:
-            print('Free parameters:', file=file)
-            for n, param in self.free_parameter_dict.items():
-                print(f'  {n}: {param}', file=file)
-        if self.dependent_parameter_dict:
-            print('Dependent parameters:', file=file)
-            for n, param in self.dependent_parameter_dict.items():
-                print(f'  {n}: {param}', file=file)
+
+        list_params('Constant parameters', self.constant_parameter_dict)
+        list_params('Free parameters', self.free_parameter_dict)
+        list_params('Dependent parameters', self.dependent_parameter_dict)
 
     def set_max_iterations(self, iterations):
         """
@@ -1259,7 +1323,8 @@ class ModelFitting:
         self.params_dict["show_fitting_areas"] = show_fitting_areas
 
 
-def print_model_fitting_info(group, show_params=False, prefix='', file=None):
+def print_model_fitting_info(group: MeasurementGroup, show_params: bool = False, prefix: str = '',
+                             file: IO[str] | None = None) -> None:
     """
     Print a human-readable representation of the configured models.
 
