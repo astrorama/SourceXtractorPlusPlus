@@ -71,18 +71,10 @@ class MeasurementConfig:
             if image.id not in self._measurement_images:
                 self._measurement_images[image.id] = image
         elif image.is_leaf():
-            # See below note about type narrowing
-            for member in image:
-                member = cast(MeasurementImage, member)
+            for member in image.images():
                 self.add_measurement_image(member)
         else:
-            for item in image:
-                # cast: MeasurementGroup.__iter__ returns two different
-                # types of iterators depending on whether or not it has subgroups or is a leaf
-                # This is a bit clunky and might be good to reconsider; or at least, calling
-                # image.is_leaf() does not allow type narrowing here.
-                item = cast(tuple[str, MeasurementGroup], item)
-                _, subgroup = item
+            for _, subgroup in image.subgroups():
                 self.add_measurement_image(subgroup)
 
     # TODO: better typing for kwargs passed through to DataCubeSlice
@@ -199,12 +191,7 @@ class MeasurementConfig:
 
             image_list: list[MeasurementImage] = []
             for g in groups:
-                # Here too, g could be an Iterable[ImageGroup] or Iterable[MeasurementImage]
-                # depending on whether it's a leaf node.  By construction, self.load_fits_image
-                # above always returns a leaf ImageGroup, but this is not captured in the typing.
-                # Would be better to split ImageGroup into distinct classes for leaf and non-leaf
-                # cases.  For now explicitly cast to the known correct type
-                image_list += cast(Iterable[MeasurementImage], g)
+                image_list += g.images()
             for img in image_list:
                 self._measurement_images[img.id] = img
             return ImageGroup(images=image_list)
