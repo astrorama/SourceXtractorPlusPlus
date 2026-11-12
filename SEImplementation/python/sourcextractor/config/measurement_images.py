@@ -21,7 +21,7 @@ import os
 import re
 import sys
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, cast, overload
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
 
 import _SourceXtractorPy as cpp
 
@@ -328,6 +328,13 @@ class ImageGroup:
     MeasurementGroup
     """
 
+    # NOTE: It would be clearer if ImageGroup (and correspondingly
+    # MeasurementGroup) were either split into leaf/non-leaf classes or had
+    # more unified semantics.  This bites in particular when iterating over an
+    # ImageGroup which has different semantics in the leaf/non-leaf cases.  I
+    # added the separate .images() and .subgroups() iterators that better
+    # capture the sematic differences.
+
     @overload
     def __init__(self, *, images: Sequence[MeasurementImage]) -> None: ...
     @overload
@@ -381,9 +388,41 @@ class ImageGroup:
         iterator
         """
         if self.__subgroups:
-            return self.__subgroups.__iter__()
+            return self.subgroups()
         else:
-            return self.__images.__iter__()
+            return self.images()
+
+    def images(self) -> Iterator[MeasurementImage]:
+        """
+        Allows to iterate on the contained images
+
+        If ``not self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__images)
+
+    def subgroups(self) -> Iterator[tuple[str, ImageGroup]]:
+        """
+        Allows to iterate on the contained subgroups, if any
+
+        If ``self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__subgroups or [])
 
     def split(self, grouping_method: GroupingMethod) -> None:
         """
@@ -657,11 +696,10 @@ class MeasurementGroup:
         self.__images: list[MeasurementImage] = []
         self.__subgroups = None
         if image_group.is_leaf():
-            img_iter = cast(Iterator[MeasurementImage], iter(image_group))
-            self.__images = list(img_iter)
+            self.__images = list(image_group.images())
         else:
-            group_iter = cast(Iterator[tuple[str, ImageGroup]], iter(image_group))
-            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in group_iter]
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True))
+                                for n, g in image_group.subgroups()]
 
     def __iter__(self) -> Iterator[MeasurementImage] | Iterator[tuple[str, MeasurementGroup]]:
         """
@@ -727,6 +765,38 @@ class MeasurementGroup:
             True if the group is a leaf group
         """
         return self.__subgroups is None
+
+    def images(self) -> Iterator[MeasurementImage]:
+        """
+        Allows to iterate on the contained images
+
+        If ``not self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__images)
+
+    def subgroups(self) -> Iterator[tuple[str, MeasurementGroup]]:
+        """
+        Allows to iterate on the contained subgroups, if any
+
+        If ``self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__subgroups or [])
 
     def print(self, prefix: str = '', show_images: bool = False, file: IO[str] | None = None) -> None:
         """
