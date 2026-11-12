@@ -19,9 +19,8 @@ from typing import Any, Callable, IO, ParamSpec, TypeVar
 
 import _SourceXtractorPy as cpp
 
-from .measurement_config import (MeasurementConfig, MeasurementGroup, OutputColumn,
-                                 global_measurement_config)
-from .measurement_images import FitsFile, ImageGroup, MeasurementImage
+from .measurement_config import MeasurementConfig, OutputColumn, global_measurement_config
+from .measurement_images import FitsFile, ImageGroup, MeasurementGroup, MeasurementImage
 from .model_fitting import Engine, FittableModel, FittableParameter, ModelFitting, WindowType
 
 Aperture = cpp.Aperture
