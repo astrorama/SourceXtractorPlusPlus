@@ -16,7 +16,9 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
+from collections.abc import Iterator
 from glob import glob
+from typing import Any
 
 
 class Arguments:
@@ -55,7 +57,7 @@ class Arguments:
         If additional unknown parameters are received
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Constructor.
         """
@@ -93,7 +95,7 @@ class Arguments:
         if len(argv) != 0:
             raise KeyError(f'Unknown parameters found: {", ".join(argv)}')
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> str | bool:
         """
 
         Parameters
@@ -114,7 +116,7 @@ class Arguments:
             raise AttributeError(item)
         return self.__args[item]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -123,7 +125,7 @@ class Arguments:
         """
         return str(self.__args)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns
         -------
@@ -151,13 +153,13 @@ class FileList:
         glob.glob : Return a list of paths matching a pathname pattern.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         """
         Constructor.
         """
         self.__files = sorted(glob(value))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """
         Returns
         -------
@@ -165,7 +167,7 @@ class FileList:
         """
         return iter(self.__files)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns
         -------
@@ -174,7 +176,7 @@ class FileList:
         """
         return len(self.__files)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -183,7 +185,7 @@ class FileList:
         """
         return str(self.__files)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns
         -------

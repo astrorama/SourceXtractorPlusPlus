@@ -20,8 +20,8 @@ from __future__ import annotations
 import os
 import re
 import sys
-from collections.abc import Sequence
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, cast, overload
 
 import _SourceXtractorPy as cpp
 
@@ -35,9 +35,9 @@ if TYPE_CHECKING:
 class FitsFile(cpp.FitsFile):
     def __init__(self, filename: str) -> None:
         super().__init__(filename)
-        self.hdu_list = [i for i in self.image_hdus]
+        self.hdu_list = list(self.image_hdus)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         return iter(self.hdu_list)
 
     # NOTE: This deliberately overrides the base class's method of the same
@@ -266,7 +266,7 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
 
         self.psf_renormalize = psf_renormalize
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -300,7 +300,7 @@ class DataCubeSlice(MeasurementImage):
         self.image_layer = image_layer
         self.weight_layer = weight_layer
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -310,6 +310,12 @@ class DataCubeSlice(MeasurementImage):
         return (f'DataCubeSlice {self.id}: {self.file} / {self.image_hdu} / {self.image_layer}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
                 f'Weight: {self.weight_file} / {self.weight_hdu} / {self.weight_layer}')
+
+
+GroupingMethod: TypeAlias = Callable[
+    [list[MeasurementImage]],
+    list[tuple[str, list[MeasurementImage]]]
+]
 
 
 class ImageGroup:
@@ -325,7 +331,7 @@ class ImageGroup:
     @overload
     def __init__(self, *, images: Sequence[MeasurementImage]) -> None: ...
     @overload
-    def __init__(self, *, subgroups: Sequence[ImageGroup]) -> None: ...
+    def __init__(self, *, subgroups: Sequence[tuple[str, ImageGroup]]) -> None: ...
     def __init__(self, **kwargs: Any) -> None:  # noqa: E301
         """
         Constructor. It is not recommended to be used directly. Use instead load_fits_image or load_fits_images.
@@ -346,7 +352,7 @@ class ImageGroup:
             for name, _ in self.__subgroups:
                 self.__subgroup_names.add(name)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         See Also
         --------
@@ -362,7 +368,7 @@ class ImageGroup:
         else:
             return len(self.__images)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[str, ImageGroup]] | Iterator[MeasurementImage]:
         """
         Allows to iterate on the contained subgroups or images
 
@@ -379,7 +385,7 @@ class ImageGroup:
         else:
             return self.__images.__iter__()
 
-    def split(self, grouping_method):
+    def split(self, grouping_method: GroupingMethod) -> None:
         """
         Splits the group in various subgroups, applying a filter on the contained images. If the group has
         already been split, applies the split to each subgroup.
@@ -416,7 +422,7 @@ class ImageGroup:
                 self.__subgroups.append((k, ImageGroup(images=im_list)))
             self.__images = []
 
-    def add_images(self, images):
+    def add_images(self, images: MeasurementImage | list[MeasurementImage]) -> None:
         """
         Add new images to the group.
 
@@ -436,7 +442,7 @@ class ImageGroup:
         else:
             self.__images.extend(images)
 
-    def add_subgroup(self, name, group):
+    def add_subgroup(self, name: str, group: ImageGroup) -> None:
         """
         Add a subgroup to a group.
 
@@ -463,7 +469,7 @@ class ImageGroup:
         """
         return self.__subgroups is None
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> ImageGroup:
         """
         Get a subgroup.
 
@@ -518,7 +524,7 @@ class ImageGroup:
                 print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -544,13 +550,13 @@ class ByKeyword:
     ImageGroup.split
     """
 
-    def __init__(self, key):
+    def __init__(self, key: str) -> None:
         """
         Constructor.
         """
         self.__key = key
 
-    def __call__(self, images):
+    def __call__(self, images: list[MeasurementImage]) -> list[tuple[str, list[MeasurementImage]]]:
         """
         Parameters
         ----------
@@ -590,14 +596,14 @@ class ByPattern:
     ImageGroup.split
     """
 
-    def __init__(self, key, pattern):
+    def __init__(self, key: str, pattern: str) -> None:
         """
         Constructor.
         """
         self.__key = key
         self.__pattern = pattern
 
-    def __call__(self, images):
+    def __call__(self, images: list[MeasurementImage]) -> list[tuple[str, list[MeasurementImage]]]:
         """
         Parameters
         ----------
@@ -648,14 +654,16 @@ class MeasurementGroup:
 
         # initialize to empty list so at least one of subgroups/images is non-None,
         # fixing a class of typing bugs that assumed both of these attributes could be None
-        self.__images = []
+        self.__images: list[MeasurementImage] = []
         self.__subgroups = None
         if image_group.is_leaf():
-            self.__images = [im for im in image_group]
+            img_iter = cast(Iterator[MeasurementImage], iter(image_group))
+            self.__images = list(img_iter)
         else:
-            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in image_group]
+            group_iter = cast(Iterator[tuple[str, ImageGroup]], iter(image_group))
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in group_iter]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[MeasurementImage] | Iterator[tuple[str, MeasurementGroup]]:
         """
         Returns
         -------
@@ -666,7 +674,7 @@ class MeasurementGroup:
 
         return iter(self.__images)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: str | int) -> MeasurementGroup | MeasurementImage:
         """
         The subgroup with the given name or image with the given index depending on whether this is a leaf group.
 
@@ -691,12 +699,15 @@ class MeasurementGroup:
             except StopIteration:
                 raise KeyError(f'Group {index} not found')
 
-        try:
-            return self.__images[index]
-        except:
-            raise KeyError(f'Image #{index} not found')
+        if isinstance(index, int):
+            try:
+                return self.__images[index]
+            except IndexError:
+                pass
 
-    def __len__(self):
+        raise KeyError(f'Image #{index} not found')
+
+    def __len__(self) -> int:
         """
         Returns
         -------
@@ -743,7 +754,7 @@ class MeasurementGroup:
                 print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file=file)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
