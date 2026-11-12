@@ -39,6 +39,9 @@ using Euclid::make_unique;
 
 MoffatModelEvaluator::MoffatModelEvaluator(const MoffatModelFitting& model) {
   m_iterations = model.getIterations();
+  if (m_iterations == 0) {
+    return;
+  }
 
   auto x = std::make_shared<ManualParameter>(model.getX());
   auto y = std::make_shared<ManualParameter>(model.getY());

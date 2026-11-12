@@ -102,3 +102,8 @@ if (GSL_FOUND)
                            tests/src/Engine/GSLEngine_test.cpp
                            LINK_LIBRARIES ModelFitting TYPE Boost)
 endif ()
+
+# Shared residual selection and uncertainty invariance for every available engine.
+elements_add_unit_test(DataVsModelResiduals_test
+                       tests/src/Engine/DataVsModelResiduals_test.cpp
+                       LINK_LIBRARIES ModelFitting TYPE Boost)

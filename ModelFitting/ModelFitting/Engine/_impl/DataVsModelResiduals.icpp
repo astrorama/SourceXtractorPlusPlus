@@ -26,7 +26,7 @@ template <typename DataType, typename ModelType, typename WeightType, typename C
 DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::DataVsModelResiduals(
                       DataType data, ModelType model, WeightType weight, Comparator comparator)
           : m_data{std::move(data)}, m_model{std::move(model)}, m_weight{std::move(weight)},
-            m_comparator(std::move(comparator)), m_residual_no{DataTraits::size(m_data)} {
+            m_comparator(std::move(comparator)) {
   if (DataTraits::size(m_data) != ModelTraits::size(m_model)) {
     throw Elements::Exception() << "Data size (" << DataTraits::size(m_data)
         << ") is different than model size (" << ModelTraits::size(m_model) << ")";
@@ -34,6 +34,12 @@ DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::DataVsModelResid
   if (DataTraits::size(m_data) != WeightTraits::size(m_weight)) {
     throw Elements::Exception() << "Data size (" << DataTraits::size(m_data)
         << ") is different than weight size (" << WeightTraits::size(m_weight) << ")";
+  }
+  auto weight_iter = WeightTraits::begin(m_weight);
+  for (std::size_t i = 0; i < WeightTraits::size(m_weight); ++i, ++weight_iter) {
+    if (*weight_iter != 0.) {
+      ++m_residual_no;
+    }
   }
 }
 
@@ -50,14 +56,20 @@ void DataVsModelResiduals<DataType,ModelType,WeightType,Comparator>::populateRes
   auto data_iter = DataTraits::begin(m_data);
   auto model_iter = ModelTraits::begin(m_model);
   auto weight_iter = WeightTraits::begin(m_weight);
-//  double test = 0;
-//  static double diff = 0;
-  for (; data_iter!=DataTraits::end(m_data); ++data_iter, ++model_iter, ++weight_iter, ++output_iter) {
-    *output_iter = m_comparator(*data_iter, *model_iter, *weight_iter);
-//    test += *output_iter;
+  auto remaining = m_residual_no;
+  const auto data_end = DataTraits::end(m_data);
+  for (; data_iter != data_end; ++data_iter, ++model_iter, ++weight_iter) {
+    if (*weight_iter != 0.) {
+      if (remaining == 0) {
+        throw Elements::Exception() << "Residual mask produced more entries than expected";
+      }
+      *output_iter++ = m_comparator(*data_iter, *model_iter, *weight_iter);
+      --remaining;
+    }
   }
-//  std::cout << test << " -- " << test-diff << "\n";
-//  diff = test;
+  if (remaining != 0) {
+    throw Elements::Exception() << "Residual mask produced fewer entries than expected";
+  }
 }
 
 // NOTE TO DEVELOPERS:
