@@ -24,10 +24,10 @@ import _SourceXtractorPy as cpp
 
 from .measurement_images import (DataCubeSlice, FitsFile, ImageGroup, MeasurementGroup,
                                  MeasurementImage)
-from .model_fitting import ModelFitting, ParameterBase
+from .model_fitting import FittableParameter, ModelFitting, ParameterBase
 
 
-OutputColumn: TypeAlias = ParameterBase | cpp.Aperture | list[ParameterBase] | list[cpp.Aperture]
+OutputColumn: TypeAlias = FittableParameter | cpp.Aperture | list[FittableParameter] | list[cpp.Aperture]
 # TODO: It may be possible to implement a special type just for leaf
 # nodes, but in the meantime the is_leaf() requirement is a runtime check
 Target: TypeAlias = MeasurementImage | MeasurementGroup | list[MeasurementImage] | list[MeasurementGroup]
@@ -38,7 +38,7 @@ class MeasurementConfig:
         self._measurement_images: dict[int, MeasurementImage] = {}
         self._apertures_for_image: dict[int, cpp.Aperture] = {}
         self._used_names: set[str] = set()
-        self._model_fitting_parameter_columns: list[tuple[str, ParameterBase]] = []
+        self._model_fitting_parameter_columns: list[tuple[str, FittableParameter]] = []
         self._aperture_columns: list[tuple[str, cpp.Aperture]] = []
         self._column_map = {
             ParameterBase: self._model_fitting_parameter_columns,
@@ -55,15 +55,15 @@ class MeasurementConfig:
         return self._measurement_images
 
     @property
-    def model_fitting_parameter_columns(self) -> list[tuple[str, ParameterBase]]:
+    def model_fitting_parameter_columns(self) -> list[tuple[str, FittableParameter]]:
         return self._model_fitting_parameter_columns
 
     @property
-    def aperture_columns(self):
+    def aperture_columns(self) -> list[tuple[str, cpp.Aperture]]:
         return self._aperture_columns
 
     @property
-    def model_fitting(self):
+    def model_fitting(self) -> ModelFitting:
         return self._model_fitting
 
     def add_measurement_image(self, image: MeasurementImage | MeasurementGroup) -> None:
@@ -71,10 +71,18 @@ class MeasurementConfig:
             if image.id not in self._measurement_images:
                 self._measurement_images[image.id] = image
         elif image.is_leaf():
+            # See below note about type narrowing
             for member in image:
+                member = cast(MeasurementImage, member)
                 self.add_measurement_image(member)
         else:
-            for _, subgroup in image:
+            for item in image:
+                # cast: MeasurementGroup.__iter__ returns two different
+                # types of iterators depending on whether or not it has subgroups or is a leaf
+                # This is a bit clunky and might be good to reconsider; or at least, calling
+                # image.is_leaf() does not allow type narrowing here.
+                item = cast(tuple[str, MeasurementGroup], item)
+                _, subgroup = item
                 self.add_measurement_image(subgroup)
 
     # TODO: better typing for kwargs passed through to DataCubeSlice
@@ -191,7 +199,12 @@ class MeasurementConfig:
 
             image_list: list[MeasurementImage] = []
             for g in groups:
-                image_list += g
+                # Here too, g could be an Iterable[ImageGroup] or Iterable[MeasurementImage]
+                # depending on whether it's a leaf node.  By construction, self.load_fits_image
+                # above always returns a leaf ImageGroup, but this is not captured in the typing.
+                # Would be better to split ImageGroup into distinct classes for leaf and non-leaf
+                # cases.  For now explicitly cast to the known correct type
+                image_list += cast(Iterable[MeasurementImage], g)
             for img in image_list:
                 self._measurement_images[img.id] = img
             return ImageGroup(images=image_list)
@@ -381,16 +394,18 @@ class MeasurementConfig:
                     raise Exception('The MeasurementGroup is not a leaf')
                 elif len(t) != 1:
                     raise Exception(f'The MeasurementGroup contains {len(t)} images')
-                t = [i for i in t][0]
-
-            if not isinstance(t, MeasurementImage):
-                raise Exception(
-                    f'Only MeasurementImage supported as targets, got {type(t)}')
+                img = next(iter(t))
             else:
-                if t.id in self._apertures_for_image:
-                    raise Exception(f'Apertures already set for the image {t.id}')
-                self._apertures_for_image[t.id] = cpp.Aperture(apertures_list)
-                outputs.append(self._apertures_for_image[t.id])
+                img = t
+
+            if not isinstance(img, MeasurementImage):
+                raise Exception(
+                    f'Only MeasurementImage supported as targets, got {type(img)}')
+            else:
+                if img.id in self._apertures_for_image:
+                    raise Exception(f'Apertures already set for the image {img.id}')
+                self._apertures_for_image[img.id] = cpp.Aperture(apertures_list)
+                outputs.append(self._apertures_for_image[img.id])
 
         return outputs
 
@@ -447,7 +462,7 @@ class MeasurementConfig:
         if isinstance(params, list):
             params_list = params
         else:
-            params_list = cast(list[ParameterBase] | list[cpp.Aperture], [params])
+            params_list = cast(list[FittableParameter] | list[cpp.Aperture], [params])
 
         # TODO: Should check that all items are the same param type; could be implemented
         # as part of a type guard.
@@ -462,7 +477,7 @@ class MeasurementConfig:
                 cols.append((name, params_list))
                 known_subclass = True
         if issubclass(param_type, ParameterBase):
-            self.model_fitting._register_parameter(params_list[0])
+            self.model_fitting._register_parameter(cast(FittableParameter, params_list[0]))
 
         if not known_subclass:
             raise TypeError(f'{param_type} is not a known column type')
