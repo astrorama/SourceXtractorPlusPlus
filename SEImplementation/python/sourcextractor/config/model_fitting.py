@@ -457,7 +457,12 @@ class ModelBase(cpp.Id):
 FloatOrFloatCb: TypeAlias = float | Callable[[float], float]
 FloatOrSourceCb: TypeAlias = float | Callable[[SourceInfo], float]
 FloatOrFloatSourceCb: TypeAlias = float | Callable[[float, SourceInfo], float]
-FloatOrParam: TypeAlias = float | 'FittableParameter'
+
+if TYPE_CHECKING:
+    # This one can't be assigned yet at runtime so has to be guarded
+    FloatOrParam: TypeAlias = float | FittableParameter
+else:
+    FloatOrParam = Any
 
 
 class Prior(cpp.Id):
