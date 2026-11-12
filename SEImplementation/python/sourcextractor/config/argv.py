@@ -112,8 +112,15 @@ class Arguments:
         AttributeError
             If item has not been defined on construction
         """
+
+        # Case for the arguments holder itself
+        if item == '_Arguments__args':
+            self.__args = args = {}
+            return args
+
         if item not in self.__args:
             raise AttributeError(item)
+
         return self.__args[item]
 
     def __str__(self) -> str:
