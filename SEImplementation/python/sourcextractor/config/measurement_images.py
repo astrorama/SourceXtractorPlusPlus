@@ -344,18 +344,18 @@ class ImageGroup:
         Constructor. It is not recommended to be used directly. Use instead load_fits_image or load_fits_images.
         """
         self.__images = []
-        self.__subgroups = None
+        self.__subgroups: list[tuple[str, ImageGroup]] | None = None
         self.__subgroup_names = set()
         if len(kwargs) != 1 or ('images' not in kwargs and 'subgroups' not in kwargs):
             raise ValueError('ImageGroup only takes as parameter one of "images" or "subgroups"')
         key = list(kwargs.keys())[0]
         if key == 'images':
             if isinstance(kwargs[key], list):
-                self.__images = kwargs[key]
+                self.__images = list(kwargs[key])
             else:
                 self.__images = [kwargs[key]]
         if key == 'subgroups':
-            self.__subgroups = kwargs[key]
+            self.__subgroups = list(kwargs[key])
             for name, _ in self.__subgroups:
                 self.__subgroup_names.add(name)
 
