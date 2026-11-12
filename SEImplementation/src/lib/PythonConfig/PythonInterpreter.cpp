@@ -122,6 +122,20 @@ void PythonInterpreter::runFile(const std::string& filename, const std::vector<s
   }
 }
 
+void PythonInterpreter::prependSysPath(const std::string& path) {
+  Pyston::GILLocker locker;
+
+  PyObject* sys_path = PySys_GetObject("path");
+  if (sys_path == nullptr) {
+    throw Elements::Exception() << "Could not retrieve sys.path";
+  }
+
+  PyObject* entry = PyUnicode_FromString(path.c_str());
+  PyList_Insert(sys_path, 0, entry);
+  Py_DECREF(entry);
+  logger.debug() << "Added " << path << " to sys.path";
+}
+
 void PythonInterpreter::setupContext() {
   Pyston::GILLocker locker;
   try {
