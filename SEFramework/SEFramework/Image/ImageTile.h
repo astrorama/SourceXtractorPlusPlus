@@ -23,6 +23,7 @@
 
 #ifndef _SEFRAMEWORK_IMAGE_IMAGETILE_H_
 #define _SEFRAMEWORK_IMAGE_IMAGETILE_H_
+#include <atomic>
 #include <iostream>
 #include "SEFramework/Image/Image.h"
 #include "SEFramework/Image/VectorImage.h"
@@ -152,6 +153,10 @@ protected:
   std::shared_ptr<ImageSource> m_source;
   int m_x, m_y;
   int m_max_x, m_max_y;
+
+private:
+  friend class TileManager;
+  std::atomic<bool> m_write_pinned{false};
 };
 
 template<typename T>

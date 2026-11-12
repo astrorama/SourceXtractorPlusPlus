@@ -49,18 +49,44 @@ public:
   void setValue(int x, int y, T value) override {
     assert(x >= 0 && y >=0 && x < BufferedImage<T>::m_source->getWidth() && y < BufferedImage<T>::m_source->getHeight());
 
-    if (m_current_tile == nullptr || !m_current_tile->isPixelInTile(x, y)) {
-      m_current_tile = BufferedImage<T>::m_tile_manager->getTileForPixel(x, y, BufferedImage<T>::m_source);
+    if (m_write_batch_depth == 0) {
+      auto pin = pinTile(x, y);
+      writePixel(*pin.get(), x, y, value);
+      return;
     }
 
-    m_current_tile->setModified(true);
-    m_current_tile->setValue(x, y, value);
+    if (!m_write_pin.get() || !m_write_pin.get()->isPixelInTile(x, y)) {
+      m_write_pin.reset();
+      m_write_pin = pinTile(x, y);
+    }
+
+    writePixel(*m_write_pin.get(), x, y, value);
   }
 
   using BufferedImage<T>::getRepr;
 
 private:
-  mutable std::shared_ptr<ImageTile> m_current_tile;
+  void beginWriteBatch() noexcept override {
+    ++m_write_batch_depth;
+  }
+
+  void endWriteBatch() noexcept override {
+    if (--m_write_batch_depth == 0) {
+      m_write_pin.reset();
+    }
+  }
+
+  TileManager::WritePin pinTile(int x, int y) {
+    return this->m_tile_manager->pinTileForPixel(x, y, this->m_source);
+  }
+
+  static void writePixel(ImageTile& tile, int x, int y, T value) {
+    tile.setModified(true);
+    tile.setValue(x, y, value);
+  }
+
+  TileManager::WritePin m_write_pin;
+  unsigned int m_write_batch_depth = 0;
 };
 
 }

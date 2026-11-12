@@ -21,15 +21,19 @@
  *      Author: Alejandro Álvarez
  */
 
+#include <future>
+
 #include <boost/test/unit_test.hpp>
+#include "ElementsKernel/Exception.h"
 #include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/WriteableBufferedImage.h"
 #include "SEUtils/TestUtils.h"
 
 using namespace SourceXtractor;
 
 
 template<typename T>
-class ImageSourceMock : public ImageSource {
+class ImageSourceMock : public ImageSource, public std::enable_shared_from_this<ImageSourceMock<T>> {
 private:
   std::shared_ptr<VectorImage<T>> m_img;
 
@@ -42,8 +46,14 @@ public:
     return "ImageSourceMock(" + m_img->getRepr() + ")";
   }
 
-  void saveTile(ImageTile &) override {
-    assert(false);
+  void saveTile(ImageTile& tile) override {
+    const auto x = tile.getPosX();
+    const auto y = tile.getPosY();
+    for (int iy = y; iy < y + tile.getHeight(); ++iy) {
+      for (int ix = x; ix < x + tile.getWidth(); ++ix) {
+        m_img->setValue(ix, iy, tile.getValue<T>(ix, iy));
+      }
+    }
   }
 
   int getWidth() const override {
@@ -55,7 +65,8 @@ public:
   }
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override {
-    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height);
+    auto tile = ImageTile::create(ImageTile::getTypeValue(T()), x, y, width, height,
+                                  std::const_pointer_cast<ImageSourceMock<T>>(this->shared_from_this()));
     for (int iy = y; iy < y + height; ++iy) {
       for (int ix = x; ix < x + width; ++ix) {
         tile->setValue(ix, iy, m_img->getValue(ix, iy));
@@ -227,6 +238,118 @@ BOOST_FIXTURE_TEST_CASE(ChunkCrossMultipleXY_test, BufferedImageFixture) {
 }
 
 //-----------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_CASE(WriteAfterEviction) {
+  auto manager = std::make_shared<TileManager>();
+  manager->setOptions(512, 512, 1);
+  auto backing = VectorImage<float>::create(512, 512);
+  auto source = std::make_shared<ImageSourceMock<float>>(backing);
+  auto image = WriteableBufferedImage<float>::create(source, manager);
+  auto other = std::make_shared<ImageSourceMock<float>>(VectorImage<float>::create(512, 512));
+
+  image->setValue(0, 0, 1.f);
+  manager->getTileForPixel(0, 0, other);
+  BOOST_REQUIRE_EQUAL(backing->getValue(0, 0), 1.f);
+
+  image->setValue(0, 0, 2.f);
+  manager->flush();
+  BOOST_CHECK_EQUAL(backing->getValue(0, 0), 2.f);
+  BOOST_CHECK_EQUAL(image->getChunk(0, 0, 1, 1)->getValue(0, 0), 2.f);
+}
+
+BOOST_AUTO_TEST_CASE(WriteBatchSurvivesConcurrentCachePressure) {
+  auto manager = std::make_shared<TileManager>();
+  manager->setOptions(512, 512, 1);
+  auto backing = VectorImage<float>::create(1024, 512);
+  auto source = std::make_shared<ImageSourceMock<float>>(backing);
+  auto image = WriteableBufferedImage<float>::create(source, manager);
+  auto other = std::make_shared<ImageSourceMock<float>>(VectorImage<float>::create(512, 512));
+
+  {
+    WriteableImage<float>::WriteBatch batch(*image);
+    image->setValue(0, 0, 1.f);
+    auto cache_pressure = std::async(std::launch::async, [&] {
+      for (int i = 0; i < 8; ++i) {
+        manager->getTileForPixel(0, 0, other);
+      }
+    });
+    for (int x = 1; x < 512; ++x) {
+      image->setValue(x, 0, 4.f);
+    }
+    cache_pressure.get();
+
+    BOOST_CHECK_THROW(manager->saveAllTiles(), Elements::Exception);
+    BOOST_CHECK_THROW(manager->flush(), Elements::Exception);
+    BOOST_CHECK_EQUAL(backing->getValue(0, 0), 0.f);
+
+    image->setValue(0, 0, 2.f);
+    BOOST_CHECK_EQUAL(image->getChunk(0, 0, 1, 1)->getValue(0, 0), 2.f);
+
+    image->setValue(512, 0, 3.f);
+    BOOST_CHECK_EQUAL(backing->getValue(0, 0), 2.f);
+    BOOST_CHECK_EQUAL(backing->getValue(511, 0), 4.f);
+    BOOST_CHECK_EQUAL(backing->getValue(512, 0), 0.f);
+  }
+
+  manager->flush();
+  BOOST_CHECK_EQUAL(backing->getValue(512, 0), 3.f);
+}
+
+BOOST_AUTO_TEST_CASE(SaveRejectedBeforeWritingAnyTile) {
+  auto manager = std::make_shared<TileManager>();
+  manager->setOptions(512, 512, 2);
+  auto pinned_backing = VectorImage<float>::create(512, 512);
+  auto unpinned_backing = VectorImage<float>::create(512, 512);
+  auto pinned_source = std::make_shared<ImageSourceMock<float>>(pinned_backing);
+  auto unpinned_source = std::make_shared<ImageSourceMock<float>>(unpinned_backing);
+  auto pinned_image = WriteableBufferedImage<float>::create(pinned_source, manager);
+  auto unpinned_image = WriteableBufferedImage<float>::create(unpinned_source, manager);
+
+  {
+    WriteableImage<float>::WriteBatch batch(*pinned_image);
+    pinned_image->setValue(0, 0, 1.f);
+    // Insert the unpinned tile last so a save without preflight would visit it first.
+    unpinned_image->setValue(0, 0, 2.f);
+
+    BOOST_CHECK_THROW(manager->saveAllTiles(), Elements::Exception);
+    BOOST_CHECK_EQUAL(unpinned_backing->getValue(0, 0), 0.f);
+    BOOST_CHECK_THROW(manager->flush(), Elements::Exception);
+    BOOST_CHECK_EQUAL(unpinned_backing->getValue(0, 0), 0.f);
+  }
+
+  manager->flush();
+  BOOST_CHECK_EQUAL(pinned_backing->getValue(0, 0), 1.f);
+  BOOST_CHECK_EQUAL(unpinned_backing->getValue(0, 0), 2.f);
+}
+
+BOOST_AUTO_TEST_CASE(CacheBudgetAllowsMultiplePinnedTiles) {
+  auto manager = std::make_shared<TileManager>();
+  manager->setOptions(512, 512, 1);
+  auto backing_a = VectorImage<float>::create(512, 512);
+  auto backing_b = VectorImage<float>::create(512, 512);
+  auto source_a = std::make_shared<ImageSourceMock<float>>(backing_a);
+  auto source_b = std::make_shared<ImageSourceMock<float>>(backing_b);
+  auto image_a = WriteableBufferedImage<float>::create(source_a, manager);
+  auto image_b = WriteableBufferedImage<float>::create(source_b, manager);
+
+  {
+    WriteableImage<float>::WriteBatch batch_a(*image_a);
+    image_a->setValue(0, 0, 1.f);
+    {
+      WriteableImage<float>::WriteBatch batch_b(*image_b);
+      image_b->setValue(0, 0, 2.f);
+      BOOST_CHECK_EQUAL(backing_a->getValue(0, 0), 0.f);
+      BOOST_CHECK_EQUAL(backing_b->getValue(0, 0), 0.f);
+    }
+    auto other = std::make_shared<ImageSourceMock<float>>(VectorImage<float>::create(512, 512));
+    manager->getTileForPixel(0, 0, other);
+    BOOST_CHECK_EQUAL(backing_a->getValue(0, 0), 0.f);
+    BOOST_CHECK_EQUAL(backing_b->getValue(0, 0), 2.f);
+  }
+
+  manager->saveAllTiles();
+  BOOST_CHECK_EQUAL(backing_a->getValue(0, 0), 1.f);
+}
 
 BOOST_AUTO_TEST_SUITE_END ()
 

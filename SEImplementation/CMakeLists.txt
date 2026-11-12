@@ -201,6 +201,9 @@ endif()
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(LockedWriteableImage_test tests/src/Image/LockedWriteableImage_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)

@@ -33,10 +33,36 @@ template <typename T>
 class WriteableImage : public virtual Image<T> {
 public:
 
+  /**
+   * Keep the current tile available for a series of writes. Writes take effect immediately.
+   * The image must outlive the scope. Callers must serialize access to the same writable
+   * image and synchronize overlapping pixel reads, including reads through retained chunks.
+   */
+  class WriteBatch {
+  public:
+    explicit WriteBatch(WriteableImage& image) : m_image(image) {
+      m_image.beginWriteBatch();
+    }
+
+    ~WriteBatch() {
+      m_image.endWriteBatch();
+    }
+
+    WriteBatch(const WriteBatch&) = delete;
+    WriteBatch& operator=(const WriteBatch&) = delete;
+
+  private:
+    WriteableImage& m_image;
+  };
+
   virtual void setValue(int x, int y, T value) = 0;
 
   // This mutex can be used to lock the writeable image if used multithreaded
   std::mutex m_write_mutex;
+
+private:
+  virtual void beginWriteBatch() noexcept {}
+  virtual void endWriteBatch() noexcept {}
 };
 
 }

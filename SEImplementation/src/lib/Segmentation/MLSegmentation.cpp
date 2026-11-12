@@ -17,7 +17,8 @@
 
 #include <memory>
 #include <vector>
-#include <list>
+#include <deque>
+#include <optional>
 #include <iostream>
 
 #include <onnxruntime_cxx_api.h>
@@ -126,11 +127,21 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
   auto image = frame->getSubtractedImage();
   ImageAccessor<SeFloat> image_acc(image);
 
-  std::vector<std::shared_ptr<WriteableImage<float>>> tmp_images;
-  std::vector<std::shared_ptr<WriteableImage<float>>> check_images;
-  for (int i=0; i < data_planes; i++) {
-    tmp_images.emplace_back(FitsWriter::newTemporaryImage<float>("_tmp_ml_seg%%%%%%.fits", image->getWidth(), image->getHeight()));
-    check_images.emplace_back(CheckImages::getInstance().getMLDetectionImage(i, frame->getHduIndex()));
+  struct OutputPlane {
+    OutputPlane(std::shared_ptr<WriteableImage<float>> image, std::shared_ptr<WriteableImage<float>> check_image)
+        : m_image(std::move(image)), m_write_batch(std::in_place, *m_image), m_check_image(std::move(check_image)) {}
+
+    std::shared_ptr<WriteableImage<float>> m_image;
+    std::optional<WriteableImage<float>::WriteBatch> m_write_batch;
+    std::shared_ptr<WriteableImage<float>> m_check_image;
+  };
+
+  std::deque<OutputPlane> planes;
+  for (int i = 0; i < data_planes; ++i) {
+    auto tmp_image = FitsWriter::newTemporaryImage<float>("_tmp_ml_seg%%%%%%.fits", image->getWidth(),
+                                                        image->getHeight());
+    auto check_image = CheckImages::getInstance().getMLDetectionImage(i, frame->getHduIndex());
+    planes.emplace_back(std::move(tmp_image), std::move(check_image));
   }
 
   Lutz lutz;
@@ -160,10 +171,12 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
       for (int x = start_x; x < end_x; x++) {
         for (int y = start_y; y < end_y; y++) {
           if (ox+x < image->getWidth() && oy+y < image->getHeight()) {
-            for (int i=0; i<data_planes; i++) {
-              tmp_images[i]->setValue(ox + x, oy + y,  output_data[(x+y*tile_size) * data_planes + i] - detection_threshold);
-              if (check_images[i] != nullptr) {
-                check_images[i]->setValue(ox+x, oy+y, output_data[(x+y*tile_size) * data_planes + i]);
+            for (int i = 0; i < data_planes; ++i) {
+              auto& plane = planes[i];
+              auto value = output_data[(x + y * tile_size) * data_planes + i];
+              plane.m_image->setValue(ox + x, oy + y, value - detection_threshold);
+              if (plane.m_check_image) {
+                plane.m_check_image->setValue(ox + x, oy + y, value);
               }
             }
           }
@@ -171,8 +184,12 @@ void MLSegmentation::labelImage(Segmentation::LabellingListener& listener, std::
       }
     }
   }
-  for (int i=0; i<data_planes; i++) {
-    lutz.labelImage(lutz_listener, *tmp_images[i]);
+  for (auto& plane : planes) {
+    plane.m_write_batch.reset();
+    plane.m_check_image.reset();
+  }
+  for (const auto& plane : planes) {
+    lutz.labelImage(lutz_listener, *plane.m_image);
   }
 }
 
