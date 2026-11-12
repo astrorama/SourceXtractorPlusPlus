@@ -95,7 +95,7 @@ class Arguments:
         if len(argv) != 0:
             raise KeyError(f'Unknown parameters found: {", ".join(argv)}')
 
-    def __getattr__(self, item: str) -> str | bool:
+    def __getattr__(self, item: str) -> Any:
         """
 
         Parameters

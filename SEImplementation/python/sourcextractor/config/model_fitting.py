@@ -950,7 +950,9 @@ def get_separation_angle(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     c1 = get_sky_coord(x1, y1)
     c2 = get_sky_coord(x2, y2)
-    return c1.separation(c2).degree
+    # in case astropy does not provide type information, wrap the type
+    # here just in case, but it should already be float
+    return float(c1.separation(c2).degree)
 
 
 def get_position_angle(x1: float, y1: float, x2: float, y2: float) -> float:
@@ -970,7 +972,9 @@ def get_position_angle(x1: float, y1: float, x2: float, y2: float) -> float:
     """
     c1 = get_sky_coord(x1, y1)
     c2 = get_sky_coord(x2, y2)
-    angle = c1.position_angle(c2).degree
+    # in case astropy does not provide type information, wrap the type
+    # here just in case, but it should already be float
+    angle = float(c1.position_angle(c2).degree)
 
     # return angle normalized to range: -90 <= angle < 90
     return (angle + 90.0) % 180.0 - 90.0
