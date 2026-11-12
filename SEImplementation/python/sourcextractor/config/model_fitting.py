@@ -462,7 +462,7 @@ FloatOrFloatSourceCb: TypeAlias = float | Callable[[float, SourceInfo], float]
 
 if TYPE_CHECKING:
     # This one can't be assigned yet at runtime so has to be guarded
-    FloatOrParam: TypeAlias = float | FittableParameter
+    FloatOrParam: TypeAlias = float | 'FittableParameter'
 else:
     FloatOrParam = Any
 

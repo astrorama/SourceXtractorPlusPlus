@@ -115,7 +115,8 @@ class Arguments:
 
         # Case for the arguments holder itself
         if item == '_Arguments__args':
-            self.__args = args = {}
+            args: dict[str, Any] = {}
+            self.__args = args
             return args
 
         if item not in self.__args:
