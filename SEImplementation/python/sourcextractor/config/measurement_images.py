@@ -62,7 +62,7 @@ WeightType: TypeAlias = Literal['none', 'background', 'rms', 'variance',  'weigh
 
 class CheckBoostProperties:
     """
-    Mixin for Python sublcasses of a Boost.Python class
+    Mixin for Python subclasses of a Boost.Python class
 
     Rewrites every settable property inherited from the C++ base so that
     assignment is type-checked against the type of the attribute's current
