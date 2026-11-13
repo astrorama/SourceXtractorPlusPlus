@@ -1,7 +1,7 @@
 # Bug inventory
 
 Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-BUG-018 and BUG-019 have since been fixed and regression-tested; other entries retain their review status.
+BUG-006, BUG-008, BUG-018, and BUG-019 have since been fixed and verified.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -28,10 +28,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-002 | Wrong shape angle for a descending diagonal | High | Medium | Confirmed | Fix |
 | BUG-003 | Writes to evicted, retained tiles are lost | High | Medium | Confirmed | Fix |
 | BUG-004 | Tile eviction can race with pixel writes | High | Low / timing-dependent | Unconfirmed | Try to confirm |
-| BUG-005 | Cached FFT plans may be reused with incompatible alignment | High | Low / platform-dependent | Unconfirmed | Try to confirm |
-| BUG-006 | Mismatched weight HDUs silently omit science images | High | Medium | Confirmed | Fix |
+| BUG-005 | Cached FFT plans may be reused with incompatible alignment | High if triggered | No mismatch expected on supported builds | Investigated and dismissed | None |
+| BUG-006 | Mismatched weight HDUs silently omit measurement images | Medium | Medium | Fixed | None |
 | BUG-007 | Only the first output parameter is registered | Medium | Medium | Confirmed | Fix |
-| BUG-008 | Weight-cube depth check compares the science cube to itself | Medium | Medium | Confirmed | Fix |
+| BUG-008 | Weight-cube depth check compares the measurement cube to itself | Medium | Medium | Fixed | None |
 | BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Confirmed | Fix |
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Confirmed | Fix |
 | BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Confirmed | Fix |
@@ -119,38 +119,34 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 ## BUG-005: Cached FFT plans may be reused with incompatible alignment
 
-- **Severity:** High if triggered: invalid FFT execution could crash or invalidate convolved models and fitted results.
-- **Likelihood:** Low / platform-dependent; depends on allocator alignment and the FFTW build's SIMD requirements.
-  Allocation patterns can change with threading, so this could resemble a threading failure without being a data race.
-- **Status:** Unconfirmed in this environment. A local test of 100 independent `vector<float>` buffers found one FFTW
-  alignment class, and all shared-plan executions completed successfully.
-- **Next action needed:** Try to confirm.
-- **Locations:** [FFT.cpp:122](SEFramework/src/lib/FFT/FFT.cpp#L122),
-  [FFT.cpp:162](SEFramework/src/lib/FFT/FFT.cpp#L162),
-  [FFT.cpp:193](SEFramework/src/lib/FFT/FFT.cpp#L193).
-- **Description:** Forward/inverse plans are cached by dimensions only, then executed on other `std::vector` buffers.
-  There is no alignment-class check or explicit aligned allocator, and plans do not request `FFTW_UNALIGNED`.
-  FFTW requires equivalent alignment for new-array execution unless that flag was used.
-- **Reference:** [FFTW new-array execution contract](https://www.fftw.org/doc/New_002darray-Execute-Functions.html).
-- **Confirmation experiment:** Record `fftwf_alignment_of` / `fftw_alignment_of` for planning and execution buffers in
-  the affected deployment. Exercise repeated sizes, allocation churn, and multiple workers. If classes differ,
-  reproduce with those naturally allocated buffers and compare against an aligned-buffer implementation.
-  If all supported builds guarantee equivalent classes, close this candidate rather than assume a failure.
+- **Status:** Investigated and dismissed.
+- **Locations:** [FFT.cpp:123](SEFramework/src/lib/FFT/FFT.cpp#L123),
+  [FFT.cpp:163](SEFramework/src/lib/FFT/FFT.cpp#L163),
+  [DFT.h:122](SEFramework/SEFramework/Convolution/DFT.h#L122).
+- **Finding:** The cached plans require equivalent FFTW alignment classes for the planning and execution buffers.
+  On the checked x86-64 Linux build, glibc provides 16-byte alignment and both linked FFTW 3.3.10 libraries
+  classify pointers by their address modulo 16. A probe of 4,096 vector buffers per precision returned class 0
+  throughout, including addresses with both residues modulo 32.
+- **macOS:** Apple's default allocator provides 16-byte alignment, which covers the alignment classes used by
+  standard Intel and Apple Silicon FFTW builds. This conclusion is based on the allocator documentation and
+  FFTW build settings. The shipped macOS binaries were not run.
+- **References:** [FFTW new-array execution contract](https://www.fftw.org/doc/New_002darray-Execute-Functions.html),
+  [FFTW alignment definitions](https://github.com/FFTW/fftw3/blob/fftw-3.3.11/simd-support/simd-common.h).
 
-## BUG-006: Mismatched weight HDUs silently omit science images
+## BUG-006: Mismatched weight HDUs silently omit measurement images
 
-- **Severity:** High: silently omits measurement frames, changing available photometry and joint fitting inputs.
-- **Likelihood:** Medium: mismatched multi-extension science/weight inputs or a cube with too few weight-image HDUs.
-- **Status:** Confirmed by executing the existing Python loader with controlled FITS metadata.
-- **Next action needed:** Fix.
-- **Locations:** [measurement_config.py:125](SEImplementation/python/sourcextractor/config/measurement_config.py#L125),
-  [measurement_config.py:262](SEImplementation/python/sourcextractor/config/measurement_config.py#L262).
-- **Description:** `zip()` stops at the shortest sequence. File-based weight HDU counts are not checked against
-  science HDUs/layers, so the loader returns a smaller, apparently valid image group.
-- **Evidence / reproduction:** Three science HDUs and one weight HDU load **one** science image without an exception.
-  The data-cube loader has the same unchecked truncation when weights are provided as a multi-extension file.
-- **Fix direction:** Validate sequence lengths before iteration and reject mismatches explicitly. Any supported
-  broadcast behavior should be explicit, rather than implemented through truncation.
+- **Severity:** Medium because the omission requires mismatched measurement and weight inputs.
+- **Likelihood:** Medium for mismatched multi-extension FITS inputs or a weight file with too few HDUs for a
+  measurement cube.
+- **Status:** Fixed and verified with generated FITS files.
+- **Locations:** [measurement_config.py:124](SEImplementation/python/sourcextractor/config/measurement_config.py#L124),
+  [measurement_config.py:273](SEImplementation/python/sourcextractor/config/measurement_config.py#L273).
+- **Description:** `zip()` stops at the shortest sequence. The loaders used to pair weight HDUs with measurement
+  images without checking the counts, which could produce a smaller, apparently valid image group.
+- **Evidence / reproduction:** Three image HDUs and one weight HDU loaded **one** measurement image without an
+  exception. The data-cube loader had the same unchecked truncation for multi-extension weight files.
+- **Fix:** Both loaders raise `ValueError` before constructing measurement images when the weight file has too few
+  or too many image HDUs. The error gives the filenames and counts. Explicit `weight_hdu` reuse still works.
 
 ## BUG-007: Only the first output parameter is registered
 
@@ -170,20 +166,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** Medium: accepts incompatible cubes and attempts nonexistent weight layers, generally causing a later
   I/O failure. Silent wrong weights have not been demonstrated.
-- **Likelihood:** Medium for mismatched science/weight cube depths.
-- **Status:** Confirmed by Python execution.
-- **Next action needed:** Fix.
-- **Location:** [measurement_config.py:249](SEImplementation/python/sourcextractor/config/measurement_config.py#L249).
-- **Description:** The depth check compares `dims[2]` with `cube_size`, which was assigned from `dims[2]`.
-  It never checks the weight cube's depth.
-- **Evidence / reproduction:** Science dimensions `(10,10,3)` and weight dimensions `(10,10,1)` are accepted and
-  assigned weight layers `[0,1,2]`.
-- **Fix direction:** Compare `weight_dims[2]` with the science depth; validate spatial dimensions as well.
+- **Likelihood:** Medium for mismatched measurement and weight cube depths.
+- **Status:** Fixed and verified with generated FITS files.
+- **Location:** [measurement_config.py:260](SEImplementation/python/sourcextractor/config/measurement_config.py#L260).
+- **Description:** The depth check compared `dims[2]` with `cube_size`, which was assigned from `dims[2]`.
+- **Evidence / reproduction:** Measurement dimensions `(10,10,3)` and weight dimensions `(10,10,1)` were accepted
+  and assigned weight layers `[0,1,2]`.
+- **Fix:** Require matching width, height, and depth before creating measurement images. The error reports
+  both filenames, HDU indices, and dimensions.
 
 ## BUG-009: Invalid FITS cube layers are never rejected
 
 - **Severity:** Medium: invalid layer requests reach CFITSIO instead of producing the intended immediate error.
-- **Likelihood:** Low for valid configuration; also reachable through BUG-008.
+- **Likelihood:** Low for valid configuration. BUG-008 previously provided another path to this bug.
 - **Status:** Confirmed by inspection: the guard is logically impossible for a positive cube depth.
 - **Next action needed:** Fix.
 - **Location:** [FitsImageSource.cpp:282](SEFramework/src/lib/FITS/FitsImageSource.cpp#L282).
@@ -469,8 +464,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   recorded here so confirmation does not depend on retaining that temporary directory.
 - No full project build, `make tests`, sanitizer run, or end-to-end catalog comparison was performed for this
   documentation-only change. Confirmed defects still need committed regression tests when fixed.
-- Investigate BUG-004 first for a genuine concurrency failure. Check BUG-005 on the affected deployment as a possible
-  allocation-sensitive alternative. Neither is identified as the cause of the reported rare failure.
+- Investigate BUG-004 as a possible cause of the reported rare failure.
 
 ## Validation and follow-up: iterative fitting review
 
