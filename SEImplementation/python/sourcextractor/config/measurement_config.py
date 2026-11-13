@@ -77,6 +77,8 @@ class MeasurementConfig:
         If image is multi-hdu, psf and weight can either be multi hdu or lists of individual files.
 
         In any case, they are matched in order and HDUs not containing images (two dimensional arrays) are ignored.
+        A weight file must provide one image HDU per measurement image unless weight_hdu explicitly selects
+        a weight HDU to reuse for every measurement image.
 
         :param image: The filename of the FITS file containing the image(s)
         :param psf: psf file or list of psf files
@@ -117,8 +119,14 @@ class MeasurementConfig:
             weight_file = FitsFile(weight)
             if "weight_hdu" in kwargs.keys():
                 weight_hdu_list = [kwargs.pop("weight_hdu")] * len(image_hdu_list)
-            else:    
+            else:
                 weight_hdu_list = weight_file.hdu_list
+                if len(weight_hdu_list) != len(image_hdu_list):
+                    raise ValueError(
+                        "Weight file {!r} contains {} image HDU(s), but {} measurement image(s) were selected "
+                        "from {!r}. Provide one weight HDU per measurement image or set weight_hdu to reuse one."
+                        .format(weight, len(weight_hdu_list), len(image_hdu_list), image)
+                    )
             weight_file_list = [weight_file] * len(image_hdu_list)
 
         image_list = []
@@ -191,6 +199,8 @@ class MeasurementConfig:
         psf can be a multi-hdu or list of individual images to be matched
 
         In any case, they are matched in order and HDUs not containing images are ignored.
+        A multi-extension weight file must provide one image HDU per measurement image.
+        A weight cube must match the width, height, and depth of the measurement cube.
 
         :param image: The filename of the FITS file containing the image datacube
         :param psf: psf file or list of psf files
@@ -238,16 +248,21 @@ class MeasurementConfig:
             weight_layer_list = [0] * cube_size
         else:
             weight_fits_file = FitsFile(weight)
+            weight_hdu_list = weight_fits_file.hdu_list
             if weight_cube_hdu < 0:
-                weight_hdu = weight_fits_file.hdu_list[0]
+                weight_hdu = weight_hdu_list[0] if weight_hdu_list else None
             else:
                 weight_hdu = weight_cube_hdu
 
-            weight_dims = weight_fits_file.get_dimensions(weight_hdu)
+            weight_dims = weight_fits_file.get_dimensions(weight_hdu) if weight_hdu is not None else ()
             if len(weight_dims) == 3:
                 # handle weight as data cube
-                if dims[2] != cube_size:
-                    raise ValueError("The weight map cube doesn't match the image cube")
+                if tuple(weight_dims) != tuple(dims):
+                    raise ValueError(
+                        "Weight cube {!r} (HDU {}) has dimensions {}, but measurement cube {!r} (HDU {}) has "
+                        "dimensions {}. The width, height, and depth must match."
+                        .format(weight, weight_hdu, tuple(weight_dims), image, cube_hdu, tuple(dims))
+                    )
 
                 weight_file_list = [weight_fits_file] * cube_size
                 weight_hdu_list = [weight_hdu] * cube_size
@@ -255,7 +270,12 @@ class MeasurementConfig:
             else:
                 # weight is a FITS without a datacube, assume MEF
                 weight_file_list = [weight_fits_file] * cube_size
-                weight_hdu_list = weight_fits_file.hdu_list
+                if len(weight_hdu_list) != cube_size:
+                    raise ValueError(
+                        "Weight file {!r} contains {} image HDU(s), but cube {!r} provides {} measurement image(s). "
+                        "Provide one weight HDU per measurement image."
+                        .format(weight, len(weight_hdu_list), image, cube_size)
+                    )
                 weight_layer_list = [0] * cube_size
 
         image_list = []
