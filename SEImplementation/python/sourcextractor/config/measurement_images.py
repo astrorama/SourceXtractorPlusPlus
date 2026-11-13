@@ -15,31 +15,36 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-from __future__ import division, print_function
+from __future__ import annotations
 
 import os
 import re
 import sys
+from collections.abc import Iterator, Sequence
+from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
 
 import _SourceXtractorPy as cpp
 
-if sys.version_info.major < 3:
-    from StringIO import StringIO
-else:
-    from io import StringIO
+from collections import defaultdict
+from io import StringIO
+
+if TYPE_CHECKING:
+    from sourcextractor.config.model_fitting import FittableModel
 
 
 class FitsFile(cpp.FitsFile):
-    def __init__(self, filename):
-        super(FitsFile, self).__init__(str(filename))
-        self.hdu_list = [i for i in self.image_hdus]
+    def __init__(self, filename: str) -> None:
+        super().__init__(filename)
+        self.hdu_list = list(self.image_hdus)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[int]:
         return iter(self.hdu_list)
 
-    def get_headers(self, hdu):
+    # NOTE: This deliberately overrides the base class's method of the same
+    # name to allow returning a plain Python dict
+    def get_headers(self, hdu: int) -> dict[str, str]:  # type: ignore[override]
         d = {}
-        headers = super(FitsFile, self).get_headers(hdu)
+        headers = super().get_headers(hdu)
 
         try:
             it = iter(headers)
@@ -52,7 +57,67 @@ class FitsFile(cpp.FitsFile):
         return d
 
 
-class MeasurementImage(cpp.MeasurementImage):
+WeightType: TypeAlias = Literal['none', 'background', 'rms', 'variance',  'weight']
+
+
+class CheckBoostProperties:
+    """
+    Mixin for Python subclasses of a Boost.Python class
+
+    Rewrites every settable property inherited from the C++ base so that
+    assignment is type-checked against the type of the attribute's current
+    (or default) value.
+
+    The numeric hierarchy is respected such that an existing float property
+    allows an int to be assigned (and converted to float) but not vice-versa.
+    """
+
+    _checked: ClassVar[frozenset[str]] = frozenset()
+    _boost_class: ClassVar[type] = type(cpp.Id)
+    """
+    Reference to the Boost.Python.class metaclass type
+
+    It is not importable directly, so the only way to get a reference to it at
+    runtime is from a known class implemented in Boost.Python.
+    """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        checked = set(cls._checked)
+        for base in cls.__mro__[1:]:
+            if not isinstance(base, cls._boost_class):
+                continue
+            for name, prop in vars(base).items():
+                if isinstance(prop, property) and prop.fset and name not in checked:
+                    checked.add(name)
+                    setattr(cls, name, cls._checked_property(name, prop))
+
+        cls._checked = frozenset(checked)
+
+    @staticmethod
+    def _checked_property(name: str, prop: property) -> property:
+        fget: Callable[[Any], Any] = prop.fget  # type: ignore[assignment]
+        fset: Callable[[Any, Any], None] = prop.fset  # type: ignore[assignment]
+
+        def checked_fset(self: Any, value: Any) -> None:
+            expected = type(fget(self))
+            # bool is a subclass of int, so exclude it explicitly; an int,
+            # however, is accepted where a float would be
+            if (isinstance(value, bool) is not (expected is bool) or
+                    not isinstance(value, (int, expected) if expected is float else expected)):
+                raise TypeError(f'Expecting {expected.__name__} for {name}, '
+                                f'got {type(value).__name__}')
+
+            # At this point is only int or float
+            if expected is float:
+                value = float(value)
+
+            fset(self, value)
+
+        return property(fget, checked_fset, prop.fdel, prop.__doc__)
+
+
+class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
     """
     A MeasurementImage is the processing unit for SourceXtractor++. Measurements and model fitting can be done
     over one, or many, of them. It models the image, plus its associated weight file, PSF, etc.
@@ -111,21 +176,16 @@ class MeasurementImage(cpp.MeasurementImage):
         If True, the PSF will be renormalized to have a total flux of 1.0. Default True
     """
 
-    def _set_checked(self, attr_name, value):
-        try:
-            setattr(self, attr_name, value)
-        except Exception:
-            expected_type = type(getattr(self, attr_name))
-            raise TypeError('Expecting {} for {}, got {}'.format(expected_type.__name__, attr_name,
-                                                                 type(value).__name__))
-
-    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
-                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
-                 flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='none', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None, psf_renormalize=True
-                 ):
+    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
+                 weight_file: str | FitsFile | None = None,
+                 gain: float | None = None, gain_keyword: str = 'GAIN',
+                 saturation: float | None = None, saturation_keyword: str = 'SATURATE',
+                 flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
+                 weight_type: WeightType = 'none', weight_absolute: bool = False,
+                 weight_scaling: float = 1., weight_threshold: float | None = None,
+                 constant_background: float | None = None, image_hdu: int = 0,
+                 psf_hdu: int | None = None, weight_hdu: int | None = None,
+                 psf_renormalize: bool = True) -> None:
         """
         Constructor.
         """
@@ -139,9 +199,9 @@ class MeasurementImage(cpp.MeasurementImage):
         if isinstance(weight_file, FitsFile):
             weight_file = weight_file.filename
 
-        super(MeasurementImage, self).__init__(os.path.abspath(file_path),
-                                               os.path.abspath(psf_file) if psf_file else '',
-                                               os.path.abspath(weight_file) if weight_file else '')
+        super().__init__(os.path.abspath(file_path),
+                         os.path.abspath(psf_file) if psf_file else '',
+                         os.path.abspath(weight_file) if weight_file else '')
 
         if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (
                 psf_hdu is not None and psf_hdu < 0):
@@ -156,102 +216,109 @@ class MeasurementImage(cpp.MeasurementImage):
         self.meta.update(hdu_list.get_headers(image_hdu))
 
         if gain is not None:
-            self._set_checked('gain', gain)
+            self.gain = gain
         elif gain_keyword in self.meta:
             self.gain = float(self.meta[gain_keyword])
         else:
             self.gain = 0.
 
         if saturation is not None:
-            self._set_checked('saturation', saturation)
+            self.saturation = saturation
         elif saturation_keyword in self.meta:
             self.saturation = float(self.meta[saturation_keyword])
         else:
             self.saturation = 0.
 
         if flux_scale is not None:
-            self._set_checked('flux_scale', flux_scale)
+            self.flux_scale = flux_scale
         elif flux_scale_keyword in self.meta:
             self.flux_scale = float(self.meta[flux_scale_keyword])
         else:
             self.flux_scale = 1.
 
-        self._set_checked('weight_type', weight_type)
-        self._set_checked('weight_absolute', weight_absolute)
-        self._set_checked('weight_scaling', weight_scaling)
+        self.weight_type = weight_type
+        self.weight_absolute = weight_absolute
+        self.weight_scaling = weight_scaling
         if weight_threshold is None:
             self.has_weight_threshold = False
         else:
             self.has_weight_threshold = True
-            self._set_checked('weight_threshold', weight_threshold)
+            self.weight_threshold = weight_threshold
 
         if constant_background is not None:
             self.is_background_constant = True
-            self._set_checked('constant_background_value', constant_background)
+            self.constant_background_value = constant_background
         else:
             self.is_background_constant = False
             self.constant_background_value = -1
 
-        self._set_checked('image_hdu', image_hdu)
+        self.image_hdu = image_hdu
 
         if psf_hdu is None:
-            self._set_checked('psf_hdu', image_hdu)
+            self.psf_hdu = image_hdu
         else:
-            self._set_checked('psf_hdu', psf_hdu)
+            self.psf_hdu = psf_hdu
 
         if weight_hdu is None:
-            self._set_checked('weight_hdu', image_hdu)
+            self.weight_hdu = image_hdu
         else:
-            self._set_checked('weight_hdu', weight_hdu)
-            
+            self.weight_hdu = weight_hdu
+
         self.psf_renormalize = psf_renormalize
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
         str
             Human readable representation for the object
         """
-        return 'Image {}: {} / {}, PSF: {} / {}, Weight: {} / {}'.format(
-            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.meta['PSF_FILENAME'],
-            self.psf_hdu,
-            self.meta['WEIGHT_FILENAME'], self.weight_hdu)
+        return (f'Image {self.id}: {self.file} / {self.image_hdu}, '
+                f'PSF: {self.psf_file} / {self.psf_hdu}, '
+                f'Weight: {self.weight_file} / {self.weight_hdu}')
 
 
 class DataCubeSlice(MeasurementImage):
-    def __init__(self, fits_file, psf_file=None, weight_file=None, gain=None,
-                 gain_keyword='GAIN', saturation=None, saturation_keyword='SATURATE',
-                 flux_scale=None, flux_scale_keyword='FLXSCALE',
-                 weight_type='none', weight_absolute=False, weight_scaling=1.,
-                 weight_threshold=None, constant_background=None,
-                 image_hdu=0, psf_hdu=None, weight_hdu=None,
-                 image_layer=0, weight_layer=0):
-        super(DataCubeSlice, self).__init__(fits_file, psf_file, weight_file, gain,
-                                            gain_keyword, saturation, saturation_keyword,
-                                            flux_scale, flux_scale_keyword,
-                                            weight_type, weight_absolute, weight_scaling,
-                                            weight_threshold, constant_background,
-                                            image_hdu, psf_hdu, weight_hdu)
+    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
+                 weight_file: str | FitsFile | None = None,
+                 gain: float | None = None, gain_keyword: str = 'GAIN',
+                 saturation: float | None = None, saturation_keyword: str = 'SATURATE',
+                 flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
+                 weight_type: WeightType = 'none', weight_absolute: bool = False,
+                 weight_scaling: float = 1., weight_threshold: float | None = None,
+                 constant_background: float | None = None, image_hdu: int = 0,
+                 psf_hdu: int | None = None, weight_hdu: int | None = None,
+                 image_layer: int = 0, weight_layer: int = 0) -> None:
+        super().__init__(fits_file, psf_file, weight_file, gain,
+                         gain_keyword, saturation, saturation_keyword,
+                         flux_scale, flux_scale_keyword,
+                         weight_type, weight_absolute, weight_scaling,
+                         weight_threshold, constant_background,
+                         image_hdu, psf_hdu, weight_hdu)
 
         self.is_data_cube = True
         self.image_layer = image_layer
         self.weight_layer = weight_layer
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
         str
             Human readable representation for the object
         """
-        return 'DataCubeSlice {}: {} / {} / {}, PSF: {} / {}, Weight: {} / {} / {}'.format(
-            self.id, self.meta['IMAGE_FILENAME'], self.image_hdu, self.image_layer,
-            self.meta['PSF_FILENAME'], self.psf_hdu,
-            self.meta['WEIGHT_FILENAME'], self.weight_hdu, self.weight_layer)
+        return (f'DataCubeSlice {self.id}: {self.file} / {self.image_hdu} / {self.image_layer}, '
+                f'PSF: {self.psf_file} / {self.psf_hdu}, '
+                f'Weight: {self.weight_file} / {self.weight_hdu} / {self.weight_layer}')
 
 
-class ImageGroup(object):
+GroupingMethod: TypeAlias = Callable[
+    [list[MeasurementImage]],
+    list[tuple[str, list[MeasurementImage]]]
+]
+
+
+class ImageGroup:
     """
     Models the grouping of images. Measurement can *not* be made directly on instances of this type.
     The configuration must be "frozen" before creating a MeasurementGroup
@@ -261,27 +328,38 @@ class ImageGroup(object):
     MeasurementGroup
     """
 
-    def __init__(self, **kwargs):
+    # NOTE: It would be clearer if ImageGroup (and correspondingly
+    # MeasurementGroup) were either split into leaf/non-leaf classes or had
+    # more unified semantics.  This bites in particular when iterating over an
+    # ImageGroup which has different semantics in the leaf/non-leaf cases.  I
+    # added the separate .images() and .subgroups() iterators that better
+    # capture the sematic differences.
+
+    @overload
+    def __init__(self, *, images: Sequence[MeasurementImage]) -> None: ...
+    @overload
+    def __init__(self, *, subgroups: Sequence[tuple[str, ImageGroup]]) -> None: ...
+    def __init__(self, **kwargs: Any) -> None:  # noqa: E301
         """
         Constructor. It is not recommended to be used directly. Use instead load_fits_image or load_fits_images.
         """
         self.__images = []
-        self.__subgroups = None
+        self.__subgroups: list[tuple[str, ImageGroup]] | None = None
         self.__subgroup_names = set()
         if len(kwargs) != 1 or ('images' not in kwargs and 'subgroups' not in kwargs):
             raise ValueError('ImageGroup only takes as parameter one of "images" or "subgroups"')
         key = list(kwargs.keys())[0]
         if key == 'images':
             if isinstance(kwargs[key], list):
-                self.__images = kwargs[key]
+                self.__images = list(kwargs[key])
             else:
                 self.__images = [kwargs[key]]
         if key == 'subgroups':
-            self.__subgroups = kwargs[key]
+            self.__subgroups = list(kwargs[key])
             for name, _ in self.__subgroups:
                 self.__subgroup_names.add(name)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         See Also
         --------
@@ -297,7 +375,7 @@ class ImageGroup(object):
         else:
             return len(self.__images)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[tuple[str, ImageGroup]] | Iterator[MeasurementImage]:
         """
         Allows to iterate on the contained subgroups or images
 
@@ -310,11 +388,43 @@ class ImageGroup(object):
         iterator
         """
         if self.__subgroups:
-            return self.__subgroups.__iter__()
+            return self.subgroups()
         else:
-            return self.__images.__iter__()
+            return self.images()
 
-    def split(self, grouping_method):
+    def images(self) -> Iterator[MeasurementImage]:
+        """
+        Allows to iterate on the contained images
+
+        If ``not self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__images)
+
+    def subgroups(self) -> Iterator[tuple[str, ImageGroup]]:
+        """
+        Allows to iterate on the contained subgroups, if any
+
+        If ``self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__subgroups or [])
+
+    def split(self, grouping_method: GroupingMethod) -> None:
         """
         Splits the group in various subgroups, applying a filter on the contained images. If the group has
         already been split, applies the split to each subgroup.
@@ -351,7 +461,7 @@ class ImageGroup(object):
                 self.__subgroups.append((k, ImageGroup(images=im_list)))
             self.__images = []
 
-    def add_images(self, images):
+    def add_images(self, images: MeasurementImage | list[MeasurementImage]) -> None:
         """
         Add new images to the group.
 
@@ -371,7 +481,7 @@ class ImageGroup(object):
         else:
             self.__images.extend(images)
 
-    def add_subgroup(self, name, group):
+    def add_subgroup(self, name: str, group: ImageGroup) -> None:
         """
         Add a subgroup to a group.
 
@@ -385,11 +495,11 @@ class ImageGroup(object):
         if self.__subgroups is None:
             raise Exception('ImageGroup is not subgrouped yet')
         if name in self.__subgroup_names:
-            raise Exception('Subgroup {} alread exists'.format(name))
+            raise Exception(f'Subgroup {name} alread exists')
         self.__subgroup_names.add(name)
         self.__subgroups.append((name, group))
 
-    def is_leaf(self):
+    def is_leaf(self) -> bool:
         """
         Returns
         -------
@@ -398,7 +508,7 @@ class ImageGroup(object):
         """
         return self.__subgroups is None
 
-    def __getitem__(self, name):
+    def __getitem__(self, name: str) -> ImageGroup:
         """
         Get a subgroup.
 
@@ -424,9 +534,10 @@ class ImageGroup(object):
         try:
             return next(x for x in self.__subgroups if x[0] == name)[1]
         except StopIteration:
-            raise KeyError('Group {} not found'.format(name))
+            raise KeyError(f'Group {name} not found')
 
-    def print(self, prefix='', show_images=False, file=sys.stderr):
+    def print(self, prefix: str = '', show_images: bool = False,
+              file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the group.
 
@@ -439,20 +550,20 @@ class ImageGroup(object):
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
         if self.__subgroups is None:
-            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
+            print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}  {}'.format(prefix, im), file=file)
+                    print(f'{prefix}  {im}', file=file)
         else:
-            print('{}Image sub-groups: {}'.format(prefix,
-                                                  ','.join(str(x) for x, _ in self.__subgroups)),
-                  file=file)
+            sub = ','.join(str(x) for x, _ in self.__subgroups)
+            print(f'{prefix}Image sub-groups: {sub}', file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name), file=file)
+                print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -464,7 +575,7 @@ class ImageGroup(object):
         return string.getvalue()
 
 
-class ByKeyword(object):
+class ByKeyword:
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER).
 
@@ -478,13 +589,13 @@ class ByKeyword(object):
     ImageGroup.split
     """
 
-    def __init__(self, key):
+    def __init__(self, key: str) -> None:
         """
         Constructor.
         """
         self.__key = key
 
-    def __call__(self, images):
+    def __call__(self, images: list[MeasurementImage]) -> list[tuple[str, list[MeasurementImage]]]:
         """
         Parameters
         ----------
@@ -499,19 +610,15 @@ class ByKeyword(object):
                 (G, [frame_g_01.fits,  frame_g_02.fits])
             ]
         """
-        result = {}
+        result: defaultdict[str, list[MeasurementImage]] = defaultdict(list)
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError('The image {}[{}] does not contain the key {}'.format(
-                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
-                ))
-            if im.meta[self.__key] not in result:
-                result[im.meta[self.__key]] = []
+                raise KeyError(f'The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
             result[im.meta[self.__key]].append(im)
         return [(k, result[k]) for k in result]
 
 
-class ByPattern(object):
+class ByPattern:
     """
     Callable that can be used to split an ImageGroup by a keyword value (i.e. FILTER), applying a regular
     expression and using the first matching group as key.
@@ -528,14 +635,14 @@ class ByPattern(object):
     ImageGroup.split
     """
 
-    def __init__(self, key, pattern):
+    def __init__(self, key: str, pattern: str) -> None:
         """
         Constructor.
         """
         self.__key = key
         self.__pattern = pattern
 
-    def __call__(self, images):
+    def __call__(self, images: list[MeasurementImage]) -> list[tuple[str, list[MeasurementImage]]]:
         """
         Parameters
         ----------
@@ -546,20 +653,28 @@ class ByPattern(object):
         -------
         list of tuples of str and list of MeasurementImage
         """
-        result = {}
+        result: defaultdict[str, list[MeasurementImage]] = defaultdict(list)
+
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError('The image {}[{}] does not contain the key {}'.format(
-                    im.meta['IMAGE_FILENAME'], im.image_hdu, self.__key
-                ))
-            group = re.match(self.__pattern, im.meta[self.__key]).group(1)
-            if group not in result:
-                result[group] = []
+                raise KeyError('The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
+
+            value = im.meta[self.__key]
+            if (m := re.match(self.__pattern, str(value))) is None:
+                raise ValueError(f'The image {im.file}[{im.image_hdu}] has {self.__key} = {value!r}, '
+                                 f'which does not match the pattern {self.__pattern!r}')
+            try:
+                group = m.group(1)
+            except IndexError:
+                raise ValueError(f'The pattern {self.__pattern!r} has no capturing group; '
+                                 f'ByPattern requires at least one to use as the grouping key')
+
             result[group].append(im)
+
         return [(k, result[k]) for k in result]
 
 
-class MeasurementGroup(object):
+class MeasurementGroup:
     """
     Once an instance of this class is created from an ImageGroup, its configuration is "frozen". i.e.
     no new images can be added, or no new grouping applied.
@@ -569,29 +684,35 @@ class MeasurementGroup(object):
     image_group : ImageGroup
     """
 
-    def __init__(self, image_group, is_subgroup=False):
+    def __init__(self, image_group: ImageGroup, is_subgroup: bool = False) -> None:
         """
         Constructor.
         """
-        self.__images = None
+        # Models to be fitted to this group, if any; see ModelFitting.add_model
+        self.models: list[FittableModel] = []
+
+        # initialize to empty list so at least one of subgroups/images is non-None,
+        # fixing a class of typing bugs that assumed both of these attributes could be None
+        self.__images: list[MeasurementImage] = []
         self.__subgroups = None
         if image_group.is_leaf():
-            self.__images = [im for im in image_group]
+            self.__images = list(image_group.images())
         else:
-            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True)) for n, g in image_group]
+            self.__subgroups = [(n, MeasurementGroup(g, is_subgroup=True))
+                                for n, g in image_group.subgroups()]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[MeasurementImage] | Iterator[tuple[str, MeasurementGroup]]:
         """
         Returns
         -------
         iterator
         """
         if self.__subgroups:
-            return self.__subgroups.__iter__()
-        else:
-            return self.__images.__iter__()
+            return iter(self.__subgroups)
 
-    def __getitem__(self, index):
+        return iter(self.__images)
+
+    def __getitem__(self, index: str | int) -> MeasurementGroup | MeasurementImage:
         """
         The subgroup with the given name or image with the given index depending on whether this is a leaf group.
 
@@ -614,14 +735,17 @@ class MeasurementGroup(object):
             try:
                 return next(x for x in self.__subgroups if x[0] == index)[1]
             except StopIteration:
-                raise KeyError('Group {} not found'.format(index))
-        else:
+                raise KeyError(f'Group {index} not found')
+
+        if isinstance(index, int):
             try:
                 return self.__images[index]
-            except:
-                raise KeyError('Image #{} not found'.format(index))
+            except IndexError:
+                pass
 
-    def __len__(self):
+        raise KeyError(f'Image #{index} not found')
+
+    def __len__(self) -> int:
         """
         Returns
         -------
@@ -630,10 +754,10 @@ class MeasurementGroup(object):
         """
         if self.__subgroups:
             return len(self.__subgroups)
-        else:
-            return len(self.__images)
 
-    def is_leaf(self):
+        return len(self.__images)
+
+    def is_leaf(self) -> bool:
         """
         Returns
         -------
@@ -642,7 +766,39 @@ class MeasurementGroup(object):
         """
         return self.__subgroups is None
 
-    def print(self, prefix='', show_images=False, file=sys.stderr):
+    def images(self) -> Iterator[MeasurementImage]:
+        """
+        Allows to iterate on the contained images
+
+        If ``not self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__images)
+
+    def subgroups(self) -> Iterator[tuple[str, MeasurementGroup]]:
+        """
+        Allows to iterate on the contained subgroups, if any
+
+        If ``self.is_leaf`` this returns an empty iteration.
+
+        See Also
+        --------
+        is_leaf
+
+        Returns
+        -------
+        iterator
+        """
+        return iter(self.__subgroups or [])
+
+    def print(self, prefix: str = '', show_images: bool = False, file: IO[str] | None = None) -> None:
         """
         Print a human-readable representation of the group.
 
@@ -655,19 +811,20 @@ class MeasurementGroup(object):
         file : file object
             Where to print the representation. Defaults to sys.stderr
         """
+        file = file or sys.stderr
         if self.__images:
-            print('{}Image List ({})'.format(prefix, len(self.__images)), file=file)
+            print(f'{prefix}Image List ({len(self.__images)})', file=file)
             if show_images:
                 for im in self.__images:
-                    print('{}  {}'.format(prefix, im), file=file)
+                    print(f'{prefix}  {im}', file=file)
         if self.__subgroups:
-            print('{}Measurement sub-groups: {}'.format(prefix, ','.join(
-                x for x, _ in self.__subgroups)), file=file)
+            sub = ','.join(x for x, _ in self.__subgroups)
+            print(f'{prefix}Measurement sub-groups: {sub}', file=file)
             for name, group in self.__subgroups:
-                print('{}  {}:'.format(prefix, name), file=file)
+                print(f'{prefix}  {name}:', file=file)
                 group.print(prefix + '    ', show_images, file=file)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------

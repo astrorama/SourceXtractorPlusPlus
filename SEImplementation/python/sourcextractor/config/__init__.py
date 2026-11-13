@@ -16,11 +16,11 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from .argv import *
-from .compat import *
-from .measurement_images import (ByKeyword, ByPattern, FitsFile, ImageGroup, MeasurementGroup,
+from .argv import *  # noqa: F401,F403
+from .compat import *  # noqa: F401,F403
+from .measurement_images import (ByKeyword, ByPattern, FitsFile, ImageGroup, MeasurementGroup,  # noqa: F401
                                  MeasurementImage, DataCubeSlice)
-from .model_fitting import (ComputeGraphModel, ConstantModel, ConstantParameter, DeVaucouleursModel,
+from .model_fitting import (ComputeGraphModel, ConstantModel, ConstantParameter, DeVaucouleursModel,  # noqa: F401
                             DependentParameter, ExponentialModel, FluxParameterType, FreeParameter,
                             PointSourceModel, Range, RangeType, SersicModel, Unbounded,
                             get_flux_parameter, get_pos_parameters, get_position_angle,
