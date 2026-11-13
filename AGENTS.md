@@ -11,6 +11,11 @@ Run the following commands from the repository root as needed:
 - `make install` — install the build products.
 - `make tests` — build and run the tests.
 
+Add Python unit tests as `test_*.py` files in `<Module>/tests/python/` (for example,
+`SEImplementation/tests/python/`). Elements registers them through the module's
+`elements_install_python_modules()` call. For an existing build, run `make configure`
+after adding a test file, then run `make tests`.
+
 Always run `make install` before integration runs such as executing `sourcextractor++`
 in `tests/sim12`, and use the installed executable and environment.
 
@@ -30,7 +35,7 @@ in `tests/sim12`, and use the installed executable and environment.
 - Always use braces `{}` around C++ `if`, `else if`, `else`, and `for` bodies,
   even for a single statement. Do not use unbraced conditionals or `for` loops,
   even when nearby code does so.
-- Follow the module layout: public headers in `<Module>/<Module>/`, implementation
+- Follow the C++ module layout: public headers in `<Module>/<Module>/`, implementation
   files in `<Module>/src/lib/`, and tests in `<Module>/tests/src/`. Use `.h` and
   `.cpp` files named after the class where applicable.
 - Use header guards and module-qualified project includes such as

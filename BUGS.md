@@ -30,7 +30,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-004 | Tile eviction can race with pixel writes | High | Low / timing-dependent | Unconfirmed | Try to confirm |
 | BUG-005 | Cached FFT plans may be reused with incompatible alignment | High | Low / platform-dependent | Unconfirmed | Try to confirm |
 | BUG-006 | Mismatched weight HDUs silently omit science images | High | Medium | Confirmed | Fix |
-| BUG-007 | Only the first output parameter is registered | Medium | Medium | Confirmed | Fix |
+| BUG-007 | Only the first output parameter is registered | Medium | Medium | Fixed | None |
 | BUG-008 | Weight-cube depth check compares the science cube to itself | Medium | Medium | Confirmed | Fix |
 | BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Confirmed | Fix |
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Confirmed | Fix |
@@ -156,15 +156,16 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** Medium: a valid output configuration can fail during catalog conversion with a missing-parameter lookup.
 - **Likelihood:** Medium: lists of derived/output-only parameters; hidden if every parameter was registered elsewhere.
-- **Status:** Confirmed by Python execution and inspection of downstream `.at()` lookups.
-- **Next action needed:** Fix.
-- **Location:** [measurement_config.py:418](SEImplementation/python/sourcextractor/config/measurement_config.py#L418).
-- **Description:** `add_output_column()` stores all requested parameters but registers only `params[0]` with fitting.
-  Additional independent derived parameters need not belong to any fitted model and remain unknown.
+- **Status:** Fixed and verified with a Python regression test.
+- **Next action needed:** None.
+- **Location:** [measurement_config.py:381](SEImplementation/python/sourcextractor/config/measurement_config.py#L381).
+- **Description:** `add_output_column()` previously stored all requested parameters but registered only `params[0]`
+  with fitting. Additional output-only derived parameters could remain unknown.
 - **Evidence / reproduction:** Register an output list with independent parameter IDs 100 and 101. The output list
   contains both IDs, while the fitting registration receives only 100. The output converter subsequently requests
   every ID through `FlexibleModelFitting::getParameterValue()`, which uses `.at()`.
-- **Fix direction:** Validate and register every output parameter, including its dependencies.
+- **Fix:** Validate the entire list before updating the configuration and register every model-fitting parameter
+  through the existing helper, which recursively registers its dependencies.
 
 ## BUG-008: Weight-cube depth validation always passes
 

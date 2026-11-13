@@ -386,16 +386,16 @@ class MeasurementConfig:
         ----------
         name : str
             Name/prefix of the new set of columns
-        params : list of columns
-            List of properties to add to the output with the given name/prefix. They must be subtype
-            of one of the known ones: ParameterBase for model fitting, or Aperture for aperture photometry.
+        params : ParameterBase, Aperture, or list
+            A single property or a non-empty list of properties in the same category:
+            ParameterBase for model fitting or Aperture for aperture photometry.
 
         Raises
         ------
         ValueError
-            If the name has already been used
+            If the name has already been used or the list is empty
         TypeError
-            If any of the parameters are not of a known type (see params)
+            If the properties do not all belong to one supported category
 
         See Also
         --------
@@ -404,22 +404,21 @@ class MeasurementConfig:
         """
         if name in self._used_names:
             raise ValueError('Column {} is already set'.format(name))
-        self._used_names.add(name)
-
         if not isinstance(params, list):
             params = [params]
-        param_type = type(params[0])
+        if not params:
+            raise ValueError('Output column {} requires at least one parameter'.format(name))
 
-        known_subclass = False
-        for base in self._column_map:
-            if issubclass(param_type, base):
-                self._column_map[base].append((name, params))
-                known_subclass = True
-        if issubclass(param_type, ParameterBase):
-            self.model_fitting._register_parameter(params[0])
+        for base, columns in self._column_map.items():
+            if all(isinstance(param, base) for param in params):
+                if base is ParameterBase:
+                    for param in params:
+                        self.model_fitting._register_parameter(param)
+                columns.append((name, params))
+                self._used_names.add(name)
+                return
 
-        if not known_subclass:
-            raise TypeError('{} is not a known column type'.format(str(param_type)))
+        raise TypeError('Output column {} requires all model-fitting parameters or all apertures'.format(name))
 
 
 global_measurement_config = MeasurementConfig()
