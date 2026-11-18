@@ -20,6 +20,11 @@ def fits_with_primary():
 
 
 @pytest.fixture
+def fits_file(fits_with_primary):
+    return mi.cpp.FitsFile(fits_with_primary)
+
+
+@pytest.fixture
 def fits_metadata(fits_with_primary):
     return mi.cpp.ImageFile(fits_with_primary).get_metadata(0)
 

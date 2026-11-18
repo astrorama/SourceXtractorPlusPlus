@@ -21,7 +21,7 @@
 
 namespace SourceXtractor {
 
-PyFitsFile::PyFitsFile(const std::string& filename) : m_filename(filename) {
+PyFitsFile::PyFitsFile(const std::string& filename) : PyImageFile(filename) {
   m_file = std::make_shared<FitsFile>(filename, false);
 }
 
@@ -37,6 +37,11 @@ std::vector<int> PyFitsFile::getImageHdus() const {
 
 std::vector<int> PyFitsFile::getDimensions(int hdu) const {
   return m_file->getDimensions(hdu+1);
+}
+
+
+std::shared_ptr<const Metadata> PyFitsFile::getMetadataByIndex(int hdu) const {
+  return std::make_shared<const MapMetadata>(m_file->getHDUHeaders(hdu+1));
 }
 
 

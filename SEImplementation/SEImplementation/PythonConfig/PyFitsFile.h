@@ -21,11 +21,12 @@
 #include <string>
 #include <boost/python/list.hpp>
 #include "SEFramework/FITS/FitsFile.h"
-#include "SEImplementation/PythonConfig/PyId.h"
+#include "SEImplementation/PythonConfig/PyImageFile.h"
 
 namespace SourceXtractor {
 
-class PyFitsFile {
+/// Adds the FITS-specific, HDU-shaped API to PyImageFile
+class PyFitsFile : public PyImageFile {
 
 public:
 
@@ -33,17 +34,22 @@ public:
 
   virtual ~PyFitsFile() = default;
 
-  std::string getFilename() const {
-    return m_filename;
-  }
-
   std::vector<int> getImageHdus() const;
 
+  /**
+   * The headers of one HDU, with every value stringified
+   *
+   * This is the old interface prior to adding PyImageFile::getMetadata and is
+   * kept for backwards-compat.
+   */
   std::map<std::string, std::string> getHeaders(int hdu) const;
+
   std::vector<int> getDimensions(int hdu) const;
 
+  /// As PyImageFile::getMetadataByIndex(), but the index is the absolute HDU
+  std::shared_ptr<const Metadata> getMetadataByIndex(int hdu) const override;
+
 private:
-  std::string m_filename;
   std::shared_ptr<FitsFile> m_file;
 };
 

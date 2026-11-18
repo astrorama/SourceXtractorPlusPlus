@@ -14,7 +14,7 @@
  * along with this library; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-/* 
+/*
  * @file PythonModule.cpp
  * @author Nikolaos Apostolakos <nikoapos@gmail.com>
  */
@@ -31,10 +31,48 @@
 #include <SEImplementation/PythonConfig/PythonModule.h>
 #include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 #include <SEImplementation/PythonConfig/PyFitsFile.h>
+#include <SEImplementation/PythonConfig/PyImageFile.h>
+
 
 namespace bp = boost::python;
 
 namespace SourceXtractor {
+
+namespace {
+
+/// Converts a metadata value to its equivalent Python type
+struct MetadataToPython : public boost::static_visitor<bp::object> {
+  template <typename T>
+  bp::object operator()(const T& value) const {
+    return bp::object(value);
+  }
+
+  /// A single character (e.g. 'T') becomes a one-character str, not an int
+  bp::object operator()(char value) const {
+    return bp::object(std::string(1, value));
+  }
+};
+
+
+/// Metadata::get() for Python, raising KeyError the way a mapping should
+bp::object metadataGetItem(const Metadata& metadata, const std::string& key) {
+  auto entry = metadata.get(key);
+
+  if (!entry) {
+    PyErr_SetString(PyExc_KeyError, key.c_str());
+    bp::throw_error_already_set();
+  }
+
+  return boost::apply_visitor(MetadataToPython(), entry->m_value);
+}
+
+
+bool metadataContains(const Metadata& metadata, const std::string& key) {
+  return metadata.contains(key);
+}
+
+}  // anonymous namespace
+
 
 BOOST_PYTHON_MODULE(_SourceXtractorPy) {
 
@@ -131,8 +169,35 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
   bp::class_<std::map<std::string, std::string>>("_StringStringMap")
     .def(bp::map_indexing_suite<std::map<std::string, std::string>>());
 
-  bp::class_<PyFitsFile>("FitsFile", "A FITS file opened by SourceXtractor++", bp::init<const std::string&>())
-    .def_readonly("filename", &PyFitsFile::getFilename)
+  // Would be better if this implemented the full collections.abc.Mapping
+  // interface, but undecided as yet what to do about that for ASDF trees.
+  // Does that mean supporting nested collection types (lookups through
+  // nested mappings/sequences), or flattening the entire ASDF tree (slow,
+  // ugly)?  So for now this is just a containerlike interface with
+  // __getitem__ and __contains__.
+  bp::class_<Metadata, boost::noncopyable>("Metadata",
+      "Keyed metadata read from an image file", bp::no_init)
+    .def("__getitem__", &metadataGetItem)
+    .def("__contains__", &metadataContains)
+    .def("get", +[](const Metadata& m, const std::string& k, const bp::object& fallback) {
+          return m.contains(k) ? metadataGetItem(m, k) : fallback;
+        })
+    .def("get", +[](const Metadata& m, const std::string& k) {
+          return m.contains(k) ? metadataGetItem(m, k) : bp::object();
+        });
+  bp::register_ptr_to_python<std::shared_ptr<const Metadata>>();
+
+  bp::class_<PyImageFile>("ImageFile", "An image file of any supported format, opened by "
+      "SourceXtractor++", bp::init<const std::string&>())
+    .def_readonly("filename", &PyImageFile::getFilename)
+    .def("get_metadata", &PyImageFile::getMetadata, "metadata of the named image")
+    .def("get_metadata", &PyImageFile::getMetadataByIndex, "metadata of the image at this index")
+    .def("get_dimensions", &PyImageFile::getDimensions, "dimensions of the named image")
+    .def("get_dimensions", &PyImageFile::getDimensionsByIndex,
+         "dimensions of the image at this index");
+
+  bp::class_<PyFitsFile, bp::bases<PyImageFile>>("FitsFile",
+      "A FITS file opened by SourceXtractor++", bp::init<const std::string&>())
     .def_readonly("image_hdus", &PyFitsFile::getImageHdus)
     .def("get_headers", &PyFitsFile::getHeaders, "get headers for hdu")
     .def("get_dimensions", &PyFitsFile::getDimensions, "get dimensions for hdu");
