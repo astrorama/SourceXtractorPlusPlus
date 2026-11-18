@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 
+#include "SEFramework/Image/Dimensions.h"
 #include "SEFramework/Image/ImageSource.h"
 
 
@@ -57,15 +58,15 @@ public:
   virtual std::shared_ptr<const Metadata> getMetadataByIndex(int index) const;
 
   /**
-   * The dimensions of one image in the file, fastest axis first
+   * The dimensions of one image in the file, slowest axis first
    *
-   * Matches FitsFile::getDimensions(), which reports NAXIS1 then NAXIS2, so the
-   * two can be used interchangeably.  Only ever two elements: an ImageSource
-   * reports width and height but not how many layers a data cube has, so a cube
-   * cannot be sized through this interface.
+   * An ImageSource reports width and height but not how many layers a data
+   * cube has, so a cube cannot be sized through this interface (FIXME).
    */
-  std::vector<int> getDimensions(const std::string& name) const;
-  std::vector<int> getDimensionsByIndex(int index) const;
+  Dimensions getDimensions(const std::string& name) const;
+
+  /// As getDimensions(), for the nth image in the file
+  virtual Dimensions getDimensionsByIndex(int index) const;
 
 protected:
   /// Opens the file afresh; readers are cheap and the file pool does the caching

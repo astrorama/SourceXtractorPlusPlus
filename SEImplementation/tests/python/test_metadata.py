@@ -54,7 +54,7 @@ class TestFitsFileIsAnImageFile:
         assert fits_file.get_metadata(0)['GAIN'] == 42.0
 
     def test_get_headers_still_stringifies(self, fits_file):
-        """Kept as it was; get_metadata is the typed counterpart"""
+        """Kept as it was; get_metadata is the type-preserving counterpart"""
         assert fits_file.get_headers(0)['GAIN'] == '42'
 
     def test_an_int_means_the_same_hdu_either_way(self, fits_file):

@@ -35,8 +35,10 @@ std::vector<int> PyFitsFile::getImageHdus() const {
   return v;
 }
 
-std::vector<int> PyFitsFile::getDimensions(int hdu) const {
-  return m_file->getDimensions(hdu+1);
+Dimensions PyFitsFile::getDimensions(int hdu) const {
+  // Reported in FITS axis order, which this interface has always used
+  auto naxes = m_file->getDimensions(hdu+1);
+  return {naxes.at(0), naxes.at(1), naxes.size() > 2 ? naxes.at(2) : 0, AxisOrder::XY};
 }
 
 

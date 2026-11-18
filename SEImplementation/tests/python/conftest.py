@@ -20,6 +20,11 @@ def fits_with_primary():
 
 
 @pytest.fixture
+def fits_multiple_hdu():
+    return auxiliary('multiple_hdu.fits')
+
+
+@pytest.fixture
 def fits_file(fits_with_primary):
     return mi.cpp.FitsFile(fits_with_primary)
 

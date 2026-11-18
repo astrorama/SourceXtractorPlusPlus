@@ -49,13 +49,13 @@ std::shared_ptr<const Metadata> PyImageFile::getMetadataByIndex(int index) const
 }
 
 
-std::vector<int> PyImageFile::getDimensions(const std::string& name) const {
+Dimensions PyImageFile::getDimensions(const std::string& name) const {
   auto source = openImage(name);
   return {source->getWidth(), source->getHeight()};
 }
 
 
-std::vector<int> PyImageFile::getDimensionsByIndex(int index) const {
+Dimensions PyImageFile::getDimensionsByIndex(int index) const {
   auto source = openImage(index);
   return {source->getWidth(), source->getHeight()};
 }

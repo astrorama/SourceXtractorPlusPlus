@@ -229,10 +229,10 @@ class MeasurementConfig:
 
         dims = image_cube_file.get_dimensions(cube_hdu)
 
-        if len(dims) != 3:
+        if not dims.is_cube:
             raise ValueError("Not a data cube!")
 
-        cube_size = dims[2]
+        cube_size = dims.depth
         image_layer_list = range(cube_size)
         psf_hdu_list: Iterable[int]
         psf_file_list: Iterable[str] | Iterable[None]
@@ -272,9 +272,11 @@ class MeasurementConfig:
                 weight_hdu = weight_cube_hdu
 
             weight_dims = weight_fits_file.get_dimensions(weight_hdu)
-            if len(weight_dims) == 3:
+            if weight_dims.is_cube:
                 # handle weight as data cube
-                if dims[2] != cube_size:
+                # FIXME: this compares the image cube's depth to itself, so the
+                # weight cube's depth is never actually validated
+                if dims.depth != cube_size:
                     raise ValueError("The weight map cube doesn't match the image cube")
 
                 weight_file_list = repeat(weight_fits_file, cube_size)

@@ -10,6 +10,11 @@ from __future__ import annotations
 
 import enum
 from collections.abc import Iterator
+from typing import Any, TypeVar, overload
+
+from sourcextractor.dimensions import Dimensions
+
+_T = TypeVar('_T')
 
 
 class Flags(enum.IntEnum):
@@ -60,14 +65,37 @@ class _StringStringMap:
     def __iter__(self) -> Iterator[_StringStringMapEntry]: ...
 
 
-class FitsFile:
+class Metadata:
+    """Keyed metadata read from an image file; values keep their own types"""
+
+    def __getitem__(self, key: str) -> Any: ...
+    def __contains__(self, key: str) -> bool: ...
+    @overload
+    def get(self, key: str) -> Any | None: ...
+    @overload
+    def get(self, key: str, fallback: _T) -> Any | _T: ...
+
+
+class ImageFile:
     def __init__(self, filename: str) -> None: ...
     @property
     def filename(self) -> str: ...
+    @overload
+    def get_metadata(self, name: str) -> Metadata: ...
+    @overload
+    def get_metadata(self, index: int) -> Metadata: ...
+    @overload
+    def get_dimensions(self, name: str) -> Dimensions: ...
+    @overload
+    def get_dimensions(self, index: int) -> Dimensions: ...
+
+
+class FitsFile(ImageFile):
+    def __init__(self, filename: str) -> None: ...
     @property
     def image_hdus(self) -> list[int]: ...
     def get_headers(self, hdu: int) -> _StringStringMap: ...
-    def get_dimensions(self, hdu: int) -> list[int]: ...
+    def get_dimensions(self, hdu: int) -> Dimensions: ...  # type: ignore[override]
 
 
 class MeasurementImage(Id):

@@ -20,6 +20,8 @@
  */
 
 #include <boost/python/class.hpp>
+#include <boost/python/import.hpp>
+#include <boost/python/to_python_converter.hpp>
 #include <boost/python/enum.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -32,6 +34,8 @@
 #include <SEImplementation/PythonConfig/PyOutputWrapper.h>
 #include <SEImplementation/PythonConfig/PyFitsFile.h>
 #include <SEImplementation/PythonConfig/PyImageFile.h>
+
+#include "SEFramework/Image/Dimensions.h"
 
 
 namespace bp = boost::python;
@@ -70,6 +74,21 @@ bp::object metadataGetItem(const Metadata& metadata, const std::string& key) {
 bool metadataContains(const Metadata& metadata, const std::string& key) {
   return metadata.contains(key);
 }
+
+
+/// Hands Dimensions to Python as sourcextractor.dimensions.Dimensions
+struct DimensionsToPython {
+  static PyObject* convert(const Dimensions& dimensions) {
+    // Imported here rather than at module initialisation: sourcextractor
+    // imports from this module, which is not yet usable while it is being
+    // built
+    bp::object cls = bp::import("sourcextractor.dimensions").attr("Dimensions");
+    bp::object order(std::string(dimensions.getAxisOrder() == AxisOrder::XY ? "xy" : "yx"));
+    bp::object obj = cls(dimensions.getWidth(), dimensions.getHeight(),
+                         dimensions.getDepth(), order);
+    return bp::incref(obj.ptr());
+  }
+};
 
 }  // anonymous namespace
 
@@ -186,6 +205,8 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
           return m.contains(k) ? metadataGetItem(m, k) : bp::object();
         });
   bp::register_ptr_to_python<std::shared_ptr<const Metadata>>();
+
+  bp::to_python_converter<Dimensions, DimensionsToPython>();
 
   bp::class_<PyImageFile>("ImageFile", "An image file of any supported format, opened by "
       "SourceXtractor++", bp::init<const std::string&>())

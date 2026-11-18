@@ -44,7 +44,8 @@ public:
    */
   std::map<std::string, std::string> getHeaders(int hdu) const;
 
-  std::vector<int> getDimensions(int hdu) const;
+  /// The dimensions of one HDU, fastest axis first, as FITS reports them
+  Dimensions getDimensions(int hdu) const;
 
   /// As PyImageFile::getMetadataByIndex(), but the index is the absolute HDU
   std::shared_ptr<const Metadata> getMetadataByIndex(int hdu) const override;
