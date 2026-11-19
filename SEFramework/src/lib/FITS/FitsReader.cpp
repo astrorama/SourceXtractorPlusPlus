@@ -20,8 +20,13 @@
  * @author embray
  */
 
+#include <boost/algorithm/string.hpp>
+
 #include <ElementsKernel/Exception.h>
 
+#include "SEUtils/VariantCast.h"
+
+#include "SEFramework/FITS/FitsFile.h"
 #include "SEFramework/FITS/FitsReader.h"
 #include "SEFramework/Image/ImageFileReader.h"
 #include "SEFramework/Image/ImageSource.h"
@@ -110,6 +115,31 @@ std::shared_ptr<ImageSource> FitsReader::get(const std::string& extname,
 
 std::shared_ptr<FitsImageSource> FitsReader::getHdu(int hdu_num, ImageTile::ImageType image_type) {
   return std::make_shared<FitsImageSource>(m_filename, hdu_num, image_type);
+}
+
+
+std::vector<std::string> FitsReader::getImageNames() {
+  FitsFile file{m_filename, false};
+  std::vector<std::string> names;
+
+  for (auto hdu : file.getImageHdus()) {
+    const auto& headers = file.getHDUHeaders(hdu);
+    auto found = headers.find("EXTNAME");
+
+    // A primary HDU, and any extension that was written without one, has no
+    // EXTNAME and so can only be addressed by index
+    if (found == headers.end()) {
+      names.emplace_back();
+      continue;
+    }
+
+    // The raw value is padded out to the width of the card so trim it
+    auto name = VariantCast<std::string>(found->second.m_value);
+    boost::trim(name);
+    names.push_back(name);
+  }
+
+  return names;
 }
 
 

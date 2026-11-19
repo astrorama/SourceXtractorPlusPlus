@@ -25,6 +25,11 @@ def fits_multiple_hdu():
 
 
 @pytest.fixture
+def asdf_multiple_hdu():
+    return auxiliary('multiple_hdu.asdf')
+
+
+@pytest.fixture
 def asdf_metadata_file():
     return auxiliary('metadata.asdf')
 

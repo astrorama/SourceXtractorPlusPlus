@@ -54,6 +54,14 @@ public:
   /// The name of the file's format, e.g. "fits" or "asdf"
   std::string getFormat() const;
 
+  /**
+   * The names by which the images in this file can be addressed, in file order
+   *
+   * An image with no name of its own gets an empty entry.  For a FITS file the
+   * entries line up with image_hdus.
+   */
+  std::vector<std::string> getImageNames() const;
+
   /// The metadata of one image in the file
   std::shared_ptr<const Metadata> getMetadata(const std::string& name) const;
 

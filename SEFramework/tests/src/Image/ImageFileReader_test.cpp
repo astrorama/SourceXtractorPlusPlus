@@ -81,7 +81,54 @@ BOOST_FIXTURE_TEST_CASE(format_ignores_a_misleading_extension,
   BOOST_CHECK_EQUAL(ImageFileReader::create(path)->getFormat(), "fits");
 }
 
+//-----------------------------------------------------------------------------
+
+/// multiple_hdu.fits is [PRIMARY (no data), COMPRESSED_IMAGE, TABLE, IMAGE2]
+BOOST_FIXTURE_TEST_CASE(image_names_are_the_extnames, ImageFileReaderFixture) {
+  auto names = ImageFileReader::create(fits_path)->getImageNames();
+
+  BOOST_REQUIRE_EQUAL(names.size(), 2);
+  BOOST_CHECK_EQUAL(names[0], "COMPRESSED_IMAGE");
+  BOOST_CHECK_EQUAL(names[1], "IMAGE2");
+}
+
+//-----------------------------------------------------------------------------
+
+/// Each name has to be usable with get(), so the card padding must be gone
+BOOST_FIXTURE_TEST_CASE(image_names_resolve, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+
+  for (const auto& name : reader->getImageNames()) {
+    BOOST_REQUIRE(!name.empty());
+    BOOST_CHECK(reader->get(name, ImageTile::FloatImage) != nullptr);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/// A primary HDU has no EXTNAME, and is reachable only by index
+BOOST_FIXTURE_TEST_CASE(image_names_empty_for_an_unnamed_hdu,
+                        ImageFileReaderFixture) {
+  auto path = Elements::getAuxiliaryPath("with_primary.fits").native();
+  auto names = ImageFileReader::create(path)->getImageNames();
+
+  BOOST_REQUIRE_EQUAL(names.size(), 1);
+  BOOST_CHECK_EQUAL(names[0], "");
+}
+
 #ifdef WITH_ASDF
+
+//-----------------------------------------------------------------------------
+
+/// For ASDF the names are the tree paths of the candidate ndarrays, which is
+/// the only way to pick one when the file holds more than one
+BOOST_FIXTURE_TEST_CASE(asdf_image_names_are_tree_paths, ImageFileReaderFixture) {
+  auto names = ImageFileReader::create(asdf_path)->getImageNames();
+
+  BOOST_REQUIRE_EQUAL(names.size(), 2);
+  BOOST_CHECK_EQUAL(names[0], "/IMAGE");
+  BOOST_CHECK_EQUAL(names[1], "/IMAGE2");
+}
 
 //-----------------------------------------------------------------------------
 

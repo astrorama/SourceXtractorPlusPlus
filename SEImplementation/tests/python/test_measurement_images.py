@@ -33,6 +33,50 @@ class TestImageFile:
         tiny.write_bytes(b'#ASDF 1.0.0\n')
         assert mi.cpp.ImageFile(str(tiny)).format == 'asdf'
 
+    def test_image_names_fits(self, fits_multiple_hdu):
+        """A FITS image is named by its EXTNAME"""
+        names = mi.cpp.ImageFile(fits_multiple_hdu).image_names
+        assert names == ('COMPRESSED_IMAGE', 'IMAGE2')
+        assert isinstance(names, tuple)
+
+    def test_image_names_are_trimmed(self, fits_multiple_hdu):
+        """The raw EXTNAME value is padded out to the width of the card"""
+        for name in mi.cpp.ImageFile(fits_multiple_hdu).image_names:
+            assert name == name.strip()
+
+    def test_image_names_resolve(self, fits_multiple_hdu):
+        """Every non-empty name is accepted by the by-name accessors"""
+        image_file = mi.cpp.ImageFile(fits_multiple_hdu)
+        for name in image_file.image_names:
+            assert image_file.get_dimensions(name).width > 0
+
+    def test_image_names_empty_for_an_unnamed_hdu(self, fits_with_primary):
+        """A primary HDU has no EXTNAME, so it can only be reached by index"""
+        assert mi.cpp.ImageFile(fits_with_primary).image_names == ('',)
+
+    def test_image_names_line_up_with_image_hdus(self, fits_file,
+                                                 fits_multiple_hdu):
+        """On a FITS file the two lists describe the same images, in order"""
+        multiple = mi.cpp.FitsFile(fits_multiple_hdu)
+        assert len(multiple.image_names) == len(list(multiple.image_hdus))
+        assert len(fits_file.image_names) == len(list(fits_file.image_hdus))
+
+    def test_image_names_asdf(self, asdf_multiple_hdu):
+        """For ASDF the names are tree paths of candidate ndarrays"""
+        assert mi.cpp.ImageFile(asdf_multiple_hdu).image_names == ('/IMAGE', '/IMAGE2')
+
+    def test_image_names_asdf_is_how_you_disambiguate(self, asdf_multiple_hdu):
+        """
+        An ASDF file with more than one candidate refuses to guess, so the
+        names are the only way to pick one
+        """
+        image_file = mi.cpp.ImageFile(asdf_multiple_hdu)
+        with raises(RuntimeError, match='nothing in the file says which one'):
+            image_file.get_dimensions(0)
+
+        for name in image_file.image_names:
+            assert image_file.get_dimensions(name).width > 0
+
 
 class TestMeasurementImage:
     def test_property_setters(self, fits_with_primary) -> None:

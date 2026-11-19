@@ -34,6 +34,11 @@ std::string PyImageFile::getFormat() const {
 }
 
 
+std::vector<std::string> PyImageFile::getImageNames() const {
+  return ImageFileReader::create(m_filename)->getImageNames();
+}
+
+
 std::shared_ptr<ImageSource> PyImageFile::openImage(const std::string& name) const {
   return ImageFileReader::create(m_filename)->get(name);
 }

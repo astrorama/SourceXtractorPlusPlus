@@ -53,6 +53,9 @@ public:
                                    ImageTile::ImageType image_type = ImageTile::AutoType) override;
   std::shared_ptr<ImageSource> get(const std::string& image_path,
                                    ImageTile::ImageType image_type = ImageTile::AutoType) override;
+
+  /// The tree paths of every ndarray that could be an image
+  std::vector<std::string> getImageNames() override;
 }; /* End of AsdfReader class */
 
 } /* namespace SourceXtractor */

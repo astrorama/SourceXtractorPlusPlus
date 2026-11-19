@@ -116,6 +116,17 @@ public:
     return m_format;
   }
 
+  /**
+   * The names by which the images in this file can be addressed, in file order
+   *
+   * Each name is accepted by get(const std::string&).  An image that has no
+   * name gets an empty entry, which can only be reached by index.  Names are
+   * the format's own: a FITS EXTNAME, or an ASDF tree path, etc.
+   */
+  virtual std::vector<std::string> getImageNames() {
+    return {};
+  }
+
   /* ImageFileReader iterator interface */
   class Iterator {
   public:

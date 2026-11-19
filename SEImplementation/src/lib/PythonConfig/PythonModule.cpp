@@ -22,6 +22,7 @@
 #include <boost/python/class.hpp>
 #include <boost/python/import.hpp>
 #include <boost/python/to_python_converter.hpp>
+#include <boost/python/tuple.hpp>
 #include <boost/python/enum.hpp>
 #include <boost/python/module.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
@@ -74,6 +75,18 @@ bp::object metadataGetItem(const Metadata& metadata, const std::string& key) {
 bool metadataContains(const Metadata& metadata, const std::string& key) {
   return metadata.contains(key);
 }
+
+
+/// Hands a vector of strings to Python as a tuple, rather than a Boost wrapper
+struct StringVectorToPython {
+  static PyObject* convert(const std::vector<std::string>& strings) {
+    bp::list items;
+    for (const auto& string : strings) {
+      items.append(string);
+    }
+    return bp::incref(bp::tuple(items).ptr());
+  }
+};
 
 
 /// Hands Dimensions to Python as sourcextractor.dimensions.Dimensions
@@ -206,11 +219,14 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
         });
   bp::register_ptr_to_python<std::shared_ptr<const Metadata>>();
 
+  bp::to_python_converter<std::vector<std::string>, StringVectorToPython>();
   bp::to_python_converter<Dimensions, DimensionsToPython>();
 
   bp::class_<PyImageFile>("ImageFile", "An image file of any supported format, opened by "
       "SourceXtractor++", bp::init<const std::string&>())
     .def_readonly("filename", &PyImageFile::getFilename)
+    .def_readonly("image_names", &PyImageFile::getImageNames,
+                  "names of the images in the file, in file order")
     .def_readonly("format", &PyImageFile::getFormat,
                   "name of the file's format, e.g. \"fits\" or \"asdf\"")
     .def("get_metadata", &PyImageFile::getMetadata, "metadata of the named image")

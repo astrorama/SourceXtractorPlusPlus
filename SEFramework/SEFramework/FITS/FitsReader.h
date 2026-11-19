@@ -59,6 +59,9 @@ public:
   std::shared_ptr<FitsImageSource> getHdu(int hdu_num,
                                           ImageTile::ImageType image_type = ImageTile::AutoType);
 
+  /// The EXTNAME of each image HDU, empty for an HDU that has none
+  std::vector<std::string> getImageNames() override;
+
 private:
   std::map<int, int> m_image_hdu_map;
 

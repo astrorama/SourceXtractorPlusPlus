@@ -94,6 +94,12 @@ std::shared_ptr<ImageSource> AsdfReader::get(const std::string& extname,
 }
 
 
+std::vector<std::string> AsdfReader::getImageNames() {
+  AsdfFile file{m_filename};
+  return file.getImageNdarrayPaths();
+}
+
+
 static ImageFileReader::StaticFileType<AsdfReader> asdf_reader{
   "asdf",
   {"asdf"}
