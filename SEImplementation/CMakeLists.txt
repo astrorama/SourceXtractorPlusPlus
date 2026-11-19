@@ -228,6 +228,12 @@ elements_add_unit_test(AssocMode_test tests/src/Plugin/AssocMode/AssocMode_test.
 #===============================================================================
 elements_install_python_modules()
 
+# Elements globs tests/python/*.py at configure time, so added or removed test
+# modules are not picked up unless that modifications to that directory
+# trigger a reconfigure (arguably a bug in Elements)
+file(GLOB _tests_python_modules CONFIGURE_DEPENDS
+     ${CMAKE_CURRENT_SOURCE_DIR}/tests/python/*.py)
+
 #===============================================================================
 # Add the elements_install_conf_files macro
 # Examples:

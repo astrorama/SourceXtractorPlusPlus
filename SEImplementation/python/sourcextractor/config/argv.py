@@ -16,10 +16,12 @@
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
+from collections.abc import Iterator
 from glob import glob
+from typing import Any
 
 
-class Arguments(object):
+class Arguments:
     """
     This helper class automatically parses the arguments received by the Python script via
     sys.argv, using the set of key-value parameters received on its constructor to cast the types
@@ -55,11 +57,19 @@ class Arguments(object):
         If additional unknown parameters are received
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         """
         Constructor.
         """
-        argv = dict([arg.split('=', 1) if '=' in arg else (arg, True) for arg in sys.argv[1:]])
+
+        def split_kv(s: str) -> tuple[str, str | bool]:
+            if '=' in s:
+                k, v = s.split('=', 1)
+                return (k, v)
+
+            return (s, True)
+
+        argv = dict(split_kv(arg) for arg in sys.argv[1:])
 
         self.__args = dict()
         for arg_name, arg_spec in kwargs.items():
@@ -77,15 +87,15 @@ class Arguments(object):
                 try:
                     self.__args[arg_name] = arg_type(argv[arg_name])
                 except ValueError:
-                    raise ValueError('Invalid value for {}: {}'.format(arg_name, argv[arg_name]))
+                    raise ValueError(f'Invalid value for {arg_name}: {argv[arg_name]}')
                 argv.pop(arg_name)
             else:
                 self.__args[arg_name] = arg_default
 
         if len(argv) != 0:
-            raise KeyError('Unknown parameters found: {}'.format(', '.join(argv.keys())))
+            raise KeyError(f'Unknown parameters found: {", ".join(argv)}')
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str) -> Any:
         """
 
         Parameters
@@ -102,11 +112,19 @@ class Arguments(object):
         AttributeError
             If item has not been defined on construction
         """
+
+        # Case for the arguments holder itself
+        if item == '_Arguments__args':
+            args: dict[str, Any] = {}
+            self.__args = args
+            return args
+
         if item not in self.__args:
             raise AttributeError(item)
+
         return self.__args[item]
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -115,7 +133,7 @@ class Arguments(object):
         """
         return str(self.__args)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns
         -------
@@ -125,7 +143,7 @@ class Arguments(object):
         return repr(self.__args)
 
 
-class FileList(object):
+class FileList:
     """
     Helper class for receiving a globing pattern as a parameter, defining a list of files
     - i.e. measurement images or PSFs.
@@ -143,13 +161,13 @@ class FileList(object):
         glob.glob : Return a list of paths matching a pathname pattern.
     """
 
-    def __init__(self, value):
+    def __init__(self, value: str) -> None:
         """
         Constructor.
         """
         self.__files = sorted(glob(value))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """
         Returns
         -------
@@ -157,7 +175,7 @@ class FileList(object):
         """
         return iter(self.__files)
 
-    def __len__(self):
+    def __len__(self) -> int:
         """
         Returns
         -------
@@ -166,7 +184,7 @@ class FileList(object):
         """
         return len(self.__files)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         Returns
         -------
@@ -175,7 +193,7 @@ class FileList(object):
         """
         return str(self.__files)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Returns
         -------
