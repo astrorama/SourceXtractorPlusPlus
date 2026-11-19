@@ -1,5 +1,8 @@
 import shutil
 
+import numpy as np
+import pytest
+from astropy.io import fits
 from pytest import raises
 
 from sourcextractor.config import measurement_images as mi
@@ -95,3 +98,73 @@ class TestMeasurementImage:
         im.gain = 42
         assert isinstance(im.gain, float)
         assert im.gain == 42.0
+
+    def test_gain_from_the_keyword(self, fits_with_primary):
+        assert MeasurementImage(fits_with_primary).gain == 42.0
+
+    def test_gain_from_an_asdf_tree_path(self, asdf_metadata_file):
+        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+                                 gain_keyword='/meta/gain')
+        assert image.gain == 2.5
+
+    def test_explicit_gain_wins(self, fits_with_primary):
+        assert MeasurementImage(fits_with_primary, gain=7.).gain == 7.0
+
+    def test_missing_gain_warns(self, tmp_path):
+        path = str(tmp_path / 'no_gain.fits')
+        fits.HDUList([fits.PrimaryHDU(np.zeros((2, 2), dtype=np.float32))]).writeto(path)
+
+        with pytest.warns(UserWarning, match="has no 'GAIN'; falling back to 0"):
+            image = MeasurementImage(path)
+        assert image.gain == 0.
+
+    def test_accepts_a_path(self, fits_with_primary):
+        assert MeasurementImage(fits_with_primary).file == fits_with_primary
+
+    def test_accepts_an_image_file(self, fits_file, fits_with_primary):
+        assert MeasurementImage(fits_file).file == fits_with_primary
+
+    def test_accepts_an_asdf_file(self, asdf_metadata_file):
+        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+                                 gain_keyword='/meta/gain')
+        assert image.file == asdf_metadata_file
+        assert image.image_name == '/data'
+
+    def test_requires_an_image_file(self):
+        with raises(TypeError, match='requires an image file'):
+            MeasurementImage()
+
+    def test_rejects_negative_hdus(self, fits_with_primary):
+        with raises(ValueError, match='HDU indices start at 0'):
+            MeasurementImage(fits_with_primary, image_hdu=-1)
+
+    def test_fits_meta_is_a_stringified_dict(self, fits_with_primary):
+        meta = MeasurementImage(fits_with_primary).meta
+        assert isinstance(meta, dict)
+        assert meta['GAIN'] == '42'
+
+    def test_fits_meta_keeps_the_synthetic_filename_entries(self, fits_with_primary):
+        meta = MeasurementImage(fits_with_primary).meta
+        assert meta['IMAGE_FILENAME'] == fits_with_primary
+        assert meta['PSF_FILENAME'] == ''
+        assert meta['WEIGHT_FILENAME'] == ''
+
+    def test_asdf_meta_is_a_metadata_instance(self, asdf_metadata_file):
+        meta = MeasurementImage(asdf_metadata_file, image_name='/data',
+                                gain_keyword='/meta/gain').meta
+        assert isinstance(meta, mi.cpp.Metadata)
+        assert meta['/meta/gain'] == 2.5
+        assert isinstance(meta['/meta/gain'], float)
+
+    def test_is_cached(self, fits_with_primary):
+        image = MeasurementImage(fits_with_primary)
+        assert image.meta is image.meta
+
+    def test_an_unnamed_ambiguous_asdf_file_is_refused(self, asdf_multiple_hdu):
+        """
+        The refusal to guess which array is the image comes from the C++ layer,
+        and normally arrives during construction: resolving saturation and
+        flux_scale from their keywords is itself what first needs the metadata
+        """
+        with raises(RuntimeError, match='nothing in the file says which one'):
+            MeasurementImage(asdf_multiple_hdu, gain=1.)

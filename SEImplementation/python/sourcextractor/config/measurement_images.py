@@ -20,12 +20,14 @@ from __future__ import annotations
 import os
 import re
 import sys
+import warnings
 from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
 
 import _SourceXtractorPy as cpp
 
 from collections import defaultdict
+from functools import cached_property
 from io import StringIO
 
 if TYPE_CHECKING:
@@ -124,12 +126,12 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
 
     Parameters
     ----------
-    fits_file : str or FitsFile object
-        The path to a FITS image, or an instance of FitsFile
+    image_file : str or FitsFile
+        The path to a FITS file or ASDF file containing the image, or an instance of `FitsFile`
     psf_file : str
         The path to a PSF. It can be either a FITS image, or a PSFEx model.
     weight_file : str or FitsFile
-        The path to a FITS image with the pixel weights, or an instance of FitsFile
+        The path to a FITS image with the pixel weights, or an instance of `FitsFile`
     gain : float
         Image gain. If None, `gain_keyword` will be used instead.
     gain_keyword : str
@@ -174,10 +176,46 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
     psf_renormalize : bool
         If True, the PSF will be renormalized to have a total flux of 1.0. Default True
+    image_name : str
+        Names the image within the file, where the meaning of the name is the format's own: an
+        ASDF tree path such as ``/roman/data``, or a FITS ``EXTNAME``. Takes precedence over
+        `image_hdu`. An ASDF file holding more than one candidate array has to be named so as
+        to avoid ambiguity.
+    psf_name : str
+        As `image_name`, for the PSF.
+    weight_name : str
+        As `image_name`, for the weight image.
+    wcs_name : str
+        Names the coordinate system to use, for a format that may hold several with no fixed
+        association to the image arrays. That is the case for ASDF; ignored for FITS.
+
+        .. versionadded:: 1.2.0
+            `image_name`, `psf_name`, `weight_name` and `wcs_name`, for addressing an image
+            within a file by name rather than by HDU number.
+
+    Notes
+    -----
+    `gain` defaults to 0 when neither it nor `gain_keyword` yields a value, which is warned about
+    because it leaves the photometric errors wrong. The `saturation` and `flux_scale` defaults mean
+    "no saturation limit" and "no scaling", so they are taken silently.
+
+    .. versionchanged:: 1.2.0
+        The first parameter was renamed from ``fits_file`` to `image_file`, since it now accepts
+        other formats. ``fits_file`` still works as a keyword argument, with a
+        `DeprecationWarning`, and rejects anything that is not FITS.
+
+    .. versionchanged:: 1.2.0
+        Falling back to a `gain` of 0 now warns. It was previously silent.
+
+    .. versionchanged:: 1.2.0
+        `meta` is built on first use rather than in the constructor, and for a format other than
+        FITS it is the `Metadata` object itself, whose keys are the format's own and whose values
+        keep their types, rather than a dict of stringified FITS headers.
     """
 
-    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
-                 weight_file: str | FitsFile | None = None,
+    def __init__(self, image_file: str | cpp.ImageFile | None = None,
+                 psf_file: str | None = None,
+                 weight_file: str | cpp.ImageFile | None = None,
                  gain: float | None = None, gain_keyword: str = 'GAIN',
                  saturation: float | None = None, saturation_keyword: str = 'SATURATE',
                  flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
@@ -185,57 +223,47 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
                  weight_scaling: float = 1., weight_threshold: float | None = None,
                  constant_background: float | None = None, image_hdu: int = 0,
                  psf_hdu: int | None = None, weight_hdu: int | None = None,
-                 psf_renormalize: bool = True) -> None:
+                 psf_renormalize: bool = True, image_name: str = '',
+                 psf_name: str = '', weight_name: str = '', wcs_name: str = '',
+                 *,
+                 fits_file: str | cpp.ImageFile | None = None) -> None:
         """
         Constructor.
         """
-        if isinstance(fits_file, FitsFile):
-            hdu_list = fits_file
-            file_path = fits_file.filename
-        else:
-            hdu_list = FitsFile(fits_file)
-            file_path = fits_file
+        if fits_file is not None:
+            if image_file is not None:
+                raise TypeError('pass the image as image_file; fits_file is a '
+                                'deprecated alias for it')
+            warnings.warn('the fits_file argument is deprecated; use image_file',
+                          DeprecationWarning, stacklevel=2)
+            image_file = fits_file
 
-        if isinstance(weight_file, FitsFile):
-            weight_file = weight_file.filename
+        if image_file is None:
+            raise TypeError('MeasurementImage requires an image file')
+
+        file_path = _filename_of(image_file)
+        self._image_format = cpp.ImageFile(file_path).format
+
+        if fits_file is not None and self._image_format != 'fits':
+            raise ValueError(f'{file_path} is not a FITS file; the deprecated '
+                             f'fits_file argument accepts only FITS')
 
         super().__init__(os.path.abspath(file_path),
                          os.path.abspath(psf_file) if psf_file else '',
-                         os.path.abspath(weight_file) if weight_file else '')
+                         os.path.abspath(_filename_of(weight_file)) if weight_file else '')
 
         if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (
                 psf_hdu is not None and psf_hdu < 0):
             raise ValueError('HDU indices start at 0')
 
-        self.meta = {
-            'IMAGE_FILENAME': self.file,
-            'PSF_FILENAME': self.psf_file,
-            'WEIGHT_FILENAME': self.weight_file
-        }
+        self.image_name = image_name
+        self.psf_name = psf_name
+        self.weight_name = weight_name
+        self.wcs_name = wcs_name
 
-        self.meta.update(hdu_list.get_headers(image_hdu))
-
-        if gain is not None:
-            self.gain = gain
-        elif gain_keyword in self.meta:
-            self.gain = float(self.meta[gain_keyword])
-        else:
-            self.gain = 0.
-
-        if saturation is not None:
-            self.saturation = saturation
-        elif saturation_keyword in self.meta:
-            self.saturation = float(self.meta[saturation_keyword])
-        else:
-            self.saturation = 0.
-
-        if flux_scale is not None:
-            self.flux_scale = flux_scale
-        elif flux_scale_keyword in self.meta:
-            self.flux_scale = float(self.meta[flux_scale_keyword])
-        else:
-            self.flux_scale = 1.
-
+        self.gain = self._from_keyword(gain, gain_keyword, 0., 'gain')
+        self.saturation = self._from_keyword(saturation, saturation_keyword, 0.)
+        self.flux_scale = self._from_keyword(flux_scale, flux_scale_keyword, 1.)
         self.weight_type = weight_type
         self.weight_absolute = weight_absolute
         self.weight_scaling = weight_scaling
@@ -266,6 +294,34 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
 
         self.psf_renormalize = psf_renormalize
 
+    @cached_property
+    def meta(self) -> dict[str, str] | cpp.Metadata:
+        """
+        Metadata of the selected image, read from the file on first use
+
+        For FITS this is a dict of the stringified headers plus three synthetic
+        filename entries.  For every other file format it is the `Metadata`
+        object which wraps the file format-specific metadata.
+
+        .. note::
+
+            The asymmetry of this property is historical: previously metadata
+            from FITS keywords were all converted to strings and returned as
+            a dict.  This decision is debateable in how it loses type
+            information, from the original FITS keywords, but is kept for
+            backwards compatibility.
+        """
+        if self._image_format == 'fits':
+            meta: dict[str, str] = {
+                'IMAGE_FILENAME': self.file,
+                'PSF_FILENAME': self.psf_file,
+                'WEIGHT_FILENAME': self.weight_file
+            }
+            meta.update(FitsFile(self.file).get_headers(self.image_hdu))
+            return meta
+
+        return cpp.ImageFile(self.file).get_metadata(self.image_name or self.image_hdu)
+
     def __str__(self) -> str:
         """
         Returns
@@ -276,6 +332,27 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         return (f'Image {self.id}: {self.file} / {self.image_hdu}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
                 f'Weight: {self.weight_file} / {self.weight_hdu}')
+
+    def _from_keyword(self, given: float | None, keyword: str, default: float,
+                      warn_missing: str | None = None) -> float:
+        """
+        Use the given value; failing that look it up in the metadata under
+        keyword; failing that fall back on default, warning first if
+        warn_missing names what was missing
+        """
+
+        if given is not None:
+            return given
+
+        if keyword not in self.meta:
+            if warn_missing:
+                warnings.warn(f'no {warn_missing} given for {self.file}, and '
+                              f'its metadata has no {keyword!r}; falling back '
+                              f'to {default}', stacklevel=3)
+
+            return default
+
+        return float(self.meta[keyword])
 
 
 class DataCubeSlice(MeasurementImage):
@@ -834,3 +911,15 @@ class MeasurementGroup:
         string = StringIO()
         self.print(show_images=True, file=string)
         return string.getvalue()
+
+
+def _filename_of(image_file: str | cpp.ImageFile) -> str:
+    """
+    Helper to get the path of an image file given either as a path or as an
+    `ImageFile`
+    """
+
+    if isinstance(image_file, cpp.ImageFile):
+        return image_file.filename
+
+    return image_file
