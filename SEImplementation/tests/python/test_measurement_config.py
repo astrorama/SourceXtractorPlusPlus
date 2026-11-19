@@ -34,7 +34,7 @@ def other_single(tmp_path):
     return write_mef(tmp_path / 'other_single.fits', 1)
 
 
-class TestLoadFitsImages:
+class TestMeasurementConfig:
     def test_list_of_images_without_psfs_or_weights(self, config, single,
                                                     other_single):
         """
@@ -62,7 +62,6 @@ class TestLoadFitsImages:
         assert len(group) == 1
 
 
-class TestLoadFitsImageWeightMismatch:
     def test_shorter_weight_mef_is_rejected(self, config, tmp_path):
         """
         A weight MEF with fewer image HDUs than the image file used to be
@@ -80,3 +79,65 @@ class TestLoadFitsImageWeightMismatch:
 
         group = config.load_fits_image(image, weight=weight)
         assert len(group) == 3
+
+    def test_one_image(self, config, asdf_metadata_file):
+        """An ASDF file yields exactly one image, named unless it is unambiguous"""
+        group = config.load_asdf_image(asdf_metadata_file, image_name='/data',
+                                       gain_keyword='/meta/gain')
+        assert len(group) == 1
+        image, = group.images()
+        assert image.image_name == '/data'
+        assert image.gain == 2.5
+
+    def test_unambiguous_file_needs_no_name(self, asdf_metadata_file, config):
+        """metadata.asdf holds a single candidate array"""
+        group = config.load_asdf_image(asdf_metadata_file,
+                                       gain_keyword='/meta/gain')
+        assert len(group) == 1
+
+    def test_ambiguous_file_is_refused(self, config, asdf_multiple_hdu):
+        with pytest.raises(RuntimeError, match='nothing in the file says which one'):
+            config.load_asdf_image(asdf_multiple_hdu, gain=1.)
+
+    def test_registers_the_image(self, config, asdf_metadata_file):
+        group = config.load_asdf_image(asdf_metadata_file, image_name='/data',
+                                       gain=1.)
+        image, = group.images()
+        assert config.measurement_images[image.id] is image
+
+    def test_one_image_per_file(self, config, asdf_metadata_file,
+                                asdf_multiple_hdu):
+        group = config.load_asdf_images([asdf_metadata_file, asdf_multiple_hdu],
+                                        image_names=['/data', '/IMAGE'], gain=1.)
+        assert len(group) == 2
+        assert [im.image_name for im in group.images()] == ['/data', '/IMAGE']
+
+    def test_singular_name_broadcasts(self, config, asdf_multiple_hdu):
+        """One layout shared by every file is the common case"""
+        group = config.load_asdf_images([asdf_multiple_hdu, asdf_multiple_hdu],
+                                        image_name='/IMAGE2', gain=1.)
+        assert [im.image_name for im in group.images()] == ['/IMAGE2', '/IMAGE2']
+
+    def test_singular_and_plural_are_mutually_exclusive(self, config,
+                                                        asdf_multiple_hdu):
+        with pytest.raises(ValueError,
+                           match='Pass either image_name or image_names'):
+            config.load_asdf_images([asdf_multiple_hdu], image_name='/IMAGE',
+                                    image_names=['/IMAGE'], gain=1.)
+
+    def test_mismatched_plural_is_rejected(self, config, asdf_multiple_hdu):
+        with pytest.raises(ValueError,
+                           match='number of image files and image_names'):
+            config.load_asdf_images([asdf_multiple_hdu, asdf_multiple_hdu],
+                                    image_names=['/IMAGE'], gain=1.)
+
+    def test_weight_names_follow_the_same_rule(self, config, asdf_multiple_hdu):
+        group = config.load_asdf_images([asdf_multiple_hdu, asdf_multiple_hdu],
+                                        image_name='/IMAGE',
+                                        weight_names=['/IMAGE2', '/IMAGE'],
+                                        gain=1.)
+        assert [im.weight_name for im in group.images()] == ['/IMAGE2', '/IMAGE']
+
+    def test_empty_list_is_rejected(self, config):
+        with pytest.raises(ValueError, match='An empty list passed'):
+            config.load_asdf_images([])
