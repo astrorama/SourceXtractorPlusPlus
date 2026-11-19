@@ -17,8 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 import sys
 from collections.abc import Iterable, Sequence
-from itertools import repeat, zip_longest
-from typing import Any, IO, TypeAlias, cast
+from itertools import repeat
+from typing import Any, IO, TypeAlias, cast, overload
 
 import _SourceXtractorPy as cpp
 
@@ -179,14 +179,11 @@ class MeasurementConfig:
             if len(images) == 0:
                 raise ValueError("An empty list passed to load_fits_images")
 
-            if not isinstance(psfs, list) or len(psfs) != len(images):
-                raise ValueError("The number of image files and psf files must match!")
-
-            if not isinstance(weights, list) or len(weights) != len(images):
-                raise ValueError("The number of image files and weight files must match!")
+            psf_list = _one_per_image(psfs, len(images), "psf")
+            weight_list = _one_per_image(weights, len(images), "weight")
 
             groups = []
-            for f, p, w in zip_longest(images, psfs, weights):
+            for f, p, w in zip(images, psf_list, weight_list, strict=True):
                 groups.append(self.load_fits_image(f, p, w, **kwargs))
 
             image_list: list[MeasurementImage] = []
@@ -473,3 +470,36 @@ class MeasurementConfig:
 
 
 global_measurement_config = MeasurementConfig()
+"""Single `MeasurementConfig` instance used by the global functions"""
+
+
+@overload
+def _one_per_image(files: None, count: int, what: str) -> list[None]: ...
+@overload
+def _one_per_image(files: list[str], count: int, what: str) -> list[str]: ...
+def _one_per_image(files: list[str] | None, count: int, what: str) -> list[str] | list[None]:  # noqa: E302
+    """
+    Normalize an optional list of auxiliary files to one entry per image
+
+    Parameters
+    ----------
+    files : list of str, or None
+        The psfs or weights argument as the caller gave it.
+    count : int
+        How many images they have to match.
+    what : str
+        Named in the error message, e.g. 'psf'.
+
+    Raises
+    ------
+    ValueError
+        If a list was given and its length does not match.
+    """
+
+    if files is None:
+        return [None] * count
+
+    if not isinstance(files, list) or len(files) != count:
+        raise ValueError(f"The number of image files and {what} files must match!")
+
+    return list(files)
