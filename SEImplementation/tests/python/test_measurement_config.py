@@ -60,3 +60,23 @@ class TestLoadFitsImages:
     def test_a_single_image_is_not_a_list(self, config, single):
         group = config.load_fits_images(single)
         assert len(group) == 1
+
+
+class TestLoadFitsImageWeightMismatch:
+    def test_shorter_weight_mef_is_rejected(self, config, tmp_path):
+        """
+        A weight MEF with fewer image HDUs than the image file used to be
+        zipped silently, dropping the images that had no weight
+        """
+        image = write_mef(tmp_path / 'image3.fits', 3)
+        weight = write_mef(tmp_path / 'weight2.fits', 2)
+
+        with pytest.raises(ValueError, match='weight'):
+            config.load_fits_image(image, weight=weight)
+
+    def test_matching_weight_mef_is_accepted(self, config, tmp_path):
+        image = write_mef(tmp_path / 'image3b.fits', 3)
+        weight = write_mef(tmp_path / 'weight3.fits', 3)
+
+        group = config.load_fits_image(image, weight=weight)
+        assert len(group) == 3
