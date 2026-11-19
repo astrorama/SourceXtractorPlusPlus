@@ -95,7 +95,7 @@ The source package may be downloaded from the official `GitHub repository <https
 Links to binary packages for a selection of operating systems are also available at the URL above.
 
 Software requirements
-_____________________
+=====================
 
 |SourceXtractor++| relies on the |Elements|_ and |Alexandria|_ packages, which may be downloaded from `Astrorama  <https://github.com/astrorama>`_ repositories.
 They are also available in Fedora and EPEL as ``elements`` and ``elements-alexandria``.
@@ -135,7 +135,7 @@ If you have installed Elements and Alexandria from your distribution repository 
 
 
 Installing Elements and Alexandria
-__________________________________
+==================================
 
 Elements is a C++ and CMake framework. It is capable of managing the dependencies
 of projects based on CMake as long as it knows where to find them.
@@ -179,7 +179,7 @@ Similarly for Alexandria:
   $ make install -j
 
 Installation
-____________
+============
 
 If you have compiled and installed Elements and Alexandria as described on the above section, make sure you are using the proper environment.
 

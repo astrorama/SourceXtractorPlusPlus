@@ -3,6 +3,6 @@
 
 .. automodule:: config.model_fitting
    :members:
-   :inherited-members:
+   :inherited-members: int, object
    :show-inheritance:
 

@@ -18,6 +18,8 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../../SEImplementation/python/sourcextractor'))
 
+from importlib.metadata import entry_points
+
 import sphinx_rtd_theme
 
 
@@ -80,7 +82,7 @@ release = '1.0.0'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:
@@ -150,7 +152,10 @@ html_theme = 'sphinx_rtd_theme'
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# Since 0.5.0 the theme registers itself under the sphinx.html_themes entry
+# point, so Sphinx finds it unaided and get_html_theme_path() only warns
+if 'sphinx_rtd_theme' not in {ep.name for ep in entry_points(group='sphinx.html_themes')}:
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.
 # "<project> v<release> documentation" by default.
@@ -466,7 +471,7 @@ intersphinx_mapping = {'https://docs.python.org/': None}
 
 # -- Options for pybtex ----------------------------------------------
 bibtex_bibfiles = ["references.bib"]
-    
+
 from packaging import version as vers
 from pybtex import __version__ as pybtex_version
 from pybtex.style.formatting.unsrt import Style as UnsrtStyle, date, pages, toplevel
