@@ -136,10 +136,16 @@ class MeasurementConfig:
                 weight_hdu_list = [kwargs.pop("weight_hdu")] * len(image_hdu_list)
             else:
                 weight_hdu_list = weight.hdu_list
+                if len(weight_hdu_list) != len(image_hdu_list):
+                    raise ValueError(
+                        f"The weight file has {len(weight_hdu_list)} image HDUs but the "
+                        f"image file has {len(image_hdu_list)}; the number of weight "
+                        f"files must match the number of images!")
             weight_file_list = [weight] * len(image_hdu_list)
 
         image_list = []
-        it = zip(image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list)
+        it = zip(image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list,
+                 weight_hdu_list, strict=True)
         for hdu, psf_file, psf_hdu, weight_file, weight_hdu in it:
             image_list.append(MeasurementImage(image_file, psf_file, weight_file,
                                                image_hdu=hdu, psf_hdu=psf_hdu,
