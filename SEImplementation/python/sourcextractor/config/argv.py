@@ -34,10 +34,10 @@ class Arguments(object):
         key1 = 32.
         key2 = float
 
-        For the first case - a value -, if no value is passed via sys.argv, this will be the default. Otherwise,
+        For the first case--a value--if no value is passed via sys.argv, this will be the default. Otherwise,
         its type (float) will be used to cast the received value.
 
-        For the second case - a type -, if no value is passed via sys.argv, the parameter will default to None.
+        For the second case--a type -, if no value is passed via sys.argv, the parameter will default to None.
         Otherwise, the type will be used to cast the received value.
 
         Callables are also accepted. They should accept to be called with no parameters, returning the default,
@@ -45,7 +45,7 @@ class Arguments(object):
 
         Values can be accessed later as attributes:
 
-        instance.key1 and instance.key2
+        ``instance.key1`` and ``instance.key2``
 
     Raises
     ------
@@ -128,7 +128,7 @@ class Arguments(object):
 class FileList(object):
     """
     Helper class for receiving a globing pattern as a parameter, defining a list of files
-    - i.e. measurement images or PSFs.
+    --i.e. measurement images or PSFs.
     It is an iterable, and can be passed directly to load_fits_images.
 
     Parameters
@@ -136,7 +136,7 @@ class FileList(object):
     value : str
         A file globing expression. i.e "*.psf", "band_[r|i|g]_*.fits" or similar.
         The result is always stored and returned in alphabetical order, so the order between two
-        file lists - i.e frame image and PSF - is consistent and a matching can be done easily between them.
+        file lists--i.e frame image and PSF--is consistent and a matching can be done easily between them.
 
     See Also
     --------

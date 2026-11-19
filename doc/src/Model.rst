@@ -102,7 +102,7 @@ or as a lambda expression, such as:
   size = FreeParameter(lambda o: 2.5 * o.get_radius(), range)
 
 Many model parameters are valid only over a restricted domain.
-Fluxes, for instance, cannot be negative. 
+Fluxes, for instance, cannot be negative.
 The purpose of the range argument is to define the boundaries of the domain.
 In |SourceXtractor++|, this domain restriction is achieved through a change of variables, applied individually to every model parameter:
 
@@ -121,7 +121,7 @@ The :class:`~config.model_fitting.Range()` construct is used to set :math:`q^\ma
 
 .. code-block:: python
 
-  range = Range((-1,1), RangeType.LINEAR)
+  fit_range = Range((-1,1), RangeType.LINEAR)
 
 The first argument is a `tuple <https://docs.python.org/tutorial/datastructures.html#tuples-and-sequences>`_ of 2 numbers specifying the lower and upper limits of the range.
 The range type defines :math:`f_j()`.
@@ -131,7 +131,7 @@ Exponential ranges are better suited to strictly positive parameters with a larg
 
 .. code-block:: python
 
-  range = Range((0.01,100), RangeType.EXPONENTIAL)
+  fit_range = Range((0.01,100), RangeType.EXPONENTIAL)
 
 The relation between model and engine parameters is plotted :numref:`fig_rangetypes` for both examples.
 :numref:`change_of_variable_table` details the formula applied for currently supported range types.
@@ -157,17 +157,17 @@ The relation between model and engine parameters is plotted :numref:`fig_rangety
     - :math:`Q_j = q_j`
     - :math:`q_j = Q_j`
     - | Position angles
-      | 
+      |
   * - :param:`RangeType.LINEAR`
     - :math:`Q_j = \ln \frac{q_j - q^\mathsf{(min)}_j}{q^\mathsf{(max)}_j - q_j}`
     - :math:`q_j = \frac{q^\mathsf{(max)}_j - q^\mathsf{(min)}_j}{1 + \exp -Q_j} + q^\mathsf{(min)}_j`
-    - | positions
-      | Sersic index
+    - | Positions
+      | Sérsic index
   * - :param:`RangeType.EXPONENTIAL`
     - :math:`Q_j = \ln \frac{\ln q_j - \ln q^\mathsf{(min)}_j}{\ln q^\mathsf{(max)}_j - \ln q_j}`
     - :math:`q_j = q^\mathsf{(min)}_j \frac{\ln q^\mathsf{(max)}_j - \ln q^\mathsf{(min)}_j}{1 + \exp -Q_j}`
-    - | fluxes
-      | aspect ratios
+    - | Fluxes
+      | Aspect ratios
 
 In practice, we find this approach to ease convergence and to be much more reliable than a box constrained algorithm :cite:`Kanzow2004375`.
 

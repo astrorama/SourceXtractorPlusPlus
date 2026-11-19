@@ -64,8 +64,8 @@ PSF models
 
 PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |SourceXtractor++| accepts several |PSF|_ formats:
 
-* using no PSF at all is specified with ``.., psf="nopsf",..`` in the configuration files (ASCII or python);
-* a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the 
+* using no PSF at all is specified with ``.., psf="nopsf",..`` in the configuration files (ASCII or Python);
+* a constant PSF can be given with a FITS image, and the keyword ``SAMPLING`` provides the sampling of the
   PSF image with respect to the corresponding measurement image (SAMPLING=0.5 means the 2 PSF pixels
   correspond to one pixel in the measurement image);
 * a variable PSF can be provided as FITS binary tables in the
@@ -75,22 +75,22 @@ PSF models must be specified in the :ref:`model-fitting module <chap_model>`. |S
   * the first extension is a primary extension without data;
   * the second extension is an image extension named ``PSF_IMAGE`` containing, aligned in a grid (see Figure 2),
     the PSF data for the various regions in the measurement image.
-    The required keyword ```STMPSIZE``` gives the size of the PSF stamp, the keyword ```SAMPLING``` its sampling;
+    The required keyword ``STMPSIZE`` gives the size of the PSF stamp, the keyword ``SAMPLING`` its sampling;
   * the third extension is a table extension with the mandatory columns (see Figure 3):
 
     * ``X_CENTER`` : the central x-position of a grid PSF;
     * ``Y_CENTER`` : the central y-position of a grid PSF;
     * ``X`` : the x-position center of the area for the corresponding grid PSF;
     * ``Y`` : the x-position center of the area for the corresponding grid PSF;
-    * ``RA`` and ``DEC`` : the sky positions for ```X``` and ```Y``` ;
+    * ``RA`` and ``DEC`` : the sky positions for ``X`` and ``Y`` ;
 
-  * for a source at x_1,y_1 the relevant grid PSF is selected by minimizing the distances to ```X``` , ```Y``` , then the PSF stamp
-    is extracted using the values in the columns ``X_CENTER``` , ```Y_CENTER``` and the keyword ```STMPSIZE``` 
+  * for a source at x_1,y_1 the relevant grid PSF is selected by minimizing the distances to ``X`` , ``Y`` , then the PSF stamp
+    is extracted using the values in the columns ``X_CENTER`` , ``Y_CENTER`` and the keyword ``STMPSIZE``
   * an example for a stacked PSF file is available in the repository `SourceXtractor-litmus <https://github.com/astrorama/SourceXtractor-litmus/blob/master/data/des/des_psf.fits>`_ (requires Git Large File Storage).
 
 One PSF model must be assigned for every measurement image!. In the ASCII configuration file it is possible to define a
-Gaussian PSF with the parameters ```--psf-fwhm``` and ```--psf-pixel-sampling```. If defined, this Gaussian PSF is being used 
-for all measurement images that have not en explicit PSF defined in the oython configuration.
+Gaussian PSF with the parameters ``--psf-fwhm`` and ``--psf-pixel-sampling``. If defined, this Gaussian PSF is being used
+for all measurement images that do not have an explicit PSF defined in the Python configuration.
 
 .. _fig_psf_data:
 
@@ -106,5 +106,5 @@ for all measurement images that have not en explicit PSF defined in the oython c
    :figwidth: 100%
    :align: center
 
-   The content of the table in a stacked PSF. 
+   The content of the table in a stacked PSF.
 
