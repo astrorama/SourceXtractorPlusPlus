@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from __future__ import annotations
+
 import sys
 from collections.abc import Iterable, Sequence
 from itertools import repeat
@@ -27,13 +29,15 @@ from .measurement_images import (DataCubeSlice, FitsFile, ImageGroup, Measuremen
 from .model_fitting import FittableParameter, ModelFitting, ParameterBase
 
 
-OutputColumn: TypeAlias = FittableParameter | cpp.Aperture | list[FittableParameter] | list[cpp.Aperture]
+OutputColumn: TypeAlias = 'FittableParameter | cpp.Aperture | list[FittableParameter] | list[cpp.Aperture]'
 # TODO: It may be possible to implement a special type just for leaf
 # nodes, but in the meantime the is_leaf() requirement is a runtime check
 Target: TypeAlias = MeasurementImage | MeasurementGroup | list[MeasurementImage] | list[MeasurementGroup]
 
 
 class MeasurementConfig:
+    """The measurement configuration manager"""
+
     def __init__(self) -> None:
         self._measurement_images: dict[int, MeasurementImage] = {}
         self._apertures_for_image: dict[int, cpp.Aperture] = {}
@@ -164,7 +168,7 @@ class MeasurementConfig:
         ----------
         images : list of str
             A list of relative paths to the images FITS files. Can also be single string in which case,
-             this function acts like load_fits_image
+            this function acts like load_fits_image
         psfs : list of str
             A list of relative paths to the PSF FITS files (optional). It must match the length of image_list or be None.
         weights : list of str
@@ -312,7 +316,7 @@ class MeasurementConfig:
         Parameters
         ----------
         file : file object
-            Where to print the representation. Defaults to sys.stderr
+            Where to print the representation. Defaults to `sys.stderr`
         """
         file = file or sys.stderr
         print('Measurement images:', file=file)
@@ -329,19 +333,19 @@ class MeasurementConfig:
 
         Parameters
         ----------
-        target : MeasurementImage object, or leaf MeasurementGroup object with a single image, or a list of either
+        target : MeasurementImage, MeasurementGroup, or list
             Target images on which to measure the aperture photometry. Leaf MeasurementGroup with a single image
-            are accepted as a convenience.
+            are accepted as a convenience, and may be a list of either.
 
-        apertures : float, or list of float
+        apertures : float or list of float
             Diameter of the aperture. As different MeasurementImage may not be aligned, nor have equivalent pixel size,
             the aperture is interpreted as diameter in pixels of a circle on the detection image.
             A transformation will be applied for each frame, so the covered area is equivalent.
 
         Returns
         -------
-        list of Aperture objects
-            An Aperture object is an internal representation of a property on the measurement frame that contains the
+        list[Aperture]
+            An `Aperture` object is an internal representation of a property on the measurement frame that contains the
             apertures. To actually get the measurements on the output catalog, you need to add explicitly them to the
             output.
 
@@ -408,7 +412,7 @@ class MeasurementConfig:
         Parameters
         ----------
         file : file object
-            Where to print the representation. Defaults to sys.stderr
+            Where to print the representation. Defaults to `sys.stderr`
         """
         file = file or sys.stderr
 

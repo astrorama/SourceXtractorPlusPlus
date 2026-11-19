@@ -8,6 +8,7 @@ Configuration API Reference
 .. toctree::
 
    config_api/argv
+   config_api/measurement_config
    config_api/measurement_images
    config_api/model_fitting
 
