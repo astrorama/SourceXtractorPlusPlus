@@ -152,9 +152,15 @@ class TestMeasurementImage:
     def test_asdf_meta_is_a_metadata_instance(self, asdf_metadata_file):
         meta = MeasurementImage(asdf_metadata_file, image_name='/data',
                                 gain_keyword='/meta/gain').meta
-        assert isinstance(meta, mi.cpp.Metadata)
+        assert isinstance(meta, mi.Metadata)
         assert meta['/meta/gain'] == 2.5
         assert isinstance(meta['/meta/gain'], float)
+
+    def test_asdf_meta_keeps_the_synthetic_filename_entries(self, asdf_metadata_file):
+        meta = MeasurementImage(asdf_metadata_file).meta
+        assert meta['IMAGE_FILENAME'] == asdf_metadata_file
+        assert meta['PSF_FILENAME'] == ''
+        assert meta['WEIGHT_FILENAME'] == ''
 
     def test_is_cached(self, fits_with_primary):
         image = MeasurementImage(fits_with_primary)
@@ -168,3 +174,28 @@ class TestMeasurementImage:
         """
         with raises(RuntimeError, match='nothing in the file says which one'):
             MeasurementImage(asdf_multiple_hdu, gain=1.)
+
+
+class TestByKeyword:
+    def test_group_names_are_strings(self, asdf_metadata_file):
+        """
+        A non-FITS metadata value keeps its own type, but a group is addressed
+        by name, so the name has to be a str
+        """
+        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+                                 gain_keyword='/meta/gain')
+        assert image.meta['/meta/gain'] == 2.5
+        assert not isinstance(image.meta['/meta/gain'], str)
+
+        groups = mi.ByKeyword('/meta/gain')([image])
+        assert [name for name, _ in groups] == ['2.5']
+
+    def test_groups_by_a_fits_keyword(self, fits_with_primary):
+        image = MeasurementImage(fits_with_primary)
+        groups = mi.ByKeyword('GAIN')([image])
+        assert [name for name, _ in groups] == ['42']
+
+    def test_missing_keyword_raises(self, fits_with_primary):
+        image = MeasurementImage(fits_with_primary)
+        with raises(KeyError, match='does not contain the key'):
+            mi.ByKeyword('NOSUCHKEY')([image])

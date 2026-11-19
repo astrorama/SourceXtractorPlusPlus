@@ -59,6 +59,40 @@ class FitsFile(cpp.FitsFile):
         return d
 
 
+class Metadata:
+    """
+    Read-only container for keyword-based image metadata lookup
+
+    This abstracts file format differences regarding how metadata is stored.
+    Currently supports checking that a value exists via ``in`` and keyword
+    lookup via ``[]``, or `.get` which works similarly to `dict.get`.
+    """
+
+    # Implementation note: this wrapps the C++-level Metadata class but
+    # allowing to slip in some additional synthetic metatdata at construction
+    # time.  If the real metadata happens to have matching keys, the real
+    # values take precence.
+    def __init__(self, metadata: cpp.Metadata,
+                 extra: dict[str, Any] | None = None) -> None:
+        self._metadata = metadata
+        self._extra = extra or {}
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._metadata or key in self._extra
+
+    def __getitem__(self, key: str) -> Any:
+        if key in self._metadata:
+            return self._metadata[key]
+
+        return self._extra[key]  # else KeyError
+
+    def get(self, key: str, default: Any = None) -> Any:
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+
 WeightType: TypeAlias = Literal['none', 'background', 'rms', 'variance',  'weight']
 
 
@@ -295,7 +329,7 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         self.psf_renormalize = psf_renormalize
 
     @cached_property
-    def meta(self) -> dict[str, str] | cpp.Metadata:
+    def meta(self) -> dict[str, str] | Metadata:
         """
         Metadata of the selected image, read from the file on first use
 
@@ -311,16 +345,20 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
             information, from the original FITS keywords, but is kept for
             backwards compatibility.
         """
-        if self._image_format == 'fits':
-            meta: dict[str, str] = {
-                'IMAGE_FILENAME': self.file,
-                'PSF_FILENAME': self.psf_file,
-                'WEIGHT_FILENAME': self.weight_file
-            }
-            meta.update(FitsFile(self.file).get_headers(self.image_hdu))
-            return meta
+        # The synthetic metadata added for every image (for use with grouping
+        # ByKeyword)
+        extra: dict[str, str] = {
+            'IMAGE_FILENAME': self.file,
+            'PSF_FILENAME': self.psf_file,
+            'WEIGHT_FILENAME': self.weight_file
+        }
 
-        return cpp.ImageFile(self.file).get_metadata(self.image_name or self.image_hdu)
+        if self._image_format == 'fits':
+            extra.update(FitsFile(self.file).get_headers(self.image_hdu))
+            return extra
+
+        meta = cpp.ImageFile(self.file).get_metadata(self.image_name or self.image_hdu)
+        return Metadata(meta, extra)
 
     def __str__(self) -> str:
         """
@@ -691,7 +729,9 @@ class ByKeyword:
         for im in images:
             if self.__key not in im.meta:
                 raise KeyError(f'The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
-            result[im.meta[self.__key]].append(im)
+
+            # Ensure group names are strings
+            result[str(im.meta[self.__key])].append(im)
         return [(k, result[k]) for k in result]
 
 
