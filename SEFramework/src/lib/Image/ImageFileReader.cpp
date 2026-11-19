@@ -185,12 +185,14 @@ std::string ImageFileReader::getDefault() {
 }
 
 
-static std::unique_ptr<ImageFileReader> tryCreateFromFile(
+std::unique_ptr<ImageFileReader> ImageFileReader::tryCreateFromFile(
     const std::string& base_filename, const std::string& filename,
     ImageFileReader::ImageFileType& file_type) {
   std::ifstream ifs(base_filename, std::ios::binary);
   if (ifs && file_type.test(ifs)) {
-      return file_type.factory(filename);
+      auto reader = file_type.factory(filename);
+      reader->m_format = file_type.name;
+      return reader;
   }
   return nullptr;
 }

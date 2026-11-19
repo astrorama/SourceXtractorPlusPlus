@@ -38,11 +38,19 @@ namespace SourceXtractor {
 bool AsdfReader::test(std::istream& stream) {
   // Should be more than enough to determine the #ASDF header comment
   std::string buf(256, '\0');
-  if (!stream.read(&buf[0], 256)) {
+  stream.read(&buf[0], 256);
+  buf.resize(stream.gcount());
+
+  // Without a newline there is no header comment to match, and erase(npos)
+  // throws; e.g. a FITS header is 80-character cards with no newline at all
+  // so it crashes on this test.  Obviously if now newline is found at all
+  // in the first few bytes it is not an ASDF file.
+  auto eol = buf.find_first_of("\r\n");
+  if (eol == std::string::npos) {
     return false;
   }
 
-  buf.erase(buf.find_first_of("\r\n"));
+  buf.erase(eol);
   boost::regex asdf_header_regex(R"(^#ASDF \d+\.\d+\.\d+$)");
   return boost::regex_match(buf, asdf_header_regex);
 }

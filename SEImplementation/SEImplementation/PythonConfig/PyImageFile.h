@@ -51,6 +51,9 @@ public:
     return m_filename;
   }
 
+  /// The name of the file's format, e.g. "fits" or "asdf"
+  std::string getFormat() const;
+
   /// The metadata of one image in the file
   std::shared_ptr<const Metadata> getMetadata(const std::string& name) const;
 

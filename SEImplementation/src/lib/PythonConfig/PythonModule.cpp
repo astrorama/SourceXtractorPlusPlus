@@ -211,6 +211,8 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
   bp::class_<PyImageFile>("ImageFile", "An image file of any supported format, opened by "
       "SourceXtractor++", bp::init<const std::string&>())
     .def_readonly("filename", &PyImageFile::getFilename)
+    .def_readonly("format", &PyImageFile::getFormat,
+                  "name of the file's format, e.g. \"fits\" or \"asdf\"")
     .def("get_metadata", &PyImageFile::getMetadata, "metadata of the named image")
     .def("get_metadata", &PyImageFile::getMetadataByIndex, "metadata of the image at this index")
     .def("get_dimensions", &PyImageFile::getDimensions, "dimensions of the named image")

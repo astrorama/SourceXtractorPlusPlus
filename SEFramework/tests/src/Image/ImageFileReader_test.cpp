@@ -22,6 +22,7 @@
 
 #include <fstream>
 
+#include <boost/filesystem/operations.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include <ElementsKernel/Auxiliary.h>
@@ -34,10 +35,16 @@ using namespace SourceXtractor;
 
 struct ImageFileReaderFixture {
   std::string fits_path;
+#ifdef WITH_ASDF
+  std::string asdf_path;
+#endif
   Elements::TempDir temp_dir;
 
   ImageFileReaderFixture() : temp_dir("ImageFileReader_test_%%%%%%") {
     fits_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
+#ifdef WITH_ASDF
+    asdf_path = Elements::getAuxiliaryPath("multiple_hdu.asdf").native();
+#endif
   }
 
   std::string inTempDir(const std::string& name) const {
@@ -54,6 +61,55 @@ BOOST_AUTO_TEST_SUITE(ImageFileReader_test)
 BOOST_FIXTURE_TEST_CASE(create_existing_file, ImageFileReaderFixture) {
   BOOST_CHECK(ImageFileReader::create(fits_path) != nullptr);
 }
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(reports_the_format, ImageFileReaderFixture) {
+  BOOST_CHECK_EQUAL(ImageFileReader::create(fits_path)->getFormat(), "fits");
+}
+
+//-----------------------------------------------------------------------------
+
+/// The format comes from the content, not from the filename extension
+/// Regression test; this actually crashed the ASDF content tester if
+/// it was passed a FITS file masquerading as ASDF.
+BOOST_FIXTURE_TEST_CASE(format_ignores_a_misleading_extension,
+                        ImageFileReaderFixture) {
+  auto path = inTempDir("actually_fits.asdf");
+  boost::filesystem::copy_file(fits_path, path);
+
+  BOOST_CHECK_EQUAL(ImageFileReader::create(path)->getFormat(), "fits");
+}
+
+#ifdef WITH_ASDF
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(reports_the_asdf_format, ImageFileReaderFixture) {
+  BOOST_CHECK_EQUAL(ImageFileReader::create(asdf_path)->getFormat(), "asdf");
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(asdf_format_ignores_a_misleading_extension,
+                        ImageFileReaderFixture) {
+  auto path = inTempDir("actually_asdf.fits");
+  boost::filesystem::copy_file(asdf_path, path);
+
+  BOOST_CHECK_EQUAL(ImageFileReader::create(path)->getFormat(), "asdf");
+}
+
+//-----------------------------------------------------------------------------
+
+/// The header comment is all that is needed, however short the file is
+BOOST_FIXTURE_TEST_CASE(detects_a_short_asdf_file, ImageFileReaderFixture) {
+  auto path = inTempDir("tiny.asdf");
+  std::ofstream{path} << "#ASDF 1.0.0\n";
+
+  BOOST_CHECK_EQUAL(ImageFileReader::create(path)->getFormat(), "asdf");
+}
+
+#endif /* WITH_ASDF */
 
 //-----------------------------------------------------------------------------
 

@@ -25,6 +25,11 @@ def fits_multiple_hdu():
 
 
 @pytest.fixture
+def asdf_metadata_file():
+    return auxiliary('metadata.asdf')
+
+
+@pytest.fixture
 def fits_file(fits_with_primary):
     return mi.cpp.FitsFile(fits_with_primary)
 
@@ -35,5 +40,5 @@ def fits_metadata(fits_with_primary):
 
 
 @pytest.fixture
-def asdf_metadata():
-    return mi.cpp.ImageFile(auxiliary('metadata.asdf')).get_metadata('data')
+def asdf_metadata(asdf_metadata_file):
+    return mi.cpp.ImageFile(asdf_metadata_file).get_metadata('data')

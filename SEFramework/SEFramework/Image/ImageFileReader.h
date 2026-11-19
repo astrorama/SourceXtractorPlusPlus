@@ -106,6 +106,16 @@ public:
     return m_wcs_name;
   }
 
+  /**
+   * The name of the file format this reader was created for, e.g. "fits"
+   *
+   * Set by create(), which may pick the format by content rather than by
+   * filename extension, so this is the authority on what the file actually is.
+   */
+  const std::string& getFormat() const {
+    return m_format;
+  }
+
   /* ImageFileReader iterator interface */
   class Iterator {
   public:
@@ -279,6 +289,12 @@ public:
 
   static void registerFileType(ImageFileType file_type);
 
+private:
+  /// Creates a reader if file_type recognizes the file, stamping it with the format name
+  static std::unique_ptr<ImageFileReader> tryCreateFromFile(
+    const std::string& base_filename, const std::string& filename,
+    ImageFileType& file_type);
+
 protected:
   /**
    * Whether the file[image] suffix selects which image(s) in the file are used
@@ -297,6 +313,7 @@ protected:
   std::optional<std::string> m_image_path;
   int m_image_index;
   std::optional<std::string> m_wcs_name;
+  std::string m_format;
 };
 
 }  // end of namespace SourceXtractor
