@@ -16,6 +16,7 @@
  */
 #include <boost/test/unit_test.hpp>
 
+#include <array>
 #include <cmath>
 #include <limits>
 #include <numeric>
@@ -55,6 +56,38 @@ public:
 }
 
 struct FlexibleModelFittingWeightFixture {
+  void checkEllipseTransform() {
+    auto coordinates = std::make_shared<WeightTestCoordinates>();
+    SimpleSource source;
+    source.setProperty<ReferenceCoordinates>(coordinates);
+    source.setIndexedProperty<MeasurementFrameCoordinates>(0, coordinates);
+    FlexibleModelFittingIterativeTask task("", 1, 1, {}, {}, {}, {});
+    // Identity, rotation, anisotropic scaling, shear, reflection, and collapse.
+    const std::vector<std::array<double, 4>> transforms = {
+        {1, 0, 0, 1}, {0, 1, -1, 0}, {2, 0, 0, 0.5}, {1, 0, 1, 1}, {-1, 0, 0.4, 1}, {0, 0, 0, 0}};
+    for (auto jacobian : transforms) {
+      source.setIndexedProperty<JacobianSource>(0, jacobian[0], jacobian[1], jacobian[2], jacobian[3]);
+      for (double angle : {0.0, 0.6}) {
+        FlexibleModelFittingIterativeTask::FittingEllipse ellipse{2, 2, 2, 1, angle};
+        const auto transformed = task.transformEllipse(ellipse, source, 0);
+        const double c = std::cos(angle), s = std::sin(angle);
+        const double u_x = 2 * (jacobian[0] * c + jacobian[2] * s);
+        const double u_y = 2 * (jacobian[1] * c + jacobian[3] * s);
+        const double v_x = -jacobian[0] * s + jacobian[2] * c;
+        const double v_y = -jacobian[1] * s + jacobian[3] * c;
+        const double tc = std::cos(transformed.m_theta), ts = std::sin(transformed.m_theta);
+        const double a2 = transformed.m_a * transformed.m_a;
+        const double b2 = transformed.m_b * transformed.m_b;
+        // Reconstruct the shape matrix: catches both wrong axis lengths and wrong orientation.
+        BOOST_CHECK_SMALL(a2 * tc * tc + b2 * ts * ts - (u_x * u_x + v_x * v_x), 1e-10);
+        BOOST_CHECK_SMALL(a2 * ts * ts + b2 * tc * tc - (u_y * u_y + v_y * v_y), 1e-10);
+        BOOST_CHECK_SMALL((a2 - b2) * tc * ts - (u_x * u_y + v_x * v_y), 1e-10);
+        BOOST_CHECK_SMALL(transformed.m_a * transformed.m_b
+            - 2 * std::abs(jacobian[0] * jacobian[3] - jacobian[1] * jacobian[2]), 1e-10);
+      }
+    }
+  }
+
   void checkVarianceMask() {
     const int size = 7;
     auto image = VectorImage<SeFloat>::create(size, size);
@@ -307,6 +340,10 @@ BOOST_AUTO_TEST_CASE(psf_normalization_uses_sparse_frame_ids) {
 
 BOOST_AUTO_TEST_CASE(finite_bad_variances_are_excluded) {
   checkVarianceMask();
+}
+
+BOOST_AUTO_TEST_CASE(rotated_ellipse_transform_preserves_shape_and_area) {
+  checkEllipseTransform();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

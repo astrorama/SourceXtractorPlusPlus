@@ -238,12 +238,18 @@ FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeT
   double new_minor_x = minor_x * x_basis_x + minor_y * y_basis_x;
   double new_minor_y = minor_x * x_basis_y + minor_y * y_basis_y;
 
-  // Calculate new semi-major and semi-minor lengths
-  double new_a = std::sqrt(new_major_x * new_major_x + new_major_y * new_major_y);
-  double new_b = std::sqrt(new_minor_x * new_minor_x + new_minor_y * new_minor_y);
-
-  // Calculate new angle (atan2 handles angle wrapping automatically)
-  double new_theta = std::atan2(new_major_y, new_major_x);
+  // The transformed axis vectors need not be orthogonal. Their outer products form J Q J^T;
+  // its eigenvectors and eigenvalues define the new principal axes and squared semiaxes.
+  const double q_xx = new_major_x * new_major_x + new_minor_x * new_minor_x;
+  const double q_yy = new_major_y * new_major_y + new_minor_y * new_minor_y;
+  const double q_xy = new_major_x * new_major_y + new_minor_x * new_minor_y;
+  const double mean = 0.5 * (q_xx + q_yy);
+  const double offset = std::hypot(0.5 * (q_xx - q_yy), q_xy);
+  const double new_a = std::sqrt(std::max(0.0, mean + offset));
+  // det(J Q J^T) = (cross(transformed axes))^2. Avoid subtracting nearly equal eigenvalues.
+  const double cross = new_major_x * new_minor_y - new_major_y * new_minor_x;
+  const double new_b = new_a > 0.0 ? std::abs(cross) / new_a : 0.0;
+  const double new_theta = q_xx == q_yy && q_xy == 0.0 ? 0.0 : 0.5 * std::atan2(2 * q_xy, q_xx - q_yy);
 
   return {coord.m_x, coord.m_y, new_a, new_b, new_theta};
 }
