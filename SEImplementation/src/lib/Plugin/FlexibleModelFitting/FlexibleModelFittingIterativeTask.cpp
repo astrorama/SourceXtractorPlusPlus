@@ -469,7 +469,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
-      if (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()]) {
+      const bool skipped = (source_state.flags & (Flags::OUTSIDE | Flags::INSUFFICIENT_DATA)) != Flags::NONE;
+      if (skipped || (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()])) {
         source_state.parameters_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         source_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
@@ -731,6 +732,15 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   // Do not run the model fitting for the flags above
   if (flags != Flags::NONE) {
+    auto& source_state = state.source_states[index];
+    source_state.flags |= flags;
+    source_state.reduced_chi_squared = std::numeric_limits<double>::quiet_NaN();
+    for (auto& sigma : source_state.parameters_sigmas) {
+      sigma.second = std::numeric_limits<double>::quiet_NaN();
+    }
+    for (auto& fitted : source_state.parameters_fitted) {
+      fitted.second = false;
+    }
     return;
   }
 
