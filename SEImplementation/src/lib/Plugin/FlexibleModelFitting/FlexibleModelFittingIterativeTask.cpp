@@ -469,7 +469,8 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
-      if (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()]) {
+      const bool failed = (source_state.flags & (Flags::MEMORY | Flags::ERROR)) != Flags::NONE;
+      if (failed || (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()])) {
         source_state.parameters_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         source_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
@@ -753,8 +754,28 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   auto iterations = solution.iteration_no;
   auto stop_reason = solution.engine_stop_reason;
-  if (solution.status_flag == LeastSquareSummary::ERROR) {
-    flags |= Flags::ERROR;
+  switch (solution.status_flag) {
+    case LeastSquareSummary::SUCCESS:
+    case LeastSquareSummary::MAX_ITER:
+      break;
+    case LeastSquareSummary::MEMORY:
+      flags |= Flags::MEMORY;
+      [[fallthrough]];
+    case LeastSquareSummary::ERROR: {
+      flags |= Flags::ERROR;
+      auto& source_state = state.source_states[index];
+      source_state.flags |= flags;
+      source_state.reduced_chi_squared = std::numeric_limits<double>::quiet_NaN();
+      for (auto& sigma : source_state.parameters_sigmas) {
+        sigma.second = std::numeric_limits<double>::quiet_NaN();
+      }
+      for (auto& fitted : source_state.parameters_fitted) {
+        fitted.second = false;
+      }
+      // MEMORY's iteration_no is a workspace size, not a count of completed solver steps.
+      // Retain internal guesses for neighbor rendering; final publication masks failed results.
+      return;
+    }
   }
   auto duration = solution.duration;
 
