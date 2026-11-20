@@ -4,8 +4,8 @@ Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source re
 Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
+conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -51,7 +51,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-006 | Mismatched weight HDUs silently omit measurement images | Medium | Medium | Fixed | None |
 | BUG-007 | Only the first output parameter is registered | Medium | Medium | Fixed | None |
 | BUG-008 | Weight-cube depth check compares the measurement cube to itself | Medium | Medium | Fixed | None |
-| BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Confirmed | Fix |
+| BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Fix ready on branch | Merge fix branch |
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Confirmed | Fix |
 | BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Confirmed | Fix |
 | BUG-012 | Vignettes can read outside the detection image | High | Medium | Unconfirmed | Try to confirm |
@@ -220,14 +220,15 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** Medium: invalid layer requests reach CFITSIO instead of producing the intended immediate error.
 - **Likelihood:** Low for valid configuration. BUG-008 previously provided another path to this bug.
-- **Status:** Confirmed by inspection: the guard is logically impossible for a positive cube depth.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-009-fits-cube-layer-validation`; awaiting merge.
+- **Next action needed:** Review and merge the fix branch.
 - **Location:** [FitsImageSource.cpp:282](SEFramework/src/lib/FITS/FitsImageSource.cpp#L282).
 - **Description:** `layer < 0 && layer >= m_depth` cannot hold. Both negative and past-the-end layers are accepted.
 - **Evidence / reproduction:** For depth 3, both `setLayer(-1)` and `setLayer(3)` bypass the check and change the active
   layer. This establishes the validation bug; subsequent CFITSIO failure behavior was not exercised.
 - **Fix direction:** Use an OR condition and test -1, 0, depth-1, and depth. Separately specify cache behavior if the
   active layer changes after reads; the cache key currently does not contain the layer.
+- **Work log (2026-11-20):** Reject invalid layers with OR, read the third FITS dimension, and initialize layer/depth defaults. Real-cube regression exposed the old depth bug; validation and review are in progress.
 
 ## BUG-010: Graph-model construction mutates reusable configuration
 

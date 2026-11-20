@@ -183,6 +183,31 @@ BOOST_FIXTURE_TEST_CASE(write_fits_headers, FitsImageSourceFixture) {
 
 //-----------------------------------------------------------------------------
 
+BOOST_FIXTURE_TEST_CASE(cube_layer_bounds, FitsImageSourceFixture) {
+  // Create a real cube so both valid boundary layers can be read back.
+  fitsfile* file = nullptr;
+  int status = 0;
+  auto filename = "!" + temp_path.path().native();
+  long axes[] = {1, 1, 3};
+  float pixels[] = {11, 22, 33};
+  fits_create_file(&file, filename.c_str(), &status);
+  fits_create_img(file, FLOAT_IMG, 3, axes, &status);
+  fits_write_img(file, TFLOAT, 1, 3, pixels, &status);
+  fits_close_file(file, &status);
+  BOOST_REQUIRE_EQUAL(status, 0);
+
+  FitsImageSource source(temp_path.path().native());
+  BOOST_REQUIRE_EQUAL(source.getDepth(), 3);
+  for (int layer : {0, 2}) {
+    source.setLayer(layer);
+    BOOST_CHECK_EQUAL(source.getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
+    BOOST_CHECK_THROW(source.setLayer(-1), Elements::Exception);
+    BOOST_CHECK_THROW(source.setLayer(3), Elements::Exception);
+    // Rejected requests must leave the selected layer unchanged.
+    BOOST_CHECK_EQUAL(source.getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
+  }
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
 //-----------------------------------------------------------------------------
