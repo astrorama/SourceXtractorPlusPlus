@@ -88,6 +88,10 @@ public:
     return m_depth;
   }
 
+  /**
+   * Select a zero-based cube layer; throws if it is outside [0, getDepth()).
+   * Select the layer before creating buffered views: their cache keys do not include the layer.
+   */
   void setLayer(int layer);
 
   std::shared_ptr<ImageTile> getImageTile(int x, int y, int width, int height) const override;
@@ -134,10 +138,10 @@ private:
 
   int m_width;
   int m_height;
-  int m_depth;
+  int m_depth = 1;
   ImageTile::ImageType m_image_type;
 
-  int m_current_layer;
+  int m_current_layer = 0;
 
   static std::shared_ptr<FileManager> s_file_manager;
 };
