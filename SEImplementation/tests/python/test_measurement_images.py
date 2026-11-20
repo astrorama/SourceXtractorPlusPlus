@@ -199,3 +199,35 @@ class TestByKeyword:
         image = MeasurementImage(fits_with_primary)
         with raises(KeyError, match='does not contain the key'):
             mi.ByKeyword('NOSUCHKEY')([image])
+
+
+class TestImageFileDimensions:
+    def test_non_square_asdf(self, asdf_metadata_file):
+        """
+        metadata.asdf's /data has numpy shape (3, 4), so it is 4 wide and 3
+        high; reporting those the other way round made every tile request out
+        of bounds, so ASDF images only ever worked while square
+        """
+        dims = mi.cpp.ImageFile(asdf_metadata_file).get_dimensions('data')
+        assert (dims.width, dims.height) == (4, 3)
+        assert tuple(dims) == (3, 4)
+
+    def test_depth_is_zero_without_a_cube(self, asdf_metadata_file,
+                                          fits_with_primary):
+        for path, name in ((asdf_metadata_file, 'data'), (fits_with_primary, None)):
+            image_file = mi.cpp.ImageFile(path)
+            dims = (image_file.get_dimensions(name) if name
+                    else image_file.get_dimensions(0))
+            assert dims.depth == 0
+            assert not dims.is_cube
+
+    def test_fits_cube_depth_reaches_the_generic_path(self, tmp_path):
+        """ImageSource::getDepth() is what lets the generic path see a cube"""
+        path = str(tmp_path / 'cube.fits')
+        fits.HDUList([fits.PrimaryHDU(
+            np.zeros((3, 7, 5), dtype=np.float32))]).writeto(path)
+
+        dims = mi.cpp.ImageFile(path).get_dimensions(0)
+        assert (dims.width, dims.height, dims.depth) == (5, 7, 3)
+        assert dims.is_cube
+        assert tuple(dims) == (3, 7, 5)

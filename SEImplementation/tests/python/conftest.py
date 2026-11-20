@@ -35,6 +35,16 @@ def asdf_metadata_file():
 
 
 @pytest.fixture
+def cube_fits_file():
+    return auxiliary('cube.fits')
+
+
+@pytest.fixture
+def cube_asdf_file():
+    return auxiliary('cube.asdf')
+
+
+@pytest.fixture
 def fits_file(fits_with_primary):
     return mi.cpp.FitsFile(fits_with_primary)
 

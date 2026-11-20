@@ -102,21 +102,21 @@ public:
    * Returns the width of the image in pixels
    */
   int getWidth() const override {
-    return m_ndarray->shape().at(m_ndarray->ndim() - 2);
-  }
-
-  /**
-   * Returns the height of the image in pixels
-   */
-  int getHeight() const override {
     return m_ndarray->shape().at(m_ndarray->ndim() - 1);
   }
 
   /**
    * Returns the height of the image in pixels
    */
-  int getDepth() const {
-    return m_ndarray->ndim() == 3 ? m_ndarray->shape().at(0) : 0;
+  int getHeight() const override {
+    return m_ndarray->shape().at(m_ndarray->ndim() - 2);
+  }
+
+  /**
+   * Returns the number of layers of a data cube, or 0 if this is not one
+   */
+  int getDepth() const override {
+    return m_ndarray->ndim() >= 3 ? m_ndarray->shape().at(0) : 0;
   }
 
   /**

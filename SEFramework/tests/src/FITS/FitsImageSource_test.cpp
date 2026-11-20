@@ -35,13 +35,14 @@
 using namespace SourceXtractor;
 
 struct FitsImageSourceFixture {
-  std::string mhdu_path, primary_path, wcs_path;
+  std::string mhdu_path, primary_path, wcs_path, cube_path;
   Elements::TempFile temp_path;
 
   FitsImageSourceFixture() : temp_path("FitsImageSource_test_%%%%%%.fits") {
     mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.fits").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.fits").native();
     wcs_path = Elements::getAuxiliaryPath("wcs_header.fits").native();
+    cube_path = Elements::getAuxiliaryPath("cube.fits").native();
   }
 };
 
@@ -64,6 +65,56 @@ public:
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE(FitsImageSource_test)
+
+//-----------------------------------------------------------------------------
+
+/**
+ * The data cube fixture, whose three axes are all different lengths
+ *
+ *
+ * Every other test image was square, 2-D which before this test was added
+ * obscured the fact that the depth of image cubes was not set properly.
+ */
+BOOST_FIXTURE_TEST_CASE(cube_dimensions_test, FitsImageSourceFixture) {
+  auto img_src = std::make_shared<FitsImageSource>(cube_path, 0, ImageTile::FloatImage);
+  BOOST_CHECK_EQUAL(img_src->getWidth(), 5);
+  BOOST_CHECK_EQUAL(img_src->getHeight(), 4);
+
+  // fits_get_img_param used to be asked for only two axes, leaving this to
+  // return 1
+  BOOST_CHECK_EQUAL(img_src->getDepth(), 3);
+}
+
+//-----------------------------------------------------------------------------
+
+/// setLayer picks which layer the tiles come from
+BOOST_FIXTURE_TEST_CASE(cube_set_layer_test, FitsImageSourceFixture) {
+  auto img_src = std::make_shared<FitsImageSource>(cube_path, 0, ImageTile::FloatImage);
+
+  for (int layer = 0; layer < 3; layer++) {
+    img_src->setLayer(layer);
+    auto tile = img_src->getImageTile(0, 0, 5, 4);
+    BOOST_CHECK_CLOSE(tile->getValue<SeFloat>(0, 0), layer * 100.f, 1e-8);
+    BOOST_CHECK_CLOSE(tile->getValue<SeFloat>(4, 3), layer * 100.f + 34.f, 1e-8);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+/// The bounds check was written with && and so could never be satisfied
+BOOST_FIXTURE_TEST_CASE(cube_rejects_a_missing_layer_test, FitsImageSourceFixture) {
+  auto img_src = std::make_shared<FitsImageSource>(cube_path, 0, ImageTile::FloatImage);
+  BOOST_CHECK_THROW(img_src->setLayer(3), Elements::Exception);
+  BOOST_CHECK_THROW(img_src->setLayer(-1), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/// A plain two-dimensional image is not a data cube
+BOOST_FIXTURE_TEST_CASE(depth_is_zero_without_a_cube_test, FitsImageSourceFixture) {
+  auto img_src = std::make_shared<FitsImageSource>(primary_path, 0, ImageTile::FloatImage);
+  BOOST_CHECK_EQUAL(img_src->getDepth(), 0);
+}
 
 //-----------------------------------------------------------------------------
 

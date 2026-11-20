@@ -107,13 +107,13 @@ class TestImageFileDimensions:
     def test_uses_the_numpy_axis_order(self, cube_fits):
         dims = mi.cpp.ImageFile(cube_fits).get_dimensions(0)
         assert dims.axis_order == 'yx'
-        assert tuple(dims) == (7, 5)
+        assert tuple(dims) == (3, 7, 5)
 
-    def test_reports_no_depth(self, cube_fits):
-        """An ImageSource exposes width and height but not how many layers"""
+    def test_image_cube_depth(self, cube_fits):
+        """ImageSource::getDepth() is what lets the generic path see a cube"""
         dims = mi.cpp.ImageFile(cube_fits).get_dimensions(0)
-        assert dims.depth == 0
-        assert not dims.is_cube
+        assert dims.depth == 3
+        assert dims.is_cube
 
     def test_by_name(self, fits_multiple_hdu):
         """A FITS image is named by its EXTNAME"""
@@ -126,3 +126,37 @@ class TestImageFileDimensions:
         generic = mi.cpp.ImageFile(cube_fits).get_dimensions(0)
         assert fits_dims != generic
         assert (fits_dims.width, fits_dims.height) == (generic.width, generic.height)
+
+
+class TestCubeFixtures:
+    """
+    cube.fits and cube.asdf hold the same (depth 3, height 4, width 5) array
+
+    All three axes have different lengths and the two formats must agree about
+    which axis is which.
+    """
+
+    def test_asdf_cube(self, cube_asdf_file):
+        dims = mi.cpp.ImageFile(cube_asdf_file).get_dimensions('data')
+        assert (dims.width, dims.height, dims.depth) == (5, 4, 3)
+        assert dims.is_cube
+        assert dims.axis_order == 'yx'
+        assert tuple(dims) == (3, 4, 5)
+
+    def test_fits_cube_through_the_generic_path(self, cube_fits_file):
+        dims = mi.cpp.ImageFile(cube_fits_file).get_dimensions(0)
+        assert (dims.width, dims.height, dims.depth) == (5, 4, 3)
+        assert tuple(dims) == (3, 4, 5)
+
+    def test_fits_cube_keeps_the_fits_axis_order(self, cube_fits_file):
+        """FitsFile reports NAXIS1, NAXIS2, NAXIS3 as it always has"""
+        dims = mi.cpp.FitsFile(cube_fits_file).get_dimensions(0)
+        assert dims.axis_order == 'xy'
+        assert tuple(dims) == (5, 4, 3)
+        assert (dims.width, dims.height, dims.depth) == (5, 4, 3)
+
+    def test_both_formats_describe_the_same_image(self, cube_fits_file,
+                                                  cube_asdf_file):
+        fits_dims = mi.cpp.ImageFile(cube_fits_file).get_dimensions(0)
+        asdf_dims = mi.cpp.ImageFile(cube_asdf_file).get_dimensions('data')
+        assert fits_dims == asdf_dims

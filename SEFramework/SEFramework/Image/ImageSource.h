@@ -54,6 +54,9 @@ public:
   /// Returns the height of the image in pixels
   virtual int getHeight() const = 0;
 
+  /// Returns the number of layers of a data cube, or 0 if this is not one
+  virtual int getDepth() const { return 0; }
+
   /// Sets the current layer to use if the image is in a data cube
   virtual void setLayer(int /* unused */) { }
 

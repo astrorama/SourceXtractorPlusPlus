@@ -105,7 +105,9 @@ FitsImageSource::FitsImageSource(const std::string& filename, int hdu_number,
     switchHdu(fptr, m_hdu_number);
   }
 
-  fits_get_img_param(fptr, 2, &bitpix, &naxis, naxes, &status);
+  // maxdim 3, or naxes[2] is left untouched and the depth of a data cube
+  // reads back as the 1 it was initialised to
+  fits_get_img_param(fptr, 3, &bitpix, &naxis, naxes, &status);
   if (status != 0 || (naxis != 2 && naxis != 3)) {
     char error_message[32];
     fits_get_errstatus(status, error_message);
@@ -309,7 +311,7 @@ void FitsImageSource::switchHdu(fitsfile *fptr, const std::string& extname) cons
 
 
 void FitsImageSource::setLayer(int layer) {
-  if (layer < 0 && layer >= m_depth) {
+  if (layer < 0 || layer >= m_depth) {
     throw Elements::Exception() << "Trying to access an inexistent data cube layer (" << layer << ") in " << m_filename;
   }
   m_current_layer = layer;

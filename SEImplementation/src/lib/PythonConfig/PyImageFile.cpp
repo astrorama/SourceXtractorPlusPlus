@@ -61,13 +61,13 @@ std::shared_ptr<const Metadata> PyImageFile::getMetadataByIndex(int index) const
 
 Dimensions PyImageFile::getDimensions(const std::string& name) const {
   auto source = openImage(name);
-  return {source->getWidth(), source->getHeight()};
+  return {source->getWidth(), source->getHeight(), source->getDepth()};
 }
 
 
 Dimensions PyImageFile::getDimensionsByIndex(int index) const {
   auto source = openImage(index);
-  return {source->getWidth(), source->getHeight()};
+  return {source->getWidth(), source->getHeight(), source->getDepth()};
 }
 
 }  // namespace SourceXtractor

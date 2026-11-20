@@ -25,24 +25,74 @@
 #include <ElementsKernel/Auxiliary.h>
 
 #include "SEFramework/ASDF/AsdfImageSource.h"
-#include "SEFramework/Image/ImageAccessor.h"
 
 using namespace SourceXtractor;
 
 struct AsdfImageSourceFixture {
-  std::string mhdu_path, primary_path, wcs_header, metadata_path;
+  std::string mhdu_path, primary_path, wcs_header, metadata_path, cube_path;
 
   AsdfImageSourceFixture() {
     mhdu_path = Elements::getAuxiliaryPath("multiple_hdu.asdf").native();
     primary_path = Elements::getAuxiliaryPath("with_primary.asdf").native();
     wcs_header = Elements::getAuxiliaryPath("wcs_header.asdf").native();
     metadata_path = Elements::getAuxiliaryPath("metadata.asdf").native();
+    cube_path = Elements::getAuxiliaryPath("cube.asdf").native();
   }
 };
 
 //-----------------------------------------------------------------------------
 
 BOOST_AUTO_TEST_SUITE(AsdfImageSource_test)
+
+//-----------------------------------------------------------------------------
+
+/**
+ * A non-square data cube
+ *
+ * Every other test image was square, 2-D which before this test was added
+ * obscured the fact that getWidth()/getHeight() were swapped.
+ */
+BOOST_FIXTURE_TEST_CASE(cube_dimensions_test, AsdfImageSourceFixture) {
+  auto img_src = std::make_shared<AsdfImageSource>(cube_path, "data",
+                                                   ImageTile::FloatImage);
+  BOOST_CHECK_EQUAL(img_src->getWidth(), 5);
+  BOOST_CHECK_EQUAL(img_src->getHeight(), 4);
+  BOOST_CHECK_EQUAL(img_src->getDepth(), 3);
+}
+
+//-----------------------------------------------------------------------------
+
+/// setLayer picks which layer the tiles come from
+BOOST_FIXTURE_TEST_CASE(cube_set_layer_test, AsdfImageSourceFixture) {
+  auto img_src = std::make_shared<AsdfImageSource>(cube_path, "data",
+                                                   ImageTile::FloatImage);
+
+  for (int layer = 0; layer < 3; layer++) {
+    img_src->setLayer(layer);
+    auto tile = img_src->getImageTile(0, 0, 5, 4);
+    BOOST_CHECK_CLOSE(tile->getValue<SeFloat>(0, 0), layer * 100.f, 1e-8);
+    // in an ASDF ndarray (x=4, y=3) is row 3 column 4
+    BOOST_CHECK_CLOSE(tile->getValue<SeFloat>(4, 3), layer * 100.f + 34.f, 1e-8);
+  }
+}
+
+//-----------------------------------------------------------------------------
+
+BOOST_FIXTURE_TEST_CASE(cube_rejects_a_missing_layer_test, AsdfImageSourceFixture) {
+  auto img_src = std::make_shared<AsdfImageSource>(cube_path, "data",
+                                                   ImageTile::FloatImage);
+  BOOST_CHECK_THROW(img_src->setLayer(3), Elements::Exception);
+  BOOST_CHECK_THROW(img_src->setLayer(-1), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/// A two-dimensional ndarray is not a data cube
+BOOST_FIXTURE_TEST_CASE(depth_is_zero_without_a_cube_test, AsdfImageSourceFixture) {
+  auto img_src = std::make_shared<AsdfImageSource>(metadata_path, "data",
+                                                   ImageTile::FloatImage);
+  BOOST_CHECK_EQUAL(img_src->getDepth(), 0);
+}
 
 //-----------------------------------------------------------------------------
 

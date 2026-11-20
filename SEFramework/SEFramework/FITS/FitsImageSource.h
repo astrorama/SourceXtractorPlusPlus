@@ -102,9 +102,11 @@ public:
     return m_height;
   }
 
-  /// Returns the depth of the image in pixels
-  int getDepth() const {
-    return m_depth;
+  /// Returns the number of layers of a data cube, or 0 if this is not one
+  int getDepth() const override {
+    // m_depth is 1 for a plain two-dimensional image, which setLayer's bounds
+    // check relies on, but this interface reports 0 for "not a data cube"
+    return m_depth > 1 ? m_depth : 0;
   }
 
   void setLayer(int layer) override;
