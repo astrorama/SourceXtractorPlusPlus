@@ -55,6 +55,8 @@ public:
                         const std::shared_ptr<CoordinateSystem> coord_system = nullptr, bool append=false) {
     auto target_image = newImage<T>(filename, image.getWidth(), image.getHeight(), coord_system, append);
 
+    typename WriteableImage<T>::WriteBatch write_batch(*target_image);
+
     // FIXME optimize the copy by using tile boundaries, image chunks, etc
     ImageAccessor<T> accessor(image);
     for (int y = 0; y < image.getHeight(); y++) {

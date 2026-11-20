@@ -144,6 +144,9 @@ elements_add_unit_test(PixelCentroid_test tests/src/Plugin/PixelCentroid/PixelCe
 elements_add_unit_test(ErrorEllipse_test tests/src/Plugin/ErrorEllipse/ErrorEllipse_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(ShapeParameters_test tests/src/Plugin/ShapeParameters/ShapeParameters_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(DetectionFramePixelValues_test tests/src/Plugin/DetectionFramePixelValues/DetectionFramePixelValues_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
@@ -199,6 +202,9 @@ elements_add_unit_test(MoffatModelFitting_test tests/src/Plugin/MoffatModelFitti
                      TYPE Boost)
 endif()
 elements_add_unit_test(PsfTask_test tests/src/Plugin/Psf/PsfTask_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
+elements_add_unit_test(LockedWriteableImage_test tests/src/Image/LockedWriteableImage_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
 elements_add_unit_test(ImagePsf_test tests/src/Image/ImagePsf_test.cpp
