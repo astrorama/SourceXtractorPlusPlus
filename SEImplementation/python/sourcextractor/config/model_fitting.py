@@ -745,11 +745,14 @@ class ComputeGraphModel(CoordinateModelBase):
         Dictionary of custom parameters for the ONNX model
     """
 
-    def __init__(self, models, x_coord, y_coord, flux, params={}):
+    def __init__(self, models, x_coord, y_coord, flux, params=None):
         """
         Constructor.
         """
         CoordinateModelBase.__init__(self, x_coord, y_coord, flux)
+
+        # Convert and remove reserved entries only in this model's dictionary.
+        params = dict(params) if params is not None else {}
 
         ratio_name = "_aspect_ratio"
         angle_name = "_angle"

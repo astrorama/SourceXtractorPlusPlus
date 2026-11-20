@@ -64,7 +64,7 @@ private:
   double m_max_fit_size {100};
 
   // should we renormalize the PSF for each frame?
-  std::vector<bool> m_should_renormalize;
+  std::unordered_map<unsigned int, bool> m_should_renormalize;
 
   bool m_output_fitting_areas { false };
 };
