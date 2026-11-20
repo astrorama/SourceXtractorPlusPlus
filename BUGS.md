@@ -1,11 +1,12 @@
 # Bug inventory
 
-Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
-and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
-BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
+Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit. Status
+reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code, and regression-test
+sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed. BUG-004 has protection
+implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits conditional-build verification. At
+the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates remain
+unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun
+during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -329,9 +330,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The configured threshold is present in both frame and property metadata.
 - **Fix direction:** Honor the masking threshold using the appropriate original/current variance representation.
   Define handling of zero, negative, and non-finite variances, and verify exclusion from usable-pixel counts.
-- **Work log (2026-11-20):** Honor original variance threshold before interpolation/shot noise, reject nonpositive and
-  nonfinite original/current variances using fast-math-safe checks. Regression covers below/at/above threshold,
-  zero/negative/infinite/NaN variance, usable counts, interpolation gaps and gain modes. Build and review pending.
+- **Work log (2026-11-20):** Honor original variance threshold before interpolation/shot noise and reject
+  nonpositive/nonfinite original/current variances with fast-math-safe checks. Tests cover threshold boundaries,
+  invalid variances, usable counts, interpolation gaps and gain modes. The regression fails baseline (109 assertions)
+  and passes the fix; make tests selecting FlexibleModelFittingWeight_test also passed. Standards and spec reviews: no
+  remaining findings.
 
 ## BUG-016: Parameter bookkeeping falsely marks parameters as fitted
 
