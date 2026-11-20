@@ -20,6 +20,8 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
+#include "SEUtils/IsNan.h"
+
 #include "SEImplementation/Image/ImagePsf.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
@@ -310,6 +312,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
   auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
   auto original_image = frame_images.getLockedImage(LayerOriginalImage);
   auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+  auto original_variance = frame_images.getLockedImage(LayerOriginalVarianceMap);
 
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
   SeFloat gain = frame_info.getGain();
@@ -356,8 +359,15 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
       auto dx = x + rect.getTopLeft().m_x - ellipse.m_x;
       auto dy = y + rect.getTopLeft().m_y - ellipse.m_y;
 
+      const auto original_var = original_variance->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      // Apply the input mask before interpolation or source shot noise can hide bad variance.
+      const bool bad_variance = fastmath_isnan(original_var) || fastmath_isinf(original_var) || original_var <= 0
+          || original_var >= frame_info.getVarianceThreshold()
+          || fastmath_isnan(back_var) || fastmath_isinf(back_var) || back_var <= 0;
       // Saturation is defined before background subtraction, in the original image units.
-      if (saturation > 0 && original_image->getValue(
+      if (bad_variance) {
+        weight->at(x, y) = 0;
+      } else if (saturation > 0 && original_image->getValue(
           rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (gain > 0.0 && pixel_val > 0.0) {

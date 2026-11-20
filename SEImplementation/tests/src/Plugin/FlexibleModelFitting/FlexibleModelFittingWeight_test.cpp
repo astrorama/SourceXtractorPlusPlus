@@ -17,6 +17,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cmath>
+#include <limits>
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
@@ -47,6 +48,49 @@ public:
 }
 
 struct FlexibleModelFittingWeightFixture {
+  void checkVarianceMask() {
+    const int size = 7;
+    auto image = VectorImage<SeFloat>::create(size, size);
+    auto variance = VectorImage<SeFloat>::create(size, size);
+    image->fillValue(20);
+    const SeFloat values[] = {4, 10, 100, 0, -1, std::numeric_limits<SeFloat>::infinity(),
+                             std::numeric_limits<SeFloat>::quiet_NaN()};
+    for (int y = 0; y < size; ++y) {
+      for (int x = 0; x < size; ++x) {
+        variance->at(x, y) = values[x];
+      }
+    }
+    auto coordinates = std::make_shared<WeightTestCoordinates>();
+    for (int gap : {0, 1}) {
+      for (SeFloat gain : {0, 2}) {
+        auto frame = std::make_shared<MeasurementImageFrame>(image, variance, 10, coordinates, gain, 0, gap);
+        frame->setBackgroundLevel(0, 2);
+        SimpleSource source;
+        source.setIndexedProperty<MeasurementFrameImages>(0, frame, size, size);
+        source.setIndexedProperty<MeasurementFrameInfo>(0, size, size, gain, 0, 10, 2);
+        source.setIndexedProperty<MeasurementFrameCoordinates>(0, coordinates);
+        source.setProperty<ReferenceCoordinates>(coordinates);
+        source.setProperty<WorldCentroid>(2, 2);
+        source.setIndexedProperty<MeasurementFrameRectangle>(0, ImageCoordinate(1, 1), ImageCoordinate(5, 5));
+        FlexibleModelFittingIterativeTask task("", 1, 1, {}, {}, {}, {});
+        auto weights = task.createWeightImage(source, 0);
+        BOOST_REQUIRE_EQUAL(weights->getWidth(), size);
+        int usable = 0;
+        for (int y = 0; y < size; ++y) {
+          for (int x = 0; x < size; ++x) {
+            if (x == 0) {
+              BOOST_CHECK_CLOSE(weights->at(x, y), 1 / std::sqrt(gain > 0 ? 14.0 : 4.0), 0.001);
+            } else {
+              BOOST_CHECK_EQUAL(weights->at(x, y), 0);
+            }
+            usable += weights->at(x, y) != 0;
+          }
+        }
+        BOOST_CHECK_EQUAL(usable, size);
+      }
+    }
+  }
+
   void checkWeights(bool iterative, SeFloat saturation, SeFloat scale, bool varying_background, SeFloat gain, SeFloat background_level = 30) {
     const int size = 5;
     auto image = VectorImage<SeFloat>::create(size, size);
@@ -125,6 +169,10 @@ BOOST_AUTO_TEST_CASE(disabled_saturation) {
     checkWeights(iterative, 0, 1, true, 2);
     checkWeights(iterative, -1, 1, true, 2);
   }
+}
+
+BOOST_AUTO_TEST_CASE(finite_bad_variances_are_excluded) {
+  checkVarianceMask();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
