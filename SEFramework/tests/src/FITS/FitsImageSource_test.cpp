@@ -196,15 +196,15 @@ BOOST_FIXTURE_TEST_CASE(cube_layer_bounds, FitsImageSourceFixture) {
   fits_close_file(file, &status);
   BOOST_REQUIRE_EQUAL(status, 0);
 
-  FitsImageSource source(temp_path.path().native());
-  BOOST_REQUIRE_EQUAL(source.getDepth(), 3);
+  auto source = std::make_shared<FitsImageSource>(temp_path.path().native());
+  BOOST_REQUIRE_EQUAL(source->getDepth(), 3);
   for (int layer : {0, 2}) {
-    source.setLayer(layer);
-    BOOST_CHECK_EQUAL(source.getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
-    BOOST_CHECK_THROW(source.setLayer(-1), Elements::Exception);
-    BOOST_CHECK_THROW(source.setLayer(3), Elements::Exception);
+    source->setLayer(layer);
+    BOOST_CHECK_EQUAL(source->getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
+    BOOST_CHECK_THROW(source->setLayer(-1), Elements::Exception);
+    BOOST_CHECK_THROW(source->setLayer(3), Elements::Exception);
     // Rejected requests must leave the selected layer unchanged.
-    BOOST_CHECK_EQUAL(source.getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
+    BOOST_CHECK_EQUAL(source->getImageTile(0, 0, 1, 1)->getValue<float>(0, 0), pixels[layer]);
   }
 }
 
