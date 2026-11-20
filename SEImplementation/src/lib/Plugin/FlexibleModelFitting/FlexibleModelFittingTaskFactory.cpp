@@ -99,8 +99,9 @@ void FlexibleModelFittingTaskFactory::configure(Euclid::Configuration::ConfigMan
   m_max_fit_size = sampling_config.getMaxFitSize();
 
   const auto& image_infos = manager.getConfiguration<MeasurementImageConfig>().getImageInfos();
+  m_should_renormalize.clear();
   for (const auto& info : image_infos) {
-    m_should_renormalize.push_back(info.m_psf_renormalize);
+    m_should_renormalize.emplace(info.m_id, info.m_psf_renormalize);
   }
 
   m_output_fitting_areas = model_fitting_config.getOutputFittingAreas();
