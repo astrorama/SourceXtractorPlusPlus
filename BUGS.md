@@ -1,11 +1,12 @@
 # Bug inventory
 
-Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
-and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
-BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
+Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit. Status
+reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code, and regression-test
+sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed. BUG-004 has protection
+implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits conditional-build verification. At
+the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates remain
+unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun
+during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -367,10 +368,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The correct squared-axis matrix is `[[5,1],[1,1]]`, which has nonzero rotation.
 - **Fix direction:** Transform the ellipse's symmetric shape matrix with `J Q J^T`, then obtain semiaxes and angle
   by eigendecomposition. Test rotation, anisotropic scaling, shear, and reflection.
-- **Work log (2026-11-20):** Diagonalize the transformed symmetric shape matrix instead of treating transformed axes
-  as orthogonal; derive the minor axis from the area to avoid eigenvalue cancellation. Regression reconstructs the
-  full matrix and area under identity, rotation, anisotropic scale, shear, reflection and collapse, for
-  rotated/unrotated ellipses. Build and review pending.
+- **Work log (2026-11-20):** Diagonalize the transformed symmetric shape matrix; derive the minor axis from area to
+  avoid cancellation. Regression reconstructs shape and area for identity, rotation, anisotropic scale, shear,
+  reflection and collapse. Regression fails baseline (20 assertions) and passes the fix; all
+  FlexibleModelFittingWeight_test cases passed after building through Elements. Standards and spec reviews: no
+  findings.
 
 ## BUG-018: GSL leaves runtime parameters at an evaluation probe
 
