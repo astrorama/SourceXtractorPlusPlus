@@ -5,7 +5,7 @@ Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed 
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
 conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -228,8 +228,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   layer. This establishes the validation bug; subsequent CFITSIO failure behavior was not exercised.
 - **Fix direction:** Use an OR condition and test -1, 0, depth-1, and depth. Separately specify cache behavior if the
   active layer changes after reads; the cache key currently does not contain the layer.
-- **Work log (2026-11-20):** Reject invalid layers with OR, read the third FITS dimension, and initialize layer/depth defaults. Real-cube regression exposed the old depth bug; validation and review are in progress.
-- **Work log (2026-11-20):** Reject invalid layers with OR, read the third FITS dimension, and initialize layer/depth defaults. Real-cube regression failed before the fix; make -j4 tests with ARGS selecting SEFramework.FitsImageSource_test passed afterward. Standards review: no findings. Spec review found stack ownership in the test; corrected to shared ownership and reran successfully. Buffered-view layer changes remain unsupported and are documented.
+- **Work log (2026-11-20):** Reject invalid layers with OR, read the third FITS dimension, and initialize layer/depth
+  defaults. Real-cube regression failed before the fix; make -j4 tests with ARGS selecting
+  SEFramework.FitsImageSource_test passed afterward. Standards review: no findings. Spec review found stack ownership
+  in the test; corrected to shared ownership and reran successfully. Buffered-view layer changes remain unsupported
+  and are documented.
 
 ## BUG-010: Graph-model construction mutates reusable configuration
 
