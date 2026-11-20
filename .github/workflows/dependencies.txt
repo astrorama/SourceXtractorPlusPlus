@@ -1,4 +1,5 @@
 $PYTHON-devel
+$PYTHON-astropy
 $PYTHON-numpy
 $PYTHON-pytest
 $PYTHON-sphinx
