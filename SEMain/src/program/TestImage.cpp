@@ -594,60 +594,65 @@ public:
         ImageTile::ImageType::FloatImage, coordinate_system);
     std::shared_ptr<WriteableImage<SeFloat>> target_image(WriteableBufferedImage<SeFloat>::create(target_image_source));
 
-    if (args["disable-psf"].as<bool>()) {
-      FrameModel<DummyPsf<WriteableInterfaceTypePtr>, WriteableInterfaceTypePtr> frame_model {
-        pixel_scale,
-        (std::size_t) image_size, (std::size_t) image_size,
-        std::move(constant_models),
-        std::move(point_models),
-        std::move(extended_models),
-      };
-      frame_model.rasterToImage(target_image);
-    } else {
-      FrameModel<ImagePsf, WriteableInterfaceTypePtr> frame_model {
-        pixel_scale,
-        (std::size_t) image_size, (std::size_t) image_size,
-        std::move(constant_models),
-        std::move(point_models),
-        std::move(extended_models),
-        *psf
-      };
-      frame_model.rasterToImage(target_image);
-    }
-
-
-    logger.info("Adding noise...");
-
-    addPoissonNoise(target_image, args["gain"].as<double>());
-    addBackgroundNoise(target_image, args["bg-level"].as<double>(), args["bg-sigma"].as<double>());
-
-    logger.info("Adding saturation...");
-
-    auto saturation_level = args["saturation"].as<double>();
-    saturate(target_image, saturation_level);
-
-    logger.info("Creating weight map...");
-
-    auto weight_filename = args["output-weight"].as<std::string>();
-    if (weight_filename != "") {
-      auto weight_map_source = std::make_shared<FitsImageSource>(weight_filename, image_size, image_size, ImageTile::ImageType::FloatImage);
-      auto weight_map = WriteableBufferedImage<SeFloat>::create(weight_map_source);
-      for (int y = 0; y < image_size; ++y) {
-        for (int x = 0; x < image_size; ++x) {
-          weight_map->setValue(x, y, 1);
-        }
+    {
+      WriteableImage<SeFloat>::WriteBatch target_batch(*target_image);
+      if (args["disable-psf"].as<bool>()) {
+        FrameModel<DummyPsf<WriteableInterfaceTypePtr>, WriteableInterfaceTypePtr> frame_model {
+          pixel_scale,
+          (std::size_t) image_size, (std::size_t) image_size,
+          std::move(constant_models),
+          std::move(point_models),
+          std::move(extended_models),
+        };
+        frame_model.rasterToImage(target_image);
+      } else {
+        FrameModel<ImagePsf, WriteableInterfaceTypePtr> frame_model {
+          pixel_scale,
+          (std::size_t) image_size, (std::size_t) image_size,
+          std::move(constant_models),
+          std::move(point_models),
+          std::move(extended_models),
+          *psf
+        };
+        frame_model.rasterToImage(target_image);
       }
 
-      logger.info("Adding bad pixels...");
 
-      addBadPixels(weight_map, args["bad-pixels"].as<double>());
-      addBadColumns(weight_map, args["bad-columns"].as<double>());
+      logger.info("Adding noise...");
 
-      ImageAccessor<WeightImage::PixelType> weightAccessor(weight_map);
-      for (int y = 0; y < target_image->getHeight(); y++) {
-        for (int x = 0; x < target_image->getWidth(); x++) {
-          if (weightAccessor.getValue(x, y) == 0) {
-            target_image->setValue(x, y, saturation_level);
+      addPoissonNoise(target_image, args["gain"].as<double>());
+      addBackgroundNoise(target_image, args["bg-level"].as<double>(), args["bg-sigma"].as<double>());
+
+      logger.info("Adding saturation...");
+
+      auto saturation_level = args["saturation"].as<double>();
+      saturate(target_image, saturation_level);
+
+      logger.info("Creating weight map...");
+
+      auto weight_filename = args["output-weight"].as<std::string>();
+      if (weight_filename != "") {
+        auto weight_map_source = std::make_shared<FitsImageSource>(weight_filename, image_size, image_size,
+                                                                 ImageTile::ImageType::FloatImage);
+        auto weight_map = WriteableBufferedImage<SeFloat>::create(weight_map_source);
+        WriteableImage<SeFloat>::WriteBatch weight_batch(*weight_map);
+        for (int y = 0; y < image_size; ++y) {
+          for (int x = 0; x < image_size; ++x) {
+            weight_map->setValue(x, y, 1);
+          }
+        }
+
+        logger.info("Adding bad pixels...");
+
+        addBadPixels(weight_map, args["bad-pixels"].as<double>());
+        addBadColumns(weight_map, args["bad-columns"].as<double>());
+
+        ImageAccessor<WeightImage::PixelType> weight_accessor(weight_map);
+        for (int y = 0; y < target_image->getHeight(); y++) {
+          for (int x = 0; x < target_image->getWidth(); x++) {
+            if (weight_accessor.getValue(x, y) == 0) {
+              target_image->setValue(x, y, saturation_level);
+            }
           }
         }
       }

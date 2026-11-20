@@ -75,6 +75,30 @@ namespace SourceXtractor {
 class TileManager {
 public:
 
+  /// Exclusive write access to a resident tile until the handle is released.
+  class WritePin {
+  public:
+    WritePin() = default;
+    WritePin(WritePin&&) noexcept = default;
+    WritePin& operator=(WritePin&& other) noexcept;
+    ~WritePin();
+
+    /// Return the borrowed tile pointer, or null if this handle has no pin.
+    /// The pointer is valid through this handle only while it owns the pin.
+    ImageTile* get() const {
+      return m_tile.get();
+    }
+
+    /// Release the pin without saving the tile.
+    void reset() noexcept;
+
+  private:
+    friend class TileManager;
+    explicit WritePin(std::shared_ptr<ImageTile> tile);
+
+    std::shared_ptr<ImageTile> m_tile;
+  };
+
   TileManager();
 
   virtual ~TileManager();
@@ -82,6 +106,7 @@ public:
   // Actually not thread safe, call before starting the multi-threading
   void setOptions(int tile_width, int tile_height, int max_memory);
 
+  /// Save and clear the cache. Throws if a tile is pinned for writing.
   void flush();
 
   std::shared_ptr<ImageTile>
@@ -89,6 +114,7 @@ public:
 
   static std::shared_ptr<TileManager> getInstance();
 
+  /// Save dirty tiles. Throws if a tile is pinned for writing.
   void saveAllTiles();
 
   int getTileWidth() const;
@@ -97,7 +123,15 @@ public:
 
 private:
 
-  std::shared_ptr<ImageTile> tryTileFromCache(const TileKey& key);
+  template <typename T> friend class WriteableBufferedImage;
+
+  /// Acquire a write pin. Throws if another writer already holds the tile.
+  WritePin pinTileForPixel(int x, int y, std::shared_ptr<const ImageSource> source);
+
+  std::shared_ptr<ImageTile>
+  getTileForPixel(int x, int y, std::shared_ptr<const ImageSource> source, WritePin* write_pin);
+  std::shared_ptr<ImageTile> tryTileFromCache(const TileKey& key, WritePin* write_pin);
+  void saveAllTilesLocked();
 
   std::shared_ptr<boost::mutex>& getMutexForImageSource(const ImageSource*);
 
