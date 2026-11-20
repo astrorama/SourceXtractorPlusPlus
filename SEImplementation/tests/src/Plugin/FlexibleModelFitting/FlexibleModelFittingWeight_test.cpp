@@ -72,8 +72,8 @@ struct FlexibleModelFittingWeightFixture {
     auto frame1 = std::make_shared<FlexibleModelFittingFrame>(1, models);
     auto frame7 = std::make_shared<FlexibleModelFittingFrame>(7, models);
     auto frame42 = std::make_shared<FlexibleModelFittingFrame>(42, models);
-    FlexibleModelFittingIterativeTask dense("", 1, 1, {position, flux}, {frame0, frame1}, {}, {false, true});
-    FlexibleModelFittingIterativeTask sparse("", 1, 1, {position, flux}, {frame7, frame42}, {}, {false, true});
+    FlexibleModelFittingIterativeTask dense("", 1, 1, {position, flux}, {frame0, frame1}, {}, {{0, false}, {1, true}, {99, true}});
+    FlexibleModelFittingIterativeTask sparse("", 1, 1, {position, flux}, {frame7, frame42}, {}, {{42, true}, {99, false}, {7, false}});
     FlexibleModelFittingIterativeTask::SourceState state;
     dense.fitSourcePrepareParameters(state.parameter_manager, state.engine_parameter_manager, source, state);
     auto integral = [&](const FlexibleModelFittingIterativeTask& task,
@@ -89,7 +89,10 @@ struct FlexibleModelFittingWeightFixture {
     BOOST_CHECK_CLOSE(unnormalized, 2 * normalized, 0.001);
     BOOST_CHECK_CLOSE(integral(sparse, frame7), unnormalized, 0.001);
     BOOST_CHECK_CLOSE(integral(sparse, frame42), normalized, 0.001);
-    BOOST_CHECK_THROW((FlexibleModelFittingIterativeTask("", 1, 1, {}, {frame7}, {}, {})), Elements::Exception);
+    // Extra loaded images without assigned models do not affect frame selection.
+    FlexibleModelFittingIterativeTask subset("", 1, 1, {position, flux}, {frame7}, {},
+        {{42, true}, {99, true}, {7, false}});
+    BOOST_CHECK_CLOSE(integral(subset, frame7), unnormalized, 0.001);
   }
 
   void checkWeights(bool iterative, SeFloat saturation, SeFloat scale, bool varying_background, SeFloat gain, SeFloat background_level = 30) {

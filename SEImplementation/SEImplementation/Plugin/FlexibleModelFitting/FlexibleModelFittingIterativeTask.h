@@ -58,7 +58,7 @@ public:
       std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
       std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
       std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
-      std::vector<bool> should_renormalize,
+      std::unordered_map<unsigned int, bool> should_renormalize,
       double scale_factor=1.0,
       int meta_iterations=3,
       double deblend_factor=1.0,

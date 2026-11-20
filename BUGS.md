@@ -312,9 +312,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   the erroneous factor of two comes from selecting the wrong flag. The largest frame ID also exceeds vector size.
 - **Fix direction:** Store options keyed by image ID, or attach them directly to each fitting-frame definition.
   Test sparse IDs and different flags per frame. Audit other containers accessed with `getFrameNb()` similarly.
-- **Work log (2026-11-20):** Map frame-list normalization options to global frame IDs in the task constructor,
-  validate option counts, and use checked lookups. Rendering regression compares sparse IDs 7 and 42 against dense
-  frames with opposite flags and a non-unit PSF integral. Build and review pending.
+- **Work log (2026-11-20):** Pass normalization options keyed by measurement image ID from factory through task, using
+  checked lookup. Rendering tests compare sparse/reordered IDs, opposite flags, a non-unit PSF, and extra unmodeled
+  images. Review caught subset-image rejection in the initial vector-based approach; corrected the factory-to-task
+  mapping. Build and final review pending.
 
 ## BUG-015: Iterative fitting ignores finite bad-variance thresholds
 

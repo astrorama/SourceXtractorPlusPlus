@@ -54,7 +54,7 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
     std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
-    std::vector<bool> should_renormalize,
+    std::unordered_map<unsigned int, bool> should_renormalize,
     double scale_factor,
     int meta_iterations,
     double deblend_factor,
@@ -67,15 +67,8 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
       m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
-      m_window_type(window_type), m_ellipse_scale(ellipse_scale) {
-  if (should_renormalize.size() != m_frames.size()) {
-    throw Elements::Exception() << "PSF normalization options must match the model-fitting frames";
-  }
-  // Configuration stores flags in frame-list order; PyId frame numbers can be sparse.
-  for (size_t i = 0; i < m_frames.size(); ++i) {
-    m_should_renormalize.emplace(m_frames[i]->getFrameNb(), should_renormalize[i]);
-  }
-}
+      m_should_renormalize(std::move(should_renormalize)),
+      m_window_type(window_type), m_ellipse_scale(ellipse_scale) {}
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
