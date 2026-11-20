@@ -4,8 +4,8 @@ Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source re
 Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
+conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -64,7 +64,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-019 | Zero-weight pixels artificially shrink solver uncertainties | High | High with masks | Fixed | None |
 | BUG-020 | Levmar workspace rejection leaves a global mutex locked | High | Low / build-dependent | Fix pending verification | Verify with conditional locking enabled |
 | BUG-021 | Iterative task treats solver memory failure as usable output | High | Low | Confirmed | Fix |
-| BUG-022 | Small PSF kernels render point sources as zero | High | Medium | Confirmed | Fix |
+| BUG-022 | Small PSF kernels render point sources as zero | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-023 | Fit and stopping diagnostic use different neighbor subtraction | High if unintended | High for blends | Unconfirmed | Try to confirm |
 
 ## BUG-001: Incorrect centroid error-ellipse angle
@@ -469,8 +469,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Severity:** High: silently removes point-source model signal and can invalidate fitted fluxes.
 - **Likelihood:** Medium: square odd PSFs of size 1, 3, 5, or 7, including kernels reduced below eight pixels by
   downsampling. The PSF wrapper accepts these sizes.
-- **Status:** Confirmed by rendering through production iterative `createFrameModel()` and image interpolation.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-022-render-small-psf-kernels`; awaiting merge.
+- **Next action needed:** Review and merge the fix branch.
 - **Location:** [ImageInterfaceTraits.cpp:274](SEImplementation/src/lib/Image/ImageInterfaceTraits.cpp#L274).
 - **Description:** The fast Lanczos-4 resampler requires its entire eight-sample support inside the source image.
   For a dimension below eight, every row/column is skipped and the destination remains zero. Point-model rendering
@@ -480,6 +480,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   to 3x3 also encounters this path; normalization and later rendering can compound the failure.
 - **Fix direction:** Provide suitable padding/boundary handling or a valid small-kernel interpolation path.
   Test PSF sizes below the interpolation support and PSFs crossing that boundary during downsampling.
+- **Work log (2026-11-20):** Use zero-valued samples outside Lanczos support instead of skipping the whole destination
+  row/column. Preserve valid interior interpolation. Tests cover exact boundary copies and production FrameModel point
+  rendering with 1/3/5/7/9-pixel PSFs, including downsampling across the support boundary, finite kernels and nonzero
+  rendered flux. Build and review pending.
 
 ## BUG-023: Fit and stopping diagnostic use different neighbor subtraction
 

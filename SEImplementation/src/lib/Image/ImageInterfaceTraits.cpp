@@ -274,14 +274,15 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
     float pos = (buff_x + 0.5 - y_shift) / scale_factor + 0.5;
     int ipos = int(pos) - 4;
 
-    if (ipos < 0 || ipos + 7 >= source_height) {
+    if (ipos >= source_height || ipos + 7 < 0) {
       continue;
     }
 
     make_kernel(pos - int(pos), kernel, INTERP_LANCZOS4);
     for (unsigned int buff_y = 0; buff_y < Traits::height(buffer); buff_y++) {
       float val = 0.f;
-      for (int i = 0; i < 8; i++) {
+      // Treat samples outside the finite model/PSF as zero, including for kernels smaller than support.
+      for (int i = std::max(0, -ipos); i < std::min(8, source_height - ipos); ++i) {
         val += kernel[i] * Traits::at(source, buff_y, ipos + i);
       }
       Traits::at(buffer, buff_x, buff_y) = val;
@@ -292,14 +293,14 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
   for (int x_win = 0; x_win < window_width; x_win++) {
     float pos = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
     int ipos = int(pos) - 4;
-    if (ipos < 0 || ipos + 7 >= source_width) {
+    if (ipos >= source_width || ipos + 7 < 0) {
       continue;
     }
     make_kernel(pos - int(pos), kernel, INTERP_LANCZOS4);
 
     for (int y_win = 0; y_win < window_height; y_win++) {
       float val = 0.f;
-      for (int i = 0; i < 8; i++) {
+      for (int i = std::max(0, -ipos); i < std::min(8, source_width - ipos); ++i) {
         val += kernel[i] * Traits::at(buffer, y_win, ipos + i);
       }
       Traits::at(window, x_win, y_win) = val;
