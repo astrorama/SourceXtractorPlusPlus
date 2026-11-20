@@ -18,6 +18,11 @@
 
 #include <cmath>
 
+#include "SEUtils/IsNan.h"
+#include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFitting.h"
+#include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
+
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
 #include "SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.h"
@@ -47,6 +52,53 @@ public:
 }
 
 struct FlexibleModelFittingWeightFixture {
+  void checkSkippedFit(bool outside, bool masked, int free_parameters) {
+    auto coordinates = std::make_shared<WeightTestCoordinates>();
+    auto image = VectorImage<SeFloat>::create(5, 5);
+    auto variance = VectorImage<SeFloat>::create(5, 5);
+    image->fillValue(10);
+    variance->fillValue(4);
+    // Exercise complete masking and a nonempty stamp with too few usable pixels.
+    const SeFloat saturation = masked ? 1 : 0;
+    auto frame = std::make_shared<MeasurementImageFrame>(image, variance, 1e6, coordinates, 0, saturation, 0);
+    frame->setBackgroundLevel(0, 2);
+    auto source = std::make_unique<SimpleSource>();
+    source->setIndexedProperty<MeasurementFrameImages>(0, frame, 5, 5);
+    source->setIndexedProperty<MeasurementFrameInfo>(0, 5, 5, 0, saturation, 1e6, 2);
+    source->setIndexedProperty<MeasurementFrameCoordinates>(0, coordinates);
+    source->setProperty<ReferenceCoordinates>(coordinates);
+    source->setProperty<WorldCentroid>(2, 2);
+    if (outside) {
+      source->setIndexedProperty<MeasurementFrameRectangle>(0, false);
+    } else {
+      source->setIndexedProperty<MeasurementFrameRectangle>(0, ImageCoordinate(1, 1), ImageCoordinate(3, 3));
+      source->setIndexedProperty<JacobianSource>(0);
+      source->setIndexedProperty<SourcePsfProperty>(0, 1.0, nullptr);
+    }
+    SimpleSourceGroup group;
+    group.addSource(std::move(source));
+    auto fitting_frame = std::make_shared<FlexibleModelFittingFrame>(0,
+        std::vector<std::shared_ptr<FlexibleModelFittingModel>>{});
+    FlexibleModelFittingIterativeTask task("must-not-run", 1, 1, {}, {fitting_frame}, {}, {false});
+    FlexibleModelFittingIterativeTask::FittingState state;
+    state.source_states.emplace_back();
+    auto& result = state.source_states.back();
+    result.flags = Flags::NONE;
+    result.n_free_parameters = free_parameters;
+    result.reduced_chi_squared = 4;
+    result.parameters_sigmas[7] = 2;
+    result.parameters_fitted[7] = true;
+    result.parameters_values[7] = 3;
+    task.fitSource(group, *group.begin(), 0, state);
+    auto expected = outside ? Flags::OUTSIDE : Flags::INSUFFICIENT_DATA;
+    BOOST_CHECK(result.flags == expected);
+    BOOST_CHECK(fastmath_isnan(result.reduced_chi_squared));
+    BOOST_CHECK(fastmath_isnan(result.parameters_sigmas.at(7)));
+    BOOST_CHECK(!result.parameters_fitted.at(7));
+    // Keep internal guesses for neighbor rendering; final output masks unfitted free parameters.
+    BOOST_CHECK_EQUAL(result.parameters_values.at(7), 3);
+  }
+
   void checkWeights(bool iterative, SeFloat saturation, SeFloat scale, bool varying_background, SeFloat gain, SeFloat background_level = 30) {
     const int size = 5;
     auto image = VectorImage<SeFloat>::create(size, size);
@@ -124,6 +176,36 @@ BOOST_AUTO_TEST_CASE(disabled_saturation) {
   for (bool iterative : {true, false}) {
     checkWeights(iterative, 0, 1, true, 2);
     checkWeights(iterative, -1, 1, true, 2);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(skipped_fit_retains_failure_state) {
+  checkSkippedFit(true, false, 1);
+  checkSkippedFit(false, true, 1);
+  checkSkippedFit(false, false, 26);
+}
+
+BOOST_AUTO_TEST_CASE(skipped_output_has_no_fabricated_constant_or_derived_values) {
+  auto coordinates = std::make_shared<WeightTestCoordinates>();
+  auto source = std::make_unique<SimpleSource>();
+  source->setProperty<ReferenceCoordinates>(coordinates);
+  source->setIndexedProperty<MeasurementFrameRectangle>(0, false);
+  SimpleSourceGroup group;
+  group.addSource(std::move(source));
+  auto constant = std::make_shared<FlexibleModelFittingConstantParameter>(7,
+      [](const SourceInterface&) { return 7.0; });
+  auto derived = std::make_shared<FlexibleModelFittingDependentParameter>(8,
+      [](const std::shared_ptr<CoordinateSystem>&, const std::vector<double>& values) { return 2 * values[0]; },
+      std::vector<std::shared_ptr<FlexibleModelFittingParameter>>{constant});
+  auto frame = std::make_shared<FlexibleModelFittingFrame>(0,
+      std::vector<std::shared_ptr<FlexibleModelFittingModel>>{});
+  FlexibleModelFittingIterativeTask task("must-not-run", 1, 1, {constant, derived}, {frame}, {}, {false});
+  task.computeProperties(group);
+  const auto& result = group.begin()->getProperty<FlexibleModelFitting>();
+  BOOST_CHECK((result.getFlags() & Flags::OUTSIDE) != Flags::NONE);
+  for (int id : {7, 8}) {
+    BOOST_CHECK(fastmath_isnan(result.getParameterValue(id)));
+    BOOST_CHECK(fastmath_isnan(result.getParameterSigma(id)));
   }
 }
 
