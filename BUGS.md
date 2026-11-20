@@ -481,11 +481,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   to 3x3 also encounters this path; normalization and later rendering can compound the failure.
 - **Fix direction:** Provide suitable padding/boundary handling or a valid small-kernel interpolation path.
   Test PSF sizes below the interpolation support and PSFs crossing that boundary during downsampling.
-- **Work log (2026-11-20):** Zero-pad Lanczos boundaries, include the complete interpolation support in the
-  destination window, and use floor for negative padded coordinates. Initial zero-padding-only fix passed zero-signal
-  tests but failed 13 new flux assertions; full support and proper kernel phases resolve this. Tests cover
-  1/3/5/7/9-pixel PSFs, integer/fractional placement, downsampling, both normalization modes, finite pixels and
-  integrated flux. Initial full suite passed 79 tests; expanded tests and final review are in progress.
+- **Work log (2026-11-20):** Zero-pad Lanczos boundaries, retain full interpolation support in the output window, and
+  use floor for negative padded coordinates. Original regression failed baseline (169 assertions). Stronger
+  fractional-flux tests caught clipping in the first partial fix; corrected and verified flux for 1/3/5/7/9-pixel
+  PSFs, both normalization modes, downsampling and centered/fractional positions. make -j4 tests passed all 79
+  registered tests after the correction. Standards and spec reviews cleared the final changes; no remaining findings.
 
 ## BUG-023: Fit and stopping diagnostic use different neighbor subtraction
 

@@ -100,8 +100,8 @@ BOOST_AUTO_TEST_CASE(small_psfs_render_point_sources) {
           BOOST_TEST_CONTEXT("size=" << size << ", scale=" << down_scaling
               << ", normalize=" << normalize << ", position=" << position) {
             std::vector<PointModel> points;
-            points.emplace_back(std::make_shared<ManualParameter>(position), std::make_shared<ManualParameter>(position),
-                std::make_shared<ManualParameter>(1));
+            points.emplace_back(std::make_shared<ManualParameter>(position),
+                std::make_shared<ManualParameter>(position), std::make_shared<ManualParameter>(1));
             FrameModel<DownSampledImagePsf, ImageInterfaceTypePtr> model(1, 31, 31, {}, std::move(points), {}, psf);
             auto image = model.getImage();
             for (auto pixel : image->getData()) {
