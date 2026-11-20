@@ -4,8 +4,8 @@ Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source re
 Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
+conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -55,7 +55,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Confirmed | Fix |
 | BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Confirmed | Fix |
 | BUG-012 | Vignettes can read outside the detection image | High | Medium | Unconfirmed | Try to confirm |
-| BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Confirmed | Fix |
+| BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-014 | PSF normalization indexed by global image ID | High | Medium | Confirmed | Fix |
 | BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Confirmed | Fix |
 | BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Confirmed | Fix |
@@ -282,8 +282,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** High: an unperformed fit can appear unflagged, with zero chi-square and bogus non-free outputs.
 - **Likelihood:** Medium: sources outside all modeled frames, or too few usable pixels for the registered parameters.
-- **Status:** Confirmed by calling the production iterative task on a source outside a configured frame.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-013-preserve-skipped-fit-flags`; awaiting merge.
+- **Next action needed:** Review and merge the fix branch.
 - **Location:** [FlexibleModelFittingIterativeTask.cpp:723](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L723).
 - **Description:** `fitSource()` sets a local `OUTSIDE` or `INSUFFICIENT_DATA` flag, then returns without updating
   `SourceState`. Initial flags and chi-square remain zero. Initial constant/dependent saved values are also zero,
@@ -294,6 +294,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The insufficient-data branch has the same early return; it was checked by inspection, not separately executed.
 - **Fix direction:** Publish a complete skipped-fit state, including failure flags and defined unavailable results,
   before returning. Test outside coverage, complete masking, and insufficient usable pixels.
+- **Work log (2026-11-20):** Persist OUTSIDE/INSUFFICIENT_DATA before returning, invalidate diagnostic and uncertainties, and clear stale fitted state while preserving internal guesses. Regression exercises outside coverage, full masking, and too few usable pixels. Build, execution and review pending.
 
 ## BUG-014: PSF normalization is indexed by global image ID
 

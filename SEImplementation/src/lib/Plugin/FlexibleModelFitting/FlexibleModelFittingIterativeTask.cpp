@@ -731,6 +731,15 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   // Do not run the model fitting for the flags above
   if (flags != Flags::NONE) {
+    auto& source_state = state.source_states[index];
+    source_state.flags |= flags;
+    source_state.reduced_chi_squared = std::numeric_limits<double>::quiet_NaN();
+    for (auto& sigma : source_state.parameters_sigmas) {
+      sigma.second = std::numeric_limits<double>::quiet_NaN();
+    }
+    for (auto& fitted : source_state.parameters_fitted) {
+      fitted.second = false;
+    }
     return;
   }
 
