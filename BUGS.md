@@ -4,8 +4,8 @@ Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source re
 Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
+conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -59,7 +59,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-014 | PSF normalization indexed by global image ID | High | Medium | Confirmed | Fix |
 | BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Confirmed | Fix |
 | BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Confirmed | Fix |
-| BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Confirmed | Fix |
+| BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-018 | GSL leaves runtime parameters at an evaluation probe | High | High with GSL | Fixed | None |
 | BUG-019 | Zero-weight pixels artificially shrink solver uncertainties | High | High with masks | Fixed | None |
 | BUG-020 | Levmar workspace rejection leaves a global mutex locked | High | Low / build-dependent | Fix pending verification | Verify with conditional locking enabled |
@@ -356,8 +356,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Severity:** High: selects an incorrect scientific fitting region, changing which data constrain the fit.
 - **Likelihood:** Medium with `ROTATED_ELLIPSE` and a Jacobian that does not preserve the orthogonality of the source's
   principal axes. Pure rotation and uniform scaling conceal it.
-- **Status:** Confirmed by executing production `transformEllipse()` with a controlled Jacobian.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-017-transform-fitting-ellipse-under-shear`; awaiting merge.
+- **Next action needed:** Review and merge the fix branch.
 - **Location:** [FlexibleModelFittingIterativeTask.cpp:231](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L231).
 - **Description:** The method transforms the two original axis vectors, takes their lengths as new semiaxes, and uses
   the transformed major vector as the new angle. Under shear those vectors are no longer orthogonal, so this does
@@ -367,6 +367,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The correct squared-axis matrix is `[[5,1],[1,1]]`, which has nonzero rotation.
 - **Fix direction:** Transform the ellipse's symmetric shape matrix with `J Q J^T`, then obtain semiaxes and angle
   by eigendecomposition. Test rotation, anisotropic scaling, shear, and reflection.
+- **Work log (2026-11-20):** Diagonalize the transformed symmetric shape matrix instead of treating transformed axes
+  as orthogonal; derive the minor axis from the area to avoid eigenvalue cancellation. Regression reconstructs the
+  full matrix and area under identity, rotation, anisotropic scale, shear, reflection and collapse, for
+  rotated/unrotated ellipses. Build and review pending.
 
 ## BUG-018: GSL leaves runtime parameters at an evaluation probe
 
