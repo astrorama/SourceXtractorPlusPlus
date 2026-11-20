@@ -20,6 +20,8 @@
 #include "ModelFitting/Engine/DataVsModelResiduals.h"
 #include "ModelFitting/Engine/LeastSquareEngineManager.h"
 
+#include "SEUtils/IsNan.h"
+
 #include "SEImplementation/Image/ImagePsf.h"
 #include "SEImplementation/Image/VectorImageDataVsModelInputTraits.h"
 
@@ -54,7 +56,7 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
     std::vector<std::shared_ptr<FlexibleModelFittingParameter>> parameters,
     std::vector<std::shared_ptr<FlexibleModelFittingFrame>> frames,
     std::vector<std::shared_ptr<FlexibleModelFittingPrior>> priors,
-    std::vector<bool> should_renormalize,
+    std::unordered_map<unsigned int, bool> should_renormalize,
     double scale_factor,
     int meta_iterations,
     double deblend_factor,
@@ -67,7 +69,7 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
       m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
-      m_should_renormalize(should_renormalize),
+      m_should_renormalize(std::move(should_renormalize)),
       m_window_type(window_type), m_ellipse_scale(ellipse_scale) {}
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
@@ -236,12 +238,18 @@ FlexibleModelFittingIterativeTask::FittingEllipse FlexibleModelFittingIterativeT
   double new_minor_x = minor_x * x_basis_x + minor_y * y_basis_x;
   double new_minor_y = minor_x * x_basis_y + minor_y * y_basis_y;
 
-  // Calculate new semi-major and semi-minor lengths
-  double new_a = std::sqrt(new_major_x * new_major_x + new_major_y * new_major_y);
-  double new_b = std::sqrt(new_minor_x * new_minor_x + new_minor_y * new_minor_y);
-
-  // Calculate new angle (atan2 handles angle wrapping automatically)
-  double new_theta = std::atan2(new_major_y, new_major_x);
+  // The transformed axis vectors need not be orthogonal. Their outer products form J Q J^T;
+  // its eigenvectors and eigenvalues define the new principal axes and squared semiaxes.
+  const double q_xx = new_major_x * new_major_x + new_minor_x * new_minor_x;
+  const double q_yy = new_major_y * new_major_y + new_minor_y * new_minor_y;
+  const double q_xy = new_major_x * new_major_y + new_minor_x * new_minor_y;
+  const double mean = 0.5 * (q_xx + q_yy);
+  const double offset = std::hypot(0.5 * (q_xx - q_yy), q_xy);
+  const double new_a = std::sqrt(std::max(0.0, mean + offset));
+  // det(J Q J^T) = (cross(transformed axes))^2. Avoid subtracting nearly equal eigenvalues.
+  const double cross = new_major_x * new_minor_y - new_major_y * new_minor_x;
+  const double new_b = new_a > 0.0 ? std::abs(cross) / new_a : 0.0;
+  const double new_theta = q_xx == q_yy && q_xy == 0.0 ? 0.0 : 0.5 * std::atan2(2 * q_xy, q_xx - q_yy);
 
   return {coord.m_x, coord.m_y, new_a, new_b, new_theta};
 }
@@ -281,7 +289,7 @@ FlexibleModelFittingIterativeTask::createFrameModel(
   // downscaled before copied into the frame image.
   // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
   auto source_psf = DownSampledImagePsf(psf_property.getPixelSampling(), psf_property.getPsf(),
-      down_scaling, m_should_renormalize[frame_index]);
+      down_scaling, m_should_renormalize.at(frame_index));
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
@@ -310,6 +318,7 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
   auto frame_image = frame_images.getLockedImage(LayerSubtractedImage);
   auto original_image = frame_images.getLockedImage(LayerOriginalImage);
   auto variance_map = frame_images.getLockedImage(LayerVarianceMap);
+  auto original_variance = frame_images.getLockedImage(LayerOriginalVarianceMap);
 
   const auto& frame_info = source.getProperty<MeasurementFrameInfo>(frame_index);
   SeFloat gain = frame_info.getGain();
@@ -356,8 +365,15 @@ std::shared_ptr<VectorImage<SeFloat>> FlexibleModelFittingIterativeTask::createW
       auto dx = x + rect.getTopLeft().m_x - ellipse.m_x;
       auto dy = y + rect.getTopLeft().m_y - ellipse.m_y;
 
+      const auto original_var = original_variance->getValue(rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y);
+      // Apply the input mask before interpolation or source shot noise can hide bad variance.
+      const bool bad_variance = fastmath_isnan(original_var) || fastmath_isinf(original_var) || original_var <= 0
+          || original_var >= frame_info.getVarianceThreshold()
+          || fastmath_isnan(back_var) || fastmath_isinf(back_var) || back_var <= 0;
       // Saturation is defined before background subtraction, in the original image units.
-      if (saturation > 0 && original_image->getValue(
+      if (bad_variance) {
+        weight->at(x, y) = 0;
+      } else if (saturation > 0 && original_image->getValue(
           rect.getTopLeft().m_x + x, rect.getTopLeft().m_y + y) >= saturation) {
         weight->at(x, y) = 0;
       } else if (gain > 0.0 && pixel_val > 0.0) {
@@ -469,8 +485,9 @@ void FlexibleModelFittingIterativeTask::computeProperties(SourceGroupInterface& 
     for (auto parameter : m_parameters) {
       auto free_parameter = std::dynamic_pointer_cast<FlexibleModelFittingFreeParameter>(parameter);
 
-      const bool failed = (source_state.flags & (Flags::MEMORY | Flags::ERROR)) != Flags::NONE;
-      if (failed || (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()])) {
+      const bool unavailable = (source_state.flags
+          & (Flags::OUTSIDE | Flags::INSUFFICIENT_DATA | Flags::MEMORY | Flags::ERROR)) != Flags::NONE;
+      if (unavailable || (free_parameter != nullptr && !source_state.parameters_fitted[parameter->getId()])) {
         source_state.parameters_values[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
         source_state.parameters_sigmas[parameter->getId()] = std::numeric_limits<double>::quiet_NaN();
       }
@@ -732,6 +749,15 @@ void FlexibleModelFittingIterativeTask::fitSource(SourceGroupInterface& group, S
 
   // Do not run the model fitting for the flags above
   if (flags != Flags::NONE) {
+    auto& source_state = state.source_states[index];
+    source_state.flags |= flags;
+    source_state.reduced_chi_squared = std::numeric_limits<double>::quiet_NaN();
+    for (auto& sigma : source_state.parameters_sigmas) {
+      sigma.second = std::numeric_limits<double>::quiet_NaN();
+    }
+    for (auto& fitted : source_state.parameters_fitted) {
+      fitted.second = false;
+    }
     return;
   }
 
