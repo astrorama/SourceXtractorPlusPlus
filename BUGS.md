@@ -4,8 +4,8 @@ Originally reviewed 2026-11-04 against `ce583df9` (develop); merged-fix status r
 `10533955`. The branch work below starts from `c7dd4ba3`. Eight additional fixes are ready on separate local branches
 (009, 010, 013, 014, 015, 017, 021, 022); BUG-011 and BUG-016 remain confirmed and deferred because they need
 substantial changes. These branch fixes have not been merged into develop. The eight earlier merged fixes (001, 002,
-003, 006, 007, 008, 018, 019) remain fixed. BUG-004 and BUG-020 still await their recorded validation; BUG-012 and
-BUG-023 remain unconfirmed, and BUG-005 remains dismissed. This is a targeted review, not an exhaustive audit.
+003, 006, 007, 008, 018, 019) remain fixed. BUG-004 and BUG-020 still await their recorded validation; BUG-012 is fixed locally with a task-level regression;
+BUG-023 remains unconfirmed, and BUG-005 remains dismissed. This is a targeted review, not an exhaustive audit.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -86,7 +86,7 @@ inventory update. Deferred branches contain documentation only.
 | BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Fix ready on branch | Merge fix branch |
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Deferred; still needs work | Plan larger change |
-| BUG-012 | Vignettes can read outside the detection image | High | Medium | Unconfirmed | Try to confirm |
+| BUG-012 | Vignettes can read outside the detection image | High | Medium | Fixed locally | Commit fix |
 | BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-014 | PSF normalization indexed by global image ID | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Fix ready on branch | Merge fix branch |
@@ -313,16 +313,23 @@ inventory update. Deferred branches contain documentation only.
 - **Severity:** High if triggered: out-of-bounds access can abort, corrupt a vignette, or cause undefined behavior.
 - **Likelihood:** Medium with measurement images extending beyond detection coverage, edge sources, or failed WCS
   transforms. Aligned images with interior sources conceal it.
-- **Status:** Unconfirmed by a full vignette-task reproduction; the missing bounds check is visible in source.
-- **Next action needed:** Try to confirm.
-- **Location:** [VignetSourceTask.cpp:88](SEImplementation/src/lib/Plugin/Vignet/VignetSourceTask.cpp#L88).
-- **Description:** The loop checks measurement-image bounds, transforms the coordinate into the detection frame,
-  and calls `detection_thresh_image->getValue(detection_x, detection_y)` without checking detection-frame bounds.
-  Valid measurement coordinates need not lie inside the detection image. `worldToImage()` can also return a large
-  negative sentinel after a failed transformation.
-- **Confirmation experiment:** Use partially overlapping detection/measurement images and place a requested vignette
-  across the detection boundary while still inside the measurement image. Run with assertions and AddressSanitizer;
-  specify the expected masking behavior outside detection coverage before fixing it.
+- **Status:** Confirmed by a task-level regression; fixed locally (uncommitted).
+- **Next action needed:** Commit the fix and regression tests.
+- **Location:** [VignetSourceTask.cpp](SEImplementation/src/lib/Plugin/Vignet/VignetSourceTask.cpp).
+- **Description (before fix):** The loop checked measurement-image bounds, transformed the coordinate into the detection
+  frame, and read the detection threshold image without checking detection-frame bounds. Valid measurement coordinates
+  need not lie inside the detection image. Failed transformations can also return large negative sentinel coordinates.
+- **Evidence / reproduction:** `VignetSourceTask_test` invokes the production task with a 5x5 measurement image and a
+  shifted 3x3 detection image. Before the fix, valid measurement pixels were incorrectly masked. A second case using
+  very large and non-finite detection coordinates also failed. This establishes wrong output at the task level;
+  no AddressSanitizer run or end-to-end FITS/WCS reproduction was performed.
+- **Resolution:** Check transformed coordinates against the nearest-pixel range before converting to integers or
+  accessing the detection image. Outside detection coverage, retain measurement values subject to measurement variance
+  masking; neighbor masking applies only within detection coverage.
+- **Regression coverage:** All four detection boundaries, measurement boundaries, source/neighbor masking, measurement
+  variance masking, and very large/non-finite coordinates.
+- **Validation (2026-11-20):** The focused Elements `make -j4 tests` run selecting
+  `SEImplementation.VignetSourceTask_test` failed before the fix and passed after it (both test cases).
 
 ## BUG-013: Skipped iterative fits lose their failure flags
 

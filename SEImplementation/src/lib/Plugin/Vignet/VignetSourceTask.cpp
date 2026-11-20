@@ -73,22 +73,28 @@ void VignetSourceTask::computeProperties(SourceInterface& source) const {
     for (int ix = x_start; ix < x_end; ix++, index++) {
 
       // skip pixels outside of the image
-      if (ix < 0 || iy < 0 || ix >= measurement_sub_image->getWidth() || iy >= measurement_sub_image->getHeight())
+      if (ix < 0 || iy < 0 || ix >= measurement_sub_image->getWidth() || iy >= measurement_sub_image->getHeight()) {
         continue;
+      }
 
       // translate pixel coordinates to the detection frame
       auto world_coord = measurement_coordinate_system->imageToWorld({static_cast<double>(ix), static_cast<double>(iy)});
       auto detection_coord = detection_coordinate_system->worldToImage(world_coord);
 
-      // copy the pixel value if it is not masked, and if it does not correspond to a detection pixel
-      // if it corresponds to a detection pixel, use it if it belongs to the source
-      int detection_x = static_cast<int>(detection_coord.m_x + 0.5);
-      int detection_y = static_cast<int>(detection_coord.m_y + 0.5);
-
+      // Outside detection coverage, retain valid measurement pixels without neighbor masking.
+      // Check the nearest-pixel range before conversion, also rejecting invalid WCS results.
+      bool is_neighbor = false;
+      if (detection_coord.m_x >= -0.5 && detection_coord.m_y >= -0.5 &&
+          detection_coord.m_x < detection_thresh_image->getWidth() - 0.5 &&
+          detection_coord.m_y < detection_thresh_image->getHeight() - 0.5) {
+        int detection_x = static_cast<int>(detection_coord.m_x + 0.5);
+        int detection_y = static_cast<int>(detection_coord.m_y + 0.5);
+        is_neighbor = detection_thresh_image->getValue(detection_x, detection_y) > 0 &&
+            !pixel_coords.contains({detection_x, detection_y});
+      }
       bool is_masked = measurement_var_image->getValue(ix, iy) > measurement_var_threshold;
-      bool is_detection_pixel = detection_thresh_image->getValue(detection_x, detection_y) > 0;
 
-      if (!is_masked && (!is_detection_pixel || pixel_coords.contains({detection_x, detection_y}))) {
+      if (!is_masked && !is_neighbor) {
         vignet_vector[index] = measurement_sub_image->getValue(ix, iy);
       }
     }
