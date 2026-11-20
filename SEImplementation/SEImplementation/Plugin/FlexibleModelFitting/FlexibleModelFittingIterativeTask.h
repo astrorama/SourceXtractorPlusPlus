@@ -158,7 +158,7 @@ private:
   std::vector<std::shared_ptr<FlexibleModelFittingFrame>> m_frames;
   std::vector<std::shared_ptr<FlexibleModelFittingPrior>> m_priors;
 
-  std::vector<bool> m_should_renormalize;
+  std::unordered_map<unsigned int, bool> m_should_renormalize;
   WindowType m_window_type { WindowType::RECTANGLE };
   double m_ellipse_scale = 3.0;
 };

@@ -17,6 +17,10 @@
 #include <boost/test/unit_test.hpp>
 
 #include <cmath>
+#include <numeric>
+
+#include "SEImplementation/Plugin/Jacobian/Jacobian.h"
+#include "SEImplementation/Plugin/SourcePsf/SourcePsfProperty.h"
 
 #include "SEFramework/Source/SimpleSource.h"
 #include "SEFramework/Source/SimpleSourceGroup.h"
@@ -47,6 +51,47 @@ public:
 }
 
 struct FlexibleModelFittingWeightFixture {
+  void checkSparseFrameNormalization() {
+    auto coordinates = std::make_shared<WeightTestCoordinates>();
+    SimpleSource source;
+    source.setProperty<ReferenceCoordinates>(coordinates);
+    auto psf = VectorImage<SeFloat>::create(33, 33);
+    psf->at(16, 16) = 2;
+    for (int id : {0, 1, 7, 42}) {
+      source.setIndexedProperty<MeasurementFrameCoordinates>(id, coordinates);
+      source.setIndexedProperty<JacobianSource>(id);
+      source.setIndexedProperty<SourcePsfProperty>(id, 1.0, psf);
+    }
+    auto position = std::make_shared<FlexibleModelFittingConstantParameter>(100,
+        [](const SourceInterface&) { return 2.0; });
+    auto flux = std::make_shared<FlexibleModelFittingConstantParameter>(101,
+        [](const SourceInterface&) { return 1.0; });
+    auto model = std::make_shared<FlexibleModelFittingPointModel>(position, position, flux);
+    std::vector<std::shared_ptr<FlexibleModelFittingModel>> models{model};
+    auto frame0 = std::make_shared<FlexibleModelFittingFrame>(0, models);
+    auto frame1 = std::make_shared<FlexibleModelFittingFrame>(1, models);
+    auto frame7 = std::make_shared<FlexibleModelFittingFrame>(7, models);
+    auto frame42 = std::make_shared<FlexibleModelFittingFrame>(42, models);
+    FlexibleModelFittingIterativeTask dense("", 1, 1, {position, flux}, {frame0, frame1}, {}, {false, true});
+    FlexibleModelFittingIterativeTask sparse("", 1, 1, {position, flux}, {frame7, frame42}, {}, {false, true});
+    FlexibleModelFittingIterativeTask::SourceState state;
+    dense.fitSourcePrepareParameters(state.parameter_manager, state.engine_parameter_manager, source, state);
+    auto integral = [&](const FlexibleModelFittingIterativeTask& task,
+                        const std::shared_ptr<FlexibleModelFittingFrame>& frame) {
+      auto frame_model = task.createFrameModel(source, 1, state.parameter_manager, frame,
+          PixelRectangle(PixelCoordinate(0, 0), PixelCoordinate(32, 32)), 0.5);
+      auto image = frame_model.getImage();
+      return std::accumulate(image->getData().begin(), image->getData().end(), 0.0);
+    };
+    const auto unnormalized = integral(dense, frame0);
+    const auto normalized = integral(dense, frame1);
+    BOOST_REQUIRE_GT(normalized, 0.0);
+    BOOST_CHECK_CLOSE(unnormalized, 2 * normalized, 0.001);
+    BOOST_CHECK_CLOSE(integral(sparse, frame7), unnormalized, 0.001);
+    BOOST_CHECK_CLOSE(integral(sparse, frame42), normalized, 0.001);
+    BOOST_CHECK_THROW((FlexibleModelFittingIterativeTask("", 1, 1, {}, {frame7}, {}, {})), Elements::Exception);
+  }
+
   void checkWeights(bool iterative, SeFloat saturation, SeFloat scale, bool varying_background, SeFloat gain, SeFloat background_level = 30) {
     const int size = 5;
     auto image = VectorImage<SeFloat>::create(size, size);
@@ -125,6 +170,10 @@ BOOST_AUTO_TEST_CASE(disabled_saturation) {
     checkWeights(iterative, 0, 1, true, 2);
     checkWeights(iterative, -1, 1, true, 2);
   }
+}
+
+BOOST_AUTO_TEST_CASE(psf_normalization_uses_sparse_frame_ids) {
+  checkSparseFrameNormalization();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

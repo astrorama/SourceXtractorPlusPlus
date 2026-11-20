@@ -4,8 +4,8 @@ Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source re
 Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
 and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
 BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
+conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -56,7 +56,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Confirmed | Fix |
 | BUG-012 | Vignettes can read outside the detection image | High | Medium | Unconfirmed | Try to confirm |
 | BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Confirmed | Fix |
-| BUG-014 | PSF normalization indexed by global image ID | High | Medium | Confirmed | Fix |
+| BUG-014 | PSF normalization indexed by global image ID | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Confirmed | Fix |
 | BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Confirmed | Fix |
 | BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Confirmed | Fix |
@@ -300,8 +300,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Severity:** High: silently changes rendered flux normalization; out-of-range accesses also cause undefined behavior.
 - **Likelihood:** Medium: image IDs have gaps, start above zero, or are interleaved with other configuration objects.
   A wrong normalization choice changes rendering when the PSF is downsampled.
-- **Status:** Confirmed by production `createFrameModel()` rendering with controlled frame IDs and PSF flags.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-014-psf-normalization-frame-ids`; awaiting merge.
+- **Next action needed:** Review and merge the fix branch.
 - **Locations:** [FlexibleModelFittingTaskFactory.cpp:101](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.cpp#L101),
   [FlexibleModelFittingIterativeTask.cpp:283](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L283).
 - **Description:** The factory appends normalization flags in image-list order, but the task indexes the vector by
@@ -312,6 +312,9 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   the erroneous factor of two comes from selecting the wrong flag. The largest frame ID also exceeds vector size.
 - **Fix direction:** Store options keyed by image ID, or attach them directly to each fitting-frame definition.
   Test sparse IDs and different flags per frame. Audit other containers accessed with `getFrameNb()` similarly.
+- **Work log (2026-11-20):** Map frame-list normalization options to global frame IDs in the task constructor,
+  validate option counts, and use checked lookups. Rendering regression compares sparse IDs 7 and 42 against dense
+  frames with opposite flags and a non-unit PSF integral. Build and review pending.
 
 ## BUG-015: Iterative fitting ignores finite bad-variance thresholds
 

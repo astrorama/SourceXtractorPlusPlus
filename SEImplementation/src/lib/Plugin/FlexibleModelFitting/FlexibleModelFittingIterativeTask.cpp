@@ -67,8 +67,15 @@ FlexibleModelFittingIterativeTask::FlexibleModelFittingIterativeTask(const std::
       m_modified_chi_squared_scale(modified_chi_squared_scale), m_scale_factor(scale_factor),
       m_meta_iterations(meta_iterations), m_deblend_factor(deblend_factor), m_meta_iteration_stop(meta_iteration_stop),
       m_max_fit_size(max_fit_size * max_fit_size), m_parameters(parameters), m_frames(frames), m_priors(priors),
-      m_should_renormalize(should_renormalize),
-      m_window_type(window_type), m_ellipse_scale(ellipse_scale) {}
+      m_window_type(window_type), m_ellipse_scale(ellipse_scale) {
+  if (should_renormalize.size() != m_frames.size()) {
+    throw Elements::Exception() << "PSF normalization options must match the model-fitting frames";
+  }
+  // Configuration stores flags in frame-list order; PyId frame numbers can be sparse.
+  for (size_t i = 0; i < m_frames.size(); ++i) {
+    m_should_renormalize.emplace(m_frames[i]->getFrameNb(), should_renormalize[i]);
+  }
+}
 
 FlexibleModelFittingIterativeTask::~FlexibleModelFittingIterativeTask() {
 }
@@ -281,7 +288,7 @@ FlexibleModelFittingIterativeTask::createFrameModel(
   // downscaled before copied into the frame image.
   // We can multiply here then, as the unit is pixel/pixel, rather than "/pixel or similar
   auto source_psf = DownSampledImagePsf(psf_property.getPixelSampling(), psf_property.getPsf(),
-      down_scaling, m_should_renormalize[frame_index]);
+      down_scaling, m_should_renormalize.at(frame_index));
 
   std::vector<ConstantModel> constant_models;
   std::vector<PointModel> point_models;
