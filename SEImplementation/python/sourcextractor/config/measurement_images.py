@@ -394,8 +394,23 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
 
 
 class DataCubeSlice(MeasurementImage):
-    def __init__(self, fits_file: str | FitsFile, psf_file: str | None = None,
-                 weight_file: str | FitsFile | None = None,
+    """
+    One layer of a data cube, measured as an image of its own
+
+    Takes everything `MeasurementImage` takes, plus which layer of the image
+    and of the weight cube to use.
+
+    Parameters
+    ----------
+    image_layer : int
+        Index of the layer of the image cube
+    weight_layer : int
+        Index of the layer of the weight cube, if the weights are a cube too
+    """
+
+    def __init__(self, image_file: str | cpp.ImageFile | None = None,
+                 psf_file: str | None = None,
+                 weight_file: str | cpp.ImageFile | None = None,
                  gain: float | None = None, gain_keyword: str = 'GAIN',
                  saturation: float | None = None, saturation_keyword: str = 'SATURATE',
                  flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
@@ -403,13 +418,24 @@ class DataCubeSlice(MeasurementImage):
                  weight_scaling: float = 1., weight_threshold: float | None = None,
                  constant_background: float | None = None, image_hdu: int = 0,
                  psf_hdu: int | None = None, weight_hdu: int | None = None,
-                 image_layer: int = 0, weight_layer: int = 0) -> None:
-        super().__init__(fits_file, psf_file, weight_file, gain,
-                         gain_keyword, saturation, saturation_keyword,
-                         flux_scale, flux_scale_keyword,
-                         weight_type, weight_absolute, weight_scaling,
-                         weight_threshold, constant_background,
-                         image_hdu, psf_hdu, weight_hdu)
+                 psf_renormalize: bool = True, image_name: str = '',
+                 psf_name: str = '', weight_name: str = '', wcs_name: str = '',
+                 image_layer: int = 0, weight_layer: int = 0,
+                 *,
+                 fits_file: str | cpp.ImageFile | None = None) -> None:
+        super().__init__(
+            image_file=image_file, psf_file=psf_file, weight_file=weight_file,
+            gain=gain, gain_keyword=gain_keyword,
+            saturation=saturation, saturation_keyword=saturation_keyword,
+            flux_scale=flux_scale, flux_scale_keyword=flux_scale_keyword,
+            weight_type=weight_type, weight_absolute=weight_absolute,
+            weight_scaling=weight_scaling, weight_threshold=weight_threshold,
+            constant_background=constant_background, image_hdu=image_hdu,
+            psf_hdu=psf_hdu, weight_hdu=weight_hdu,
+            psf_renormalize=psf_renormalize, image_name=image_name,
+            psf_name=psf_name, weight_name=weight_name, wcs_name=wcs_name,
+            fits_file=fits_file
+        )
 
         self.is_data_cube = True
         self.image_layer = image_layer
@@ -422,9 +448,11 @@ class DataCubeSlice(MeasurementImage):
         str
             Human readable representation for the object
         """
-        return (f'DataCubeSlice {self.id}: {self.file} / {self.image_hdu} / {self.image_layer}, '
+        image = self.image_name or self.image_hdu
+        weight = self.weight_name or self.weight_hdu
+        return (f'DataCubeSlice {self.id}: {self.file} / {image} / {self.image_layer}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
-                f'Weight: {self.weight_file} / {self.weight_hdu} / {self.weight_layer}')
+                f'Weight: {self.weight_file} / {weight} / {self.weight_layer}')
 
 
 GroupingMethod: TypeAlias = Callable[

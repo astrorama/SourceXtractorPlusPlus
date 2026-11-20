@@ -404,9 +404,7 @@ class MeasurementConfig:
             weight_dims = weight_fits_file.get_dimensions(weight_hdu)
             if weight_dims.is_cube:
                 # handle weight as data cube
-                # FIXME: this compares the image cube's depth to itself, so the
-                # weight cube's depth is never actually validated
-                if dims.depth != cube_size:
+                if weight_dims.depth != cube_size:
                     raise ValueError("The weight map cube doesn't match the image cube")
 
                 weight_file_list = repeat(weight_fits_file, cube_size)
@@ -430,6 +428,117 @@ class MeasurementConfig:
 
         for img in image_list:
             self._measurement_images[img.id] = img
+        return ImageGroup(images=image_list)
+
+    # TODO: better typing for kwargs passed through to DataCubeSlice
+    def load_asdf_data_cube(self, image: str,
+                            psf: str | list[str] | None = None,
+                            weight: str | list[str] | None = None, *,
+                            image_name: str = '', weight_name: str = '',
+                            wcs_name: str = '', **kwargs: Any) -> ImageGroup:
+        """Creates an image group with the layers of an ASDF data cube.
+
+        Each layer becomes a `DataCubeSlice` measured separately.
+
+        The weights may be a cube of their own, in which case it must have as
+        many layers as the image and they are matched in order; a single
+        two-dimensional array, which every layer then shares; or one file per
+        layer.
+
+        Parameters
+        ----------
+        image : str
+            The filename of the ASDF file containing the image cube
+        psf : str or list of str
+            A PSF file, or one per layer. ASDF PSFs are not yet supported, so
+            these are FITS images or PSFEx models.
+        weight : str or list of str
+            A file containing the weights, or one per layer
+        image_name : str
+            Tree path of the ndarray holding the cube, e.g. ``/roman/data``
+        weight_name : str
+            Tree path of the ndarray holding the weights
+        wcs_name : str
+            Tree path of the GWCS object to use
+
+        Returns
+        -------
+        ImageGroup
+            A group holding one image per layer
+
+        Raises
+        ------
+        ValueError
+            If the named array is not a data cube, or if a list or weight cube
+            does not match its number of layers
+        """
+
+        image_file = cpp.ImageFile(image)
+        dims = image_file.get_dimensions(image_name or 0)
+
+        if not dims.is_cube:
+            raise ValueError("Not a data cube!")
+
+        cube_size = dims.depth
+        psf_file_list: Iterable[str] | Iterable[None]
+        psf_hdu_list: Iterable[int]
+        weight_file_list: Iterable[str] | Iterable[None]
+        weight_layer_list: Iterable[int]
+        # TODO: A lot of the logic here is almost the same as the FITS version
+        # of this function with a few exceptions; worth cleaning up later.
+
+        # handles the PSFs, which stay FITS even for an ASDF image
+        if isinstance(psf, list):
+            if len(psf) != cube_size:
+                raise ValueError("The number of psf files must match the "
+                                 "number of images!")
+            psf_file_list = psf
+            psf_hdu_list = repeat(0, cube_size)
+        elif psf is None:
+            psf_file_list = repeat(None, cube_size)
+            psf_hdu_list = repeat(0, cube_size)
+        else:
+            psf_file_list = repeat(psf, cube_size)
+            psf_hdu_list = range(cube_size)
+
+        # handles the weight maps
+        if isinstance(weight, list):
+            if len(weight) != cube_size:
+                raise ValueError("The number of weight files must match the "
+                                 "number of images!")
+            weight_file_list = weight
+            weight_layer_list = repeat(0, cube_size)
+        elif weight is None:
+            weight_file_list = repeat(None, cube_size)
+            weight_layer_list = repeat(0, cube_size)
+        else:
+            weight_dims = cpp.ImageFile(weight).get_dimensions(weight_name or 0)
+            weight_file_list = repeat(weight, cube_size)
+
+            if weight_dims.is_cube:
+                if weight_dims.depth != cube_size:
+                    raise ValueError(
+                        f"The weight map cube has {weight_dims.depth} layers "
+                        f"but the image cube has {cube_size}")
+                weight_layer_list = range(cube_size)
+            else:
+                # a plain two-dimensional array of weights, shared by
+                # every layer
+                weight_layer_list = repeat(0, cube_size)
+
+        image_list = []
+        it = zip(range(cube_size), psf_file_list, psf_hdu_list,
+                 weight_file_list, weight_layer_list, strict=True)
+        for image_layer, psf_file, psf_hdu, weight_file, weight_layer in it:
+            image_list.append(DataCubeSlice(
+                image_file, psf_file, weight_file,
+                image_layer=image_layer, weight_layer=weight_layer,
+                psf_hdu=psf_hdu, image_name=image_name,
+                weight_name=weight_name, wcs_name=wcs_name, **kwargs))
+
+        for img in image_list:
+            self._measurement_images[img.id] = img
+
         return ImageGroup(images=image_list)
 
     def print_measurement_images(self, file: IO[str] | None = None) -> None:

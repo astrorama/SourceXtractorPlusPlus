@@ -141,3 +141,69 @@ class TestMeasurementConfig:
     def test_empty_list_is_rejected(self, config):
         with pytest.raises(ValueError, match='An empty list passed'):
             config.load_asdf_images([])
+
+
+class TestMeasurementConfigLoadAsdfDataCube:
+    """cube.asdf's /data is (depth 3, height 4, width 5)"""
+
+    def test_one_image_per_layer(self, config, cube_asdf_file):
+        group = config.load_asdf_data_cube(cube_asdf_file, image_name='/data',
+                                           gain=1.)
+        assert len(group) == 3
+        assert [im.image_layer for im in group.images()] == [0, 1, 2]
+
+    def test_every_slice_names_the_same_array(self, config, cube_asdf_file):
+        group = config.load_asdf_data_cube(cube_asdf_file, image_name='/data',
+                                           gain=1.)
+        for im in group.images():
+            assert im.image_name == '/data'
+            assert im.is_data_cube
+
+    def test_a_2d_array_is_not_a_cube(self, config, asdf_metadata_file):
+        with pytest.raises(ValueError, match='Not a data cube'):
+            config.load_asdf_data_cube(asdf_metadata_file, image_name='/data',
+                                       gain=1.)
+
+    def test_psf_list_must_match_the_layers(self, config, cube_asdf_file):
+        with pytest.raises(ValueError, match='number of psf files'):
+            config.load_asdf_data_cube(cube_asdf_file, psf=['a.psf', 'b.psf'],
+                                       image_name='/data', gain=1.)
+
+    def test_weight_list_must_match_the_layers(self, config, cube_asdf_file):
+        with pytest.raises(ValueError, match='number of weight files'):
+            config.load_asdf_data_cube(cube_asdf_file, weight=['a', 'b'],
+                                       image_name='/data', gain=1.)
+
+    def test_a_weight_cube_is_matched_layer_by_layer(self, config,
+                                                     cube_asdf_file):
+        group = config.load_asdf_data_cube(cube_asdf_file,
+                                           weight=cube_asdf_file,
+                                           image_name='/data',
+                                           weight_name='/data',
+                                           weight_type='weight', gain=1.)
+        assert [im.weight_layer for im in group.images()] == [0, 1, 2]
+
+    def test_a_flat_weight_image_is_shared(self, config, cube_asdf_file,
+                                           asdf_metadata_file):
+        """A two-dimensional weight array applies to every layer"""
+        group = config.load_asdf_data_cube(cube_asdf_file,
+                                           weight=asdf_metadata_file,
+                                           image_name='/data',
+                                           weight_name='/data',
+                                           weight_type='weight', gain=1.)
+        assert [im.weight_layer for im in group.images()] == [0, 0, 0]
+
+    def test_a_mismatched_weight_cube_is_rejected(self, config, cube_asdf_file,
+                                                  tmp_path):
+        import asdf
+        import numpy as np
+        other = str(tmp_path / 'short_cube.asdf')
+        asdf.AsdfFile({
+            'data': np.zeros((2, 4, 5), dtype=np.float32)
+        }).write_to(other)
+
+        with pytest.raises(ValueError,
+                           match='has 2 layers but the image cube has 3'):
+            config.load_asdf_data_cube(cube_asdf_file, weight=other,
+                                       image_name='/data', weight_name='/data',
+                                       weight_type='weight', gain=1.)
