@@ -295,10 +295,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Fix direction:** Publish a complete skipped-fit state, including failure flags and defined unavailable results,
   before returning. Test outside coverage, complete masking, and insufficient usable pixels.
 - **Work log (2026-11-20):** Persist OUTSIDE/INSUFFICIENT_DATA, invalidate diagnostic/uncertainties, clear stale
-  fitted state, and publish NaN for all skipped outputs while retaining internal guesses. Both new production
-  regressions failed against the baseline (15 assertions) and passed with the fix via make tests selecting
-  FlexibleModelFittingWeight_test. Standards review masking-argument concern corrected. Spec review constant/derived
-  output concern corrected with computeProperties regression. Final review pending.
+  fitted state, and publish NaN for all skipped outputs while retaining internal guesses. Both production regressions
+  fail baseline (15 assertions) and pass the fix via make tests selecting FlexibleModelFittingWeight_test. Standards
+  review masking-argument concern corrected. Spec review constant/derived output concern corrected with
+  computeProperties regression. Both reviewers cleared the corrections; no remaining findings.
 
 ## BUG-014: PSF normalization is indexed by global image ID
 
