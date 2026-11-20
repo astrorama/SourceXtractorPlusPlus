@@ -1,7 +1,11 @@
 # Bug inventory
 
 Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-BUG-006, BUG-008, BUG-018, and BUG-019 have since been fixed and verified.
+Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
+and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
+BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
+conditional-build verification. Ten confirmed defects remain open (009–011, 013–017, 021, 022), two candidates
+remain unconfirmed (012, 023), and BUG-005 is dismissed. No tests were rerun during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -20,14 +24,29 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Next action needed:** **Fix** for confirmed defects, **Try to confirm** for candidates. Fixes should include a
   regression test at the affected interface.
 
+## Status history and verification basis
+
+- `109c41a9` introduced this inventory and recorded BUG-018's fix. `a7cb0dd0` updated BUG-019 to fixed
+  and BUG-020 to fix pending verification.
+- `d897f7b1` closed BUG-006 and BUG-008 and dismissed BUG-005. `bf1dccac` independently closed BUG-007.
+  Merge `03116bc8` preserved both sets of changes; neither parent's status updates were lost.
+- BUG-001, BUG-002, and BUG-003 were fixed in `33959626`, `ee916f8f`, and `b2fb344a`, respectively,
+  but those commits did not update this file. No committed closed status for these entries was found in the
+  available branch history. This explains the stale entries; uncommitted edits cannot be established from Git history.
+- All fix commits cited below are included in `10533955`. The implementations underlying the remaining open
+  entries were checked against the original review baseline; their reported defects remain unaddressed.
+- Regression coverage below describes committed tests. Historical execution results are retained where recorded;
+  presence of a test does not imply a fresh passing run on the current branch. For resolved entries, reproduction
+  descriptions document the behavior before the fix.
+
 ## Summary
 
 | ID | Bug | Severity | Likelihood in affected feature | Status | Next action needed |
 | --- | --- | --- | --- | --- | --- |
-| BUG-001 | Incorrect centroid error-ellipse angle | High | High | Confirmed | Fix |
-| BUG-002 | Wrong shape angle for a descending diagonal | High | Medium | Confirmed | Fix |
-| BUG-003 | Writes to evicted, retained tiles are lost | High | Medium | Confirmed | Fix |
-| BUG-004 | Tile eviction can race with pixel writes | High | Low / timing-dependent | Unconfirmed | Try to confirm |
+| BUG-001 | Incorrect centroid error-ellipse angle | High | High | Fixed | None |
+| BUG-002 | Wrong shape angle for a descending diagonal | High | Medium | Fixed | None |
+| BUG-003 | Writes to evicted, retained tiles are lost | High | Medium | Fixed | None |
+| BUG-004 | Tile eviction can race with pixel writes | High | Low / timing-dependent | Protection implemented; validation pending | Run ThreadSanitizer |
 | BUG-005 | Cached FFT plans may be reused with incompatible alignment | High if triggered | No mismatch expected on supported builds | Investigated and dismissed | None |
 | BUG-006 | Mismatched weight HDUs silently omit measurement images | Medium | Medium | Fixed | None |
 | BUG-007 | Only the first output parameter is registered | Medium | Medium | Fixed | None |
@@ -52,31 +71,35 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** High: silently incorrect `error_ellipse_theta` in scientific catalogs.
 - **Likelihood:** High when requesting error ellipses for anisotropic sources; special orientations can hide the error.
-- **Status:** Confirmed by executing the production `ErrorEllipseTask` with controlled properties.
-- **Next action needed:** Fix.
+- **Status:** Fixed in `33959626`, merged by PR #653; production regression tests committed.
+- **Next action needed:** None.
 - **Location:** [ErrorEllipseTask.cpp:100](SEImplementation/src/lib/Plugin/ErrorEllipse/ErrorEllipseTask.cpp#L100).
-- **Description:** The angle calculation takes `abs(var_x - var_y)` and does not divide `atan2` by two.
-  It loses the major-axis quadrant and doubles many angles. The equal-variance fallback also ignores covariance sign.
+- **Description (before fix):** The angle calculation took `abs(var_x - var_y)` and did not divide `atan2` by two.
+  It lost the major-axis quadrant and doubled many angles. The equal-variance fallback also ignored covariance sign.
 - **Evidence / reproduction:** Give a `SimpleSource` centroid `(1,2)`, pixels `(1,0), (1,4), (0,2), (2,2)`, unit pixel
   variances, and total intensity 4. `ErrorEllipseTask::computeProperties()` reports 0 degrees although the larger
   centroid variance is along Y, so the major axis is at 90 degrees. The output converter only converts radians to
   degrees; it does not correct the angle.
-- **Fix direction:** Use `0.5 * atan2(2 * cov_xy, var_x - var_y)` for a nondegenerate ellipse, with an explicit
-  convention for an isotropic ellipse. Test both covariance signs and both variance orderings.
+- **Resolution:** Use `0.5 * atan2(2 * cov_xy, var_x - var_y)`; an isotropic ellipse reports zero angle.
+- **Regression coverage:** `ErrorEllipse_test` covers X/Y major axes, both covariance signs, both variance
+  orderings, equal variances, and the isotropic convention.
 
 ## BUG-002: Wrong shape angle for a descending diagonal
 
 - **Severity:** High: silently incorrect `ellipse_theta`; also supplies a wrong initial model-fitting angle.
 - **Likelihood:** Medium: requires exactly equal X/Y second moments and negative cross moment. Symmetric diagonal
   footprints, including small pixelized sources, can satisfy this condition.
-- **Status:** Confirmed by executing the production `ShapeParametersTask` with controlled properties.
-- **Next action needed:** Fix.
+- **Status:** Fixed in `ee916f8f`, merged by PR #654; production regression tests committed.
+- **Next action needed:** None.
 - **Location:** [ShapeParametersTask.cpp:75](SEImplementation/src/lib/Plugin/ShapeParameters/ShapeParametersTask.cpp#L75).
-- **Description:** Equal diagonal moments unconditionally select +45 degrees. Negative covariance requires -45 degrees.
+- **Description (before fix):** Equal diagonal moments unconditionally selected +45 degrees.
+  Negative covariance requires -45 degrees.
 - **Evidence / reproduction:** Unit-intensity pixels `(0,2), (1,1), (2,0)`, centroid `(1,1)`, and minimum/peak
   values of 1 produce +45 degrees. The source lies along the -45-degree direction. These axes differ by 90 degrees,
   not by the harmless 180-degree ellipse ambiguity.
-- **Fix direction:** Retain the covariance sign in the equal-moment case or use the general half-angle formula.
+- **Resolution:** Use the general half-angle formula whenever the moments define an orientation, preserving
+  the covariance sign. Circular moments retain the existing +45-degree convention.
+- **Regression coverage:** `ShapeParameters_test` covers descending and ascending diagonals and circular moments.
 
 ## BUG-003: Writes to evicted, retained tiles are lost
 
@@ -84,42 +107,52 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   corruption of catalog measurements through this path has not been established.
 - **Likelihood:** Medium with writable images and cache pressure; multiple images can evict one another's current tile.
   The failing sequence itself is deterministic and does not require multiple threads.
-- **Status:** Confirmed with production tile/cache/image code and an in-memory backing `ImageSource`.
-- **Next action needed:** Fix.
+- **Status:** Fixed in `b2fb344a`, merged by PR #655; production regression tests committed.
+- **Next action needed:** None.
 - **Locations:** [WriteableBufferedImage.h:52](SEFramework/SEFramework/Image/WriteableBufferedImage.h#L52),
   [TileManager.cpp:163](SEFramework/src/lib/Image/TileManager.cpp#L163).
-- **Description:** `WriteableBufferedImage` retains `m_current_tile` after `TileManager` saves and removes that tile.
-  Later writes inside it bypass the manager, dirtying an object no longer included in saves or subsequent reads.
+- **Description (before fix):** `WriteableBufferedImage` retained `m_current_tile` after `TileManager` saved
+  and removed that tile. Later writes inside it bypassed the manager, dirtying an object no longer included in saves
+  or subsequent reads.
 - **Evidence / reproduction:** Configure 512x512 float tiles and a 1 MiB cache (one tile). Write A(0,0)=1. Load a tile
   from image B, evicting A. Write A(0,0)=2 through the same writable image. Call `saveAllTiles()` and read A through
   `getChunk()`. Both persisted value and readback are **1**, not 2. The executable returned failure on this assertion.
-- **Fix direction:** Coordinate tile residency and writable references; dirty retained tiles must remain discoverable
-  and persistable. Add a regression test with two images competing for a one-tile cache.
+- **Resolution:** Writes acquire a manager-owned tile pin; write batches retain it until the tile changes or
+  the batch ends. Eviction skips pinned tiles, and saving/flushing rejects active write pins before saving any tile.
+  `LockedWriteableImage` holds a write batch for its lifetime. See BUG-004 for remaining concurrency validation.
+- **Regression coverage:** `BufferedImage_test` includes `WriteAfterEviction`, concurrent cache pressure,
+  save/flush rejection, and multiple pinned tiles. `LockedWriteableImage_test` checks wrapper pin lifetime.
 
 ## BUG-004: Tile eviction can race with pixel writes
 
 - **Severity:** High if triggered: possible dirty-state loss, inconsistent saved pixels, or undefined behavior.
 - **Likelihood:** Low / timing-dependent; requires eviction of a writable tile while another thread uses it.
-- **Status:** Unconfirmed by runtime race detection. Source inspection identifies inconsistent synchronization;
-  BUG-003 independently confirms that writable tiles can outlive their cache entries.
-- **Next action needed:** Try to confirm.
+- **Status:** Protection implemented in `b2fb344a` (PR #655) alongside BUG-003; sanitizer validation pending.
+  The original candidate was never confirmed by runtime race detection.
+- **Next action needed:** Run the production writable-image/cache path under ThreadSanitizer.
 - **Locations:** [WriteableBufferedImage.h:56](SEFramework/SEFramework/Image/WriteableBufferedImage.h#L56),
   [ImageTile.cpp:40](SEFramework/src/lib/Image/ImageTile.cpp#L40),
   [TileManager.cpp:170](SEFramework/src/lib/Image/TileManager.cpp#L170),
   [LockedWriteableImage.h](SEImplementation/SEImplementation/Image/LockedWriteableImage.h).
-- **Description:** Writers set a plain `bool` dirty flag and mutate the tile buffer. Eviction tests that flag, reads
-  the buffer during `saveTile()`, and clears the flag under the manager lock. The image write mutex used by
-  `LockedWriteableImage` is not acquired by eviction. These locks therefore do not establish mutual exclusion between
-  saving and writing. A write after the save snapshot but before dirty-flag clearing can also be forgotten.
+- **Description (before protection):** Writers set a plain `bool` dirty flag and mutated the tile buffer.
+  Eviction tested that flag, read the buffer during `saveTile()`, and cleared the flag under the manager lock.
+  The image write mutex used by `LockedWriteableImage` was not acquired by eviction. These locks therefore did not
+  establish mutual exclusion between saving and writing. A write after the save snapshot but before dirty-flag
+  clearing could also be forgotten.
 - **Confirmation experiment:** Use two workers and a tiny shared cache. Have one modify an image while the other
   forces eviction using a different image. Instrument a backing source with barriers around its save snapshot;
   check final persisted pixels, then run the production path under ThreadSanitizer. Include writes through the
   locked wrapper so the test exercises the intended usage. Check lock ordering before proposing a fix.
-- **Scope:** A plausible rare concurrency defect, not a demonstrated explanation of the user's intermittent failure.
+- **Resolution / coverage:** Write pins now prevent eviction while a writer owns a tile. Save/flush reject
+  active write pins, and the locked wrapper retains a write batch. Committed regressions cover concurrent cache
+  pressure and wrapper pin lifetime. These changes address the original save-versus-write mechanism, but no
+  ThreadSanitizer result is recorded. The experiment above remains useful for validating the protection.
+- **Scope:** Not established as the cause of the intermittent failure; broader concurrency safety is not certified.
 
 ## BUG-005: Cached FFT plans may be reused with incompatible alignment
 
 - **Status:** Investigated and dismissed.
+- **Next action needed:** None.
 - **Locations:** [FFT.cpp:123](SEFramework/src/lib/FFT/FFT.cpp#L123),
   [FFT.cpp:163](SEFramework/src/lib/FFT/FFT.cpp#L163),
   [DFT.h:122](SEFramework/SEFramework/Convolution/DFT.h#L122).
@@ -139,6 +172,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Likelihood:** Medium for mismatched multi-extension FITS inputs or a weight file with too few HDUs for a
   measurement cube.
 - **Status:** Fixed and verified with generated FITS files.
+- **Next action needed:** None.
 - **Locations:** [measurement_config.py:124](SEImplementation/python/sourcextractor/config/measurement_config.py#L124),
   [measurement_config.py:273](SEImplementation/python/sourcextractor/config/measurement_config.py#L273).
 - **Description:** `zip()` stops at the shortest sequence. The loaders used to pair weight HDUs with measurement
@@ -147,6 +181,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   exception. The data-cube loader had the same unchecked truncation for multi-extension weight files.
 - **Fix:** Both loaders raise `ValueError` before constructing measurement images when the weight file has too few
   or too many image HDUs. The error gives the filenames and counts. Explicit `weight_hdu` reuse still works.
+- **Fix provenance / coverage:** `d897f7b1`, merged by PR #657. Regression tests added in `ce258671`
+  exercise missing, too few, matching, and too many weight HDUs for images and cubes, plus explicit HDU reuse.
 
 ## BUG-007: Only the first output parameter is registered
 
@@ -162,6 +198,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   every ID through `FlexibleModelFitting::getParameterValue()`, which uses `.at()`.
 - **Fix:** Validate the entire list before updating the configuration and register every model-fitting parameter
   through the existing helper, which recursively registers its dependencies.
+- **Fix provenance / coverage:** `bf1dccac`, merged by PR #659; `test_measurement_output_column.py`.
 
 ## BUG-008: Weight-cube depth validation always passes
 
@@ -169,12 +206,15 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   I/O failure. Silent wrong weights have not been demonstrated.
 - **Likelihood:** Medium for mismatched measurement and weight cube depths.
 - **Status:** Fixed and verified with generated FITS files.
+- **Next action needed:** None.
 - **Location:** [measurement_config.py:260](SEImplementation/python/sourcextractor/config/measurement_config.py#L260).
 - **Description:** The depth check compared `dims[2]` with `cube_size`, which was assigned from `dims[2]`.
 - **Evidence / reproduction:** Measurement dimensions `(10,10,3)` and weight dimensions `(10,10,1)` were accepted
   and assigned weight layers `[0,1,2]`.
 - **Fix:** Require matching width, height, and depth before creating measurement images. The error reports
   both filenames, HDU indices, and dimensions.
+- **Fix provenance / coverage:** `d897f7b1`, merged by PR #657. `ce258671` adds generated-FITS tests
+  for mismatched depth, width, and height, plus matching dimensions and explicit weight-cube HDU selection.
 
 ## BUG-009: Invalid FITS cube layers are never rejected
 
@@ -351,6 +391,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Regression coverage:** `ModelFitting.GSLEngine_test` exercises accepted values and dependent parameters,
   iteration-limit cost consistency, and nonlinear covariance conversion. All three cases failed before the fix
   and pass afterward. `make tests` rebuilt the project and passed all 74 registered tests.
+- **Fix provenance:** `109c41a9`, merged by PR #651.
 
 ## BUG-019: Zero-weight pixels artificially shrink solver uncertainties
 
@@ -383,6 +424,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   `make tests` rebuilt the project and passed all 75 registered tests, including BUG-018's existing regressions.
 - **Scope:** Retains the existing covariance scaling convention and prior treatment. It does not redefine
   uncertainty estimates for rank-deficient fits or fits without positive residual degrees of freedom.
+- **Fix provenance:** `a7cb0dd0`, merged by PR #652.
 
 ## BUG-020: Levmar workspace rejection leaves a global mutex locked
 
@@ -402,6 +444,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Verification:** The default build passes the solver callback exception regression. Check workspace rejection
   and callback exception handling with conditional locking enabled. Check the deployed build option before treating
   this as an explanation for the user's observed rare failure.
+- **Fix provenance:** The lock move is included in `a7cb0dd0` (PR #652). It remains pending verification;
+  the default-build callback test does not exercise `LINSOLVERS_RETAIN_MEMORY`.
 
 ## BUG-021: Iterative task treats solver memory failure as usable output
 
@@ -453,7 +497,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   Establish whether a physical full-group residual is intended, then test blended synthetic sources and the stopping
   criterion across deblend factors. Do not automatically make the diagnostic match the fitting objective.
 
-## Validation and follow-up: first review pass
+## Historical validation and follow-up: first review pass
 
 - Executed isolated C++ harnesses against the production error-ellipse, shape, tile-manager, tile, and buffered-image
   implementations. The tile harness supplied an in-memory backing source; the numerical harness used `SimpleSource`.
@@ -464,10 +508,10 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - Harnesses were temporary files under `/tmp/sourcextractor-bug-audit`; the recipes and observed results above are
   recorded here so confirmation does not depend on retaining that temporary directory.
 - No full project build, `make tests`, sanitizer run, or end-to-end catalog comparison was performed for this
-  documentation-only change. Confirmed defects still need committed regression tests when fixed.
-- Investigate BUG-004 as a possible cause of the reported rare failure.
+  initial documentation-only review. Later fixes and their regression coverage are recorded in the entries above.
+- Follow up BUG-004 with sanitizer validation of the protection now implemented in PR #655.
 
-## Validation and follow-up: iterative fitting review
+## Historical validation and follow-up: iterative fitting review
 
 - Compiled and executed the unmodified production iterative task, parameter implementation, frame/image layers,
   PSF wrapper/resampler, and GSL backend in an isolated harness. Used the existing friend-fixture seam for private
@@ -479,7 +523,7 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   Numerical entry was an aborting stub and was never called. The two-call timeout confirms only the memory-return
   locking path; it does not establish the deployed Levmar configuration.
 - Temporary harnesses and captured output are under `/tmp/sourcextractor-fitting-audit`. Reproduction inputs and
-  limitations are recorded in the entries above. No production fixes, permanent regression tests, or full project
-  `make tests` run are included in this documentation update.
+  limitations are recorded in the entries above. That initial review included no production fixes, permanent
+  regression tests, or full project `make tests` run; later fix/test results are recorded in the entries above.
 - Highest-value follow-up: investigate the conditional deadlock (BUG-020) on the affected build, and address silent
   model/uncertainty errors with targeted regression tests. The legacy non-iterative task was not re-audited.
