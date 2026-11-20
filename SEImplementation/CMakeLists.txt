@@ -183,6 +183,9 @@ elements_add_unit_test(GrowthCurve_test tests/src/Plugin/GrowthCurve/GrowthCurve
 elements_add_unit_test(AperturePhotometry_test tests/src/Plugin/AperturePhotometry/AperturePhotometry_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
+elements_add_unit_test(VignetSourceTask_test tests/src/Plugin/Vignet/VignetSourceTask_test.cpp
+                     LINK_LIBRARIES SEImplementation
+                     TYPE Boost)
 elements_add_unit_test(IsophotalFlux_test tests/src/Plugin/IsophotalFlux/IsophotalFlux_test.cpp
                      LINK_LIBRARIES SEImplementation
                      TYPE Boost)
