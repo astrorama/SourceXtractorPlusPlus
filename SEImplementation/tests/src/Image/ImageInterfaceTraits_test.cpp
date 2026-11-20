@@ -87,25 +87,31 @@ BOOST_AUTO_TEST_CASE(small_images_copy_including_boundaries) {
 BOOST_AUTO_TEST_CASE(small_psfs_render_point_sources) {
   for (int size : {1, 3, 5, 7, 9}) {
     for (double down_scaling : {1.0, 0.5}) {
-      auto kernel = Traits::factory(size, size);
-      Traits::at(kernel, size / 2, size / 2) = 2;
-      DownSampledImagePsf psf(1, kernel, down_scaling, false);
-      auto scaled_kernel = psf.getScaledKernel(1);
-      const auto kernel_sum = std::accumulate(scaled_kernel->getData().begin(), scaled_kernel->getData().end(), 0.0);
-      BOOST_CHECK_CLOSE(kernel_sum, 2, 0.001);
-      std::vector<PointModel> points;
-      points.emplace_back(std::make_shared<ManualParameter>(5.5), std::make_shared<ManualParameter>(5.5),
-          std::make_shared<ManualParameter>(1));
-      FrameModel<DownSampledImagePsf, ImageInterfaceTypePtr> model(1, 11, 11, {}, std::move(points), {}, psf);
-      auto image = model.getImage();
-      for (auto pixel : image->getData()) {
-        BOOST_CHECK(!fastmath_isnan(pixel));
-        BOOST_CHECK(!fastmath_isinf(pixel));
-      }
-      const auto integral = std::accumulate(image->getData().begin(), image->getData().end(), 0.0);
-      BOOST_CHECK_GT(integral, 0);
-      if (down_scaling == 1) {
-        BOOST_CHECK_CLOSE(integral, 2, 0.001);
+      for (bool normalize : {false, true}) {
+        auto kernel = Traits::factory(size, size);
+        Traits::at(kernel, size / 2, size / 2) = 2;
+        DownSampledImagePsf psf(1, kernel, down_scaling, normalize);
+        const double expected = down_scaling != 1 && normalize ? 1 : 2;
+        auto scaled_kernel = psf.getScaledKernel(1);
+        const auto kernel_sum = std::accumulate(
+            scaled_kernel->getData().begin(), scaled_kernel->getData().end(), 0.0);
+        BOOST_CHECK_CLOSE(kernel_sum, expected, 0.001);
+        for (double position : {15.5, 15.25}) {
+          BOOST_TEST_CONTEXT("size=" << size << ", scale=" << down_scaling
+              << ", normalize=" << normalize << ", position=" << position) {
+            std::vector<PointModel> points;
+            points.emplace_back(std::make_shared<ManualParameter>(position), std::make_shared<ManualParameter>(position),
+                std::make_shared<ManualParameter>(1));
+            FrameModel<DownSampledImagePsf, ImageInterfaceTypePtr> model(1, 31, 31, {}, std::move(points), {}, psf);
+            auto image = model.getImage();
+            for (auto pixel : image->getData()) {
+              BOOST_CHECK(!fastmath_isnan(pixel));
+              BOOST_CHECK(!fastmath_isinf(pixel));
+            }
+            const auto integral = std::accumulate(image->getData().begin(), image->getData().end(), 0.0);
+            BOOST_CHECK_CLOSE(integral, expected, 0.001);
+          }
+        }
       }
     }
   }

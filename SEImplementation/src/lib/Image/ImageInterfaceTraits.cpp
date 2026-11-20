@@ -272,13 +272,15 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
   auto buffer = Traits::factory(window_height, source_width);
   for (unsigned int buff_x = 0; buff_x < Traits::width(buffer); buff_x++) {
     float pos = (buff_x + 0.5 - y_shift) / scale_factor + 0.5;
-    int ipos = int(pos) - 4;
+    // Padded samples can be negative; floor keeps the kernel phase in [0, 1).
+    const int sample = static_cast<int>(std::floor(pos));
+    int ipos = sample - 4;
 
     if (ipos >= source_height || ipos + 7 < 0) {
       continue;
     }
 
-    make_kernel(pos - int(pos), kernel, INTERP_LANCZOS4);
+    make_kernel(pos - sample, kernel, INTERP_LANCZOS4);
     for (unsigned int buff_y = 0; buff_y < Traits::height(buffer); buff_y++) {
       float val = 0.f;
       // Treat samples outside the finite model/PSF as zero, including for kernels smaller than support.
@@ -292,11 +294,12 @@ void shiftResizeLancszosFast(const ImageInterfaceTypePtr& source, ImageInterface
   // resize on the other axis
   for (int x_win = 0; x_win < window_width; x_win++) {
     float pos = (x_win + 0.5 - x_shift) / scale_factor + 0.5;
-    int ipos = int(pos) - 4;
+    const int sample = static_cast<int>(std::floor(pos));
+    int ipos = sample - 4;
     if (ipos >= source_width || ipos + 7 < 0) {
       continue;
     }
-    make_kernel(pos - int(pos), kernel, INTERP_LANCZOS4);
+    make_kernel(pos - sample, kernel, INTERP_LANCZOS4);
 
     for (int y_win = 0; y_win < window_height; y_win++) {
       float val = 0.f;
@@ -320,12 +323,14 @@ void ModelFitting::ImageTraits<ImageInterfaceTypePtr>::addImageToImage(
   // Calculate the size in pixels of the image2 after in the scale of image1
   double scaled_width = width(source_image) * scale_factor;
   double scaled_height = height(source_image) * scale_factor;
-  // Calculate the window of the image1 which is affected
-  int x_min = std::floor(x - scaled_width / 2.);
-  int x_max = std::ceil(x + scaled_width / 2.);
+  // Include the Lanczos-4 support outside the finite source footprint. Cropping these lobes
+  // changes the integral for small kernels or fractional-pixel positions, even with zero padding.
+  const double padding = 4.0 * scale_factor;
+  int x_min = std::floor(x - scaled_width / 2. - padding);
+  int x_max = std::ceil(x + scaled_width / 2. + padding);
   int window_width = x_max - x_min;
-  int y_min = std::floor(y - scaled_height / 2.);
-  int y_max = std::ceil(y + scaled_height / 2.);
+  int y_min = std::floor(y - scaled_height / 2. - padding);
+  int y_max = std::ceil(y + scaled_height / 2. + padding);
   int window_height = y_max - y_min;
   // Calculate the shift of the image2 inside the window
   double x_shift = x - scaled_width / 2. - x_min;

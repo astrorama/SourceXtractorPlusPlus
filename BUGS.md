@@ -1,11 +1,12 @@
 # Bug inventory
 
-Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
-and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
-BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
+Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit. Status
+reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code, and regression-test
+sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed. BUG-004 has protection
+implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits conditional-build verification. At
+the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates remain
+unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun
+during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -480,10 +481,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   to 3x3 also encounters this path; normalization and later rendering can compound the failure.
 - **Fix direction:** Provide suitable padding/boundary handling or a valid small-kernel interpolation path.
   Test PSF sizes below the interpolation support and PSFs crossing that boundary during downsampling.
-- **Work log (2026-11-20):** Use zero-valued samples outside Lanczos support instead of skipping the whole destination
-  row/column. Preserve valid interior interpolation. Tests cover exact boundary copies and production FrameModel point
-  rendering with 1/3/5/7/9-pixel PSFs, including downsampling across the support boundary, finite kernels and nonzero
-  rendered flux. Build and review pending.
+- **Work log (2026-11-20):** Zero-pad Lanczos boundaries, include the complete interpolation support in the
+  destination window, and use floor for negative padded coordinates. Initial zero-padding-only fix passed zero-signal
+  tests but failed 13 new flux assertions; full support and proper kernel phases resolve this. Tests cover
+  1/3/5/7/9-pixel PSFs, integer/fractional placement, downsampling, both normalization modes, finite pixels and
+  integrated flux. Initial full suite passed 79 tests; expanded tests and final review are in progress.
 
 ## BUG-023: Fit and stopping diagnostic use different neighbor subtraction
 
