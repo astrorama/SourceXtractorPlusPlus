@@ -21,7 +21,7 @@
  *      Author: mschefer
  */
 
-#include <iostream>
+#include <cmath>
 
 #include "SEImplementation/Property/PixelCoordinateList.h"
 #include "SEImplementation/Plugin/DetectionFramePixelValues/DetectionFramePixelValues.h"
@@ -73,10 +73,11 @@ void ShapeParametersTask::computeProperties(SourceInterface& source) const {
   x_y /= total_intensity;
 
   SeFloat theta;
-  if (fabs(x_2 - y_2) > 0.0) {
-    theta = atan2(2.0 * x_y, x_2 - y_2) / 2.0;
+  if (x_2 != y_2 || x_y != 0.0) {
+    theta = std::atan2(2.0 * x_y, x_2 - y_2) / 2.0;
   } else {
-    theta = M_PI/4.0;
+    // Circular moments have no preferred axis.
+    theta = M_PI / 4.0;
   }
 
   float temp = x_2 - y_2;
