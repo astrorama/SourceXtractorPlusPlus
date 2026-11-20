@@ -1,11 +1,12 @@
 # Bug inventory
 
-Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit.
-Status reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code,
-and regression-test sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed.
-BUG-004 has protection implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits
-conditional-build verification. At the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates
-remain unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun during this status reconciliation.
+Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit. Status
+reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code, and regression-test
+sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed. BUG-004 has protection
+implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits conditional-build verification. At
+the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates remain
+unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun
+during this status reconciliation.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -463,10 +464,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   entries to zero. The propagation is evident in source, independent of whether the conditional mutex is enabled.
 - **Fix direction:** Handle every solver status explicitly. Memory failure must retain failure flags and unavailable
   uncertainties, and must not present a skipped optimization as a successful fit.
-- **Work log (2026-11-20):** Handle all solver status values explicitly. MEMORY and ERROR preserve failure flags,
-  invalidate uncertainties/diagnostics, skip normal result collection, and publish unavailable parameter outputs. Do
-  not count workspace size as solver iterations. Injected engine tests exercise MEMORY/ERROR and SUCCESS/MAX_ITER
-  controls through production computeProperties. Build and review pending.
+- **Work log (2026-11-20):** Handle every solver status explicitly. MEMORY/ERROR retain failure flags, invalidate
+  diagnostics/uncertainties, skip normal state collection and publish unavailable outputs; workspace size is not
+  solver iterations. Injected-engine regression fails baseline (8 assertions) and passes fix for MEMORY/ERROR and
+  SUCCESS/MAX_ITER controls. All FlexibleModelFittingWeight_test cases pass after building through Elements. Corrected
+  test registry names during validation. Standards and spec reviews: no remaining findings.
 
 ## BUG-022: Small PSF kernels render point sources as zero
 
