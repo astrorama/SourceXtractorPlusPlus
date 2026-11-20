@@ -72,8 +72,10 @@ struct FlexibleModelFittingWeightFixture {
     auto frame1 = std::make_shared<FlexibleModelFittingFrame>(1, models);
     auto frame7 = std::make_shared<FlexibleModelFittingFrame>(7, models);
     auto frame42 = std::make_shared<FlexibleModelFittingFrame>(42, models);
-    FlexibleModelFittingIterativeTask dense("", 1, 1, {position, flux}, {frame0, frame1}, {}, {{0, false}, {1, true}, {99, true}});
-    FlexibleModelFittingIterativeTask sparse("", 1, 1, {position, flux}, {frame7, frame42}, {}, {{42, true}, {99, false}, {7, false}});
+    FlexibleModelFittingIterativeTask dense("", 1, 1, {position, flux}, {frame0, frame1}, {},
+        {{0, false}, {1, true}, {99, true}});
+    FlexibleModelFittingIterativeTask sparse("", 1, 1, {position, flux}, {frame7, frame42}, {},
+        {{42, true}, {99, false}, {7, false}});
     FlexibleModelFittingIterativeTask::SourceState state;
     dense.fitSourcePrepareParameters(state.parameter_manager, state.engine_parameter_manager, source, state);
     auto integral = [&](const FlexibleModelFittingIterativeTask& task,
