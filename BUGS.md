@@ -1,12 +1,11 @@
 # Bug inventory
 
-Reviewed 2026-11-04 against `ce583df9` (`develop`). This is a targeted source review, not an exhaustive audit. Status
-reconciled on 2026-11-20 against `10533955` (`develop`), using committed history, production code, and regression-test
-sources. BUG-001, BUG-002, BUG-003, BUG-006, BUG-007, BUG-008, BUG-018, and BUG-019 are fixed. BUG-004 has protection
-implemented with BUG-003 but still needs sanitizer validation; BUG-020 also awaits conditional-build verification. At
-the reconciliation baseline, ten confirmed defects remained open (009–011, 013–017, 021, 022); two candidates remain
-unconfirmed (012, 023), and BUG-005 is dismissed. Branch work is recorded in each entry below. No tests were rerun
-during this status reconciliation.
+Originally reviewed 2026-11-04 against `ce583df9` (develop); merged-fix status reconciled on 2026-11-20 against
+`10533955`. The branch work below starts from `c7dd4ba3`. Eight additional fixes are ready on separate local branches
+(009, 010, 013, 014, 015, 017, 021, 022); BUG-011 and BUG-016 remain confirmed and deferred because they need
+substantial changes. These branch fixes have not been merged into develop. The eight earlier merged fixes (001, 002,
+003, 006, 007, 008, 018, 019) remain fixed. BUG-004 and BUG-020 still await their recorded validation; BUG-012 and
+BUG-023 remain unconfirmed, and BUG-005 remains dismissed. This is a targeted review, not an exhaustive audit.
 Pure performance opportunities are excluded.
 The second review pass focuses on the iterative `FlexibleModelFitting` task and its shared rendering/solver code.
 See [model-fitting architecture notes](doc/architecture-model-fitting.md) for the execution and ownership model.
@@ -34,11 +33,43 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - BUG-001, BUG-002, and BUG-003 were fixed in `33959626`, `ee916f8f`, and `b2fb344a`, respectively,
   but those commits did not update this file. No committed closed status for these entries was found in the
   available branch history. This explains the stale entries; uncommitted edits cannot be established from Git history.
-- All fix commits cited below are included in `10533955`. The implementations underlying the remaining open
-  entries were checked against the original review baseline; their reported defects remain unaddressed.
+- The earlier merged fixes were checked against `10533955`. At that reconciliation, the remaining reported defects
+  were unaddressed. Subsequent fixes are tracked separately in the branch section and per-entry work logs below.
 - Regression coverage below describes committed tests. Historical execution results are retained where recorded;
   presence of a test does not imply a fresh passing run on the current branch. For resolved entries, reproduction
   descriptions document the behavior before the fix.
+
+## Fix branches: 2026-11-20
+
+All branches start from `c7dd4ba3`. Each implementation branch contains its fix, regression tests, and its own
+inventory update. Deferred branches contain documentation only.
+
+| Bug | Branch | Outcome |
+| --- | --- | --- |
+| BUG-009 | `fix/bug-009-fits-cube-layer-validation` | Reviewed and tested; ready to merge |
+| BUG-010 | `fix/bug-010-copy-graph-model-configuration` | Reviewed and tested; ready to merge |
+| BUG-011 | `fix/bug-011-derived-parameter-covariance` | Deferred; still needs work |
+| BUG-013 | `fix/bug-013-preserve-skipped-fit-flags` | Reviewed and tested; ready to merge |
+| BUG-014 | `fix/bug-014-psf-normalization-frame-ids` | Reviewed and tested; ready to merge |
+| BUG-015 | `fix/bug-015-mask-bad-variance-thresholds` | Reviewed and tested; ready to merge |
+| BUG-016 | `fix/bug-016-parameter-access-bookkeeping` | Deferred; still needs work |
+| BUG-017 | `fix/bug-017-transform-fitting-ellipse-under-shear` | Reviewed and tested; ready to merge |
+| BUG-021 | `fix/bug-021-handle-solver-memory-failure` | Reviewed and tested; ready to merge |
+| BUG-022 | `fix/bug-022-render-small-psf-kernels` | Reviewed and tested; ready to merge |
+
+- **Standards review:** All eight implementation branches reviewed; no remaining findings. Corrected test naming,
+  masking-scenario clarity, and formatting issues identified during review/validation.
+- **Spec review:** All eight implementation branches reviewed; no remaining findings. Corrections included test
+  ownership (009), unavailable constant/derived skipped outputs (013), support for unmodeled images (014), and
+  flux preservation under fractional PSF placement (022).
+- **Validation:** Fixes were tested independently. BUG-009 passed its FITS test target; BUG-010 passed the registered
+  Python suite after `make configure`. BUG-013, BUG-015, BUG-017, BUG-021, and BUG-022 regressions were also run against
+  the original implementation and failed before passing with the fix. BUG-014 passed production rendering tests for
+  sparse/reordered IDs and unmodeled images. The final BUG-022 branch passed all 79 registered tests with `make tests`.
+  Per-entry work logs record the specific coverage and review corrections. No combined-fix integration run was made.
+- **Merging:** Preserve all inventory outcomes when resolving documentation conflicts. The iterative branches share
+  task/test code: combine the skipped/failed publication masks from 013 and 021. BUG-014 changes the task's PSF option
+  argument to an image-ID map; adapt the new constructor calls from 013/021 accordingly when combining these branches.
 
 ## Summary
 
@@ -52,20 +83,20 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 | BUG-006 | Mismatched weight HDUs silently omit measurement images | Medium | Medium | Fixed | None |
 | BUG-007 | Only the first output parameter is registered | Medium | Medium | Fixed | None |
 | BUG-008 | Weight-cube depth check compares the measurement cube to itself | Medium | Medium | Fixed | None |
-| BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Confirmed | Fix |
+| BUG-009 | Invalid FITS cube layer indices are never rejected | Medium | Low | Fix ready on branch | Merge fix branch |
 | BUG-010 | Graph-model construction mutates reusable configuration | High | Medium | Fix ready on branch | Merge fix branch |
-| BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Confirmed | Fix |
+| BUG-011 | Derived-parameter uncertainty ignores shared dependencies | High | Medium | Deferred; still needs work | Plan larger change |
 | BUG-012 | Vignettes can read outside the detection image | High | Medium | Unconfirmed | Try to confirm |
-| BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Confirmed | Fix |
-| BUG-014 | PSF normalization indexed by global image ID | High | Medium | Confirmed | Fix |
-| BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Confirmed | Fix |
-| BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Confirmed | Fix |
-| BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Confirmed | Fix |
+| BUG-013 | Skipped iterative fits lose their failure flags | High | Medium | Fix ready on branch | Merge fix branch |
+| BUG-014 | PSF normalization indexed by global image ID | High | Medium | Fix ready on branch | Merge fix branch |
+| BUG-015 | Iterative fitting ignores finite bad-variance thresholds | High | Medium | Fix ready on branch | Merge fix branch |
+| BUG-016 | Parameter bookkeeping falsely marks parameters as fitted | High | Medium | Deferred; still needs work | Plan larger change |
+| BUG-017 | Rotated fitting ellipses transform incorrectly under shear | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-018 | GSL leaves runtime parameters at an evaluation probe | High | High with GSL | Fixed | None |
 | BUG-019 | Zero-weight pixels artificially shrink solver uncertainties | High | High with masks | Fixed | None |
 | BUG-020 | Levmar workspace rejection leaves a global mutex locked | High | Low / build-dependent | Fix pending verification | Verify with conditional locking enabled |
-| BUG-021 | Iterative task treats solver memory failure as usable output | High | Low | Confirmed | Fix |
-| BUG-022 | Small PSF kernels render point sources as zero | High | Medium | Confirmed | Fix |
+| BUG-021 | Iterative task treats solver memory failure as usable output | High | Low | Fix ready on branch | Merge fix branch |
+| BUG-022 | Small PSF kernels render point sources as zero | High | Medium | Fix ready on branch | Merge fix branch |
 | BUG-023 | Fit and stopping diagnostic use different neighbor subtraction | High if unintended | High for blends | Unconfirmed | Try to confirm |
 
 ## BUG-001: Incorrect centroid error-ellipse angle
@@ -221,21 +252,26 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** Medium: invalid layer requests reach CFITSIO instead of producing the intended immediate error.
 - **Likelihood:** Low for valid configuration. BUG-008 previously provided another path to this bug.
-- **Status:** Confirmed by inspection: the guard is logically impossible for a positive cube depth.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-009-fits-cube-layer-validation`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [FitsImageSource.cpp:282](SEFramework/src/lib/FITS/FitsImageSource.cpp#L282).
 - **Description:** `layer < 0 && layer >= m_depth` cannot hold. Both negative and past-the-end layers are accepted.
 - **Evidence / reproduction:** For depth 3, both `setLayer(-1)` and `setLayer(3)` bypass the check and change the active
   layer. This establishes the validation bug; subsequent CFITSIO failure behavior was not exercised.
 - **Fix direction:** Use an OR condition and test -1, 0, depth-1, and depth. Separately specify cache behavior if the
   active layer changes after reads; the cache key currently does not contain the layer.
+- **Work log (2026-11-20):** Reject invalid layers with OR, read the third FITS dimension, and initialize layer/depth
+  defaults. Real-cube regression failed before the fix; make -j4 tests with ARGS selecting
+  SEFramework.FitsImageSource_test passed afterward. Standards review: no findings. Spec review found stack ownership
+  in the test; corrected to shared ownership and reran successfully. Buffered-view layer changes remain unsupported
+  and are documented.
 
 ## BUG-010: Graph-model construction mutates reusable configuration
 
 - **Severity:** High: subsequent models can silently lose configured scale, aspect ratio, and angle.
 - **Likelihood:** Medium when a caller reuses a parameter dictionary for several models.
 - **Status:** Fixed on `fix/bug-010-copy-graph-model-configuration`; awaiting merge.
-- **Next action needed:** Review and merge the fix branch.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [model_fitting.py:758](SEImplementation/python/sourcextractor/config/model_fitting.py#L758).
 - **Description:** `ComputeGraphModel` replaces numeric entries in the caller's dictionary, removes `_scale`,
   `_aspect_ratio`, and `_angle`, and stores the same mutable dictionary as `self.params`.
@@ -255,9 +291,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Severity:** High: silently incorrect reported scientific uncertainties, even when derived values are correct.
 - **Likelihood:** Medium for expressions combining correlated fit parameters or nested/shared dependencies.
   Single-variable derived parameters do not exhibit this particular error.
-- **Status:** Confirmed by an analytical counterexample to the implemented propagation formula; no engine-level
-  reproduction was run.
-- **Next action needed:** Fix.
+- **Status:** Confirmed; deferred (still needs work).
+- **Next action needed:** Plan the larger change described below; no production fix in this branch.
 - **Location:** [FlexibleModelFittingParameter.cpp:221](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingParameter.cpp#L221).
 - **Description:** Propagation adds squared partial derivatives times marginal variances, treating immediate
   dependencies as independent. It loses their covariance and can double-count the same underlying free parameter.
@@ -267,6 +302,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Fix direction:** Differentiate through dependencies to distinct free parameters and propagate their covariance.
   Test repeated dependencies, shared ancestors, and correlated fit parameters; distinguish this from the separately
   documented approximation that ignores covariance between image pixels.
+- **Work log (2026-11-20):** Deferred after inspecting LeastSquareSummary and dependent getSigma: the public result
+  carries marginal sigmas only, not covariance. Correct J C J^T requires both solver backends to expose consistent
+  covariance, differentiation through distinct free ancestors, and propagation through both fitting callers. A
+  repeated-dependency-only patch would leave correlated/shared-ancestor cases wrong. No production change; still needs
+  work.
 
 ## BUG-012: Vignettes can read outside the detection image
 
@@ -288,8 +328,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** High: an unperformed fit can appear unflagged, with zero chi-square and bogus non-free outputs.
 - **Likelihood:** Medium: sources outside all modeled frames, or too few usable pixels for the registered parameters.
-- **Status:** Confirmed by calling the production iterative task on a source outside a configured frame.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-013-preserve-skipped-fit-flags`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [FlexibleModelFittingIterativeTask.cpp:723](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L723).
 - **Description:** `fitSource()` sets a local `OUTSIDE` or `INSUFFICIENT_DATA` flag, then returns without updating
   `SourceState`. Initial flags and chi-square remain zero. Initial constant/dependent saved values are also zero,
@@ -300,14 +340,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The insufficient-data branch has the same early return; it was checked by inspection, not separately executed.
 - **Fix direction:** Publish a complete skipped-fit state, including failure flags and defined unavailable results,
   before returning. Test outside coverage, complete masking, and insufficient usable pixels.
+- **Work log (2026-11-20):** Persist OUTSIDE/INSUFFICIENT_DATA, invalidate diagnostic/uncertainties, clear stale
+  fitted state, and publish NaN for all skipped outputs while retaining internal guesses. Both production regressions
+  fail baseline (15 assertions) and pass the fix via make tests selecting FlexibleModelFittingWeight_test. Standards
+  review masking-argument concern corrected. Spec review constant/derived output concern corrected with
+  computeProperties regression. Both reviewers cleared the corrections; no remaining findings.
 
 ## BUG-014: PSF normalization is indexed by global image ID
 
 - **Severity:** High: silently changes rendered flux normalization; out-of-range accesses also cause undefined behavior.
 - **Likelihood:** Medium: image IDs have gaps, start above zero, or are interleaved with other configuration objects.
   A wrong normalization choice changes rendering when the PSF is downsampled.
-- **Status:** Confirmed by production `createFrameModel()` rendering with controlled frame IDs and PSF flags.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-014-psf-normalization-frame-ids`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Locations:** [FlexibleModelFittingTaskFactory.cpp:101](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingTaskFactory.cpp#L101),
   [FlexibleModelFittingIterativeTask.cpp:283](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L283).
 - **Description:** The factory appends normalization flags in image-list order, but the task indexes the vector by
@@ -318,14 +363,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   the erroneous factor of two comes from selecting the wrong flag. The largest frame ID also exceeds vector size.
 - **Fix direction:** Store options keyed by image ID, or attach them directly to each fitting-frame definition.
   Test sparse IDs and different flags per frame. Audit other containers accessed with `getFrameNb()` similarly.
+- **Work log (2026-11-20):** Pass normalization options keyed by measurement image ID from factory through task, with
+  checked lookup. Rendering tests cover sparse/reordered IDs, opposite flags, non-unit PSF integral, and extra
+  unmodeled images. make tests selecting FlexibleModelFittingWeight_test passed. Standards review: no remaining
+  findings. Spec review caught subset-image rejection in the initial vector approach; corrected the factory-to-task
+  mapping and reviewers cleared it.
 
 ## BUG-015: Iterative fitting ignores finite bad-variance thresholds
 
 - **Severity:** High: pixels explicitly marked unreliable can influence fitted parameters and uncertainties.
 - **Likelihood:** Medium: a configured finite variance threshold, with pixels beyond it that remain finite after
   interpolation. Measurement frames use zero interpolation gap in the current configuration path.
-- **Status:** Confirmed by executing production `createWeightImage()` through a real `MeasurementImageFrame`.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-015-mask-bad-variance-thresholds`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [FlexibleModelFittingIterativeTask.cpp:353](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L353).
 - **Description:** The weight builder uses variance to calculate inverse sigma but never compares it with
   `MeasurementFrameInfo::getVarianceThreshold()`. Infinite variance happens to give zero weight, concealing the
@@ -335,14 +385,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The configured threshold is present in both frame and property metadata.
 - **Fix direction:** Honor the masking threshold using the appropriate original/current variance representation.
   Define handling of zero, negative, and non-finite variances, and verify exclusion from usable-pixel counts.
+- **Work log (2026-11-20):** Honor original variance threshold before interpolation/shot noise and reject
+  nonpositive/nonfinite original/current variances with fast-math-safe checks. Tests cover threshold boundaries,
+  invalid variances, usable counts, interpolation gaps and gain modes. The regression fails baseline (109 assertions)
+  and passes the fix; make tests selecting FlexibleModelFittingWeight_test also passed. Standards and spec reviews: no
+  remaining findings.
 
 ## BUG-016: Parameter bookkeeping falsely marks parameters as fitted
 
 - **Severity:** High: suppresses partial-fit reporting and can present unconstrained parameters as fitted outputs.
 - **Likelihood:** Medium with parameters belonging to frames that do not cover a source, or output/prior-only free
   parameters. Ordinary fits in which every parameter is constrained conceal the problem.
-- **Status:** Confirmed by production parameter preparation and state-update methods, plus call-path inspection.
-- **Next action needed:** Fix.
+- **Status:** Confirmed; deferred (still needs work).
+- **Next action needed:** Plan the larger change described below; no production fix in this branch.
 - **Locations:** [FlexibleModelFittingIterativeTask.cpp:706](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L706),
   [FlexibleModelFittingIterativeTask.cpp:645](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L645),
   [FlexibleModelFittingParameterManager.h:57](SEImplementation/SEImplementation/Plugin/FlexibleModelFitting/FlexibleModelFittingParameterManager.h#L57).
@@ -356,14 +411,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 - **Fix direction:** Separate nontracking lookups from model dependency tracking, reset tracking at a well-defined
   boundary, and snapshot the genuinely constrained parameter set before diagnostics/output collection.
   Also inspect solver registration: currently every free parameter is registered even if its frames are unavailable.
+- **Work log (2026-11-20):** Deferred: access tracking is coupled to parameter lookup, recursive dependencies,
+  neighbor rendering, state collection, prior setup, and eager registration of every free parameter. Clearing the
+  accessed set alone would leave unused solver dimensions, incorrect degrees of freedom, and rank-deficient
+  covariance. Requires a coordinated distinction between model/prior constraints and maintenance reads, plus active-
+  parameter solver indexing and sigma mapping across callers. No production change; still needs work.
 
 ## BUG-017: Rotated fitting ellipses transform incorrectly under shear
 
 - **Severity:** High: selects an incorrect scientific fitting region, changing which data constrain the fit.
 - **Likelihood:** Medium with `ROTATED_ELLIPSE` and a Jacobian that does not preserve the orthogonality of the source's
   principal axes. Pure rotation and uniform scaling conceal it.
-- **Status:** Confirmed by executing production `transformEllipse()` with a controlled Jacobian.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-017-transform-fitting-ellipse-under-shear`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [FlexibleModelFittingIterativeTask.cpp:231](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L231).
 - **Description:** The method transforms the two original axis vectors, takes their lengths as new semiaxes, and uses
   the transformed major vector as the new angle. Under shear those vectors are no longer orthogonal, so this does
@@ -373,6 +433,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   The correct squared-axis matrix is `[[5,1],[1,1]]`, which has nonzero rotation.
 - **Fix direction:** Transform the ellipse's symmetric shape matrix with `J Q J^T`, then obtain semiaxes and angle
   by eigendecomposition. Test rotation, anisotropic scaling, shear, and reflection.
+- **Work log (2026-11-20):** Diagonalize the transformed symmetric shape matrix; derive the minor axis from area to
+  avoid cancellation. Regression reconstructs shape and area for identity, rotation, anisotropic scale, shear,
+  reflection and collapse. Regression fails baseline (20 assertions) and passes the fix; all
+  FlexibleModelFittingWeight_test cases passed after building through Elements. Standards and spec reviews: no
+  findings.
 
 ## BUG-018: GSL leaves runtime parameters at an evaluation probe
 
@@ -457,8 +522,8 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
 
 - **Severity:** High: unchanged guesses and zero uncertainties can be published without a memory/error flag.
 - **Likelihood:** Low: Levmar workspace rejection/allocation failure; separate from BUG-020's conditional locking.
-- **Status:** Confirmed by inspection of the engine return and iterative caller; no full task failure injection run.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-021-handle-solver-memory-failure`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Locations:** [LevmarEngine.cpp:170](ModelFitting/src/lib/Engine/LevmarEngine.cpp#L170),
   [FlexibleModelFittingIterativeTask.cpp:756](SEImplementation/src/lib/Plugin/FlexibleModelFitting/FlexibleModelFittingIterativeTask.cpp#L756).
 - **Description:** The engine returns `LeastSquareSummary::MEMORY` with zero-filled parameter sigmas and has not
@@ -469,14 +534,19 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   entries to zero. The propagation is evident in source, independent of whether the conditional mutex is enabled.
 - **Fix direction:** Handle every solver status explicitly. Memory failure must retain failure flags and unavailable
   uncertainties, and must not present a skipped optimization as a successful fit.
+- **Work log (2026-11-20):** Handle every solver status explicitly. MEMORY/ERROR retain failure flags, invalidate
+  diagnostics/uncertainties, skip normal state collection and publish unavailable outputs; workspace size is not
+  solver iterations. Injected-engine regression fails baseline (8 assertions) and passes fix for MEMORY/ERROR and
+  SUCCESS/MAX_ITER controls. All FlexibleModelFittingWeight_test cases pass after building through Elements. Corrected
+  test registry names during validation. Standards and spec reviews: no remaining findings.
 
 ## BUG-022: Small PSF kernels render point sources as zero
 
 - **Severity:** High: silently removes point-source model signal and can invalidate fitted fluxes.
 - **Likelihood:** Medium: square odd PSFs of size 1, 3, 5, or 7, including kernels reduced below eight pixels by
   downsampling. The PSF wrapper accepts these sizes.
-- **Status:** Confirmed by rendering through production iterative `createFrameModel()` and image interpolation.
-- **Next action needed:** Fix.
+- **Status:** Fixed on `fix/bug-022-render-small-psf-kernels`; awaiting merge.
+- **Next action needed:** Merge the reviewed fix branch.
 - **Location:** [ImageInterfaceTraits.cpp:274](SEImplementation/src/lib/Image/ImageInterfaceTraits.cpp#L274).
 - **Description:** The fast Lanczos-4 resampler requires its entire eight-sample support inside the source image.
   For a dimension below eight, every row/column is skipped and the destination remains zero. Point-model rendering
@@ -486,6 +556,11 @@ See [model-fitting architecture notes](doc/architecture-model-fitting.md) for th
   to 3x3 also encounters this path; normalization and later rendering can compound the failure.
 - **Fix direction:** Provide suitable padding/boundary handling or a valid small-kernel interpolation path.
   Test PSF sizes below the interpolation support and PSFs crossing that boundary during downsampling.
+- **Work log (2026-11-20):** Zero-pad Lanczos boundaries, retain full interpolation support in the output window, and
+  use floor for negative padded coordinates. Original regression failed baseline (169 assertions). Stronger
+  fractional-flux tests caught clipping in the first partial fix; corrected and verified flux for 1/3/5/7/9-pixel
+  PSFs, both normalization modes, downsampling and centered/fractional positions. make -j4 tests passed all 79
+  registered tests after the correction. Standards and spec reviews cleared the final changes; no remaining findings.
 
 ## BUG-023: Fit and stopping diagnostic use different neighbor subtraction
 
