@@ -70,7 +70,8 @@ public:
 
 struct FlexibleModelFittingWeightFixture {
   void checkSolverStatus(ModelFitting::LeastSquareSummary::StatusFlag status) {
-    ModelFitting::LeastSquareEngineManager::registerEngine("status-test", [status](unsigned int) {
+    const auto engine_name = "status-test-" + std::to_string(static_cast<int>(status));
+    ModelFitting::LeastSquareEngineManager::registerEngine(engine_name, [status](unsigned int) {
       return std::make_shared<StatusTestEngine>(status);
     });
     auto coordinates = std::make_shared<WeightTestCoordinates>();
@@ -95,7 +96,7 @@ struct FlexibleModelFittingWeightFixture {
         [](const SourceInterface&) { return 7.0; });
     auto fitting_frame = std::make_shared<FlexibleModelFittingFrame>(0,
         std::vector<std::shared_ptr<FlexibleModelFittingModel>>{});
-    FlexibleModelFittingIterativeTask task("status-test", 1, 1, {parameter}, {fitting_frame}, {}, {false}, 1, 1);
+    FlexibleModelFittingIterativeTask task(engine_name, 1, 1, {parameter}, {fitting_frame}, {}, {false}, 1, 1);
     task.computeProperties(group);
     const auto& result = group.begin()->getProperty<FlexibleModelFitting>();
     const bool failure = status == ModelFitting::LeastSquareSummary::MEMORY
