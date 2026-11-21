@@ -67,6 +67,9 @@ elements_add_unit_test(QuadTree_test tests/src/QuadTree_test.cpp
 elements_add_unit_test(KdTree_test tests/src/KdTree_test.cpp
                      LINK_LIBRARIES SEUtils
                      TYPE Boost)
+elements_add_unit_test(NonFiniteMath_test tests/src/NonFiniteMath_test.cpp
+                     LINK_LIBRARIES SEUtils
+                     TYPE Boost)
 
 if(GMOCK_FOUND)
 elements_add_unit_test(Observable_test tests/src/Observable_test.cpp

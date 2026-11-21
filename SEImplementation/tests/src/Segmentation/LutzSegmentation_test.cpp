@@ -25,6 +25,10 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+
 #include "SEFramework/Image/VectorImage.h"
 #include "SEFramework/Image/ConstantImage.h"
 #include "SEFramework/Source/SimpleSourceFactory.h"
@@ -179,6 +183,64 @@ BOOST_FIXTURE_TEST_CASE( lutz_test, LutzFixture ) {
 
   // If we had a correct source for every group we should have matched them all and have an empty list
   BOOST_CHECK(group_images.size() == 0);
+}
+
+//-----------------------------------------------------------------------------
+
+/// The bit pattern of a 32-bit quiet NaN, read through volatile so that no
+/// amount of constant folding can decide the answers below at compile time
+volatile uint32_t g_quiet_nan_bits = 0x7FC00000u;
+
+float runtimeNaN() {
+  uint32_t bits = g_quiet_nan_bits;
+  float value;
+  std::memcpy(&value, &bits, sizeof(value));
+  return value;
+}
+
+/// A NaN is not above the detection threshold, so blank pixels must not be labelled.
+/// Under -ffinite-math-only `value > 0.0` in Lutz::labelImage is undefined for a NaN and
+/// Clang answers true, which on a real mosaic swallows a whole unexposed region
+/// represented by NaN into a single component.
+BOOST_FIXTURE_TEST_CASE( lutz_nan_test, LutzFixture ) {
+  // Blank the top four rows the way a mosaic blanks its unexposed area, and put a single
+  // 3x3 source well clear of it
+  DetectionImage::PixelType nan_value = runtimeNaN();
+
+  std::vector<DetectionImage::PixelType> pixels(100, 0.0);
+  for (int idx = 0; idx < 40; idx++) {
+    pixels[idx] = nan_value;
+  }
+  for (int y = 6; y <= 8; y++) {
+    for (int x = 6; x <= 8; x++) {
+      pixels[y * 10 + x] = 1.0;
+    }
+  }
+
+  auto image = VectorImage<DetectionImage::PixelType>::create(10, 10, pixels);
+
+  Segmentation segmentation(nullptr);
+  segmentation.setLabelling<LutzSegmentation>(std::make_shared<SimpleSourceFactory>());
+  segmentation.Observable<SourceInterface>::addObserver(source_observer);
+
+  auto detection_frame = std::make_shared<DetectionImageFrame>(image);
+  detection_frame->setBackgroundLevel(
+      ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0), 0.);
+  detection_frame->setVarianceMap(
+      ConstantImage<DetectionImage::PixelType>::create(image->getWidth(), image->getHeight(), 0.25));
+  segmentation.processFrame(detection_frame);
+
+  // Only the 3x3 source, with none of the blank pixels dragged in with it
+  BOOST_CHECK_EQUAL(source_observer->m_list.size(), 1);
+
+  for (auto& source : source_observer->m_list) {
+    auto& coords = source.getCoordinateList();
+    BOOST_CHECK_EQUAL(coords.size(), 9u);
+    for (auto& pixel : coords) {
+      BOOST_CHECK_GE(pixel.m_y, 6);
+      BOOST_CHECK_GE(pixel.m_x, 6);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

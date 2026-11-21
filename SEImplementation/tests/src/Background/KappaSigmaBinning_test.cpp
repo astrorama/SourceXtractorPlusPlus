@@ -218,6 +218,39 @@ BOOST_AUTO_TEST_CASE(compat4Test) {
 
 //-----------------------------------------------------------------------------
 
+/// There are no bins to compute for an empty range, and *begin used to be
+/// dereferenced unconditionally
+BOOST_AUTO_TEST_CASE(emptyRange) {
+  std::vector<float> empty;
+  KappaSigmaBinning<float> binning;
+  BOOST_CHECK_THROW(binning.computeBins(empty.begin(), empty.end()), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/// Every comparison against a NaN cut is false, so nothing is selected and no
+/// bins can be computed.  This has to throw an exception, not a bare assert:
+/// otherwise release builds with -ffast-math allowed NaN to propagate silently
+/// into the background model
+BOOST_AUTO_TEST_CASE(allNaN) {
+  std::vector<float> nans(8, std::numeric_limits<float>::quiet_NaN());
+  KappaSigmaBinning<float> binning;
+  BOOST_CHECK_THROW(binning.computeBins(nans.begin(), nans.end()), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/// Likewise for a single NaN among otherwise good values: it poisons the mean
+/// and sigma, so the cuts become NaN and select nothing
+BOOST_FIXTURE_TEST_CASE(singleNaN, KappaSigmaBinningFixture) {
+  auto values = data;
+  values[5] = std::numeric_limits<float>::quiet_NaN();
+  KappaSigmaBinning<float> binning;
+  BOOST_CHECK_THROW(binning.computeBins(values.begin(), values.end()), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
 BOOST_AUTO_TEST_SUITE_END()
 
 //-----------------------------------------------------------------------------

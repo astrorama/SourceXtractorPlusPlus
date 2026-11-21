@@ -22,9 +22,9 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <ElementsKernel/Logging.h>
 #include <ElementsKernel/Exception.h>
-#include "SEUtils/IsNan.h"
 
 #include "SEFramework/Psf/VariablePsf.h"
 
@@ -136,10 +136,10 @@ void VariablePsf::selfTest() {
     }
     for (auto x = 0; x < psf_width; ++x){
       for (auto y = 0; y < psf_height; ++y) {
-        if (fastmath_isnan(coeff->at(x, y))) {
+        if (std::isnan(coeff->at(x, y))) {
           throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains NANs";
         }
-        else if (fastmath_isinf(coeff->at(x, y))){
+        else if (std::isinf(coeff->at(x, y))){
           throw Elements::Exception() << "Malformed variable PSF, coefficient matrices contains INFs";
         }
       }
