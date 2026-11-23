@@ -68,39 +68,6 @@ def load_fits_images(images: str | list[str], psfs: list[str] | None = None,
     return global_measurement_config.load_fits_images(images, psfs, weights, **kwargs)
 
 
-@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_asdf_image)
-def load_asdf_image(image: str, psf: str | None = None,
-                    weight: str | cpp.ImageFile | None = None, *,
-                    image_name: str = '', weight_name: str = '',
-                    wcs_name: str = '', **kwargs: Any) -> ImageGroup:
-    return global_measurement_config.load_asdf_image(
-        image, psf, weight, image_name=image_name, weight_name=weight_name,
-        wcs_name=wcs_name, **kwargs)
-
-
-@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_asdf_images)
-def load_asdf_images(images: str | list[str], psfs: list[str] | None = None,
-                     weights: list[str] | None = None, *,
-                     image_name: str = '', image_names: list[str] | None = None,
-                     weight_name: str = '', weight_names: list[str] | None = None,
-                     wcs_name: str = '', wcs_names: list[str] | None = None,
-                     **kwargs: Any) -> ImageGroup:
-    return global_measurement_config.load_asdf_images(
-        images, psfs, weights, image_name=image_name, image_names=image_names,
-        weight_name=weight_name, weight_names=weight_names,
-        wcs_name=wcs_name, wcs_names=wcs_names, **kwargs)
-
-
-@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_asdf_data_cube)
-def load_asdf_data_cube(image: str, psf: str | list[str] | None = None,
-                        weight: str | list[str] | None = None, *,
-                        image_name: str = '', weight_name: str = '',
-                        wcs_name: str = '', **kwargs: Any) -> ImageGroup:
-    return global_measurement_config.load_asdf_data_cube(
-        image, psf, weight, image_name=image_name, weight_name=weight_name,
-        wcs_name=wcs_name, **kwargs)
-
-
 @_compat_doc_helper(copy_doc_from=MeasurementConfig.load_fits_data_cube)
 def load_fits_data_cube(image: str, psf: str | list[str] | None = None,
                         weight: str | list[FitsFile] | None = None, image_cube_hdu: int = -1,

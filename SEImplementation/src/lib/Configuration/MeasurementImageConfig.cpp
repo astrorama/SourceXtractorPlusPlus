@@ -106,19 +106,24 @@ WeightImageConfig::WeightType getWeightType(const std::string& type_string, cons
  * ImageFileReader warns and ignores it for the rest, though it might be good if we could
  * make this optional, or specified elsewhere later.
  */
-std::shared_ptr<ImageSource> openImage(const std::string& filename, const std::string& name,
-                                       int hdu, const std::string& wcs_name) {
+std::shared_ptr<ImageSource> openImage(const std::string& filename,
+                                       const ImageSelector& selector,
+                                       const std::string& wcs_name) {
   auto reader = ImageFileReader::create(filename);
 
   if (!wcs_name.empty()) {
     reader->setWcsName(wcs_name);
   }
 
-  if (!name.empty()) {
-    return reader->get(name, ImageTile::FloatImage);
+  if (selector.isName()) {
+    return reader->get(selector.getName(), ImageTile::FloatImage);
   }
 
-  return reader->get(hdu, ImageTile::FloatImage);
+  if (selector.isIndex()) {
+    return reader->get(selector.getIndex(), ImageTile::FloatImage);
+  }
+
+  return reader->get(ImageTile::FloatImage);
 }
 
 std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image) {
@@ -139,8 +144,8 @@ std::shared_ptr<WeightImage> createWeightMap(const PyMeasurementImage& py_image)
     throw Elements::Exception() << "Please give an appropriate weight type for image: " << py_image.weight_file;
   }
 
-  auto weight_image_source = openImage(py_image.weight_file, py_image.weight_name,
-                                       py_image.weight_hdu, py_image.wcs_name);
+  auto weight_image_source = openImage(py_image.weight_file, py_image.weight,
+                                       py_image.wcs);
   std::shared_ptr<WeightImage> weight_map = BufferedImage<WeightImage::PixelType>::create(weight_image_source);
   if (py_image.is_data_cube) {
     weight_image_source->setLayer(py_image.weight_layer);
@@ -188,8 +193,10 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       PyMeasurementImage& py_image = p.second;
       validateImagePaths(py_image);
 
-      logger.debug() << "Loading measurement image: " << py_image.file << " HDU: " << py_image.image_hdu;
-      logger.debug() << "\tWeight: " << py_image.weight_file << " HDU: " << py_image.weight_hdu;
+      logger.debug() << "Loading measurement image: " << py_image.file
+                     << " image: " << py_image.image.toString();
+      logger.debug() << "\tWeight: " << py_image.weight_file
+                     << " image: " << py_image.weight.toString();
       logger.debug() << "\tWeight threshold: " << py_image.weight_threshold << " hasThreshold: " << py_image.has_weight_threshold;
       logger.debug() << "\tPSF: " << py_image.psf_file << " HDU: " << py_image.psf_hdu;
       logger.debug() << "\tGain: " << py_image.gain;
@@ -207,8 +214,7 @@ void MeasurementImageConfig::initialize(const UserValues&) {
       info.m_image_layer = py_image.image_layer;
       info.m_weight_layer = py_image.weight_layer;
 
-      auto image_source = openImage(py_image.file, py_image.image_name,
-                                    py_image.image_hdu, py_image.wcs_name);
+      auto image_source = openImage(py_image.file, py_image.image, py_image.wcs);
 
       if (py_image.is_data_cube) {
         image_source->setLayer(py_image.image_layer);
@@ -244,9 +250,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       info.m_weight_type = getWeightType(py_image.weight_type, py_image.weight_file);
 
-      info.m_image_hdu = py_image.image_hdu + 1;
+      info.m_image = py_image.image;
       info.m_psf_hdu = py_image.psf_hdu + 1;
-      info.m_weight_hdu = py_image.weight_hdu + 1;
 
       info.m_psf_renormalize = py_image.psf_renormalize;
 
@@ -282,7 +287,8 @@ void MeasurementImageConfig::initialize(const UserValues&) {
 
       0, // id
 
-      1,1,1, // HDUs
+      ImageSelector{}, // the detection image, so nothing to select
+      1, // psf_hdu
 
       false, // is_data_cube
       0, // image_layer

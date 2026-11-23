@@ -28,6 +28,7 @@
 #include <Configuration/Configuration.h>
 
 #include <SEFramework/Image/Image.h>
+#include <SEFramework/Image/ImageSelector.h>
 #include <SEFramework/CoordinateSystem/CoordinateSystem.h>
 
 #include <SEImplementation/Configuration/WeightImageConfig.h>
@@ -58,9 +59,11 @@ public:
 
     int m_id;
 
-    int m_image_hdu;
+    /// Which image within the file, used to label outputs
+    ImageSelector m_image;
+
+    /// An index, because a PSF is read through CCfits by PsfPluginConfig
     int m_psf_hdu;
-    int m_weight_hdu;
 
     bool m_is_data_cube;
     int m_image_layer;

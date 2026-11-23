@@ -77,6 +77,43 @@ bool metadataContains(const Metadata& metadata, const std::string& key) {
 }
 
 
+/// An ImageSelector as its int, its str, or None
+bp::object selectorToPython(const ImageSelector& selector) {
+  if (selector.isIndex()) {
+    return bp::object(selector.getIndex());
+  }
+
+  if (selector.isName()) {
+    return bp::object(selector.getName());
+  }
+
+  return bp::object();
+}
+
+
+/// An int, a str or None as an ImageSelector
+ImageSelector selectorFromPython(const bp::object& value) {
+  if (value.is_none()) {
+    return ImageSelector{};
+  }
+
+  bp::extract<int> index{value};
+  if (index.check()) {
+    return ImageSelector{index()};
+  }
+
+  bp::extract<std::string> name{value};
+  if (name.check()) {
+    return ImageSelector{name()};
+  }
+
+  PyErr_SetString(PyExc_TypeError,
+                  "an image selector is an int, a str, or None");
+  bp::throw_error_already_set();
+  return ImageSelector{};
+}
+
+
 /// Hands a vector of strings to Python as a tuple, rather than a Boost wrapper
 struct StringVectorToPython {
   static PyObject* convert(const std::vector<std::string>& strings) {
@@ -143,13 +180,20 @@ BOOST_PYTHON_MODULE(_SourceXtractorPy) {
       .def_readwrite("weight_threshold", &PyMeasurementImage::weight_threshold)
       .def_readwrite("is_background_constant", &PyMeasurementImage::is_background_constant)
       .def_readwrite("constant_background_value", &PyMeasurementImage::constant_background_value)
-      .def_readwrite("image_hdu", &PyMeasurementImage::image_hdu)
       .def_readwrite("psf_hdu", &PyMeasurementImage::psf_hdu)
-      .def_readwrite("weight_hdu", &PyMeasurementImage::weight_hdu)
-      .def_readwrite("image_name", &PyMeasurementImage::image_name)
-      .def_readwrite("psf_name", &PyMeasurementImage::psf_name)
-      .def_readwrite("weight_name", &PyMeasurementImage::weight_name)
-      .def_readwrite("wcs_name", &PyMeasurementImage::wcs_name)
+      .add_property("image",
+          +[](const PyMeasurementImage& self) { return selectorToPython(self.image); },
+          +[](PyMeasurementImage& self, const bp::object& value) {
+            self.image = selectorFromPython(value);
+          },
+          "which image within the file: an index, a name, or None")
+      .add_property("weight",
+          +[](const PyMeasurementImage& self) { return selectorToPython(self.weight); },
+          +[](PyMeasurementImage& self, const bp::object& value) {
+            self.weight = selectorFromPython(value);
+          },
+          "which image within the weight file: an index, a name, or None")
+      .def_readwrite("wcs", &PyMeasurementImage::wcs)
       .def_readwrite("is_data_cube", &PyMeasurementImage::is_data_cube)
       .def_readwrite("image_layer", &PyMeasurementImage::image_layer)
       .def_readwrite("weight_layer", &PyMeasurementImage::weight_layer)

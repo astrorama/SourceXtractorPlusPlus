@@ -26,10 +26,10 @@ namespace SourceXtractor {
 PyMeasurementImage::PyMeasurementImage(std::string file, std::string psf_file, std::string weight_file)
   : file(file), gain(0.), saturation(0.), flux_scale(1.), psf_file(psf_file), weight_file(weight_file),
     weight_absolute(false), weight_scaling(0.), has_weight_threshold(false), weight_threshold(0.),
-    is_background_constant(false), constant_background_value(0.), image_hdu(0), psf_hdu(0), weight_hdu(0),
+    is_background_constant(false), constant_background_value(0.), psf_hdu(0),
     is_data_cube(false), image_layer(0), weight_layer(0), psf_renormalize(true) {
-  // image_name, psf_name, weight_name and wcs_name default to empty, meaning
-  // "use the *_hdu index instead"
+  // image and weight select nothing by default, meaning the file's only image
+  // or the first of several
 }
 
 }

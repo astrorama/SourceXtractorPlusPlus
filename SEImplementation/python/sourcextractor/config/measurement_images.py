@@ -137,6 +137,13 @@ class CheckBoostProperties:
 
         def checked_fset(self: Any, value: Any) -> None:
             expected = type(fget(self))
+
+            # Nothing to infer a type from, so nothing to check: an optional
+            # property such as an image selector starts out as None
+            if expected is type(None) or value is None:
+                fset(self, value)
+                return
+
             # bool is a subclass of int, so exclude it explicitly; an int,
             # however, is accepted where a float would be
             if (isinstance(value, bool) is not (expected is bool) or
@@ -202,30 +209,25 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         Pixels with weights beyond this value are treated just like pixels discarded by the masking process.
     constant_background : float
         If set a constant background of that value is assumed for the image instead of using automatic detection
-    image_hdu : int
-        For multi-extension FITS file specifies the HDU number for the image. Default 0 (primary HDU)
+    image : int or str, optional
+        Which image within the file: an index, or a name, which is whatever the format calls one --
+        an ASDF tree path such as ``/roman/data``, or a FITS ``EXTNAME``. If unspecified this means
+        file's only image, or the first of several, if this is unambiguous. An ASDF file holding more
+        than one array that could be an image must be named, for example.  But not in the case of a
+        FITS file containing only one image extension.
+    weight : int or str, optional
+        As `image`, for the weight file.
+    wcs : str, optional
+        Which coordinate system to use, for a format that may hold several with no fixed
+        association to the image arrays. That is the case for ASDF; ignored for FITS.
     psf_hdu : int
-        For multi-extension FITS file specifies the HDU number for the psf. Defaults to the same value as image_hdu
-    weight_hdu : int
-        For multi-extension FITS file specifies the HDU number for the weight. Defaults to the same value as image_hdu
+        For a multi-extension PSFx FITS file, which HDU to read.
     psf_renormalize : bool
         If True, the PSF will be renormalized to have a total flux of 1.0. Default True
-    image_name : str
-        Names the image within the file, where the meaning of the name is the format's own: an
-        ASDF tree path such as ``/roman/data``, or a FITS ``EXTNAME``. Takes precedence over
-        `image_hdu`. An ASDF file holding more than one candidate array has to be named so as
-        to avoid ambiguity.
-    psf_name : str
-        As `image_name`, for the PSF.
-    weight_name : str
-        As `image_name`, for the weight image.
-    wcs_name : str
-        Names the coordinate system to use, for a format that may hold several with no fixed
-        association to the image arrays. That is the case for ASDF; ignored for FITS.
-
-        .. versionadded:: 1.2.0
-            `image_name`, `psf_name`, `weight_name` and `wcs_name`, for addressing an image
-            within a file by name rather than by HDU number.
+    image_hdu : int, optional
+        The older spelling of an `image` index. Keyword-only, and mutually exclusive with `image`.
+    weight_hdu : int, optional
+        The older spelling of a `weight` index. Keyword-only, and mutually exclusive with `weight`.
 
     Notes
     -----
@@ -245,6 +247,10 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         `meta` is built on first use rather than in the constructor, and for a format other than
         FITS it is the `Metadata` object itself, whose keys are the format's own and whose values
         keep their types, rather than a dict of stringified FITS headers.
+
+    .. versionchanged:: 1.2.0
+        `image` and `weight` take an index or a name, replacing ``image_hdu`` and ``weight_hdu``,
+        which remain as keyword-only spellings of an index.
     """
 
     def __init__(self, image_file: str | cpp.ImageFile | None = None,
@@ -255,11 +261,12 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
                  flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
                  weight_type: WeightType = 'none', weight_absolute: bool = False,
                  weight_scaling: float = 1., weight_threshold: float | None = None,
-                 constant_background: float | None = None, image_hdu: int = 0,
-                 psf_hdu: int | None = None, weight_hdu: int | None = None,
-                 psf_renormalize: bool = True, image_name: str = '',
-                 psf_name: str = '', weight_name: str = '', wcs_name: str = '',
+                 constant_background: float | None = None,
+                 image: ImageSelector = None, weight: ImageSelector = None,
+                 wcs: str = '', psf_hdu: int | None = None,
+                 psf_renormalize: bool = True,
                  *,
+                 image_hdu: int | None = None, weight_hdu: int | None = None,
                  fits_file: str | cpp.ImageFile | None = None) -> None:
         """
         Constructor.
@@ -286,14 +293,16 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
                          os.path.abspath(psf_file) if psf_file else '',
                          os.path.abspath(_filename_of(weight_file)) if weight_file else '')
 
-        if image_hdu < 0 or (weight_hdu is not None and weight_hdu < 0) or (
-                psf_hdu is not None and psf_hdu < 0):
+        # image_hdu and weight_hdu are the older spelling of an index selector
+        image = _one_selector(image, image_hdu, 'image')
+        weight = _one_selector(weight, weight_hdu, 'weight')
+
+        if psf_hdu is not None and psf_hdu < 0:
             raise ValueError('HDU indices start at 0')
 
-        self.image_name = image_name
-        self.psf_name = psf_name
-        self.weight_name = weight_name
-        self.wcs_name = wcs_name
+        self.image = _checked_selector(image, 'image')
+        self.weight = _checked_selector(weight, 'weight')
+        self.wcs = wcs
 
         self.gain = self._from_keyword(gain, gain_keyword, 0., 'gain')
         self.saturation = self._from_keyword(saturation, saturation_keyword, 0.)
@@ -314,17 +323,13 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
             self.is_background_constant = False
             self.constant_background_value = -1
 
-        self.image_hdu = image_hdu
-
-        if psf_hdu is None:
-            self.psf_hdu = image_hdu
-        else:
+        if psf_hdu is not None:
             self.psf_hdu = psf_hdu
-
-        if weight_hdu is None:
-            self.weight_hdu = image_hdu
+        elif isinstance(self.image, int):
+            # Historically psf_hdu defaulted to image_hdu
+            self.psf_hdu = self.image
         else:
-            self.weight_hdu = weight_hdu
+            self.psf_hdu = 0
 
         self.psf_renormalize = psf_renormalize
 
@@ -353,11 +358,17 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
             'WEIGHT_FILENAME': self.weight_file
         }
 
+        # FITS-specific parts for backwards-compatibility; fill the rest of the
+        # meta dict with keywords read from the selected FITS HDU, values
+        # converted to strings.
         if self._image_format == 'fits':
-            extra.update(FitsFile(self.file).get_headers(self.image_hdu))
+            fits_file = FitsFile(self.file)
+            hdu_idx = _fits_hdu_of(fits_file, self.image)
+            extra.update(fits_file.get_headers(hdu_idx))
             return extra
 
-        meta = cpp.ImageFile(self.file).get_metadata(self.image_name or self.image_hdu)
+        meta = cpp.ImageFile(self.file).get_metadata(
+            self.image if self.image is not None else 0)
         return Metadata(meta, extra)
 
     def __str__(self) -> str:
@@ -367,9 +378,9 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         str
             Human readable representation for the object
         """
-        return (f'Image {self.id}: {self.file} / {self.image_hdu}, '
+        return (f'Image {self.id}: {self.file} / {self.image}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
-                f'Weight: {self.weight_file} / {self.weight_hdu}')
+                f'Weight: {self.weight_file} / {self.weight}')
 
     def _from_keyword(self, given: float | None, keyword: str, default: float,
                       warn_missing: str | None = None) -> float:
@@ -416,11 +427,12 @@ class DataCubeSlice(MeasurementImage):
                  flux_scale: float | None = None, flux_scale_keyword: str = 'FLXSCALE',
                  weight_type: WeightType = 'none', weight_absolute: bool = False,
                  weight_scaling: float = 1., weight_threshold: float | None = None,
-                 constant_background: float | None = None, image_hdu: int = 0,
-                 psf_hdu: int | None = None, weight_hdu: int | None = None,
-                 psf_renormalize: bool = True, image_name: str = '',
-                 psf_name: str = '', weight_name: str = '', wcs_name: str = '',
+                 constant_background: float | None = None,
+                 image: ImageSelector = None, weight: ImageSelector = None,
+                 wcs: str = '', psf_hdu: int | None = None,
+                 psf_renormalize: bool = True,
                  image_layer: int = 0, weight_layer: int = 0,
+                 image_hdu: int | None = None, weight_hdu: int | None = None,
                  *,
                  fits_file: str | cpp.ImageFile | None = None) -> None:
         super().__init__(
@@ -430,10 +442,10 @@ class DataCubeSlice(MeasurementImage):
             flux_scale=flux_scale, flux_scale_keyword=flux_scale_keyword,
             weight_type=weight_type, weight_absolute=weight_absolute,
             weight_scaling=weight_scaling, weight_threshold=weight_threshold,
-            constant_background=constant_background, image_hdu=image_hdu,
-            psf_hdu=psf_hdu, weight_hdu=weight_hdu,
-            psf_renormalize=psf_renormalize, image_name=image_name,
-            psf_name=psf_name, weight_name=weight_name, wcs_name=wcs_name,
+            constant_background=constant_background,
+            image=image, weight=weight, wcs=wcs, psf_hdu=psf_hdu,
+            psf_renormalize=psf_renormalize,
+            image_hdu=image_hdu, weight_hdu=weight_hdu,
             fits_file=fits_file
         )
 
@@ -448,8 +460,8 @@ class DataCubeSlice(MeasurementImage):
         str
             Human readable representation for the object
         """
-        image = self.image_name or self.image_hdu
-        weight = self.weight_name or self.weight_hdu
+        image = self.image
+        weight = self.weight
         return (f'DataCubeSlice {self.id}: {self.file} / {image} / {self.image_layer}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
                 f'Weight: {self.weight_file} / {weight} / {self.weight_layer}')
@@ -756,7 +768,7 @@ class ByKeyword:
         result: defaultdict[str, list[MeasurementImage]] = defaultdict(list)
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError(f'The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
+                raise KeyError(f'The image {im.file}[{im.image}] does not contain the key {self.__key}')
 
             # Ensure group names are strings
             result[str(im.meta[self.__key])].append(im)
@@ -802,11 +814,11 @@ class ByPattern:
 
         for im in images:
             if self.__key not in im.meta:
-                raise KeyError('The image {im.file}[{im.image_hdu}] does not contain the key {self.__key}')
+                raise KeyError('The image {im.file}[{im.image}] does not contain the key {self.__key}')
 
             value = im.meta[self.__key]
             if (m := re.match(self.__pattern, str(value))) is None:
-                raise ValueError(f'The image {im.file}[{im.image_hdu}] has {self.__key} = {value!r}, '
+                raise ValueError(f'The image {im.file}[{im.image}] has {self.__key} = {value!r}, '
                                  f'which does not match the pattern {self.__pattern!r}')
             try:
                 group = m.group(1)
@@ -979,6 +991,67 @@ class MeasurementGroup:
         string = StringIO()
         self.print(show_images=True, file=string)
         return string.getvalue()
+
+
+ImageSelector: TypeAlias = int | str | None
+"""
+Which image within a file to use: an index, a name, or None for the only one
+
+A name is whatever the format calls one: an ASDF tree path, a FITS EXTNAME.
+"""
+
+
+def _one_selector(selector: ImageSelector, hdu: int | None,
+                  what: str) -> ImageSelector:
+    """
+    Reconcile a selector with the older `<what>_hdu` spelling of an index
+
+    Raises
+    ------
+    TypeError
+        If both were given.
+    """
+
+    if hdu is None:
+        return selector
+
+    if selector is not None:
+        raise TypeError(f'pass either {what} or {what}_hdu, not both')
+
+    return hdu
+
+
+def _checked_selector(selector: ImageSelector, what: str) -> ImageSelector:
+    """Reject a selector that is neither an index, a name, nor None"""
+
+    if selector is None or isinstance(selector, str):
+        return selector
+
+    if isinstance(selector, bool) or not isinstance(selector, int):
+        raise TypeError(f'{what} must be an int, a str, or None, not '
+                        f'{type(selector).__name__}')
+
+    if selector < 0:
+        raise ValueError(f'{what} index starts at 0')
+
+    return selector
+
+
+def _fits_hdu_of(fits_file: FitsFile, selector: ImageSelector) -> int:
+    """Return the HDU index that a selector names in a FITS file"""
+
+    if selector is None:
+        return 0
+
+    if isinstance(selector, int):
+        return selector
+
+    names = list(fits_file.image_names)
+    if selector not in names:
+        raise KeyError(f'{fits_file.filename} has no image named {selector!r}; '
+                       f'it has {names}')
+
+    return fits_file.hdu_list[names.index(selector)]
 
 
 def _filename_of(image_file: str | cpp.ImageFile) -> str:

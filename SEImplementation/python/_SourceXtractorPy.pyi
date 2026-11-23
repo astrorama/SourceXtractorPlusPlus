@@ -120,13 +120,10 @@ class MeasurementImage(Id):
     weight_threshold: float
     is_background_constant: bool
     constant_background_value: float
-    image_hdu: int
+    image: int | str | None
+    weight: int | str | None
     psf_hdu: int
-    weight_hdu: int
-    image_name: str
-    psf_name: str
-    weight_name: str
-    wcs_name: str
+    wcs: str
     is_data_cube: bool
     image_layer: int
     weight_layer: int

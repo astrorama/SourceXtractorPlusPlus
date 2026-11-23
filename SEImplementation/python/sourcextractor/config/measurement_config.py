@@ -152,8 +152,8 @@ class MeasurementConfig:
                  weight_hdu_list, strict=True)
         for hdu, psf_file, psf_hdu, weight_file, weight_hdu in it:
             image_list.append(MeasurementImage(image_file, psf_file, weight_file,
-                                               image_hdu=hdu, psf_hdu=psf_hdu,
-                                               weight_hdu=weight_hdu,
+                                               image=hdu, psf_hdu=psf_hdu,
+                                               weight=weight_hdu,
                                                **kwargs))
         for img in image_list:
             self._measurement_images[img.id] = img
@@ -204,129 +204,6 @@ class MeasurementConfig:
             return ImageGroup(images=image_list)
         else:
             return self.load_fits_image(images, psfs, weights, **kwargs)
-
-    # TODO: better typing for kwargs passed through to MeasurementImage
-    def load_asdf_image(self, image: str, psf: str | None = None,
-                        weight: str | cpp.ImageFile | None = None, *,
-                        image_name: str = '', weight_name: str = '',
-                        wcs_name: str = '', **kwargs: Any) -> ImageGroup:
-        """Creates an image group holding the one image of an ASDF file.
-
-        Unlike a multi-extension FITS file, whose image HDUs are conventionally
-        alternative frames of the same thing, an ASDF tree routinely bundles
-        ancillary arrays beside the science one, e.g. error, weight, context,
-        variance planes, and nothing in the file says which is the image.  So
-        one image is loaded, and `image_name` has to say which unless the file
-        holds exactly one candidate.
-
-        Parameters
-        ----------
-        image : str
-            The filename of the ASDF file containing the image
-        psf : str
-            A PSF file. ASDF PSFs are not supported, so this is a FITS image or
-            a PSFEx model as for a FITS image.
-        weight : str or ImageFile
-            A file containing the pixel weights, of any supported format
-        image_name : str
-            Tree path of the ndarray to use as the image, e.g. ``/roman/data``
-        weight_name : str
-            Tree path of the ndarray to use as the weights
-        wcs_name : str
-            Tree path of the GWCS object to use
-
-        Returns
-        -------
-        ImageGroup
-            A group holding the single image
-
-        See Also
-        --------
-        load_image : chooses a loader by the file's format
-        """
-
-        measurement_image = MeasurementImage(
-            image, psf, weight, image_name=image_name,
-            weight_name=weight_name, wcs_name=wcs_name, **kwargs)
-        self._measurement_images[measurement_image.id] = measurement_image
-        return ImageGroup(images=[measurement_image])
-
-    # TODO: better typing for kwargs passed through to MeasurementImage
-    def load_asdf_images(self, images: str | list[str],
-                         psfs: list[str] | None = None,
-                         weights: list[str] | None = None, *,
-                         image_name: str = '', image_names: list[str] | None = None,
-                         weight_name: str = '', weight_names: list[str] | None = None,
-                         wcs_name: str = '', wcs_names: list[str] | None = None,
-                         **kwargs: Any) -> ImageGroup:
-        """Creates an image group for the given ASDF files, one image each.
-
-        Each name selector comes in two forms: the singular applies to every
-        file, which is what a set of files from one instrument normally wants,
-        and the plural matches the files in order. They are mutually exclusive.
-
-        Parameters
-        ----------
-        images : list of str
-            The ASDF files, one image taken from each. Can also be a single
-            string, in which case this acts like `load_asdf_image`.
-        psfs : list of str
-            PSF files, one per image, or None
-        weights : list of str
-            Weight files, one per image, or None
-        image_name : str
-            Tree path of the image ndarray, the same in every file
-        image_names : list of str
-            Tree path of the image ndarray in each file, in order
-        weight_name, weight_names : str, list of str
-            As above, for the weights
-        wcs_name, wcs_names : str, list of str
-            As above, for the coordinate system
-
-        Returns
-        -------
-        ImageGroup
-            A group holding one image per file
-
-        Raises
-        ------
-        ValueError
-            In case of mismatched lists, or if both forms of a selector
-            were given
-
-        See Also
-        --------
-        load_images : chooses a loader by the files' formats
-        """
-
-        # One code path: a single filename is just a list of one, so psfs and
-        # weights are lists in every case
-        if not isinstance(images, list):
-            images = [images]
-
-        if len(images) == 0:
-            raise ValueError("An empty list passed to load_asdf_images")
-
-        count = len(images)
-        psf_list = _one_per_image(psfs, count, "psf")
-        weight_list = _one_per_image(weights, count, "weight")
-        image_name_list = _name_per_image(image_name, image_names, count, "image_name")
-        weight_name_list = _name_per_image(weight_name, weight_names, count, "weight_name")
-        wcs_name_list = _name_per_image(wcs_name, wcs_names, count, "wcs_name")
-
-        image_list: list[MeasurementImage] = []
-        it = zip(images, psf_list, weight_list, image_name_list, weight_name_list,
-                 wcs_name_list, strict=True)
-        for f, p, w, i_name, w_name, c_name in it:
-            group = self.load_asdf_image(f, p, w, image_name=i_name,
-                                         weight_name=w_name, wcs_name=c_name,
-                                         **kwargs)
-            image_list += group.images()
-
-        for img in image_list:
-            self._measurement_images[img.id] = img
-
-        return ImageGroup(images=image_list)
 
     # TODO: better typing for kwargs passed through to DataCubeSlice
     def load_fits_data_cube(self, image: str, psf: str | list[str] | None = None,
@@ -421,124 +298,13 @@ class MeasurementConfig:
                 psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list, image_layer_list,
                 weight_layer_list):
             image_list.append(DataCubeSlice(image_cube_file, psf_file, weight_file,
-                                            image_hdu=cube_hdu, psf_hdu=psf_hdu,
-                                            weight_hdu=weight_hdu,
+                                            image=cube_hdu, psf_hdu=psf_hdu,
+                                            weight=weight_hdu,
                                             image_layer=image_layer, weight_layer=weight_layer,
                                             **kwargs))
 
         for img in image_list:
             self._measurement_images[img.id] = img
-        return ImageGroup(images=image_list)
-
-    # TODO: better typing for kwargs passed through to DataCubeSlice
-    def load_asdf_data_cube(self, image: str,
-                            psf: str | list[str] | None = None,
-                            weight: str | list[str] | None = None, *,
-                            image_name: str = '', weight_name: str = '',
-                            wcs_name: str = '', **kwargs: Any) -> ImageGroup:
-        """Creates an image group with the layers of an ASDF data cube.
-
-        Each layer becomes a `DataCubeSlice` measured separately.
-
-        The weights may be a cube of their own, in which case it must have as
-        many layers as the image and they are matched in order; a single
-        two-dimensional array, which every layer then shares; or one file per
-        layer.
-
-        Parameters
-        ----------
-        image : str
-            The filename of the ASDF file containing the image cube
-        psf : str or list of str
-            A PSF file, or one per layer. ASDF PSFs are not yet supported, so
-            these are FITS images or PSFEx models.
-        weight : str or list of str
-            A file containing the weights, or one per layer
-        image_name : str
-            Tree path of the ndarray holding the cube, e.g. ``/roman/data``
-        weight_name : str
-            Tree path of the ndarray holding the weights
-        wcs_name : str
-            Tree path of the GWCS object to use
-
-        Returns
-        -------
-        ImageGroup
-            A group holding one image per layer
-
-        Raises
-        ------
-        ValueError
-            If the named array is not a data cube, or if a list or weight cube
-            does not match its number of layers
-        """
-
-        image_file = cpp.ImageFile(image)
-        dims = image_file.get_dimensions(image_name or 0)
-
-        if not dims.is_cube:
-            raise ValueError("Not a data cube!")
-
-        cube_size = dims.depth
-        psf_file_list: Iterable[str] | Iterable[None]
-        psf_hdu_list: Iterable[int]
-        weight_file_list: Iterable[str] | Iterable[None]
-        weight_layer_list: Iterable[int]
-        # TODO: A lot of the logic here is almost the same as the FITS version
-        # of this function with a few exceptions; worth cleaning up later.
-
-        # handles the PSFs, which stay FITS even for an ASDF image
-        if isinstance(psf, list):
-            if len(psf) != cube_size:
-                raise ValueError("The number of psf files must match the "
-                                 "number of images!")
-            psf_file_list = psf
-            psf_hdu_list = repeat(0, cube_size)
-        elif psf is None:
-            psf_file_list = repeat(None, cube_size)
-            psf_hdu_list = repeat(0, cube_size)
-        else:
-            psf_file_list = repeat(psf, cube_size)
-            psf_hdu_list = range(cube_size)
-
-        # handles the weight maps
-        if isinstance(weight, list):
-            if len(weight) != cube_size:
-                raise ValueError("The number of weight files must match the "
-                                 "number of images!")
-            weight_file_list = weight
-            weight_layer_list = repeat(0, cube_size)
-        elif weight is None:
-            weight_file_list = repeat(None, cube_size)
-            weight_layer_list = repeat(0, cube_size)
-        else:
-            weight_dims = cpp.ImageFile(weight).get_dimensions(weight_name or 0)
-            weight_file_list = repeat(weight, cube_size)
-
-            if weight_dims.is_cube:
-                if weight_dims.depth != cube_size:
-                    raise ValueError(
-                        f"The weight map cube has {weight_dims.depth} layers "
-                        f"but the image cube has {cube_size}")
-                weight_layer_list = range(cube_size)
-            else:
-                # a plain two-dimensional array of weights, shared by
-                # every layer
-                weight_layer_list = repeat(0, cube_size)
-
-        image_list = []
-        it = zip(range(cube_size), psf_file_list, psf_hdu_list,
-                 weight_file_list, weight_layer_list, strict=True)
-        for image_layer, psf_file, psf_hdu, weight_file, weight_layer in it:
-            image_list.append(DataCubeSlice(
-                image_file, psf_file, weight_file,
-                image_layer=image_layer, weight_layer=weight_layer,
-                psf_hdu=psf_hdu, image_name=image_name,
-                weight_name=weight_name, wcs_name=wcs_name, **kwargs))
-
-        for img in image_list:
-            self._measurement_images[img.id] = img
-
         return ImageGroup(images=image_list)
 
     def print_measurement_images(self, file: IO[str] | None = None) -> None:
@@ -713,44 +479,6 @@ class MeasurementConfig:
 
 global_measurement_config = MeasurementConfig()
 """Single `MeasurementConfig` instance used by the global functions"""
-
-
-def _name_per_image(name: str, names: list[str] | None, count: int,
-                    what: str) -> list[str]:
-    """
-    Normalize a name selector given either once for all images or once each
-
-    The singular form applies to every image, which is the common case when a
-    set of files shares one internal layout; the plural form matches them in
-    order. They are mutually exclusive.
-
-    Parameters
-    ----------
-    name : str
-        The singular form, e.g. the ``image_name`` argument.
-    names : list of str, or None
-        The plural form, e.g. the ``image_names`` argument.
-    count : int
-        How many images they have to match.
-    what : str
-        Named in the error messages, e.g. 'image_name'.
-
-    Raises
-    ------
-    ValueError
-        If both forms were given, or if the plural one does not match.
-    """
-
-    if names is None:
-        return [name] * count
-
-    if name:
-        raise ValueError(f"Pass either {what} or {what}s, not both")
-
-    if not isinstance(names, list) or len(names) != count:
-        raise ValueError(f"The number of image files and {what}s must match!")
-
-    return list(names)
 
 
 @overload

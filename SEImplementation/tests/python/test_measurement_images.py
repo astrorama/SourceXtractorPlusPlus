@@ -89,11 +89,11 @@ class TestMeasurementImage:
         # weight_absolute expects a bool, strictly
         with raises(TypeError, match='Expecting bool for weight_absolute, got int'):
             im.weight_absolute = 3
-        # image_hdu expects an int, strict
-        with raises(TypeError, match='Expecting int for image_hdu, got bool'):
-            im.image_hdu = False
-        with raises(TypeError, match='Expecting int for image_hdu, got float'):
-            im.image_hdu = 42.0
+        # weight_layer expects an int, strict
+        with raises(TypeError, match='Expecting int for weight_layer, got bool'):
+            im.weight_layer = False
+        with raises(TypeError, match='Expecting int for weight_layer, got float'):
+            im.weight_layer = 42.0
         # gain expects a float, but accepts an int
         im.gain = 42
         assert isinstance(im.gain, float)
@@ -103,7 +103,7 @@ class TestMeasurementImage:
         assert MeasurementImage(fits_with_primary).gain == 42.0
 
     def test_gain_from_an_asdf_tree_path(self, asdf_metadata_file):
-        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+        image = MeasurementImage(asdf_metadata_file, image='/data',
                                  gain_keyword='/meta/gain')
         assert image.gain == 2.5
 
@@ -125,18 +125,33 @@ class TestMeasurementImage:
         assert MeasurementImage(fits_file).file == fits_with_primary
 
     def test_accepts_an_asdf_file(self, asdf_metadata_file):
-        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+        image = MeasurementImage(asdf_metadata_file, image='/data',
                                  gain_keyword='/meta/gain')
         assert image.file == asdf_metadata_file
-        assert image.image_name == '/data'
+        assert image.image == '/data'
 
     def test_requires_an_image_file(self):
         with raises(TypeError, match='requires an image file'):
             MeasurementImage()
 
-    def test_rejects_negative_hdus(self, fits_with_primary):
-        with raises(ValueError, match='HDU indices start at 0'):
-            MeasurementImage(fits_with_primary, image_hdu=-1)
+    def test_rejects_a_negative_selector(self, fits_with_primary):
+        with raises(ValueError, match='image index starts at 0'):
+            MeasurementImage(fits_with_primary, image=-1)
+
+    def test_image_hdu_is_the_older_spelling(self, fits_with_primary):
+        assert MeasurementImage(fits_with_primary, image_hdu=0).image == 0
+
+    def test_image_and_image_hdu_are_mutually_exclusive(self, fits_with_primary):
+        with raises(TypeError, match='either image or image_hdu'):
+            MeasurementImage(fits_with_primary, image=0, image_hdu=0)
+
+    def test_a_selector_may_be_a_name(self, fits_multiple_hdu):
+        img = MeasurementImage(fits_multiple_hdu, image='IMAGE2', gain=1.)
+        assert img.image == 'IMAGE2'
+
+    def test_image_selector_type_check(self, fits_with_primary):
+        with raises(TypeError, match='image must be an int, a str, or None'):
+            MeasurementImage(fits_with_primary, image=1.5)
 
     def test_fits_meta_is_a_stringified_dict(self, fits_with_primary):
         meta = MeasurementImage(fits_with_primary).meta
@@ -150,7 +165,7 @@ class TestMeasurementImage:
         assert meta['WEIGHT_FILENAME'] == ''
 
     def test_asdf_meta_is_a_metadata_instance(self, asdf_metadata_file):
-        meta = MeasurementImage(asdf_metadata_file, image_name='/data',
+        meta = MeasurementImage(asdf_metadata_file, image='/data',
                                 gain_keyword='/meta/gain').meta
         assert isinstance(meta, mi.Metadata)
         assert meta['/meta/gain'] == 2.5
@@ -182,7 +197,7 @@ class TestByKeyword:
         A non-FITS metadata value keeps its own type, but a group is addressed
         by name, so the name has to be a str
         """
-        image = MeasurementImage(asdf_metadata_file, image_name='/data',
+        image = MeasurementImage(asdf_metadata_file, image='/data',
                                  gain_keyword='/meta/gain')
         assert image.meta['/meta/gain'] == 2.5
         assert not isinstance(image.meta['/meta/gain'], str)
