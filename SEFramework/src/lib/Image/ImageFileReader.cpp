@@ -56,26 +56,6 @@ static std::map<std::string, ImageFileReader::ImageFileType>& getExtensionMap() 
  * an ASDF tree path or a FITS EXTNAME.  Shared by the file[image] suffix and by
  * setImageName(), so the two always agree on what a selector means.
  */
-static void parseImageSelector(const std::string& selector,
-                               std::optional<std::string>& image_path, int& image_index) {
-  try {
-    size_t idx;
-    int parsed = std::stoi(selector, &idx);
-
-    if (idx == selector.size()) {
-      image_path = std::nullopt;
-      image_index = parsed;
-      return;
-    }
-  } catch (...) {
-    // Not an integer, treat as a path
-  }
-
-  image_path = selector;
-  image_index = -1;
-}
-
-
 ImageFileReader::ImageFileReader(const std::string& filename) {
   std::string base_filename = filename;
   std::optional<std::string> selector;
@@ -89,27 +69,26 @@ ImageFileReader::ImageFileReader(const std::string& filename) {
   }
 
   m_filename = base_filename;
-  m_image_path = std::nullopt;
-  m_image_index = -1;
+
 
   if (selector) {
-    parseImageSelector(*selector, m_image_path, m_image_index);
+    m_selector = ImageSelector::parse(*selector);
   }
 }
 
 
 ImageFileReader::ImageFileReader(const std::string& filename, const std::string& image_path)
-    : m_filename(filename), m_image_path(image_path), m_image_index(-1) {}
+    : m_filename(filename), m_selector(image_path) {}
 
 ImageFileReader::ImageFileReader(const std::string& filename, int image_index)
-    : m_filename(filename), m_image_index(image_index) {}
+    : m_filename(filename), m_selector(image_index) {}
 
 
 std::shared_ptr<ImageSource> ImageFileReader::get(ImageTile::ImageType image_type) {
-  if (m_image_index >= 0) {
-    return get(m_image_index, image_type);
-  } else if (m_image_path) {
-    return get(*m_image_path, image_type);
+  if (m_selector.isIndex()) {
+    return get(m_selector.getIndex(), image_type);
+  } else if (m_selector.isName()) {
+    return get(m_selector.getName(), image_type);
   }
 
   return get(0, image_type);
@@ -208,7 +187,7 @@ void ImageFileReader::setImageName(const std::string& image_name) {
     return;
   }
 
-  parseImageSelector(image_name, m_image_path, m_image_index);
+  m_selector = ImageSelector::parse(image_name);
 }
 
 

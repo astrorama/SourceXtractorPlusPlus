@@ -26,6 +26,7 @@
 #include <istream>
 
 #include "SEFramework/Image/BufferedImage.h"
+#include "SEFramework/Image/ImageSelector.h"
 #include "SEFramework/Image/ImageSource.h"
 #include "SEFramework/Image/ImageTile.h"
 
@@ -65,7 +66,7 @@ public:
   virtual ~ImageFileReader() = default;
 
   /**
-   * Equivalent to calling get(m_image_index/m_image_path, image_type)
+   * Equivalent to calling get() with whatever m_selector names
    */
   std::shared_ptr<ImageSource> get(ImageTile::ImageType image_type = ImageTile::AutoType);
 
@@ -317,12 +318,11 @@ protected:
    * selection).
    */
   bool hasImageSelection() const {
-    return m_image_index >= 0 || m_image_path.has_value();
+    return m_selector.isSpecified();
   }
 
   std::string m_filename;
-  std::optional<std::string> m_image_path;
-  int m_image_index;
+  ImageSelector m_selector;
   std::optional<std::string> m_wcs_name;
   std::string m_format;
 };
