@@ -1,0 +1,219 @@
+name: Source build
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+permissions:
+  contents: read
+
+env:
+  # Set a tag, branch, or commit here to override Alexandria's Elements version on this branch.
+  ELEMENTS_REF: ''
+
+jobs:
+  build-and-test:
+    name: Build and test SourceXtractor++
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    env:
+      CMAKEFLAGS: -DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF
+    steps:
+      - name: Install Elements build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential ca-certificates cmake git \
+            libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev \
+            libboost-system-dev libboost-test-dev libboost-thread-dev liblog4cpp5-dev \
+            python3-dev python3-pytest python3-setuptools
+
+      - name: Check out SourceXtractor++
+        uses: actions/checkout@v6
+        with:
+          path: SourceXtractorPlusPlus
+          persist-credentials: false
+
+      - name: Read the Alexandria version from SourceXtractor++
+        id: alexandria
+        working-directory: SourceXtractorPlusPlus
+        run: python3 .github/scripts/dependency_version.py CMakeLists.txt Alexandria >> "$GITHUB_OUTPUT"
+
+      - name: Check out Alexandria ${{ steps.alexandria.outputs.version }}
+        uses: actions/checkout@v6
+        with:
+          repository: astrorama/Alexandria
+          ref: refs/tags/${{ steps.alexandria.outputs.version }}
+          path: Alexandria
+          persist-credentials: false
+
+      - name: Read the Elements version from Alexandria
+        id: elements
+        working-directory: SourceXtractorPlusPlus
+        run: python3 .github/scripts/dependency_version.py ../Alexandria/CMakeLists.txt Elements >> "$GITHUB_OUTPUT"
+
+      - name: Check out Elements ${{ env.ELEMENTS_REF || steps.elements.outputs.version }}
+        uses: actions/checkout@v6
+        with:
+          repository: astrorama/Elements
+          ref: ${{ env.ELEMENTS_REF || format('refs/tags/{0}', steps.elements.outputs.version) }}
+          path: Elements
+          persist-credentials: false
+
+      - name: Build and install Elements
+        working-directory: Elements
+        run: make -j2 VERBOSE=1 install
+
+      - name: Verify installed Elements makefile
+        working-directory: Elements
+        run: |
+          cmp make/Elements.mk InstallArea/*/make/Elements.mk
+          elements_cmake=$(realpath InstallArea/*/cmake)
+          echo "CMAKE_PREFIX_PATH=$elements_cmake" >> "$GITHUB_ENV"
+          echo "CMAKE_PROJECT_PATH=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
+
+      - name: Install Alexandria build dependencies
+        run: |
+          apt-get install -y --no-install-recommends \
+            libboost-iostreams-dev libboost-numpy-dev libboost-python-dev libboost-serialization-dev \
+            libccfits-dev libcfitsio-dev python3-numpy
+
+      - name: Apply the branch's Elements override to the Alexandria checkout
+        if: env.ELEMENTS_REF != ''
+        working-directory: SourceXtractorPlusPlus
+        run: |
+          python3 .github/scripts/set_alexandria_elements_version.py ../Alexandria/CMakeLists.txt \
+            ../Elements/InstallArea/*/manifest.xml
+
+      - name: Build and install Alexandria
+        working-directory: Alexandria
+        run: make -j2 VERBOSE=1 install
+
+      - name: Verify Alexandria installation
+        working-directory: Alexandria
+        run: |
+          test -s InstallArea/*/AlexandriaConfig.cmake
+          test -s InstallArea/*/lib/libAlexandriaKernel.so
+
+      - name: Install SourceXtractor++ build and test dependencies
+        working-directory: SourceXtractorPlusPlus
+        run: |
+          apt-get install -y --no-install-recommends \
+            curl unzip libblas-dev liblapack-dev libboost-timer-dev libfftw3-dev libgsl-dev \
+            libgmock-dev libgtest-dev libncurses-dev libreadline-dev wcslib-dev python3-astropy
+          sh .github/scripts/install-levmar-onnxruntime.sh /usr/local
+          ldconfig
+
+      - name: Build SourceXtractor++
+        working-directory: SourceXtractorPlusPlus
+        # make tests already writes CTest's native JUnit report. Skip the optional Elements XSL conversion.
+        run: |
+          make -j2 CMAKEFLAGS="$CMAKEFLAGS -DTEST_JUNIT_REPORT=OFF \
+            -DCMAKE_REQUIRE_FIND_PACKAGE_Levmar=ON -DCMAKE_REQUIRE_FIND_PACKAGE_GSL=ON \
+            -DCMAKE_REQUIRE_FIND_PACKAGE_OnnxRuntime=ON -DCMAKE_REQUIRE_FIND_PACKAGE_GMock=ON"
+
+      - name: Run SourceXtractor++ tests
+        id: tests
+        working-directory: SourceXtractorPlusPlus
+        run: |
+          make -j2 tests ARGS=--output-on-failure
+          python3 .github/scripts/check_ctest_report.py build/Testing/JUnitTestReport.xml
+
+      - name: Upload test results
+        if: always() && steps.tests.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sourcextractor-test-results
+          path: SourceXtractorPlusPlus/build/Testing/
+
+      - name: Install SourceXtractor++ for Litmus
+        working-directory: SourceXtractorPlusPlus
+        run: make -j2 VERBOSE=1 install
+
+      - name: Install Litmus dependencies
+        run: |
+          apt-get install -y --no-install-recommends git-lfs zstd python3-venv \
+            python3-matplotlib python3-scipy python3-pytest-astropy
+
+      - name: Check out Litmus without downloading LFS data
+        id: litmus_data
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: '1'
+        run: |
+          git clone --no-checkout --depth=1 --no-single-branch \
+            https://github.com/astrorama/SourceXtractor-litmus.git SourceXtractor-litmus
+          cd SourceXtractor-litmus
+          ref=refs/remotes/origin/HEAD
+          for branch in "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" "${GITHUB_BASE_REF:-$GITHUB_REF_NAME}"; do
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+              ref="refs/remotes/origin/$branch"
+              break
+            fi
+          done
+          echo "Using Litmus $ref"
+          git lfs install --local
+          git checkout --detach "$ref"
+          git lfs ls-files --long HEAD | cut -d ' ' -f 1 | LC_ALL=C sort -u > .git/litmus-lfs-ids
+          digest=$(sha256sum < .git/litmus-lfs-ids)
+          echo "digest=${digest%% *}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached Litmus LFS objects
+        id: litmus_cache
+        uses: actions/cache/restore@v6
+        with:
+          path: SourceXtractor-litmus/.git/lfs/objects
+          key: litmus-lfs-v2-${{ steps.litmus_data.outputs.digest }}
+          restore-keys: |
+            litmus-lfs-v2-
+            litmus-lfs-v1-
+
+      - name: Populate and verify Litmus test data
+        working-directory: SourceXtractor-litmus
+        run: |
+          git lfs pull
+          git lfs fsck --objects HEAD
+
+      - name: Remove superseded objects from the runner's Litmus cache
+        if: steps.litmus_cache.outputs.cache-hit != 'true'
+        working-directory: SourceXtractor-litmus
+        shell: python3 {0}
+        run: |
+          from pathlib import Path
+
+          current_ids = set(Path(".git/litmus-lfs-ids").read_text().splitlines())
+          for obj in Path(".git/lfs/objects").glob("*/*/*"):
+              if obj.name not in current_ids:
+                  obj.unlink()
+
+      - name: Save Litmus LFS objects before running tests
+        if: steps.litmus_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: SourceXtractor-litmus/.git/lfs/objects
+          key: ${{ steps.litmus_cache.outputs.cache-primary-key }}
+
+      - name: Install Litmus Python dependencies
+        working-directory: SourceXtractor-litmus
+        run: |
+          python3 -m venv --system-site-packages .venv
+          .venv/bin/python -m pip install -r requirements.txt
+
+      - name: Run Litmus integration tests
+        id: litmus
+        working-directory: SourceXtractor-litmus
+        run: ../SourceXtractorPlusPlus/.github/workflows/run-litmus.sh
+
+      - name: Upload Litmus reports and logs
+        if: always() && steps.litmus.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sourcextractor-litmus-results
+          path: |
+            litmus-results/report.html
+            litmus-results/junit.xml
+            litmus-results/**/*.pdf
+            litmus-results/**/*.log
+          retention-days: 5

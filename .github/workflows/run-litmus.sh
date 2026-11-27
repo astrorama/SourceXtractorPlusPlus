@@ -1,65 +1,22 @@
-#!/bin/bash
-set -ex
+#!/bin/sh
+set -eu
 
-# The changes happened, or have been pulled into, this branch
-TARGET_BRANCH=${GITHUB_BASE_REF:-$GITHUB_REF}
-# In the case of pull requests, this is the origin branch
-ORIGIN_BRANCH=${GITHUB_HEAD_REF:-$GITHUB_REF}
+# Run from the Litmus checkout, using the same installation for pytest and its child processes.
+install_dir=$(realpath "$GITHUB_WORKSPACE"/SourceXtractorPlusPlus/InstallArea/*)
+export LITMUS_BINARY="$install_dir/bin/sourcextractor++"
+test -x "$LITMUS_BINARY"
+results="$GITHUB_WORKSPACE/litmus-results"
+mkdir -p "$results"
 
-export GIT_CLONE_PROTECTION_ACTIVE=false
+# Litmus reads this section itself and expands environment variables in the paths.
+sed -i -e 's|^binary=.*|binary=${LITMUS_BINARY}|' \
+       -e 's|^output_area=.*|output_area=${GITHUB_WORKSPACE}/litmus-results|' \
+       -e 's|^pythonpath=.*|pythonpath=|' pytest.ini
+# Check images consume too much space on a hosted runner.
+sed -i 's/^check-image/#check-image/' sourcex.config
 
-# Platform-specific configuration
-source /etc/os-release
-
-PYTHON="python3"
-if [ "$ID" == "fedora" ] && [ "$VERSION_ID" -lt 30 ]; then
-  PYTHON="python"
-elif [ "$ID" == "centos" ] && [ "$VERSION_ID" -lt 8 ]; then
-  PYTHON="python"
-fi
-
-# Checkout the tests
-if ! [ -d /tmp/sourcextractor-litmus ]; then
-  GIT_LFS_SKIP_SMUDGE=1 git clone --depth=1 https://github.com/astrorama/SourceXtractor-litmus.git /tmp/sourcextractor-litmus
-fi
-cd /tmp/sourcextractor-litmus
-
-# Try to use a better set of tests by this order
-# 1: Those contained on a branch that matches the origin of the pull request (if it is a pull)
-# 2: Those contained on a branch that matches the destination of the pull request (or the name of the branch)
-# 3: The default branch for the tests (i.e. master)
-BRANCHES=("${ORIGIN_BRANCH}" "${TARGET_BRANCH}" "refs/heads/master")
-for b in ${BRANCHES[@]}; do
-  echo "Try $b"
-  git fetch --update-head-ok origin "$b:$b" && git checkout "$b" && break
-done
-
-git status
-git lfs pull
-
-# Install requirements
-if [ -f "requirements.txt" ]; then
-  ${PYTHON} -m pip install --user -r "requirements.txt"
-fi
-
-# Patch config file
-sed -i "s:binary=.*:binary=/usr/bin/sourcextractor++:" pytest.ini
-sed -i "s:output_area=.*:output_area=/tmp/sourcex/:" pytest.ini
-sed -i "s:pythonpath=.*:pythonpath=:" pytest.ini
-sed -i '/\[pytest\]/a filterwarnings=ignore::RuntimeWarning' pytest.ini
-
-cat pytest.ini
-
-# Disable check images, they take too much space
-sed -i "s:^check-image:#check-image:g" sourcex.config
-
-# Run
-if command -v pytest-3 &> /dev/null; then
-  PYTEST=pytest-3
-elif command -v py.test &> /dev/null; then
-  PYTEST=py.test
-else
-  PYTEST=pytest
-fi
-
-${PYTEST} -v -k "not gsl" --html=/tmp/sourcex/report.html
+# Include slow iterative Levmar tests. Other slow cases need a separate opt-in.
+exec python3 "$CMAKE_PREFIX_PATH/scripts/env.py" --xml "$install_dir/SourceXtractorPlusPlusEnvironment.xml" \
+  .venv/bin/python -m pytest -v --run-slow -k 'not gsl and not levmar_classic and (not slow or levmar_iterative)' \
+  -W ignore::RuntimeWarning \
+  --html="$results/report.html" --self-contained-html --junitxml="$results/junit.xml"
