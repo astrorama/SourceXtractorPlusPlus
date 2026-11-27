@@ -156,7 +156,8 @@ jobs:
           echo "Using Litmus $ref"
           git lfs install --local
           git checkout --detach "$ref"
-          digest=$(git lfs ls-files --long HEAD | cut -d ' ' -f 1 | LC_ALL=C sort -u | sha256sum)
+          git lfs ls-files --long HEAD | cut -d ' ' -f 1 | LC_ALL=C sort -u > .git/litmus-lfs-ids
+          digest=$(sha256sum < .git/litmus-lfs-ids)
           echo "digest=${digest%% *}" >> "$GITHUB_OUTPUT"
 
       - name: Restore cached Litmus LFS objects
@@ -164,14 +165,28 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: SourceXtractor-litmus/.git/lfs/objects
-          key: litmus-lfs-v1-${{ steps.litmus_data.outputs.digest }}
-          restore-keys: litmus-lfs-v1-
+          key: litmus-lfs-v2-${{ steps.litmus_data.outputs.digest }}
+          restore-keys: |
+            litmus-lfs-v2-
+            litmus-lfs-v1-
 
       - name: Populate and verify Litmus test data
         working-directory: SourceXtractor-litmus
         run: |
           git lfs pull
           git lfs fsck --objects HEAD
+
+      - name: Remove superseded objects from the runner's Litmus cache
+        if: steps.litmus_cache.outputs.cache-hit != 'true'
+        working-directory: SourceXtractor-litmus
+        shell: python3 {0}
+        run: |
+          from pathlib import Path
+
+          current_ids = set(Path(".git/litmus-lfs-ids").read_text().splitlines())
+          for obj in Path(".git/lfs/objects").glob("*/*/*"):
+              if obj.name not in current_ids:
+                  obj.unlink()
 
       - name: Save Litmus LFS objects before running tests
         if: steps.litmus_cache.outputs.cache-hit != 'true'
