@@ -7,6 +7,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Set a tag, branch, or commit here to override Alexandria's Elements version on this branch.
+  ELEMENTS_REF: ''
+
 jobs:
   elements:
     name: Elements
@@ -43,12 +47,11 @@ jobs:
         id: elements
         run: python3 .github/scripts/dependency_version.py Alexandria/CMakeLists.txt Elements >> "$GITHUB_OUTPUT"
 
-      # The optional ELEMENTS_REF Actions variable accepts a tag, branch, or commit.
-      - name: Check out Elements ${{ vars.ELEMENTS_REF || steps.elements.outputs.version }}
+      - name: Check out Elements ${{ env.ELEMENTS_REF || steps.elements.outputs.version }}
         uses: actions/checkout@v6
         with:
           repository: astrorama/Elements
-          ref: ${{ vars.ELEMENTS_REF || format('refs/tags/{0}', steps.elements.outputs.version) }}
+          ref: ${{ env.ELEMENTS_REF || format('refs/tags/{0}', steps.elements.outputs.version) }}
           path: Elements
           persist-credentials: false
 
