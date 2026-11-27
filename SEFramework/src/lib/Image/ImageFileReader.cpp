@@ -91,7 +91,8 @@ std::shared_ptr<ImageSource> ImageFileReader::get(ImageTile::ImageType image_typ
     return get(m_selector.getName(), image_type);
   }
 
-  return get(0, image_type);
+  // Nothing named an image, so use the file's first one
+  return at(0, image_type);
 }
 
 
@@ -112,7 +113,7 @@ void ImageFileReader::Iterator::advance() {
   }
 
   try {
-    m_current = m_reader->get(m_index, m_image_type);
+    m_current = m_reader->at(m_index, m_image_type);
   } catch (const std::exception& e) {
     // Running off the end of the file is how iteration terminates, so a failure
     // past the first image just ends it.  The first image is different: there is

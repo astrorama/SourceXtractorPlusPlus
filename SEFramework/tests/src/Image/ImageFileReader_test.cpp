@@ -254,7 +254,7 @@ BOOST_FIXTURE_TEST_CASE(iter_stops_at_first_non_image, ImageFileReaderFixture) {
 /// A file[image] suffix selects the one image it names, so iteration covers that
 /// alone rather than every image in the file
 BOOST_FIXTURE_TEST_CASE(iter_selected_by_index, ImageFileReaderFixture) {
-  auto reader = ImageFileReader::create(fits_path + "[0]");
+  auto reader = ImageFileReader::create(fits_path + "[1]");
 
   int image_count = 0;
   for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
@@ -267,10 +267,64 @@ BOOST_FIXTURE_TEST_CASE(iter_selected_by_index, ImageFileReaderFixture) {
 
 //-----------------------------------------------------------------------------
 
+/**
+ * For FITS an index is the HDU number, counting the primary HDU as 0
+ *
+ * multiple_hdu.fits holds [PRIMARY, COMPRESSED_IMAGE, TABLE, IMAGE2], so its
+ * images are at 1 and 3.
+ */
+BOOST_FIXTURE_TEST_CASE(index_is_the_hdu_number, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+
+  BOOST_CHECK(reader->get(1, ImageTile::FloatImage) != nullptr);
+  BOOST_CHECK(reader->get(3, ImageTile::FloatImage) != nullptr);
+
+  // the primary HDU of this file holds no image, and HDU 2 is a table
+  BOOST_CHECK_THROW(reader->get(0, ImageTile::FloatImage), Elements::Exception);
+  BOOST_CHECK_THROW(reader->get(2, ImageTile::FloatImage), Elements::Exception);
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * at() counts images, and stops where iteration stops
+ *
+ * It skips the primary HDU, and cannot reach IMAGE2: the run of images ends at
+ * the TABLE before it.  get(3) addresses that image directly.  The fact that
+ * SE++ stops iterating HDUs at the first non-image HDU is not claimed to be
+ * ideal; but it was the existing behavior before that behavior was
+ * encapuslated in the FitsReader::at implementation (previously it was
+ * repeated in several places as copy/pasted logic), and this test catpures
+ * that existing logic.
+ */
+BOOST_FIXTURE_TEST_CASE(at_counts_images, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+
+  BOOST_CHECK(reader->at(0, ImageTile::FloatImage) != nullptr);
+  BOOST_CHECK_THROW(reader->at(1, ImageTile::FloatImage), Elements::Exception);
+  BOOST_CHECK(reader->get(3, ImageTile::FloatImage) != nullptr);
+}
+
+//-----------------------------------------------------------------------------
+
+/**
+ * With nothing naming an image, the file's first image is used
+ *
+ * The primary HDU of multiple_hdu.fits holds no image, so a bare filename only
+ * opens if the first image is what an unselected read means.
+ */
+BOOST_FIXTURE_TEST_CASE(unselected_yields_the_first_image, ImageFileReaderFixture) {
+  auto reader = ImageFileReader::create(fits_path);
+
+  BOOST_CHECK(reader->get(ImageTile::FloatImage) != nullptr);
+}
+
+//-----------------------------------------------------------------------------
+
 /// setImageName() selects an image for a filename that does not name one itself
 BOOST_FIXTURE_TEST_CASE(set_image_name_selects, ImageFileReaderFixture) {
   auto reader = ImageFileReader::create(fits_path);
-  reader->setImageName("0");
+  reader->setImageName("1");
 
   int image_count = 0;
   for (const auto& img_source : reader->iter(ImageTile::FloatImage)) {
@@ -292,7 +346,7 @@ BOOST_FIXTURE_TEST_CASE(set_image_name_selects, ImageFileReaderFixture) {
  * would throw rather than yield the image the suffix named.
  */
 BOOST_FIXTURE_TEST_CASE(set_image_name_yields_to_suffix, ImageFileReaderFixture) {
-  auto reader = ImageFileReader::create(fits_path + "[0]");
+  auto reader = ImageFileReader::create(fits_path + "[1]");
   reader->setImageName("99");
 
   int image_count = 0;

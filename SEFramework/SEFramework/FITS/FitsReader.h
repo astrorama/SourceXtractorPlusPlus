@@ -56,6 +56,9 @@ public:
   std::shared_ptr<ImageSource> get(const std::string& image_path,
                                    ImageTile::ImageType image_type = ImageTile::AutoType) override;
 
+  std::shared_ptr<ImageSource> at(int image_index,
+                                  ImageTile::ImageType image_type = ImageTile::AutoType) override;
+
   std::shared_ptr<FitsImageSource> getHdu(int hdu_num,
                                           ImageTile::ImageType image_type = ImageTile::AutoType);
 

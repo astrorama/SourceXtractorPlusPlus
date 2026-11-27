@@ -70,10 +70,30 @@ public:
    */
   std::shared_ptr<ImageSource> get(ImageTile::ImageType image_type = ImageTile::AutoType);
 
+  /**
+   * Get one image by the format's own numeric address
+   *
+   * The meaning is the format's, as it is for get(const std::string&): a FITS
+   * index is the HDU number counting the primary HDU as 0, and raises for an
+   * HDU holding no image; an ASDF index is the array's position among the
+   * images.  at() is the one that indexes the images themselves.
+   */
   virtual std::shared_ptr<ImageSource> get(
     int image_index, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
   virtual std::shared_ptr<ImageSource> get(
     const std::string& image_path, ImageTile::ImageType image_type = ImageTile::AutoType) = 0;
+
+  /**
+   * Get the image at a position in iteration order, as vector::at does
+   *
+   * Used by iter(), and to pick a file's first image when nothing named one.
+   * Throws when the file offers no such image.  The default suits a format
+   * whose numeric address already counts images; FitsReader overrides it.
+   */
+  virtual std::shared_ptr<ImageSource> at(
+    int n, ImageTile::ImageType image_type = ImageTile::AutoType) {
+    return get(n, image_type);
+  }
 
   /**
    * Select which image within the file to use, unless the filename already said
@@ -230,7 +250,14 @@ public:
    *    cannot be determined or does not contain a valid image.
    */
   template <typename T>
-  static std::shared_ptr<Image<T>> readImage(const std::string& filename, int image_index = 0) {
+  static std::shared_ptr<Image<T>> readImage(const std::string& filename) {
+    auto reader = create(filename);
+    auto image_source = reader->get(ImageTile::getTypeValue(T()));
+    return BufferedImage<T>::create(image_source);
+  }
+
+  template <typename T>
+  static std::shared_ptr<Image<T>> readImage(const std::string& filename, int image_index) {
     auto reader = create(filename);
     auto image_source = reader->get(image_index, ImageTile::getTypeValue(T()));
     return BufferedImage<T>::create(image_source);

@@ -45,7 +45,25 @@ bool FitsReader::test(std::istream& stream) {
 }
 
 
+/**
+ * An index is the HDU number, counting the primary HDU as 0
+ *
+ * This is 0-based numbering the Python interface uses throughout
+ * (see PyFitsFile), as opposed to CFITSIO's traditional 1-based
+ * indexing.  Raises on a FITS file containing no image HDUs.
+ */
 std::shared_ptr<ImageSource> FitsReader::get(int image_index, ImageTile::ImageType image_type) {
+  return getHdu(image_index + 1, image_type);
+}
+
+
+/**
+ * The n'th image HDU, which is what iterating the file yields
+ *
+ * This is not the HDU index within the file, but rather the index into the
+ * ordered subset of HDUs containing images.
+ */
+std::shared_ptr<ImageSource> FitsReader::at(int image_index, ImageTile::ImageType image_type) {
   // TODO: It turns out none of this is necessary: It's already implemented in
   // the FitsFile class, which actually loops over all the HDUs when opening the file
   // and gets the HDU numbers of images (can be accessed with FitsFile::getImageHdus)
