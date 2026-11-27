@@ -12,12 +12,14 @@ env:
   ELEMENTS_REF: ''
 
 jobs:
-  elements:
-    name: Elements
+  dependencies:
+    name: Elements and Alexandria
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
+    env:
+      CMAKEFLAGS: -DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF
     steps:
-      - name: Install build dependencies
+      - name: Install Elements build dependencies
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
@@ -57,10 +59,32 @@ jobs:
 
       - name: Build and install Elements
         working-directory: Elements
-        env:
-          CMAKEFLAGS: -DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF
         run: make -j2 VERBOSE=1 install
 
       - name: Verify installed Elements makefile
         working-directory: Elements
         run: cmp make/Elements.mk InstallArea/*/make/Elements.mk
+
+      - name: Install Alexandria build dependencies
+        run: |
+          apt-get install -y --no-install-recommends \
+            libboost-iostreams-dev libboost-numpy-dev libboost-python-dev libboost-serialization-dev \
+            libccfits-dev libcfitsio-dev python3-numpy
+
+      - name: Apply the branch's Elements override to the Alexandria checkout
+        if: env.ELEMENTS_REF != ''
+        run: |
+          python3 .github/scripts/set_alexandria_elements_version.py Alexandria/CMakeLists.txt \
+            Elements/InstallArea/*/manifest.xml
+
+      - name: Build and install Alexandria
+        working-directory: Alexandria
+        run: |
+          elements_cmake=$(realpath "$GITHUB_WORKSPACE"/Elements/InstallArea/*/cmake)
+          CMAKE_PROJECT_PATH="$GITHUB_WORKSPACE" CMAKE_PREFIX_PATH="$elements_cmake" make -j2 VERBOSE=1 install
+
+      - name: Verify Alexandria installation
+        working-directory: Alexandria
+        run: |
+          test -s InstallArea/*/AlexandriaConfig.cmake
+          test -s InstallArea/*/lib/libAlexandriaKernel.so
