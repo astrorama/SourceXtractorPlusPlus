@@ -127,3 +127,76 @@ jobs:
         with:
           name: sourcextractor-test-results
           path: SourceXtractorPlusPlus/build/Testing/
+
+      - name: Install SourceXtractor++ for Litmus
+        working-directory: SourceXtractorPlusPlus
+        run: make -j2 VERBOSE=1 install
+
+      - name: Install Litmus dependencies
+        run: apt-get install -y --no-install-recommends git-lfs zstd python3-venv python3-matplotlib python3-scipy
+
+      - name: Check out Litmus without downloading LFS data
+        id: litmus_data
+        shell: bash
+        env:
+          GIT_LFS_SKIP_SMUDGE: '1'
+        run: |
+          git clone --no-checkout --depth=1 --no-single-branch \
+            https://github.com/astrorama/SourceXtractor-litmus.git SourceXtractor-litmus
+          cd SourceXtractor-litmus
+          ref=refs/remotes/origin/HEAD
+          for branch in "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" "${GITHUB_BASE_REF:-$GITHUB_REF_NAME}"; do
+            if git show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+              ref="refs/remotes/origin/$branch"
+              break
+            fi
+          done
+          echo "Using Litmus $ref"
+          git lfs install --local
+          git checkout --detach "$ref"
+          digest=$(git lfs ls-files --long HEAD | cut -d ' ' -f 1 | LC_ALL=C sort -u | sha256sum)
+          echo "digest=${digest%% *}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore cached Litmus LFS objects
+        id: litmus_cache
+        uses: actions/cache/restore@v6
+        with:
+          path: SourceXtractor-litmus/.git/lfs/objects
+          key: litmus-lfs-v1-${{ steps.litmus_data.outputs.digest }}
+          restore-keys: litmus-lfs-v1-
+
+      - name: Populate and verify Litmus test data
+        working-directory: SourceXtractor-litmus
+        run: |
+          git lfs pull
+          git lfs fsck --objects HEAD
+
+      - name: Save Litmus LFS objects before running tests
+        if: steps.litmus_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: SourceXtractor-litmus/.git/lfs/objects
+          key: ${{ steps.litmus_cache.outputs.cache-primary-key }}
+
+      - name: Install Litmus Python dependencies
+        working-directory: SourceXtractor-litmus
+        run: |
+          python3 -m venv --system-site-packages .venv
+          .venv/bin/python -m pip install -r requirements.txt
+
+      - name: Run Litmus integration tests
+        id: litmus
+        working-directory: SourceXtractor-litmus
+        run: ../SourceXtractorPlusPlus/.github/workflows/run-litmus.sh
+
+      - name: Upload Litmus reports and logs
+        if: always() && steps.litmus.outcome != 'skipped'
+        uses: actions/upload-artifact@v7
+        with:
+          name: sourcextractor-litmus-results
+          path: |
+            litmus-results/report.html
+            litmus-results/junit.xml
+            litmus-results/**/*.pdf
+            litmus-results/**/*.log
+          retention-days: 5
