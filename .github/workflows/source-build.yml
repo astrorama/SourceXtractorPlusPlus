@@ -133,7 +133,9 @@ jobs:
         run: make -j2 VERBOSE=1 install
 
       - name: Install Litmus dependencies
-        run: apt-get install -y --no-install-recommends git-lfs zstd python3-venv python3-matplotlib python3-scipy
+        run: |
+          apt-get install -y --no-install-recommends git-lfs zstd python3-venv \
+            python3-matplotlib python3-scipy python3-pytest-astropy
 
       - name: Check out Litmus without downloading LFS data
         id: litmus_data

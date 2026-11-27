@@ -15,7 +15,8 @@ sed -i -e 's|^binary=.*|binary=${LITMUS_BINARY}|' \
 # Check images consume too much space on a hosted runner.
 sed -i 's/^check-image/#check-image/' sourcex.config
 
-# Keep the same test selection as the original CI.
+# Include slow iterative Levmar tests. Other slow cases need a separate opt-in.
 exec python3 "$CMAKE_PREFIX_PATH/scripts/env.py" --xml "$install_dir/SourceXtractorPlusPlusEnvironment.xml" \
-  .venv/bin/python -m pytest -v -k 'not gsl' -W ignore::RuntimeWarning \
+  .venv/bin/python -m pytest -v --run-slow -k 'not gsl and not levmar_classic and (not slow or levmar_iterative)' \
+  -W ignore::RuntimeWarning \
   --html="$results/report.html" --self-contained-html --junitxml="$results/junit.xml"
