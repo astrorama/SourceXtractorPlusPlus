@@ -2,7 +2,9 @@ name: Source build
 
 on:
   push:
-    branches: [fix/fix_the_ci]
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
 
 permissions:
   contents: read
@@ -12,8 +14,8 @@ env:
   ELEMENTS_REF: ''
 
 jobs:
-  dependencies:
-    name: Elements and Alexandria
+  build-and-test:
+    name: Build and test SourceXtractor++
     runs-on: ubuntu-24.04
     container: ubuntu:24.04
     env:
@@ -31,10 +33,12 @@ jobs:
       - name: Check out SourceXtractor++
         uses: actions/checkout@v6
         with:
+          path: SourceXtractorPlusPlus
           persist-credentials: false
 
       - name: Read the Alexandria version from SourceXtractor++
         id: alexandria
+        working-directory: SourceXtractorPlusPlus
         run: python3 .github/scripts/dependency_version.py CMakeLists.txt Alexandria >> "$GITHUB_OUTPUT"
 
       - name: Check out Alexandria ${{ steps.alexandria.outputs.version }}
@@ -47,7 +51,8 @@ jobs:
 
       - name: Read the Elements version from Alexandria
         id: elements
-        run: python3 .github/scripts/dependency_version.py Alexandria/CMakeLists.txt Elements >> "$GITHUB_OUTPUT"
+        working-directory: SourceXtractorPlusPlus
+        run: python3 .github/scripts/dependency_version.py ../Alexandria/CMakeLists.txt Elements >> "$GITHUB_OUTPUT"
 
       - name: Check out Elements ${{ env.ELEMENTS_REF || steps.elements.outputs.version }}
         uses: actions/checkout@v6
@@ -63,7 +68,11 @@ jobs:
 
       - name: Verify installed Elements makefile
         working-directory: Elements
-        run: cmp make/Elements.mk InstallArea/*/make/Elements.mk
+        run: |
+          cmp make/Elements.mk InstallArea/*/make/Elements.mk
+          elements_cmake=$(realpath InstallArea/*/cmake)
+          echo "CMAKE_PREFIX_PATH=$elements_cmake" >> "$GITHUB_ENV"
+          echo "CMAKE_PROJECT_PATH=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"
 
       - name: Install Alexandria build dependencies
         run: |
@@ -73,18 +82,48 @@ jobs:
 
       - name: Apply the branch's Elements override to the Alexandria checkout
         if: env.ELEMENTS_REF != ''
+        working-directory: SourceXtractorPlusPlus
         run: |
-          python3 .github/scripts/set_alexandria_elements_version.py Alexandria/CMakeLists.txt \
-            Elements/InstallArea/*/manifest.xml
+          python3 .github/scripts/set_alexandria_elements_version.py ../Alexandria/CMakeLists.txt \
+            ../Elements/InstallArea/*/manifest.xml
 
       - name: Build and install Alexandria
         working-directory: Alexandria
-        run: |
-          elements_cmake=$(realpath "$GITHUB_WORKSPACE"/Elements/InstallArea/*/cmake)
-          CMAKE_PROJECT_PATH="$GITHUB_WORKSPACE" CMAKE_PREFIX_PATH="$elements_cmake" make -j2 VERBOSE=1 install
+        run: make -j2 VERBOSE=1 install
 
       - name: Verify Alexandria installation
         working-directory: Alexandria
         run: |
           test -s InstallArea/*/AlexandriaConfig.cmake
           test -s InstallArea/*/lib/libAlexandriaKernel.so
+
+      - name: Install SourceXtractor++ build and test dependencies
+        working-directory: SourceXtractorPlusPlus
+        run: |
+          apt-get install -y --no-install-recommends \
+            curl unzip libblas-dev liblapack-dev libboost-timer-dev libfftw3-dev libgsl-dev \
+            libgmock-dev libgtest-dev libncurses-dev libreadline-dev wcslib-dev python3-astropy
+          sh .github/scripts/install-levmar-onnxruntime.sh /usr/local
+          ldconfig
+
+      - name: Build SourceXtractor++
+        working-directory: SourceXtractorPlusPlus
+        # make tests already writes CTest's native JUnit report. Skip the optional Elements XSL conversion.
+        run: |
+          make -j2 CMAKEFLAGS="$CMAKEFLAGS -DTEST_JUNIT_REPORT=OFF \
+            -DCMAKE_REQUIRE_FIND_PACKAGE_Levmar=ON -DCMAKE_REQUIRE_FIND_PACKAGE_GSL=ON \
+            -DCMAKE_REQUIRE_FIND_PACKAGE_OnnxRuntime=ON -DCMAKE_REQUIRE_FIND_PACKAGE_GMock=ON"
+
+      - name: Run SourceXtractor++ tests
+        id: tests
+        working-directory: SourceXtractorPlusPlus
+        run: |
+          make -j2 tests ARGS=--output-on-failure
+          python3 .github/scripts/check_ctest_report.py build/Testing/JUnitTestReport.xml
+
+      - name: Upload test results
+        if: always() && steps.tests.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: sourcextractor-test-results
+          path: SourceXtractorPlusPlus/build/Testing/
