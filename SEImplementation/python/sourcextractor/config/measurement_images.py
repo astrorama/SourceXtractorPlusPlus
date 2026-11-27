@@ -22,11 +22,13 @@ import re
 import sys
 import warnings
 from collections.abc import Iterator, Sequence
-from typing import TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, TypeAlias, overload
+from typing import (TYPE_CHECKING, Any, Callable, ClassVar, IO, Literal, Self, TypeAlias,
+                    overload)
 
 import _SourceXtractorPy as cpp
 
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import cached_property
 from io import StringIO
 
@@ -224,6 +226,12 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         For a multi-extension PSFx FITS file, which HDU to read.
     psf_renormalize : bool
         If True, the PSF will be renormalized to have a total flux of 1.0. Default True
+    fits_compat : bool
+        Keep the FITS-specific behaviour that predates the format-agnostic interface, which today
+        means what `meta` is for a FITS file: a dict of stringified headers plus three synthetic
+        filename entries, rather than the `Metadata` object every other format gives. Default
+        True, so existing configurations are unaffected; the `load_image` family turns it off, so
+        a FITS file read through the new interface behaves like any other.
     image_hdu : int, optional
         The older spelling of an `image` index. Keyword-only, and mutually exclusive with `image`.
     weight_hdu : int, optional
@@ -251,6 +259,9 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
     .. versionchanged:: 1.2.0
         `image` and `weight` take an index or a name, replacing ``image_hdu`` and ``weight_hdu``,
         which remain as keyword-only spellings of an index.
+
+    .. versionadded:: 1.2.0
+        `fits_compat`, which the `load_image` family sets to False.
     """
 
     def __init__(self, image_file: str | cpp.ImageFile | None = None,
@@ -264,7 +275,7 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
                  constant_background: float | None = None,
                  image: ImageSelector = None, weight: ImageSelector = None,
                  wcs: str = '', psf_hdu: int | None = None,
-                 psf_renormalize: bool = True,
+                 psf_renormalize: bool = True, fits_compat: bool = True,
                  *,
                  image_hdu: int | None = None, weight_hdu: int | None = None,
                  fits_file: str | cpp.ImageFile | None = None) -> None:
@@ -284,6 +295,7 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
 
         file_path = _filename_of(image_file)
         self._image_format = cpp.ImageFile(file_path).format
+        self._fits_compat = fits_compat
 
         if fits_file is not None and self._image_format != 'fits':
             raise ValueError(f'{file_path} is not a FITS file; the deprecated '
@@ -361,7 +373,7 @@ class MeasurementImage(cpp.MeasurementImage, CheckBoostProperties):
         # FITS-specific parts for backwards-compatibility; fill the rest of the
         # meta dict with keywords read from the selected FITS HDU, values
         # converted to strings.
-        if self._image_format == 'fits':
+        if self._image_format == 'fits' and self._fits_compat:
             fits_file = FitsFile(self.file)
             hdu_idx = _fits_hdu_of(fits_file, self.image)
             extra.update(fits_file.get_headers(hdu_idx))
@@ -430,7 +442,7 @@ class DataCubeSlice(MeasurementImage):
                  constant_background: float | None = None,
                  image: ImageSelector = None, weight: ImageSelector = None,
                  wcs: str = '', psf_hdu: int | None = None,
-                 psf_renormalize: bool = True,
+                 psf_renormalize: bool = True, fits_compat: bool = True,
                  image_layer: int = 0, weight_layer: int = 0,
                  image_hdu: int | None = None, weight_hdu: int | None = None,
                  *,
@@ -444,7 +456,7 @@ class DataCubeSlice(MeasurementImage):
             weight_scaling=weight_scaling, weight_threshold=weight_threshold,
             constant_background=constant_background,
             image=image, weight=weight, wcs=wcs, psf_hdu=psf_hdu,
-            psf_renormalize=psf_renormalize,
+            psf_renormalize=psf_renormalize, fits_compat=fits_compat,
             image_hdu=image_hdu, weight_hdu=weight_hdu,
             fits_file=fits_file
         )
@@ -465,6 +477,207 @@ class DataCubeSlice(MeasurementImage):
         return (f'DataCubeSlice {self.id}: {self.file} / {image} / {self.image_layer}, '
                 f'PSF: {self.psf_file} / {self.psf_hdu}, '
                 f'Weight: {self.weight_file} / {weight} / {self.weight_layer}')
+
+
+AuxFile: TypeAlias = str | cpp.ImageFile
+"""A file holding auxiliary images, as a path or as an already-opened file"""
+
+
+@dataclass(frozen=True)
+class ImageAux:
+    """
+    One auxiliary image used alongside a measurement image
+
+    Measurement images are accompanied by other images describing them: their
+    weights, their PSFs. Each of those names a file and which image within that
+    file to use, and each kind has its own rule for spreading a single argument
+    over several measurement images, which `broadcast` applies.
+
+    :meta private:
+    """
+
+    file: AuxFile | None = None
+    selector: ImageSelector = None
+
+    noun: ClassVar[str] = 'auxiliary'
+    """How this kind of auxiliary image is named in error messages"""
+
+    @classmethod
+    def broadcast(cls, source: AuxFile | Sequence[AuxFile] | None, count: int,
+                  selector: ImageSelector = None) -> list[Self]:
+        """
+        One of these per measurement image, matched in order
+
+        Parameters
+        ----------
+        source : str, ImageFile, a sequence of either, or None
+            The argument as the caller gave it: a sequence, which goes to
+            `one_per_image`, or a single file, which `spread` divides among
+            them
+        count : int
+            How many measurement images there are
+        selector : int, str, or None
+            Which image within the file, if the caller selected one
+
+        Returns
+        -------
+        list
+            One per measurement image, in order
+
+        Raises
+        ------
+        ValueError
+            If a sequence of files does not hold one per measurement image.
+        """
+
+        if source is None or not isinstance(source, (str, cpp.ImageFile)):
+            return cls.one_per_image(source, count, selector)
+
+        return cls.spread(source, count, selector)
+
+    @classmethod
+    def one_per_image(cls, sources: Sequence[AuxFile] | None, count: int,
+                      selector: ImageSelector = None) -> list[Self]:
+        """
+        One file per measurement image, taken in order
+
+        Unlike `broadcast` this never divides a single file among several
+        measurement images, which is what a caller wants when the images come
+        from separate files that are themselves broadcast over.
+
+        Raises
+        ------
+        ValueError
+            If the sequence does not hold one file per measurement image.
+        """
+
+        if sources is None:
+            return [cls()] * count
+
+        files = list(sources)
+
+        if len(files) != count:
+            raise ValueError(f'The number of {cls.noun} files must match '
+                             f'the number of images!')
+
+        return [cls(one, selector) for one in files]
+
+    @classmethod
+    def spread(cls, file: AuxFile, count: int,
+               selector: ImageSelector = None) -> list[Self]:
+        """
+        Divide the images of one file among the measurement images
+
+        What a single file holds is particular to each kind of auxiliary image,
+        so subclasses implement this.
+        """
+
+        raise NotImplementedError
+
+
+@dataclass(frozen=True)
+class Weight(ImageAux):
+    """
+    The weights of one measurement image
+
+    Parameters
+    ----------
+    layer : int
+        Which layer of the weights, if they are a data cube
+
+    :meta private:
+    """
+
+    layer: int = 0
+
+    noun: ClassVar[str] = 'weight'
+
+    @classmethod
+    def spread(cls, file: AuxFile, count: int,
+               selector: ImageSelector = None) -> list[Self]:
+        """
+        A weight file is itself a sequence of images, matched in order
+
+        It may hold a cube of as many layers, as many separate images, or a
+        single image that every measurement image shares.
+        """
+
+        opened = cpp.ImageFile(_filename_of(file))
+        selectors = ([selector] if selector is not None
+                     else _image_selectors(opened))
+
+        if len(selectors) == 1:
+            only = selectors[0]
+            dims = opened.get_dimensions(0 if only is None else only)
+
+            if not dims.is_cube:
+                return [cls(file, only)] * count
+
+            if dims.depth != count:
+                raise ValueError(f'The {cls.noun} cube has {dims.depth} layers '
+                                 f'but there are {count} images; they must match')
+
+            return [cls(file, only, layer) for layer in range(count)]
+
+        if len(selectors) != count:
+            raise ValueError(f'The {cls.noun} file holds {len(selectors)} images '
+                             f'but there are {count}; they must match')
+
+        return [cls(file, one) for one in selectors]
+
+
+@dataclass(frozen=True)
+class Psf(ImageAux):
+    """
+    The PSF of one measurement image
+
+    :meta private:
+    """
+
+    noun: ClassVar[str] = 'psf'
+
+    @property
+    def path(self) -> str | None:
+        """Where the PSF is, as the path that `MeasurementImage` wants"""
+
+        return None if self.file is None else _filename_of(self.file)
+
+    @property
+    def hdu(self) -> int:
+        """Which HDU of the PSF file to read; a PSF is selected by index"""
+
+        return self.selector if isinstance(self.selector, int) else 0
+
+    @classmethod
+    def spread(cls, file: AuxFile, count: int,
+               selector: ImageSelector = None) -> list[Self]:
+        """
+        One PSF file holds one PSF per HDU, in order
+
+        A PSFEx file is a table so unlike a weight file its contents cannot
+        be enumerated to check that count.
+        """
+
+        if selector is not None:
+            return [cls(file, selector)] * count
+
+        return [cls(file, hdu) for hdu in range(count)]
+
+
+def _image_selectors(image_file: cpp.ImageFile) -> list[ImageSelector]:
+    """
+    One selector per image in a file, in file order
+
+    Prefers the names, which is all an ASDF file has. FITS extensions need not
+    be named, and an unnamed one can only be selected by its HDU number.
+    """
+
+    names = image_file.image_names
+
+    if names and all(names):
+        return list(names)
+
+    return list(cpp.FitsFile(image_file.filename).image_hdus)
 
 
 GroupingMethod: TypeAlias = Callable[

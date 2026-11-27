@@ -18,14 +18,14 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Iterable, Sequence
-from itertools import repeat
+from collections.abc import Sequence
 from typing import Any, IO, TypeAlias, cast, overload
 
 import _SourceXtractorPy as cpp
 
-from .measurement_images import (DataCubeSlice, FitsFile, ImageGroup, MeasurementGroup,
-                                 MeasurementImage)
+from .measurement_images import (
+    AuxFile, DataCubeSlice, FitsFile, ImageGroup, MeasurementGroup,
+    MeasurementImage, Psf, Weight, _filename_of)
 from .model_fitting import FittableParameter, ModelFitting, ParameterBase
 
 
@@ -83,7 +83,7 @@ class MeasurementConfig:
 
     # TODO: better typing for kwargs passed through to DataCubeSlice
     def load_fits_image(self, image: str, psf: str | list[str] | None = None,
-                        weight: str | FitsFile | list[FitsFile] | list[str] | None = None,
+                        weight: AuxFile | Sequence[AuxFile] | None = None,
                         **kwargs: Any) -> ImageGroup:
         """
         Creates an image group with the images of a (possibly multi-HDU) single FITS file.
@@ -100,63 +100,26 @@ class MeasurementConfig:
         """
 
         image_file = FitsFile(image)
-        if "image_hdu" in kwargs.keys():
-            image_hdu_list = [kwargs.pop("image_hdu")]
+        if "image_hdu" in kwargs:
+            image_hdus = [kwargs.pop("image_hdu")]
         else:
-            image_hdu_list = image_file.hdu_list
+            image_hdus = image_file.hdu_list
 
-        psf_file_list: Sequence[str | None]
+        psfs = Psf.broadcast(psf, len(image_hdus), kwargs.pop("psf_hdu", None))
+        weights = Weight.broadcast(weight, len(image_hdus),
+                                   kwargs.pop("weight_hdu", None))
 
-        # handles the PSFs
-        if isinstance(psf, list):
-            if len(psf) != len(image_hdu_list):
-                raise ValueError("The number of psf files must match the number of images!")
-            psf_file_list = psf
-            psf_hdu_list = [0] * len(psf_file_list)
-        else:
-            if "psf_hdu" in kwargs.keys():
-                psf_hdu_list = [kwargs.pop("psf_hdu")] * len(image_hdu_list)
-            else:
-                # NOTE: Technically need not build a list here, but it is
-                # normally a small list in practice
-                psf_hdu_list = list(range(len(image_hdu_list)))
-            psf_file_list = [psf] * len(image_hdu_list)
+        image_list = [
+            MeasurementImage(image_file, psf_aux.path, weight_aux.file,
+                             image=hdu, psf_hdu=psf_aux.hdu,
+                             weight=weight_aux.selector, **kwargs)
+            for hdu, psf_aux, weight_aux
+            in zip(image_hdus, psfs, weights, strict=True)
+        ]
 
-        weight_file_list: Sequence[str | FitsFile | None]
-
-        # handles the weight maps
-        if isinstance(weight, list):
-            if len(weight) != len(image_hdu_list):
-                raise ValueError("The number of weight files must match the number of images!")
-            weight_file_list = weight
-            weight_hdu_list = [0] * len(weight_file_list)
-        elif weight is None:
-            weight_file_list = [None] * len(image_hdu_list)
-            weight_hdu_list = [0] * len(weight_file_list)
-        else:
-            if not isinstance(weight, FitsFile):
-                weight = FitsFile(weight)
-            if "weight_hdu" in kwargs.keys():
-                weight_hdu_list = [kwargs.pop("weight_hdu")] * len(image_hdu_list)
-            else:
-                weight_hdu_list = weight.hdu_list
-                if len(weight_hdu_list) != len(image_hdu_list):
-                    raise ValueError(
-                        f"The weight file has {len(weight_hdu_list)} image HDUs but the "
-                        f"image file has {len(image_hdu_list)}; the number of weight "
-                        f"files must match the number of images!")
-            weight_file_list = [weight] * len(image_hdu_list)
-
-        image_list = []
-        it = zip(image_hdu_list, psf_file_list, psf_hdu_list, weight_file_list,
-                 weight_hdu_list, strict=True)
-        for hdu, psf_file, psf_hdu, weight_file, weight_hdu in it:
-            image_list.append(MeasurementImage(image_file, psf_file, weight_file,
-                                               image=hdu, psf_hdu=psf_hdu,
-                                               weight=weight_hdu,
-                                               **kwargs))
         for img in image_list:
             self._measurement_images[img.id] = img
+
         return ImageGroup(images=image_list)
 
     # TODO: better typing for kwargs passed through to DataCubeSlice
@@ -189,12 +152,14 @@ class MeasurementConfig:
             if len(images) == 0:
                 raise ValueError("An empty list passed to load_fits_images")
 
-            psf_list = _one_per_image(psfs, len(images), "psf")
-            weight_list = _one_per_image(weights, len(images), "weight")
+            psf_list = Psf.one_per_image(psfs, len(images))
+            weight_list = Weight.one_per_image(weights, len(images))
 
             groups = []
-            for f, p, w in zip(images, psf_list, weight_list, strict=True):
-                groups.append(self.load_fits_image(f, p, w, **kwargs))
+            for f, psf_aux, weight_aux in zip(images, psf_list, weight_list,
+                                              strict=True):
+                groups.append(self.load_fits_image(f, psf_aux.path,
+                                                   weight_aux.file, **kwargs))
 
             image_list: list[MeasurementImage] = []
             for g in groups:
@@ -234,78 +199,160 @@ class MeasurementConfig:
         else:
             cube_hdu = image_cube_hdu
 
-        dims = image_cube_file.get_dimensions(cube_hdu)
+        cube_size = _cube_depth(image_cube_file, cube_hdu)
+        weights = Weight.broadcast(
+            weight, cube_size,
+            weight_cube_hdu if weight_cube_hdu >= 0 else None)
+        psfs = Psf.broadcast(psf, cube_size)
 
-        if not dims.is_cube:
-            raise ValueError("Not a data cube!")
-
-        cube_size = dims.depth
-        image_layer_list = range(cube_size)
-        psf_hdu_list: Iterable[int]
-        psf_file_list: Iterable[str] | Iterable[None]
-        weight_hdu_list: Iterable[int]
-        weight_layer_list: Iterable[int]
-        weight_file_list: Iterable[FitsFile] | Iterable[None]
-
-        # handles the PSFs
-        if isinstance(psf, list):
-            if len(psf) != cube_size:
-                raise ValueError("The number of psf files must match the number of images!")
-            psf_file_list = psf
-            psf_hdu_list = repeat(0, cube_size)
-        elif psf is None:
-            psf_file_list = repeat(None, cube_size)
-            psf_hdu_list = repeat(0, cube_size)
-        else:
-            psf_file_list = repeat(psf, cube_size)
-            psf_hdu_list = range(cube_size)
-
-        # handles the weight maps
-        if isinstance(weight, list):
-            if len(weight) != cube_size:
-                raise ValueError("The number of weight files must match the number of images!")
-            weight_file_list = weight
-            weight_hdu_list = repeat(0, cube_size)
-            weight_layer_list = repeat(0, cube_size)
-        elif weight is None:
-            weight_file_list = repeat(None, cube_size)
-            weight_hdu_list = repeat(0, cube_size)
-            weight_layer_list = repeat(0, cube_size)
-        else:
-            weight_fits_file = FitsFile(weight)
-            if weight_cube_hdu < 0:
-                weight_hdu = weight_fits_file.hdu_list[0]
-            else:
-                weight_hdu = weight_cube_hdu
-
-            weight_dims = weight_fits_file.get_dimensions(weight_hdu)
-            if weight_dims.is_cube:
-                # handle weight as data cube
-                if weight_dims.depth != cube_size:
-                    raise ValueError("The weight map cube doesn't match the image cube")
-
-                weight_file_list = repeat(weight_fits_file, cube_size)
-                weight_hdu_list = repeat(weight_hdu, cube_size)
-                weight_layer_list = range(cube_size)
-            else:
-                # weight is a FITS without a datacube, assume MEF
-                weight_file_list = repeat(weight_fits_file, cube_size)
-                weight_hdu_list = weight_fits_file.hdu_list
-                weight_layer_list = repeat(0, cube_size)
-
-        image_list = []
-        for psf_file, psf_hdu, weight_file, weight_hdu, image_layer, weight_layer in zip(
-                psf_file_list, psf_hdu_list, weight_file_list, weight_hdu_list, image_layer_list,
-                weight_layer_list):
-            image_list.append(DataCubeSlice(image_cube_file, psf_file, weight_file,
-                                            image=cube_hdu, psf_hdu=psf_hdu,
-                                            weight=weight_hdu,
-                                            image_layer=image_layer, weight_layer=weight_layer,
-                                            **kwargs))
+        image_list = [
+            DataCubeSlice(image_cube_file, psf_aux.path, weight_aux.file,
+                          image=cube_hdu, psf_hdu=psf_aux.hdu,
+                          weight=weight_aux.selector, image_layer=layer,
+                          weight_layer=weight_aux.layer, **kwargs)
+            for layer, psf_aux, weight_aux
+            in zip(range(cube_size), psfs, weights, strict=True)]
 
         for img in image_list:
             self._measurement_images[img.id] = img
+
         return ImageGroup(images=image_list)
+
+    # TODO: better typing for kwargs passed through to MeasurementImage
+    def load_image(self, measurement_image: MeasurementImage | str | cpp.ImageFile,
+                   psf_file: str | None = None,
+                   weight_file: str | cpp.ImageFile | None = None,
+                   **kwargs: Any) -> ImageGroup:
+        """Creates an image group holding one already-described image.
+
+        A `MeasurementImage` says everything about one image: which file, which
+        image within it, its weight and PSF, its gain. Pass one, and this only
+        registers it. Anything else is taken as the arguments to build one,
+        which is a convenience rather than the point of the interface.
+
+        Which image within the file is said with the `image` selector, an index
+        or a name; left out it means the file's only image, or the first of
+        several. An ASDF file holding more than one array that could be an
+        image has to be named, since nothing in such a file says which is
+        meant.
+
+        Parameters
+        ----------
+        measurement_image : MeasurementImage or str or ImageFile
+            The image, or a file to build one from
+        psf_file : str
+            A PSF file: a FITS image or a PSFEx model
+        weight_file : str or ImageFile
+            A file containing the pixel weights
+        **kwargs
+            Everything `MeasurementImage` takes, `image`, `weight`, `wcs` and
+            the gain and saturation settings included
+
+        Returns
+        -------
+        ImageGroup
+            A group holding the single image
+
+        Raises
+        ------
+        TypeError
+            If a `MeasurementImage` is given along with arguments to build one
+
+        See Also
+        --------
+        load_images : several already-described images
+        data_cube_slices : one image per layer of a data cube
+        load_fits_image : every image HDU of one FITS file
+        """
+
+        image = _as_measurement_image(measurement_image, psf_file,
+                                      weight_file, kwargs)
+        self._measurement_images[image.id] = image
+        return ImageGroup(images=[image])
+
+    # TODO: better typing for kwargs passed through to MeasurementImage
+    def load_images(self,
+                    measurement_images: Sequence[MeasurementImage] | str | list[str],
+                    psf_files: list[str] | None = None,
+                    weight_files: list[str] | None = None,
+                    **kwargs: Any) -> ImageGroup:
+        """Creates an image group out of several already-described images.
+
+        Pass `MeasurementImage` objects and this only registers them, which is
+        how images that differ from one another are described -- each carries
+        its own selector, weight and gain. Passing filenames instead builds one
+        image from each, with everything in `kwargs` applying to all of them,
+        so a selector given that way has to name an image every file holds.
+
+        Parameters
+        ----------
+        measurement_images : sequence of MeasurementImage, or str, or list of str
+            The images, or files to build one from each
+        psf_files : list of str
+            PSF files, one per image, or None
+        weight_files : list of str
+            Weight files, one per image, or None
+
+        Returns
+        -------
+        ImageGroup
+            A group holding one image per entry
+
+        Raises
+        ------
+        ValueError
+            If a list of psf or weight files does not match the number of images
+
+        See Also
+        --------
+        load_image : one image
+        data_cube_slices : one image per layer of a data cube
+        """
+
+        entries = (measurement_images
+                   if isinstance(measurement_images, (list, tuple))
+                   else [measurement_images])
+        if len(entries) == 0:
+            raise ValueError("An empty list passed to load_images")
+
+        psf_list = Psf.one_per_image(psf_files, len(entries))
+        weight_list = Weight.one_per_image(weight_files, len(entries))
+
+        image_list: list[MeasurementImage] = []
+        for entry, psf_aux, weight_aux in zip(entries, psf_list, weight_list,
+                                              strict=True):
+            image_list.append(_as_measurement_image(entry, psf_aux.path,
+                                                    weight_aux.file, dict(kwargs)))
+
+        for image in image_list:
+            self._measurement_images[image.id] = image
+
+        return ImageGroup(images=image_list)
+
+    # TODO: better typing for kwargs passed through to DataCubeSlice
+    def load_data_cube(self, image_file: str,
+                       psf_file: str | None = None,
+                       weight_file: str | cpp.ImageFile | None = None,
+                       **kwargs: Any) -> ImageGroup:
+        """Creates an image group with the layers of a data cube.
+
+        A convenience for ``load_images(data_cube_slices(...))``; see
+        `data_cube_slices` for what the layers become and how the weights are
+        matched to them.
+
+        Returns
+        -------
+        ImageGroup
+            A group holding one image per layer
+
+        See Also
+        --------
+        data_cube_slices : the slices this loads, which can be built and
+            adjusted individually instead
+        """
+
+        return self.load_images(
+            data_cube_slices(image_file, psf_file, weight_file, **kwargs))
 
     def print_measurement_images(self, file: IO[str] | None = None) -> None:
         """
@@ -481,33 +528,107 @@ global_measurement_config = MeasurementConfig()
 """Single `MeasurementConfig` instance used by the global functions"""
 
 
-@overload
-def _one_per_image(files: None, count: int, what: str) -> list[None]: ...
-@overload
-def _one_per_image(files: list[str], count: int, what: str) -> list[str]: ...
-def _one_per_image(files: list[str] | None, count: int, what: str) -> list[str] | list[None]:  # noqa: E302
-    """
-    Normalize an optional list of auxiliary files to one entry per image
+def data_cube_slices(image_file: str, psf_file: str | list[str] | None = None,
+                     weight_file: str | cpp.ImageFile | list[str] | None = None,
+                     **kwargs: Any) -> list[DataCubeSlice]:
+    """One `DataCubeSlice` per layer of a data cube, of any supported format.
+
+    An array of three dimensions is a data cube whichever file it came from,
+    its slowest-changing axis being the layers, and each layer is measured as
+    a separate image.
+
+    The weights are a sequence of arrays matched in order to the layers: a list
+    of files, one file holding a matching cube, or one file holding as many
+    arrays. One file holding a single array is shared by every layer. Layers
+    needing weights unrelated to each other are described by building the
+    slices individually instead.
 
     Parameters
     ----------
-    files : list of str, or None
-        The psfs or weights argument as the caller gave it.
-    count : int
-        How many images they have to match.
-    what : str
-        Named in the error message, e.g. 'psf'.
+    image_file : str
+        The file containing the image cube
+    psf_file : str or list of str
+        A PSF file shared by every layer, or one per layer
+    weight_file : str, ImageFile, or list of str
+        Where the weights come from, in any of the shapes above
+    **kwargs
+        Everything `DataCubeSlice` takes, the `image` and `weight` selectors
+        included
+
+    Returns
+    -------
+    list of DataCubeSlice
+        One per layer, in order
 
     Raises
     ------
     ValueError
-        If a list was given and its length does not match.
+        If the selected array is not a data cube, or if the weights or PSFs do
+        not amount to one per layer.
+
+    See Also
+    --------
+    MeasurementConfig.load_data_cube : loads these in one call
     """
 
-    if files is None:
-        return [None] * count
+    kwargs.setdefault('fits_compat', False)
+    cube_image = cpp.ImageFile(_filename_of(image_file))
+    depth = _cube_depth(cube_image, kwargs.get('image'))
+    weights = Weight.broadcast(weight_file, depth, kwargs.pop('weight', None))
+    psfs = Psf.broadcast(psf_file, depth, kwargs.pop('psf_hdu', None))
 
-    if not isinstance(files, list) or len(files) != count:
-        raise ValueError(f"The number of image files and {what} files must match!")
+    return [
+        DataCubeSlice(image_file, psf_aux.path, weight_aux.file,
+                      image_layer=layer, psf_hdu=psf_aux.hdu,
+                      weight=weight_aux.selector,
+                      weight_layer=weight_aux.layer, **kwargs)
+        for layer, psf_aux, weight_aux
+        in zip(range(depth), psfs, weights, strict=True)
+    ]
 
-    return list(files)
+
+def _as_measurement_image(image: MeasurementImage | str | cpp.ImageFile,
+                          psf_file: str | None,
+                          weight_file: str | cpp.ImageFile | None,
+                          kwargs: dict[str, Any]) -> MeasurementImage:
+    """
+    Take an already-described image, or build one from the arguments
+
+    Raises
+    ------
+    TypeError
+        If an image is given along with arguments that would build one, since
+        it already says everything they would.
+    """
+
+    if not isinstance(image, MeasurementImage):
+        # A file read through this interface is not given the FITS-specific
+        # behaviour that MeasurementImage keeps for the load_fits_* functions
+        kwargs.setdefault('fits_compat', False)
+        return MeasurementImage(image, psf_file, weight_file, **kwargs)
+
+    if psf_file is not None or weight_file is not None or kwargs:
+        raise TypeError(f'{type(image).__name__} already describes its image; '
+                        f'pass either one of those or the arguments to build it')
+
+    return image
+
+
+def _cube_depth(image_file: cpp.ImageFile, selector: Any) -> int:
+    """
+    How many layers the selected array has, which has to be a data cube
+
+    Takes an open file so that a caller already holding one need not reopen it.
+
+    Raises
+    ------
+    ValueError
+        If the selected array is not three-dimensional.
+    """
+
+    dims = image_file.get_dimensions(selector if selector is not None else 0)
+
+    if not dims.is_cube:
+        raise ValueError("Not a data cube!")
+
+    return dims.depth

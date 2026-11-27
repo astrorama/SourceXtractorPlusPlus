@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this library; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+from collections.abc import Sequence
 from typing import Any, Callable, IO, ParamSpec, TypeVar
 
 import _SourceXtractorPy as cpp
@@ -66,6 +67,31 @@ def load_fits_image(image: str, psf: str | list[str] | None = None,
 def load_fits_images(images: str | list[str], psfs: list[str] | None = None,
                      weights: list[str] | None = None, **kwargs: Any) -> ImageGroup:
     return global_measurement_config.load_fits_images(images, psfs, weights, **kwargs)
+
+
+@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_image)
+def load_image(measurement_image: MeasurementImage | str | cpp.ImageFile,
+               psf_file: str | None = None,
+               weight_file: str | cpp.ImageFile | None = None,
+               **kwargs: Any) -> ImageGroup:
+    return global_measurement_config.load_image(measurement_image, psf_file,
+                                                weight_file, **kwargs)
+
+
+@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_images)
+def load_images(measurement_images: Sequence[MeasurementImage] | str | list[str],
+                psf_files: list[str] | None = None,
+                weight_files: list[str] | None = None, **kwargs: Any) -> ImageGroup:
+    return global_measurement_config.load_images(measurement_images, psf_files,
+                                                 weight_files, **kwargs)
+
+
+@_compat_doc_helper(copy_doc_from=MeasurementConfig.load_data_cube)
+def load_data_cube(image_file: str, psf_file: str | None = None,
+                   weight_file: str | cpp.ImageFile | None = None,
+                   **kwargs: Any) -> ImageGroup:
+    return global_measurement_config.load_data_cube(image_file, psf_file,
+                                                    weight_file, **kwargs)
 
 
 @_compat_doc_helper(copy_doc_from=MeasurementConfig.load_fits_data_cube)
