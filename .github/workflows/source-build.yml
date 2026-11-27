@@ -22,11 +22,33 @@ jobs:
             libboost-system-dev libboost-test-dev libboost-thread-dev liblog4cpp5-dev \
             python3-dev python3-pytest python3-setuptools
 
-      - name: Check out Elements 6.3.7
+      - name: Check out SourceXtractor++
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Read the Alexandria version from SourceXtractor++
+        id: alexandria
+        run: python3 .github/scripts/dependency_version.py CMakeLists.txt Alexandria >> "$GITHUB_OUTPUT"
+
+      - name: Check out Alexandria ${{ steps.alexandria.outputs.version }}
+        uses: actions/checkout@v6
+        with:
+          repository: astrorama/Alexandria
+          ref: refs/tags/${{ steps.alexandria.outputs.version }}
+          path: Alexandria
+          persist-credentials: false
+
+      - name: Read the Elements version from Alexandria
+        id: elements
+        run: python3 .github/scripts/dependency_version.py Alexandria/CMakeLists.txt Elements >> "$GITHUB_OUTPUT"
+
+      # The optional ELEMENTS_REF Actions variable accepts a tag, branch, or commit.
+      - name: Check out Elements ${{ vars.ELEMENTS_REF || steps.elements.outputs.version }}
         uses: actions/checkout@v6
         with:
           repository: astrorama/Elements
-          ref: 3e3f62e1f9be139305dbd6e242a20c16c5d6541f
+          ref: ${{ vars.ELEMENTS_REF || format('refs/tags/{0}', steps.elements.outputs.version) }}
           path: Elements
           persist-credentials: false
 
