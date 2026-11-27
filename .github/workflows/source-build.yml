@@ -1,0 +1,41 @@
+name: Source build
+
+on:
+  push:
+    branches: [fix/fix_the_ci]
+
+permissions:
+  contents: read
+
+jobs:
+  elements:
+    name: Elements
+    runs-on: ubuntu-24.04
+    container: ubuntu:24.04
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential ca-certificates cmake git \
+            libboost-filesystem-dev libboost-program-options-dev libboost-regex-dev \
+            libboost-system-dev libboost-test-dev libboost-thread-dev liblog4cpp5-dev \
+            python3-dev python3-pytest python3-setuptools
+
+      - name: Check out Elements 6.3.7
+        uses: actions/checkout@v6
+        with:
+          repository: astrorama/Elements
+          ref: 3e3f62e1f9be139305dbd6e242a20c16c5d6541f
+          path: Elements
+          persist-credentials: false
+
+      - name: Build and install Elements
+        working-directory: Elements
+        env:
+          CMAKEFLAGS: -DPYTHON_EXPLICIT_VERSION=3 -DUSE_SPHINX=OFF
+        run: make -j2 VERBOSE=1 install
+
+      - name: Verify installed Elements makefile
+        working-directory: Elements
+        run: cmp make/Elements.mk InstallArea/*/make/Elements.mk
