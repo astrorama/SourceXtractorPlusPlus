@@ -1,10 +1,17 @@
 """Propagate test failures that the Elements make tests target ignores."""
 
 import sys
+from pathlib import Path
 from xml.etree import ElementTree
 
 
 def check_report(path):
+    # CTest reports missing executables as skipped in JUnit, but lists them as failed here.
+    for log in Path(path).parent.glob("Temporary/LastTestsFailed*.log"):
+        failures = log.read_text(encoding="utf-8").strip()
+        if failures:
+            raise SystemExit(f"CTest listed failed tests in {log}:\n{failures}")
+
     suite = ElementTree.parse(path).getroot()
     cases = suite.findall("testcase")
     if suite.tag != "testsuite" or not cases or len(cases) != int(suite.attrib["tests"]):
